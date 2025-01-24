@@ -20,7 +20,7 @@ done
 ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build )
 
 if [[ -n "$SKIP_TESTS" ]]; then
-    ARGUMENTS+=(-xtest -xintegrationTest -xintTest)
+    ARGUMENTS+=(-xcheckstyleMain -xcheckstyleTest -xlicenseMain -xtest -xintegrationTest -xintTest)
 else
     ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 fi

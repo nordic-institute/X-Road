@@ -32,4 +32,6 @@ import lombok.experimental.UtilityClass;
 public class Port {
     public static final int UI = 4000;
     public static final int PROXY = 8080;
+
+    public static final int EDC_MANAGEMENT = 9193;
 }

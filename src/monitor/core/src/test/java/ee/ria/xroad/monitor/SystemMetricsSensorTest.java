@@ -25,8 +25,8 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
+import ee.ria.xroad.common.properties.CommonRpcProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import com.codahale.metrics.Histogram;
@@ -38,10 +38,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.io.IOException;
@@ -69,6 +72,16 @@ class SystemMetricsSensorTest {
     private static RpcServer rpcServer;
     private static StatsResp response;
 
+    private static final RpcCredentialsConfigurer RPC_CREDENTIALS_CONFIGURER = new RpcCredentialsConfigurer(
+            new CommonRpcProperties(false, null), null);
+
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
+            Duration.ofDays(1),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(1),
+            true);
+
     @Spy
     private MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -78,22 +91,19 @@ class SystemMetricsSensorTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
-        System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getGrpcInternalHost(), PORT, serverBuilder ->
-                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
-                    @Override
-                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
-                        responseObserver.onNext(response);
-                        responseObserver.onCompleted();
-                    }
-                }));
+        rpcServer = new RpcServer("127.0.0.1", PORT, RPC_CREDENTIALS_CONFIGURER.createServerCredentials(),
+                serverBuilder ->
+                        serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                            @Override
+                            public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                                responseObserver.onNext(response);
+                                responseObserver.onCompleted();
+                            }
+                        }));
         rpcServer.afterPropertiesSet();
     }
 
@@ -109,7 +119,10 @@ class SystemMetricsSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler);
+        ProxyRpcChannelProperties proxyRpcClientProperties = new ProxyRpcChannelProperties("localhost", PORT, 60000);
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, envMonitorProperties,
+                new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties);
+        systemMetricsSensor.afterPropertiesSet();
 
         response = StatsResp.newBuilder()
                 .setOpenFileDescriptorCount(0)

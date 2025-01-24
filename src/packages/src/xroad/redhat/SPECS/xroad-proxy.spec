@@ -13,6 +13,7 @@ Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
+#Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool, yq
 Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd
@@ -78,10 +79,6 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
 
-%dir /etc/xroad/jetty
-%config /etc/xroad/jetty/clientproxy.xml
-%config /etc/xroad/jetty/serverproxy.xml
-%config /etc/xroad/jetty/ocsp-responder.xml
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
 
@@ -106,7 +103,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/proxy*.jar
 /usr/share/xroad/scripts/backup_db.sh
 /usr/share/xroad/scripts/restore_db.sh
-/usr/share/xroad/scripts/verify_internal_configuration.sh
 /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh

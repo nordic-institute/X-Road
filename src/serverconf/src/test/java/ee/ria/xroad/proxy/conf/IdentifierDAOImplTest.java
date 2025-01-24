@@ -25,8 +25,8 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -49,6 +49,7 @@ public class IdentifierDAOImplTest {
 
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
     private Session session;
+    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf", TestUtil.serverConfHibernateProperties);
 
     /**
      * Prepares test database.
@@ -56,7 +57,7 @@ public class IdentifierDAOImplTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        TestUtil.prepareDB();
+        TestUtil.prepareDB(DATABASE_CTX);
     }
 
     /**
@@ -64,7 +65,7 @@ public class IdentifierDAOImplTest {
      */
     @Before
     public void beginTransaction() {
-        session = ServerConfDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -72,7 +73,7 @@ public class IdentifierDAOImplTest {
      */
     @After
     public void commitTransaction() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**

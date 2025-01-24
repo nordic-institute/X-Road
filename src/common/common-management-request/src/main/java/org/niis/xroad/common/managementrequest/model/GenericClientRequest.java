@@ -33,8 +33,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultiPartOutputStream;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
+import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.SignerRpcClient.MemberSigningInfoDto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +56,7 @@ abstract class GenericClientRequest implements ManagementRequest {
     private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID =
             SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
+    private final SignerRpcClient signerRpcClient;
     private final ClientId client;
     private final SoapMessageImpl requestMessage;
 
@@ -65,7 +66,8 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private MultiPartOutputStream multipart;
 
-    GenericClientRequest(ClientId client, SoapMessageImpl request) {
+    GenericClientRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
+        this.signerRpcClient = signerRpcClient;
         this.client = client;
         this.requestMessage = request;
 
@@ -129,7 +131,7 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private MemberSigningInfoDto getMemberSigningInfo() {
         try {
-            MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(client);
+            MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(client);
 
             clientCert = signingInfo.cert();
 
@@ -139,9 +141,9 @@ abstract class GenericClientRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
+    private byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
-            return Signatures.useAsn1DerFormat(signAlgoId, SignerProxy.sign(keyId, signAlgoId, digest));
+            return Signatures.useAsn1DerFormat(signAlgoId, signerRpcClient.sign(keyId, signAlgoId, digest));
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

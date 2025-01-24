@@ -1,0 +1,19 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+
+dependencies {
+    api(project(':common:common-keyconf'))
+    api(project(':common:common-globalconf'))
+    api(project(':common:common-verifier'))
+    api project(':signer-protocol')
+
+    api libs.dss.jades
+    api libs.dss.xades
+    api libs.dss.token
+    api libs.dss.utils.apache.commons
+    api libs.dss.xml.common
+    api libs.dss.evidence.record.xml
+    api libs.nimbus.jose.jwt
+}

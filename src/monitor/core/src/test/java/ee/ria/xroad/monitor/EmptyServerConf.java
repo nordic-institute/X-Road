@@ -26,17 +26,22 @@
 package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.AccessRightPath;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 
@@ -79,6 +84,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public RestServiceDetailsListType getRestServices(
             ClientId serviceProvider) {
+        return null;
+    }
+
+    @Override
+    public Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
         return null;
     }
 
@@ -134,6 +144,14 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return false;
+    }
+
+    @Override
+    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return false;
+    }
     public List<ClientId.Conf> getMembers() throws Exception {
         return emptyList();
     }
@@ -141,6 +159,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
         return emptyList();
+    }
+
+    @Override
+    public Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return Map.of();
     }
 
     @Override

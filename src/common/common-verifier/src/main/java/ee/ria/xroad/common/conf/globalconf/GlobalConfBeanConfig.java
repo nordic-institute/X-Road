@@ -25,24 +25,49 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.properties.CommonGlobalConfProperties;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static ee.ria.xroad.common.properties.CommonGlobalConfProperties.GlobalConfSource.REMOTE;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableScheduling
 @RequiredArgsConstructor
+@EnableConfigurationProperties(CommonGlobalConfProperties.class)
 public class GlobalConfBeanConfig {
 
     @Bean
-    GlobalConfSource globalConfSource() {
+    GlobalConfSource globalConfSource(Optional<ConfClientRpcClient> globalConfClient,
+                                      RemoteGlobalConfDataLoader remoteGlobalConfDataLoader,
+                                      CommonGlobalConfProperties commonGlobalConfProperties) {
+        if (commonGlobalConfProperties.source() == REMOTE) {
+            if (globalConfClient.isEmpty()) {
+                throw new IllegalStateException("GlobalConf remoting is enabled, but globalConfClient is not available");
+            } else {
+                log.info("GlobalConf source is set to: RemoteGlobalConfSource(gRPC)");
+                return new RemoteGlobalConfSource(
+                        globalConfClient.get(),
+                        remoteGlobalConfDataLoader);
+            }
+        }
         log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
         return new FileSystemGlobalConfSource(getConfigurationPath());
+    }
+
+    @Bean
+    RemoteGlobalConfDataLoader remoteGlobalConfDataLoader() {
+        return new RemoteGlobalConfDataLoader();
     }
 
     @Bean

@@ -37,6 +37,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
+import org.niis.xroad.proxy.ProxyProperties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -53,8 +54,9 @@ public class ServerProxyHandlerTest {
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         var certChainFactory = mock(CertChainFactory.class);
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, mock(HttpClient.class), mock(HttpClient.class));
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(ProxyProperties.ServerProperties.class),
+                globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, mock(HttpClient.class), mock(HttpClient.class), mock(ServiceHandlerLoader.class));
 
         try (
                 var checkMock = mockStatic(ClientProxyVersionVerifier.class)

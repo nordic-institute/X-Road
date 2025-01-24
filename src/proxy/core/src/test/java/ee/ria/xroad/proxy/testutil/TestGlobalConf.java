@@ -32,6 +32,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -41,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Test globalconf implementation.
@@ -55,6 +57,11 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public Collection<String> getProviderAddress(ClientId provider) {
         return Collections.singleton("127.0.0.1");
+    }
+
+    @Override
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
+        return Set.of(new SharedParameters.SecurityServer(new SharedParameters.ServerAddress("127.0.0.1", "")));
     }
 
     @Override

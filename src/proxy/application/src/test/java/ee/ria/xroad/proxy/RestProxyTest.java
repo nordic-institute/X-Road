@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
@@ -38,11 +39,18 @@ import ee.ria.xroad.proxy.testutil.TestService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.util.JettyUtils.getContentLength;
@@ -56,9 +64,20 @@ import static org.junit.Assert.assertNotNull;
  * RestProxyTest
  */
 @Slf4j
+@SpringBootTest(
+        classes = {ProxyMain.class, AbstractProxyIntegrationTest.TestProxySpringConfig.class}
+)
+@RunWith(SpringRunner.class)
 public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
+
+    @BeforeClass
+    public static void setup() throws Exception {
+        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
+        org.apache.xml.security.Init.init();
+        AbstractProxyIntegrationTest.setSystemProperties(Map.of());
+    }
 
     @Test
     public void shouldFailIfClientHeaderMissing() {

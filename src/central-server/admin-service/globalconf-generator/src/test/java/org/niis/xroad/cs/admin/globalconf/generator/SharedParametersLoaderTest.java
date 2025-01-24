@@ -174,7 +174,7 @@ class SharedParametersLoaderTest {
     private void assertSecurityServers(SharedParameters parameters) {
         assertThat(parameters.getSecurityServers()).singleElement().satisfies(ss -> {
             assertThat(ss.getOwner()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
-            assertThat(ss.getAddress()).isEqualTo(SECURITY_SERVER_ADDRESS);
+            assertThat(ss.getServerAddress().address()).isEqualTo(SECURITY_SERVER_ADDRESS);
             assertThat(ss.getServerCode()).isEqualTo(SECURITY_SERVER_CODE);
             assertThat(ss.getClients()).singleElement()
                     .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));

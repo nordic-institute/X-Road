@@ -1,0 +1,1479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan">
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="host" elementType="Argument">
+            <stringProp name="Argument.name">host</stringProp>
+            <stringProp name="Argument.value">${__P(host, ec2-52-17-177-61.eu-west-1.compute.amazonaws.com )}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Host of Webservice</stringProp>
+          </elementProp>
+          <elementProp name="loadtest-threads" elementType="Argument">
+            <stringProp name="Argument.name">loadtest-threads</stringProp>
+            <stringProp name="Argument.value">${__P(threads,50)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="loadtest-duration" elementType="Argument">
+            <stringProp name="Argument.name">loadtest-duration</stringProp>
+            <stringProp name="Argument.value">${__P(duration,120)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="loadtest-rampup" elementType="Argument">
+            <stringProp name="Argument.name">loadtest-rampup</stringProp>
+            <stringProp name="Argument.value">${__P(rampup,30)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="xroad-instance" elementType="Argument">
+            <stringProp name="Argument.name">xroad-instance</stringProp>
+            <stringProp name="Argument.value">${__P(testproperty,DEV)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="client-membercode" elementType="Argument">
+            <stringProp name="Argument.name">client-membercode</stringProp>
+            <stringProp name="Argument.value">${__P(client-membercode, 4321)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="client-memberclass" elementType="Argument">
+            <stringProp name="Argument.name">client-memberclass</stringProp>
+            <stringProp name="Argument.value">${__P(client-memberclass, COM)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="client-subsystemcode" elementType="Argument">
+            <stringProp name="Argument.name">client-subsystemcode</stringProp>
+            <stringProp name="Argument.value">${__P(client-subsystemcode, TestClient)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="service-membercode" elementType="Argument">
+            <stringProp name="Argument.name">service-membercode</stringProp>
+            <stringProp name="Argument.value">${__P(service-membercode, 1234)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="service-memberclass" elementType="Argument">
+            <stringProp name="Argument.name">service-memberclass</stringProp>
+            <stringProp name="Argument.value">${__P(service-memberclass, COM)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="service-subsystemcode" elementType="Argument">
+            <stringProp name="Argument.name">service-subsystemcode</stringProp>
+            <stringProp name="Argument.value">${__P(service-subsystemcode, TestService)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="path" elementType="Argument">
+            <stringProp name="Argument.name">path</stringProp>
+            <stringProp name="Argument.value">/</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="port" elementType="Argument">
+            <stringProp name="Argument.name">port</stringProp>
+            <stringProp name="Argument.value">4310</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="buildNumber" elementType="Argument">
+            <stringProp name="Argument.name">buildNumber</stringProp>
+            <stringProp name="Argument.value">${__P(buildNumber,0)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="rest-use-legacy-transport" elementType="Argument">
+            <stringProp name="Argument.name">rest-use-legacy-transport</stringProp>
+            <stringProp name="Argument.value">true</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+        <stringProp name="TestPlan.comments">http://ss1:4310/r1/DEV/COM/1234/TestService/mock1</stringProp>
+      </Arguments>
+      <hashTree/>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
+        <stringProp name="HTTPSampler.domain">${host}</stringProp>
+        <stringProp name="HTTPSampler.port">${port}</stringProp>
+        <stringProp name="HTTPSampler.path">${path}</stringProp>
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+          <collectionProp name="Arguments.arguments"/>
+        </elementProp>
+        <stringProp name="HTTPSampler.implementation"></stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="warmup-load-test">
+        <intProp name="ThreadGroup.num_threads">2</intProp>
+        <intProp name="ThreadGroup.ramp_time">0</intProp>
+        <longProp name="ThreadGroup.duration">30</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="NOT-USED-warmup-testservice-xroad-1k" enabled="false">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot;&#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;TEST7a&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;testService&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:testService&gt;&#xd;
+      	&lt;responseBodySize&gt;1000&lt;/responseBodySize&gt;&#xd;
+          &lt;responseAttachmentSize&gt;0&lt;/responseAttachmentSize&gt;&#xd;
+      &lt;/prod:testService&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="warmup-rest-testservice-xroad-1k" enabled="true">
+          <stringProp name="HTTPSampler.path">/r1/${xroad-instance}/${service-memberclass}/${service-membercode}/${service-subsystemcode}/payloadgen/data/1000</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Client</stringProp>
+                <stringProp name="Header.value">${xroad-instance}/${client-memberclass}/${client-membercode}/${client-subsystemcode}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="warmup-rest-testservice-xroad-10k" enabled="true">
+          <stringProp name="HTTPSampler.path">/r1/${xroad-instance}/${service-memberclass}/${service-membercode}/${service-subsystemcode}/payloadgen/data/10000</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Client</stringProp>
+                <stringProp name="Header.value">${xroad-instance}/${client-memberclass}/${client-membercode}/${client-subsystemcode}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="warmup-rest-payloadgen-direct-1k" enabled="false">
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">4700</stringProp>
+          <stringProp name="HTTPSampler.path">data/1000</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Client</stringProp>
+                <stringProp name="Header.value">${xroad-instance}/${client-memberclass}/${client-membercode}/${client-subsystemcode}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="warmup-rest-mock1" enabled="false">
+          <stringProp name="HTTPSampler.path">/r1/${xroad-instance}/${service-memberclass}/${service-membercode}/${service-subsystemcode}/mock1</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Client</stringProp>
+                <stringProp name="Header.value">${xroad-instance}/${client-memberclass}/${client-membercode}/${client-subsystemcode}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="warmup-soap-getrandom" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope &#xd;
+xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; &#xd;
+xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot; &#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;loadtest&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;getRandom&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:getRandom /&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1463334682">getRandomResponse</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="load-test-rest-testservice-xroad" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
+        <stringProp name="ThreadGroup.duration">${loadtest-duration}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="loadtest-rest-testservice-xroad-1k" enabled="true">
+          <stringProp name="HTTPSampler.path">/r1/${xroad-instance}/${service-memberclass}/${service-membercode}/${service-subsystemcode}/payloadgen/data/1000</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Client</stringProp>
+                <stringProp name="Header.value">${xroad-instance}/${client-memberclass}/${client-membercode}/${client-subsystemcode}</stringProp>
+              </elementProp>
+              <elementProp name="X-Road-Force-Legacy-Transport" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="loadtest-rest-testservice-xroad-10k" enabled="true">
+          <stringProp name="HTTPSampler.path">/r1/${xroad-instance}/${service-memberclass}/${service-membercode}/${service-subsystemcode}/payloadgen/data/10000</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Client</stringProp>
+                <stringProp name="Header.value">${xroad-instance}/${client-memberclass}/${client-membercode}/${client-subsystemcode}</stringProp>
+              </elementProp>
+              <elementProp name="X-Road-Force-Legacy-Transport" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="load-test-soap-getrandom" enabled="true">
+        <boolProp name="ThreadGroup.delayedStart">true</boolProp>
+        <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
+        <stringProp name="ThreadGroup.duration">${loadtest-duration}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="getrandom-xroad" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope &#xd;
+xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; &#xd;
+xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot; &#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;loadtest&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;getRandom&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:getRandom /&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1463334682">getRandomResponse</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="getrandom-xroad-2" enabled="false">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope &#xd;
+xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; &#xd;
+xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot; &#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;loadtest&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;getRandom&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:getRandom /&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1463334682">getRandomResponse</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+      <ResultCollector guiclass="StatGraphVisualizer" testclass="ResultCollector" testname="Aggregate Graph">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>false</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>true</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <hostname>true</hostname>
+            <threadCounts>true</threadCounts>
+            <sampleCount>true</sampleCount>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="false">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>false</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results" enabled="false">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>false</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>false</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <threadCounts>true</threadCounts>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <Summariser guiclass="SummariserGui" testclass="Summariser" testname="Generate Summary Results" enabled="true"/>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="NOT-USED-load-test-getrandom-direct" enabled="false">
+        <boolProp name="ThreadGroup.delayedStart">true</boolProp>
+        <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
+        <stringProp name="ThreadGroup.duration">${loadtest-duration}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="getrandom-direct" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope &#xd;
+xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; &#xd;
+xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot; &#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.x&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;loadtest&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;getRandom&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:getRandom /&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1463334682">getRandomResponse</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
+          <collectionProp name="UserParameters.names">
+            <stringProp name="3208616">host</stringProp>
+            <stringProp name="3433509">path</stringProp>
+            <stringProp name="3446913">port</stringProp>
+          </collectionProp>
+          <collectionProp name="UserParameters.thread_values">
+            <collectionProp name="672077646">
+              <stringProp name="-648892426">gdev-loadtest-is.i.palveluvayla.com</stringProp>
+              <stringProp name="-862494297">/example-adapter/Endpoint</stringProp>
+              <stringProp name="1716208">8080</stringProp>
+            </collectionProp>
+          </collectionProp>
+          <boolProp name="UserParameters.per_iteration">false</boolProp>
+        </UserParameters>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="NOT-USED-load-test-testservice-xroad" enabled="false">
+        <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
+        <stringProp name="ThreadGroup.duration">${loadtest-duration}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="testservice-xroad-1k" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot;&#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;TEST7a&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;         &#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;testService&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:testService&gt;&#xd;
+      	&lt;responseBodySize&gt;1000&lt;/responseBodySize&gt;&#xd;
+          &lt;responseAttachmentSize&gt;0&lt;/responseAttachmentSize&gt;&#xd;
+      &lt;/prod:testService&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="195966080">processingTime</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="testservice-xroad-10k" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot;&#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;TEST7a&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;testService&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:testService&gt;&#xd;
+      	&lt;responseBodySize&gt;10000&lt;/responseBodySize&gt;&#xd;
+          &lt;responseAttachmentSize&gt;0&lt;/responseAttachmentSize&gt;&#xd;
+      &lt;/prod:testService&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="195966080">processingTime</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="NOT-USED-load-test-testservice-direct" enabled="false">
+        <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
+        <stringProp name="ThreadGroup.duration">${loadtest-duration}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="testservice-direct-1k" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot;&#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.x&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;TEST7a&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;testService&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:testService&gt;&#xd;
+         &lt;request&gt;&#xd;
+            &lt;responseBodySize&gt;1000&lt;/responseBodySize&gt;&#xd;
+            &lt;responseAttachmentSize&gt;0&lt;/responseAttachmentSize&gt;&#xd;
+         &lt;/request&gt;&#xd;
+      &lt;/prod:testService&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1407609820">responseBodySize</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="testservice-direct-10k" enabled="true">
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; &#xd;
+xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot;&#xd;
+xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
+   &lt;soapenv:Header&gt;&#xd;
+      &lt;xro:protocolVersion&gt;4.x&lt;/xro:protocolVersion&gt;&#xd;
+      &lt;xro:id&gt;TEST7a&lt;/xro:id&gt;&#xd;
+      &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;&#xd;
+      &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${client-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${client-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${client-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+      &lt;/xro:client&gt;&#xd;
+      &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;&#xd;
+         &lt;iden:xRoadInstance&gt;${xroad-instance}&lt;/iden:xRoadInstance&gt;&#xd;
+         &lt;iden:memberClass&gt;${service-memberclass}&lt;/iden:memberClass&gt;&#xd;
+         &lt;iden:memberCode&gt;${service-membercode}&lt;/iden:memberCode&gt;&#xd;
+         &lt;iden:subsystemCode&gt;${service-subsystemcode}&lt;/iden:subsystemCode&gt;&#xd;
+         &lt;iden:serviceCode&gt;testService&lt;/iden:serviceCode&gt;&#xd;
+         &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;&#xd;
+      &lt;/xro:service&gt;&#xd;
+   &lt;/soapenv:Header&gt;&#xd;
+   &lt;soapenv:Body&gt;&#xd;
+      &lt;prod:testService&gt;&#xd;
+         &lt;request&gt;&#xd;
+            &lt;responseBodySize&gt;10000&lt;/responseBodySize&gt;&#xd;
+            &lt;responseAttachmentSize&gt;0&lt;/responseAttachmentSize&gt;&#xd;
+         &lt;/request&gt;&#xd;
+      &lt;/prod:testService&gt;&#xd;
+   &lt;/soapenv:Body&gt;&#xd;
+&lt;/soapenv:Envelope&gt;</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-Type</stringProp>
+                <stringProp name="Header.value">text/xml; charset=utf-8</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">SOAPAction</stringProp>
+                <stringProp name="Header.value"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="-1407609820">responseBodySize</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">16</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="2097215100">Fault&gt;</stringProp>
+            </collectionProp>
+            <stringProp name="TestPlan.comments">Verify content in response</stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">20</intProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="RespTimeGraphVisualizer" testclass="ResultCollector" testname="Response Time Graph" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>false</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>false</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="User Parameters" enabled="true">
+          <collectionProp name="UserParameters.names">
+            <stringProp name="3208616">host</stringProp>
+            <stringProp name="3433509">path</stringProp>
+            <stringProp name="3446913">port</stringProp>
+          </collectionProp>
+          <collectionProp name="UserParameters.thread_values">
+            <collectionProp name="-1495024014">
+              <stringProp name="112209">qqq</stringProp>
+              <stringProp name="1368711973">/test-service-0.0.2-SNAPSHOT/Endpoint</stringProp>
+              <stringProp name="1716208">8080</stringProp>
+            </collectionProp>
+          </collectionProp>
+          <boolProp name="UserParameters.per_iteration">false</boolProp>
+        </UserParameters>
+        <hashTree/>
+      </hashTree>
+      <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Backend Listener" enabled="false">
+        <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="influxdbMetricsSender" elementType="Argument">
+              <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+              <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="influxdbUrl" elementType="Argument">
+              <stringProp name="Argument.name">influxdbUrl</stringProp>
+              <stringProp name="Argument.value">http://grafana.i.x-road.rocks:8086/write?db=jmeter</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="application" elementType="Argument">
+              <stringProp name="Argument.name">application</stringProp>
+              <stringProp name="Argument.value">xroad</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="measurement" elementType="Argument">
+              <stringProp name="Argument.name">measurement</stringProp>
+              <stringProp name="Argument.value">jmeter</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="summaryOnly" elementType="Argument">
+              <stringProp name="Argument.name">summaryOnly</stringProp>
+              <stringProp name="Argument.value">false</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="samplersRegex" elementType="Argument">
+              <stringProp name="Argument.name">samplersRegex</stringProp>
+              <stringProp name="Argument.value">.*</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="percentiles" elementType="Argument">
+              <stringProp name="Argument.name">percentiles</stringProp>
+              <stringProp name="Argument.value">50;90;95;99</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="testTitle" elementType="Argument">
+              <stringProp name="Argument.name">testTitle</stringProp>
+              <stringProp name="Argument.value">Loadtest ${buildNumber}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="eventTags" elementType="Argument">
+              <stringProp name="Argument.name">eventTags</stringProp>
+              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </elementProp>
+        <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+      </BackendListener>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

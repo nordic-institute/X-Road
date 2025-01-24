@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.exception.SignerException;
 
 import org.junit.Assert;
@@ -46,7 +47,6 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 
 import java.util.ArrayList;
@@ -85,7 +85,7 @@ public class InitializationServiceTest {
     @Mock
     private ServerConfService serverConfService;
     @Mock
-    private SignerProxyFacade signerProxyFacade;
+    private SignerRpcClient signerRpcClient;
     @Mock
     private AuditDataHelper auditDataHelper;
     @Mock
@@ -108,7 +108,7 @@ public class InitializationServiceTest {
         when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
                 new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<>()));
         initializationService = new InitializationService(systemService, serverConfService,
-                tokenService, globalConfProvider, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator,
+                tokenService, globalConfProvider, clientService, signerRpcClient, auditDataHelper, tokenPinValidator,
                 externalProcessRunner);
     }
 
@@ -273,7 +273,7 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeFailToken() throws Exception {
-        doThrow(new SignerException("Error")).when(signerProxyFacade).initSoftwareToken(any());
+        doThrow(new SignerException("Error")).when(signerRpcClient).initSoftwareToken(any());
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);

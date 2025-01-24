@@ -29,15 +29,18 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.util.JettyUtil;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
@@ -47,21 +50,17 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.niis.xroad.proxy.ProxyProperties;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
-public class ServerProxy implements InitializingBean, DisposableBean {
+public class ServerProxy {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
 
@@ -72,11 +71,12 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
     private final Server server = new Server();
 
+    private final ProxyProperties.ServerProperties serverProperties;
+    private final AntiDosConfiguration antiDosConfiguration;
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
@@ -85,39 +85,34 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
 
-    private String listenAddress;
-
     private CloseableHttpClient opMonitorClient;
 
-    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
-                       CertChainFactory certChainFactory) throws Exception {
-        this(globalConfProvider, keyConfProvider, serConfProvider, certChainFactory, SystemProperties.getServerProxyListenAddress());
-    }
+    public ServerProxy(ProxyProperties.ServerProperties serverProperties, AntiDosConfiguration antiDosConfiguration,
+                       GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                       ServerConfProvider serConfProvider,
+                       CertChainFactory certChainFactory, ServiceHandlerLoader serviceHandlerLoader) throws Exception {
 
-    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
-                       CertChainFactory certChainFactory, String listenAddress) throws Exception {
+        this.serverProperties = serverProperties;
+        this.antiDosConfiguration = antiDosConfiguration;
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serConfProvider;
         this.certChainFactory = certChainFactory;
-        this.listenAddress = listenAddress;
 
         configureServer();
 
         createClient();
         createOpMonitorClient();
         createConnectors();
-        createHandlers();
+        createHandlers(serviceHandlerLoader);
     }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyServerProxyConfFile());
-
-        log.debug("Configuring server from {}", file);
-
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        var config = serverProperties.jettyConfigurationFile();
+        log.debug("Configuring server from {}", config);
+        new XmlConfiguration(JettyUtil.toResource(config)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
@@ -146,16 +141,16 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
-        int port = SystemProperties.getServerProxyListenPort();
+        int port = serverProperties.listenPort();
 
         ServerConnector connector = SystemProperties.isSslEnabled()
                 ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
-        connector.setHost(listenAddress);
+        connector.setHost(serverProperties.listenAddress());
 
-        connector.setIdleTimeout(SystemProperties.getServerProxyConnectorInitialIdleTime());
+        connector.setIdleTimeout(serverProperties.connectorInitialIdleTime());
 
         connector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -170,14 +165,14 @@ public class ServerProxy implements InitializingBean, DisposableBean {
 
         server.addConnector(connector);
 
-        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), listenAddress, port);
+        log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), serverProperties.listenAddress(), port);
     }
 
-    private void createHandlers() {
+    private void createHandlers(ServiceHandlerLoader serviceHandlerLoader) {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, client, opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(serverProperties, globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, client, opMonitorClient, serviceHandlerLoader);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);
@@ -185,7 +180,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
         server.setHandler(handler);
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.trace("start()");
 
@@ -193,16 +188,14 @@ public class ServerProxy implements InitializingBean, DisposableBean {
         connMonitor.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         log.trace("stop()");
 
-        connMonitor.shutdown();
+        connMonitor.destroy();
         client.close();
         opMonitorClient.close();
         server.stop();
-
-        HibernateUtil.closeSessionFactories();
     }
 
     /**
@@ -213,21 +206,22 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     }
 
     private ServerConnector createClientProxyConnector() {
-        return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
+        return antiDosConfiguration.isEnabled()
+                ? new AntiDosConnector(antiDosConfiguration, globalConfProvider, server, ACCEPTOR_COUNT)
+                : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
     private ServerConnector createClientProxySslConnector() throws Exception {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
-        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        cf.setIncludeProtocols(CryptoUtils.SSL_SUPPORTED_PROTOCOLS);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         cf.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
 
-        return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT, cf)
+        return antiDosConfiguration.isEnabled()
+                ? new AntiDosConnector(antiDosConfiguration, globalConfProvider, server, ACCEPTOR_COUNT, cf)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
     }
 

@@ -28,8 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -37,7 +36,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
@@ -45,13 +43,12 @@ import static org.junit.Assert.assertEquals;
 /**
  * test ClientRepository
  */
-@RunWith(SpringRunner.class)
 @DataJpaTest
 @AutoConfigureTestDatabase
 @Slf4j
 @EntityScan("org.niis.xroad.restapi.entity")
 @Transactional
-public class ExampleJpaTest {
+class ExampleJpaTest {
 
     // TestEntityManager only works with DataJpaTests (?)
     // and DataJpaTests only inject jpa repositories (which we
@@ -64,7 +61,7 @@ public class ExampleJpaTest {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    public void testTestEntityManager() {
+    void testTestEntityManager() {
         ServerConfType conf2 = new ServerConfType();
         conf2.setServerCode("from-test");
         conf2.setId(null);
@@ -79,8 +76,9 @@ public class ExampleJpaTest {
     }
 
     @Test
-    @SuppressWarnings("squid:S2699") // false positive: test asserts that expected exception is thrown
-    public void testThatConstraintsWork() {
+    @SuppressWarnings("squid:S2699")
+        // false positive: test asserts that expected exception is thrown
+    void testThatConstraintsWork() {
         // null conf_id is allowed
         jdbcTemplate.update("INSERT INTO CLIENT (id, conf_id, identifier)"
                 + " values (1000, null, null)");

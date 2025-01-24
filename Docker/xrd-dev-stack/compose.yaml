@@ -1,16 +1,18 @@
 services:
   cs:
     image: ${CS_IMG}
+    environment:
+      - XROAD_ENV=central-server
     deploy:
       resources:
         reservations:
-          memory: 512M
-        limits:
-          memory: 2560M
+          memory: 1G
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss0:
     image: ${SS_IMG}
     environment:
@@ -19,28 +21,47 @@ services:
     deploy:
       resources:
         reservations:
-          memory: 512M
-        limits:
-          memory: 2560M
+          memory: 2G
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss1:
     image: ${SS_IMG}
     environment:
+      - XROAD_TOKEN_PIN=Secret1234
       - PROXY_JMX_PORT=4399
       - SIGNER_JMX_PORT=4398
     deploy:
       resources:
         reservations:
-          memory: 512M
+          memory: 1G
         limits:
-          memory: 2560M
+          memory: 5G
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
+  ss2:
+    image: ${SS_XRD7_IMG}
+    profiles:
+      - xrd7
+    deploy:
+      resources:
+        reservations:
+          memory: 1G
+        limits:
+          memory: 2G
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   testca:
     image: ${CA_IMG}
     deploy:
@@ -55,6 +76,8 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
       - ca-volume:/home/ca/certs
+    networks:
+      - xroad-network
   mailpit:
     image: axllent/mailpit
     restart: unless-stopped
@@ -79,6 +102,8 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
+    networks:
+      - xroad-network
     entrypoint: [ "java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war" ]
   isrest:
     image: wiremock/wiremock:latest
@@ -94,6 +119,8 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
+    networks:
+      - xroad-network
   hurl:
     build:
         context: ../../development/hurl
@@ -121,3 +148,7 @@ services:
         condition: service_healthy
 volumes:
   ca-volume:
+networks:
+  xroad-network:
+    name: xroad-network
+    driver: bridge

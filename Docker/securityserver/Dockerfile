@@ -10,7 +10,7 @@ RUN apt-get -qq update \
     && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-21-jre-headless rlwrap ca-certificates-java \
-        crudini adduser expect curl rsyslog dpkg-dev \
+        crudini adduser expect curl rsyslog dpkg-dev nano \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
     && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -37,6 +37,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+        xroad-ds-identity-hub xroad-ds-control-plane xroad-ds-data-plane \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
@@ -54,6 +55,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+        xroad-ds-identity-hub xroad-ds-control-plane xroad-ds-data-plane \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up
@@ -86,8 +88,15 @@ COPY --chown=xroad:xroad files/etc /etc/
 COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
-COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# dataspaces
+COPY build/libs/ /usr/share/xroad/jlib/
+
+ENV EDC_HOSTNAME=localhost
+ENV EDC_DID=did:web:localhost
+# end of dataspaces
+
 CMD ["/root/entrypoint.sh"]
 
 VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]

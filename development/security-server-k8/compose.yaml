@@ -1,0 +1,207 @@
+services:
+  db-serverconf:
+    image: postgres:17
+    environment:
+      - POSTGRES_PASSWORD=secret #TODO use separate users for runtime and admin see: https://hub.docker.com/_/postgres
+      - POSTGRES_USER=serverconf
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+#    volumes: TODO not required for now
+#        - db-volume:/var/lib/postgresql/data
+  db-messagelog:
+    image: postgres:17
+    environment:
+      - POSTGRES_PASSWORD=secret #TODO use separate users
+      - POSTGRES_USER=messagelog
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+  #    volumes: TODO not required for now
+  #        - db-volume:/var/lib/postgresql/data
+  db-serverconf-init:
+    image: liquibase:4.29 #TODO probably release standalone image with embedded changelog
+    volumes:
+      - ./../../src/security-server/admin-service/infra-jpa/src/main/resources/liquibase/:/liquibase/changelog
+    environment:
+      - db_user=serverconf
+      - db_schema=public
+    command:
+      - --changeLogFile=changelog/serverconf-changelog.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://db-serverconf:5432/serverconf
+      - --username=serverconf
+      - --password=secret
+      - --log-level=debug
+      - update
+    depends_on:
+      - db-serverconf
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  db-messagelog-init:
+    image: liquibase:4.29 #TODO probably release standalone image with embedded changelog
+    volumes:
+      - ./../../src/packages/src/xroad/common/addon/proxy/:/liquibase/changelog
+    environment:
+      - db_user=messagelog
+      - db_schema=public
+    command:
+      - --changeLogFile=changelog/messagelog-changelog.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://db-messagelog:5432/messagelog
+      - --username=messagelog
+      - --password=secret
+      - --log-level=debug
+      - update
+    depends_on:
+      - db-messagelog
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  config:
+    image: xroad-ss-config:latest
+    networks:
+      - xrd-ss-network
+    volumes:
+      - ./config:/etc/xroad/conf.d
+    healthcheck:
+      interval: 3s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5580/actuator/health" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 256M
+  confclient:
+    image: xroad-ss-confclient:latest
+    environment:
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_HOST=confclient
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5799/actuator/health" ]
+    networks:
+      - xrd-ss-network
+      - xroad-network
+    depends_on:
+      config:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+  signer:
+    image: xroad-ss-signer:latest
+    environment:
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_HOST=signer
+    volumes:
+      - ./temp-mount-xroad:/etc/xroad
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:5699/actuator/health" ]
+    networks:
+      - xroad-network
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      config:
+        condition: service_healthy
+      confclient:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 320M
+  proxy:
+    image: xroad-ss-proxy:latest
+    environment:
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_HOST=proxy
+    volumes:
+      - ./temp-mount-xroad:/etc/xroad
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:5599/actuator/health" ]
+    networks:
+      - xrd-ss-network
+      - xroad-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  ui:
+    image: xroad-ss-ui:latest
+    environment:
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
+    volumes:
+      - ./temp-mount-xroad:/etc/xroad
+      - ./temp-scripts:/usr/share/xroad/scripts
+    ports:
+      - "4700:4000" # Frontend
+      - "4790:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ]
+    networks:
+      - xrd-ss-network
+      - xroad-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+
+volumes:
+  db-volume:
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true
+  xrd-ss-network:
+    driver: bridge

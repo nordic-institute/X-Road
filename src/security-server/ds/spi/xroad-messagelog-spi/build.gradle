@@ -1,0 +1,9 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    api libs.edc.spi.core
+
+    implementation(project(":common:common-messagelog"))
+}

@@ -36,8 +36,6 @@ import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
  * ServiceDescription repository
  */
@@ -49,16 +47,6 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
 
     @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
-
-    /**
-     * Return multiple ServiceDescriptionTypes
-     * @param entityIds
-     * @return
-     */
-    public List<ServiceDescriptionType> getServiceDescriptions(Long... entityIds) {
-        ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
-        return serviceDescriptionDAO.getServiceDescriptions(persistenceUtils.getCurrentSession(), entityIds);
-    }
 
     /**
      * Return one ServiceDescriptionType

@@ -46,25 +46,25 @@ import static java.lang.Integer.numberOfLeadingZeros;
 /**
  * Builds Merkle tree from a set of hashes. Then constructs hash chains
  * for all the input hashes.
- *
+ * <p>
  * First, call the add method to add inputs to the tree. Then call
  * finishBuilding to compute the tree.
  * After computing, three methods are available to get the results.
  * - getTreeTop -- returns topmost hash of the Merkle tree that can be
- *   signed/time-stamped.
+ * signed/time-stamped.
  * - getHashChainResult -- returns XML-encoded form of the hash chain result.
  * - getHashChains -- returns array of XML-encoded hash chains, one for
- *   each input data item.
- *
+ * each input data item.
+ * <p>
  * Implementation: the binary Merkle tree is stored as an array.
  * This representation does not use pointers to child nodes, the indexes of
  * children can be calculated from the parent.
  * See http://en.wikipedia.org/wiki/Binary_tree#Arrays for details.
- *
+ * <p>
  * Physically, the tree is stored in two separate arrays: inputs (leaf nodes)
  * and nodes (non-leaf nodes). In terms of index calculations these are
  * treated as a single array consisting of nodes+inputs.
- *
+ * <p>
  * For incomplete binary trees, some inputs and nodes can be null.
  */
 public final class HashChainBuilder {
@@ -74,7 +74,9 @@ public final class HashChainBuilder {
     private static final Logger LOG =
             LoggerFactory.getLogger(HashChainBuilder.class);
 
-    /** For accessing JAXB functionality. Shared between all the builders. */
+    /**
+     * For accessing JAXB functionality. Shared between all the builders.
+     */
     private static JAXBContext jaxbCtx;
 
     /**
@@ -84,7 +86,9 @@ public final class HashChainBuilder {
 
     private static final String STEP = "STEP";
 
-    /** Hash algorithm used to hash tree nodes and inputs. */
+    /**
+     * Hash algorithm used to hash tree nodes and inputs.
+     */
     private final DigestAlgorithm hashAlgorithm;
 
     /** Array of input hashes. */
@@ -96,23 +100,34 @@ public final class HashChainBuilder {
      */
     private final Map<Integer, byte[][]> multiparts = new HashMap<>();
 
-    /** The file name to be used for data refs. */
+    /**
+     * The file name to be used for data refs.
+     */
     private String dataRefFileName;
 
-    /** Array of intermediate Merkle tree nodes. */
+    /**
+     * Array of intermediate Merkle tree nodes.
+     */
     private byte[][] nodes;
 
-    /** Maximum index a tree node can have. */
+    /**
+     * Maximum index a tree node can have.
+     */
     private int maxIndex;
 
-    /** Used for serializing XML objects. */
+    /**
+     * Used for serializing XML objects.
+     */
     private Marshaller marshaller;
 
-    /** Factory for creating XML objects. */
+    /**
+     * Factory for creating XML objects.
+     */
     private ObjectFactory objectFactory = new ObjectFactory();
 
     /**
      * Constructs a hash chain builder.
+     *
      * @param hashAlgorithm Identifier (not URL) of the hash algorithm
      *                      used in the hash chain. We assume that the
      *                      input data items were created with the same
@@ -129,6 +144,7 @@ public final class HashChainBuilder {
 
     /**
      * Adds new input hash to the tree.
+     *
      * @param hash input hash to add
      */
     public void addInputHash(byte[] hash) {
@@ -143,6 +159,7 @@ public final class HashChainBuilder {
      * Adds a set of input hashes to the tree.
      * It is assumed that all the hashes come from the same message,
      * the first one being SOAP message and the rest being attachments.
+     *
      * @param hashes set of input nashes to add
      * @throws Exception in case of errors
      */
@@ -164,6 +181,7 @@ public final class HashChainBuilder {
 
     /**
      * Finalizes the tree and computes the intermediate nodes and top hash.
+     *
      * @throws Exception in case of errors
      */
     public void finishBuilding() throws Exception {
@@ -191,6 +209,7 @@ public final class HashChainBuilder {
     /**
      * Returns the top hash of the Merkle tree, encoded as the HashChainResult
      * XML element. This data can be signed or time-stamped.
+     *
      * @param hashChainFileName name of the file containing the hash chain
      * @return top hash of the Merkle tree, encoded as the HashChainResult
      * XML element
@@ -224,6 +243,7 @@ public final class HashChainBuilder {
 
     /**
      * Returns XML-encoded hash chain for every input data item.
+     *
      * @param dataFileName name of the file containing data input items
      * @return XML-encoded hash chain for every input data item
      * @throws Exception in case of any errors
@@ -269,15 +289,15 @@ public final class HashChainBuilder {
     private void hashNodes() throws Exception {
         // levelStart -- index of first node for this level (depth)
         for (int levelStart = nodes.length / 2; levelStart > 0;
-                levelStart /= 2) {
+             levelStart /= 2) {
             // End of nodes for this level.
             int levelEnd = levelStart * 2;
 
             LOG.trace("Combining: {}-{}", levelStart, levelEnd);
             // Walk through the pairs in this level.
             for (int i = levelStart;
-                    i < levelEnd && nodes[i] != null && nodes[i + 1] != null;
-                    i += 2) {
+                 i < levelEnd && nodes[i] != null && nodes[i + 1] != null;
+                 i += 2) {
                 // Combine nodes[i] and nodes[i + 1]
                 LOG.trace("Nodes: Combining {} and {}", i, i + 1);
                 byte[] stepDigest = digestHashStep(hashAlgorithm,
@@ -327,6 +347,7 @@ public final class HashChainBuilder {
      * For incomplete trees, the hashInputs and hashNodes methods did not
      * create the necessary intermediate nodes. This method walks the tree,
      * discovers the missing nodes and, if necessary, creates them.
+     *
      * @return the hash of the fixed tree node.
      */
     private byte[] fixTree(int nodeIdx) throws Exception {
@@ -366,8 +387,7 @@ public final class HashChainBuilder {
         // Combine them and store in the current node.
         byte[] stepDigest = digestHashStep(hashAlgorithm,
                 leftValue, rightValue);
-        LOG.trace("Fixing: {} + {} -> {}", new Object[]{
-                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx});
+        LOG.trace("Fixing: {} + {} -> {}", leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx);
         nodes[nodeIdx] = stepDigest;
         return stepDigest;
     }

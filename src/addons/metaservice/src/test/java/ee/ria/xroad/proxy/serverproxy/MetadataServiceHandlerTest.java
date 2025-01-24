@@ -27,14 +27,9 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -43,13 +38,11 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
-import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -76,7 +69,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
@@ -103,7 +95,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
@@ -153,20 +144,13 @@ public class MetadataServiceHandlerTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Rule
-    public final ProvideSystemProperty hibernatePropertiesProperty
-            = new ProvideSystemProperty(SystemProperties.DATABASE_PROPERTIES,
-            "src/test/resources/hibernate.properties");
-
-
     private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
-    private ResponseWrapper mockResponse;
-    private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
     private TestServerConfWrapper serverConfProvider;
     private GlobalConfProvider globalConfProvider;
+    private DescriptionType serverConfReturnDescriptionType;
 
     /**
      * Init class-wide test instances
@@ -186,14 +170,28 @@ public class MetadataServiceHandlerTest {
     @Before
     public void init() {
 
-        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
+        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf() {
+            @Override
+            public DescriptionType getDescriptionType(ServiceId service) {
+                if (service.toString().equals("SERVICE:EE/GOV/1234TEST_CLIENT/SUBCODE5/someServiceWithWsdl122")) {
+                    return serverConfReturnDescriptionType;
+                } else {
+                    return super.getDescriptionType(service);
+                }
+            }
+            @Override
+            public String getServiceDescriptionURL(ServiceId service) {
+                if (service.toString().equals("SERVICE:EE/GOV/1234TEST_CLIENT/SUBCODE5/someServiceWithWsdl122")) {
+                    return "http://localhost:9858/wsdlMock";
+                } else {
+                    return super.getServiceDescriptionURL(service);
+                }
+            }
+        });
         globalConfProvider = new TestSuiteGlobalConf();
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
-        mockResponse = mock(ResponseWrapper.class);
-
-        mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
 
         mockProxyMessage = mock(ProxyMessage.class);
 
@@ -203,11 +201,9 @@ public class MetadataServiceHandlerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         this.mockServer.stop();
-        MetaserviceTestUtil.cleanDB();
     }
-
 
     @Test
     public void shouldBeAbleToHandleListMethods() throws Exception {
@@ -482,9 +478,7 @@ public class MetadataServiceHandlerTest {
                 .buildAsInputStream();
 
         when(mockProxyMessage.getSoapContent()).thenReturn(soapContentInputStream);
-
-        setUpDatabase(requestingWsdlForService);
-
+        serverConfReturnDescriptionType = DescriptionType.WSDL;
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withStatus(HttpStatus.FORBIDDEN_403)));
@@ -642,8 +636,7 @@ public class MetadataServiceHandlerTest {
 
         when(mockProxyMessage.getSoapContent()).thenReturn(soapContentInputStream);
 
-        setUpDatabase(requestingWsdlForService, isRest);
-
+        serverConfReturnDescriptionType = isRest ? DescriptionType.REST : DescriptionType.WSDL;
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withBodyFile("wsdl.wsdl")));
@@ -663,46 +656,6 @@ public class MetadataServiceHandlerTest {
                 Paths.get(ClassLoader.getSystemResource(filename).toURI()),
                 UTF_8
         );
-    }
-
-    private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
-        ServerConfType conf = new ServerConfType();
-        conf.setServerCode("TestServer");
-
-        ClientType client = new ClientType();
-        client.setConf(conf);
-
-        conf.getClient().add(client);
-
-        client.setIdentifier(serviceId.getClientId());
-
-        ServiceDescriptionType wsdl = new ServiceDescriptionType();
-        wsdl.setClient(client);
-        wsdl.setUrl(MOCK_SERVER_WSDL_URL);
-        if (isRest) {
-            wsdl.setType(DescriptionType.REST);
-        } else {
-            wsdl.setType(DescriptionType.WSDL);
-        }
-
-        ServiceType service = new ServiceType();
-        service.setServiceDescription(wsdl);
-        service.setTitle("someTitle");
-        service.setServiceCode(serviceId.getServiceCode());
-
-        wsdl.getService().add(service);
-
-        client.getServiceDescription().add(wsdl);
-
-        doInTransaction(session -> {
-            session.persist(conf);
-            return null;
-        });
-
-    }
-
-    private void setUpDatabase(ServiceId.Conf serviceId) throws Exception {
-        setUpDatabase(serviceId, false);
     }
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)

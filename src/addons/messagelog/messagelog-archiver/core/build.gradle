@@ -1,0 +1,22 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    api(platform(libs.springBoot.bom))
+
+    api('org.springframework:spring-context-support')
+    api(project(':common:common-messagelog'))
+
+    implementation(project(':common:common-scheduler'))
+    implementation(project(':common:common-db'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':addons:messagelog:messagelog-db'))
+    implementation(project(':asic-util'))
+
+    implementation("org.springframework.boot:spring-boot-starter")
+}
+
+jar {
+    archiveBaseName = 'messagelog-archiver-core'
+}

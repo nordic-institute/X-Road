@@ -39,6 +39,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -122,6 +123,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
+        return Optional.empty();
+    }
+
+    @Override
     public X509Certificate[] getAuthTrustChain() {
         return null;
     }
@@ -138,6 +144,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+        return null;
+    }
+
+    @Override
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
         return null;
     }
 

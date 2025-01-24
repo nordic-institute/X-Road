@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet id="niss" author="11-origin-column.xml-1">
+        <addColumn tableName="logrecord">
+            <column name="origin" type="VARCHAR(255)"/>
+        </addColumn>
+        <sql>
+            UPDATE logrecord
+            SET origin = 'proxy'
+            WHERE origin IS NULL;
+        </sql>
+        <addNotNullConstraint tableName="logrecord" columnName="origin"/>
+    </changeSet>
+    <changeSet author="niis" id="11-origin-column.xml-2">
+        <dropIndex tableName="logrecord" indexName="IX_NOT_TIMESTAMPED_LOGRECORD"/>
+    </changeSet>
+    <changeSet author="niis" id="11-origin-column.xml-3">
+        <createIndex tableName="logrecord" indexName="IX_NOT_TIMESTAMPED_LOGRECORD">
+            <column name="id"/>
+            <column name="signaturehash"/>
+            <column name="origin"/>
+        </createIndex>
+        <modifySql dbms="postgresql">
+            <append value=" where discriminator = 'm' and timestamprecord is null"/>
+        </modifySql>
+    </changeSet>
+</databaseChangeLog>

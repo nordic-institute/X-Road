@@ -27,6 +27,9 @@ dependencies {
 
     testImplementation(project(':common:common-test'))
 
+//    todo xroad8 transitively included in other modules where it is not needed
+    api(libs.dss.spi)
+    api libs.dss.evidence.record.xml
     xjc(libs.bundles.jaxb)
 }
 

@@ -29,16 +29,23 @@ import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.messagelog.NullLogManager;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,16 +53,39 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Configuration
+@EnableConfigurationProperties(ProxyMessageLogConfig.SpringMessageLogProperties.class)
 public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @Bean
-    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider) {
-        return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
+    MessageLog messageLogManager(AbstractLogManager logManager) {
+        return MessageLog.init(logManager);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    AbstractLogManager nullLogManager(GlobalConfProvider globalConfProvider,
+                                      ServerConfProvider serverConfProvider,
+                                      @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
+                                      DatabaseCtxV2 messagelogDatabaseCtx) {
+        return new NullLogManager("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.messagelog")
+    static class SpringMessageLogProperties extends MessageLogConfig {
+        SpringMessageLogProperties(Map<String, String> hibernate) {
+            super(hibernate);
+        }
+    }
+
+    @ConditionalOnProperty(value = "xroad.messagelog.hibernate.connection.password")
+    @Bean("messagelogDatabaseCtx")
+    DatabaseCtxV2 messagelogDatabaseCtx(MessageLogConfig messageLogProperties) {
+        return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
     }
 
     @Bean("messageLogEnabledStatus")

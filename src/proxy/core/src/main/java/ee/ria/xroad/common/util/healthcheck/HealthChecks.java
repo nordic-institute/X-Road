@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.proxy.addon.module.HardwareSecurityModuleUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -42,6 +43,7 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.OK;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
 
@@ -55,6 +57,7 @@ public class HealthChecks {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final SignerRpcClient signerRpcClient;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
@@ -72,7 +75,7 @@ public class HealthChecks {
                 return failure("No authentication key available. Signer might be down.");
             }
 
-            CertChain certChain = authKey.getCertChain();
+            CertChain certChain = authKey.certChain();
 
             if (certChain == null) {
                 return failure("No certificate chain available in authentication key.");
@@ -144,7 +147,7 @@ public class HealthChecks {
     public HealthCheckProvider checkHSMOperationStatus() {
         return () -> {
             try {
-                HardwareSecurityModuleUtils.verifyAllHSMOperational();
+                verifyAllHSMOperational();
                 return OK;
             } catch (Exception e) {
                 log.error("Exception when verifying HSM status", e);
@@ -223,5 +226,12 @@ public class HealthChecks {
                 return provider.get();
             }
         };
+    }
+
+    private void verifyAllHSMOperational() throws Exception {
+        if (!signerRpcClient.isHSMOperational()) {
+            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
+                    "At least one HSM are non operational");
+        }
     }
 }

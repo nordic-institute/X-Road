@@ -27,10 +27,9 @@
 package org.niis.xroad.cs.registrationservice;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.SpringApplication;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
@@ -38,14 +37,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 public class Main {
 
-    private static final String APP_NAME = "xroad-center-registration-service";
+    private static final String APP_NAME = "center-registration-service";
 
     public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-
-        var app = new SpringApplication(Main.class);
-        app.addInitializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load());
-        app.run(args);
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, Main.class)
+                .initializers(ctx -> SystemPropertiesLoader.create().withCommonAndLocal().load())
+                .build()
+                .run(args);
     }
 }
 

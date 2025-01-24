@@ -30,12 +30,12 @@ import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.HashCalculator;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -48,7 +48,7 @@ import static org.niis.xroad.cs.admin.globalconf.generator.MultipartMessage.rawP
 @Slf4j
 public class DirectoryContentSigner {
     @NonNull
-    private final SignerProxyFacade signerProxy;
+    private final SignerRpcClient signerRpcClient;
     @NonNull
     private final DigestAlgorithm signDigestAlgorithmId;
     @NonNull
@@ -80,14 +80,14 @@ public class DirectoryContentSigner {
 
         byte[] digest = calculateDigest(signatureAlgorithmId.digest(), data);
 
-        return Signatures.useAsn1DerFormat(signatureAlgorithmId, signerProxy.sign(keyId, signatureAlgorithmId, digest));
+        return Signatures.useAsn1DerFormat(signatureAlgorithmId, signerRpcClient.sign(keyId, signatureAlgorithmId, digest));
     }
 
     @SneakyThrows
     private SignAlgorithm getSignAlgorithmId(String keyId, DigestAlgorithm digestAlgorithmId) {
         log.trace("getSignAlgorithmId({}, {})", keyId, digestAlgorithmId);
 
-        var signMechanismName = signerProxy.getSignMechanism(keyId);
+        var signMechanismName = signerRpcClient.getSignMechanism(keyId);
 
         return SignAlgorithm.ofDigestAndMechanism(digestAlgorithmId, signMechanismName);
     }

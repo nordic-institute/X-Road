@@ -35,9 +35,9 @@ import ee.ria.xroad.common.message.MultipartOutputStream;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.SignerProxy.KeyIdInfo;
-import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
+import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.SignerRpcClient.KeyIdInfo;
+import ee.ria.xroad.signer.SignerRpcClient.MemberSigningInfoDto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +60,7 @@ public class AuthCertRegRequest implements ManagementRequest {
     private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID =
             SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
+    private final SignerRpcClient signerRpcClient;
     private final byte[] authCert;
     private final ClientId owner;
     private final SoapMessageImpl requestMessage;
@@ -70,7 +71,8 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private MultipartOutputStream multipart;
 
-    public AuthCertRegRequest(byte[] authCert, ClientId owner, SoapMessageImpl request) throws Exception {
+    public AuthCertRegRequest(SignerRpcClient signerRpcClient, byte[] authCert, ClientId owner, SoapMessageImpl request) throws Exception {
+        this.signerRpcClient = signerRpcClient;
         this.authCert = authCert;
         this.owner = owner;
         this.requestMessage = request;
@@ -157,7 +159,7 @@ public class AuthCertRegRequest implements ManagementRequest {
     private KeyIdInfo getAuthKeyId() {
         try {
             String certHash = CryptoUtils.calculateCertHexHash(authCert);
-            return SignerProxy.getKeyIdForCertHash(certHash);
+            return signerRpcClient.getKeyIdForCertHash(certHash);
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -165,7 +167,7 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private MemberSigningInfoDto getMemberSigningInfo() {
         try {
-            MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(owner);
+            MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(owner);
 
             ownerCert = signingInfo.cert();
 
@@ -175,9 +177,9 @@ public class AuthCertRegRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
+    private byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
-            return Signatures.useAsn1DerFormat(signAlgoId, SignerProxy.sign(keyId, signAlgoId, digest));
+            return Signatures.useAsn1DerFormat(signAlgoId, signerRpcClient.sign(keyId, signAlgoId, digest));
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

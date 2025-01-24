@@ -66,7 +66,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * that address is selected immediately without previous selection algorithm.
  */
 @Slf4j
-class FastestConnectionSelectingSSLSocketFactory
+public class FastestConnectionSelectingSSLSocketFactory
         extends SSLConnectionSocketFactory {
 
     /**
@@ -88,7 +88,7 @@ class FastestConnectionSelectingSSLSocketFactory
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
 
-    FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLContext sslContext) {
+    public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLContext sslContext) {
         super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
         this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = sslContext.getSocketFactory();
@@ -190,7 +190,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) throws IOException {
-        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledProtocols(CryptoUtils.SSL_SUPPORTED_PROTOCOLS);
         socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
     }
 

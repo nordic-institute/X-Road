@@ -1,7 +1,7 @@
 plugins {
     id("xroad.java-conventions")
     id("xroad.java-exec-conventions")
-    alias(libs.plugins.shadow)
+    id 'java'
 }
 
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -27,9 +27,10 @@ dependencies {
 
     implementation libs.guava
 
-    testImplementation project(':common:common-test')
-    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
     testImplementation project(path: ":proxy:application", configuration: 'testArtifacts')
+    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
+    testImplementation project(':common:common-keyconf')
+    testImplementation project(':common:common-test')
     testImplementation libs.hamcrest
 }
 
@@ -38,22 +39,6 @@ tasks.register('createDirs') {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
-
-jar {
-    enabled = false
-}
-
-shadowJar {
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    dependencies {
-        include(project(':addons:proxymonitor-common'))
-        include(project(':monitor-common'))
-    }
-    mergeServiceFiles()
-}
-
-build.dependsOn shadowJar
 
 compileJava.dependsOn processResources
 
@@ -67,15 +52,15 @@ tasks.register('runProxymonitorMetaserviceTest', JavaExec) {
     jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
         '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml',
-        '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml',
-        '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml',
+        '-Dxroad.proxy.server.jetty-configuration-file=src/test/resources/serverproxy.xml',
+        '-Dxroad.proxy.client-proxy.jetty-configuration-file=src/test/resources/clientproxy.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml',
-        '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml',
+        '-Dxroad.proxy.ocsp-responder.jetty-configuration-file=src/test/resources/ocsp-responder.xml',
         '-Dxroad.proxy.client-connector-so-linger=-1',
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
-        '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
-        '-Dxroad.common.grpc-internal-tls-enabled=false',
+        '-Dxroad.proxy.addon.proxymonitor.enabled=true',
+        '-Dxroad.proxy.grpc-tls-enabled=false',
         '-Dtest.queries.dir=src/test/queries'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'

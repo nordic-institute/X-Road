@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -43,11 +44,14 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
+import org.apache.http.message.BasicHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -57,11 +61,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static java.lang.Boolean.TRUE;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
+import static org.niis.xroad.proxy.edc.TargetSecurityServerLookup.resolveTargetSecurityServers;
 
 /**
  * Handles client messages. This handler must be the last handler in the
@@ -70,7 +79,7 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
  * the request itself.
  */
 @Slf4j
-class ClientRestMessageHandler extends AbstractClientProxyHandler {
+public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     private static final String TEXT_XML = "text/xml";
     private static final String APPLICATION_XML = "application/xml";
@@ -78,24 +87,61 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
-                             KeyConfProvider keyConfProvider,
-                             ServerConfProvider serverConfProvider,
-                             CertChainFactory certChainFactory,
-                             HttpClient client) {
+    private final AssetAuthorizationManager assetAuthorizationManager;
+
+    public ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
+                                    KeyConfProvider keyConfProvider,
+                                    ServerConfProvider serverConfProvider,
+                                    CertChainFactory certChainFactory,
+                                    HttpClient client,
+                                    AssetAuthorizationManager assetAuthorizationManager) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
+        this.assetAuthorizationManager = assetAuthorizationManager;
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) throws Exception {
+    Optional<MessageProcessorBase> createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+                                                          OpMonitoringData opMonitoringData) throws Exception {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
-            return new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
+
+            boolean forcePolicyReevaluation = TRUE.toString()
+                    .equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Policy-Reevaluation"));
+            boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
+
+            var restRequest = createRestRequest(request);
+            var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
+                    resolveTargetSecurityServers(restRequest.getServiceId().getClientId(), globalConfProvider), forcePolicyReevaluation);
+
+            if (proxyCtx.targetSecurityServers().useDataSpaces() && !forceLegacyTransport) {
+                //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
+                return Optional.of(new ClientRestMessageDsProcessorV2(proxyCtx, restRequest,
+                        globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                        client, getIsAuthenticationData(request), assetAuthorizationManager));
+            } else {
+                return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, globalConfProvider, keyConfProvider,
+                        serverConfProvider, certChainFactory,
+                        client, getIsAuthenticationData(request)));
+            }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    private RestRequest createRestRequest(RequestWrapper jRequest) {
+        return new RestRequest(
+                jRequest.getMethod(),
+                jRequest.getHttpURI().getPath(),
+                jRequest.getHttpURI().getQuery(),
+                getHeaders(jRequest),
+                UUID.randomUUID().toString()
+        );
+    }
+
+    private List<Header> getHeaders(RequestWrapper req) {
+        return req.getHeaders().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toList());
     }
 
     private void verifyCanProcess() {
@@ -106,7 +152,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         }
 
         AuthKey authKey = keyConfProvider.getAuthKey();
-        if (authKey.getCertChain() == null) {
+        if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");
         }
@@ -122,6 +168,7 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         } else {
             response.setStatus(HttpStatus.BAD_REQUEST_400);
         }
+
         response.getHeaders().put("X-Road-Error", ex.getFaultCode());
 
         final String responseContentType = decideErrorResponseContentType(request.getHeaders().getValues("Accept"));

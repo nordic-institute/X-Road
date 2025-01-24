@@ -5,7 +5,10 @@ plugins {
 dependencies {
     implementation project(':common:common-message')
     implementation project(':common:common-verifier')
-    implementation libs.xerces.impl
+//TODO xroad8
+//    implementation libs.xerces.impl
+    implementation libs.dss.asic.xades
+    implementation libs.dss.evidence.record.xml
 
     testImplementation project(':common:common-test')
 }

@@ -15,11 +15,8 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
-
     api project(":common:common-core")
 
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation project(':common:common-message')
     testImplementation project(':common:common-test')
 

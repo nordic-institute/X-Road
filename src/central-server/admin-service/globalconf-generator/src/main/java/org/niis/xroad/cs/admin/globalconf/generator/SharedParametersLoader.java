@@ -172,15 +172,19 @@ class SharedParametersLoader {
     }
 
     private SharedParameters.SecurityServer toSecurityServer(SecurityServer ss) {
-        var result = new SharedParameters.SecurityServer();
+        var dsProtocolUrl = ss.isDsEnabled() ? ss.getDsProtocolUrl() : null;
+        var serverAddress = new SharedParameters.ServerAddress(ss.getAddress(), dsProtocolUrl);
+
+        var result = new SharedParameters.SecurityServer(serverAddress);
         result.setOwner(ss.getOwner().getIdentifier());
-        result.setAddress(ss.getAddress());
+        result.setOwnerDid(ss.getOwner().getDid());
         result.setServerCode(ss.getServerCode());
         result.setClients(getSecurityServerClients(ss.getId()));
         result.setAuthCertHashes(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
                 .map(CertHash::new)
                 .toList());
+
         return result;
     }
 
@@ -256,6 +260,7 @@ class SharedParametersLoader {
             member.setMemberCode(client.getMemberCode());
             member.setName(client.getMemberName());
             member.setSubsystems(getSubsystemList(clientId));
+            member.setDid(client.getMemberDid());
             return member;
         }
 

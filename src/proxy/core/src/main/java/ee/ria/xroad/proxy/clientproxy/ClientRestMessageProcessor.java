@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -41,9 +42,8 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -56,21 +56,18 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.io.TeeInputStream;
+import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
@@ -86,6 +83,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
+    private final RequestValidator requestValidator;
 
     private ServiceId requestServiceId;
     /**
@@ -94,52 +92,47 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private ProxyMessage response;
 
     private ClientId senderId;
-    private RestRequest restRequest;
-    private String xRequestId;
+    protected final RestRequest restRequest;
+
     private byte[] restBodyDigest;
 
-    ClientRestMessageProcessor(GlobalConfProvider globalConfProvider,
+    ClientRestMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
+                               RestRequest restRequest,
+                               GlobalConfProvider globalConfProvider,
                                KeyConfProvider keyConfProvider,
                                ServerConfProvider serverConfProvider,
                                CertChainFactory certChainFactory,
-                               RequestWrapper request, ResponseWrapper response,
-                               HttpClient httpClient, IsAuthenticationData clientCert,
-                               OpMonitoringData opMonitoringData) throws Exception {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient,
-                clientCert, opMonitoringData);
-        this.xRequestId = UUID.randomUUID().toString();
+                               HttpClient httpClient, IsAuthenticationData clientCert) throws Exception {
+        super(proxyRequestCtx, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, httpClient,
+                clientCert);
+        this.requestValidator = new RequestValidator(serverConfProvider);
+        this.restRequest = restRequest;
+
     }
 
+    //TODO rethink what should happen in constructor and what in process..
     @Override
     @WithSpan
     public void process() throws Exception {
-        opMonitoringData.setXRequestId(xRequestId);
+        opMonitoringData.setXRequestId(restRequest.getXRequestId());
         updateOpMonitoringClientSecurityServerAddress();
 
         try {
-            restRequest = new RestRequest(
-                    jRequest.getMethod(),
-                    jRequest.getHttpURI().getPath(),
-                    jRequest.getHttpURI().getQuery(),
-                    headers(jRequest),
-                    xRequestId
-            );
-
             // Check that incoming identifiers do not contain illegal characters
             checkRequestIdentifiers();
 
             senderId = restRequest.getClientId();
             requestServiceId = restRequest.getServiceId();
 
-            verifyClientStatus(senderId);
-            verifyClientAuthentication(senderId);
+            requestValidator.verifyClientStatus(senderId);
+            if (SystemProperties.shouldVerifyClientCert()) {
+                verifyClientAuthentication(senderId, clientCert);
+            }
 
             processRequest();
             if (response != null) {
                 sendResponse();
             }
-        } catch (Exception e) {
-            throw e;
         } finally {
             if (response != null) {
                 response.consume();
@@ -186,11 +179,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private void sendRequest(HttpSender httpSender) throws Exception {
         log.trace("sendRequest()");
 
+        //TODO xroad8 use calculated target security servers from ctx
         final URI[] addresses = prepareRequest(httpSender, requestServiceId, restRequest.getTargetSecurityServer());
         httpSender.addHeader(HEADER_MESSAGE_TYPE, VALUE_MESSAGE_TYPE_REST);
 
         // Add unique id to distinguish request/response pairs
-        httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
+        httpSender.addHeader(HEADER_REQUEST_ID, restRequest.getXRequestId());
 
         final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.secure().nextAlphabetic(30));
         opMonitoringData.setRequestOutTs(getEpochMillisecond());
@@ -270,7 +264,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         MessageLog.log(restRequest,
                 response.getRestResponse(),
                 response.getSignature(),
-                response.getRestBody(), true, xRequestId);
+                response.getRestBody(), true, restRequest.getXRequestId());
     }
 
     private void sendResponse() throws Exception {
@@ -319,7 +313,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
                         Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
 
-                final CertChain chain = keyConfProvider.getAuthKey().getCertChain();
+                final CertChain chain = keyConfProvider.getAuthKey().certChain();
                 keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
                         .forEach(enc::ocspResponse);
 
@@ -336,15 +330,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(keyConfProvider.getSigningCtx(senderId));
+                            enc.sign(SigningCtxProvider.getSigningCtx(senderId, globalConfProvider, keyConfProvider));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
-                                    xRequestId);
+                                    restRequest.getXRequestId());
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(keyConfProvider.getSigningCtx(senderId));
-                        MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
+                        enc.sign(SigningCtxProvider.getSigningCtx(senderId, globalConfProvider, keyConfProvider));
+                        MessageLog.log(restRequest, enc.getSignature(), null, true, restRequest.getXRequestId());
                     }
                 }
 
@@ -365,12 +359,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         public boolean isStreaming() {
             return true;
         }
-    }
-
-    private List<Header> headers(RequestWrapper req) {
-        return req.getHeaders().stream()
-                .map(f -> new BasicHeader(f.getName(), f.getValue()))
-                .collect(Collectors.toCollection(ArrayList::new));
     }
 
 }

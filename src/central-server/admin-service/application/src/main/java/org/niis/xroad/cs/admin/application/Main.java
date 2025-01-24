@@ -26,9 +26,7 @@
  */
 package org.niis.xroad.cs.admin.application;
 
-import ee.ria.xroad.common.Version;
-
-import org.springframework.boot.SpringApplication;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -37,10 +35,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.admin", "org.niis.xroad.restapi"})
 public class Main {
 
-    private static final String APP_NAME = "xroad-center";
+    private static final String APP_NAME = "center-admin-service";
 
     public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-        SpringApplication.run(Main.class, args);
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, Main.class)
+                .build()
+                .run(args);
     }
 }

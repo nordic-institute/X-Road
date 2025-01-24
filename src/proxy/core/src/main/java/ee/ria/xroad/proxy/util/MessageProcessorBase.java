@@ -48,6 +48,7 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.proxy.ProxyMessageProcessor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -65,8 +66,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * Base class for message processors.
  */
 @Slf4j
-public abstract class MessageProcessorBase {
+public abstract class MessageProcessorBase implements ProxyMessageProcessor {
 
+    /**
+     * The servlet request.
+     */
     protected final GlobalConfProvider globalConfProvider;
     protected final KeyConfProvider keyConfProvider;
     protected final ServerConfProvider serverConfProvider;
@@ -126,13 +130,6 @@ public abstract class MessageProcessorBase {
      */
     protected void postprocess() throws Exception {
     }
-
-    /**
-     * Processes the incoming message.
-     *
-     * @throws Exception in case of any errors
-     */
-    public abstract void process() throws Exception;
 
     /**
      * Update operational monitoring data with SOAP message header data and
@@ -227,7 +224,7 @@ public abstract class MessageProcessorBase {
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
-    protected static boolean checkIdentifier(final XRoadId id) {
+    public static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
             if (!validateIdentifierField(id.getXRoadInstance())) {
                 log.warn("Invalid character(s) in identifier {}", id);

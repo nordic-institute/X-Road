@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -44,7 +45,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
@@ -69,7 +69,7 @@ import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysServic
 class NotificationServiceImplTest {
 
     @Mock
-    private SignerProxyFacade signerProxyFacade;
+    private SignerRpcClient signerRpcClient;
     @Mock
     private SystemParameterService systemParameterService;
     @Mock
@@ -82,7 +82,7 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsSignerException() throws Exception {
-        when(signerProxyFacade.getTokens()).thenThrow(new SignerException("Error"));
+        when(signerRpcClient.getTokens()).thenThrow(new SignerException("Error"));
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 
@@ -229,7 +229,7 @@ class NotificationServiceImplTest {
                 .addKeyInfo(keyinfo)
                 .build());
 
-        when(signerProxyFacade.getTokens()).thenReturn(List.of(tokenInfo));
+        when(signerRpcClient.getTokens()).thenReturn(List.of(tokenInfo));
         when(systemParameterService.getInstanceIdentifier()).thenReturn("CS");
         when(systemParameterService.getCentralServerAddress()).thenReturn("https://cs");
     }

@@ -3,7 +3,6 @@ plugins {
 }
 dependencies {
     implementation project(':common:common-message')
-    implementation project(':common:common-scheduler')
     implementation project(':common:common-globalconf')
     implementation project(':serverconf')
     implementation project(':common:common-verifier')
@@ -12,6 +11,7 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation libs.bouncyCastle.bcpg
     testImplementation libs.mockito.core
+    testImplementation libs.dss.utils.apache.commons
 }
 
 tasks.register('copyGpg', Copy) {

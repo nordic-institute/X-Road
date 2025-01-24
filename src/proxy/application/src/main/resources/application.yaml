@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: proxy
+
+server:
+  port: 5599
+
+xroad:
+  common:
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      service-endpoints-cache-size: 100_000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true
+  proxy:
+    addon:
+      proxymonitor:
+        enabled: true
+      metaservices:
+        enabled: true
+    ocsp-responder:
+      listen-address: 0.0.0.0
+      port: 5577
+      client-connect-timeout: 20000
+      client-read-timeout: 30000
+      jetty-configuration-file: classpath:jetty/ocsp-responder.xml
+    verify-client-cert: true
+    database-properties: /etc/xroad/db.properties
+    server-port: 5500
+    pool-enable-connection-reuse: false
+    client-fastest-connecting-ssl-uri-cache-period: 3600
+    hsm-health-check-enabled: false
+    enforce-client-is-cert-validity-period-check: false
+    client-timeout: 30000
+    client-use-fastest-connecting-ssl-socket-autoclose: true
+    backup-encryption-enabled: false
+    server:
+      listen-address: 0.0.0.0
+      listen-port: 5500
+      connector-initial-idle-time: 30000
+      support-clients-pooled-connections: false
+      jetty-configuration-file: classpath:jetty/serverproxy.xml
+    client-proxy:
+      connector-host: 0.0.0.0
+      client-http-port: 8080
+      client-https-port: 8443
+      jetty-configuration-file: classpath:jetty/clientproxy.xml
+      client-connector-initial-idle-time: 30000
+      client-tls-protocols: "TLSv1.2"
+      client-tls-ciphers:
+          - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+          - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+          - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+          - TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+          - TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+          - TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+      jetty-max-header-size: 16384
+      client-httpclient-so-linger: -1
+      client-httpclient-timeout: 0
+      pool-total-max-connections: 10000
+      pool-total-default-max-connections-per-route: 2500
+      pool-validate-connections-after-inactivity-of-millis: 2000
+      client-idle-connection-monitor-interval: 30000
+      client-idle-connection-monitor-timeout: 60000
+      client-use-idle-connection-monitor: true
+    backup-encryption-keyids: [ ]
+    grpc:
+      listen-address: 127.0.0.1
+      port: 5567
+  anti-dos:
+    max-cpu-load: 1.1
+    max-heap-usage: 1.1
+    max-parallel-connections: 5000
+    min-free-file-handles: 100
+    enabled: true
+
+  messagelog:
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true

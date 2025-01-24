@@ -1,0 +1,3 @@
+org.niis.xroad.edc.extension.iam.DcpScopeExtension
+org.niis.xroad.edc.extension.iam.TrustedIssuerExtension
+org.niis.xroad.edc.extension.iam.XRoadParticipantAgentServiceExtension

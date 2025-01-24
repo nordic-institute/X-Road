@@ -30,11 +30,12 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
 
 /**
  * Handles requests for software token initialization.
@@ -51,7 +52,7 @@ public class InitSoftwareTokenReqHandler
             final TokenWorker tokenWorker = getTokenWorker(softwareTokenId);
             if (tokenWorker.isSoftwareToken()) {
                 try {
-                    tokenWorker.initializeToken(request.getPin().toCharArray());
+                    tokenWorker.initializeToken(byteToChar(request.getPin().toByteArray()));
                     return Empty.getDefaultInstance();
                 } catch (Exception e) {
                     throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker

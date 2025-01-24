@@ -47,7 +47,7 @@ import java.util.Map;
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
 public abstract class BaseTestSignerSetup {
-    private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11wrapper.so";
+    private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11-wrapper.so";
 
     static {
         //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
@@ -56,13 +56,12 @@ public abstract class BaseTestSignerSetup {
 
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties,
-            String signerPath, String hwTokenPath) {
+            String signerPath) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
             public ImageFromDockerfile imageDefinition() {
                 var appJarPath = Paths.get(signerPath);
-                var hwTokenJarPath = Paths.get(hwTokenPath);
 
                 log.info("Will use {} jar for container creation", appJarPath);
 
@@ -73,7 +72,6 @@ public abstract class BaseTestSignerSetup {
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
                         .withFileFromPath("files/lib/%s".formatted(PKCS11_WRAPPER_FILENAME), getPkcsWrapperPath())
-                        .withFileFromPath("files/lib/hwtoken.jar", hwTokenJarPath)
                         .withFileFromPath("files/app.jar", appJarPath);
             }
 
@@ -96,7 +94,6 @@ public abstract class BaseTestSignerSetup {
                     default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
                 };
                 return Paths.get("../../libs/pkcs11wrapper/%s/%s".formatted(archDir, PKCS11_WRAPPER_FILENAME));
-
             }
         };
     }
@@ -108,28 +105,24 @@ public abstract class BaseTestSignerSetup {
             @SuppressWarnings("squid:S2068")
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
                 var modulemanager = enableHwModule
-                        ? "-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl"
+                        ? "-Dxroad.signer.addon.hwtoken.enabled=true"
                         : "";
 
                 genericContainer
-                        .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
+                        .waitingFor(Wait.forLogMessage(".*Started SignerMain in.*", 1));
                 genericContainer
                         .withCommand("java",
                                 "-Xmx50m",
                                 "-XX:MaxMetaspaceSize=70m",
-                                "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
+                                "-Dlogging.config=/etc/xroad/signer/signer-logback.xml",
+                                "-Dxroad.signer.device-configuration-file=/etc/xroad/signer/devices.ini",
                                 "-Dxroad.internal.passwordstore-provider=file",
-                                "-Dxroad.common.grpc-internal-host=0.0.0.0",
-                                "-Dxroad.common.grpc-internal-keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                                "-Dxroad.common.grpc-internal-keystore-password=111111",
-                                "-Dxroad.common.grpc-internal-truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                                "-Dxroad.common.grpc-internal-truststore-password=111111",
+                                "-Dxroad.signer.grpc-listen-address=0.0.0.0",
+                                "-Dxroad.signer.grpc-tls-enabled=false",
                                 "-Djava.library.path=/root/lib/",
                                 modulemanager,
-                                "-cp",
-                                "/root/lib/hwtoken.jar:/root/app.jar",
-                                "ee.ria.xroad.signer.SignerMain");
-
+                                "-Dloader.path=/root/lib/hwtoken.jar",
+                                "-jar", "/root/app.jar");
                 prepareSignerDirs();
             }
 

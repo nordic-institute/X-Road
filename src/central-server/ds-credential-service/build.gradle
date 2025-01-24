@@ -1,0 +1,58 @@
+plugins {
+    id("xroad.java-conventions")
+    alias(libs.plugins.springBoot)
+}
+
+configurations {
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
+    }
+
+}
+
+dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
+    implementation libs.edc.boot
+    implementation libs.edc.ext.http
+    implementation libs.edc.core.connector
+    implementation libs.edc.spi.web
+    implementation libs.edc.spi.jwt.signer
+    implementation libs.edc.lib.crypto
+    implementation libs.nimbus.jose.jwt
+    implementation libs.edc.did.web
+    implementation libs.edc.did.core
+    implementation libs.edc.core.token
+    implementation libs.edc.spi.jsonLd
+    implementation libs.edc.monitor.jdk.logger
+    implementation libs.logback.classic
+
+    implementation(project(':common:common-core'))
+    implementation(project(":common:common-domain"))
+    implementation(project(":common:common-globalconf"))
+    implementation(project(':common:common-verifier'))
+    implementation(project(":security-server:ds:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
+    implementation(project(":security-server:ds:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:ds:extensions:common:xroad-httpclient"))
+
+    testImplementation libs.edc.junit
+    testImplementation(project(':common:common-test'))
+    testImplementation('org.springframework:spring-test')
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'ds-credential-service'
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road DS Credential Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
+    }
+}

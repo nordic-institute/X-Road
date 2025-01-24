@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
@@ -38,6 +37,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -72,14 +72,16 @@ public class DAOImplTest {
 
     private Session session;
     private IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
+    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf", TestUtil.serverConfHibernateProperties);
 
     /**
      * Prepares test database.
+     *
      * @throws Exception if an error occurs
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
+        prepareDB(DATABASE_CTX);
     }
 
     /**
@@ -87,7 +89,7 @@ public class DAOImplTest {
      */
     @Before
     public void beginTransaction() {
-        session = ServerConfDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -95,11 +97,12 @@ public class DAOImplTest {
      */
     @After
     public void commitTransaction() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**
      * Test getting client by its identifier.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -118,6 +121,7 @@ public class DAOImplTest {
 
     /**
      * Test getting IS certificates.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -128,6 +132,7 @@ public class DAOImplTest {
 
     /**
      * Test getting service by identifier.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -150,6 +155,7 @@ public class DAOImplTest {
 
     /**
      * Test getting ACL.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -166,6 +172,7 @@ public class DAOImplTest {
 
     /**
      * Test deleting client.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -186,6 +193,7 @@ public class DAOImplTest {
 
     /**
      * Test deleting service description.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -208,6 +216,7 @@ public class DAOImplTest {
 
     /**
      * Test adding local group member.
+     *
      * @throws Exception if an error occurs
      */
     @Test

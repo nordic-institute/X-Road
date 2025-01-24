@@ -28,7 +28,7 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,12 +42,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractLogManager {
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
-    protected AbstractLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    protected AbstractLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                 DatabaseCtxV2 databaseCtx) {
         if (globalConfProvider == null) {
             throw new IllegalArgumentException("globalConfProvider cannot be null");
-        }
-        if (jobManager == null) {
-            throw new IllegalArgumentException("jobManager cannot be null");
         }
         if (serverConfProvider == null) {
             throw new IllegalArgumentException("serverConfProvider cannot be null");
@@ -58,6 +56,10 @@ public abstract class AbstractLogManager {
 
     public abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 
-    public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
+    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
+        throw new RuntimeException("Must be implemented by subclass");
+    }
+
+    public abstract void destroy();
 
 }

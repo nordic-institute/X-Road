@@ -70,6 +70,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     @Getter
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
+    @Getter
     private final String originalContentType;
     private final String originalMimeBoundary;
 

@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
@@ -65,8 +66,14 @@ public class RestResponse extends RestMessage {
     private final ClientId clientId;
     private final String xRequestId;
 
+    @Setter
+    private String signature;
+    @Setter
+    private String bodyDigest;
+
     /**
      * create response from raw messageBytes
+     *
      * @param messageBytes
      */
     private RestResponse(byte[] messageBytes, ClientId clientId, String queryId, byte[] requestHash,
@@ -99,6 +106,7 @@ public class RestResponse extends RestMessage {
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_SERVICE_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_ID))
                 .collect(Collectors.toCollection(ArrayList::new));
 

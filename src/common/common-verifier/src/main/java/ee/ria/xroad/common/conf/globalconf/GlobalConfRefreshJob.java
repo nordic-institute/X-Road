@@ -27,9 +27,9 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import static ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig.BEAN_GLOBAL_CONF_SCHEDULER;
@@ -40,10 +40,10 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalConfRefreshJob implements InitializingBean {
+public class GlobalConfRefreshJob {
     private final GlobalConfProvider globalConfProvider;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() {
         log.info("{} initialized with refresh rate of {} seconds",
                 getClass().getSimpleName(),

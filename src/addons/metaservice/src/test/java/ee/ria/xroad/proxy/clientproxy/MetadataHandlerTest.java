@@ -44,13 +44,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -94,7 +95,7 @@ public class MetadataHandlerTest {
     }
 
     @Test
-    public void shouldNotCreateProcessorForPostRequest() throws Exception {
+    public void shouldNotCreateProcessorForPostRequest() {
 
         when(mockRequest.getMethod()).thenReturn("POST");
 
@@ -102,14 +103,14 @@ public class MetadataHandlerTest {
                 httpClientMock);
 
 
-        MessageProcessorBase returnValue =
+        Optional<MessageProcessorBase> returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
-        assertNull("Was expecting a null return value", returnValue);
+        assertTrue("Was expecting a null return value", returnValue.isEmpty());
     }
 
     @Test
-    public void shouldNotCreateProcessorForUnprocessableRequest() throws Exception {
+    public void shouldNotCreateProcessorForUnprocessableRequest() {
 
         when(mockRequest.getMethod()).thenReturn("GET");
 
@@ -117,14 +118,14 @@ public class MetadataHandlerTest {
                 httpClientMock);
 
 
-        MessageProcessorBase returnValue =
+        Optional<MessageProcessorBase> returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
-        assertNull("Was expecting a null return value", returnValue);
+        assertTrue("Was expecting a null return value", returnValue.isEmpty());
     }
 
     @Test
-    public void shouldThrowWhenTargetNull() throws Exception {
+    public void shouldThrowWhenTargetNull() {
 
         MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                 httpClientMock);
@@ -141,7 +142,7 @@ public class MetadataHandlerTest {
 
 
     @Test
-    public void shouldReturnProcessorWhenAbleToProcess() throws Exception {
+    public void shouldReturnProcessorWhenAbleToProcess() {
 
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn("/listClients");
@@ -149,13 +150,12 @@ public class MetadataHandlerTest {
         MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                 httpClientMock);
 
-        MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
+        Optional<MessageProcessorBase> result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
-        assertNotNull("Was expecting actual message processor");
+        assertTrue("Was expecting actual message processor", result.isPresent());
 
-        assertThat("Message processor is of wrong type", result,
+        assertThat("Message processor is of wrong type", result.get(),
                 instanceOf(MetadataClientRequestProcessor.class));
-
     }
 
 }

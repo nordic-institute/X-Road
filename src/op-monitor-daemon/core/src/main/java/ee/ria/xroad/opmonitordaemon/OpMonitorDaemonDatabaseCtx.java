@@ -25,42 +25,25 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
 
+import java.util.Map;
+
 /**
  * Database context for the operational monitoring daemon
  */
-final class OpMonitorDaemonDatabaseCtx {
+public final class OpMonitorDaemonDatabaseCtx {
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("op-monitor",
-            new StringValueTruncator());
+    public static DatabaseCtxV2 create(Map<String, String> hibernateProperties) {
+        return new DatabaseCtxV2("op-monitor", hibernateProperties, new StringValueTruncator());
+    }
 
     private OpMonitorDaemonDatabaseCtx() {
-    }
-
-    /**
-     * @return the database context instance
-     */
-    static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * Convenience method for executing a database operation in a transaction.
-     * @param <T> the type of result
-     * @param callback the callback
-     * @return the result
-     * @throws Exception if an error occurs
-     */
-    static <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
-        return CTX.doInTransaction(callback);
     }
 
     private static final class StringValueTruncator implements Interceptor {

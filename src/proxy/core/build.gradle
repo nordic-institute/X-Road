@@ -13,23 +13,31 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    implementation(project(':proxy:proxy-rpc-client'))
 
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-message'))
     implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-scheduler'))
     implementation(project(':common:common-verifier'))
+    implementation(project(':common:common-properties'))
     implementation(project(':serverconf'))
     implementation(project(':signer-protocol'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
+    implementation project(':security-server:ds-client')
+    implementation project(':security-server:ds:xroad-ds-security')
 
+    api(platform(libs.springBoot.bom))
+    api('org.springframework:spring-context-support')
+    implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation('org.springframework:spring-context-support')
+    implementation(libs.caffeine)
     implementation(libs.jetty.xml)
-    implementation(libs.xerces.impl)
+    implementation(libs.opentelemetry.instrumentation.annotations)
     implementation(libs.semver4j)
+    implementation(libs.xerces.impl)
 
     testImplementation(project(':common:common-test'))
 
@@ -95,7 +103,7 @@ check.dependsOn integrationTest
 
 tasks.register('intTest', Test) {
     useJUnitPlatform()
-    dependsOn(':signer:application:shadowJar')
+    dependsOn(':signer:application:bootJar')
 
     setDescription("Runs integration tests.")
     group = 'verification'

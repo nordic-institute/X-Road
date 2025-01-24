@@ -1,0 +1,7 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    implementation libs.edc.spi.web
+}

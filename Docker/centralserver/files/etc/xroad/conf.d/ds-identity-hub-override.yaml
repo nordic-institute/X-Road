@@ -1,0 +1,4 @@
+edc:
+  did:
+    key:
+      id: ${EDC_DID_KEY_ID:}

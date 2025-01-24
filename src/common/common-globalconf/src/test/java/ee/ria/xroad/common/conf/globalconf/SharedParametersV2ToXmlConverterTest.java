@@ -67,7 +67,8 @@ class SharedParametersV2ToXmlConverterTest {
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
             entry("authCertHash", "authCerts"),
-            entry("groupMember", "groupMembers")
+            entry("groupMember", "groupMembers"),
+            entry("serverAddress", "address")
     );
 
     @Test
@@ -86,6 +87,8 @@ class SharedParametersV2ToXmlConverterTest {
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
+                .withEqualsForFields((a, b) -> b instanceof SharedParameters.ServerAddress addr && addr.address().equals(a),
+                        "securityServers.address")
                 .build();
 
         assertThat(xmlType)
@@ -187,10 +190,9 @@ class SharedParametersV2ToXmlConverterTest {
     }
 
     private static SharedParameters.SecurityServer getSecurityServer() {
-        var securityServer = new SharedParameters.SecurityServer();
+        var securityServer = new SharedParameters.SecurityServer(new SharedParameters.ServerAddress("security-server-address", null));
         securityServer.setOwner(memberId());
         securityServer.setServerCode("security-server-code");
-        securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
         return securityServer;

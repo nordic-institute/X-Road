@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: monitor
+
+server:
+  port: 5999
+
+xroad:
+  env-monitor:
+    certificate-info-sensor-interval: 1d
+    disk-space-sensor-interval: 60s
+    exec-listing-sensor-interval: 60s
+    system-metrics-sensor-interval: 5s
+    limit-remote-data-set: false
+    grpc:
+      listen-address: 0.0.0.0
+      port: 2552
+  common:
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      service-endpoints-cache-size: 100_000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true

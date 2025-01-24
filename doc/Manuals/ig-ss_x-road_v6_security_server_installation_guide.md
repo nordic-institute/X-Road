@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.54  
+Version: 2.55  
 Doc. ID: IG-SS
 
 ---
@@ -73,7 +73,8 @@ Doc. ID: IG-SS
 | 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki     |
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 24.09.2024 | 2.53    | Add mail server to the network diagram                                                                                                                                                                               | Mikk-Erik Bachmann   |
-| 08.11.2024 | 2.54    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
+| 26.08.2024 | 2.54    | Signer and Configuration client admin port removed                                                                                                                                                                   | Justas Samuolis      |
+| 08.11.2024 | 2.55    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
 
 ## License
 
@@ -241,11 +242,9 @@ The table below lists the open ports for Security Server components utilizing th
 | PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         |
 | OP Monitoring daemon     | 2080      | tcp          |                                 |
 | Environmental monitoring | 2552      | tcp          |                                 |
-| Signer                   | 5559      | tcp          | Signer admin port               |
 | Signer                   | 5560      | tcp          | Signer gRPC port                |
 | Proxy                    | 5566      | tcp          | Proxy admin port                |
 | Proxy                    | 5567      | tcp          | Proxy gRPC server port          |
-| Configuration Client     | 5675      | tcp          | Configuration Client admin port |
 | Audit Log                | 514       | udp          |                                 |
 
 ### 2.3 Requirements for the Security Server

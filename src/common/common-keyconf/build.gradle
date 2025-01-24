@@ -1,0 +1,13 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    api project(":common:common-globalconf")
+    api project(":common:common-verifier")
+    api project(':signer-protocol')
+    api project(':serverconf')
+
+    testImplementation project(':common:common-test')
+}
+

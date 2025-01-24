@@ -29,13 +29,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import com.google.protobuf.ByteString;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;

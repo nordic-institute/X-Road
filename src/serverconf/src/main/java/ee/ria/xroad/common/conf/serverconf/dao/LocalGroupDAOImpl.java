@@ -26,28 +26,13 @@
 package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.identifier.ClientId;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
 /**
  * LocalGroupDAO
  */
 public class LocalGroupDAOImpl {
-
-    /**
-     * Return the local group by groupcode and client id
-     * @param session
-     * @param groupCode
-     * @param groupOwnerId
-     * @return LocalGroupType
-     */
-    public LocalGroupType findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
-        return new ClientDAOImpl().getClient(session, groupOwnerId).getLocalGroup().stream()
-                .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
-                .findFirst().orElse(null);
-    }
 
     /**
      * Returns the LocalGroupType for the given LocalGroupType id.

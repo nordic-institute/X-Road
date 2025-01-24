@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -41,11 +42,12 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.support.GenericApplicationContext;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -57,8 +59,6 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
@@ -81,7 +81,7 @@ public final class ProxyTestSuite {
      */
     public static void main(String[] args) throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
-
+        org.apache.xml.security.Init.init();
         setPropsIfNotSet();
 
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(args);
@@ -130,37 +130,23 @@ public final class ProxyTestSuite {
         }
     }
 
-    static class TestProxyMain extends ProxyMain {
-        @Override
-        protected void loadSystemProperties() {
-            super.loadSystemProperties();
-
-            setPropsIfNotSet();
-
-            System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-            System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
-
-
-            System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-            System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
-        }
-    }
-
     @SneakyThrows
     private static void setPropsIfNotSet() {
 
+        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
+//        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
+
         PropsSolver solver = new PropsSolver();
 
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(TestPortUtils.findRandomPort()));
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(TestPortUtils.findRandomPort()));
+        System.setProperty("xroad.proxy.client-proxy.client-http-port", valueOf(TestPortUtils.findRandomPort()));
+        System.setProperty("xroad.proxy.client-proxy.client-https-port", valueOf(TestPortUtils.findRandomPort()));
         final var proxyPort = valueOf(TestPortUtils.findRandomPort());
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, proxyPort);
+        System.setProperty("xroad.proxy.server.listen-port", proxyPort);
         solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
-        solver.setIfNotSet(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        solver.setIfNotSet(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
-        solver.setIfNotSet(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
-        solver.setIfNotSet(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
+//        solver.setIfNotSet(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
+//        solver.setIfNotSet(SystemProperties.SIGNER_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
+//        solver.setIfNotSet(SystemProperties.CONFIGURATION_CLIENT_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     private static final class PropsSolver {
@@ -221,7 +207,15 @@ public final class ProxyTestSuite {
     }
 
     private static void runTestSuite(List<MessageTestCase> tc) {
-        try (var applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class)) {
+        // todo: should be better way to start application context
+        try (var applicationContext = XrdSpringServiceBuilder.newApplicationBuilder("proxy",
+                        ProxyMain.class, TestProxySpringConfig.class)
+                .initializers(ctx -> {
+                    log.info("Initializing Apache Santuario XML Security library..");
+                    org.apache.xml.security.Init.init();
+                })
+                .build()
+                .run()) {
             runTestCases(applicationContext, tc);
         } catch (BeanCreationException beanCreationException) {
             log.error("Failed to initialize Proxy context", beanCreationException);
@@ -229,7 +223,7 @@ public final class ProxyTestSuite {
         }
     }
 
-    private static void runTestCases(GenericApplicationContext applicationContext, List<MessageTestCase> tc) {
+    private static void runTestCases(ApplicationContext applicationContext, List<MessageTestCase> tc) {
         for (MessageTestCase t : tc) {
             currentTestCase = t;
 
@@ -308,6 +302,11 @@ public final class ProxyTestSuite {
         @Bean
         ServerConfProvider serverConfProvider() {
             return new TestServerConfWrapper(new TestSuiteServerConf());
+        }
+
+        @Bean
+        DatabaseCtxV2 serverConfDatabaseCtx() {
+            return null;
         }
     }
 

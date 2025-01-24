@@ -185,10 +185,11 @@ public class SharedParametersV2Converter {
 
     private SharedParameters.SecurityServer toSecurityServer(
             Map<String, ClientId> clientIds, SecurityServerType source, String instanceIdentifier) {
-        var target = new SharedParameters.SecurityServer();
+        var serverAddress = new SharedParameters.ServerAddress(source.getAddress(), null);
+        var target = new SharedParameters.SecurityServer(serverAddress);
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
-        target.setAddress(source.getAddress());
+
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA1, hash)).toList());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();

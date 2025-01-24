@@ -137,4 +137,25 @@ public class GlobalConfVer4Test {
         assertNull(v3pki1.getAuthenticationCertificateProfileId());
         assertNull(v3pki1.getSigningCertificateProfileId());
     }
+
+    @Test
+    public void testMemberDid() {
+        List<MemberInfo> members = globalConfProvider.getMembers("EE");
+
+        MemberInfo memberInfo = findMemberInfo(members, "consumer");
+        assertEquals("did:web:consumer", memberInfo.getDid());
+
+        memberInfo = findMemberInfo(members, "producer");
+        assertEquals("did:web:producer", memberInfo.getDid());
+
+        memberInfo = findMemberInfo(members, "foo");
+        assertNull(memberInfo.getDid());
+    }
+
+    private static MemberInfo findMemberInfo(List<MemberInfo> members, String memberCode) {
+        return members.stream()
+                .filter(m -> m.getId().equals(ClientId.Conf.create("EE", "BUSINESS", memberCode)))
+                .findFirst()
+                .orElseThrow();
+    }
 }

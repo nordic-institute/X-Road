@@ -30,11 +30,12 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
 
 /**
  * Handles token pin update
@@ -47,7 +48,8 @@ public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateS
     protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
         final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
         if (tokenWorker.isSoftwareToken()) {
-            tokenWorker.handleUpdateTokenPin(request.getOldPin().toCharArray(), request.getNewPin().toCharArray());
+            tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
+                    byteToChar(request.getNewPin().toByteArray()));
             return Empty.getDefaultInstance();
         } else {
             throw new CodedException(X_INTERNAL_ERROR, "Software token not found");

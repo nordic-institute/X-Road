@@ -142,12 +142,12 @@ final class Helper {
     private Helper() {
     }
 
-    static String getSignatureRefereceIdForMessage() {
-        return SIGNATURE_REFERENCE_ID + "0";
+    static String getSignatureRefereceIdForMessage(int index) {
+        return SIGNATURE_REFERENCE_ID + index;
     }
 
     static String getSignatureReferenceIdForSignedProperties() {
-        return SIGNATURE_REFERENCE_ID + "1";
+        return SIGNATURE_REFERENCE_ID + "0";
     }
 
     static Document createDocument() throws Exception {
@@ -168,8 +168,8 @@ final class Helper {
                 namespaceAware);
     }
 
-    static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithmUri) throws Exception {
-        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri.uri());
+    static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithm) throws Exception {
+        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithm.uri());
         signature.setId(ID_SIGNATURE);
         document.getDocumentElement().appendChild(signature.getElement());
 

@@ -28,9 +28,9 @@ package ee.ria.xroad.signer.model;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import lombok.Value;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 
 import static java.util.Optional.ofNullable;
 

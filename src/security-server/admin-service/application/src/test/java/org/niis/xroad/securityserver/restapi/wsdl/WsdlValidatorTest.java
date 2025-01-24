@@ -28,10 +28,8 @@ package org.niis.xroad.securityserver.restapi.wsdl;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,18 +49,13 @@ public class WsdlValidatorTest {
     public static final String MOCK_VALIDATOR = "src/test/resources/validator/mock-wsdlvalidator.sh";
     public static final String FOOBAR_VALIDATOR = "/bin/foobar-validator";
 
-    private WsdlValidator wsdlValidator = new WsdlValidator(new ExternalProcessRunner());
-
-    @Before
-    public void setup() {
-        ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", MOCK_VALIDATOR);
-    }
+    private final WsdlValidator wsdlValidator = new WsdlValidator(new ExternalProcessRunner(), true, MOCK_VALIDATOR);
 
     @Test
     public void validatorNotExecutable() throws Exception {
-        ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", FOOBAR_VALIDATOR);
+        WsdlValidator testWsdlValidator = new WsdlValidator(new ExternalProcessRunner(), true, FOOBAR_VALIDATOR);
         try {
-            wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
+            testWsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
             fail("should have thrown WsdlValidationException");
         } catch (WsdlValidator.WsdlValidatorNotExecutableException expected) {
         }

@@ -69,9 +69,9 @@ abstract class SharedParametersV3ToXmlConverter {
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
-    @Mapping(target = "any", ignore = true)
     abstract SharedParametersTypeV3 convert(SharedParameters sharedParameters,
                                             @Context Map<ClientId, Object> clientMap);
+
 
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
@@ -85,6 +85,7 @@ abstract class SharedParametersV3ToXmlConverter {
 
     @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
+    @Mapping(source = "serverAddress.address", target = "address")
     @Mapping(target = "owner", qualifiedByName = "clientById")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);
 

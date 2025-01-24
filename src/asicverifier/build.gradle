@@ -9,6 +9,9 @@ dependencies {
     implementation project(':asic-util')
 
     implementation(project(':common:common-core'))
+    implementation libs.dss.asic.xades
+    implementation libs.dss.evidence.record.xml
+    implementation libs.dss.utils.apache.commons
 
     testImplementation project(':common:common-test')
 }

@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
@@ -65,7 +64,7 @@ import static org.mockito.Mockito.when;
  * be a common solution, and all inheriting tests that use the same dependency need to be updated
  * when such change is made.
  *
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
 public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
     @MockBean
@@ -74,8 +73,6 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     ClientRepository clientRepository;
     @MockBean
     ServerConfRepository serverConfRepository;
-    @MockBean
-    AnchorRepository anchorRepository;
     @MockBean
     IdentifierRepository identifierRepository;
     @MockBean

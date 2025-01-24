@@ -1,0 +1,13 @@
+{{- include "xroad.configmap.spring.common" (dict "root" $) }}
+{{- range $service, $config := .Values.services }}
+---
+{{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $config) }}
+---
+{{- include "xroad.configmap.env" (dict "root" $ "service" $service "config" $config) }}
+---
+{{- include "xroad.configmap.spring" (dict "root" $ "service" $service "config" $config) }}
+---
+{{- include "xroad.service" (dict "root" $ "service" $service "config" $config) }}
+---
+{{- include "xroad.deployment" (dict "root" $ "service" $service "config" $config) }}
+{{- end }}

@@ -24,6 +24,7 @@
  */
 package ee.ria.xroad.common.util;
 
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Response;
@@ -34,13 +35,20 @@ public interface ResponseWrapper {
     OutputStream getOutputStream();
 
     void setStatus(int status);
+
     void setContentLength(int length);
+
     void setContentType(String contentType);
+
     void setContentType(MimeTypes.Type contentType);
+
     void setContentType(String contentType, String charset);
 
     void putHeader(String headerName, String headerValue);
+
     void addHeader(String headerName, String headerValue);
+
+    HttpFields.Mutable getHeaders();
 
     static ResponseWrapper of(Response response) {
         var out = Content.Sink.asOutputStream(response);
@@ -84,6 +92,11 @@ public interface ResponseWrapper {
             @Override
             public void addHeader(String headerName, String headerValue) {
                 response.getHeaders().add(headerName, headerValue);
+            }
+
+            @Override
+            public HttpFields.Mutable getHeaders() {
+                return response.getHeaders();
             }
         };
     }

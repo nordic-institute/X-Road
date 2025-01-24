@@ -18,7 +18,6 @@ lxc file push $BASESCRIPTDIR/_restore_xroad.sh $TARGET
 lxc file push $BASESCRIPTDIR/_setup_db.sh $TARGET
 lxc file push $BASESCRIPTDIR/generate_certificate.sh $TARGET
 lxc file push $BASESCRIPTDIR/generate_gpg_keypair.sh $TARGET
-lxc file push $BASESCRIPTDIR/xroad-base.sh $TARGET
 
 # proxy specific part
 lxc file push $PROXYSCRIPTDIR/autobackup_xroad_proxy_configuration.sh $TARGET
@@ -29,6 +28,5 @@ lxc file push $PROXYSCRIPTDIR/read_db_properties.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/restore_db.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/restore_xroad_proxy_configuration.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/setup_serverconf_db.sh $TARGET
-lxc file push $PROXYSCRIPTDIR/verify_internal_configuration.sh $TARGET
 
 

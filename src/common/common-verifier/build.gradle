@@ -20,6 +20,7 @@ dependencies {
     implementation project(':common:common-message')
     implementation project(':common:common-scheduler')
     api project(':common:common-globalconf')
+    api(project(':common:common-properties'))
 
     implementation('org.springframework:spring-context-support')
 

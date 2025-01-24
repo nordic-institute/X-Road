@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.io.Content;
@@ -43,13 +44,9 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.niis.xroad.proxy.ProxyProperties;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,13 +64,14 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
-public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
+public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";
     private static final String METHOD_GET = "GET";
 
     private static final String CERT_PARAM = "cert";
 
+    private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
     private final KeyConfProvider keyConfProvider;
     private final Server server = new Server();
 
@@ -82,39 +80,31 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
      *
      * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        this(keyConfProvider, SystemProperties.getOcspResponderListenAddress());
-    }
-
-    /**
-     * Constructs a cert hash responder that listens on the specified address.
-     *
-     * @param host the address this responder should listen at
-     * @throws Exception in case of any errors
-     */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider, String host) throws Exception {
+    public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider)
+            throws Exception {
+        this.ocspResponderProperties = ocspResponderProperties;
         this.keyConfProvider = keyConfProvider;
         configureServer();
-        createConnector(host);
+        createConnector();
         createHandler();
     }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
-
-        Path file = Paths.get(SystemProperties.getJettyOcspResponderConfFile());
+        var file = ocspResponderProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtil.toResource(file)).configure(server);
     }
 
-    private void createConnector(String host) {
+    private void createConnector() {
+        String host = ocspResponderProperties.listenAddress();
         log.trace("createConnector({})", host);
 
         ServerConnector ocspConnector = new ServerConnector(server);
 
         ocspConnector.setName("OcspResponseConnector");
-        ocspConnector.setPort(SystemProperties.getOcspResponderPort());
+        ocspConnector.setPort(ocspResponderProperties.port());
         ocspConnector.setHost(host);
         ocspConnector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -136,12 +126,12 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         server.setHandler(new RequestHandler());
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
     }

@@ -28,12 +28,13 @@ package ee.ria.xroad.common.signature;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -61,24 +62,19 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  * chain is produced for each request.
  */
 @Slf4j
-public class BatchSigner implements DisposableBean {
+@RequiredArgsConstructor
+public class BatchSigner implements MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
-    private static BatchSigner instance;
+    private final SignerRpcClient signerRpcClient;
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    public static BatchSigner init() {
-        instance = new BatchSigner();
-        return instance;
-    }
-
-    @Override
+    @PreDestroy
     public void destroy() {
-        if (instance != null) {
-            instance.workers.values().forEach(WorkerImpl::stop);
-        }
+        workers.values().forEach(WorkerImpl::stop);
+
     }
 
     /**
@@ -90,17 +86,14 @@ public class BatchSigner implements DisposableBean {
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public static SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
+    @Override
+    public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
             throws Exception {
-        if (instance == null) {
-            throw new IllegalStateException("BatchSigner is not initialized");
-        }
-
         CompletableFuture<SignatureData> completableFuture = new CompletableFuture<>();
         final SigningRequestWrapper signRequestWrapper = new SigningRequestWrapper(
                 completableFuture,
                 keyId, signatureAlgorithmId, request);
-        instance.handle(signRequestWrapper);
+        handle(signRequestWrapper);
 
         try {
             return completableFuture.get(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
@@ -122,7 +115,7 @@ public class BatchSigner implements DisposableBean {
 
             return workers.computeIfAbsent(name, key -> {
                 log.trace("Creating new worker for cert '{}'", name);
-                return new WorkerImpl(signRequest.getKeyId());
+                return new WorkerImpl(signerRpcClient, signRequest.getKeyId());
             });
         } catch (Exception e) {
             throw new RuntimeException("Unable to get worker", e);
@@ -133,15 +126,16 @@ public class BatchSigner implements DisposableBean {
      * This is the worker that does the heavy lifting.
      */
     private static class WorkerImpl {
-
+        private final SignerRpcClient signerRpcClient;
         private final boolean batchSigningEnabled;
         private final BlockingQueue<SigningRequestWrapper> requestsQueue = new LinkedBlockingQueue<>();
         private boolean stopping;
         private final Thread workerThread;
 
-        protected WorkerImpl(String keyId) {
+        protected WorkerImpl(SignerRpcClient signerRpcClient, String keyId) {
+            this.signerRpcClient = signerRpcClient;
             try {
-                batchSigningEnabled = SignerProxy.isTokenBatchSigningEnabled(keyId);
+                batchSigningEnabled = signerRpcClient.isTokenBatchSigningEnabled(keyId);
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
                 throw new RuntimeException(e);
@@ -206,7 +200,7 @@ public class BatchSigner implements DisposableBean {
                     try {
                         byte[] digest = calculateDigest(ctx.getSignatureAlgorithmId().digest(),
                                 ctx.getDataToBeSigned());
-                        final byte[] response = SignerProxy.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
+                        final byte[] response = signerRpcClient.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
                         sendSignatureResponse(ctx, response);
                     } catch (Exception exception) {
                         sendException(ctx, exception);

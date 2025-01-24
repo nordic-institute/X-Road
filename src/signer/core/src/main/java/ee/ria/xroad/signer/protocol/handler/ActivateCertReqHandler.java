@@ -38,8 +38,8 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;

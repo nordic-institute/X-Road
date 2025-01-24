@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: op-monitor-daemon
+
+server:
+  port: 5899
+
+xroad:
+  op-monitor:
+    host: localhost
+    port: 2080
+    scheme: http
+    keep-records-for-days: 7
+    clean-interval: 0 0 0/12 1/1 * ? *
+    max-records-in-payload: 10000
+    records-available-timestamp-offset-seconds: 60
+    health-statistics-period-seconds: 600
+    hibernate:
+      jdbc.use_streams_for_binary: true
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/op-monitor
+      hikari.dataSource.currentSchema: opmonitor,public
+      connection.username: opmonitor

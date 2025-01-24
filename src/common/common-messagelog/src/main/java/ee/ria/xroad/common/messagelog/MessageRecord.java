@@ -27,6 +27,7 @@ package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
+import ee.ria.xroad.common.asic.dss.DSSASiCBuilder;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.crypto.Cipher;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.util.ArrayList;
@@ -126,6 +128,9 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private transient Cipher messageCipher;
 
+    @Setter
+    private transient Cipher attachmentCipher;
+
     /**
      * Constructs a message record.
      *
@@ -137,7 +142,7 @@ public class MessageRecord extends AbstractLogRecord {
      * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
-                         ClientId clientId, String xRequestId) {
+                         ClientId clientId, String xRequestId, String origin) {
         this.queryId = qid;
         this.message = msg;
         this.signature = sig;
@@ -146,6 +151,7 @@ public class MessageRecord extends AbstractLogRecord {
         this.memberCode = clientId.getMemberCode();
         this.subsystemCode = clientId.getSubsystemCode();
         this.xRequestId = xRequestId;
+        setOrigin(origin);
     }
 
     @Override
@@ -154,7 +160,7 @@ public class MessageRecord extends AbstractLogRecord {
                 memberClass, memberCode, subsystemCode};
     }
 
-    public AsicContainer toAsicContainer() throws Exception {
+    public void writeAsicContainer(OutputStream out) throws Exception {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
 
@@ -178,7 +184,15 @@ public class MessageRecord extends AbstractLogRecord {
             plaintextMessage = message;
         }
         var attachmentList = attachments.stream().map(MessageAttachment::getInputStream).toList();
-        return new AsicContainer(plaintextMessage, signatureData, timestamp, attachmentList, getTime());
+        // todo attachments encryption?
+        if (signatureData.isBatchSignature()) {
+            var legacyContainer = new AsicContainer(plaintextMessage, signatureData, timestamp, attachmentList, getTime());
+            legacyContainer.write(out);
+        } else {
+            var container = DSSASiCBuilder.newBuilder().createContainer(
+                    plaintextMessage.getBytes(), attachmentList, signatureData, timestamp, getTime());
+            container.writeTo(out);
+        }
     }
 
     public void setAttachmentStream(InputStream stream, long size) {

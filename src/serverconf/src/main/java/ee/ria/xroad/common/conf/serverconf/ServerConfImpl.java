@@ -43,6 +43,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -63,7 +64,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,25 +73,29 @@ import org.hibernate.SharedSessionContract;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.conf.serverconf.model.EndpointType.ANY_METHOD;
 
 /**
  * Server conf implementation.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class ServerConfImpl implements ServerConfProvider {
 
     // default service connection timeout in seconds
     protected static final int DEFAULT_SERVICE_TIMEOUT = 30;
 
+    protected final DatabaseCtxV2 databaseCtx;
     protected final GlobalConfProvider globalConfProvider;
 
     private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
@@ -100,6 +104,11 @@ public class ServerConfImpl implements ServerConfProvider {
     private final CertificateDAOImpl certificateDao = new CertificateDAOImpl();
     private final ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
     private final ServiceDescriptionDAOImpl serviceDescriptionDao = new ServiceDescriptionDAOImpl();
+
+    public ServerConfImpl(DatabaseCtxV2 databaseCtx, GlobalConfProvider globalConfProvider) {
+        this.databaseCtx = databaseCtx;
+        this.globalConfProvider = globalConfProvider;
+    }
 
     @Override
     public SecurityServerId.Conf getIdentifier() {
@@ -158,6 +167,39 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+        return tx(session -> {
+            ClientType client = clientDao.getClient(session, serviceProvider);
+
+            var serviceDescription = client.getServiceDescription().stream()
+                    .filter(sd -> sd.getService().stream().anyMatch(s -> s.getServiceCode().equals(serviceCode)))
+                    .findFirst()
+                    .orElseThrow();
+
+            Map<XRoadId, Set<AccessRightPath>> map = new HashMap<>();
+            for (AccessRightType acl : client.getAcl()) {
+                if (serviceCode.equals(acl.getEndpoint().getServiceCode())) {
+                    String endpoint = composeEndpoint(serviceDescription, acl);
+                    if (!map.containsKey(acl.getSubjectId())) {
+                        map.put(acl.getSubjectId(), new HashSet<>());
+                    }
+                    map.get(acl.getSubjectId()).add(new AccessRightPath(endpoint, acl.getAdditionalConditions()));
+                }
+            }
+
+            return map;
+        });
+    }
+
+    private String composeEndpoint(ServiceDescriptionType serviceDescription, AccessRightType acl) {
+        if (DescriptionType.WSDL == serviceDescription.getType()) {
+            return "%s %s".formatted(ANY_METHOD, acl.getEndpoint().getServiceCode());
+        } else {
+            return "%s %s".formatted(acl.getEndpoint().getMethod(), acl.getEndpoint().getPath());
+        }
+    }
+
+    @Override
     public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
@@ -206,6 +248,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return getEndpointClients(serviceProvider, serviceCode);
+    }
+
+    @Override
     public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
                                                              DescriptionType descriptionType) {
         return tx(session -> serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType));
@@ -246,6 +293,24 @@ public class ServerConfImpl implements ServerConfProvider {
             throw new CodedException(X_UNKNOWN_SERVICE,
                     "Service '%s' not found", service);
         });
+    }
+
+    @Override
+    public boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return tx(session -> getConf(session).getClient().stream()
+                .filter(c -> c.getIdentifier().memberEquals(clientId))
+                .anyMatch(c -> c.getLocalGroup().stream()
+                        .anyMatch(g -> g.getGroupCode().equals(localGroupId.getGroupCode())))
+        );
+    }
+
+    @Override
+    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return tx(session -> getConf(session).getClient().stream()
+                .filter(c -> c.getIdentifier().equals(clientId))
+                .anyMatch(c -> c.getLocalGroup().stream()
+                        .anyMatch(g -> g.getGroupCode().equals(localGroupId.getGroupCode())))
+        );
     }
 
     @Override
@@ -374,7 +439,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isAvailable() {
         try {
-            return doInTransaction(SharedSessionContract::isConnected);
+            return databaseCtx.doInTransaction(SharedSessionContract::isConnected);
         } catch (Exception e) {
             log.warn("Unable to check Serverconf availability", e);
             return false;
@@ -496,7 +561,7 @@ public class ServerConfImpl implements ServerConfProvider {
      */
     protected <T> T tx(TransactionCallback<T> t) {
         try {
-            return doInTransaction(t);
+            return databaseCtx.doInTransaction(t);
         } catch (Exception e) {
             throw translateException(e);
         }

@@ -1128,3 +1128,47 @@ HTTP 201
 # Enable OpenAPI REST service
 PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_rest_openapi_service_service_id}}/enable
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+#Set members DIDs
+PATCH https://{{cs_host}}:4000/api/v1/members/DEV:COM:1234
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "member_name":"Test member",
+  "did":"did:web:{{ss0_host}}%3A9396"
+}
+
+HTTP 200
+
+PATCH https://{{cs_host}}:4000/api/v1/members/DEV:COM:4321
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "member_name":"Test client",
+  "did":"did:web:{{ss1_host}}%3A9396"
+}
+
+HTTP 200
+
+#Enable DS for ss0 and ss1
+PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:1234:SS0
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "server_address": "{{ss0_host}}",
+  "ds_enabled": true,
+  "protocol_url": "{{ss0_host}}:9194/protocol"
+}
+
+HTTP 200
+
+PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:4321:SS1
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "server_address": "{{ss1_host}}",
+  "ds_enabled": true,
+  "protocol_url": "{{ss1_host}}:9194/protocol"
+}
+
+HTTP 200

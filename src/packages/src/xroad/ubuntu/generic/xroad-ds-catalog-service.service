@@ -1,0 +1,17 @@
+[Unit]
+Description=X-Road DS Catalog Service
+After=network.target
+Wants=postgresql.service
+Wants=xroad-signer.service
+StartLimitBurst=3
+StartLimitIntervalSec=90
+
+[Service]
+User=xroad
+Group=xroad
+ExecStart=/usr/share/xroad/bin/xroad-ds-catalog-service
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

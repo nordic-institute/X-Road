@@ -59,6 +59,8 @@
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useForm } from 'vee-validate';
 import { useBasicForm } from '@/util/composables';
+import { PropType } from 'vue';
+import { SecurityServerDataSpaceConfig } from '@/openapi-types';
 
 /**
  * Component for a Security server details view
@@ -71,6 +73,10 @@ const props = defineProps({
   },
   address: {
     type: String,
+    required: true,
+  },
+  dsConfig: {
+    type: Object as PropType<SecurityServerDataSpaceConfig>,
     required: true,
   },
 });
@@ -103,7 +109,12 @@ function close() {
 
 const saveAddress = handleSubmit((values) => {
   loading.value = true;
-  updateAddress(props.securityServerId, values.securityServerAddress)
+  updateAddress(
+    props.securityServerId,
+    values.securityServerAddress,
+    props.dsConfig.ds_enabled,
+    props.dsConfig.protocol_url!,
+  )
     .then(() => {
       showSuccess(t('securityServers.dialogs.editAddress.success'));
       emits('save');

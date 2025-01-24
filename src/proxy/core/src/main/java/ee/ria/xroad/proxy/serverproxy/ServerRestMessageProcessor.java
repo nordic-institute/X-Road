@@ -48,6 +48,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -59,7 +60,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
@@ -108,9 +108,6 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @Slf4j
 class ServerRestMessageProcessor extends MessageProcessorBase {
 
-    private static final String SERVERPROXY_REST_SERVICE_HANDLERS = SystemProperties.PREFIX
-            + "proxy.serverRestServiceHandlers";
-
     private final X509Certificate[] clientSslCerts;
 
     private final List<RestServiceHandler> handlers = new ArrayList<>();
@@ -137,18 +134,19 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                                ResponseWrapper response,
                                HttpClient httpClient,
                                X509Certificate[] clientSslCerts,
-                               OpMonitoringData opMonitoringData) {
+                               OpMonitoringData opMonitoringData,
+                               ServiceHandlerLoader serviceHandlerLoader) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient);
 
         this.clientSslCerts = clientSslCerts;
         this.opMonitoringData = opMonitoringData;
-        loadServiceHandlers();
+        loadServiceHandlers(serviceHandlerLoader);
     }
 
     @Override
     @WithSpan
     public void process() throws Exception {
-        log.info("process({})", jRequest.getContentType());
+        log.trace("process({})", jRequest.getContentType());
 
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
@@ -217,14 +215,12 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         opMonitoringData.setRestResponseStatusCode(restResponse.getResponseCode());
     }
 
-    private void loadServiceHandlers() {
-        String serviceHandlerNames = System.getProperty(SERVERPROXY_REST_SERVICE_HANDLERS);
-        if (!StringUtils.isBlank(serviceHandlerNames)) {
-            for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(RestServiceHandlerLoader.load(serverConfProvider, serviceHandlerName));
-                log.trace("Loaded rest service handler: " + serviceHandlerName);
-            }
-        }
+    private void loadServiceHandlers(ServiceHandlerLoader serviceHandlerLoader) {
+
+        serviceHandlerLoader.loadRestServiceHandlers().forEach(handler -> {
+            handlers.add(handler);
+            log.trace("Loaded rest service handler: " + handler.getClass().getName());
+        });
     }
 
     private RestServiceHandler getServiceHandler(ProxyMessage request) {
@@ -271,7 +267,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
-                responseSigningCtx = keyConfProvider.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId(), globalConfProvider, keyConfProvider);
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
                 }

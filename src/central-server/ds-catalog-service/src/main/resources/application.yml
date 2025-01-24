@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: ds-catalog-service
+
+server:
+  port: 5850
+
+xroad:
+  common:
+    global-conf:
+      source: FILESYSTEM
+
+#EDC conf
+edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: false
+  hostname: ${EDC_HOSTNAME}
+  datasource:
+    default:
+      url: jdbc:postgresql://127.0.0.1:5432/ds-control-plane
+  participant:
+    id: ${EDC_DID}
+  public:
+    key:
+      alias: public-key
+  dsp:
+    callback:
+      address: https://${edc.hostname}:9194/protocol
+  edr:
+    receiver:
+      sync: true
+  http:
+    client:
+      https:
+        enforce: false #openbao runs on http
+  iam:
+    issuer:
+      id: ${EDC_DID}
+    sts:
+      privatekey:
+        alias: ${EDC_DID_KEY_ID:}
+      publickey:
+        id: ${EDC_DID}#${EDC_DID_KEY_ID:}
+    did:
+      web:
+        use:
+          https: true
+  jsonld:
+    https:
+      enabled: true
+    http:
+      enabled: true
+  vault:
+    hashicorp:
+      url: ${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}
+      token: ${XROAD_SECRET_STORE_TOKEN}
+      api:
+        secret:
+          path: v1/xrd-ds-secret
+  negotiation:
+    state-machine:
+      iteration-wait-millis: 300
+  policy:
+    monitor:
+      state-machine:
+        iteration-wait-millis: 300
+  catalog:
+    cache:
+      execution:
+        delay:
+          seconds: 5
+        period:
+          seconds: 20
+      partition:
+        num:
+          crawlers: 2
+
+web:
+  http:
+    port: 9191
+    path: /api
+    control:
+      port: 9192
+      path: /control
+    management:
+      port: 9193
+      path: /management
+    protocol:
+      port: 9194
+      path: /protocol
+    catalog:
+      port: 9195
+      path: /catalog

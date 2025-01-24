@@ -34,7 +34,7 @@ import org.apache.http.client.HttpClient;
 
 import java.io.InputStream;
 
-interface ServiceHandler {
+public interface ServiceHandler {
 
     boolean shouldVerifyAccess();
 

@@ -1,5 +1,3 @@
-import org.apache.tools.ant.taskdefs.condition.Os
-
 plugins {
     id("xroad.java-conventions")
     alias(libs.plugins.protobuf)
@@ -16,8 +14,12 @@ sourceSets {
 }
 
 dependencies {
+    api (platform(libs.springBoot.bom))
     implementation project(':common:common-domain')
     api project(':common:common-rpc')
+
+    api("org.springframework.boot:spring-boot-starter")
+    api libs.opentelemetry.instrumentation.annotations
 }
 
 protobuf {
@@ -31,33 +33,3 @@ protobuf {
 }
 
 compileJava.dependsOn generateProto
-
-test {
-    if (Os.isArch("x86_64") || Os.isArch("amd64")) {
-        jvmArgs '-Djava.library.path=../libs/passwordstore/amd64'
-    }
-    if (Os.isArch("aarch64") || Os.isArch("arm64")) {
-        jvmArgs '-Djava.library.path=../libs/passwordstore/arm64'
-    }
-}
-
-if (Os.isName("linux")) {
-    tasks.register('make', Exec) {
-        def javaCompiler = javaToolchains.compilerFor(java.toolchain)
-        def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
-
-        inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c', '*.h', 'Makefile'])
-        inputs.dir file("${javaHome}/include")
-        outputs.dir file('../lib')
-
-        workingDir '../'
-        commandLine 'make', 'clean', 'all'
-    }
-
-    tasks.register('makeClean', Exec) {
-        workingDir '../'
-        commandLine 'make', 'clean'
-    }
-
-    clean.dependsOn makeClean
-}

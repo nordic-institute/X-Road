@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: message-log-archiver
+
+server:
+  port: 5598
+
+xroad:
+  #todo: unify with message-log
+  messagelog:
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true
+  message-log:
+    timestamper-client-connect-timeout: 20000
+    timestamper-client-read-timeout: 60000
+    timestamp-immediately: false
+    timestamp-records-limit: 10000
+    acceptable-timestamp-failure-period: 14400
+    keep-records-for: 30
+    archive-max-filesize: 33554432
+    archive-interval: 0 0 0/6 1/1 * ? *
+    archive-path: /var/lib/xroad/
+    clean-interval: 0 0 3/6 1/1 * ? *
+    hash-algo-id: SHA-512
+    archive-transfer-command:
+    message-body-logging: true
+  node:
+    type:

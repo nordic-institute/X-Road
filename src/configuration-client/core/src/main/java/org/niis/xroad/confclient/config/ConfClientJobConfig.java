@@ -27,7 +27,6 @@ package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -39,32 +38,35 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 import org.quartz.SchedulerException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 @Configuration
+@ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "false")
 public class ConfClientJobConfig {
 
     @Bean
     JobManager jobManager(ConfigurationClientJobListener listener,
+                          ConfigurationClientProperties configurationClientProperties,
                           SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
         final var jobManager = new JobManager(springBeanJobFactory);
 
         jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
 
         jobManager.registerRepeatingJob(ConfigurationClientJob.class,
-                SystemProperties.getConfigurationClientUpdateIntervalSeconds(), new JobDataMap());
+                configurationClientProperties.updateInterval(), new JobDataMap());
 
         jobManager.registerJob(ProxyConfigurationBackupJob.class,
-                SystemProperties.getConfigurationClientProxyConfigurationBackupCron(), new JobDataMap());
+                configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
 
         return jobManager;
     }
 
     @Bean
-    ConfigurationClientJobListener getConfigurationClientJobListener() {
-        return new ConfigurationClientJobListener();
+    ConfigurationClientJobListener getConfigurationClientJobListener(ConfigurationClientProperties configurationClientProperties) {
+        return new ConfigurationClientJobListener(configurationClientProperties);
     }
 
     @Bean
@@ -78,7 +80,6 @@ public class ConfClientJobConfig {
     @Slf4j
     public static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
-
         // Access only via synchronized getter/setter.
         private DiagnosticsStatus status;
 
@@ -90,9 +91,9 @@ public class ConfClientJobConfig {
             return status;
         }
 
-        ConfigurationClientJobListener() {
+        ConfigurationClientJobListener(ConfigurationClientProperties configurationClientProperties) {
             status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                    TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
         }
 
         @Override

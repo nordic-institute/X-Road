@@ -1,0 +1,38 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':serverconf'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':addons:messagelog:messagelog-db'))
+
+    implementation libs.dss.xml.utils
+
+    testImplementation project(':addons:messagelog:messagelog-addon:asic')
+    testImplementation project(':addons:messagelog:messagelog-archiver:core')
+    testImplementation project(':common:common-jetty')
+
+    testImplementation project(':proxy:core')
+
+    testImplementation project(':common:common-keyconf')
+    testImplementation project(':common:common-scheduler')
+    testImplementation project(':common:common-test')
+    testImplementation project(':asic-util')
+    testImplementation libs.hsqldb
+    testImplementation libs.bouncyCastle.bcpg
+    testImplementation libs.dss.asic.xades
+}
+
+jar {
+    archiveBaseName = 'messagelog-addon-core'
+}
+
+tasks.register('copyGpg', Copy) {
+    from 'src/test/gpg'
+    into layout.buildDirectory.dir("gpg")
+}
+
+test.dependsOn copyGpg

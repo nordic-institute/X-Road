@@ -35,8 +35,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -44,7 +45,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -70,7 +70,7 @@ public class GlobalConfChecker {
     private volatile boolean restoreInProgress = false;
     private final GlobalConfCheckerHelper globalConfCheckerHelper;
     private final GlobalConfProvider globalConfProvider;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final MailNotificationHelper mailNotificationHelper;
 
@@ -226,9 +226,9 @@ public class GlobalConfChecker {
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
         log.debug("Get auth cert for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = signerProxyFacade.getAuthKey(serverId);
-        if (keyInfo != null && keyInfo.getCert() != null) {
-            return CryptoUtils.readCertificate(keyInfo.getCert().getCertificateBytes());
+        AuthKeyCertInfo keyInfo = signerRpcClient.getAuthKeyCert(serverId);
+        if (keyInfo != null && keyInfo.cert() != null) {
+            return CryptoUtils.readCertificate(keyInfo.cert().getCertificateBytes());
         }
         log.warn("Failed to read authentication key");
         return null;
@@ -280,7 +280,7 @@ public class GlobalConfChecker {
     private void updateAuthCertStatuses(SecurityServerId securityServerId) {
         log.debug("Updating auth cert statuses");
 
-        signerProxyFacade.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
+        signerRpcClient.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
                 .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
                 .flatMap(k -> k.getCerts().stream()).forEach(certInfo -> {
                     try {
@@ -312,7 +312,6 @@ public class GlobalConfChecker {
                 default -> log.warn("Unexpected status '{}' for certificate '{}'",
                         certInfo.getStatus(), CertUtils.identify(cert));
             }
-
         }
 
         if (!registered && CertificateInfo.STATUS_REGISTERED.equals(certInfo.getStatus())) {
@@ -322,6 +321,6 @@ public class GlobalConfChecker {
 
     private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) throws Exception {
         log.debug("Setting certificate '{}' status to '{}'", CertUtils.identify(cert), status);
-        signerProxyFacade.setCertStatus(certInfo.getId(), status);
+        signerRpcClient.setCertStatus(certInfo.getId(), status);
     }
 }

@@ -31,9 +31,12 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
+import ee.ria.xroad.common.asic.dss.DSSAsicVerifier;
 import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
+import eu.europa.esig.dss.validation.reports.Reports;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +46,10 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.ria.xroad.common.asic.AsicUtils.getMessageFromContainer;
+import static ee.ria.xroad.common.asic.AsicUtils.isLegacyContainer;
 
 /**
  * ASiC container verifier utility program.
@@ -95,21 +102,51 @@ public final class AsicVerifierMain {
     private static void verifyAsic(GlobalConfProvider globalConfProvider, String fileName) {
         System.out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
-        AsicContainerVerifier verifier = null;
         try {
-            verifier = new AsicContainerVerifier(globalConfProvider, fileName);
-            verifier.verify();
-
-            onVerificationSucceeded(verifier);
+            if (isLegacyContainer(fileName)) {
+                verifyLegacyContainer(fileName, globalConfProvider);
+            } else {
+                verifyContainer(fileName, globalConfProvider);
+            }
         } catch (Exception e) {
             onVerificationFailed(e);
         }
         extractMessage(fileName);
     }
 
+    static void verifyContainer(String fileName, GlobalConfProvider globalConfProvider) throws IOException {
+        var reports = new DSSAsicVerifier().validate(fileName, globalConfProvider);
+        validateResult(reports);
+        var message = getMessageFromContainer(fileName);
+        onVerificationSucceeded(reports, message);
+    }
+
+    static void verifyLegacyContainer(String fileName, GlobalConfProvider globalConfProvider) throws Exception {
+        AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, fileName);
+        verifier.verify();
+        onVerificationSucceeded(verifier);
+    }
+
+    private static void validateResult(Reports reports) {
+        if (reports.getDetailedReport().getSignatures().isEmpty()) {
+            throw new CodedException(X_MALFORMED_SIGNATURE, "No signatures found in container");
+        }
+        var signature = reports.getDetailedReport().getSignatures().getFirst();
+        boolean isValid = reports.getSimpleReport().isValid(signature.getId());
+        if (!isValid) {
+            var message = reports.getSimpleReport().getAdESValidationErrors(signature.getId()).getFirst();
+            throw new CodedException(X_MALFORMED_SIGNATURE, message.getValue());
+        }
+    }
+
     @SuppressWarnings("resource")
     private static void onVerificationSucceeded(AsicContainerVerifier verifier) {
         System.out.println(AsicUtils.buildSuccessOutput(verifier));
+    }
+
+    @SuppressWarnings("resource")
+    private static void onVerificationSucceeded(Reports reports, String message) {
+        System.out.println(AsicUtils.buildSuccessOutput(reports.getDiagnosticData(), message));
     }
 
     private static void onVerificationFailed(Throwable cause) {

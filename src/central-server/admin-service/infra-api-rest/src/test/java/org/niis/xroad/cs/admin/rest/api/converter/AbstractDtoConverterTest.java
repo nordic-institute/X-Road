@@ -37,12 +37,12 @@ public abstract class AbstractDtoConverterTest {
     protected static final String MEMBER_CLASS_CODE = "MEMBER_CLASS";
     protected static final String MEMBER_CODE = "MEMBER_CODE";
     protected static final String MEMBER_NAME = "MEMBER_NAME";
+    protected static final String MEMBER_DID = "did:web:member";
     protected static final String SUBSYSTEM_CODE = "SUBSYSTEM";
 
     protected static final String SECURITY_SERVER_ENCODED_ID = "TEST:MEMBER_CLASS:MEMBER_CODE:SERVER_ADDRESS";
 
     protected static final String SERVER_ADDRESS = "SERVER_ADDRESS";
-
     protected static final String SERVER_CODE = "SERVER_ADDRESS";
 
     protected final ZoneOffset dtoZoneOffset = ZoneOffset.UTC;

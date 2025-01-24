@@ -1,0 +1,64 @@
+plugins {
+    id("xroad.java-conventions")
+    alias(libs.plugins.springBoot)
+}
+
+configurations {
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
+    }
+}
+
+dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
+    runtimeOnly(libs.bundles.identityhub)
+    runtimeOnly(libs.edc.api.observability)
+    runtimeOnly(libs.edc.vault.hashicorp)
+
+    runtimeOnly(libs.bundles.identity.api)
+
+    implementation(libs.bundles.did)
+    implementation(libs.bundles.connector)
+    implementation(libs.edc.ih.spi.store)
+    implementation(libs.edc.identity.vc.ldp)
+    implementation(libs.edc.ih.lib.credentialquery)
+    implementation(libs.edc.lib.vp)
+    implementation(libs.edc.lib.jsonld)
+    implementation(libs.edc.monitor.jdk.logger)
+
+    implementation(libs.bundles.sql.ih)
+
+    implementation(project(":security-server:ds:extensions:common:xroad-jsonld"))
+    implementation(project(":security-server:ds:extensions:common:xroad-ldp-verifiable-credentials"))
+    implementation(project(":security-server:ds:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:ds:extensions:identity-hub:xroad-identity-hub-provisioner"))
+    implementation(project(":security-server:ds:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:ds:extensions:common:xroad-httpclient"))
+    implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
+    implementation(libs.logback.classic)
+
+    testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'ds-identity-hub'
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road DS Identity Hub',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
+    }
+}
+
+archUnit {
+    skip = true
+}
+

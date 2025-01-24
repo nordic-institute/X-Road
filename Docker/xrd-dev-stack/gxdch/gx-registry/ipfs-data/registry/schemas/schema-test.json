@@ -1,0 +1,43 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$description": "A self description  of a(n) compliance-certificate-credential",
+    "title": "compliance-certificate-credential",
+    "type": "object",
+    "properties": {
+        "gax-compliance:credentialSubject": {
+            "description": "Id of the claim to be signed in a verifiable credential build with all the information that are bound in the claim. In case of third party credential the id is the id of the third party",
+            "type": "object",
+            "required": [
+                "@type",
+                "@value"
+            ],
+            "properties": {
+                "@type": {
+                    "type": "string",
+                    "const": "gax-compliance:ComplianceCertificateClaim",
+                    "examples": [
+                        "gax-compliance:ComplianceCertificateClaim"
+                    ]
+                },
+                "@value": {
+                    "type": "string",
+                    "examples": [
+                        "https://company-a.com/self-descriptions/cab.jsonld"
+                    ]
+                }
+            }
+        },
+        "gax-compliance:isValid": {
+            "description": "Indicate if the associated claim is valid or not",
+            "type": "boolean",
+            "examples": [
+                "true",
+                "false"
+            ]
+        }
+    },
+    "required": [
+        "gax-compliance:credentialSubject",
+        "gax-compliance:isValid"
+    ]
+}

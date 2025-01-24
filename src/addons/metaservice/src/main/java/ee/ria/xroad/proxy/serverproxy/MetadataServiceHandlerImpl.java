@@ -27,11 +27,8 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
@@ -100,7 +97,7 @@ import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
 import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 @Slf4j
-class MetadataServiceHandlerImpl extends AbstractServiceHandler {
+public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     static final JAXBContext JAXB_CTX = initJaxbCtx();
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
@@ -118,7 +115,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
 
-    protected MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
         super(serverConfProvider, globalConfProvider);
         wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
     }
@@ -275,14 +272,13 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     // ------------------------------------------------------------------------
 
-    private String getWsdlUrl(ServiceId service) throws Exception {
-        ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
-                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
-        if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
+    private String getWsdlUrl(ServiceId service) {
+        DescriptionType type = serverConfProvider.getDescriptionType(service);
+        if (type != null && type != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
         }
-        return wsdl != null ? wsdl.getUrl() : null;
+        return type != null ? serverConfProvider.getServiceDescriptionURL(service) : null;
     }
 
     private static SoapMessageImpl createMethodListResponse(

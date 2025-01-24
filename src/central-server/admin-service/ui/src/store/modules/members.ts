@@ -25,7 +25,14 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Client, ClientId, MemberAdd, MemberGlobalGroup, MemberName, SecurityServer } from '@/openapi-types';
+import {
+  Client,
+  ClientId,
+  Did,
+  MemberAdd,
+  MemberGlobalGroup,
+  MemberName,
+  SecurityServer} from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export interface State {
@@ -56,9 +63,9 @@ export const useMember = defineStore('member', {
     deleteById(memberId: string) {
       return axios.delete(`/members/${memberId}`);
     },
-    editMemberName(memberId: string, memberName: MemberName) {
+    editMember(memberId: string, memberName: MemberName, did: Did) {
       return axios
-        .patch<Client>(`/members/${memberId}`, memberName)
+        .patch<Client>(`/members/${memberId}`, {...memberName, ...did})
         .then((resp) => {
           this.currentMember = resp.data;
         })

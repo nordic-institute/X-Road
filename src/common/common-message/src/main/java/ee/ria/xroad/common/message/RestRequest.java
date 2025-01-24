@@ -113,6 +113,7 @@ public class RestRequest extends RestMessage {
 
     /**
      * serialize
+     *
      * @return
      */
     @Override

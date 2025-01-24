@@ -1,0 +1,21 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    implementation libs.edc.ih.did
+    implementation libs.edc.boot
+    implementation libs.edc.ih.spi.store
+    implementation libs.edc.lib.crypto
+    implementation libs.edc.spi.jwt.signer
+    implementation libs.bouncyCastle.bcprov
+
+    implementation(project(':signer-protocol'))
+
+    testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
+}
+
+checkstyle {
+    checkstyleMain.enabled = false
+}

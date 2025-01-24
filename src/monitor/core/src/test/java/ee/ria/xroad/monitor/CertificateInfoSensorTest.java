@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateInfoSensor.CertificateInfoCollector;
 import ee.ria.xroad.monitor.CertificateInfoSensor.TokenExtractor;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -50,6 +51,7 @@ import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +83,13 @@ class CertificateInfoSensorTest {
 
     private CertificateInfoSensor certificateInfoSensor;
 
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
+            Duration.ofDays(1),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(5),
+            true);
+
     @BeforeEach
     void init() throws Exception {
         metrics = new MetricRegistry();
@@ -106,7 +115,8 @@ class CertificateInfoSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, serverConfProvider);
+        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider,
+                mock(SignerRpcClient.class));
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

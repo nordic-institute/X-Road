@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
@@ -47,6 +48,7 @@ public class HashChainBuilderTest {
 
     /**
      * Test to ensure hash chain builder works with varying input sizes.
+     *
      * @throws Exception in case of unexpected errors
      */
     @SuppressWarnings("squid:S2699")
@@ -69,15 +71,19 @@ public class HashChainBuilderTest {
 
         HashChainBuilder builder = new HashChainBuilder(SHA256);
         for (int i = 0; i < count; ++i) {
-            builder.addInputHash(new byte[]{(byte) i});
+            var hash = new byte[]{(byte) i};
+            LOG.info("Adding hash: {}", Base64.getEncoder().encodeToString(hash));
+            builder.addInputHash(hash);
         }
         builder.finishBuilding();
         printChains(builder);
+        LOG.info("Top hash: {}", Base64.getEncoder().encodeToString(builder.getTreeTop()));
     }
 
     /**
      * Test to ensure that hash chains with large amount of children
      * are built correctly.
+     *
      * @throws Exception in case of unexpected errors.
      */
     @Test
@@ -105,6 +111,7 @@ public class HashChainBuilderTest {
 
     /**
      * Tests with concrete hash values from the specification.
+     *
      * @throws Exception in case of unexpected errors
      */
     @Test
@@ -147,6 +154,7 @@ public class HashChainBuilderTest {
 
     /**
      * Test that ensures a hash chain with multiple attachments is correct.
+     *
      * @throws Exception in case of unexpected errors
      */
     @SuppressWarnings("squid:S2699")
@@ -176,6 +184,7 @@ public class HashChainBuilderTest {
 
     /**
      * Test that ensures a hash chain without input is correct.
+     *
      * @throws Exception in case of unexpected errors
      */
     @Test
@@ -191,6 +200,7 @@ public class HashChainBuilderTest {
 
     /**
      * Test that ensures a hash chain with a single attachment is correct.
+     *
      * @throws Exception in case of unexpected errors
      */
     @Test

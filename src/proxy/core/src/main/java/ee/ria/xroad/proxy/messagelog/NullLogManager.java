@@ -28,10 +28,10 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.util.JobManager;
 
 import java.util.Map;
 
@@ -41,8 +41,9 @@ import java.util.Map;
  */
 public class NullLogManager extends AbstractLogManager {
 
-    NullLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(jobManager, globalConfProvider, serverConfProvider);
+    public NullLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                          DatabaseCtxV2 databaseCtx) {
+        super(origin, globalConfProvider, serverConfProvider, databaseCtx);
     }
 
     @Override
@@ -60,4 +61,8 @@ public class NullLogManager extends AbstractLogManager {
         throw new RuntimeException("Status not available while using NullLogManager");
     }
 
+    @Override
+    public void destroy() {
+        // do nothing
+    }
 }

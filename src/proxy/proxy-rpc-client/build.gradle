@@ -1,0 +1,37 @@
+plugins {
+    id("xroad.java-conventions")
+    alias(libs.plugins.protobuf)
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java'
+            , 'build/generated-sources'
+            , 'build/generated/source/proto/main/grpc'
+            , 'build/generated/source/proto/main/java']
+    }
+}
+
+dependencies {
+    implementation (project(':common:common-core'))
+    implementation (project(':common:common-globalconf')) //for the ee.ria.xroad.common.DiagnosticsStatus
+    implementation (project(':common:common-rpc'))
+
+    api(libs.grpc.protobuf)
+    api(libs.grpc.stub)
+    api(libs.grpc.nettyShaded)
+    api(libs.protobuf.javaUtil)
+}
+
+protobuf {
+    protoc { artifact = libs.protobuf.protoc.get().toString() }
+    plugins {
+        grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc { option('@generated=omit') } }
+    }
+}
+
+compileJava.dependsOn generateProto

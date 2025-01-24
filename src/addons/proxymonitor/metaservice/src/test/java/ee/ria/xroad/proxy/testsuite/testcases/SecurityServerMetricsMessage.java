@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -135,11 +134,12 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        monitorRpcServer = RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(),
-                builder -> builder.addService(new MockMetricsProvider()));
-        monitorRpcServer.afterPropertiesSet();
+//        monitorRpcServer = RpcServer.newServer(
+//                new RpcServerProperties(
+//                        "127.0.0.1", //TODO xroad8 fix config.
+//                        4000),
+//                builder -> builder.addService(new MockMetricsProvider()));
+//        monitorRpcServer.afterPropertiesSet();
 
         globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
             @Override

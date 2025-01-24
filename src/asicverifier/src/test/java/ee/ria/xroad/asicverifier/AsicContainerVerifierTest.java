@@ -27,8 +27,7 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.asic.AsicContainerVerifier;
-import ee.ria.xroad.common.asic.AsicUtils;
+import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
@@ -40,14 +39,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 /**
  * Tests to verify correct ASiC container verifier behavior.
@@ -55,13 +56,16 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 @Slf4j
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
-//@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
+
+    private static MockedStatic<AsicVerifierMain> asicVerifierMainSpy;
 
     private static GlobalConfProvider globalConfProvider;
 
     private final String containerFile;
     private final String errorCode;
+    private final Runnable verificationMethodCall;
+
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
@@ -70,11 +74,18 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good2_v3");
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
+        asicVerifierMainSpy = Mockito.mockStatic(AsicVerifierMain.class, Mockito.CALLS_REAL_METHODS);
 
-        globalConfProvider = new TestGlobalConfImpl();
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf_2024");
+//        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
+//                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
+
+        globalConfProvider = new TestGlobalConfImpl() {
+            @Override
+            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
+                return TestCertUtil.getCaCert();
+            }
+        };
     }
 
     /**
@@ -82,21 +93,25 @@ public class AsicContainerVerifierTest {
      */
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
+        Runnable legacyContainerVerifierCall = () -> {
+            try {
+                AsicVerifierMain.verifyLegacyContainer(anyString(), any(GlobalConfProvider.class));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+        Runnable containerVerifierCall = () -> {
+            try {
+                AsicVerifierMain.verifyContainer(anyString(), any(GlobalConfProvider.class));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+
         return Arrays.asList(new Object[][]{
-                {"valid-signed-message.asice", null},
-                {"valid-non-batch-rest.asice", null},
-                {"valid-non-batch-soap-attachments.asice", null},
-                {"valid-signed-hashchain.asice", null},
-                {"valid-batch-ts.asice", null},
-                {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-signed-hashchain.asice", X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
-                {"invalid-hashchain-modified-message.asice", X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
-                // This verification actually passes, since the hash chain
-                // is not verified and the signature is correct otherwise
-                {"invalid-not-signed-hashchain.asice", null},
-                {"invalid-incorrect-references.asice", X_MALFORMED_SIGNATURE},
-                {"invalid-ts-hashchainresult.asice", X_MALFORMED_SIGNATURE}
+                {"valid-eidas.asice", null, containerVerifierCall},
+                {"valid-batch.asice", null, legacyContainerVerifierCall}
         });
     }
 
@@ -109,20 +124,18 @@ public class AsicContainerVerifierTest {
     public void test() throws Exception {
         thrown.expectError(errorCode);
 
+        // answer "Would you like to extract the signed files?" with "n"
+        System.setIn(new ByteArrayInputStream("n".getBytes()));
+
         verify(containerFile);
+        asicVerifierMainSpy.verify(verificationMethodCall::run);
+
     }
 
-    private static void verify(String fileName) throws Exception {
-        log.info("Verifying ASiC container \"" + fileName + "\" ...");
-
-        try {
-            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, "src/test/resources/" + fileName);
-            verifier.verify();
-
-            log.info(AsicUtils.buildSuccessOutput(verifier));
-        } catch (Exception e) {
-            log.error(AsicUtils.buildFailureOutput(e));
-            throw e;
-        }
+    private static void verify(String fileName) {
+        AsicVerifierMain.main(new String[]{
+                "src/test/resources/globalconf_2024",
+                "src/test/resources/" + fileName
+        });
     }
 }

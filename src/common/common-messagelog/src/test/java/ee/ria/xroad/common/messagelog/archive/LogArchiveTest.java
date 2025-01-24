@@ -57,6 +57,8 @@ public class LogArchiveTest {
 
     private static final int NUM_TIMESTAMPS = 3;
     private static final int NUM_RECORDS_PER_TIMESTAMP = 5;
+    public static final String HASH_CHAIN_RESULT_XML = "<HashChain xmlns=\"http://cyber.ee/hashchain\">"
+            + "<DefaultDigestMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha512\"/></HashChain>";
 
     private static boolean rotated;
     private long recordNo;
@@ -68,7 +70,6 @@ public class LogArchiveTest {
 
     @Parameterized.Parameter(1)
     public GroupingStrategy groupingStrategy;
-
 
     @Parameterized.Parameters(name = "encrypted = {0}, grouping = {1}")
     public static Object[][] params() {
@@ -154,7 +155,7 @@ public class LogArchiveTest {
                 for (int j = 0; j < NUM_RECORDS_PER_TIMESTAMP; j++) {
                     MessageRecord messageRecord = nextMessageRecord();
                     messageRecord.setTimestampRecord(ts);
-                    messageRecord.setTimestampHashChain("foo");
+                    messageRecord.setTimestampHashChain(HASH_CHAIN_RESULT_XML);
 
                     if (writer.write(messageRecord) && finishAfterRotate) {
                         break outer;
@@ -199,10 +200,11 @@ public class LogArchiveTest {
     private MessageRecord nextMessageRecord() {
         recordNo++;
 
-        MessageRecord record = new MessageRecord("qid" + recordNo,
-                "msg" + recordNo, "sig" + recordNo, false,
-                ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
-                "92060130-3ba8-4e35-89e2-41b90aac074b");
+        MessageRecord record = new MessageRecord("qid" + recordNo, "msg" + recordNo,
+                "<asic:XAdESSignatures xmlns:asic=\"http://uri.etsi.org/02918/v1.1.1#\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">"
+                        + "<ds:Signature/></asic:XAdESSignatures>",
+                false, ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
+                "92060130-3ba8-4e35-89e2-41b90aac074b", "test");
         record.setId(recordNo);
         record.setTime((long) (Math.random() * 100000L));
 
@@ -215,7 +217,7 @@ public class LogArchiveTest {
         TimestampRecord record = new TimestampRecord();
         record.setId(recordNo);
         record.setTimestamp("dGltZXN0YW1w");
-        record.setHashChainResult("foo");
+        record.setHashChainResult(HASH_CHAIN_RESULT_XML);
         record.setTime((long) (Math.random() * 100000L));
 
         return record;

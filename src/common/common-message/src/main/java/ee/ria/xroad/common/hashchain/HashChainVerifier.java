@@ -39,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.transforms.Transforms;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -165,11 +164,12 @@ public final class HashChainVerifier {
         }
     }
 
-    private static HashChainResultType parseHashChainResult(InputStream xml) throws Exception {
+    //TODO xroad8, reusing for now, but must be externalized.
+    public static HashChainResultType parseHashChainResult(InputStream xml) throws Exception {
         return validateAndParse(xml, HashChainResultType.class);
     }
 
-    private static HashChainType parseHashChain(InputStream xml) throws Exception {
+    public static HashChainType parseHashChain(InputStream xml) throws Exception {
         return validateAndParse(xml, HashChainType.class);
     }
 
@@ -317,11 +317,11 @@ public final class HashChainVerifier {
 
         Transforms tr = new Transforms(document.getDocumentElement(), null);
 
-        XMLSignatureInput before = new XMLSignatureStreamInput(referenceResolver.resolve(uri));
+        XMLSignatureInput before = new XMLSignatureInput(referenceResolver.resolve(uri));
 
         XMLSignatureInput after = tr.performTransforms(before);
 
-        return after.getUnprocessedInput();
+        return after.getOctetStream();
     }
 
     /**

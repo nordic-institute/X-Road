@@ -52,6 +52,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @RequiredArgsConstructor
 public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_BASE_FILE = "../../../Docker/xrd-dev-stack/compose.yaml";
+    private static final String COMPOSE_EDC_FILE = "../../../Docker/xrd-dev-stack/compose.edc.yaml";
     private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
 
     public static final String CS = "cs";
@@ -70,7 +71,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
             environment =
-                    new ComposeContainer(new File(COMPOSE_BASE_FILE), new File(COMPOSE_E2E_FILE))
+                    new ComposeContainer(new File(COMPOSE_BASE_FILE), new File(COMPOSE_EDC_FILE), new File(COMPOSE_E2E_FILE))
                             .withLocalCompose(true)
 
                             .withExposedService(CS, UI, forListeningPort())
@@ -98,7 +99,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create(containerName));
+        return new Slf4jLogConsumer(composeLoggerFactory.create(containerName));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")

@@ -25,14 +25,17 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
@@ -42,6 +45,9 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -55,6 +61,10 @@ import static org.niis.xroad.securityserver.restapi.service.CertificateAuthority
  * A generic, configuration class for bean initialization.
  */
 @Configuration
+@EnableConfigurationProperties({
+        ServerConfProperties.class,
+        SecurityServerConfiguration.EnvMonitorRpcChannelProperties.class,
+})
 public class SecurityServerConfiguration {
 
     @Bean
@@ -81,8 +91,19 @@ public class SecurityServerConfiguration {
 
     @Bean
     @Profile("nontest")
-    public MonitorClient monitorClient() throws Exception {
-        return new MonitorClient();
+        // todo: should be moved to monitor-rpc-client
+    MonitorClient monitorClient(RpcChannelFactory proxyRpcChannelFactory,
+                                EnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
+        return new MonitorClient(proxyRpcChannelFactory, rpcChannelProperties);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
+    // todo: should be moved to monitor-rpc-client
+    static class EnvMonitorRpcChannelProperties extends RpcChannelProperties {
+
+        public EnvMonitorRpcChannelProperties(String host, int port, int deadlineAfter) {
+            super(host, port, deadlineAfter);
+        }
     }
 
     @Bean
@@ -107,7 +128,14 @@ public class SecurityServerConfiguration {
     }
 
     @Bean
-    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider, ServerConfProperties serverConfProperties,
+                                                 @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        return ServerConfFactory.create(serverConfProperties, globalConfProvider, databaseCtx);
     }
+
+    @Bean("serverConfDatabaseCtx")
+    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
+        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
+    }
+
 }

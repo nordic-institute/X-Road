@@ -56,7 +56,6 @@ import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.niis.xroad.securityserver.restapi.service.UrlValidator;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -77,7 +76,7 @@ import org.springframework.web.context.request.RequestContextHolder;
  * mock some parts
  * (example: {@link KeyService}
  * <p>
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
@@ -129,8 +128,6 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     ServerConfService serverConfService;
     @SpyBean
     MailService mailService;
-    @SpyBean
-    WsdlValidator wsdlValidator;
     @SpyBean
     MockableAuditEventLoggingFacade auditEventLoggingFacade;
     @SpyBean

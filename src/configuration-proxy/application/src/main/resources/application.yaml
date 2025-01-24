@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: configuration-proxy
+
+server:
+  port: 5998
+
+
+xroad:
+  configuration-proxy:
+    download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
+    address: 0.0.0.0
+    signature-digest-algorithm-id: SHA-512
+    configuration-path: /etc/xroad/confproxy
+    generated-conf-path: /var/lib/xroad/public
+    hash-algorithm-uri: http://www.w3.org/2001/04/xmlenc#sha512

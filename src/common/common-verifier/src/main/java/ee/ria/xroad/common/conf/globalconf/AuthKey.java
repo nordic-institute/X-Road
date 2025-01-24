@@ -27,18 +27,13 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.cert.CertChain;
 
-import lombok.Value;
-
 import java.security.PrivateKey;
 
 /**
  * Value object representing the authentication key of the security server
  * It consists of the certificate chain and private key.
  */
-@Value
-public class AuthKey {
-
-    private final CertChain certChain;
-    private final PrivateKey key;
+@SuppressWarnings("checkstyle:JavadocType")
+public record AuthKey(CertChain certChain, PrivateKey key) {
 
 }

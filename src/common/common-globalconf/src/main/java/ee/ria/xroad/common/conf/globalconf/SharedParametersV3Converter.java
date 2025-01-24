@@ -61,6 +61,7 @@ public class SharedParametersV3Converter {
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
+
         return new SharedParameters(instanceIdentifier, configurationSources, approvedCAs, approvedTSAs,
                 members, securityServers, globalGroups, globalSettings);
     }
@@ -215,10 +216,11 @@ public class SharedParametersV3Converter {
 
     private SharedParameters.SecurityServer toSecurityServer(
             Map<String, ClientId> clientIds, SecurityServerType source, String instanceIdentifier) {
-        var target = new SharedParameters.SecurityServer();
+        var serverAddress = new SharedParameters.ServerAddress(source.getAddress(), null);
+        var target = new SharedParameters.SecurityServer(serverAddress);
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
-        target.setAddress(source.getAddress());
+
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();

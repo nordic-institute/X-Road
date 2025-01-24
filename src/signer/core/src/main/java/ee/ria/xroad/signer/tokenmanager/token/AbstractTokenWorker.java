@@ -30,11 +30,11 @@ import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -77,6 +77,12 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     @Override
     public void handleActivateToken(ActivateTokenReq message) {
         try {
+            if (!message.getActivate()) {
+                PasswordStore.storePassword(message.getTokenId(), null);
+            } else if (message.hasPin()) {
+                PasswordStore.storePassword(message.getTokenId(), message.getPin().toByteArray());
+            }
+
             activateToken(message);
 
             refresh();

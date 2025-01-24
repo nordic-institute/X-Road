@@ -1,0 +1,112 @@
+# Additional settings for local edc env.
+# Rules:
+# 1. Each container has its own port range. Ex: 4100-4199, 4200-4299, etc.
+
+services:
+  cs:
+    environment:
+      - EDC_HOSTNAME=cs
+      - EDC_DID=did:web:cs%3A9396
+      - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:1234
+    ports:
+      - "4195:9956" #EDC catalog-service debug
+      - "4196:9957" #EDC identity-hub debug
+      - "4197:9958" #EDC credential-service debug
+      - "4151:9191" #EDC api port
+      - "4152:9192" #EDC control port
+      - "4153:9193" #EDC management port
+      - "4154:9194" #EDC protocol port
+      - "4155:9293" #EDC public port
+      - "4156:9294" #EDC XRD public port
+    networks:
+      - xroad-network
+  ss0:
+    environment:
+      - EDC_HOSTNAME=ss0
+      - EDC_DID=did:web:ss0%3A9396
+      - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:1234
+    ports:
+      - "4295:9953" #control-plane debug
+      - "4296:9954" #data-plane debug
+      - "4297:9955" #identity-hub debug
+      - "4251:9191" #control-plane api port
+      - "4252:9192" #control-plane control port
+      - "4253:9193" #control-plane management port
+      - "4254:9194" #control-plane protocol port
+      - "4255:9291" #data-plane api port
+      - "4256:9292" #data-plane control port
+      - "4257:9293" #data-plane public port
+      - "4258:9294" #data-plane XRD public port
+    networks:
+      - xroad-network
+  ss1:
+    environment:
+      - EDC_HOSTNAME=ss1
+      - EDC_DID=did:web:ss1%3A9396
+      - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:4321
+    ports:
+      - "4395:9953" #control-plane debug
+      - "4396:9954" #data-plane debug
+      - "4397:9955" #identity-hub debug
+      - "4351:9191" #control-plane api port
+      - "4352:9192" #control-plane control port
+      - "4353:9193" #control-plane management port
+      - "4354:9194" #control-plane protocol port
+      - "4355:9291" #data-plane api port
+      - "4356:9292" #data-plane control port
+      - "4357:9293" #data-plane public port
+      - "4358:9294" #data-plane XRD public port
+    networks:
+      - xroad-network
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 96M
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    ports:
+      - 9090:9090
+    networks:
+      - xroad-network
+  jaeger:
+    image: jaegertracing/all-in-one:1.59
+
+    environment:
+      - MEMORY_MAX_TRACES=20000
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=0.0.0.0:4317
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 1G
+    ports:
+      - 16686:16686
+      - 4318:4318
+    networks:
+      - xroad-network
+  openbao:
+    build:
+      context: ../
+      dockerfile: xrd-dev-stack/openbao/Dockerfile
+    ports:
+      - "8200:8200"
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 64M
+    networks:
+      - xroad-network
+
+networks:
+  xroad-network:
+    name: xroad-network
+    driver: bridge

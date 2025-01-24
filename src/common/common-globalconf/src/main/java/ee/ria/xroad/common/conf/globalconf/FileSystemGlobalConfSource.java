@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.FileSource;
+
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -163,17 +165,17 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
     }
 
     @Override
-    public FileSource getFile(String fileName) {
-        var path = Paths.get(globalConfigurationDir, getInstanceIdentifier(), fileName);
-        return new FileSystemFileSource(path);
+    public FileSource<?> getFile(String fileName) {
+        return new FileSystemFileSource(Paths.get(globalConfigurationDir, getInstanceIdentifier(), fileName));
     }
 
     @ToString
     @RequiredArgsConstructor
-    public static class FileSystemFileSource implements FileSource {
+    public static class FileSystemFileSource implements FileSource<Path> {
         private final Path path;
 
-        public Optional<Path> getExistingPath() {
+        @Override
+        public Optional<Path> getFile() {
             if (path != null && Files.exists(path)) {
                 return Optional.of(path);
             }

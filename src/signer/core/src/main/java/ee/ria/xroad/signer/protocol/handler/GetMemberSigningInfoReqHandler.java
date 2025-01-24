@@ -34,12 +34,12 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 import org.springframework.stereotype.Component;

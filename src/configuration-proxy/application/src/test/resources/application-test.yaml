@@ -1,0 +1,8 @@
+xroad:
+  common:
+    configuration-path: ../core/src/test/resources/test-conf-simple
+    temp-files-path: build/tmp/test
+  configuration-proxy:
+    configuration-path: ../core/src/test/resources/conf-proxy-conf
+    generated-conf-path: build/tmp/test/generated-conf
+    download-script: ../core/src/test/resources/download_instance_configuration.sh

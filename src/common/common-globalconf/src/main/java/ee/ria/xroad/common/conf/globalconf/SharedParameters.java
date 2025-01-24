@@ -32,8 +32,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+
+import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 
 @Getter
 @Builder(toBuilder = true)
@@ -61,7 +64,6 @@ public class SharedParameters {
     }
 
 
-
     @Data
     public static class ConfigurationSource {
         private String address;
@@ -76,6 +78,7 @@ public class SharedParameters {
         private String name;
         private List<Subsystem> subsystems;
         private ClientId id;
+        private String did;
     }
 
     @Data
@@ -139,12 +142,14 @@ public class SharedParameters {
     }
 
     @Data
+    @RequiredArgsConstructor
     public static class SecurityServer {
         private ClientId owner;
+        private String ownerDid;
         private String serverCode;
-        private String address;
         private List<CertHash> authCertHashes;
         private List<ClientId> clients;
+        private final ServerAddress serverAddress;
     }
 
     @Data
@@ -162,5 +167,20 @@ public class SharedParameters {
     public static class GlobalSettings {
         private List<MemberClass> memberClasses;
         private Integer ocspFreshnessSeconds;
+    }
+
+    public record ServerAddress(
+            String address,
+            String dsProtocolUrl
+    ) {
+
+        public boolean isDsSupported() {
+            return dsProtocolUrl != null;
+        }
+
+        public String protocolUrl() {
+            var protocol = isSslEnabled() ? "https" : "http";
+            return String.format("%s://%s", protocol, dsProtocolUrl);
+        }
     }
 }

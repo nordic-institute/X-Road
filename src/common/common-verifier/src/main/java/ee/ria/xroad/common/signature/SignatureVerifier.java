@@ -43,11 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
-import org.apache.xml.security.signature.XMLSignatureDigestInput;
-import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
-import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Node;
@@ -59,7 +54,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +65,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -335,7 +328,7 @@ public class SignatureVerifier {
         s.addResourceResolver(new IdResolver(signature.getDocument()));
 
         if (resourceResolver == null) {
-            s.addResourceResolver(new SignatureResourceResolverImpl());
+            s.addResourceResolver(new SignatureResourceResolver(parts, hashChainResult));
         } else {
             s.addResourceResolver(resourceResolver);
         }
@@ -382,16 +375,6 @@ public class SignatureVerifier {
         return inputs;
     }
 
-    private MessagePart getPart(String name) {
-        for (MessagePart partHash : parts) {
-            if (partHash.getName().equals(name)) {
-                return partHash;
-            }
-        }
-
-        return null;
-    }
-
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
         if (part.getData() != null) {
@@ -399,38 +382,6 @@ public class SignatureVerifier {
         }
 
         return null;
-    }
-
-    private final class SignatureResourceResolverImpl extends ResourceResolverSpi {
-
-        @Override
-        public boolean engineCanResolveURI(ResourceResolverContext context) {
-            return switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                default -> isAttachment(context.attr.getValue()); // only attachments can be resolved
-            };
-        }
-
-        @Override
-        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
-            if (MessageFileNames.MESSAGE.equals(context.attr.getValue())) {
-                MessagePart part = getPart(MessageFileNames.MESSAGE);
-
-                if (part != null && part.getMessage() != null) {
-                    return new XMLSignatureByteInput(part.getMessage());
-                }
-            } else if (MessageFileNames.SIG_HASH_CHAIN_RESULT.equals(context.attr.getValue())) {
-                return new XMLSignatureStreamInput(is(hashChainResult));
-            } else if (isAttachment(context.attr.getValue())) {
-                MessagePart part = getPart(context.attr.getValue());
-
-                if (part != null && part.getData() != null) {
-                    return new XMLSignatureDigestInput(Base64.getEncoder().encodeToString(part.getData()));
-                }
-            }
-
-            return null;
-        }
     }
 
     private final class HashChainReferenceResolverImpl

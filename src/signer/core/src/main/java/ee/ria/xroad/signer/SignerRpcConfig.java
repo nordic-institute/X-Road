@@ -25,28 +25,31 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.springframework.context.annotation.Bean;
+import org.niis.xroad.common.rpc.RpcConfig;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.server.RpcServerConfig;
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
+import org.springframework.context.annotation.Import;
 
 @Slf4j
+@Import({
+        ConfClientRpcClientConfiguration.class,
+        RpcConfig.class,
+        RpcServerConfig.class
+})
+@EnableConfigurationProperties({SignerRpcConfig.SignerRpcServerProperties.class})
 @Configuration
 public class SignerRpcConfig {
 
-    @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
-        return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getGrpcSignerPort(),
-                builder -> bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
+    @ConfigurationProperties(prefix = "xroad.signer.grpc")
+    static class SignerRpcServerProperties extends RpcServerProperties {
+
+        SignerRpcServerProperties(String listenAddress, int port) {
+            super(listenAddress, port);
+        }
     }
 }

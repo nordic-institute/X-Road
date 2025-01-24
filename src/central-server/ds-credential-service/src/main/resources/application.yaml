@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: ds-credential-service
+
+server:
+  port: 5851
+
+xroad:
+  common:
+    global-conf:
+      source: FILESYSTEM
+
+logging:
+  level:
+    ROOT: INFO
+    org.niis.xroad.edc.extension.bridge.config: DEBUG
+
+#EDC configuration
+edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: false
+  participant:
+    id: ${EDC_DID}
+  did:
+    key:
+      id: ${EDC_DID_KEY_ID:}
+
+web:
+  http:
+    port: 9491
+    path: /

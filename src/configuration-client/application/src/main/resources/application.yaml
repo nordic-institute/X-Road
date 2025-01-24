@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: configuration-client
+
+server:
+  port: 5799
+
+logging.level:
+  ee.ria.xroad.common.SystemPropertiesLoader: OFF
+
+xroad:
+  configuration-client:
+    cli-mode: false
+    update-interval: 60
+    proxy-configuration-backup-cron: 0 15 3 * * ?
+    configuration-anchor-file: /etc/xroad/configuration-anchor.xml
+    grpc:
+      listen-address: 127.0.0.1
+      port: 5665

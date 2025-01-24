@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -43,7 +44,6 @@ import org.niis.xroad.common.exception.SignerProxyException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -83,7 +83,7 @@ class TokensServiceImplTest {
     @Mock
     private TokenActionsResolverImpl tokenActionsResolver;
     @Mock
-    private SignerProxyFacade signerProxyFacade;
+    private SignerRpcClient signerRpcClient;
     @Mock
     private TokenInfoMapper tokenInfoMapper;
     @Mock
@@ -95,7 +95,7 @@ class TokensServiceImplTest {
     @Test
     void getTokens() throws Exception {
         ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
-        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+        when(signerRpcClient.getTokens()).thenReturn(List.of(signerTokenInfo));
         when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
 
         Set<TokenInfo> result = tokensService.getTokens();
@@ -106,7 +106,7 @@ class TokensServiceImplTest {
 
     @Test
     void getTokensShouldThrowException() throws Exception {
-        doThrow(new SignerException("Error")).when(signerProxyFacade).getTokens();
+        doThrow(new SignerException("Error")).when(signerRpcClient).getTokens();
 
         assertThatThrownBy(() -> tokensService.getTokens())
                 .isInstanceOf(ServiceException.class)
@@ -115,7 +115,7 @@ class TokensServiceImplTest {
 
     @Test
     void loginShouldThrowWhenTokenNotFound() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(NotFoundException.class)
@@ -126,7 +126,7 @@ class TokensServiceImplTest {
     void loginShouldThrowPinLocked() throws Exception {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(USER_PIN_LOCKED);
 
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(ValidationFailureException.class)
@@ -137,32 +137,32 @@ class TokensServiceImplTest {
 
     @Test
     void loginShouldThrowFinalTryException() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_FINAL_TRY));
-        doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_FINAL_TRY));
+        doThrow(new CodedException("")).when(signerRpcClient).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Tries left: 1");
         assertAuditMessages();
-        verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
+        verify(signerRpcClient, times(2)).getToken(TOKEN_ID);
     }
 
     @Test
     void loginShouldThrowUserPinLockedOnActivation() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_LOCKED));
-        doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK), mockTokenInfo(USER_PIN_LOCKED));
+        doThrow(new CodedException("")).when(signerRpcClient).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(ValidationFailureException.class)
                 .hasMessage("Token PIN locked");
         assertAuditMessages();
-        verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
+        verify(signerRpcClient, times(2)).getToken(TOKEN_ID);
     }
 
     @Test
     void loginShouldThrowOtherException() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK));
-        doThrow(new SignerException("Error")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK));
+        doThrow(new SignerException("Error")).when(signerRpcClient).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(SignerProxyException.class)
@@ -173,7 +173,7 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowIncorrectPinFormatWhenTooShort() throws Exception {
         Map<String, String> tokenParams = Map.of("Min PIN length", "42");
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(ValidationFailureException.class)
@@ -185,7 +185,7 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowIncorrectPinFormatWhenTooLong() throws Exception {
         Map<String, String> tokenParams = Map.of("Max PIN length", "7");
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(ValidationFailureException.class)
@@ -197,14 +197,14 @@ class TokensServiceImplTest {
     @Test
     void login() throws Exception {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
         when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
 
         final TokenInfo result = tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD));
 
         assertThat(result).isEqualTo(tokenInfo);
-        verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
-        verify(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        verify(signerRpcClient, times(2)).getToken(TOKEN_ID);
+        verify(signerRpcClient).activateToken(TOKEN_ID, PASSWORD.toCharArray());
         verify(tokenActionsResolver).requireAction(LOGIN, signerTokenInfo, List.of());
 
         assertAuditMessages();
@@ -213,14 +213,14 @@ class TokensServiceImplTest {
     @Test
     void logout() throws Exception {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
         when(tokenInfoMapper.toTarget(signerTokenInfo)).thenReturn(tokenInfo);
 
         final TokenInfo result = tokensService.logout(TOKEN_ID);
 
         assertThat(result).isEqualTo(tokenInfo);
-        verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
-        verify(signerProxyFacade).deactivateToken(TOKEN_ID);
+        verify(signerRpcClient, times(2)).getToken(TOKEN_ID);
+        verify(signerRpcClient).deactivateToken(TOKEN_ID);
         verify(tokenActionsResolver).requireAction(LOGOUT, signerTokenInfo, List.of());
 
         assertAuditMessages();
@@ -228,7 +228,7 @@ class TokensServiceImplTest {
 
     @Test
     void logoutShouldThrowNotFound() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(NotFoundException.class)
@@ -237,7 +237,7 @@ class TokensServiceImplTest {
 
     @Test
     void logoutShouldThrowOtherExceptionWhenGetTokenFails() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Error"));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new SignerException("Error"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(SignerProxyException.class)
@@ -247,8 +247,8 @@ class TokensServiceImplTest {
     @Test
     void logoutShouldThrowExceptionWhenDeactivateFails() throws Exception {
         final ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(OK);
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
-        doThrow(new RuntimeException()).when(signerProxyFacade).deactivateToken(TOKEN_ID);
+        when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
+        doThrow(new RuntimeException()).when(signerRpcClient).deactivateToken(TOKEN_ID);
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(SignerProxyException.class)
@@ -259,7 +259,7 @@ class TokensServiceImplTest {
     @Test
     void hasHardwareTokensReturnsTrue() throws Exception {
         ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo("1");
-        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+        when(signerRpcClient.getTokens()).thenReturn(List.of(signerTokenInfo));
 
         boolean result = tokensService.hasHardwareTokens();
 
@@ -269,7 +269,7 @@ class TokensServiceImplTest {
     @Test
     void hasHardwareTokensReturnsFalse() throws Exception {
         ee.ria.xroad.signer.protocol.dto.TokenInfo signerTokenInfo = mockTokenInfo(SOFTWARE_TOKEN_ID);
-        when(signerProxyFacade.getTokens()).thenReturn(List.of(signerTokenInfo));
+        when(signerRpcClient.getTokens()).thenReturn(List.of(signerTokenInfo));
 
         boolean result = tokensService.hasHardwareTokens();
 

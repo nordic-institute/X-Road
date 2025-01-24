@@ -27,17 +27,20 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {
 
-    public static ServerConfProvider create(GlobalConfProvider globalConfProvider, int expireSeconds) {
-        if (expireSeconds > 0) {
-            return new CachingServerConfImpl(globalConfProvider, expireSeconds);
+    public static ServerConfProvider create(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
+                                            @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        if (serverConfProperties.cachePeriod() > 0) {
+            return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
         }
-        return new ServerConfImpl(globalConfProvider);
-
+        return new ServerConfImpl(databaseCtx, globalConfProvider);
     }
+
 }

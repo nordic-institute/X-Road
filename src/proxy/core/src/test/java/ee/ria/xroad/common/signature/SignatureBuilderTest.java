@@ -159,8 +159,8 @@ public class SignatureBuilderTest {
 
         assertNotNull(data);
         assertNotNull(data.getSignatureXml());
-        assertNotNull(data.getHashChainResult());
-        assertNotNull(data.getHashChain());
+        assertNull(data.getHashChainResult());
+        assertNull(data.getHashChain());
 
         if (WRITE_TEST_DATA) {
             Files.writeString(getFilePath("sign-0-extra-certs.xml"), data.getSignatureXml(), UTF_8,

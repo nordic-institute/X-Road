@@ -7,6 +7,11 @@ spring:
   main:
     allow-bean-definition-overriding: true
     banner-mode: off
+  cloud:
+    config:
+      enabled: false
+    vault:
+      enabled: false
 xroad:
   registration-service:
     api-token: testtoken

@@ -1,0 +1,19 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    api(platform(libs.springCloud.bom))
+    api(platform(libs.springBoot.bom))
+
+    api(project(':common:common-core'))
+    api(project(':common:common-properties'))
+
+    api("org.springframework.boot:spring-boot-starter-web")
+    api("org.springframework.boot:spring-boot-starter-actuator")
+
+    api("org.springframework.cloud:spring-cloud-starter-vault-config")
+
+//    TODO xroad8, use separate classifier for kube.
+    api("org.springframework.cloud:spring-cloud-starter-kubernetes-client-config")
+}

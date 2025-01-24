@@ -38,6 +38,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.fasterxml.jackson.databind.ObjectReader;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -149,6 +150,7 @@ public class OpMonitoringDaemonSender {
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds()));
     }
 
+    @PreDestroy
     public void destroy() {
         executorService.shutdown();
 

@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
-import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 
-import org.springframework.boot.SpringApplication;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
@@ -45,15 +44,14 @@ import org.springframework.context.annotation.Import;
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {
 
-    private static final String APP_NAME = "xroad-proxy-ui-api";
+    private static final String APP_NAME = "proxy-ui-api";
 
     /**
      * start application
      */
     public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-
-        SpringApplication.run(RestApiApplication.class, args
-        );
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, RestApiApplication.class)
+                .build()
+                .run(args);
     }
 }

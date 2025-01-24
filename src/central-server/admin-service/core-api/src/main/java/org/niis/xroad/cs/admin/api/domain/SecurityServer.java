@@ -49,6 +49,8 @@ public class SecurityServer extends Auditable {
     private String address;
 
     private Set<AuthCert> authCerts = new HashSet<>(0);
+    private boolean dsEnabled;
+    private String dsProtocolUrl;
 
     public SecurityServer(XRoadMember owner, String serverCode) {
         this.owner = owner;

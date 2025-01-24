@@ -28,13 +28,17 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides API for implementing configuration providers.
@@ -79,6 +83,13 @@ public interface ServerConfProvider {
     RestServiceDetailsListType getRestServices(ClientId serviceProvider);
 
     /**
+     * @param serviceProvider service provider identifier
+     * @param serviceCode service code
+     * @return clients that are allowed to invoke the service with allowed path glob
+     */
+    Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode);
+
+    /**
      * @param serviceProvider the service provider identifier
      * @param client the client identifier
      * @return RestServiceDetailsListType containing list of allowed REST services
@@ -90,6 +101,14 @@ public interface ServerConfProvider {
      * @return all the services offered by a service provider.
      */
     List<ServiceId.Conf> getAllServices(ClientId serviceProvider);
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param serviceCode service code
+     * @return Returns clients list with path globs for the given service.
+     */
+    Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode);
+
 
     /**
      * @param serviceProvider the service provider identifier
@@ -146,6 +165,10 @@ public interface ServerConfProvider {
      * @return whether the SSL certificate of the service provider is verified.
      */
     boolean isSslAuthentication(ServiceId service);
+
+    boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId);
+
+    boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId);
 
     /**
      * @return all members identifiers
@@ -221,4 +244,5 @@ public interface ServerConfProvider {
     default boolean isAvailable() {
         return true;
     }
+
 }

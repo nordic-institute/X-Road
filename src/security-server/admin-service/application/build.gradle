@@ -19,10 +19,9 @@ configurations.configureEach {
 }
 
 dependencies {
-    dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
+    implementation project(':common:common-service-bootstrap')
 
-    implementation(platform(libs.springBoot.bom))
-    implementation(platform(libs.springCloud.bom))
+    dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
     implementation(project(":common:common-globalconf"))
     implementation(project(":signer-protocol"))
@@ -31,10 +30,13 @@ dependencies {
     implementation(project(":common:common-admin-api"))
     implementation(project(":common:common-management-request"))
     implementation(project(':common:common-api-throttling'))
+    implementation(project(":common:common-properties"))
     implementation(project(":common:common-verifier"))
     implementation(project(":common:common-mail"))
     implementation(project(":security-server:openapi-model"))
     implementation(project(':monitor-common'))
+    implementation(project(":proxy:proxy-rpc-client"))
+    implementation(project(":configuration-client:confclient-rpc-client"))
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")

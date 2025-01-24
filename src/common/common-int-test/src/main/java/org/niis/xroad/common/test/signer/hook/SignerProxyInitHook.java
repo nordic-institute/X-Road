@@ -27,9 +27,6 @@
 
 package org.niis.xroad.common.test.signer.hook;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
-
 import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +36,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
-
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class SignerProxyInitHook implements BeforeSuiteHook {
+    private static final int SIGNER_GRPC_PORT = 5665;
     private final TestableApplicationInfoProvider testableApplicationInfoProvider;
 
     @Value("${test-automation.custom.grpc-client-host-override:#{null}}")
@@ -57,21 +53,29 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
         var host = grpcHostOverride != null ? grpcHostOverride : testableApplicationInfoProvider.getHost();
         var port = testableApplicationInfoProvider.getMappedPort(SIGNER_GRPC_PORT);
         log.info("Will use {}:{} (original port {})  for signer RPC connection..", host, port, SIGNER_GRPC_PORT);
+//      todo: fixme:
+//        System.setProperty(SystemProperties.SIGNER_GRPC_LISTEN_ADDRESS, host);
+//        System.setProperty(SystemProperties.SIGNER_GRPC_PORT, String.valueOf(port));
 
-        System.setProperty(SystemProperties.GRPC_INTERNAL_HOST, host);
-        System.setProperty(SystemProperties.GRPC_SIGNER_PORT, String.valueOf(port));
+//        System.setProperty(SystemProperties.GRPC_INTERNAL_KEYSTORE,
+//                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");
+//        System.setProperty(SystemProperties.GRPC_INTERNAL_KEYSTORE_PASSWORD, "111111");
+//        System.setProperty(SystemProperties.GRPC_INTERNAL_TRUSTSTORE,
+//                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");
+//        System.setProperty(SystemProperties.GRPC_INTERNAL_TRUSTSTORE_PASSWORD, "111111");
 
-        System.setProperty(SystemProperties.GRPC_INTERNAL_KEYSTORE,
-                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");
-        System.setProperty(SystemProperties.GRPC_INTERNAL_KEYSTORE_PASSWORD, "111111");
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TRUSTSTORE,
-                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TRUSTSTORE_PASSWORD, "111111");
+//        System.setProperty("xroad.internal.passwordstore-provider", "file");
+//        System.setProperty("xroad.internal.passwordstore-file-path", "build/container-passwordstore/");
 
-        System.setProperty("xroad.internal.passwordstore-provider", "file");
-        System.setProperty("xroad.internal.passwordstore-file-path", "build/container-passwordstore/");
-
-        RpcSignerClient.init();
+//        RpcClientProperties signerClientProperties = new RpcClientProperties(host, port, true,
+//                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
+//                "111111".toCharArray(),
+//                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
+//                "111111".toCharArray()
+//        );
+//        RpcChannelProperties signerClientProperties = new RpcChannelProperties(host, port, false,
+//        null, null, null, null);
+//        SignerRpcClient.init(signerClientProperties);
     }
 
 }

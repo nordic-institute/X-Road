@@ -26,11 +26,11 @@
 package ee.ria.xroad.signer.protocol.dto;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
 import lombok.Value;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 
 import java.io.Serializable;
 

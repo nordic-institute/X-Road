@@ -38,6 +38,8 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
@@ -56,15 +58,15 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) {
+    Optional<MessageProcessorBase> createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+                                                          OpMonitoringData opMonitoringData) {
         var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.
 
         if (!isGetRequest(request)) {
-            return null;
+            return Optional.empty();
         }
 
         if (target == null) {
@@ -76,8 +78,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
                 keyConfProvider, serverConfProvider, certChainFactory, target, request, response);
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
-            return processor;
+            return Optional.of(processor);
         }
-        return null;
+        return Optional.empty();
     }
 }

@@ -49,9 +49,11 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.proxy.edc.TargetSecurityServerLookup;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -60,11 +62,11 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 /**
- * Base class for client proxy handlers.
+ * Base class for client proxy handlers. These handlers are responsible for processing the incoming requests, usually consumer IS.
  */
 @Slf4j
 @RequiredArgsConstructor
-abstract class AbstractClientProxyHandler extends HandlerBase {
+public abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 
@@ -77,9 +79,9 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected final boolean storeOpMonitoringData;
 
-    abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
+    abstract Optional<MessageProcessorBase> createRequestProcessor(RequestWrapper request,
                                                          ResponseWrapper response,
-                                                         OpMonitoringData opMonitoringData) throws Exception;
+                                                                   OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
     @WithSpan
@@ -91,10 +93,11 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         MessageProcessorBase processor = null;
 
         try {
+            //TODO xroad8 do proper optional handling
             processor = createRequestProcessor(
                     RequestWrapper.of(request),
                     ResponseWrapper.of(response),
-                    opMonitoringData);
+                    opMonitoringData).orElse(null);
 
             if (processor != null) {
                 handled = true;
@@ -154,6 +157,17 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             }
         }
         return handled;
+    }
+
+    //TODO xroad8 this has an overlap with RestRequest object, possibly merge these
+    record ProxyRequestCtx(
+            String clientRequestUrl,
+            RequestWrapper clientRequest,
+            ResponseWrapper clientResponse,
+            OpMonitoringData opMonitoringData,
+            TargetSecurityServerLookup.TargetSecurityServers targetSecurityServers,
+            boolean alwaysReevaluatePolicies
+    ) {
     }
 
     private static void success(MessageProcessorBase processor, long start, OpMonitoringData opMonitoringData) {

@@ -29,3 +29,34 @@ fi \
 %define systemd_try_restart() \
 systemctl --quiet try-restart %{?*} >/dev/null 2>&1 || : \
 %{nil}
+
+%define set_yaml_property_function                                    \
+function set_yaml_property { # $1 property, $2 value, $3 file         \
+  if [ ! -f "$3" ]; then                                              \
+    echo "File $3 does not exist. Creating the file."                 \
+    touch "$3"                                                        \
+    chown xroad:xroad "$3"                                            \
+  fi                                                                  \
+                                                                      \
+  CURRENT_VALUE=$(yq "$1" "$3")                                       \
+  if [ -z "$CURRENT_VALUE" ] || [ "$CURRENT_VALUE" == "null" ]; then  \
+    yq -i "$1 = $2" "$3"                                              \
+  fi                                                                  \
+}                                                                     \
+%{nil}
+
+%define disable_addon_function                                        \
+function disable_addon { # $1 property, $2 file                       \
+  if [ ! -f "$2" ]; then                                              \
+    return 0                                                          \
+  fi                                                                  \
+  CURRENT_VALUE=$(yq "$1" "$2")                                       \
+  if [ -z "$CURRENT_VALUE" ]; then                                    \
+    return 0;                                                         \
+  fi                                                                  \
+  if [ "$CURRENT_VALUE" == "true" ]; then                             \
+    yq -i "$1 = false" "$2"                                           \
+  fi                                                                  \
+}                                                                     \
+%{nil}
+

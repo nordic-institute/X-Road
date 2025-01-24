@@ -29,8 +29,8 @@ import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**

@@ -1,16 +1,27 @@
 plugins {
     id("xroad.java-conventions")
     id("xroad.java-exec-conventions")
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
 
     implementation(project(':proxy:core'))
+    implementation(project(':common:common-service-bootstrap'))
     implementation(project(':common:common-core'))
+    implementation(project(':common:common-rpc'))
 
-    implementation('org.springframework:spring-context')
+    implementation(libs.apache.httpclient)
+    implementation(project(':common:common-keyconf'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-op-monitoring'))
+    implementation(project(':serverconf'))
+    implementation(project(':addons:metaservice'))
+    implementation(project(':addons:messagelog:messagelog-addon:asic'))
+    implementation(project(':addons:messagelog:messagelog-addon:core'))
+    implementation(project(':addons:proxymonitor-metaservice'))
+    implementation(project(':addons:op-monitoring'))
 
     testImplementation(libs.hsqldb)
     testImplementation(libs.restAssured)
@@ -21,24 +32,10 @@ dependencies {
     testImplementation(project(':common:common-message'))
     testImplementation(project(':common:common-test'))
     testImplementation(project(':common:common-verifier'))
-    testImplementation(project(':serverconf'))
-    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
-}
+    testImplementation(project(':security-server:ds-client'))
+    testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
 
-jar {
-    manifest {
-        attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
-    }
-    archiveClassifier = 'plain'
-    archiveBaseName = 'proxy'
-}
-
-shadowJar {
-    archiveClassifier = ''
-    archiveBaseName = 'proxy'
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.register('testJar', Jar) {
@@ -52,7 +49,20 @@ configurations {
 artifacts {
     testArtifacts testJar
 }
-assemble.finalizedBy shadowJar
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'proxy'
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Proxy',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
+    }
+}
+
+testJar.enabled = true
 
 apply plugin: "jacoco"
 
@@ -86,14 +96,8 @@ tasks.register('runProxyTest', JavaExec) {
     jvmArgs '-Xmx2g',
         "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
         "-Dxroad.tempFiles.path=build/attach-tmp",
-        '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
-        '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml',
-        '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
-        '-Dxroad.proxy.client-connector-so-linger=-1',
-        '-Dxroad.proxy.client-httpclient-so-linger=-1',
-        '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
-        '-Dxroad.common.grpc-internal-tls-enabled=false'
+        '-Dxroad.proxy.grpc-tls-enabled=false'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'

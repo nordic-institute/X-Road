@@ -9,7 +9,7 @@ wget http://xrd-ca:8888/testca/certs/tsa.cert.pem -O scenario/ca/tsa.pem
 wget http://xrd-ca:8888/testca/certs/ocsp.cert.pem -O scenario/ca/ocsp.pem
 
 echo "Running Hurl scenario..."
-hurl scenario/setup.hurl \
+hurl "$1" \
     --variables-file=hurl.env \
     --insecure \
     --very-verbose \

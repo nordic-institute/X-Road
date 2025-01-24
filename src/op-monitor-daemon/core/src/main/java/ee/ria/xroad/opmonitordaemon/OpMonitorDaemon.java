@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -40,8 +42,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -57,7 +57,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
-public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
+public final class OpMonitorDaemon {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
@@ -71,6 +71,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     private Server server = new Server();
 
     private final GlobalConfProvider globalConfProvider;
+    private final OperationalDataRecordManager operationalDataRecordManager;
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
@@ -79,15 +80,16 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
      *
      * @throws Exception in case of any errors
      */
-    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    public OpMonitorDaemon(GlobalConfProvider globalConfProvider, OperationalDataRecordManager operationalDataRecordManager) {
         this.globalConfProvider = globalConfProvider;
+        this.operationalDataRecordManager = operationalDataRecordManager;
 
         createConnector();
         createHandler();
         registerHealthMetrics();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         startTimestamp = getEpochMillisecond();
 
@@ -95,7 +97,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
         reporter.stop();
@@ -131,7 +133,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        cf.setIncludeProtocols(CryptoUtils.SSL_SUPPORTED_PROTOCOLS);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
@@ -143,7 +145,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     private void createHandler() {
-        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry));
+        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry, operationalDataRecordManager));
     }
 
     private void registerHealthMetrics() {

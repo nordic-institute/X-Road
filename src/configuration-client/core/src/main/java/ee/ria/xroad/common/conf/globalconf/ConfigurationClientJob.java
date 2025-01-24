@@ -27,17 +27,20 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.config.ConfigurationClientProperties;
+import org.niis.xroad.confclient.globalconf.GlobalConfRpcCache;
 import org.niis.xroad.schedule.RetryingQuartzJob;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
+
+import java.io.FileNotFoundException;
 
 /**
  * Quartz job implementation for the configuration client.
@@ -48,32 +51,35 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     private static final int RETRY_DELAY_SEC = 3;
 
     private final ConfigurationClient configClient;
+    private final GlobalConfRpcCache globalConfRpcCache;
+    private final ConfigurationClientProperties configurationClientProperties;
 
-    public ConfigurationClientJob(ConfigurationClient configClient) {
+    public ConfigurationClientJob(ConfigurationClient configClient, GlobalConfRpcCache globalConfRpcCache,
+                                  ConfigurationClientProperties configurationClientProperties) {
         super(RETRY_DELAY_SEC);
         this.configClient = configClient;
+        this.globalConfRpcCache = globalConfRpcCache;
+        this.configurationClientProperties = configurationClientProperties;
     }
 
     @Override
     protected void executeWithRetry(JobExecutionContext context) throws Exception {
         try {
             configClient.execute();
-
-            DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
-                            TimeUtils.offsetDateTimeNow()
-                                    .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-
-            context.setResult(status);
+            context.setResult(status(DiagnosticsErrorCodes.RETURN_SUCCESS));
+            globalConfRpcCache.refreshCache();
+        } catch (FileNotFoundException e) {
+            context.setResult(status(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED));
         } catch (Exception e) {
-            DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
-                    TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-            context.setResult(status);
-
+            context.setResult(status(ConfigurationClientUtils.getErrorCode(e)));
             throw new JobExecutionException(e);
         }
+    }
+
+    private DiagnosticsStatus status(int errorCode) {
+        return new DiagnosticsStatus(errorCode,
+                TimeUtils.offsetDateTimeNow(),
+                TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
     }
 
     @Override

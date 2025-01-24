@@ -48,4 +48,8 @@ public abstract class AbstractLogRecord implements LogRecord {
     @Getter
     @Setter
     private boolean archived; // indicates, whether this log record is archived
+
+    @Getter
+    @Setter
+    private String origin;
 }

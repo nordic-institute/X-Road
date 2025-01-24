@@ -145,7 +145,6 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         when(globalConfProvider.getMembers()).thenReturn(new ArrayList<>(members));
         List<TokenInfo> mockTokens = createMockTokenInfos();
         doReturn(mockTokens).when(tokenService).getAllTokens();
-        when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
         when(globalConfProvider.getGlobalGroups()).thenReturn(globalGroupInfos);
         when(globalConfProvider.getGlobalGroups(any(String[].class))).thenReturn(globalGroupInfos);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
@@ -1113,9 +1112,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 .deleteOrphans("FI:GOV:ORPHAN:SS1");
         assertEquals(HttpStatus.NO_CONTENT, orphanResponse.getStatusCode());
 
-        verify(signerProxyFacade).deleteKey(orphanKeyId, true);
-        verify(signerProxyFacade).deleteKey(orphanKeyId, false);
-        verifyNoMoreInteractions(signerProxyFacade);
+        verify(signerRpcClient).deleteKey(orphanKeyId, true);
+        verify(signerRpcClient).deleteKey(orphanKeyId, false);
+        verifyNoMoreInteractions(signerRpcClient);
 
         try {
             clientsApiController.deleteOrphans("FI:GOV:M1:SS777");

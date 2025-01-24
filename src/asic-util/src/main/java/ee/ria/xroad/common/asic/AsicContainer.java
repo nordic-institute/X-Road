@@ -217,6 +217,7 @@ public class AsicContainer {
         return AsicHelper.read(is);
     }
 
+
     /**
      * Write this container to the given output stream in ZIP format.
      * @param out the stream for writing container
@@ -292,7 +293,7 @@ public class AsicContainer {
         return entries.get(entryName);
     }
 
-    String getTimestampValueBase64() {
+    public String getTimestampValueBase64() {
         String timestampValue = entries.get(ENTRY_TIMESTAMP);
         if (timestampValue == null) {
             try {

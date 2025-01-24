@@ -32,8 +32,8 @@ dependencies {
     implementation project(':common:common-db')
     implementation project(':common:common-op-monitoring')
 
+    implementation("org.springframework.boot:spring-boot-starter")
     api('org.springframework:spring-context-support')
-
     // Using HSQLDB for an in-memory database in tests.
     testImplementation libs.hsqldb
     testImplementation libs.mockito.core

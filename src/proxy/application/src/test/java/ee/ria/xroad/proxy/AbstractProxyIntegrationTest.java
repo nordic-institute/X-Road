@@ -30,7 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
@@ -39,9 +39,9 @@ import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 import ee.ria.xroad.proxy.testutil.TestService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.ExternalResource;
@@ -50,29 +50,24 @@ import org.junit.runners.model.Statement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static org.mockito.Mockito.mock;
 
 /**
  * Base class for proxy integration tests
  * Starts and stops the test proxy instance and a service simulator.
  */
+@Slf4j
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
-    private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
-    private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
-
-    private static GenericApplicationContext applicationContext;
+    static final Set<Integer> RESERVED_PORTS = new HashSet<>();
+    static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
 
     protected static int proxyClientPort = getFreePort();
     protected static int servicePort = getFreePort();
@@ -104,36 +99,27 @@ public abstract class AbstractProxyIntegrationTest {
         }
     };
 
-    static class TestProxyMain extends ProxyMain {
-        @Override
-        protected void loadSystemProperties() {
-            System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
-            System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
-            System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
-            System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
 
-            final String serverPort = String.valueOf(getFreePort());
-            System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
-            System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
+    public static void setSystemProperties(Map<String, String> params) {
+        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
+        System.setProperty("xroad.proxy.client-proxy.client-http-port", String.valueOf(proxyClientPort));
+        System.setProperty("xroad.proxy.client-proxy.client-https-port", String.valueOf(getFreePort()));
 
-            System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
-            System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-            System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
-            System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
-            System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
+        final String serverPort = String.valueOf(getFreePort());
+        System.setProperty("xroad.proxy.server.listen-port", serverPort);
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
 
-            System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-            System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
+        System.setProperty("xroad.proxy.ocsp-responder.port", String.valueOf(getFreePort()));
 
-            System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-            System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
-            System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
-            System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
+        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
-            System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
-            super.loadSystemProperties();
-        }
+        System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
+
+//        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
+
+        params.forEach(System::setProperty);
     }
 
     @Configuration
@@ -166,19 +152,15 @@ public abstract class AbstractProxyIntegrationTest {
         ServerConfProvider serverConfProvider() {
             return TEST_SERVER_CONF;
         }
-    }
 
-    @BeforeClass
-    public static void setup() throws Exception {
-        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
-        applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class);
+        @Bean
+        DatabaseCtxV2 serverConfDatabaseCtx() {
+            return mock(DatabaseCtxV2.class);
+        }
     }
 
     @AfterClass
     public static void teardown() {
-        if (applicationContext != null) {
-            applicationContext.close();
-        }
         RESERVED_PORTS.clear();
     }
 
@@ -200,4 +182,5 @@ public abstract class AbstractProxyIntegrationTest {
             }
         }
     }
+
 }

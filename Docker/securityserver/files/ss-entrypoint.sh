@@ -40,9 +40,17 @@ log "Enabling public postgres access.."
 sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
 sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf
 
-log "initializing transport keys"
-mkdir -p -m0750 /var/run/xroad
-chown xroad:xroad /var/run/xroad
-su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
+#temporary set DB password to application-override.yaml
+#todo: xroad8 should be removed after setting up bao
+apt-get -qq -y install yq
+serverconf_pass=$(crudini --get /etc/xroad/db.properties "" "serverconf.hibernate.connection.password")
+yq -Y -i ".xroad.common.serverconf.hibernate.connection.password = \"${serverconf_pass}\"" /etc/xroad/conf.d/application-override.yaml
+
+messagelog_pass=$(crudini --get /etc/xroad/db.properties "" "messagelog.hibernate.connection.password")
+yq -Y -i ".xroad.messagelog.hibernate.connection.password = \"${messagelog_pass}\"" /etc/xroad/conf.d/application-override.yaml
+
+opmonitor_pass=$(crudini --get /etc/xroad/db.properties "" "op-monitor.hibernate.connection.password")
+yq -Y -i ".xroad.\"op-monitor\".hibernate.connection.password = \"${opmonitor_pass}\"" /etc/xroad/conf.d/application-override.yaml
+#end of temporary set DB password
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

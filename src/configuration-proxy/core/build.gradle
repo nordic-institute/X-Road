@@ -1,0 +1,17 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.java-exec-conventions")
+}
+
+dependencies {
+    api project(':common:common-core')
+    api project(':common:common-globalconf')
+    api project(':common:common-jetty')
+    api project(':signer-protocol')
+
+    implementation libs.commons.cli
+    implementation("org.springframework.boot:spring-boot-starter")
+
+    testImplementation project(':common:common-test')
+    testImplementation libs.assertj.core
+}

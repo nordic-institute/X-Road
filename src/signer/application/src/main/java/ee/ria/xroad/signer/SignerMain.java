@@ -26,66 +26,26 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.Version;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * Signer main program.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SignerMain {
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+public class SignerMain {
 
-    private static final String APP_NAME = "xroad-signer";
+    private static final String APP_NAME = "signer";
 
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .withLocalOptional(CONF_FILE_NODE)
-                .withAtLeastOneOf(CONF_FILE_CENTER, CONF_FILE_PROXY, CONF_FILE_CONFPROXY)
-                .with(CONF_FILE_SIGNER)
-                .load();
-    }
-
-    private static GenericApplicationContext springCtx;
-
-    /**
-     * Entry point to Signer.
-     *
-     * @param args the arguments
-     */
     public static void main(String[] args) {
-        try {
-            startup();
-        } catch (Exception fatal) {
-            log.error("FATAL", fatal);
-            System.exit(1);
-        }
-    }
-
-    private static void startup() {
-        long start = System.currentTimeMillis();
-        Version.outputVersionInfo(APP_NAME);
-        int grpcSignerPort = SystemProperties.getGrpcSignerPort();
-        log.info("Starting Signer on port {}...", grpcSignerPort);
-
-        springCtx = new AnnotationConfigApplicationContext(SignerConfig.class);
-        springCtx.registerShutdownHook();
-
-        log.info("Signer has been initialized in {} ms.", System.currentTimeMillis() - start);
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerAddonsConfig.class, SignerMain.class, SignerConfig.class)
+                .build()
+                .run(args);
     }
 
 }

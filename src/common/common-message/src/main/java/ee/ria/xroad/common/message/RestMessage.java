@@ -28,9 +28,11 @@ package ee.ria.xroad.common.message;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -62,6 +65,10 @@ public abstract class RestMessage {
     protected List<Header> headers;
     protected byte[] hash;
     protected byte[] messageBytes;
+
+    @Getter
+    @Setter
+    private CachingStream body;
 
     /**
      * get digest
@@ -101,6 +108,7 @@ public abstract class RestMessage {
 
     /**
      * Finds header value as a String
+     *
      * @param name http header name
      * @return http header value as a String or null if header not found
      */
@@ -119,6 +127,7 @@ public abstract class RestMessage {
 
     /**
      * Create rest message from message bytes
+     *
      * @param messageBytes
      * @return parsed rest message (response or request)
      * @see RestResponse
@@ -173,7 +182,7 @@ public abstract class RestMessage {
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
-    static ClientId decodeClientId(String value) {
+    public static ClientId decodeClientId(String value) {
         final String[] parts = value.split("/", 5);
         if (parts.length < 3 || parts.length > 4) {
             throw new IllegalArgumentException("Invalid Client Id");
@@ -187,14 +196,19 @@ public abstract class RestMessage {
     }
 
     static void serializeHeaders(List<Header> headers, OutputStream os, Predicate<Header> filter) throws IOException {
-        for (Header h : headers) {
-            if (filter.test(h)) {
-                writeString(os, h.getName());
-                writeString(os, ":");
-                writeString(os, h.getValue());
-                os.write(CRLF);
-            }
-        }
+        headers.stream()
+                .forEach(h -> {
+                    if (filter.test(h)) {
+                        try {
+                            writeString(os, h.getName());
+                            writeString(os, ":");
+                            writeString(os, h.getValue());
+                            os.write(CRLF);
+                        } catch (IOException e) {
+                            throw new IllegalStateException("Unable to serialize headers", e);
+                        }
+                    }
+                });
     }
 
     static boolean isXroadHeader(Header h) {
@@ -221,6 +235,26 @@ public abstract class RestMessage {
         tmp.add("server");
         tmp.add("expect");
         SKIPPED_HEADERS = Collections.unmodifiableSet(tmp);
+    }
+
+
+    public static final class HeadersComparator implements Comparator<Header> {
+
+        @Override
+        public int compare(Header h1, Header h2) {
+            int nameCompare = h1.getName().compareToIgnoreCase(h2.getName());
+            if (nameCompare != 0) {
+                return nameCompare;
+            }
+            if (h1.getValue() == null) {
+                return h2.getValue() == null ? 0 : -1;
+            }
+            if (h2.getValue() == null) {
+                return 1;
+            }
+            return h1.getValue().compareTo(h2.getValue());
+        }
+
     }
 
 }

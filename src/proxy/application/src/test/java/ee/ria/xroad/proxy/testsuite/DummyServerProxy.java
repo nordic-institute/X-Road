@@ -29,6 +29,8 @@ package ee.ria.xroad.proxy.testsuite;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -39,8 +41,6 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -55,7 +55,7 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-class DummyServerProxy extends Server implements InitializingBean, DisposableBean {
+class DummyServerProxy extends Server {
 
     DummyServerProxy() {
         ServerConnector connector = new ServerConnector(this);
@@ -70,12 +70,12 @@ class DummyServerProxy extends Server implements InitializingBean, DisposableBea
         setHandler(new ServiceHandler());
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() {
         try {
             stop();

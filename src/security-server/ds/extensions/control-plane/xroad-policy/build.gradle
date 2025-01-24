@@ -1,0 +1,15 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
+dependencies {
+    implementation libs.edc.spi.policy.engine
+    implementation libs.edc.spi.contract
+    implementation(project(':common:common-verifier'))
+    implementation(project(':serverconf'))
+
+    testImplementation libs.edc.junit
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.jupiter
+
+}

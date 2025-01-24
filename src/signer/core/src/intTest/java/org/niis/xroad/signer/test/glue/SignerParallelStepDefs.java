@@ -28,7 +28,6 @@
 package org.niis.xroad.signer.test.glue;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import io.cucumber.java.en.Step;
@@ -65,7 +64,7 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
             var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
 
             var stopWatch = StopWatch.createStarted();
-            byte[] result = SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+            byte[] result = signerRpcClient.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
             log.trace("Executed sign in {} ms.", stopWatch.getDuration().toMillis());
             return result;

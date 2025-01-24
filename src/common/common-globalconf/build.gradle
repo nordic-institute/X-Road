@@ -20,12 +20,11 @@ dependencies {
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)
 
-    implementation(platform(libs.springBoot.bom))
     implementation(libs.mapstruct)
 
-    api project(":common:common-core")
-    api project(":common:common-domain")
-    api project(':common:common-jetty')
+    api project(":common:common-message")
+    api(project(":configuration-client:confclient-rpc-client")) //TODO consider separating rpc impl at a module level?
+    api libs.jetty.http
 
     testImplementation project(':common:common-test')
     testImplementation(libs.junit.jupiter.params)

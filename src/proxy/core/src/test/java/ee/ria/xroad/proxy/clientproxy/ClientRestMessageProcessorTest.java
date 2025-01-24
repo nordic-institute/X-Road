@@ -30,13 +30,16 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.SneakyThrows;
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
+import org.apache.http.message.BasicHeader;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.PreEncodedHttpField;
@@ -44,7 +47,10 @@ import org.eclipse.jetty.server.Request;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.IsAuthentication.NOSSL;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
@@ -77,11 +83,18 @@ public class ClientRestMessageProcessorTest {
         var serverConfProvider = mock(ServerConfProvider.class);
         var certChainFactory = mock(CertChainFactory.class);
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
+        var restRequest = new RestRequest(request.getMethod(), request.getHttpURI().getPath(),
+                request.getHttpURI().getQuery(), headers(request), "xRequestId");
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
         var isAuthenticationData = mock(IsAuthenticationData.class);
-        var clientRestMessageProcessor = new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
+
+        var proxyCtx = new AbstractClientProxyHandler.ProxyRequestCtx("target", request, respWrapper, opMonitoringData,
+                null, false);
+
+        var clientRestMessageProcessor = new ClientRestMessageProcessor(proxyCtx,
+                restRequest, globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, httpClient, isAuthenticationData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         return clientRestMessageProcessor;
@@ -111,5 +124,11 @@ public class ClientRestMessageProcessorTest {
         var clientId = new PreEncodedHttpField(HEADER_CLIENT_ID, "DEV/COM/1234/TestService");
         when(request.getHeaders()).thenReturn(HttpFields.from(clientId));
         return request;
+    }
+
+    private List<Header> headers(RequestWrapper req) {
+        return req.getHeaders().stream()
+                .map(f -> new BasicHeader(f.getName(), f.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

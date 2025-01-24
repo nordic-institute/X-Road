@@ -49,9 +49,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -112,8 +110,6 @@ public class AsicContainerVerifier {
 
     private Date ocspDate;
     private X509Certificate ocspCert;
-
-    private byte[] attachmentDigest;
 
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
@@ -197,9 +193,9 @@ public class AsicContainerVerifier {
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
                 if (isAttachment(context.attr.getValue())) {
-                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
+                    return new XMLSignatureInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
                 }
-                return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
+                return new XMLSignatureInput(asic.getEntry(context.attr.getValue()));
             }
         });
 
@@ -255,7 +251,7 @@ public class AsicContainerVerifier {
         return new TimeStampToken(ContentInfo.getInstance(ASN1Primitive.fromByteArray(tsDerDecoded)));
     }
 
-    private static ClientId getSigner(String messageXml) {
+    public static ClientId getSigner(String messageXml) {
         final byte[] messageBytes = messageXml.getBytes(UTF_8);
 
         try {

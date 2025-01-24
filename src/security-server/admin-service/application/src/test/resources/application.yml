@@ -2,6 +2,7 @@
 
 spring:
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: create
     properties:
@@ -13,6 +14,19 @@ spring:
     defer-datasource-initialization: true
   profiles:
     active: test
+  cloud:
+    config:
+      enabled: false
+    vault:
+      enabled: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  jackson:
+    default-property-inclusion: NON_NULL
+  servlet:
+    multipart:
+      max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
+      max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
 
 logging:
   level:
@@ -35,5 +49,71 @@ ratelimit:
       minute: 3600
 
 server:
+  port: 4000
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: Strict
   tomcat:
     accesslog.enabled: false
+
+xroad:
+  common:
+    serverconf:
+      hibernate:
+        dialect: org.hibernate.dialect.HSQLDialect
+        connection.driver_class: org.hsqldb.jdbcDriver
+        connection.url: jdbc:hsqldb:mem:serverconf
+        connection.username: serverconf
+        connection.password: serverconf
+        hbm2ddl.auto: create-drop
+  proxy-ui-api:
+    rate-limit-requests-per-second: 20
+    rate-limit-requests-per-minute: 600
+    rate-limit-cache-size: 10_000
+    rate-limit-expire-after-access-minutes: 5
+    cache-default-ttl: 60
+    cache-api-key-ttl: 60
+    strict-identifier-checks: true
+    request-size-limit-regular: 50KB
+    request-size-limit-binary-upload: 10MB
+    authentication-key-algorithm: RSA
+    signing-key-algorithm: RSA
+    addon:
+      wsdl-validator:
+        enabled: true
+        command: src/test/resources/validator/mock-wsdlvalidator.sh
+
+file-upload-endpoints:
+  endpoint-definitions:
+    -
+      http-method: POST
+      path-pattern: "/**/backups/upload"
+    -
+      http-method: POST
+      path-pattern: "/**/tls-certificates"
+    -
+      http-method: POST
+      path-pattern: "/**/token-certificates"
+    -
+      http-method: POST
+      path-pattern: "/**/certificate/import"
+
+script:
+  generate-gpg-keypair:
+    path: /usr/share/xroad/scripts/generate_gpg_keypair.sh
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
+    args: -n internal -f -S -p 2>&1
+  generate-backup:
+    path: /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
+    valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
+  restore-configuration:
+    path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
+
+common-module-endpoints:
+  base-path: /api/v1
+
+gpgkeys:
+  gpghome: /etc/xroad/gpghome

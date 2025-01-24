@@ -25,26 +25,22 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationContext;
 
-final class ServiceHandlerLoader {
+import java.util.Collection;
 
-    private ServiceHandlerLoader() {
+@RequiredArgsConstructor
+public final class ServiceHandlerLoader {
+
+    private final ApplicationContext applicationContext;
+
+    public Collection<ServiceHandler> loadSoapServiceHandlers() {
+        return applicationContext.getBeansOfType(ServiceHandler.class).values();
     }
 
-    static ServiceHandler load(String className, ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            if (!AbstractServiceHandler.class.isAssignableFrom(clazz)) {
-                throw new RuntimeException("Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
-            }
-
-            return (ServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class, GlobalConfProvider.class)
-                    .newInstance(serverConfProvider, globalConfProvider);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load service handler: " + className, e);
-        }
+    public Collection<RestServiceHandler> loadRestServiceHandlers() {
+        return applicationContext.getBeansOfType(RestServiceHandler.class).values();
     }
 
 }

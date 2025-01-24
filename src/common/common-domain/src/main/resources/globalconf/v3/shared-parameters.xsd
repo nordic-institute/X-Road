@@ -109,7 +109,6 @@
                     </documentation>
                 </annotation>
             </element>
-            <any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </sequence>
     </complexType>
 
@@ -186,4 +185,6 @@
             </element>
         </sequence>
     </complexType>
+
 </schema>
+

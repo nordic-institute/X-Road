@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableScheduling
 @RequiredArgsConstructor
 public class GlobalConfRefreshJobConfig {
@@ -46,7 +46,7 @@ public class GlobalConfRefreshJobConfig {
         return new GlobalConfRefreshJob(globalConfProvider);
     }
 
-    @Bean
+    @Bean(BEAN_GLOBAL_CONF_SCHEDULER)
     ScheduledExecutorService globalConfRefreshScheduler() {
         return Executors.newSingleThreadScheduledExecutor();
     }

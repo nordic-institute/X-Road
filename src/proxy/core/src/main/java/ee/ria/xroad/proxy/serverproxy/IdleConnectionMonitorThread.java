@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -68,7 +70,13 @@ public class IdleConnectionMonitorThread extends Thread {
         }
     }
 
-    public void shutdown() {
+    @PostConstruct
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    @PreDestroy
+    public void destroy() {
         shutdown = true;
         interrupt();
     }

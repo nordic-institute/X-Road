@@ -25,15 +25,13 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
 import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
-import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +55,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      */
     @Before
     public void beginTransaction() {
-        session = OpMonitorDaemonDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -66,7 +64,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      */
     @After
     public void rollbackTransaction() {
-        OpMonitorDaemonDatabaseCtx.get().rollbackTransaction();
+        DATABASE_CTX.rollbackTransaction();
     }
 
     @SuppressWarnings("squid:S2699")
@@ -114,9 +112,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         // configuration parameter does not screw anything up.
         deleteAll();
 
-        Configuration conf = new Configuration();
-        int configuredBatchSize = ConfigurationHelper.getInt(
-                Environment.STATEMENT_BATCH_SIZE, conf.getProperties(), -1);
+        int configuredBatchSize = HibernateUtil.getConfiguredBatchSize(session, -1);
 
         // Save the exact number of records that should go into one batch.
         // Flush to empty the internal cache of Hibernate.

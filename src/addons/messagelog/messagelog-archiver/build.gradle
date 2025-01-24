@@ -1,31 +1,3 @@
 plugins {
-    id("xroad.java-conventions")
-    alias(libs.plugins.shadow)
+    id("xroad.submodule-conventions")
 }
-
-dependencies {
-    implementation(platform(libs.springBoot.bom))
-    implementation(project(':common:common-scheduler'))
-    implementation(project(':common:common-db'))
-    implementation(project(':common:common-messagelog'))
-    implementation(project(':common:common-verifier'))
-    implementation(project(':addons:messagelog:messagelog-db'))
-    implementation(project(':asic-util'))
-    implementation('org.springframework:spring-context-support')
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.messagelog.archiver.LogArchiverMain'
-    }
-}
-
-shadowJar {
-    archiveVersion = ''
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
-}
-
-assemble.dependsOn shadowJar

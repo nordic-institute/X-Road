@@ -27,8 +27,10 @@
 
 package org.niis.xroad.proxy.test.glue;
 
+import ee.ria.xroad.common.conf.EmptyServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
-import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -40,13 +42,13 @@ import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import io.cucumber.java.en.Step;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -78,25 +80,33 @@ import static org.assertj.core.api.Assertions.fail;
 public class ProxyStepDefs extends BaseStepDefs {
     private String scenarioKeyId;
 
+    private final SignerRpcClient signerRpcClient = null;
+    private final GlobalConfProvider globalConf = new TestGlobalConfImpl();
+    private final ServerConfProvider serverConf = new EmptyServerConf();
+    private final KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
+
+    public ProxyStepDefs() {
+    }
+
     @Step("tokens are listed")
     public void listTokens() throws Exception {
-        var tokens = SignerProxy.getTokens();
+        var tokens = signerRpcClient.getTokens();
         testReportService.attachJson("Tokens", tokens.toArray());
     }
 
     @Step("token is initialized with pin {string}")
     public void initToken(String pin) throws Exception {
-        SignerProxy.initSoftwareToken(pin.toCharArray());
+        signerRpcClient.initSoftwareToken(pin.toCharArray());
     }
 
     @Step("token with id {string} is logged in with pin {string}")
     public void tokenIsActivatedWithPin(String tokenId, String pin) throws Exception {
-        SignerProxy.activateToken(tokenId, pin.toCharArray());
+        signerRpcClient.activateToken(tokenId, pin.toCharArray());
     }
 
     @Step("new key {string} generated for token with id {string}")
     public void newKeyGeneratedForToken(String keyLabel, String tokenId) throws Exception {
-        final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
+        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
         scenarioKeyId = keyInfo.getId();
 
         testReportService.attachJson("keyInfo", keyInfo);
@@ -110,7 +120,7 @@ public class ProxyStepDefs extends BaseStepDefs {
                 clientId.getMemberClass(),
                 clientId.getMemberCode());
 
-        SignerProxy.GeneratedCertRequestInfo csrInfo = SignerProxy.generateCertRequest(scenarioKeyId, clientId,
+        SignerRpcClient.GeneratedCertRequestInfo csrInfo = signerRpcClient.generateCertRequest(scenarioKeyId, clientId,
                 KeyUsageInfo.valueOf(keyUsage), subjectName, CertificateRequestFormat.DER);
 
 
@@ -125,12 +135,12 @@ public class ProxyStepDefs extends BaseStepDefs {
         final ClientId.Conf clientId = getClientId(client);
         final byte[] certBytes = FileUtils.readFileToByteArray(cert.orElseThrow());
 
-        scenarioKeyId = SignerProxy.importCert(certBytes, initialStatus, clientId);
+        scenarioKeyId = signerRpcClient.importCert(certBytes, initialStatus, clientId);
     }
 
     @Step("token info can be retrieved by key id")
     public void tokenInfoCanBeRetrievedByKeyId() throws Exception {
-        final TokenInfo tokenForKeyId = SignerProxy.getTokenForKeyId(this.scenarioKeyId);
+        final TokenInfo tokenForKeyId = signerRpcClient.getTokenForKeyId(this.scenarioKeyId);
         testReportService.attachJson("tokenInfo", tokenForKeyId);
         assertThat(tokenForKeyId).isNotNull();
     }
@@ -143,7 +153,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private void exec(String client, int count, int threads) throws InterruptedException {
         final var clientId = getClientId(client);
-        final var signingCtx = createKeyConf().getSigningCtx(clientId);
+        final var signingCtx = SigningCtxProvider.getSigningCtx(clientId, globalConf, keyConfProvider);
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -199,13 +209,6 @@ public class ProxyStepDefs extends BaseStepDefs {
         } else {
             testReportService.attachText("Batch signature was triggered " + batchSignatureDetectCounter.get() + " times", "");
         }
-    }
-
-    @SneakyThrows
-    private KeyConfProvider createKeyConf() {
-        var globalConf = new TestGlobalConfImpl();
-        var serverConf = new ServerConfImpl(globalConf);
-        return CachingKeyConfImpl.newInstance(globalConf, serverConf);
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)

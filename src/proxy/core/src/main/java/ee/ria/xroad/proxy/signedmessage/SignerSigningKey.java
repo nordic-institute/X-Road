@@ -29,7 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.common.signature.MessageSigner;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
@@ -44,17 +44,25 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 @Slf4j
 public class SignerSigningKey implements SigningKey {
 
-    /** The private key ID. */
+    /**
+     * The private key ID.
+     */
     private final String keyId;
 
-    /** The sign mechanism name (PKCS#11) */
+    /**
+     * The sign mechanism name (PKCS#11)
+     */
     private final SignMechanism signMechanismName;
+
+    private final MessageSigner signer;
 
     /**
      * Creates a new SignerSigningKey with provided keyId.
+     *
      * @param keyId the private key ID.
      */
-    public SignerSigningKey(String keyId, SignMechanism signMechanismName) {
+    public SignerSigningKey(String keyId, SignMechanism signMechanismName, MessageSigner signer) {
+        this.signer = signer;
         if (keyId == null) {
             throw new IllegalArgumentException("KeyId must not be null");
         }
@@ -78,7 +86,7 @@ public class SignerSigningKey implements SigningKey {
         }
 
         try {
-            return BatchSigner.sign(keyId, signAlgoId, request);
+            return signer.sign(keyId, signAlgoId, request);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

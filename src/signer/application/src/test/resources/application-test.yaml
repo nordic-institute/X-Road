@@ -1,0 +1,7 @@
+xroad:
+  common:
+    temp-files-path: build/tmp/test
+  signer:
+    ocsp-cache-path: build/tmp/test
+    device-configuration-file: src/test/resources/devices.ini
+    key-configuration-file: src/test/resources/keyconf.xml

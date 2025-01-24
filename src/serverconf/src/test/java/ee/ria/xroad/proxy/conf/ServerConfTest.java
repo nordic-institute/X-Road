@@ -26,14 +26,13 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -89,6 +88,7 @@ public class ServerConfTest {
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
+    private static DatabaseCtxV2 databaseCtx;
     /**
      * Creates test database.
      *
@@ -96,10 +96,11 @@ public class ServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
-
+        databaseCtx = TestUtil.databaseCtx;
+        serverConfProvider = new ServerConfImpl(databaseCtx, globalConfProvider);
         globalConfProvider = new TestGlobalConfImpl();
-        serverConfProvider = new ServerConfImpl(globalConfProvider);
+
+        prepareDB(databaseCtx);
     }
 
     /**
@@ -107,7 +108,7 @@ public class ServerConfTest {
      */
     @Before
     public void beforeTest() {
-        ServerConfDatabaseCtx.get().beginTransaction();
+        databaseCtx.beginTransaction();
     }
 
     /**
@@ -115,7 +116,7 @@ public class ServerConfTest {
      */
     @After
     public void afterTest() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        databaseCtx.commitTransaction();
     }
 
     /**
@@ -253,20 +254,6 @@ public class ServerConfTest {
     }
 
     /**
-     * Tests getting conntector host.
-     */
-    @Test
-    public void getConnectorHost() {
-        String defaultHost = SystemProperties.getConnectorHost();
-        assertEquals("0.0.0.0", defaultHost);
-
-        String alteredHost = "127.0.0.1";
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, alteredHost);
-        String newHost = SystemProperties.getConnectorHost();
-        assertEquals(alteredHost, newHost);
-    }
-
-    /**
      * Tests getting IS authentication.
      */
     @Test
@@ -362,7 +349,7 @@ public class ServerConfTest {
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
         return new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(),
+                databaseCtx.getSession(),
                 serviceProvider);
     }
 }

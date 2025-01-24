@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: signer-console
+  main:
+    web-application-type: none

@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -127,7 +127,7 @@ public class NotificationService {
      */
     private boolean isSoftTokenPinEntered() {
         Optional<TokenInfo> token = tokenService.getAllTokens().stream()
-                .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
+                .filter(t -> t.getId().equals(SignerRpcClient.SSL_TOKEN_ID)).findFirst();
         if (token.isEmpty()) {
             log.warn("soft token not found");
             throw new RuntimeException("soft token not found");

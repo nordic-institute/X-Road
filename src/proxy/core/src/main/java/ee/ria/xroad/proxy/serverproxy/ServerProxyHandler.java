@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
@@ -40,11 +39,14 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.proxy.ProxyProperties;
 
 import java.io.IOException;
 
@@ -58,7 +60,9 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ServerProxyHandler extends HandlerBase {
+    private final ProxyProperties.ServerProperties serverProperties;
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
@@ -66,19 +70,7 @@ class ServerProxyHandler extends HandlerBase {
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
-    private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
-
-    ServerProxyHandler(GlobalConfProvider globalConfProvider,
-                       KeyConfProvider keyConfProvider,
-                       ServerConfProvider serverConfProvider,
-                       CertChainFactory certChainFactory, HttpClient client, HttpClient opMonitorClient) {
-        this.globalConfProvider = globalConfProvider;
-        this.keyConfProvider = keyConfProvider;
-        this.serverConfProvider = serverConfProvider;
-        this.certChainFactory = certChainFactory;
-        this.client = client;
-        this.opMonitorClient = opMonitorClient;
-    }
+    private final ServiceHandlerLoader serviceHandlerLoader;
 
     @Override
     @WithSpan
@@ -87,7 +79,7 @@ class ServerProxyHandler extends HandlerBase {
 
         long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
 
-        if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
+        if (!serverProperties.serverSupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
             response.getHeaders().add("Connection", "close");
         }
@@ -131,12 +123,12 @@ class ServerProxyHandler extends HandlerBase {
             return new ServerRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitoringData);
+                    opMonitoringData, serviceHandlerLoader);
         } else {
             return new ServerMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitorClient, opMonitoringData);
+                    opMonitorClient, opMonitoringData, serviceHandlerLoader);
         }
     }
 

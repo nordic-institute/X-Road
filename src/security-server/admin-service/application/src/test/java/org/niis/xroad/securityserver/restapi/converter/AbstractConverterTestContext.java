@@ -41,7 +41,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
  * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
  * in this base class instead.
  *
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
 
 public abstract class AbstractConverterTestContext extends AbstractFacadeMockingTestContext {

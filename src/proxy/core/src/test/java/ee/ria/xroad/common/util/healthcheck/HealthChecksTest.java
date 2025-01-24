@@ -31,11 +31,14 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.Test;
-import org.mockito.MockedStatic;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -54,7 +57,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -62,16 +64,23 @@ import static org.mockito.Mockito.when;
  * clean way to clear the conf after a test has run. Other tests might be brittle if they expect their conf to
  * be in a certain state before the tests are run (and they don't set the conf up themselves)
  */
-public class HealthChecksTest {
+@ExtendWith(MockitoExtension.class)
+class HealthChecksTest {
+    @Mock
+    private SignerRpcClient signerRpcClient;
+    @Mock
+    private GlobalConfProvider globalConfProvider;
+    @Mock
+    private KeyConfProvider keyConfProvider;
+    @Mock
+    private ServerConfProvider serverConfProvider;
 
-    private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
-    private final KeyConfProvider keyConfProvider = mock(KeyConfProvider.class);
-    private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
-    private final HealthChecks healthChecks = new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
+    @InjectMocks
+    private HealthChecks healthChecks;
 
 
     @Test
-    public void cacheResultOnceShouldCacheOnce() {
+    void cacheResultOnceShouldCacheOnce() {
 
         // prepare
         final HealthCheckResult expectedFirstResult = failure("message for failure");
@@ -90,7 +99,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void cacheResultForShouldCacheSuccessForSetTime() throws InterruptedException {
+    void cacheResultForShouldCacheSuccessForSetTime() throws InterruptedException {
 
         // prepare
         final HealthCheckResult expectedFirstResult = OK;
@@ -118,7 +127,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void cacheResultForShouldCacheErrorForSetTime() throws InterruptedException {
+    void cacheResultForShouldCacheErrorForSetTime() throws InterruptedException {
 
         // prepare
         final HealthCheckResult expectedFirstResult = failure("first result");
@@ -157,40 +166,38 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkHSMOperationalShouldReturnOkStatusWhenValid() {
+    void checkHSMOperationalShouldReturnOkStatusWhenValid() throws Exception {
 
         // prepare
-        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
-            client.when(SignerProxy::isHSMOperational).thenReturn(true);
+        when(signerRpcClient.isHSMOperational()).thenReturn(true);
 
-            // execute
-            HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
 
-            // verify
-            assertTrue("result should be OK", testedProvider.get().isOk());
-        }
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
+
     }
 
     @Test
-    public void checkHSMOperationalShouldFailWhenNotValid() {
+    void checkHSMOperationalShouldFailWhenNotValid() throws Exception {
 
         // prepare
-        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
-            client.when(SignerProxy::isHSMOperational).thenReturn(false);
+        when(signerRpcClient.isHSMOperational()).thenReturn(false);
 
-            // execute
-            HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
-            HealthCheckResult checkedResult = testedProvider.get();
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
+        HealthCheckResult checkedResult = testedProvider.get();
 
-            // verify
-            assertFalse("health check result should be a failure", checkedResult.isOk());
-            assertThat(checkedResult.getErrorMessage(),
-                    containsString("At least one HSM are non operational"));
-        }
+        // verify
+        assertFalse("health check result should be a failure", checkedResult.isOk());
+        assertThat(checkedResult.getErrorMessage(),
+                containsString("At least one HSM are non operational"));
+
     }
 
     @Test
-    public void checkGlobalConfShouldReturnOkStatusWhenValid() {
+    void checkGlobalConfShouldReturnOkStatusWhenValid() {
 
         // prepare
         when(globalConfProvider.isValid()).thenReturn(true);
@@ -203,7 +210,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkGlobalConfShouldFailWhenNotValid() {
+    void checkGlobalConfShouldFailWhenNotValid() {
 
         // prepare
         doThrow(new RuntimeException("Global configuration is expired")).when(globalConfProvider).verifyValidity();
@@ -219,7 +226,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkServerConfShouldReturnOkStatusWhenServerConfReturnsInfo() {
+    void checkServerConfShouldReturnOkStatusWhenServerConfReturnsInfo() {
 
         // prepare
         when(serverConfProvider.isAvailable()).thenReturn(true);
@@ -234,7 +241,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkServerConfShouldReturnNotOkWhenServerConfThrows() {
+    void checkServerConfShouldReturnNotOkWhenServerConfThrows() {
 
         // prepare
         when(serverConfProvider.getIdentifier()).thenThrow(new RuntimeException("broken conf!"));
@@ -249,7 +256,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkAuthKeyOcspStatusShouldFailWhenAuthKeyNotAvailable() {
+    void checkAuthKeyOcspStatusShouldFailWhenAuthKeyNotAvailable() {
 
         // prepare
         when(keyConfProvider.getAuthKey()).thenReturn(null);
@@ -264,7 +271,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkAuthKeyOcspStatusShouldFailWhenCertChainNotAvailable() {
+    void checkAuthKeyOcspStatusShouldFailWhenCertChainNotAvailable() {
 
         // prepare
         AuthKey authKey = new AuthKey(null, null);
@@ -281,7 +288,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkAuthKeyOcspStatusShouldFailWhenEndEntityCertNotAvailable() {
+    void checkAuthKeyOcspStatusShouldFailWhenEndEntityCertNotAvailable() {
 
         // prepare
         CertChain mockCertChain = mock(CertChain.class);
@@ -301,7 +308,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkAuthKeyOcspStatusShouldFailWhenOcspStatusNotGood() throws Exception {
+    void checkAuthKeyOcspStatusShouldFailWhenOcspStatusNotGood() throws Exception {
 
         // prepare
         createMockProviderWithOcspStatus(OCSPResp.INTERNAL_ERROR);
@@ -317,7 +324,7 @@ public class HealthChecksTest {
     }
 
     @Test
-    public void checkAuthKeyOcspStatusShouldBeOkWhenOcspStatusIsGood() throws Exception {
+    void checkAuthKeyOcspStatusShouldBeOkWhenOcspStatusIsGood() throws Exception {
 
         // prepare
         createMockProviderWithOcspStatus(OCSPResp.SUCCESSFUL);

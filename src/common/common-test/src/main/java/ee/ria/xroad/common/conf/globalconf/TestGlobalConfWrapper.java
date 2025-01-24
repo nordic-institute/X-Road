@@ -39,6 +39,7 @@ import lombok.Setter;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -113,6 +114,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
+        return globalConfProvider.getProviderSecurityServers(clientId);
+    }
+
+    @Override
     public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
         return globalConfProvider.getSubjectName(parameters, cert);
     }
@@ -178,6 +184,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
+    public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
+        return globalConfProvider.getApprovedCAs(instanceIdentifier);
+    }
+
+    @Override
     public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
                                                                     X509Certificate cert) throws Exception {
         return globalConfProvider.getAuthCertificateProfileInfo(parameters, cert);
@@ -217,6 +228,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public boolean isSubjectInGlobalGroup(ClientId subject, GlobalGroupId group) {
         return globalConfProvider.isSubjectInGlobalGroup(subject, group);
+    }
+
+    @Override
+    public Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
+        return globalConfProvider.findGlobalGroup(groupId);
     }
 
     @Override

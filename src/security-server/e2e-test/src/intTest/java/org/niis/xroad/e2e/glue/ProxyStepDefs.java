@@ -38,7 +38,9 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.not;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
@@ -49,6 +51,11 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("SOAP request is sent to {string} proxy")
     public void requestSoapIsSentToProxy(String targetProxy, DocString docString) {
+        requestSoapIsSentToProxy(targetProxy, "legacy", docString);
+    }
+
+    @Step("SOAP request is sent to {string} proxy using {string} transport")
+    public void requestSoapIsSentToProxy(String targetProxy, String transport, DocString docString) {
         var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
 
         response = given()
@@ -58,6 +65,7 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                                 .declareNamespace("soapenv", "http://schemas.xmlsoap.org/soap/envelope/")))
                 .body(docString.getContent())
                 .header(HttpHeaders.CONTENT_TYPE, "text/xml")
+                .header("X-Road-Use-DS-Transport", transport.equals("legacy") ? "false" : "true")
                 .post("http://%s:%s".formatted(mapping.host(), mapping.port()))
                 .then();
     }
@@ -71,19 +79,30 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("response is sent of http status code {int} and body path {string} is not empty")
     public void responseValidated(int httpStatus, String path) {
-        response.assertThat()
+        // not working .body(path, not(emptyOrNullString()));
+        String value = response.assertThat()
                 .statusCode(httpStatus)
-                .body(path, notNullValue());
+                .extract()
+                .xmlPath()
+                .getString(path);
+        testReportService.attachText("path value", value);
+        assertThat(value, not(emptyOrNullString()));
     }
 
     @Step("REST request is sent to {string} proxy")
     public void requestRestIsSentToProxy(String targetProxy, DocString docString) {
+        requestRestIsSentToProxy(targetProxy, "legacy", docString);
+    }
+
+    @Step("REST request is sent to {string} proxy using {string} transport")
+    public void requestRestIsSentToProxy(String targetProxy, String transport, DocString docString) {
         var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
 
         response = given()
                 .body(docString.getContent())
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
                 .header(HEADER_CLIENT_ID, "DEV/COM/4321/TestClient")
+                .header("X-Road-Force-Legacy-Transport", transport.equals("legacy") ? "true" : "false")
                 .post("http://%s:%s/r1/DEV/COM/1234/TestService/mock1".formatted(mapping.host(), mapping.port()))
                 .then();
     }

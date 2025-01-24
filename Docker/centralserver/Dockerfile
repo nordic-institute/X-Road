@@ -7,7 +7,8 @@ FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
-  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
+  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless  \
+    rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev nano \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -32,7 +33,8 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver xroad-autologin  \
+      xroad-ds-identity-hub xroad-ds-credential-service  xroad-ds-catalog-service \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -49,7 +51,8 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver xroad-autologin  \
+      xroad-ds-identity-hub xroad-ds-credential-service xroad-ds-catalog-service  \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -85,6 +88,13 @@ COPY --chown=xroad:xroad files/etc /etc/
 
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
+
+# dataspaces
+
+ENV EDC_HOSTNAME=localhost
+ENV EDC_DID=did:web:localhost
+# end of dataspaces
+
 CMD ["/root/entrypoint.sh"]
 
 VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]

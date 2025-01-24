@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.config;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.signer.SignerClientConfiguration;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
@@ -42,7 +43,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
 @Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class})
+        GlobalConfRefreshJobConfig.class,
+        SignerClientConfiguration.class
+})
 @Configuration
 public class BootstrapConfiguration {
 
@@ -64,5 +67,6 @@ public class BootstrapConfiguration {
     public Filter ipThrottlingFilter(AdminServiceProperties properties) {
         return new IpThrottlingFilter(properties);
     }
+
 }
 

@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: ds-identity-hub
+
+server:
+  port: 5798
+
+#EDC conf
+edc:
+  hostname: ${EDC_HOSTNAME}
+  xroad-member-id: ${EDC_XROAD_MEMBER_IDENTIFIER}
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: false
+  datasource:
+    default:
+      url: jdbc:postgresql://127.0.0.1:5432/ds-identity-hub
+  participant:
+    id: ${EDC_DID}
+  http:
+    client:
+      https:
+        enforce: false #openbao runs on http
+  did:
+    key:
+      id: ${EDC_DID_KEY_ID:}
+  jsonld:
+    https:
+      enabled: true
+    http:
+      enabled: true
+  vault:
+    hashicorp:
+      url: ${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}
+      token: ${XROAD_SECRET_STORE_TOKEN}
+      api:
+        secret:
+          path: v1/xrd-ds-secret
+web:
+  custom-tls-keystore:
+    enabled: false
+    path:
+  http:
+    port: 9391
+    path: /api
+    identity:
+      port: 9393
+      path: /identity
+    protocol:
+      port: 9395
+      path: /protocol
+    did:
+      path: /
+      port: 9396
+    resolution:
+      path: /resolution
+      port: 20001

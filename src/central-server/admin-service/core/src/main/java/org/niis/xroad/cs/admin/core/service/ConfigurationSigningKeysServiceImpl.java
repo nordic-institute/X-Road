@@ -30,6 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -44,7 +45,6 @@ import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
@@ -104,8 +104,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
     private final ConfigurationSigningKeyWithDetailsMapper configurationSigningKeyWithDetailsMapper;
+    private final SignerRpcClient signerRpcClient;
     private final KeyAlgorithmConfig keyAlgorithmConfig;
-    private final SignerProxyFacade signerProxyFacade;
     private final TokenActionsResolver tokenActionsResolver;
     private final SigningKeyActionsResolver signingKeyActionsResolver;
     private final AuditEventHelper auditEventHelper;
@@ -164,14 +164,14 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         auditDataHelper.put(RestApiAuditProperty.TOKEN_ID, signingKey.getTokenIdentifier());
         auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKey.getKeyIdentifier());
         try {
-            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKey.getTokenIdentifier());
+            TokenInfo tokenInfo = signerRpcClient.getToken(signingKey.getTokenIdentifier());
             signingKeyActionsResolver.requireAction(DELETE, tokenInfo, signingKey);
 
             auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
             auditDataHelper.put(RestApiAuditProperty.TOKEN_FRIENDLY_NAME, tokenInfo.getFriendlyName());
 
             configurationSigningKeyRepository.deleteByKeyIdentifier(identifier);
-            signerProxyFacade.deleteKey(signingKey.getKeyIdentifier(), true);
+            signerRpcClient.deleteKey(signingKey.getKeyIdentifier(), true);
             return signingKey;
         } catch (ValidationFailureException e) {
             throw e;
@@ -196,7 +196,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         auditDataHelper.put(RestApiAuditProperty.KEY_ID, signingKeyEntity.getKeyIdentifier());
 
         try {
-            TokenInfo tokenInfo = signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier());
+            TokenInfo tokenInfo = signerRpcClient.getToken(signingKeyEntity.getTokenIdentifier());
             signingKeyActionsResolver.requireAction(ACTIVATE, tokenInfo, signingKey);
 
             auditDataHelper.put(RestApiAuditProperty.TOKEN_SERIAL_NUMBER, tokenInfo.getSerialNumber());
@@ -247,7 +247,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
         KeyInfo keyInfo;
         try {
-            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel, keyAlgorithm);
+            keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, keyAlgorithm);
             auditDataHelper.put(RestApiAuditProperty.KEY_ID, keyInfo.getId());
             auditDataHelper.put(RestApiAuditProperty.KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         } catch (Exception e) {
@@ -260,7 +260,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 "selfsigned", UUID.randomUUID().toString());
 
         try {
-            final byte[] selfSignedCert = signerProxyFacade.generateSelfSignedCert(keyInfo.getId(), clientId,
+            final byte[] selfSignedCert = signerRpcClient.generateSelfSignedCert(keyInfo.getId(), clientId,
                     KeyUsageInfo.SIGNING,
                     INTERNAL.equals(configurationSourceType) ? "internalSigningKey" : "externalSigningKey",
                     SIGNING_KEY_CERT_NOT_BEFORE,
@@ -292,9 +292,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
         }
     }
 
-    @Override
-    protected SignerProxyFacade getSignerProxyFacade() {
-        return signerProxyFacade;
+    protected SignerRpcClient getSignerRpcClient() {
+        return signerRpcClient;
     }
 
     private void activateKey(ConfigurationSigningKeyEntity signingKey) {

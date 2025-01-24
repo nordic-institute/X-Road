@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: signer
+
+server:
+  port: 5699
+
+xroad:
+  signer:
+    key-length: 2048
+    device-configuration-file: /etc/xroad/devices.ini
+    key-configuration-file: /etc/xroad/signer/keyconf.xml
+    client-timeout: 50000
+    csr-signature-digest-algorithm: SHA-256
+    enforce-token-pin-policy: false
+    ocsp-cache-path: /var/cache/xroad
+    grpc:
+      listen-address: 127.0.0.1
+      port: 5560
+
+logging:
+  level:
+    ee.ria.xroad.signer.tokenmanager.TokenManager: OFF # TokenManager is very verbose
+

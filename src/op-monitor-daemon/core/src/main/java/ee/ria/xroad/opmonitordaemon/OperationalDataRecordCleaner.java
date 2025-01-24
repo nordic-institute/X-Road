@@ -25,12 +25,14 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -41,8 +43,6 @@ import org.quartz.SchedulerException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
 
 /**
  * Deletes outdated operational data records from the database.
@@ -62,24 +62,25 @@ public final class OperationalDataRecordCleaner {
         registerCronJob(jobManager, OpMonitoringSystemProperties.getOpMonitorCleanInterval());
     }
 
-    public static void doClean() {
+    public static void doClean(DatabaseCtxV2 opMonitorDatabaseCtx) {
         try {
-            handleCleanup();
+            handleCleanup(opMonitorDatabaseCtx);
         } catch (Exception e) {
             log.error("Failed to clean outdated operational data records"
                     + " from the database", e);
         }
     }
 
-    private static void handleCleanup() throws Exception {
+    private static void handleCleanup(DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
         cleanRecords(
-                TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS));
+                TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS),
+                opMonitorDatabaseCtx);
     }
 
-    static int cleanRecords(Instant before) throws Exception {
+    static int cleanRecords(Instant before, DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
         log.trace("cleanRecords({})", before);
 
-        return doInTransaction(session -> {
+        return opMonitorDatabaseCtx.doInTransaction(session -> {
             String hql =
                     "delete OperationalDataRecordEntity r where r.monitoringDataTs < "
                             + TimeUnit.MILLISECONDS.toSeconds(before.toEpochMilli());
@@ -110,11 +111,14 @@ public final class OperationalDataRecordCleaner {
     }
 
     @DisallowConcurrentExecution
+    @RequiredArgsConstructor
     public static class OperationalDataRecordCleanerJob implements Job {
+
+        private final DatabaseCtxV2 opMonitorDatabaseCtx;
 
         @Override
         public void execute(JobExecutionContext context) {
-            OperationalDataRecordCleaner.doClean();
+            OperationalDataRecordCleaner.doClean(opMonitorDatabaseCtx);
         }
     }
 }

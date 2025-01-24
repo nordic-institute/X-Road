@@ -26,60 +26,27 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.Version;
 import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * The main class of the operational monitoring daemon.
- * This class is responsible for creating the request handlers for receiving
- * and providing monitoring data.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OpMonitorDaemonMain {
-    private static final String APP_NAME = "xroad-opmonitor";
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+public class OpMonitorDaemonMain {
+    private static final String APP_NAME = "opmonitor";
 
-    /**
-     * Main entry point of the daemon.
-     *
-     * @param args command-line arguments
-     * @throws Exception in case of any errors
-     */
     public static void main(String[] args) {
-        try {
-            new OpMonitorDaemonMain().createApplicationContext();
-        } catch (Exception e) {
-            log.error("Operational monitoring daemon failed to start", e);
-            throw e;
-        }
-    }
-
-    private GenericApplicationContext createApplicationContext() {
-        var startTime = System.currentTimeMillis();
-        log.info("Starting the operational monitoring daemon");
-        Version.outputVersionInfo(APP_NAME);
-
-        SystemPropertiesLoader.create().withCommonAndLocal()
-                .with(CONF_FILE_OP_MONITOR, "op-monitor")
-                .load();
-        log.info("Loaded system properties...");
-
-        var springCtx = new AnnotationConfigApplicationContext();
-        springCtx.register(OpMonitorDaemonRootConfig.class);
-        springCtx.refresh();
-        springCtx.registerShutdownHook();
-
-        log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
-        return springCtx;
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
+                .build()
+                .run(args);
     }
 
 }

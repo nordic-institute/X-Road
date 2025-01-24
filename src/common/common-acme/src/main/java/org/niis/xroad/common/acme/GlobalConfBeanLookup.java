@@ -31,6 +31,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+//TODO it is a bad practice to use ApplicationContextAware
+@Deprecated(forRemoval = true)
 @Component
 public class GlobalConfBeanLookup implements ApplicationContextAware {
 

@@ -1,0 +1,32 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.java-exec-conventions")
+    alias(libs.plugins.springBoot)
+}
+
+dependencies {
+    implementation(platform(libs.springCloud.bom))
+
+    implementation project(':common:common-service-bootstrap')
+    implementation(project(':addons:messagelog:messagelog-archiver:core'))
+
+    implementation(project(':common:common-core'))
+    implementation project(':common:common-properties')
+    implementation project(':common:common-rpc')
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'messagelog-archiver'
+    archiveVersion = ''
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Message Log Archiver',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
+    }
+}
+
+jar.enabled = false

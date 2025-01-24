@@ -33,8 +33,8 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**
