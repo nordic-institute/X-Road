@@ -24,7 +24,7 @@ dependencies {
   implementation(project(":addons:messagelog:messagelog-db"))
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":addons:messagelog:messagelog-archiver"))
+  testImplementation(project(":service:message-log-archiver:message-log-archiver-application"))
   testImplementation(libs.hsqldb)
   testImplementation(libs.bouncyCastle.bcpg)
 }
