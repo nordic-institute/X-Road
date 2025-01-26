@@ -53,6 +53,7 @@ import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.proto.DeleteTokenReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
@@ -246,6 +247,25 @@ public final class SignerProxy {
                 .activateToken(ActivateTokenReq.newBuilder()
                         .setTokenId(tokenId)
                         .setActivate(false)
+                        .build()));
+    }
+
+    /**
+     * Delete the inactive token with the given ID.
+     *
+     * @param tokenId ID of the token
+     * @throws SignerException if any errors occur
+     */
+    public static void deleteToken(String tokenId) throws SignerException {
+        tryToRun(() -> internalDeleteToken(tokenId));
+    }
+
+    private static void internalDeleteToken(String tokenId) throws Exception {
+        log.trace("Delete token '{}'", tokenId);
+
+        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
+                .deleteToken(DeleteTokenReq.newBuilder()
+                        .setTokenId(tokenId)
                         .build()));
     }
 

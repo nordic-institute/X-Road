@@ -52,7 +52,6 @@ import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_ACTIVE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_PIN_INCORRECT;
 
 /**
@@ -400,15 +399,38 @@ public class TokenService {
         }
     }
 
-    public static class PinIncorrectException extends ServiceException {
-        public PinIncorrectException(Throwable t) {
-            super(TOKEN_PIN_INCORRECT, t);
+    /**
+     * Delete inactive token
+     *
+     * @param id ID of the token
+     * @throws TokenNotFoundException token not found
+     * @throws ActionNotPossibleException if deletion was not possible
+     */
+    public void deleteToken(String id) throws TokenNotFoundException, ActionNotPossibleException {
+        TokenInfo tokenInfo = getToken(id);
+
+        auditDataHelper.put(tokenInfo);
+
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.DELETE_TOKEN, tokenInfo);
+
+        try {
+            signerProxyFacade.deleteToken(id);
+        } catch (SignerException e) {
+            if (e.isCausedByTokenNotFound()) {
+                throw new TokenNotFoundException(e);
+            } else {
+                throw e;
+            }
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception other) {
+            throw new ServiceException(INTERNAL_ERROR, other);
         }
     }
 
-    public static class TokenNotActiveException extends ServiceException {
-        public TokenNotActiveException(Throwable t) {
-            super(TOKEN_NOT_ACTIVE, t);
+    public static class PinIncorrectException extends ServiceException {
+        public PinIncorrectException(Throwable t) {
+            super(TOKEN_PIN_INCORRECT, t);
         }
     }
 }

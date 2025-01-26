@@ -105,6 +105,13 @@ public class SignerProxyFacade implements InitializingBean, DisposableBean {
     }
 
     /**
+     * {@link SignerProxy#deleteToken(String)}
+     */
+    public void deleteToken(String tokenId) throws SecurityException {
+        SignerProxy.deleteToken(tokenId);
+    }
+
+    /**
      * {@link SignerProxy#setTokenFriendlyName(String, String)}
      */
     public void setTokenFriendlyName(String tokenId, String friendlyName) throws SecurityException {

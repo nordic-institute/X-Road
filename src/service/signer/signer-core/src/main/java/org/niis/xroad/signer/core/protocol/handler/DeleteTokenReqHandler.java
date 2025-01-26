@@ -23,27 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.signer.core.protocol.handler;
 
-/**
- * List of actions that can be possible / not possible for tokens, keys,
- * certs and csrs.
- *
- * Uses service / core naming. Token logout is "deactivate" instead of "logout".
- */
-public enum PossibleActionEnum {
-    DELETE,
-    ACTIVATE,
-    DISABLE, // cert
-    TOKEN_ACTIVATE,
-    TOKEN_CHANGE_PIN,
-    TOKEN_DEACTIVATE, // token
-    REGISTER,
-    UNREGISTER,
-    IMPORT_FROM_TOKEN,
-    GENERATE_KEY,
-    EDIT_FRIENDLY_NAME,
-    GENERATE_AUTH_CSR,
-    GENERATE_SIGN_CSR,
-    DELETE_TOKEN,
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.DeleteTokenReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class DeleteTokenReqHandler extends AbstractRpcHandler<DeleteTokenReq, Empty> {
+
+    @Override
+    protected Empty handle(DeleteTokenReq request) throws Exception {
+        deleteToken(request.getTokenId());
+
+        return Empty.getDefaultInstance();
+    }
+
+    public void deleteToken(String tokenId) {
+        TokenManager.deleteToken(tokenId);
+
+        log.info("Token with id '{}' was deleted", tokenId);
+    }
 }

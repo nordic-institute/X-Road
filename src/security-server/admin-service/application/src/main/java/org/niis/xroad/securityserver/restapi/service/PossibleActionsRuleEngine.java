@@ -68,6 +68,8 @@ public class PossibleActionsRuleEngine {
         } else {
             if (tokenInfo.isAvailable()) {
                 actions.add(PossibleActionEnum.TOKEN_ACTIVATE);
+            } else {
+                actions.add(PossibleActionEnum.DELETE_TOKEN);
             }
         }
 

@@ -623,12 +623,17 @@
     "signDetailsTitle": "SIGN-võtme detailid",
     "signKeyCert": "SIGN-võtmed ja sertifikaadid",
     "status": "Olek",
-    "token": "Krüptomoodul:",
-    "tokenDetails": "Krüptomooduli detailid",
-    "tokenId": "Krüptomooduli ID:",
-    "tokenInfo": "Krüptomooduli teave",
-    "tokenPin": "Krüptomooduli PIN",
-    "tokenSaved": "Krüptomoodul salvestatud",
+    "token": {
+      "label": "Krüptomoodul:",
+      "details": "Krüptomooduli detailid",
+      "id": "Krüptomooduli ID:",
+      "info": "Krüptomooduli teave",
+      "pin": "Krüptomooduli PIN",
+      "saved": "Krüptomoodul salvestatud",
+      "deleteText": "Kas olete kindel, et soovite selle krüptomooduli ja kõik seotud informatsiooni serveri konfiguratsioonist kustutada?",
+      "deleteTitle": "Kustuta krüptomoodul?",
+      "deleteSuccess": "Krüptomoodul kustutatud"
+    },
     "tokenStatus": {
       "active": "",
       "available": "",

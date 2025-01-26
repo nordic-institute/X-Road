@@ -53,7 +53,8 @@ public enum PossibleActionMapping {
     GENERATE_KEY(PossibleActionEnum.GENERATE_KEY, PossibleAction.GENERATE_KEY),
     EDIT_FRIENDLY_NAME(PossibleActionEnum.EDIT_FRIENDLY_NAME, PossibleAction.EDIT_FRIENDLY_NAME),
     GENERATE_AUTH_CSR(PossibleActionEnum.GENERATE_AUTH_CSR, PossibleAction.GENERATE_AUTH_CSR),
-    GENERATE_SIGN_CSR(PossibleActionEnum.GENERATE_SIGN_CSR, PossibleAction.GENERATE_SIGN_CSR);
+    GENERATE_SIGN_CSR(PossibleActionEnum.GENERATE_SIGN_CSR, PossibleAction.GENERATE_SIGN_CSR),
+    DELETE_TOKEN(PossibleActionEnum.DELETE_TOKEN, PossibleAction.DELETE_TOKEN);
 
     private final PossibleActionEnum possibleActionEnum;
     private final PossibleAction possibleAction;
