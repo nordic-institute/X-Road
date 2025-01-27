@@ -151,10 +151,10 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
-semver4j = { module = "org.semver4j:semver4j", version = "5.5.0" }
+semver4j = { module = "org.semver4j:semver4j", version = "5.6.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
-acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
+acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
 
@@ -170,7 +170,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.11.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
