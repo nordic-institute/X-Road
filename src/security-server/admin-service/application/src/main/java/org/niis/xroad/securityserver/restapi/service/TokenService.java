@@ -29,6 +29,8 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -50,8 +52,10 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_FOUND;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_PIN_INCORRECT;
 
 /**
@@ -403,24 +407,18 @@ public class TokenService {
      * Delete inactive token
      *
      * @param id ID of the token
-     * @throws TokenNotFoundException token not found
-     * @throws ActionNotPossibleException if deletion was not possible
      */
-    public void deleteToken(String id) throws TokenNotFoundException, ActionNotPossibleException {
-        TokenInfo tokenInfo = getToken(id);
-
-        auditDataHelper.put(tokenInfo);
-
-        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.DELETE_TOKEN, tokenInfo);
-
+    public void deleteToken(String id) {
         try {
+            TokenInfo tokenInfo = getToken(id);
+            auditDataHelper.put(tokenInfo);
+
+            possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.DELETE_TOKEN, tokenInfo);
             signerProxyFacade.deleteToken(id);
-        } catch (SignerException e) {
-            if (e.isCausedByTokenNotFound()) {
-                throw new TokenNotFoundException(e);
-            } else {
-                throw e;
-            }
+        } catch (TokenNotFoundException e) {
+            throw new NotFoundException(TOKEN_NOT_FOUND, e);
+        } catch (ActionNotPossibleException e) {
+            throw new DataIntegrityException(ACTION_NOT_POSSIBLE, e);
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {

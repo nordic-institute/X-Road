@@ -179,14 +179,8 @@ public class TokensApiController implements TokensApi {
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_TOKEN)
     @Override
     public ResponseEntity<Void> deleteToken(String id) {
-        try {
-            tokenService.deleteToken(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
-        }
+        tokenService.deleteToken(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasAuthority('GENERATE_KEY')")

@@ -33,6 +33,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -83,18 +84,14 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
-            if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
-            } else if (WRONG_HSM_PIN_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_LOGIN_FAILED, SignerException.CKR_PIN_INCORRECT_MESSAGE);
-            } else if (UNKNOWN_LOGIN_FAIL_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
-            } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
-            } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
-                throw new SignerException("foo", "bar");
-            } else {
-                log.debug("activate successful");
+            switch (tokenId) {
+                case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
+                case UNKNOWN_LOGIN_FAIL_TOKEN_ID ->
+                        throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
+                case TOKEN_NOT_FOUND_TOKEN_ID ->
+                        throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
+                case UNRECOGNIZED_FAULT_CODE_TOKEN_ID -> throw new SignerException("foo", "bar");
+                case null, default -> log.debug("activate successful");
             }
             return null;
         }).when(signerProxyFacade).activateToken(any(), any());
@@ -102,7 +99,6 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             String oldPin = new String((char[]) args[1]);
-            String newPin = new String((char[]) args[2]);
             if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(oldPin)) {
                 throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
             } else {
@@ -228,13 +224,25 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         assertEquals("friendly-neighborhood", token.getFriendlyName());
     }
 
+    @Test
+    public void deleteToken() throws Exception {
+        TokenInfo token = tokenService.getToken(GOOD_TOKEN_ID);
+        assertEquals(GOOD_TOKEN_NAME, token.getFriendlyName());
+        tokenService.deleteToken(GOOD_TOKEN_ID);
+    }
+
     @Test(expected = TokenNotFoundException.class)
     public void updateNonExistingTokenFriendlyName() throws Exception {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
     }
 
+    @Test(expected = NotFoundException.class)
+    public void deleteNonExistingToken() {
+        tokenService.deleteToken(TOKEN_NOT_FOUND_TOKEN_ID);
+    }
+
     @Test
-    public void getUnknownSoftwareTokenInitStatus() throws Exception {
+    public void getUnknownSoftwareTokenInitStatus() {
         when(signerProxyFacade.getTokens()).thenThrow(new SignerException("Error"));
         TokenInitStatusInfo tokenStatus = tokenService.getSoftwareTokenInitStatus();
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);

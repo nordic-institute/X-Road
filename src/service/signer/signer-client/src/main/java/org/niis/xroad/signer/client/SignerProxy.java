@@ -163,7 +163,7 @@ public final class SignerProxy {
                 () -> RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService().listTokens(Empty.newBuilder().build()))
                         .getTokensList().stream()
                         .map(TokenInfo::new)
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 
@@ -929,7 +929,7 @@ public final class SignerProxy {
                                         .build()))
                         .getCertsList().stream()
                         .map(CertificateInfo::new)
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 
