@@ -45,10 +45,11 @@ import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.application.testsuite.TestSuiteKeyConf;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
-import org.niis.xroad.proxy.core.util.MetaserviceTestUtil;
+import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Arrays;
@@ -70,8 +71,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.xmlUtf8ContentTypes;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_CLIENTS;
-import static org.niis.xroad.proxy.core.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
 
 /**
  * Unit test for {@link MetadataClientRequestProcessor}
@@ -90,6 +91,7 @@ public class MetadataClientRequestProcessorTest {
     private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
 
+    private CommonBeanProxy commonBeanProxy;
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
@@ -114,6 +116,8 @@ public class MetadataClientRequestProcessorTest {
         serverConfProvider = mock(ServerConfProvider.class);
         certChainFactory = mock(CertChainFactory.class);
 
+        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
+                null, certChainFactory, null);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -131,7 +135,7 @@ public class MetadataClientRequestProcessorTest {
     public void shouldBeAbleToProcessListClients() {
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                new MetadataClientRequestProcessor(commonBeanProxy,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         assertTrue("Wasn't able to process list clients", processorToTest.canProcess());
@@ -141,8 +145,7 @@ public class MetadataClientRequestProcessorTest {
     public void shouldNotBeAbleToProcessRandomRequest() {
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                        "getRandom", mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(commonBeanProxy, "getRandom", mockRequest, mockResponse);
 
         assertFalse("Was able to process a random target", processorToTest.canProcess());
     }
@@ -166,6 +169,8 @@ public class MetadataClientRequestProcessorTest {
             }
 
         };
+        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
+                null, certChainFactory, null);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -173,7 +178,7 @@ public class MetadataClientRequestProcessorTest {
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                new MetadataClientRequestProcessor(commonBeanProxy,
                         LIST_CLIENTS, mockRequest, mockResponse);
 
         when(mockRequest.getParametersMap()).thenReturn(Map.of());
@@ -212,9 +217,11 @@ public class MetadataClientRequestProcessorTest {
                 return expectedMembers;
             }
         };
+        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
+                null, certChainFactory, null);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                new MetadataClientRequestProcessor(commonBeanProxy,
                         LIST_CLIENTS, mockJsonRequest, mockResponse);
 
         when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());

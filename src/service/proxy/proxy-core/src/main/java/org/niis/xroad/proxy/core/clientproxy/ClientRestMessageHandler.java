@@ -41,13 +41,10 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.auth.AuthKey;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -78,12 +75,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
-                             KeyConfProvider keyConfProvider,
-                             ServerConfProvider serverConfProvider,
-                             CertChainFactory certChainFactory,
-                             HttpClient client) {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
+    ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+        super(commonBeanProxy, client, true);
     }
 
     @Override
@@ -92,20 +85,20 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
-            return new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+            return new ClientRestMessageProcessor(commonBeanProxy,
                     request, response, client, getIsAuthenticationData(request), opMonitoringData);
         }
         return null;
     }
 
     private void verifyCanProcess() {
-        globalConfProvider.verifyValidity();
+        commonBeanProxy.globalConfProvider.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = keyConfProvider.getAuthKey();
+        AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
         if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

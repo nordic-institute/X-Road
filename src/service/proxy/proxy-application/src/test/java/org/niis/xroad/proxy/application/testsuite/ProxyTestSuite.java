@@ -35,13 +35,14 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.application.ProxyMain;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
-import org.niis.xroad.proxy.core.testsuite.DummySslServerProxy;
-import org.niis.xroad.proxy.core.testutil.TestServerConfWrapper;
+import org.niis.xroad.proxy.core.test.DummySslServerProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
+import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -270,7 +271,7 @@ public final class ProxyTestSuite {
         return failed;
     }
 
-    @Configuration
+    @Configuration(proxyBeanMethods = false)
     static class TestProxySpringConfig {
 
         @Bean(initMethod = "start", destroyMethod = "stop")
@@ -309,6 +310,12 @@ public final class ProxyTestSuite {
         @Bean
         ServerConfProvider serverConfProvider() {
             return new TestServerConfWrapper(new TestSuiteServerConf());
+        }
+
+        @Bean
+        @Primary
+        SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+            return new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
         }
     }
 

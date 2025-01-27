@@ -30,15 +30,19 @@ import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
-import org.niis.xroad.proxy.core.conf.CachingKeyConfImpl;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.signature.BatchSigner;
+import org.niis.xroad.proxy.core.signature.MessageSigner;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.springframework.context.annotation.Bean;
@@ -60,17 +64,34 @@ import org.springframework.context.annotation.Import;
 public class ProxyConfig {
 
     @Bean
-    BatchSigner batchSigner() {
-        return BatchSigner.init();
+    MessageSigner messageSigner() {
+        return new BatchSigner();
     }
 
     @Bean
-    ClientProxy clientProxy(GlobalConfProvider globalConfProvider,
+    SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                          MessageSigner messageSigner) {
+        return new SigningCtxProviderImpl(globalConfProvider, keyConfProvider, messageSigner);
+    }
+
+    @Bean
+    CommonBeanProxy commonBeanProxy(GlobalConfProvider globalConfProvider,
+                                    KeyConfProvider keyConfProvider,
+                                    SigningCtxProvider signingCtxProvider,
+                                    ServerConfProvider serverConfProvider,
+                                    CertChainFactory certChainFactory,
+                                    CertHelper certHelper) {
+        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
+                certHelper);
+    }
+
+    @Bean
+    ClientProxy clientProxy(CommonBeanProxy commonBeanProxy,
+                            GlobalConfProvider globalConfProvider,
                             KeyConfProvider keyConfProvider,
                             ServerConfProvider serverConfProvider,
-                            CertChainFactory certChainFactory,
                             AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, authTrustVerifier);
+        return new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
     }
 
     @Bean
@@ -89,11 +110,8 @@ public class ProxyConfig {
     }
 
     @Bean
-    ServerProxy serverProxy(GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            CertChainFactory certChainFactory) throws Exception {
-        return new ServerProxy(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
+    ServerProxy serverProxy(CommonBeanProxy commonBeanProxy) throws Exception {
+        return new ServerProxy(commonBeanProxy);
     }
 
     @Bean

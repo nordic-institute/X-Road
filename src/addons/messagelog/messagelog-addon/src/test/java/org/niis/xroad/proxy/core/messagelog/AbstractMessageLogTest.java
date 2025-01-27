@@ -43,9 +43,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.application.LogArchiver;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.quartz.JobExecutionContext;
 
@@ -69,7 +70,7 @@ abstract class AbstractMessageLogTest {
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
     CertChainFactory certChainFactory;
-
+    CommonBeanProxy commonBeanProxy;
     JobManager jobManager;
     LogManager logManager;
 
@@ -91,6 +92,8 @@ abstract class AbstractMessageLogTest {
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
+        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
+                null, certChainFactory, null);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

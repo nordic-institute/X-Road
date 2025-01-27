@@ -55,9 +55,9 @@ import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.beans.factory.DisposableBean;
@@ -94,10 +94,10 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
+    private final CommonBeanProxy commonBeanProxy;
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
-    private final CertChainFactory certChainFactory;
 
     private final AuthTrustVerifier authTrustVerifier;
 
@@ -111,15 +111,15 @@ public class ClientProxy implements InitializingBean, DisposableBean {
      *
      * @throws Exception in case of any errors
      */
-    public ClientProxy(GlobalConfProvider globalConfProvider,
+    public ClientProxy(CommonBeanProxy commonBeanProxy,
+                       GlobalConfProvider globalConfProvider,
                        KeyConfProvider keyConfProvider,
                        ServerConfProvider serverConfProvider,
-                       CertChainFactory certChainFactory,
                        AuthTrustVerifier authTrustVerifier) throws Exception {
+        this.commonBeanProxy = commonBeanProxy;
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serverConfProvider;
-        this.certChainFactory = certChainFactory;
         this.authTrustVerifier = authTrustVerifier;
 
         configureServer();
@@ -285,10 +285,10 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
-        handlers.add(new ClientRestMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client));
+        handlers.add(new ClientRestMessageHandler(commonBeanProxy, client));
 
         if (!StringUtils.isBlank(handlerClassNames)) {
-            var handlerLoader = new HandlerLoader(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
+            var handlerLoader = new HandlerLoader(commonBeanProxy);
             for (String handlerClassName : handlerClassNames.split(",")) {
                 try {
                     log.trace("Loading client handler {}", handlerClassName);
@@ -301,8 +301,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         }
 
         log.trace("Loading default client handler");
-        handlers.add(new ClientMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, client)); // default handler
+        handlers.add(new ClientMessageHandler(commonBeanProxy, client)); // default handler
 
         return handlers;
     }

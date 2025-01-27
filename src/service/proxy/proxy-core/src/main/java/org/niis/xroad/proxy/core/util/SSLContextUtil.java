@@ -28,9 +28,9 @@ package org.niis.xroad.proxy.core.util;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.impl.AuthKeyManager;
 import org.niis.xroad.proxy.core.auth.AuthTrustManager;
-import org.niis.xroad.proxy.core.conf.AuthKeyManager;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
