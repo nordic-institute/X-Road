@@ -6,6 +6,7 @@ plugins {
 dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":service:op-monitor:op-monitor-core"))
+  implementation(libs.logback.classic)
 }
 
 tasks.shadowJar {

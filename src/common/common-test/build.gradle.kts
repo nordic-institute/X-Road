@@ -6,14 +6,13 @@ dependencies {
   implementation(project(":common:common-message"))
   implementation(project(":lib:globalconf-impl"))
   implementation(libs.antlrST4)
-  // JUnit is needed for ExpectedCodedException
-  implementation(libs.junit.vintageEngine)
 
   api(libs.apache.httpasyncclient)
   api(libs.mockito.jupiter)
   api(libs.awaitility)
   api(libs.systemRules)
   api(libs.assertj.core)
+  api(libs.logback.classic)
 }
 
 sourceSets {

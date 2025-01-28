@@ -40,7 +40,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-core"))
 
   implementation("org.springframework:spring-context")
-
+  implementation(libs.logback.classic)
   testImplementation(project(":common:common-test"))
 }
 

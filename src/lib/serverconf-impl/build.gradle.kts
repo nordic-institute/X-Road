@@ -3,14 +3,6 @@ plugins {
   id("xroad.test-fixtures-conventions")
 }
 
-val schema by configurations.creating
-
-sourceSets {
-  main {
-    java.srcDirs(layout.buildDirectory.dir("generated-sources"))
-  }
-}
-
 dependencies {
   implementation(project(":common:common-domain"))
   api(project(":common:common-db"))
@@ -22,12 +14,4 @@ dependencies {
   testImplementation(libs.hibernate.hikaricp)
 
   testFixturesImplementation(project(":common:common-test"))
-
-  schema(project(":common:common-domain"))
-  schema(libs.apache.ant)
-  schema(libs.hibernate.hikaricp)
-  schema(libs.hibernate.toolsAnt)
-  schema(libs.commons.collections)
-  schema(libs.logback.classic)
-  schema(libs.hsqldb)
 }
