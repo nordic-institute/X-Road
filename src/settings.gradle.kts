@@ -31,6 +31,7 @@ include("common:common-scheduler")
 // Lib projects
 include("lib")
 include("lib:asic-core")
+include("lib:bootstrap-quarkus")
 include("lib:globalconf-impl")
 include("lib:globalconf-core")
 include("lib:globalconf-spring")
