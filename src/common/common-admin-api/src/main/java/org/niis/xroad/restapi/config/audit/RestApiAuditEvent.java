@@ -125,7 +125,7 @@ public enum RestApiAuditEvent {
     UPDATE_TOKEN_NAME("Set friendly name to token"),
     UPDATE_KEY_NAME("Set friendly name to key"),
     DELETE_SECURITY_SERVER_AUTH_CERT("Delete authentication certificate of security server"),
-    DELETE_TOKEN("Delete token of security server"),
+    DELETE_TOKEN("Delete token"),
 
     // backup and restore events
     BACKUP("Back up configuration"),
