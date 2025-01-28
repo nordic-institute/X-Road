@@ -28,6 +28,9 @@ archUnitPlugin = "4.0.0"
 checkstyle = "10.21.1"
 jacoco = "0.8.12"
 
+quarkus = "3.18.0"
+quarkus-vault = "4.1.0"
+
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
 metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
@@ -45,6 +48,24 @@ springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter
 
 springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.3" }
 
+quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-arc = { group = "io.quarkus", name = "quarkus-arc", version.ref = "quarkus" }
+quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "quarkus" }
+quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
+quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
+quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
+quarkus-containerImage-docker = { group = "io.quarkus", name = "quarkus-container-image-docker", version.ref = "quarkus" } #TODO remove one once finalized which to use
+quarkus-containerImage-jib = { group = "io.quarkus", name = "quarkus-container-image-jib", version.ref = "quarkus" }
+quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
+quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
+quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
+quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "quarkus" }
+quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "quarkus" }
+quarkus-springBoot-di = { group = "io.quarkus", name = "quarkus-spring-di", version.ref = "quarkus" }
+quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
+quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
+quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
+
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitJupiter" }
@@ -61,6 +82,7 @@ protobuf-javaUtil = { module = "com.google.protobuf:protobuf-java-util", version
 
 grpc-nettyShaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-util = { module = "io.grpc:grpc-util", version.ref = "grpc" }
 grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-protocGenGrpcJava = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 
@@ -166,8 +188,20 @@ metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
 testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAutomation-allure", "testAutomation-feign"]
 
+quarkus-core = [
+  "quarkus-arc",
+  "quarkus-config-yaml",
+  "quarkus-extension-vault",
+]
+quarkus-containerized = [
+  "quarkus-kubernetes",
+  "quarkus-health",
+]
+
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+quarkus = { id = "io.quarkus", version.ref = "quarkus" }
+jandex = { id = "org.kordamp.gradle.jandex", version = "2.1.0" }
 openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
