@@ -42,14 +42,11 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -77,10 +74,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
 
     private final Server server = new Server();
 
-    private final GlobalConfProvider globalConfProvider;
-    private final KeyConfProvider keyConfProvider;
-    private final ServerConfProvider serverConfProvider;
-    private final CertChainFactory certChainFactory;
+    private final CommonBeanProxy commonBeanProxy;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -89,17 +83,12 @@ public class ServerProxy implements InitializingBean, DisposableBean {
 
     private CloseableHttpClient opMonitorClient;
 
-    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
-                       CertChainFactory certChainFactory) throws Exception {
-        this(globalConfProvider, keyConfProvider, serConfProvider, certChainFactory, SystemProperties.getServerProxyListenAddress());
+    public ServerProxy(CommonBeanProxy commonBeanProxy) throws Exception {
+        this(commonBeanProxy, SystemProperties.getServerProxyListenAddress());
     }
 
-    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
-                       CertChainFactory certChainFactory, String listenAddress) throws Exception {
-        this.globalConfProvider = globalConfProvider;
-        this.keyConfProvider = keyConfProvider;
-        this.serverConfProvider = serConfProvider;
-        this.certChainFactory = certChainFactory;
+    public ServerProxy(CommonBeanProxy commonBeanProxy, String listenAddress) throws Exception {
+        this.commonBeanProxy = commonBeanProxy;
         this.listenAddress = listenAddress;
 
         configureServer();
@@ -128,7 +117,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private void createClient() throws Exception {
         log.trace("createClient()");
 
-        HttpClientCreator creator = new HttpClientCreator(serverConfProvider);
+        HttpClientCreator creator = new HttpClientCreator(commonBeanProxy.serverConfProvider);
 
         connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
         connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
@@ -138,7 +127,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     }
 
     private void createOpMonitorClient() throws Exception {
-        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(serverConfProvider.getSSLKey(),
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(commonBeanProxy.serverConfProvider.getSSLKey(),
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
     }
@@ -176,8 +165,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, client, opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, client, opMonitorClient);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);
@@ -214,7 +202,8 @@ public class ServerProxy implements InitializingBean, DisposableBean {
 
     private ServerConnector createClientProxyConnector() {
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
+                ? new AntiDosConnector(commonBeanProxy.globalConfProvider, server, ACCEPTOR_COUNT)
+                : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
     private ServerConnector createClientProxySslConnector() throws Exception {
@@ -224,10 +213,10 @@ public class ServerProxy implements InitializingBean, DisposableBean {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
+        cf.setSslContext(SSLContextUtil.createXroadSSLContext(commonBeanProxy.globalConfProvider, commonBeanProxy.keyConfProvider));
 
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT, cf)
+                ? new AntiDosConnector(commonBeanProxy.globalConfProvider, server, ACCEPTOR_COUNT, cf)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
     }
 

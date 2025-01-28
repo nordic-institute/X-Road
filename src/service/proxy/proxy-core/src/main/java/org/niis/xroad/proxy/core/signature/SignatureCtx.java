@@ -34,7 +34,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 import ee.ria.xroad.common.util.MessageFileNames;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -63,11 +62,11 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
  * result with corresponding hash chains.
  */
 @Slf4j
-class SignatureCtx {
+public class SignatureCtx {
 
     private final List<SigningRequest> requests = new ArrayList<>();
 
-    @Getter(AccessLevel.PACKAGE)
+    @Getter
     private final SignAlgorithm signatureAlgorithmId;
 
     private String hashChainResult;
@@ -76,21 +75,21 @@ class SignatureCtx {
     private SignatureXmlBuilder builder;
 
     @SneakyThrows
-    SignatureCtx(SignAlgorithm signatureAlgorithmId) {
+    public SignatureCtx(SignAlgorithm signatureAlgorithmId) {
         this.signatureAlgorithmId = signatureAlgorithmId;
     }
 
     /**
      * Adds a new signing request to this context.
      */
-    synchronized void add(SigningRequest request) {
+    public synchronized void add(SigningRequest request) {
         requests.add(request);
     }
 
     /**
      * Produces the XML signature from the given signed data.
      */
-    synchronized String createSignatureXml(byte[] signatureValue) throws Exception {
+    public synchronized String createSignatureXml(byte[] signatureValue) throws Exception {
         return builder.createSignatureXml(Signatures.useRawFormat(signatureAlgorithmId, signatureValue));
     }
 
@@ -98,7 +97,7 @@ class SignatureCtx {
      * Returns the signature data for a given signer -- either normal signature
      * or batch signature with corresponding hash chain and hash chain result.
      */
-    synchronized SignatureData createSignatureData(String signature, int signerIndex) {
+    public synchronized SignatureData createSignatureData(String signature, int signerIndex) {
         return new SignatureData(signature, hashChainResult, hashChains != null ? hashChains[signerIndex] : null);
     }
 
@@ -106,7 +105,7 @@ class SignatureCtx {
      * Returns the data to be signed -- if there is only one signing request
      * and the request is simple message (no attachments), then no hash chain is used.
      */
-    synchronized byte[] getDataToBeSigned() throws Exception {
+    public synchronized byte[] getDataToBeSigned() throws Exception {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
         if (requests.isEmpty()) {

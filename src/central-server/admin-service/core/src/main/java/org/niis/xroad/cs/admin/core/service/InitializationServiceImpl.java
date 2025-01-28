@@ -54,7 +54,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -217,7 +217,7 @@ public class InitializationServiceImpl implements InitializationService {
         var status = NOT_INITIALIZED;
         TokenInfo tokenInfo;
         try {
-            tokenInfo = signerProxyFacade.getToken(SignerProxy.SSL_TOKEN_ID);
+            tokenInfo = signerProxyFacade.getToken(SignerRpcClient.SSL_TOKEN_ID);
             if (null != tokenInfo) {
                 status = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED ? INITIALIZED : NOT_INITIALIZED;
             }

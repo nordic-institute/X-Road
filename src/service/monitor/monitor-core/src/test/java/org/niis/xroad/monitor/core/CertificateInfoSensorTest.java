@@ -42,6 +42,7 @@ import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
@@ -106,7 +107,7 @@ class CertificateInfoSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, serverConfProvider);
+        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, serverConfProvider, mock(SignerRpcClient.class));
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

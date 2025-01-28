@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.MetricRegistryHolder;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.monitor.core.configuration.MonitorConfig;
-import org.niis.xroad.signer.client.RpcSignerClient;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
@@ -72,8 +71,6 @@ public final class MonitorMain {
     public static void main(String[] args) throws Exception {
         log.info("Starting X-Road Environmental Monitoring");
         Version.outputVersionInfo(APP_NAME);
-
-        RpcSignerClient.init();
 
         springCtx = new AnnotationConfigApplicationContext(MonitorConfig.class);
         springCtx.registerShutdownHook();

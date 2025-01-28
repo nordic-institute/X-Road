@@ -33,7 +33,6 @@ import io.cucumber.java.en.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.client.SignerProxy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +64,7 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
             var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
 
             var stopWatch = StopWatch.createStarted();
-            byte[] result = SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+            byte[] result = signerRpcClient.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
             log.trace("Executed sign in {} ms.", stopWatch.getDuration().toMillis());
             return result;

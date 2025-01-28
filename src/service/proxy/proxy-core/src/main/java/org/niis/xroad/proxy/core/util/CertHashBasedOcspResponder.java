@@ -44,7 +44,7 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 

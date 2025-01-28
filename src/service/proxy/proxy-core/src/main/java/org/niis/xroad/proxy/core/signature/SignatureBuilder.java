@@ -53,6 +53,7 @@ public class SignatureBuilder {
 
     /**
      * Adds a hash to be signed.
+     *
      * @param part input part to be added to the signature
      */
     public void addPart(MessagePart part) {
@@ -61,6 +62,7 @@ public class SignatureBuilder {
 
     /**
      * Sets the signing certificate.
+     *
      * @param cert the signing certificate
      */
     public void setSigningCert(X509Certificate cert) {
@@ -69,6 +71,7 @@ public class SignatureBuilder {
 
     /**
      * Adds extra certificates.
+     *
      * @param certificates list of extra certificates to add
      */
     public void addExtraCertificates(List<X509Certificate> certificates) {
@@ -77,6 +80,7 @@ public class SignatureBuilder {
 
     /**
      * Adds extra OCSP responses.
+     *
      * @param extraOcspResponses list of extra OCSP responses to add
      */
     public void addOcspResponses(List<OCSPResp> extraOcspResponses) {

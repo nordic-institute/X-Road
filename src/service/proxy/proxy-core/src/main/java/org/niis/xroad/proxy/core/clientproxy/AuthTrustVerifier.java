@@ -37,7 +37,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;

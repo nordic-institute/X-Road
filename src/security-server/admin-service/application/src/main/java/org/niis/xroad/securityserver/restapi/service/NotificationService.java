@@ -35,7 +35,7 @@ import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -130,7 +130,7 @@ public class NotificationService {
      */
     private boolean isSoftTokenPinEntered() {
         Optional<TokenInfo> token = tokenService.getAllTokens().stream()
-                .filter(t -> t.getId().equals(SignerProxy.SSL_TOKEN_ID)).findFirst();
+                .filter(t -> t.getId().equals(SignerRpcClient.SSL_TOKEN_ID)).findFirst();
         if (token.isEmpty()) {
             log.warn("soft token not found");
             throw new RuntimeException("soft token not found");

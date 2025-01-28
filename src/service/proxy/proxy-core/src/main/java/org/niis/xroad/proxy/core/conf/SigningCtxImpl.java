@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 import org.niis.xroad.proxy.core.signedmessage.SigningKey;
 

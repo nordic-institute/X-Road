@@ -36,6 +36,8 @@ include("lib:globalconf-spring")
 include("lib:serverconf-impl")
 include("lib:serverconf-core")
 include("lib:serverconf-spring")
+include("lib:keyconf-api")
+include("lib:keyconf-impl")
 
 // Service projects
 include("service")

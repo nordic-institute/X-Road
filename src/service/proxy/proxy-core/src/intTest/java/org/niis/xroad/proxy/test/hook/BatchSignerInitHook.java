@@ -33,7 +33,7 @@ import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.stereotype.Component;
 
 import static java.lang.String.format;
@@ -44,6 +44,8 @@ import static java.lang.String.format;
 public class BatchSignerInitHook implements BeforeSuiteHook {
     private static final String CONTAINER_FILES_PATH = "build/resources/intTest/signer-container-files/%s";
 
+    public static SignerRpcClient signerRpcClient;
+
     @Override
     @SneakyThrows
     public void beforeSuite() {
@@ -51,7 +53,9 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
         System.setProperty("xroad.signer.key-configuration-file", format(CONTAINER_FILES_PATH, "etc/xroad/signer/keyconf.xml"));
 
         TestSecurityUtil.initSecurity();
-        BatchSigner.init();
+
+        signerRpcClient = new SignerRpcClient();
+        signerRpcClient.init();
     }
 
     @Override

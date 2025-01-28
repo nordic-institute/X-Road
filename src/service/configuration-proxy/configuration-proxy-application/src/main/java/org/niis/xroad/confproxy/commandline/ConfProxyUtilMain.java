@@ -34,7 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.niis.xroad.signer.client.RpcSignerClient;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
@@ -51,6 +51,8 @@ public final class ConfProxyUtilMain {
                 .load();
     }
 
+    private static SignerRpcClient signerRpcClient;
+
     private static CommandLineParser cmdLineParser;
 
     /**
@@ -66,7 +68,7 @@ public final class ConfProxyUtilMain {
             System.err.println(e.getMessage());
             log.error("Error while running confproxy util:", e);
         } finally {
-            RpcSignerClient.shutdown();
+            signerRpcClient.destroy();
         }
     }
 
@@ -74,7 +76,8 @@ public final class ConfProxyUtilMain {
      * Initialize configuration proxy utility program components.
      */
     static void setup() throws Exception {
-        RpcSignerClient.init();
+        signerRpcClient = new SignerRpcClient();
+        signerRpcClient.init();
 
         cmdLineParser = new DefaultParser();
     }
@@ -106,6 +109,6 @@ public final class ConfProxyUtilMain {
     static ConfProxyUtil createUtilInstance(final String className) throws Exception {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
-        return utilClass.newInstance();
+        return utilClass.getConstructor(SignerRpcClient.class).newInstance(signerRpcClient);
     }
 }

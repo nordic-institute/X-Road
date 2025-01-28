@@ -29,16 +29,15 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
-import org.niis.xroad.proxy.core.auth.AuthKey;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckProvider;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -55,7 +54,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.OK;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.failure;
@@ -70,7 +68,8 @@ public class HealthChecksTest {
     private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
     private final KeyConfProvider keyConfProvider = mock(KeyConfProvider.class);
     private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
-    private final HealthChecks healthChecks = new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
+    private final SignerRpcClient signerRpcClient = mock(SignerRpcClient.class);
+    private final HealthChecks healthChecks = new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient);
 
 
     @Test
@@ -163,23 +162,20 @@ public class HealthChecksTest {
     public void checkHSMOperationalShouldReturnOkStatusWhenValid() {
 
         // prepare
-        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
-            client.when(SignerProxy::isHSMOperational).thenReturn(true);
+        when(signerRpcClient.isHSMOperational()).thenReturn(true);
 
-            // execute
-            HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
 
-            // verify
-            assertTrue("result should be OK", testedProvider.get().isOk());
-        }
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
     }
 
     @Test
     public void checkHSMOperationalShouldFailWhenNotValid() {
 
         // prepare
-        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
-            client.when(SignerProxy::isHSMOperational).thenReturn(false);
+            when(signerRpcClient.isHSMOperational()).thenReturn(false);
 
             // execute
             HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
@@ -189,7 +185,6 @@ public class HealthChecksTest {
             assertFalse("health check result should be a failure", checkedResult.isOk());
             assertThat(checkedResult.getErrorMessage(),
                     containsString("At least one HSM are non operational"));
-        }
     }
 
     @Test

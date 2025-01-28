@@ -94,7 +94,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
                 case null, default -> log.debug("activate successful");
             }
             return null;
-        }).when(signerProxyFacade).activateToken(any(), any());
+        }).when(signerRpcClient).activateToken(any(), any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -105,7 +105,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
                 log.debug("activate successful");
             }
             return null;
-        }).when(signerProxyFacade).updateSoftwareTokenPin(any(), any(), any());
+        }).when(signerRpcClient).updateTokenPin(any(), any(), any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -118,7 +118,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
                 log.debug("deactivate successful");
             }
             return null;
-        }).when(signerProxyFacade).deactivateToken(any());
+        }).when(signerRpcClient).deactivateToken(any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -128,7 +128,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             } else {
                 return tokenInfo;
             }
-        }).when(signerProxyFacade).getToken(any());
+        }).when(signerRpcClient).getToken(any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -140,7 +140,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
                     .build();
 
             return null;
-        }).when(signerProxyFacade).setTokenFriendlyName(any(), any());
+        }).when(signerRpcClient).setTokenFriendlyName(any(), any());
         mockPossibleActionsRuleEngineAllowAll();
     }
 
@@ -243,7 +243,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getUnknownSoftwareTokenInitStatus() {
-        when(signerProxyFacade.getTokens()).thenThrow(new SignerException("Error"));
+        when(signerRpcClient.getTokens()).thenThrow(new SignerException("Error"));
         TokenInitStatusInfo tokenStatus = tokenService.getSoftwareTokenInitStatus();
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);
     }
@@ -281,7 +281,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper,
+        tokenService = new TokenService(signerRpcClient, possibleActionsRuleEngineParam, auditDataHelper,
                 tokenPinValidator);
     }
 

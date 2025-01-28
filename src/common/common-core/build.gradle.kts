@@ -33,8 +33,6 @@ dependencies {
   api(libs.jakarta.annotationApi)
   api(libs.opentelemetry.instrumentation.annotations)
 
-  implementation(libs.logback.classic)
-
   testImplementation(project(":common:common-test"))
 }
 

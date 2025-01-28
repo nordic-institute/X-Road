@@ -8,6 +8,7 @@ dependencies {
 
   implementation(project(":common:common-core"))
   implementation(project(":service:signer:signer-core"))
+  implementation(libs.logback.classic)
 }
 
 tasks.jar {
