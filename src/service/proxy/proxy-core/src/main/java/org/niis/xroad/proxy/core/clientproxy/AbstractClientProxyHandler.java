@@ -40,14 +40,11 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.io.IOException;
@@ -68,10 +65,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 
-    protected final GlobalConfProvider globalConfProvider;
-    protected final KeyConfProvider keyConfProvider;
-    protected final ServerConfProvider serverConfProvider;
-    protected final CertChainFactory certChainFactory;
+    protected final CommonBeanProxy commonBeanProxy;
 
     protected final HttpClient client;
 

@@ -33,7 +33,6 @@ import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.stereotype.Component;
 
@@ -57,8 +56,6 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
 
         signerRpcClient = new SignerRpcClient();
         signerRpcClient.init();
-
-        BatchSigner.init(signerRpcClient);
     }
 
     @Override

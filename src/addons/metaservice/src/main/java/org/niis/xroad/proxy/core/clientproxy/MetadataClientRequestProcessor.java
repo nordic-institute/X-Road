@@ -44,11 +44,8 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -79,12 +76,9 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     private final String target;
 
-    MetadataClientRequestProcessor(GlobalConfProvider globalConfProvider,
-                                   KeyConfProvider keyConfProvider,
-                                   ServerConfProvider serverConfProvider,
-                                   CertChainFactory certChainFactory,
+    MetadataClientRequestProcessor(CommonBeanProxy commonBeanProxy,
                                    String target, RequestWrapper request, ResponseWrapper response) {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, null);
+        super(commonBeanProxy, request, response, null);
 
         this.target = target;
     }
@@ -109,7 +103,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
         list.getMember().addAll(
-                globalConfProvider.getMembers(instanceIdentifier).stream().map(m -> {
+                commonBeanProxy.globalConfProvider.getMembers(instanceIdentifier).stream().map(m -> {
                     ClientType client = OBJECT_FACTORY.createClientType();
                     client.setId(m.id());
                     client.setName(m.name());
@@ -141,7 +135,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     private String getInstanceIdentifierFromRequest() throws Exception {
         String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
-            instanceIdentifier = globalConfProvider.getInstanceIdentifier();
+            instanceIdentifier = commonBeanProxy.globalConfProvider.getInstanceIdentifier();
         }
 
         return instanceIdentifier;

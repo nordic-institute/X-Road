@@ -31,7 +31,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
 import org.niis.xroad.serverconf.ServerConfProvider;

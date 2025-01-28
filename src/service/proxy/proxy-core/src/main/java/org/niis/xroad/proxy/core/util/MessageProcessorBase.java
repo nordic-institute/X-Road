@@ -39,13 +39,8 @@ import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
@@ -66,13 +61,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 @Slf4j
 public abstract class MessageProcessorBase {
-
-    protected final GlobalConfProvider globalConfProvider;
-    protected final KeyConfProvider keyConfProvider;
-    protected final ServerConfProvider serverConfProvider;
-
-    protected final CertChainFactory certChainFactory;
-    protected final CertHelper certHelper;
+    protected final CommonBeanProxy commonBeanProxy;
 
     /**
      * The servlet request.
@@ -89,23 +78,16 @@ public abstract class MessageProcessorBase {
      */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(GlobalConfProvider globalConfProvider,
-                                   KeyConfProvider keyConfProvider,
-                                   ServerConfProvider serverConfProvider,
-                                   CertChainFactory certChainFactory,
+    protected MessageProcessorBase(CommonBeanProxy commonBeanProxy,
                                    RequestWrapper request,
                                    ResponseWrapper response,
                                    HttpClient httpClient) {
-        this.globalConfProvider = globalConfProvider;
-        this.certHelper = new CertHelper(globalConfProvider);
-        this.keyConfProvider = keyConfProvider;
-        this.serverConfProvider = serverConfProvider;
-        this.certChainFactory = certChainFactory;
+        this.commonBeanProxy = commonBeanProxy;
         this.jRequest = request;
         this.jResponse = response;
         this.httpClient = httpClient;
 
-        globalConfProvider.verifyValidity();
+        commonBeanProxy.globalConfProvider.verifyValidity();
     }
 
     /**
@@ -171,7 +153,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
-                    serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
             opMonitoringData.setRestPath(getNormalizedServicePath(request.getServicePath()));
         }
@@ -190,7 +172,7 @@ public abstract class MessageProcessorBase {
     }
 
     protected String getSecurityServerAddress() {
-        return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
+        return commonBeanProxy.globalConfProvider.getSecurityServerAddress(commonBeanProxy.serverConfProvider.getIdentifier());
     }
 
     /**
@@ -254,7 +236,7 @@ public abstract class MessageProcessorBase {
     protected void verifyClientAuthentication(ClientId client,
                                               IsAuthenticationData auth) throws Exception {
 
-        IsAuthentication isAuthentication = serverConfProvider.getIsAuthentication(client);
+        IsAuthentication isAuthentication = commonBeanProxy.serverConfProvider.getIsAuthentication(client);
         if (isAuthentication == null) {
             // Means the client was not found in the server conf.
             // The getIsAuthentication method implemented in ServerConfCommonImpl
@@ -278,12 +260,12 @@ public abstract class MessageProcessorBase {
                                 + " TLS certificate", client);
             }
 
-            if (auth.cert().equals(serverConfProvider.getSSLKey().getCertChain()[0])) {
+            if (auth.cert().equals(commonBeanProxy.serverConfProvider.getSSLKey().getCertChain()[0])) {
                 // do not check certificates for local TLS connections
                 return;
             }
 
-            List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
+            List<X509Certificate> isCerts = commonBeanProxy.serverConfProvider.getIsCerts(client);
             if (isCerts.isEmpty()) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) has no IS certificates", client);

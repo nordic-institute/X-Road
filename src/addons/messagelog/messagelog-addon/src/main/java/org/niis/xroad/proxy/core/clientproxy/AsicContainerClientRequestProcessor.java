@@ -47,18 +47,15 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.FileConsumer;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.proxy.core.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -120,13 +117,10 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
 
-    public AsicContainerClientRequestProcessor(GlobalConfProvider globalConfProvider,
-                                               KeyConfProvider keyConfProvider,
-                                               ServerConfProvider serverConfProvider,
-                                               CertChainFactory certChainFactory,
+    public AsicContainerClientRequestProcessor(CommonBeanProxy commonBeanProxy,
                                                String target, RequestWrapper request, ResponseWrapper response)
             throws IOException {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, null);
+        super(commonBeanProxy, request, response, null);
         this.target = target;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }

@@ -31,12 +31,9 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
@@ -50,9 +47,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public MetadataHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                           ServerConfProvider serverConfProvider, CertChainFactory certChainFactory, HttpClient client) {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, false);
+    public MetadataHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+        super(commonBeanProxy, client, false);
     }
 
     @Override
@@ -72,8 +68,7 @@ public class MetadataHandler extends AbstractClientProxyHandler {
                     "Target must not be null");
         }
 
-        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(globalConfProvider,
-                keyConfProvider, serverConfProvider, certChainFactory, target, request, response);
+        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(commonBeanProxy, target, request, response);
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
             return processor;

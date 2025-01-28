@@ -33,9 +33,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import org.niis.xroad.proxy.core.testsuite.EmptyServerConf;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.test.serverconf.EmptyServerConf;
 
 import java.util.ArrayList;
 import java.util.List;
