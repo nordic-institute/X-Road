@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.89  
+Version: 2.90  
 Doc. ID: UG-SS
 
 ---
@@ -118,6 +118,7 @@ Doc. ID: UG-SS
 | 28.10.2024 | 2.87    | Minor updates to remote database migration                                                                                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 | 08.11.2024 | 2.88    | Add EC key support for authentication and signing certificates                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
 | 17.12.2024 | 2.89    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
+| 07.01.2025 | 2.90    | Updated references                                                                                                                                                                                                                                                                                                                                                                                          | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -318,7 +319,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
     <http://en.wikipedia.org/wiki/INI_file>
 
 4. <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
-    <https://jdbc.postgresql.org/documentation/93/connect.html>
+    <https://jdbc.postgresql.org/documentation/use/#connecting-to-the-database>
 
 5. <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
     <http://json.org/>
