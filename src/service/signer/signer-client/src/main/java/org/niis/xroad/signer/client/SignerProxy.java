@@ -251,7 +251,7 @@ public final class SignerProxy {
     }
 
     /**
-     * Delete the inactive token with the given ID.
+     * Delete the token with the given ID.
      *
      * @param tokenId ID of the token
      * @throws SignerException if any errors occur

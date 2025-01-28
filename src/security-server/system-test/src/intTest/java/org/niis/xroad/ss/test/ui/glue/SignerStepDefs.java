@@ -45,12 +45,16 @@ public class SignerStepDefs extends BaseUiStepDefs {
     }
 
     @SneakyThrows
-    @Step("predefined signer softtoken is uploaded")
+    @Step("Predefined inactive signer token is uploaded")
     public void updateSignerSoftToken() {
         execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("rm", "-rf", "/etc/xroad/signer/");
-        execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
-        execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
+        execInContainer("sed", "-i", "/<\\/device>/a\\\n"
+                + "<device>\\\n"
+                + "        <deviceType>softToken</deviceType>\\\n"
+                + "        <friendlyName>softToken-for-deletion</friendlyName>\\\n"
+                + "        <id>1</id>\\\n"
+                + "        <pinIndex>1</pinIndex>\\\n"
+                + "    </device>", "/etc/xroad/signer/keyconf.xml");
         execInContainer("supervisorctl", "start", "xroad-signer");
     }
 

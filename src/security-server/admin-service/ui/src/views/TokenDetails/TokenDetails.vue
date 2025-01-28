@@ -31,6 +31,7 @@
         <xrd-button
           v-if="canDelete()"
           :loading="deleting"
+          data-test="token-delete-button"
           outlined
           @click="confirmDelete = true"
         >{{ $t('action.delete') }}
