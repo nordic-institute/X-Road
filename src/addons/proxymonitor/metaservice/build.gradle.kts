@@ -8,8 +8,8 @@ val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFil
 
 sourceSets {
   main {
-    java.srcDirs("src/main/java", schemaTargetDir)
-    resources.srcDirs("src/main/resources", "../../../common/common-domain/src/main/resources")
+    java.srcDirs(schemaTargetDir)
+    resources.srcDirs("../../../common/common-domain/src/main/resources")
   }
 }
 
