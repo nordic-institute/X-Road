@@ -49,11 +49,6 @@ public class ProxyRpcConfig {
                 }));
     }
 
-//    @Bean
-//    RpcSignerClient rpcSignerClient() throws Exception {
-//        return RpcSignerClient.init();
-//    }
-
     @Bean
     SignerRpcClient signerRpcClient() {
         return new SignerRpcClient();
