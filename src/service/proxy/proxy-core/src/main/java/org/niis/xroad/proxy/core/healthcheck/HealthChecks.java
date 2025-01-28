@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
+import ee.ria.xroad.common.CodedException;
+
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +36,14 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
-import org.niis.xroad.proxy.core.addon.module.HardwareSecurityModuleUtils;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.OK;
 import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.failure;
 
@@ -54,6 +57,7 @@ public class HealthChecks {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final SignerRpcClient signerRpcClient;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
@@ -143,7 +147,7 @@ public class HealthChecks {
     public HealthCheckProvider checkHSMOperationStatus() {
         return () -> {
             try {
-                HardwareSecurityModuleUtils.verifyAllHSMOperational();
+                verifyAllHSMOperational();
                 return OK;
             } catch (Exception e) {
                 log.error("Exception when verifying HSM status", e);
@@ -222,5 +226,12 @@ public class HealthChecks {
                 return provider.get();
             }
         };
+    }
+
+    private void verifyAllHSMOperational() throws Exception {
+        if (!signerRpcClient.isHSMOperational()) {
+            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
+                    "At least one HSM are non operational");
+        }
     }
 }

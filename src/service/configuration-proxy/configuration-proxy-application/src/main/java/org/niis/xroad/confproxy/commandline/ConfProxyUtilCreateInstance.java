@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import org.apache.commons.cli.CommandLine;
 import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -48,8 +49,8 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
     /**
      * Constructs a confproxy-create-instance utility program instance.
      */
-    ConfProxyUtilCreateInstance() {
-        super("confproxy-create-instance");
+    ConfProxyUtilCreateInstance(SignerRpcClient signerRpcClient) {
+        super("confproxy-create-instance", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE);
     }

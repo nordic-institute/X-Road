@@ -34,7 +34,7 @@ import org.niis.xroad.monitor.core.CertificateMonitoringInfo.CertificateType;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
@@ -69,14 +69,14 @@ public class CertificateInfoSensor extends AbstractSensor {
     /**
      * Create new CertificateInfoSensor
      */
-    public CertificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
+    public CertificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
         super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         certificateInfoCollector = new CertificateInfoCollector()
                 .addExtractor(new InternalServerCertificateExtractor(serverConfProvider))
                 .addExtractor(new InternalTlsExtractor(serverConfProvider))
-                .addExtractor(new TokenExtractor());
+                .addExtractor(new TokenExtractor(signerRpcClient));
 
         scheduleSingleMeasurement(INITIAL_DELAY);
     }
@@ -192,8 +192,8 @@ public class CertificateInfoSensor extends AbstractSensor {
             this.tokenInfoLister = tokenInfoLister;
         }
 
-        TokenExtractor() {
-            tokenInfoLister = SignerProxy::getTokens;
+        TokenExtractor(SignerRpcClient signerRpcClient) {
+            tokenInfoLister = signerRpcClient::getTokens;
         }
 
         @Override

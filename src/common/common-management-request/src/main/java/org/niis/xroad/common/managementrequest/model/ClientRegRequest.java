@@ -29,12 +29,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 @Slf4j
 public class ClientRegRequest extends GenericClientRequest {
 
-    public ClientRegRequest(ClientId client, SoapMessageImpl request) throws Exception {
-        super(client, request);
+    public ClientRegRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
+        super(signerRpcClient, client, request);
     }
 
 }

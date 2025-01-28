@@ -39,6 +39,7 @@ import org.niis.xroad.monitor.core.MetricsRpcService;
 import org.niis.xroad.monitor.core.SystemMetricsSensor;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -96,8 +97,14 @@ public class MonitorConfig {
     }
 
     @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
-        return new CertificateInfoSensor(taskScheduler, serverConfProvider);
+    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider,
+                                                SignerRpcClient signerRpcClient) {
+        return new CertificateInfoSensor(taskScheduler, serverConfProvider, signerRpcClient);
+    }
+
+    @Bean
+    SignerRpcClient signerRpcClient() {
+        return new SignerRpcClient();
     }
 
 }

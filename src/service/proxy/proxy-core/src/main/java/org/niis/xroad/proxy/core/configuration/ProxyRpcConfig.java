@@ -30,7 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.RpcSignerClient;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,7 +50,7 @@ public class ProxyRpcConfig {
     }
 
     @Bean
-    RpcSignerClient rpcSignerClient() throws Exception {
-        return RpcSignerClient.init();
+    SignerRpcClient signerRpcClient() {
+        return new SignerRpcClient();
     }
 }
