@@ -1,32 +1,18 @@
 plugins {
     id("xroad.java-conventions")
-    alias(libs.plugins.springBoot)
+    alias(libs.plugins.quarkus)
 }
 
 dependencies {
-    implementation project(':common:common-service-bootstrap')
-    implementation project(':common:common-core')
-    implementation project(':common:common-properties')
-    implementation project(':common:common-rpc')
+    implementation(platform(libs.quarkus.bom))
+
+    implementation project(':common:common-quarkus-bootstrap')
     implementation project(':signer:core')
 
-    implementation project(':addons:hwtoken')
-
-    testImplementation(libs.springBoot.starterTest)
+    testImplementation(libs.quarkus.junit5)
+    testImplementation(testFixtures(project(":common:common-rpc")))
 }
 
 jar {
     enabled = false
-}
-
-bootJar {
-    enabled = true
-    archiveBaseName = 'signer'
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Signer',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-        )
-    }
 }

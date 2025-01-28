@@ -36,11 +36,11 @@ import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
  * Handles certificate activations and deactivations.
  */
 @RequiredArgsConstructor
-@Component
+@ApplicationScoped
 public class ActivateCertReqHandler
         extends AbstractRpcHandler<ActivateCertReq, Empty> {
 

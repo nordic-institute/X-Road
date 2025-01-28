@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,38 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
+package ee.ria.xroad.signer.job;
 
-import org.junit.Test;
+public class NoopOcspClientExecuteScheduler implements OcspClientExecuteScheduler {
 
-import static org.junit.Assert.assertEquals;
+    @Override
+    public void success() {
+        // noop
+    }
 
-/**
- * Class for testing {@link Signer}
- */
-public class SignerTest {
+    @Override
+    public void failure() {
+        // noop
+    }
 
-    @Test
-    public void testModuleManagerUpdateIntervalProperty() {
-        // Get default value
-        int defaultValue = Integer.parseInt(SystemProperties.DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL);
+    @Override
+    public void globalConfInvalidated() {
+        // noop
+    }
 
-        // Test for default value
-        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + defaultValue,
-                defaultValue,
-                SystemProperties.getModuleManagerUpdateInterval());
+    @Override
+    public void execute() {
+        // noop
+    }
 
-        // Increase default value by one
-        int newValue = defaultValue + 1;
-
-        // Set value to default + 1
-        System.setProperty(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL, Integer.toString(newValue));
-
-        // Test for the new value
-        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + newValue,
-                newValue,
-                SystemProperties.getModuleManagerUpdateInterval());
+    @Override
+    public void reschedule() {
+        // noop
     }
 }

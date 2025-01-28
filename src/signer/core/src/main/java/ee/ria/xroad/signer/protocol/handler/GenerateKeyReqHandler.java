@@ -29,13 +29,13 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles key generations.
  */
-@Component
+@ApplicationScoped
 public class GenerateKeyReqHandler extends AbstractRpcHandler<GenerateKeyReq, KeyInfoProto> {
 
     @Override

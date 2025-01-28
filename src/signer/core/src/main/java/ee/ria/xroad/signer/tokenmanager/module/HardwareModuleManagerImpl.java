@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,26 +23,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.signer.tokenmanager.module;
 
-package ee.ria.xroad.signer;
-
-import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
-import ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl;
+import ee.ria.xroad.signer.SignerProperties;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
+import java.util.Optional;
+
+/**
+ * Module manager that supports hardware tokens.
+ */
 @Slf4j
-class SignerAddonsConfig {
+public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
-    @Bean
-    @ConditionalOnProperty(name = "xroad.signer.addon.hwtoken.enabled", havingValue = "true")
-    AbstractModuleManager hardwareModuleManager() {
-        log.info("Hardware token manager enabled.");
-        return new HardwareModuleManagerImpl();
+    public HardwareModuleManagerImpl(SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+        super(signerProperties, ocspResponseManager);
     }
 
+    @Override
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
+        if (module instanceof HardwareModuleType hmt) {
+            return createWorker(hmt);
+        }
+
+        return super.createModuleWorker(module);
+    }
+
+    private AbstractModuleWorker createWorker(HardwareModuleType hardwareModule) {
+        try {
+            return new HardwareModuleWorker(hardwareModule, signerProperties);
+        } catch (Exception e) {
+            log.error("Error initializing hardware module '{}'", hardwareModule.getType(), e);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Optional<Boolean> isHSMModuleOperational() {
+        boolean hsmOperationalStatus = ModuleConf.getModules().stream()
+                .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
+                        && !isModuleInitialized(moduleType));
+
+        return Optional.of(hsmOperationalStatus);
+    }
 }

@@ -29,13 +29,13 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for TokenInfo based on key id.
  */
-@Component
+@ApplicationScoped
 public class GetTokenInfoForKeyIdReqHandler
         extends AbstractRpcHandler<GetTokenByKeyIdReq, TokenInfoProto> {
 

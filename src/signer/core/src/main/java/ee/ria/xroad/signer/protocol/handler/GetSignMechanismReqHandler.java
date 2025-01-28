@@ -31,14 +31,14 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for signing mechanism based on key id.
  */
-@Component
+@ApplicationScoped
 public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechanismReq, GetSignMechanismResp> {
 
     @Override

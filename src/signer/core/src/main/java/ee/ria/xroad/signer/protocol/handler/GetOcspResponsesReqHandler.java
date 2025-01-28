@@ -29,11 +29,11 @@ import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Handles OCSP requests.
  */
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class GetOcspResponsesReqHandler
         extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
@@ -59,6 +60,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
 
     @Getter
     private final ModuleType moduleType;
+    protected final SignerProperties signerProperties;
 
     public Optional<TokenWorker> getTokenById(String tokenId) {
         return Optional.ofNullable(tokenWorkers.get(tokenId));
@@ -84,7 +86,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
             log.warn("PKCS11Exception was thrown. Reloading underlying module and token workers.", pkcs11Exception);
             reload();
         } catch (Exception e) {
-            log.error("Error during update of module " + getClass().getSimpleName(), e);
+            log.error("Error during update of module {}", getClass().getSimpleName(), e);
             throw translateException(e);
         }
     }

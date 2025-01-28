@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
@@ -43,15 +44,16 @@ import java.util.Map;
  */
 public class SoftwareModuleWorker extends AbstractModuleWorker {
 
-    private static final List<TokenType> TOKENS = List.of(new SoftwareTokenType(
-            Map.of(
-                    KeyAlgorithm.EC, SystemProperties.getSofTokenEcSignMechanism(),
-                    KeyAlgorithm.RSA, SystemProperties.getSoftTokenRsaSignMechanism()
-            )
-    ));
+    private final List<TokenType> TOKENS;
 
-    public SoftwareModuleWorker(ModuleType moduleType) {
-        super(moduleType);
+    public SoftwareModuleWorker(ModuleType moduleType, SignerProperties signerProperties) {
+        super(moduleType, signerProperties);
+        this.TOKENS = List.of(new SoftwareTokenType(
+                Map.of(
+                        KeyAlgorithm.EC, SignMechanism.valueOf(signerProperties.softTokenEcSignMechanism()),
+                        KeyAlgorithm.RSA, SignMechanism.valueOf(signerProperties.softTokenRsaSignMechanism())
+                )
+        ));
     }
 
     @Override
@@ -63,7 +65,7 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         initTokenInfo(tokenInfo);
 
-        return new SoftwareTokenWorker(tokenInfo, tokenType);
+        return new SoftwareTokenWorker(tokenInfo, tokenType, signerProperties);
     }
 
     private void initTokenInfo(TokenInfo tokenInfo) {

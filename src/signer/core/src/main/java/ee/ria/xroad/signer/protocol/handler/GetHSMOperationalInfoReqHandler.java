@@ -28,15 +28,15 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for checking HSMs operational status.
  */
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class GetHSMOperationalInfoReqHandler extends AbstractRpcHandler<Empty, GetHSMOperationalInfoResp> {
     private final AbstractModuleManager moduleManager;

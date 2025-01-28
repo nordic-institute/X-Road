@@ -26,8 +26,8 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +55,6 @@ import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
 import org.niis.xroad.signer.proto.SignReq;
-import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -74,7 +74,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  */
 @Slf4j
 @SuppressWarnings("deprecation")
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<GenerateSelfSignedCertReq, GenerateSelfSignedCertResp> {
     private final SignReqHandler signReqHandler;
@@ -95,7 +95,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
         PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
         SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
-                SystemProperties.getSelfSignedCertDigestAlgorithm(),
+                DigestAlgorithm.ofName(signerProperties.selfsignedCertDigestAlgorithm()),
                 tokenAndKey.getSignMechanism()
         );
 

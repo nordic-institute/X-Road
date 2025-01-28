@@ -32,20 +32,20 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.CertificationServiceStatus;
 import org.niis.xroad.signer.proto.OcspResponderStatus;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
 public class GetCertificationServiceDiagnosticsReqHandler extends AbstractRpcHandler<Empty, CertificationServiceDiagnosticsResp> {

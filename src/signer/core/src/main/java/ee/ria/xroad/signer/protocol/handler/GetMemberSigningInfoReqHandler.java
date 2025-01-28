@@ -36,13 +36,13 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -55,7 +55,7 @@ import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED
  * Handles requests for member signing info.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
     private final GlobalConfProvider globalConfProvider;

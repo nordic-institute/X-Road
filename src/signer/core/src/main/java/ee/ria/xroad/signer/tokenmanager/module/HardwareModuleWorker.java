@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,6 +27,7 @@
 package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenWorker;
@@ -59,8 +61,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
     private Module pkcs11Module;
 
-    public HardwareModuleWorker(HardwareModuleType moduleType) {
-        super(moduleType);
+    public HardwareModuleWorker(HardwareModuleType moduleType, SignerProperties signerProperties) {
+        super(moduleType, signerProperties);
         this.module = moduleType;
     }
 
@@ -196,6 +198,6 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
     @Override
     protected AbstractTokenWorker createWorker(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo, TokenType tokenType) {
-        return new HardwareTokenWorker(tokenInfo, tokenType);
+        return new HardwareTokenWorker(tokenInfo, tokenType, signerProperties);
     }
 }

@@ -32,16 +32,16 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles key deletions.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty> {
 
     @Override

@@ -30,9 +30,9 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
@@ -40,7 +40,7 @@ import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
 /**
  * Handles requests for software token initialization.
  */
-@Component
+@ApplicationScoped
 public class InitSoftwareTokenReqHandler
         extends AbstractRpcHandler<InitSoftwareTokenReq, Empty> {
 

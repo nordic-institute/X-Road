@@ -1,6 +1,11 @@
+
 xroad:
   common:
     temp-files-path: build/tmp/test
+    rpc:
+      use-tls: false
+    global-conf:
+      source: FILESYSTEM
   signer:
     ocsp-cache-path: build/tmp/test
     device-configuration-file: src/test/resources/devices.ini

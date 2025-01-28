@@ -32,10 +32,10 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.GetMemberCertsReq;
 import org.niis.xroad.signer.proto.GetMemberCertsResp;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 /**
  * Handles requests for member certificates.
  */
-@Component
+@ApplicationScoped
 public class GetMemberCertsReqHandler
         extends AbstractRpcHandler<GetMemberCertsReq, GetMemberCertsResp> {
 

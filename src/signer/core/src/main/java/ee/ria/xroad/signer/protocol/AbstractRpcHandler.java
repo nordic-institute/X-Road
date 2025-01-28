@@ -27,6 +27,7 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 
@@ -34,9 +35,9 @@ import com.google.protobuf.AbstractMessage;
 import io.grpc.Status;
 import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.protobuf.Any.pack;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
@@ -49,8 +50,11 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @SuppressWarnings("squid:S119")
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
-    @Autowired
+
+    @Inject
     protected TokenWorkerProvider tokenWorkerProvider;
+    @Inject
+    protected SignerProperties signerProperties;
 
     protected abstract RespT handle(ReqT request) throws Exception;
 

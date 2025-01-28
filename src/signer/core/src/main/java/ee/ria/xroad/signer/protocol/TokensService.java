@@ -41,6 +41,7 @@ import ee.ria.xroad.signer.protocol.handler.SetTokenFriendlyNameReqHandler;
 import ee.ria.xroad.signer.protocol.handler.UpdateSoftwareTokenPinReqHandler;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
@@ -58,12 +59,11 @@ import org.niis.xroad.signer.proto.ListTokensResp;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.springframework.stereotype.Service;
 
 /**
  * Token gRPC service.
  */
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     private final ActivateTokenReqHandler activateTokenReqHandler;

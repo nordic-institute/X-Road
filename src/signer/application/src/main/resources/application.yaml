@@ -1,24 +1,43 @@
-spring:
+quarkus:
   application:
     name: signer
+  spring-di:
+    enabled: true
+  vault:
+    devservices:
+      enabled: false
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-ss-common.yaml
+      - xroad-logging.yaml
+  log:
+    category:
+      "ee.ria.xroad.signer.tokenmanager.TokenManager":
+        level: "OFF"  # TokenManager is very verbose
 
-server:
-  port: 5699
+#server:
+#  port: 5699
 
 xroad:
   signer:
-    key-length: 2048
     device-configuration-file: /etc/xroad/devices.ini
     key-configuration-file: /etc/xroad/signer/keyconf.xml
-    client-timeout: 50000
+    selfsigned-cert-digest-algorithm: SHA-512
     csr-signature-digest-algorithm: SHA-256
     enforce-token-pin-policy: false
+    ocsp-response-retrieval-active: true
+    ocsp-retry-delay: 60
     ocsp-cache-path: /var/cache/xroad
+    module-manager-update-interval: 60
+    soft-token-rsa-sign-mechanism: CKM_RSA_PKCS
+    soft-token-ec-sign-mechanism: CKM_ECDSA
+    soft-token-pin-keystore-algorithm: RSA
     grpc:
       listen-address: 127.0.0.1
       port: 5560
-
-logging:
-  level:
-    ee.ria.xroad.signer.tokenmanager.TokenManager: OFF # TokenManager is very verbose
 

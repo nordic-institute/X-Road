@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,43 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
 
-import lombok.extern.slf4j.Slf4j;
+package ee.ria.xroad.signer;
 
-import java.util.Optional;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-/**
- * Module manager that supports hardware tokens.
- */
-@Slf4j
-public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
+@ConfigMapping(prefix = "xroad.signer")
+public interface SignerProperties {
 
-    @Override
-    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
-        if (module instanceof HardwareModuleType hmt) {
-            return createWorker(hmt);
-        }
+    @WithName("device-configuration-file")//: /etc/xroad/devices.ini
+    String deviceConfigurationFile();
 
-        return super.createModuleWorker(module);
-    }
+    @WithName("key-configuration-file")//: /etc/xroad/signer/keyconf.xml
+    String keyConfigurationFile();
 
-    private AbstractModuleWorker createWorker(HardwareModuleType hardwareModule) {
-        try {
-            return new HardwareModuleWorker(hardwareModule);
-        } catch (Exception e) {
-            log.error("Error initializing hardware module '{}'", hardwareModule.getType(), e);
-        }
+    @WithName("selfsigned-cert-digest-algorithm")//: SHA-512
+    String selfsignedCertDigestAlgorithm();
 
-        return null;
-    }
+    @WithName("csr-signature-digest-algorithm")//: SHA-256
+    String csrSignatureDigestAlgorithm();
 
-    @Override
-    public Optional<Boolean> isHSMModuleOperational() {
-        boolean hsmOperationalStatus = ModuleConf.getModules().stream()
-                .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
-                        && !isModuleInitialized(moduleType));
+    @WithName("enforce-token-pin-policy")//: false
+    boolean enforceTokenPinPolicy();
 
-        return Optional.of(hsmOperationalStatus);
-    }
+    @WithName("ocsp-response-retrieval-active")
+    boolean ocspResponseRetrievalActive();
+
+    @WithName("ocsp-retry-delay")
+    int ocspRetryDelay();
+
+    @WithName("ocsp-cache-path")//: /var/cache/xroad
+    String ocspCachePath();
+
+    @WithName("module-manager-update-interval")//: 60
+    int moduleManagerUpdateInterval();
+
+    @WithName("soft-token-rsa-sign-mechanism")
+    String softTokenRsaSignMechanism();
+
+    @WithName("soft-token-ec-sign-mechanism")
+    String softTokenEcSignMechanism();
+
+    @WithName("soft-token-pin-keystore-algorithm")
+    String softTokenPinKeystoreAlgorithm();
 }

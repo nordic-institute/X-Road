@@ -25,26 +25,20 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.AuthKeyCertInfoProto;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles authentication key cert retrieval requests.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class GetAuthKeyCertReqHandler
         extends AbstractAuthKeyReqHandler<AuthKeyCertInfoProto> {
-
-    public GetAuthKeyCertReqHandler(GlobalConfProvider globalConfProvider) {
-        super(globalConfProvider);
-    }
-
 
     @Override
     protected AuthKeyCertInfoProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {

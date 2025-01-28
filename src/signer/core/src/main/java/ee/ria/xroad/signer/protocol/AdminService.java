@@ -31,14 +31,14 @@ import ee.ria.xroad.signer.protocol.handler.GetCertificationServiceDiagnosticsRe
 import ee.ria.xroad.signer.protocol.handler.GetKeyConfChecksumHandler;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
-import org.springframework.stereotype.Service;
 
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 

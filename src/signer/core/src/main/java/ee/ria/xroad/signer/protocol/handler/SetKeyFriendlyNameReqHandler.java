@@ -28,14 +28,14 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for setting the key friendly name.
  */
-@Component
+@ApplicationScoped
 public class SetKeyFriendlyNameReqHandler
         extends AbstractRpcHandler<SetKeyFriendlyNameReq, Empty> {
 

@@ -25,101 +25,69 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.certmanager.FileBasedOcspCache;
 import ee.ria.xroad.signer.certmanager.OcspClient;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
+import ee.ria.xroad.signer.job.NoopOcspClientExecuteScheduler;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
+import ee.ria.xroad.signer.job.OcspClientExecuteSchedulerImpl;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
+import ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl;
 
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Slf4j
-@EnableScheduling
-@Import({SignerRpcConfig.class,
-        GlobalConfBeanConfig.class
-})
-@ComponentScan({
-        "ee.ria.xroad.signer.protocol",
-        "ee.ria.xroad.signer.job",
-        "ee.ria.xroad.signer.certmanager"})
-@Configuration
 public class SignerConfig {
-    static final int OCSP_SCHEDULER_BEAN_ORDER = Ordered.LOWEST_PRECEDENCE - 100;
 
-    @Bean
-    @ConditionalOnMissingBean
-    AbstractModuleManager moduleManager() {
-        log.debug("Using default module manager implementation");
-        return new DefaultModuleManagerImpl();
+    @ConfigProperty(name = "xroad.signer.addon.hwtoken.enabled", defaultValue = "false")
+    boolean isHwTokenEnabled;
+
+    @ApplicationScoped
+    @Startup
+    AbstractModuleManager moduleManager(SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+        AbstractModuleManager moduleManager;
+        if (isHwTokenEnabled) {
+            log.info("Hardware token manager enabled.");
+            moduleManager = new HardwareModuleManagerImpl(signerProperties, ocspResponseManager);
+        } else {
+            log.debug("Using default module manager implementation");
+            moduleManager = new DefaultModuleManagerImpl(signerProperties, ocspResponseManager);
+        }
+
+        moduleManager.start();
+        return moduleManager;
     }
 
-    @Bean
-    FileBasedOcspCache ocspCache(GlobalConfProvider globalConfProvider) {
-        return new FileBasedOcspCache(globalConfProvider);
-    }
-
-    @Bean
+    @ApplicationScoped
     OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, OcspClient ocspClient, FileBasedOcspCache ocspCache) {
         OcspResponseManager ocspResponseManager = new OcspResponseManager(globalConfProvider, ocspClient, ocspCache);
         ocspResponseManager.init();
         return ocspResponseManager;
     }
 
-    @Bean
-    OcspClientWorker ocspClientWorker(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
-                                      OcspClient ocspClient) {
-        return new OcspClientWorker(globalConfProvider, ocspResponseManager, ocspClient);
-    }
-
-    @Bean
+    @ApplicationScoped
     CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
         return new CertChainFactory(globalConfProvider);
     }
 
-    @Bean
-    TaskScheduler taskScheduler() {
-        return new ThreadPoolTaskScheduler();
-    }
-
-    @Order(OCSP_SCHEDULER_BEAN_ORDER)
-    @Bean(name = "ocspClientExecuteScheduler")
-    @Conditional(IsOcspClientJobsActive.class)
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler,
-                                                          GlobalConfProvider globalConfProvider) {
-        OcspClientExecuteScheduler scheduler = new OcspClientExecuteScheduler(ocspClientWorker, taskScheduler, globalConfProvider);
-        scheduler.init();
-        return scheduler;
-    }
-
-    @Slf4j
-    public static class IsOcspClientJobsActive implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            boolean isActive = SystemProperties.isOcspResponseRetrievalActive();
-            if (!isActive) {
-                log.info("OCSP-retrieval configured to be inactive, job auto-scheduling disabled");
-            }
-            return isActive;
+    @ApplicationScoped
+    @Startup
+    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker,
+                                                          GlobalConfProvider globalConfProvider,
+                                                          SignerProperties signerProperties) {
+        if (signerProperties.ocspResponseRetrievalActive()) {
+            OcspClientExecuteSchedulerImpl scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider, signerProperties);
+            scheduler.init();
+            return scheduler;
+        } else {
+            return new NoopOcspClientExecuteScheduler();
         }
     }
 

@@ -26,21 +26,20 @@
 
 package ee.ria.xroad.signer.job;
 
-
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
+@ApplicationScoped
 public class ModuleManagerReloadJob {
     private final AbstractModuleManager moduleManager;
 
-    @Scheduled(fixedDelayString = "#{T(ee.ria.xroad.common.SystemProperties).getModuleManagerUpdateInterval() * 1000}")
+    @Scheduled(every = "${xroad.signer.module-manager-update-interval}")
     public void update() {
         log.trace("Triggering ModuleManager update");
         moduleManager.refresh();

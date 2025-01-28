@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.protocol.handler.SignCertificateReqHandler;
 import ee.ria.xroad.signer.protocol.handler.SignReqHandler;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.AuthKeyCertInfoProto;
@@ -54,12 +55,11 @@ import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignResp;
-import org.springframework.stereotype.Service;
 
 /**
  * Token Key gRPC service.
  */
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     private final SignReqHandler signReqHandler;
