@@ -34,7 +34,6 @@ import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -47,8 +46,6 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 @RequiredArgsConstructor
 public class SignerProxyInitHook implements BeforeSuiteHook {
     private final TestableApplicationInfoProvider testableApplicationInfoProvider;
-
-    public static SignerRpcClient signerRpcClient;
 
     @Value("${test-automation.custom.grpc-client-host-override:#{null}}")
     private String grpcHostOverride;
@@ -72,9 +69,6 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
 
         System.setProperty("xroad.internal.passwordstore-provider", "file");
         System.setProperty("xroad.internal.passwordstore-file-path", "build/container-passwordstore/");
-
-        signerRpcClient = new SignerRpcClient();
-        signerRpcClient.init();
     }
 
 }

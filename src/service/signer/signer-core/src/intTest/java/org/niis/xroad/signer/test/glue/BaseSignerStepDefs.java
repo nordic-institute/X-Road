@@ -28,10 +28,10 @@
 package org.niis.xroad.signer.test.glue;
 
 import org.niis.xroad.common.test.glue.BaseStepDefs;
-import org.niis.xroad.common.test.signer.hook.SignerProxyInitHook;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.test.SignerClientHolder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class BaseSignerStepDefs extends BaseStepDefs {
     private static final String KEY_FRIENDLY_NAME_MAPPING = "tokenFriendlyNameToIdMapping";
 
-    protected SignerRpcClient signerRpcClient = SignerProxyInitHook.signerRpcClient;
+    protected SignerRpcClient signerRpcClient = SignerClientHolder.get();
 
     protected Map<String, String> getTokenFriendlyNameToIdMapping() {
         Map<String, String> map = scenarioContext.getStepData(KEY_FRIENDLY_NAME_MAPPING);
