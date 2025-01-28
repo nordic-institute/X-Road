@@ -45,8 +45,8 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.proxy.core.auth.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.signer.client.SignerProxy;
-import org.niis.xroad.signer.client.SignerProxy.MemberSigningInfoDto;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerRpcClient.MemberSigningInfoDto;
 
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;
@@ -73,8 +73,9 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
     private FileWatcherRunner keyConfChangeWatcher;
 
-    CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+    CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                       SignerRpcClient signerRpcClient) {
+        super(globalConfProvider, serverConfProvider, signerRpcClient);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
@@ -143,7 +144,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        org.niis.xroad.signer.api.dto.AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
+        org.niis.xroad.signer.api.dto.AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
 
         CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
 
@@ -164,7 +165,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
-        MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
+        MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(clientId);
         X509Certificate cert = CryptoUtils.readCertificate(signingInfo.cert().getCertificateBytes());
         OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
 
@@ -206,10 +207,11 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Create a new CachingKeyConf instance and set up keyconf change watcher.
      */
-    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider)
+    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                                SignerRpcClient signerRpcClient)
             throws Exception {
         final FileContentChangeChecker changeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
-        final CachingKeyConfImpl instance = new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
+        final CachingKeyConfImpl instance = new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
         // the change watcher can not be created in the constructor, because that would publish the
         // instance reference to another thread before the constructor finishes.
         instance.keyConfChangeWatcher = createChangeWatcher(new WeakReference<>(instance), changeChecker);

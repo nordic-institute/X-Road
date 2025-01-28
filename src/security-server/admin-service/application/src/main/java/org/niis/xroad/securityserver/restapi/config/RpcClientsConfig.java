@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.module;
 
-import ee.ria.xroad.common.CodedException;
+package org.niis.xroad.securityserver.restapi.config;
 
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
+@Profile("!test")
+@Configuration
+class RpcClientsConfig {
 
-/**
- * Static class for accessing hardware security modules info.
- */
-public final class HardwareSecurityModuleUtils {
-
-    private HardwareSecurityModuleUtils() {
+    @Bean
+    SignerRpcClient signerRpcClient() {
+        return new SignerRpcClient();
     }
 
-    /**
-     * Verify that all configured HSMs are operational at the moment
-     */
-    public static void verifyAllHSMOperational() throws Exception {
-        if (!isOperational()) {
-            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
-                    "At least one HSM are non operational");
-        }
-    }
-
-    private static boolean isOperational() throws Exception {
-        return SignerProxy.isHSMOperational();
-    }
 }

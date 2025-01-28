@@ -41,6 +41,7 @@ import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -60,8 +61,8 @@ import org.springframework.context.annotation.Import;
 public class ProxyConfig {
 
     @Bean
-    BatchSigner batchSigner() {
-        return BatchSigner.init();
+    BatchSigner batchSigner(SignerRpcClient signerRpcClient) {
+        return BatchSigner.init(signerRpcClient);
     }
 
     @Bean
@@ -107,8 +108,9 @@ public class ProxyConfig {
     }
 
     @Bean
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider);
+    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                    SignerRpcClient signerRpcClient) throws Exception {
+        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
 }

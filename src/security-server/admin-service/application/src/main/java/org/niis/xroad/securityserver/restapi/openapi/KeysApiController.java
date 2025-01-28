@@ -62,7 +62,7 @@ import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.service.WrongKeyUsageException;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.core.io.Resource;
@@ -239,7 +239,7 @@ public class KeysApiController implements KeysApi {
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
         CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormat).get();
-        SignerProxy.GeneratedCertRequestInfo csrInfo;
+        SignerRpcClient.GeneratedCertRequestInfo csrInfo;
         try {
             csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
         } catch (KeyNotFoundException | CsrNotFoundException e) {

@@ -40,7 +40,7 @@ import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
 
 @Slf4j
-public final class RpcSignerClient {
+final class RpcSignerClient {
     private static RpcSignerClient instance;
 
     private final RpcClient<SignerRpcExecutionContext> client;
@@ -57,11 +57,11 @@ public final class RpcSignerClient {
      *
      * @throws Exception
      */
-    public static RpcSignerClient init() throws Exception {
+    static RpcSignerClient init() throws Exception {
         return init(getGrpcInternalHost(), getGrpcSignerPort(), getSignerClientTimeout());
     }
 
-    public static RpcSignerClient init(String host, int port, int clientTimeoutMillis) throws Exception {
+    static RpcSignerClient init(String host, int port, int clientTimeoutMillis) throws Exception {
         var client = RpcClient.newClient(host, port, clientTimeoutMillis, SignerRpcExecutionContext::new);
         instance = new RpcSignerClient(client);
         return instance;
@@ -74,18 +74,18 @@ public final class RpcSignerClient {
     }
 
     @PreDestroy
-    public void destroy() {
+    private void destroy() {
         client.shutdown();
     }
 
     @Getter
-    public static class SignerRpcExecutionContext implements RpcClient.ExecutionContext {
+    static class SignerRpcExecutionContext implements RpcClient.ExecutionContext {
         private final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
         private final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
         private final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
         private final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
-        public SignerRpcExecutionContext(Channel channel) {
+        SignerRpcExecutionContext(Channel channel) {
             blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
             blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();
             blockingKeyService = KeyServiceGrpc.newBlockingStub(channel).withWaitForReady();
@@ -93,12 +93,12 @@ public final class RpcSignerClient {
         }
     }
 
-    public static <V> V execute(RpcClient.RpcExecution<V, SignerRpcExecutionContext> grpcCall) throws Exception {
+    static <V> V execute(RpcClient.RpcExecution<V, SignerRpcExecutionContext> grpcCall) throws Exception {
         return getInstance().client.execute(grpcCall);
     }
 
 
-    public static RpcSignerClient getInstance() {
+    private static RpcSignerClient getInstance() {
         if (instance == null) {
             throw new RuntimeException("RpcSignerClient is not initialized! Execute RpcSignerClient#init before using this client.");
         }

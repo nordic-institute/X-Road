@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.config.KeyAlgorithmConfig;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.client.SignerProxy.GeneratedCertRequestInfo;
+import org.niis.xroad.signer.client.SignerRpcClient.GeneratedCertRequestInfo;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;

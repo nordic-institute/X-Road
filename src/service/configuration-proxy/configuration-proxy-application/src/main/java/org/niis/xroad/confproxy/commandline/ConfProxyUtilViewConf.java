@@ -36,6 +36,7 @@ import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -64,8 +65,8 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     /**
      * Constructs a confproxy-generate-anchor utility program instance.
      */
-    ConfProxyUtilViewConf() {
-        super("confproxy-view-conf");
+    ConfProxyUtilViewConf(SignerRpcClient signerRpcClient) {
+        super("confproxy-view-conf", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
                 .addOption("a", "all", false,

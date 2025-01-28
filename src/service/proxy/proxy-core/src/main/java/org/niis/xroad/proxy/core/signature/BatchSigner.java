@@ -33,8 +33,9 @@ import ee.ria.xroad.common.signature.SigningRequest;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.security.cert.X509Certificate;
@@ -63,16 +64,18 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  * chain is produced for each request.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class BatchSigner implements DisposableBean {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
+    private final SignerRpcClient signerRpcClient;
     private static BatchSigner instance;
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    public static BatchSigner init() {
-        instance = new BatchSigner();
+    public static BatchSigner init(SignerRpcClient signerRpcClient) {
+        instance = new BatchSigner(signerRpcClient);
         return instance;
     }
 
@@ -124,7 +127,7 @@ public class BatchSigner implements DisposableBean {
 
             return workers.computeIfAbsent(name, key -> {
                 log.trace("Creating new worker for cert '{}'", name);
-                return new WorkerImpl(signRequest.getKeyId());
+                return new WorkerImpl(signerRpcClient, signRequest.getKeyId());
             });
         } catch (Exception e) {
             throw new RuntimeException("Unable to get worker", e);
@@ -135,15 +138,16 @@ public class BatchSigner implements DisposableBean {
      * This is the worker that does the heavy lifting.
      */
     private static class WorkerImpl {
-
+        private final SignerRpcClient signerRpcClient;
         private final boolean batchSigningEnabled;
         private final BlockingQueue<SigningRequestWrapper> requestsQueue = new LinkedBlockingQueue<>();
         private boolean stopping;
         private final Thread workerThread;
 
-        protected WorkerImpl(String keyId) {
+        protected WorkerImpl(SignerRpcClient signerRpcClient, String keyId) {
+            this.signerRpcClient = signerRpcClient;
             try {
-                batchSigningEnabled = SignerProxy.isTokenBatchSigningEnabled(keyId);
+                batchSigningEnabled = signerRpcClient.isTokenBatchSigningEnabled(keyId);
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
                 throw new RuntimeException(e);
@@ -208,7 +212,7 @@ public class BatchSigner implements DisposableBean {
                     try {
                         byte[] digest = calculateDigest(ctx.getSignatureAlgorithmId().digest(),
                                 ctx.getDataToBeSigned());
-                        final byte[] response = SignerProxy.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
+                        final byte[] response = signerRpcClient.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
                         sendSignatureResponse(ctx, response);
                     } catch (Exception exception) {
                         sendException(ctx, exception);

@@ -45,10 +45,11 @@ import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.proxy.core.conf.CachingKeyConfImpl;
 import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
+import org.niis.xroad.proxy.test.hook.BatchSignerInitHook;
 import org.niis.xroad.serverconf.impl.ServerConfImpl;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
@@ -78,25 +79,27 @@ import static org.assertj.core.api.Assertions.fail;
 public class ProxyStepDefs extends BaseStepDefs {
     private String scenarioKeyId;
 
+    private final SignerRpcClient signerRpcClient = BatchSignerInitHook.signerRpcClient;
+
     @Step("tokens are listed")
-    public void listTokens() throws Exception {
-        var tokens = SignerProxy.getTokens();
+    public void listTokens() {
+        var tokens = signerRpcClient.getTokens();
         testReportService.attachJson("Tokens", tokens.toArray());
     }
 
     @Step("token is initialized with pin {string}")
-    public void initToken(String pin) throws Exception {
-        SignerProxy.initSoftwareToken(pin.toCharArray());
+    public void initToken(String pin) {
+        signerRpcClient.initSoftwareToken(pin.toCharArray());
     }
 
     @Step("token with id {string} is logged in with pin {string}")
-    public void tokenIsActivatedWithPin(String tokenId, String pin) throws Exception {
-        SignerProxy.activateToken(tokenId, pin.toCharArray());
+    public void tokenIsActivatedWithPin(String tokenId, String pin) {
+        signerRpcClient.activateToken(tokenId, pin.toCharArray());
     }
 
     @Step("new key {string} generated for token with id {string}")
-    public void newKeyGeneratedForToken(String keyLabel, String tokenId) throws Exception {
-        final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
+    public void newKeyGeneratedForToken(String keyLabel, String tokenId) {
+        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
         scenarioKeyId = keyInfo.getId();
 
         testReportService.attachJson("keyInfo", keyInfo);
@@ -110,7 +113,7 @@ public class ProxyStepDefs extends BaseStepDefs {
                 clientId.getMemberClass(),
                 clientId.getMemberCode());
 
-        SignerProxy.GeneratedCertRequestInfo csrInfo = SignerProxy.generateCertRequest(scenarioKeyId, clientId,
+        SignerRpcClient.GeneratedCertRequestInfo csrInfo = signerRpcClient.generateCertRequest(scenarioKeyId, clientId,
                 KeyUsageInfo.valueOf(keyUsage), subjectName, CertificateRequestFormat.DER);
 
 
@@ -125,12 +128,12 @@ public class ProxyStepDefs extends BaseStepDefs {
         final ClientId.Conf clientId = getClientId(client);
         final byte[] certBytes = FileUtils.readFileToByteArray(cert.orElseThrow());
 
-        scenarioKeyId = SignerProxy.importCert(certBytes, initialStatus, clientId);
+        scenarioKeyId = signerRpcClient.importCert(certBytes, initialStatus, clientId);
     }
 
     @Step("token info can be retrieved by key id")
     public void tokenInfoCanBeRetrievedByKeyId() throws Exception {
-        final TokenInfo tokenForKeyId = SignerProxy.getTokenForKeyId(this.scenarioKeyId);
+        final TokenInfo tokenForKeyId = signerRpcClient.getTokenForKeyId(this.scenarioKeyId);
         testReportService.attachJson("tokenInfo", tokenForKeyId);
         assertThat(tokenForKeyId).isNotNull();
     }
@@ -205,7 +208,7 @@ public class ProxyStepDefs extends BaseStepDefs {
     private KeyConfProvider createKeyConf() {
         var globalConf = new TestGlobalConfImpl();
         var serverConf = new ServerConfImpl(globalConf);
-        return CachingKeyConfImpl.newInstance(globalConf, serverConf);
+        return CachingKeyConfImpl.newInstance(globalConf, serverConf, signerRpcClient);
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)

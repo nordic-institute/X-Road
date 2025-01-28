@@ -37,9 +37,11 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.testsuite.EmptyServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.File;
@@ -88,6 +90,9 @@ public class CachingKeyConfImplTest {
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
     private static final Path KEY_CONF = Paths.get("build", "tmp", "keyConf.xml");
+
+    @Mock
+    private SignerRpcClient signerRpcClient;
 
     private GlobalConfProvider globalConfProvider;
     private ServerConfProvider serverConfProvider;
@@ -464,7 +469,8 @@ public class CachingKeyConfImplTest {
                                BooleanSupplier signingInfoIsValid,
                                int cacheReadDelayMs) {
             super(CachingKeyConfImplTest.this.globalConfProvider,
-                    CachingKeyConfImplTest.this.serverConfProvider);
+                    CachingKeyConfImplTest.this.serverConfProvider,
+                    CachingKeyConfImplTest.this.signerRpcClient);
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;

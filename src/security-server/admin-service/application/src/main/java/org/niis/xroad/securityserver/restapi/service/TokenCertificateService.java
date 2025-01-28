@@ -47,7 +47,6 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
@@ -56,7 +55,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.AccessDeniedException;
@@ -96,7 +95,7 @@ public class TokenCertificateService {
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final ClientRepository clientRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final ClientService clientService;
@@ -129,9 +128,9 @@ public class TokenCertificateService {
      *                                                   were some extra parameters
      * @throws ActionNotPossibleException                if generate csr was not possible for this key
      */
-    public SignerProxy.GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                                    String caName, Map<String, String> subjectFieldValues,
-                                                                    CertificateRequestFormat format, Boolean isAcmeOrder)
+    public SignerRpcClient.GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
+                                                                        String caName, Map<String, String> subjectFieldValues,
+                                                                        CertificateRequestFormat format, Boolean isAcmeOrder)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             WrongKeyUsageException,
             KeyNotFoundException,
@@ -196,9 +195,9 @@ public class TokenCertificateService {
         auditDataHelper.put(RestApiAuditProperty.CSR_FORMAT, format);
 
         ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo(caName);
-        SignerProxy.GeneratedCertRequestInfo generatedCertRequestInfo;
+        SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo;
         try {
-            generatedCertRequestInfo = signerProxyFacade.generateCertRequest(keyId, memberId,
+            generatedCertRequestInfo = signerRpcClient.generateCertRequest(keyId, memberId,
                     keyUsage, subjectName, subjectAltName, format, caInfo.getCertificateProfileInfo());
         } catch (CodedException e) {
             throw e;
@@ -216,7 +215,7 @@ public class TokenCertificateService {
                                         Map<String, String> subjectFieldValues,
                                         String subjectAltName,
                                         ApprovedCAInfo caInfo,
-                                        SignerProxy.GeneratedCertRequestInfo generatedCertRequestInfo)
+                                        SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException, CertificateAlreadyExistsException,
             WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
         String memberEncodedId = keyUsage == KeyUsageInfo.SIGNING
@@ -251,7 +250,7 @@ public class TokenCertificateService {
      * @throws CsrNotFoundException       if csr with csrId was not found
      * @throws ActionNotPossibleException if regenerate was not possible
      */
-    public SignerProxy.GeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
+    public SignerRpcClient.GeneratedCertRequestInfo regenerateCertRequest(String keyId, String csrId, CertificateRequestFormat format)
             throws KeyNotFoundException, CsrNotFoundException, ActionNotPossibleException {
 
         // validate key and memberId existence
@@ -283,7 +282,7 @@ public class TokenCertificateService {
         }
 
         try {
-            return signerProxyFacade.regenerateCertRequest(csrId, format);
+            return signerRpcClient.regenerateCertRequest(csrId, format);
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
@@ -301,7 +300,7 @@ public class TokenCertificateService {
     public CertificateInfo getCertificateInfo(String hash) throws CertificateNotFoundException {
         CertificateInfo certificateInfo = null;
         try {
-            certificateInfo = signerProxyFacade.getCertForHash(hash);
+            certificateInfo = signerRpcClient.getCertForHash(hash);
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " " + NOT_FOUND, e);
@@ -404,7 +403,7 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             String hash = CryptoUtils.calculateCertHexHash(certBytes);
             auditDataHelper.putCertificateHash(hash);
-            signerProxyFacade.importCert(certBytes, certificateState, clientId, !isAuthCert);
+            signerRpcClient.importCert(certBytes, certificateState, clientId, !isAuthCert);
             certificateInfo = getCertificateInfo(hash);
             setNextPlannedAcmeAutomaticRenewalDate(clientId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (SignerException e) {
@@ -428,7 +427,7 @@ public class TokenCertificateService {
         ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {
             Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId.asEncodedId(), approvedCA, x509Certificate, keyUsageInfo);
-            signerProxyFacade.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
+            signerRpcClient.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
         }
     }
 
@@ -505,9 +504,9 @@ public class TokenCertificateService {
 
         try {
             if (activate) {
-                signerProxyFacade.activateCert(certificateInfo.getId());
+                signerRpcClient.activateCert(certificateInfo.getId());
             } else {
-                signerProxyFacade.deactivateCert(certificateInfo.getId());
+                signerRpcClient.deactivateCert(certificateInfo.getId());
             }
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
@@ -695,7 +694,7 @@ public class TokenCertificateService {
             auditDataHelper.put(RestApiAuditProperty.ADDRESS, securityServerAddress);
             auditDataHelper.putManagementRequestId(requestId);
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_REGINPROG);
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+            signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_REGINPROG);
         } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
@@ -732,7 +731,7 @@ public class TokenCertificateService {
         }
         try {
             auditDataHelper.put(RestApiAuditProperty.CERT_STATUS, CertificateInfo.STATUS_DELINPROG);
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+            signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
@@ -985,7 +984,7 @@ public class TokenCertificateService {
             securityHelper.verifyAuthority("DELETE_AUTH_CERT");
         }
         try {
-            signerProxyFacade.deleteCert(certificateInfo.getId());
+            signerRpcClient.deleteCert(certificateInfo.getId());
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
                 throw new CertificateNotFoundException(CERTIFICATE_NOT_FOUND_WITH_ID, e, certificateInfo.getId());
@@ -1004,7 +1003,7 @@ public class TokenCertificateService {
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCertHash(hash).keyId();
+            return signerRpcClient.getKeyIdForCertHash(hash).keyId();
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCertNotFound()) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found", e);
@@ -1055,7 +1054,7 @@ public class TokenCertificateService {
                 PossibleActionEnum.DELETE, tokenInfo, keyInfo, certRequestInfo);
 
         try {
-            signerProxyFacade.deleteCertRequest(csrId);
+            signerRpcClient.deleteCertRequest(csrId);
         } catch (CodedException e) {
             if (e instanceof SignerException se && se.isCausedByCsrNotFound()) {
                 throw new CsrNotFoundException(e);
@@ -1088,7 +1087,7 @@ public class TokenCertificateService {
         CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, certRequestInfo.getSubjectName());
 
-        SignerProxy.GeneratedCertRequestInfo generatedCertRequestInfo =
+        SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo =
                 regenerateCertRequest(keyInfo.getId(), csrId, CertificateRequestFormat.DER);
         if (caInfo.getAcmeServerDirectoryUrl() != null) {
             String commonName = getCommonName(certRequestInfo.getSubjectName());

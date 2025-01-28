@@ -161,8 +161,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         Map<String, TokenInfo> tokens = new HashMap<>();
         tokens.put(tokenInfo.getId(), tokenInfo);
 
-        when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
-        when(signerProxyFacade.getAuthKey(any())).thenReturn(new AuthKeyInfo(
+        when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
+        when(signerRpcClient.getAuthKey(any())).thenReturn(new AuthKeyInfo(
                 KEY_AUTH_ID, null, null, certificateInfo));
     }
 
