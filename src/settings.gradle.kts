@@ -25,6 +25,7 @@ include("common:common-int-test")
 include("common:common-core")
 include("common:common-jetty")
 include("common:common-message")
+include("common:common-properties")
 include("common:common-scheduler")
 
 // Lib projects

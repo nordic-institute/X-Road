@@ -1,0 +1,6 @@
+# Common properties that are injected to all Security Server deployed services
+
+xroad:
+  common:
+    global-conf:
+      source: REMOTE
