@@ -40,6 +40,7 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.proxy.core.test.TestSigningKey;
 
 import java.io.FileInputStream;
 import java.io.InputStream;

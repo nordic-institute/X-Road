@@ -38,9 +38,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.application.testsuite.TestSuiteKeyConf;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -67,7 +68,7 @@ public class MetadataHandlerTest {
     private HttpURI mockHttpUri;
     private ResponseWrapper mockResponse;
 
-
+    private CommonBeanProxy commonBeanProxy;
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
@@ -82,7 +83,8 @@ public class MetadataHandlerTest {
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
         certChainFactory = mock(CertChainFactory.class);
-
+        commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
+                null, certChainFactory, null);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -98,7 +100,7 @@ public class MetadataHandlerTest {
 
         when(mockRequest.getMethod()).thenReturn("POST");
 
-        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
                 httpClientMock);
 
 
@@ -113,7 +115,7 @@ public class MetadataHandlerTest {
 
         when(mockRequest.getMethod()).thenReturn("GET");
 
-        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
                 httpClientMock);
 
 
@@ -126,7 +128,7 @@ public class MetadataHandlerTest {
     @Test
     public void shouldThrowWhenTargetNull() throws Exception {
 
-        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
                 httpClientMock);
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
@@ -146,7 +148,7 @@ public class MetadataHandlerTest {
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn("/listClients");
 
-        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+        MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
                 httpClientMock);
 
         MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);

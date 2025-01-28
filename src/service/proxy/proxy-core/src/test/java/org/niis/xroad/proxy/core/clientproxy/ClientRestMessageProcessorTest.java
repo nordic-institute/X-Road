@@ -38,8 +38,9 @@ import org.eclipse.jetty.server.Request;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
@@ -80,8 +81,10 @@ public class ClientRestMessageProcessorTest {
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
         var isAuthenticationData = mock(IsAuthenticationData.class);
-        var clientRestMessageProcessor = new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
+        var commonBeanProxy =
+                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, certChainFactory, null);
+        var clientRestMessageProcessor =
+                new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
         return clientRestMessageProcessor;

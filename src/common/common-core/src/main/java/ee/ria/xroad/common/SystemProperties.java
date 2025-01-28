@@ -794,9 +794,6 @@ public final class SystemProperties {
     // --------------------------------------------------------------------- //
 
     // For testing purpose only!
-    public static final boolean USE_DUMMY_SIGNATURE = false;
-
-    // For testing purpose only!
     public static final boolean IGNORE_SIGNATURE_VERIFICATION = false;
 
     // --------------------------------------------------------------------- //

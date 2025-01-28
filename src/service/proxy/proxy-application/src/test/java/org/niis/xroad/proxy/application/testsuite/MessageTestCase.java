@@ -54,10 +54,10 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
-import org.niis.xroad.proxy.core.testutil.TestServerConfWrapper;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
+import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.springframework.context.ApplicationContext;
 
 import java.io.ByteArrayInputStream;

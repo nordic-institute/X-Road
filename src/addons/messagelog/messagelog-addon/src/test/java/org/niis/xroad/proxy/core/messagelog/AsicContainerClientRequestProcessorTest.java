@@ -91,7 +91,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         final MockOutputStream mockOutputStream = new MockOutputStream();
 
         final AsicContainerClientRequestProcessor proc =
-                new AsicContainerClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                new AsicContainerClientRequestProcessor(commonBeanProxy,
                         "/verificationconf", request, response);
 
         when(response.getOutputStream()).thenReturn(mockOutputStream);
@@ -139,7 +139,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                new AsicContainerClientRequestProcessor(commonBeanProxy,
                         "/asic", request, response);
 
         processor.process();
@@ -196,7 +196,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                new AsicContainerClientRequestProcessor(commonBeanProxy,
                         "/asic", request, response);
 
         processor.process();

@@ -78,7 +78,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.proxy.core.util.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
+import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
 
 /**
  * Unit tests for {@link ProxyMonitorServiceHandlerImpl}

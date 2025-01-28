@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.signedmessage;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -33,7 +32,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
+import org.niis.xroad.proxy.core.signature.MessageSigner;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -43,18 +42,23 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
  */
 @Slf4j
 public class SignerSigningKey implements SigningKey {
+    private final MessageSigner messageSigner;
 
-    /** The private key ID. */
+    /**
+     * The private key ID.
+     */
     private final String keyId;
 
-    /** The sign mechanism name (PKCS#11) */
+    /**
+     * The sign mechanism name (PKCS#11)
+     */
     private final SignMechanism signMechanismName;
 
     /**
      * Creates a new SignerSigningKey with provided keyId.
-     * @param keyId the private key ID.
      */
-    public SignerSigningKey(String keyId, SignMechanism signMechanismName) {
+    public SignerSigningKey(MessageSigner messageSigner, String keyId, SignMechanism signMechanismName) {
+        this.messageSigner = messageSigner;
         if (keyId == null) {
             throw new IllegalArgumentException("KeyId must not be null");
         }
@@ -73,12 +77,8 @@ public class SignerSigningKey implements SigningKey {
 
         log.trace("Calculating signature using algorithm {}", signAlgoId);
 
-        if (SystemProperties.USE_DUMMY_SIGNATURE) {
-            return new SignatureData("dummySignatureXML", "dummyHashChainResult", "dummyHashChain");
-        }
-
         try {
-            return BatchSigner.sign(keyId, signAlgoId, request);
+            return messageSigner.sign(keyId, signAlgoId, request);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

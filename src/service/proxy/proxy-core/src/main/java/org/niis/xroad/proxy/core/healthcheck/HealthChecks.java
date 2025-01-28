@@ -32,9 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.proxy.core.addon.module.HardwareSecurityModuleUtils;
-import org.niis.xroad.proxy.core.auth.AuthKey;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.security.cert.X509Certificate;

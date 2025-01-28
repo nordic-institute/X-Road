@@ -33,7 +33,6 @@ import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.springframework.stereotype.Component;
 
 import static java.lang.String.format;
@@ -51,7 +50,6 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
         System.setProperty("xroad.signer.key-configuration-file", format(CONTAINER_FILES_PATH, "etc/xroad/signer/keyconf.xml"));
 
         TestSecurityUtil.initSecurity();
-        BatchSigner.init();
     }
 
     @Override

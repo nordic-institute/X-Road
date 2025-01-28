@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 dependencies {
@@ -10,5 +11,7 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.julOverSlf4j)
+
+  testFixturesImplementation(project(":common:common-test"))
 }
 

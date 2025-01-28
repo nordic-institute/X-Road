@@ -31,11 +31,11 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.client.SignerProxy;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -63,24 +63,16 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  * chain is produced for each request.
  */
 @Slf4j
-public class BatchSigner implements DisposableBean {
+public class BatchSigner implements MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
-    private static BatchSigner instance;
-
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    public static BatchSigner init() {
-        instance = new BatchSigner();
-        return instance;
-    }
-
-    @Override
+    @PreDestroy
     public void destroy() {
-        if (instance != null) {
-            instance.workers.values().forEach(WorkerImpl::stop);
-        }
+        workers.values().forEach(WorkerImpl::stop);
+
     }
 
     /**
@@ -92,17 +84,15 @@ public class BatchSigner implements DisposableBean {
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public static SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
+    public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
             throws Exception {
-        if (instance == null) {
-            throw new IllegalStateException("BatchSigner is not initialized");
-        }
+
 
         CompletableFuture<SignatureData> completableFuture = new CompletableFuture<>();
         final SigningRequestWrapper signRequestWrapper = new SigningRequestWrapper(
                 completableFuture,
                 keyId, signatureAlgorithmId, request);
-        instance.handle(signRequestWrapper);
+        handle(signRequestWrapper);
 
         try {
             return completableFuture.get(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);

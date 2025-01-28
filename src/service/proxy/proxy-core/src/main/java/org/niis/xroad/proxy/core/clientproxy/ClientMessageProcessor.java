@@ -48,16 +48,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.io.InputStream;
@@ -158,14 +155,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         return Context.taskWrapping(executor);
     }
 
-    ClientMessageProcessor(GlobalConfProvider globalConfProvider,
-                           KeyConfProvider keyConfProvider,
-                           ServerConfProvider serverConfProvider,
-                           CertChainFactory certChainFactory,
+    ClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                            RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient, clientCert,
+        super(commonBeanProxy, request, response, httpClient, clientCert,
                 opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
@@ -285,7 +279,8 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, response, httpSender.getResponseContentType(),
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(commonBeanProxy.globalConfProvider, response,
+                httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
@@ -516,7 +511,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(keyConfProvider.getSigningCtx(requestSoap.getClient()));
+                request.sign(commonBeanProxy.signingCtxProvider.createSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {
@@ -548,9 +543,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         private void writeOcspResponses() throws Exception {
-            CertChain chain = keyConfProvider.getAuthKey().certChain();
+            CertChain chain = commonBeanProxy.keyConfProvider.getAuthKey().certChain();
             // exclude TopCA
-            List<OCSPResp> ocspResponses = keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
+            List<OCSPResp> ocspResponses = commonBeanProxy.keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);

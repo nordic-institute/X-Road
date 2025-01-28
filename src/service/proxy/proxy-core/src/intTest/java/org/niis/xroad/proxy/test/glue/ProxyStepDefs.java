@@ -42,8 +42,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
-import org.niis.xroad.proxy.core.conf.CachingKeyConfImpl;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
+import org.niis.xroad.proxy.core.signature.BatchSigner;
 import org.niis.xroad.proxy.core.signature.SignatureBuilder;
 import org.niis.xroad.serverconf.impl.ServerConfImpl;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -143,7 +146,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private void exec(String client, int count, int threads) throws InterruptedException {
         final var clientId = getClientId(client);
-        final var signingCtx = createKeyConf().getSigningCtx(clientId);
+        final var signingCtx = createSigningCtxProvider().createSigningCtx(clientId);
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -206,6 +209,15 @@ public class ProxyStepDefs extends BaseStepDefs {
         var globalConf = new TestGlobalConfImpl();
         var serverConf = new ServerConfImpl(globalConf);
         return CachingKeyConfImpl.newInstance(globalConf, serverConf);
+    }
+
+    @SneakyThrows
+    private SigningCtxProvider createSigningCtxProvider() {
+        var globalConf = new TestGlobalConfImpl();
+        var serverConf = new ServerConfImpl(globalConf);
+        var keyconf = CachingKeyConfImpl.newInstance(globalConf, serverConf);
+
+        return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner());
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)

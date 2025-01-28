@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 val schema by configurations.creating
@@ -19,6 +20,8 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.hsqldb)
   testImplementation(libs.hibernate.hikaricp)
+
+  testFixturesImplementation(project(":common:common-test"))
 
   schema(project(":common:common-domain"))
   schema(libs.apache.ant)
