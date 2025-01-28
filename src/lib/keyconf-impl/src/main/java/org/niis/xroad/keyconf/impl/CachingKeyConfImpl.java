@@ -44,7 +44,6 @@ import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.niis.xroad.signer.client.SignerRpcClient.MemberSigningInfoDto;
 
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;

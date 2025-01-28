@@ -36,7 +36,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
-import org.niis.xroad.proxy.core.addon.module.HardwareSecurityModuleUtils;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 

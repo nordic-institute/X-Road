@@ -218,9 +218,9 @@ public class ProxyStepDefs extends BaseStepDefs {
     private SigningCtxProvider createSigningCtxProvider() {
         var globalConf = new TestGlobalConfImpl();
         var serverConf = new ServerConfImpl(globalConf);
-        var keyconf = CachingKeyConfImpl.newInstance(globalConf, serverConf);
+        var keyconf = CachingKeyConfImpl.newInstance(globalConf, serverConf, signerRpcClient);
 
-        return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner());
+        return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient));
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)

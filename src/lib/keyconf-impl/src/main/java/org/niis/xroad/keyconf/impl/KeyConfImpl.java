@@ -157,7 +157,7 @@ class KeyConfImpl implements KeyConfProvider {
     protected SigningInfo createSigningInfo(ClientId clientId) throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
-        signerRpcClient.MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
+        SignerRpcClient.MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(clientId);
         X509Certificate cert = CryptoUtils.readCertificate(signingInfo.cert().getCertificateBytes());
         OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
 
