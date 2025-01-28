@@ -37,6 +37,7 @@ import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationSourceType;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -55,8 +56,8 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
     /**
      * Constructs a confproxy-generate-anchor utility program instance.
      */
-    ConfProxyUtilGenerateAnchor() {
-        super("confproxy-generate-anchor");
+    ConfProxyUtilGenerateAnchor(SignerRpcClient signerRpcClient) {
+        super("confproxy-generate-anchor", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
                 .addOption("f", "filename", true,

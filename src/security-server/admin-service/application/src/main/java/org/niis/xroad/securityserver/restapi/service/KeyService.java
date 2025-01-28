@@ -38,11 +38,11 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -66,7 +66,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class KeyService {
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final ManagementRequestSenderService managementRequestSenderService;
@@ -128,7 +128,7 @@ public class KeyService {
                 tokenInfo, keyInfo);
 
         try {
-            signerProxyFacade.setKeyFriendlyName(id, friendlyName);
+            signerRpcClient.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
         } catch (SignerException e) {
             if (e.isCausedByKeyNotFound()) {
@@ -166,7 +166,7 @@ public class KeyService {
 
         KeyInfo keyInfo = null;
         try {
-            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel, algorithm);
+            keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, algorithm);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
@@ -256,8 +256,8 @@ public class KeyService {
 
         // delete key needs to be done twice. First call deletes the certs & csrs
         try {
-            signerProxyFacade.deleteKey(keyId, false);
-            signerProxyFacade.deleteKey(keyId, true);
+            signerRpcClient.deleteKey(keyId, false);
+            signerRpcClient.deleteKey(keyId, true);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
@@ -293,7 +293,7 @@ public class KeyService {
             managementRequestSenderService.sendAuthCertDeletionRequest(
                     certificateInfo.getCertificateBytes());
             // update status
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+            signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {

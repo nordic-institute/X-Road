@@ -28,9 +28,11 @@ package org.niis.xroad.cs.admin.application;
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -65,6 +67,9 @@ class ApplicationIpRateLimitTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @MockBean
+    private SignerRpcClient signerRpcClient;
 
     @PostConstruct
     void setGlobalSecurityContext() {

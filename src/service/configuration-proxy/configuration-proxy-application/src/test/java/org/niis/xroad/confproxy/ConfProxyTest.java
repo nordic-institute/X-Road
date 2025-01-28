@@ -30,11 +30,10 @@ import ee.ria.xroad.common.CodedException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -46,7 +45,8 @@ import static ee.ria.xroad.common.SystemProperties.TEMP_FILES_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test program for the configuration proxy,
@@ -55,12 +55,15 @@ import static org.mockito.Mockito.mockStatic;
 @Slf4j
 public class ConfProxyTest {
 
+    SignerRpcClient signerRpcClient;
+
     @Before
     public void setUp() {
         System.setProperty(CONFIGURATION_PROXY_CONF_PATH, "src/test/resources/conf-proxy-conf");
         System.setProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH, "build/tmp/test/generated-conf");
         System.setProperty(CONFIGURATION_PATH, "src/test/resources/test-conf-simple");
         System.setProperty(TEMP_FILES_PATH, "build/tmp/test");
+        signerRpcClient = mock(SignerRpcClient.class);
     }
 
     @Test
@@ -69,15 +72,13 @@ public class ConfProxyTest {
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 
-        try (MockedStatic<SignerProxy> signerProxyMock = mockStatic(SignerProxy.class)) {
-            signerProxyMock.when(() -> SignerProxy.getSignMechanism(any()))
-                    .thenThrow(new CodedException("InternalError", "Signer is unreachable"));
-            try (OutputBuilder output = new OutputBuilder(confDir, conf, 2)) {
-                CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
-                assertEquals("InternalError: Signer is unreachable", exception.getMessage());
-            }
-            assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
+        when(signerRpcClient.getSignMechanism(any())).thenThrow(new CodedException("InternalError", "Signer is unreachable"));
+
+        try (OutputBuilder output = new OutputBuilder(signerRpcClient, confDir, conf, 2)) {
+            CodedException exception = assertThrows(CodedException.class, output::buildSignedDirectory);
+            assertEquals("InternalError: Signer is unreachable", exception.getMessage());
         }
+        assertEquals(0, Files.list(Paths.get("build/tmp/test/PROXY1")).count());
     }
 
 }

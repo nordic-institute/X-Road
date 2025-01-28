@@ -51,7 +51,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -105,7 +105,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
 
     @Before
     public void setup() throws Exception {
-        doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
+        doAnswer(answer -> "key-id").when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfProvider).getInstanceIdentifier();
         doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfProvider).getSubjectName(any(), any());
@@ -128,16 +128,16 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             } else {
                 return signCertificateInfo;
             }
-        }).when(signerProxyFacade).getCertForHash(any());
-        doAnswer(answer -> new SignerProxy.KeyIdInfo("key-id", null)).when(signerProxyFacade).getKeyIdForCertHash(any());
+        }).when(signerRpcClient).getCertForHash(any());
+        doAnswer(answer -> new SignerRpcClient.KeyIdInfo("key-id", null)).when(signerRpcClient).getKeyIdForCertHash(any());
         KeyInfo keyInfo = new TokenTestUtils.KeyInfoBuilder().id("key-id").build();
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .key(keyInfo)
                 .build();
-        doAnswer(answer -> Collections.singletonList(tokenInfo)).when(signerProxyFacade).getTokens();
+        doAnswer(answer -> Collections.singletonList(tokenInfo)).when(signerRpcClient).getTokens();
         TokenInfoAndKeyId tokenInfoAndKeyId = new TokenInfoAndKeyId(tokenInfo, keyInfo.getId());
-        doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertRequestId(any());
-        doAnswer(answer -> tokenInfoAndKeyId).when(signerProxyFacade).getTokenAndKeyIdForCertHash(any());
+        doAnswer(answer -> tokenInfoAndKeyId).when(signerRpcClient).getTokenAndKeyIdForCertRequestId(any());
+        doAnswer(answer -> tokenInfoAndKeyId).when(signerRpcClient).getTokenAndKeyIdForCertHash(any());
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
@@ -172,7 +172,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .certificate(mockAuthCert)
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .build();
-        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        doAnswer(answer -> certificateInfo).when(signerRpcClient).getCertForHash(any());
         Resource body = CertificateTestUtils.getResource(mockAuthCert.getEncoded());
         ResponseEntity<TokenCertificate> response = tokenCertificatesApiController.importCertificate(body);
         TokenCertificate addedCert = response.getBody();
@@ -212,7 +212,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importExistingSignCertificate() throws Exception {
         doThrow(SignerException
                 .tr(X_CERT_EXISTS, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
+                .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -227,7 +227,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importIncorrectSignCertificate() throws Exception {
         doThrow(SignerException
                 .tr(X_INCORRECT_CERTIFICATE, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
+                .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -242,7 +242,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importWrongUsageSignCertificate() throws Exception {
         doThrow(SignerException
                 .tr(X_WRONG_CERT_USAGE, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
+                .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -257,7 +257,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateCsrMissing() throws Exception {
         doThrow(SignerException
                 .tr(X_CSR_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
+                .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -272,7 +272,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateKeyNotFound() throws Exception {
         doThrow(SignerException
                 .tr(X_KEY_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
+                .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -366,7 +366,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void getCertificateForHashNotFound() throws Exception {
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).getCertForHash(any());
+                .when(signerRpcClient).getCertForHash(any());
         try {
             tokenCertificatesApiController.getCertificate(UNKNOWN_CERT_HASH);
         } catch (ResourceNotFoundException e) {
@@ -402,7 +402,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importCertificateFromTokenHashNotFound() throws Exception {
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).getCertForHash(any());
+                .when(signerRpcClient).getCertForHash(any());
         try {
             tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
         } catch (ResourceNotFoundException e) {
@@ -419,7 +419,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .certificate(mockAuthCert)
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .build();
-        doAnswer(answer -> certificateInfo).when(signerProxyFacade).getCertForHash(any());
+        doAnswer(answer -> certificateInfo).when(signerRpcClient).getCertForHash(any());
         try {
             tokenCertificatesApiController.importCertificateFromToken(MOCK_AUTH_CERTIFICATE_HASH);
         } catch (BadRequestException e) {
@@ -487,10 +487,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void deleteCertificateNotFound() throws Exception {
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).getCertForHash(any());
+                .when(signerRpcClient).getCertForHash(any());
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).deleteCert(any());
+                .when(signerRpcClient).deleteCert(any());
         try {
             tokenCertificatesApiController.deleteCertificate(UNKNOWN_CERT_HASH);
         } catch (ResourceNotFoundException e) {

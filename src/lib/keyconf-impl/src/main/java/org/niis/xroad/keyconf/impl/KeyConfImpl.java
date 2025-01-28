@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
@@ -45,7 +46,7 @@ import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.File;
 import java.security.KeyStore;
@@ -60,14 +61,11 @@ import java.util.List;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
+@RequiredArgsConstructor
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
-
-    KeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        this.globalConfProvider = globalConfProvider;
-        this.serverConfProvider = serverConfProvider;
-    }
+    protected final SignerRpcClient signerRpcClient;
 
     @Override
     public SigningInfo getSigningInfo(ClientId clientId) {
@@ -90,7 +88,7 @@ class KeyConfImpl implements KeyConfProvider {
             log.debug("Retrieving authentication info for security "
                     + "server '{}'", serverId);
 
-            AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
+            AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
 
             pkey = loadAuthPrivateKey(keyInfo);
             if (pkey == null) {
@@ -116,7 +114,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public OCSPResp getOcspResponse(String certHash) throws Exception {
-        String[] responses = SignerProxy.getOcspResponses(new String[]{certHash});
+        String[] responses = signerRpcClient.getOcspResponses(new String[]{certHash});
 
         for (String base64Encoded : responses) {
             return base64Encoded != null
@@ -129,7 +127,7 @@ class KeyConfImpl implements KeyConfProvider {
     @Override
     public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
             throws Exception {
-        String[] responses = SignerProxy.getOcspResponses(CertUtils.getSha1Hashes(certs));
+        String[] responses = signerRpcClient.getOcspResponses(CertUtils.getSha1Hashes(certs));
 
         List<OCSPResp> ocspResponses = new ArrayList<>();
         for (String base64Encoded : responses) {
@@ -153,13 +151,13 @@ class KeyConfImpl implements KeyConfProvider {
                     EncoderUtils.encodeBase64(responses.get(i).getEncoded());
         }
 
-        SignerProxy.setOcspResponses(CertUtils.getSha1Hashes(certs), base64EncodedResponses);
+        signerRpcClient.setOcspResponses(CertUtils.getSha1Hashes(certs), base64EncodedResponses);
     }
 
     protected SigningInfo createSigningInfo(ClientId clientId) throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
-        SignerProxy.MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
+        SignerRpcClient.MemberSigningInfoDto signingInfo = signerRpcClient.getMemberSigningInfo(clientId);
         X509Certificate cert = CryptoUtils.readCertificate(signingInfo.cert().getCertificateBytes());
         OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
 

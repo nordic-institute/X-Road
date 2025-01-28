@@ -30,7 +30,7 @@ import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
-import org.niis.xroad.signer.client.RpcSignerClient;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +44,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 public final class ConfProxyMain {
 
     private static final String APP_NAME = "xroad-confproxy";
+    private static SignerRpcClient signerRpcClient;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -85,7 +86,8 @@ public final class ConfProxyMain {
 
         Version.outputVersionInfo(APP_NAME);
 
-        RpcSignerClient.init();
+        signerRpcClient = new SignerRpcClient();
+        signerRpcClient.init();
     }
 
     /**
@@ -107,7 +109,7 @@ public final class ConfProxyMain {
 
         for (String instance : instances) {
             try {
-                ConfProxy proxy = new ConfProxy(instance);
+                ConfProxy proxy = new ConfProxy(signerRpcClient, instance);
                 log.info("ConfProxy executing for instance {}", instance);
                 proxy.execute();
             } catch (Exception ex) {
@@ -122,6 +124,6 @@ public final class ConfProxyMain {
      */
     private static void shutdown() {
         log.trace("shutdown()");
-        RpcSignerClient.shutdown();
+        signerRpcClient.destroy();
     }
 }
