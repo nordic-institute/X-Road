@@ -30,6 +30,7 @@ import ee.ria.xroad.common.TestPortUtils;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
+import io.grpc.InsecureServerCredentials;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,14 +87,16 @@ class SystemMetricsSensorTest {
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getGrpcInternalHost(), PORT, serverBuilder ->
-                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
-                    @Override
-                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
-                        responseObserver.onNext(response);
-                        responseObserver.onCompleted();
-                    }
-                }));
+        rpcServer = new RpcServer(SystemProperties.getGrpcInternalHost(), PORT,
+                InsecureServerCredentials.create(),
+                serverBuilder ->
+                        serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                            @Override
+                            public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                                responseObserver.onNext(response);
+                                responseObserver.onCompleted();
+                            }
+                        }));
         rpcServer.afterPropertiesSet();
     }
 

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,13 +41,17 @@ import java.util.List;
 public class SignerRpcConfig {
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
-        return RpcServer.newServer(
+    RpcServer rpcServer(final List<BindableService> bindableServices,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
+        RpcServer rpcServer = new RpcServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getGrpcSignerPort(),
+                rpcCredentialsConfigurer.createServerCredentials(),
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+        // rpcServer.afterPropertiesSet();
+        return rpcServer;
     }
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
+package org.niis.xroad.common.rpc.mapper;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.rpc.common.ClientIdProto;
+import org.niis.xroad.rpc.common.XRoadObjectType;
 
-@Slf4j
-@Configuration
-public class ProxyRpcConfig {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ClientIdMapper {
 
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        RpcServer rpcServer = new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-//        rpcServer.afterPropertiesSet();
-        return rpcServer;
+    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
+        if (clientIdProto.hasSubsystemCode()) {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode(),
+                    clientIdProto.getSubsystemCode());
+        } else {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode());
+        }
     }
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    public static ClientIdProto toDto(ClientId input) {
+        var builder = ClientIdProto.newBuilder()
+                .setMemberClass(input.getMemberClass())
+                .setMemberCode(input.getMemberCode())
+                .setXroadInstance(input.getXRoadInstance())
+                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
+
+        if (input.getSubsystemCode() != null) {
+            builder.setSubsystemCode(input.getSubsystemCode());
+        }
+        return builder.build();
     }
 }

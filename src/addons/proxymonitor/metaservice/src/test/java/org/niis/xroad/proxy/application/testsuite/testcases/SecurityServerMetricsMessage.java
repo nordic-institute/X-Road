@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import com.google.protobuf.util.Timestamps;
+import io.grpc.InsecureServerCredentials;
 import io.grpc.stub.StreamObserver;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
@@ -135,9 +136,10 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        monitorRpcServer = RpcServer.newServer(
+        monitorRpcServer = new RpcServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getEnvMonitorPort(),
+                InsecureServerCredentials.create(),
                 builder -> builder.addService(new MockMetricsProvider()));
         monitorRpcServer.afterPropertiesSet();
 

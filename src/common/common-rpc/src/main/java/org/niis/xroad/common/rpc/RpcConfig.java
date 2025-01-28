@@ -23,39 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
+package org.niis.xroad.common.rpc;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.properties.CommonRpcProperties;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Slf4j
-@Configuration
-public class ProxyRpcConfig {
+@Configuration(proxyBeanMethods = false)
+public class RpcConfig {
+    public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
+
+//    @Bean
+//    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate,
+//                                                        CommonRpcProperties.CertificateProvisionProperties provisionProperties)
+//            throws Exception {
+//        return new ReloadableVaultKeyManager(provisionProperties, vaultTemplate);
+//    }
 
     @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        RpcServer rpcServer = new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-//        rpcServer.afterPropertiesSet();
-        return rpcServer;
+    RpcChannelFactory rpcChannelFactory(RpcCredentialsConfigurer credentialsConfigurer) {
+        return new RpcChannelFactory(credentialsConfigurer);
     }
 
     @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(VaultKeyProvider vaultKeyProvider,
+                                                      CommonRpcProperties rpcCommonProperties) {
+        return new RpcCredentialsConfigurer(rpcCommonProperties, vaultKeyProvider);
     }
+
+//    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
+//    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
+//        var scheduled = new SimpleAsyncTaskScheduler();
+//        scheduled.setVirtualThreads(true);
+//        return scheduled;
+//    }
 }

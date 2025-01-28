@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
+package ee.ria.xroad.common;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 
-@Slf4j
-@Configuration
-public class ProxyRpcConfig {
-
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        RpcServer rpcServer = new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-//        rpcServer.afterPropertiesSet();
-        return rpcServer;
+/**
+ * TODO Workaround for spring boot classloader issue.
+ * Remove this when fixed in spring boot.
+ * https://github.com/spring-projects/spring-boot/issues/39843
+ */
+@Deprecated(forRemoval = true)
+public final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+    @Override
+    public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+        return new MyForkJoinWorkerThread(pool);
     }
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    private static final class MyForkJoinWorkerThread extends ForkJoinWorkerThread {
+        private MyForkJoinWorkerThread(final ForkJoinPool pool) {
+            super(pool);
+            setContextClassLoader(Thread.currentThread().getContextClassLoader());
+        }
     }
 }

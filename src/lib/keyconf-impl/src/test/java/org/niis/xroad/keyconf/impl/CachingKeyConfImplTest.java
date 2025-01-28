@@ -34,10 +34,14 @@ import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -63,20 +67,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.hamcrest.core.AllOf.allOf;
 import static org.junit.Assert.assertEquals;
 
 /**
  * Test to verify that CachingKeyConf works as expected when it comes to threading
  */
 @Slf4j
+@ExtendWith(MockitoExtension.class)
 public class CachingKeyConfImplTest {
 
     // booleanSuppliers for different uses
@@ -86,7 +88,6 @@ public class CachingKeyConfImplTest {
     private static final BooleanSupplier CHANGED_KEY_CONF = ALWAYS_TRUE;
     private static final BooleanSupplier UNCHANGED_KEY_CONF = ALWAYS_FALSE;
     private static final BooleanSupplier VALID_AUTH_KEY = ALWAYS_TRUE;
-    private static final BooleanSupplier INVALID_AUTH_KEY = ALWAYS_FALSE;
     private static final BooleanSupplier VALID_SIGNING_INFO = ALWAYS_TRUE;
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
@@ -98,7 +99,7 @@ public class CachingKeyConfImplTest {
     private GlobalConfProvider globalConfProvider;
     private ServerConfProvider serverConfProvider;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         System.setProperty(SystemProperties.CONF_PATH, "build/tmp/");
         globalConfProvider = new EmptyGlobalConf() {
@@ -117,12 +118,13 @@ public class CachingKeyConfImplTest {
         Files.createFile(KEY_CONF);
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         Files.deleteIfExists(KEY_CONF);
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
     public void testSigningInfoReads() throws Exception {
         AtomicInteger callsToGetInfo = new AtomicInteger(0);
         ClientId client1 = ClientId.Conf.create("FI", "GOV", "1");
@@ -162,13 +164,16 @@ public class CachingKeyConfImplTest {
                 CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 100);
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
-        assertThat(callsToGetInfo.get(), allOf(
-                greaterThanOrEqualTo(expectedMinimumCacheHits),
-                lessThanOrEqualTo(expectedMaximumCacheHits)));
+        Assertions.assertDoesNotThrow(() -> {
+            int actualValue = callsToGetInfo.get();
+            Assertions.assertTrue(actualValue >= expectedMinimumCacheHits);
+            Assertions.assertTrue(actualValue <= expectedMaximumCacheHits);
+        });
         log.debug("total cache hits: {}", callsToGetInfo.get());
     }
 
-    @Test(timeout = 15000)
+    @Test
+    @Timeout(value = 15000, unit = TimeUnit.MILLISECONDS)
     public void testAuthKeyReadsWithChangedKeyConf() throws Exception {
 
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
@@ -204,7 +209,8 @@ public class CachingKeyConfImplTest {
         }
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
     public void testCachedAuthKeyIsInvalid() throws Exception {
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         // read:
@@ -249,13 +255,16 @@ public class CachingKeyConfImplTest {
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
         log.debug("total cache hits: {}", callsToGetAuthKeyInfo.get());
-        assertThat(callsToGetAuthKeyInfo.get(), allOf(
-                greaterThanOrEqualTo(expectedMinimumCacheHits),
-                lessThanOrEqualTo(expectedMaximumCacheHits)));
+        Assertions.assertDoesNotThrow(() -> {
+            int actualValue = callsToGetAuthKeyInfo.get();
+            Assertions.assertTrue(actualValue >= expectedMinimumCacheHits);
+            Assertions.assertTrue(actualValue <= expectedMaximumCacheHits);
+        });
         testCachingKeyConf.destroy();
     }
 
-    @Test(timeout = 5000)
+    @Test
+    @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
     public void testAuthKeyReadsWithChangedServerId() throws Exception {
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         int expectedCacheHits = 0;

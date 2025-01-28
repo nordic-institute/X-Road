@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
@@ -59,14 +60,16 @@ public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
-        return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(),
+    RpcServer rpcServer(final List<BindableService> bindableServices,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
+        RpcServer rpcServer = new RpcServer(SystemProperties.getGrpcInternalHost(), SystemProperties.getEnvMonitorPort(),
+                rpcCredentialsConfigurer.createServerCredentials(),
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+//        rpcServer.afterPropertiesSet();
+        return rpcServer;
     }
 
     @Bean

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.TestPortUtils;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import io.grpc.Channel;
+import io.grpc.InsecureServerCredentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -79,7 +80,8 @@ class MetricsRpcServiceTest {
         System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         int port = TestPortUtils.findRandomPort();
-        rpcServer = RpcServer.newServer("localhost", port, serverBuilder -> serverBuilder.addService(new MetricsRpcService()));
+        rpcServer = new RpcServer("localhost", port, InsecureServerCredentials.create(),
+                serverBuilder -> serverBuilder.addService(new MetricsRpcService()));
         rpcServer.afterPropertiesSet();
         rpcClient = RpcClient.newClient("localhost", port, TestMetricsExecutionContext::new);
 

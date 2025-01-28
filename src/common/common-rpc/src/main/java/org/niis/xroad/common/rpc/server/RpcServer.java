@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.common.rpc.server;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.CustomForkJoinWorkerThreadFactory;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -38,14 +38,9 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -65,7 +60,8 @@ public class RpcServer {
                 .channelFactory(NioServerSocketChannel::new)
                 .bossEventLoopGroup(new NioEventLoopGroup(1, bossGroupThreadFactory))
                 .workerEventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
-                .executor(ForkJoinPool.commonPool());
+                .executor(new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+                        new CustomForkJoinWorkerThreadFactory(), null, true));
 
         configFunc.accept(builder);
         server = builder.build();
@@ -86,15 +82,5 @@ public class RpcServer {
             log.info("Shutting down RPC server.. Success!");
         }
     }
-
-    public static RpcServer newServer(String host, int port, Consumer<ServerBuilder<?>> configFunc)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        var serverCredentials = SystemProperties.isGrpcInternalTlsEnabled()
-                ? RpcCredentialsConfigurer.createServerCredentials() : InsecureRpcCredentialsConfigurer.createServerCredentials();
-        log.info("Initializing RPC server with {} credentials..", serverCredentials.getClass().getSimpleName());
-
-        return new RpcServer(host, port, serverCredentials, configFunc);
-    }
-
 
 }

@@ -23,39 +23,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
+syntax = "proto3";
 
-import ee.ria.xroad.common.SystemProperties;
+option java_multiple_files = true;
+option java_package = "org.niis.xroad.rpc.common";
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/* Generic empty request/response. */
+message Empty {
+}
 
-@Slf4j
-@Configuration
-public class ProxyRpcConfig {
+message ClientIdProto {
+  string member_class = 1;
+  string member_code = 2;
+  optional string subsystem_code = 3;
 
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        RpcServer rpcServer = new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-//        rpcServer.afterPropertiesSet();
-        return rpcServer;
-    }
+  string xroad_instance = 4;
+  XRoadObjectType object_type = 5;
+}
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
-    }
+message ServiceIdProto {
+  string xroad_instance = 1;
+  string service_code = 2;
+  string member_class = 3;
+  string member_code = 4;
+  string subsystem_code = 5;
+  optional string service_version = 6;
+}
+
+message SecurityServerIdProto {
+  string member_class = 1;
+  string member_code = 2;
+  string server_code = 3;
+
+  string xroad_instance = 4;
+  XRoadObjectType object_type = 5;
+}
+
+enum XRoadObjectType {
+  XROAD_OBJECT_TYPE_UNSPECIFIED = 0;
+  SERVER = 1;
+  SERVICE = 2;
+  MEMBER = 3;
+  SUBSYSTEM = 4;
+  GLOBALGROUP = 5;
+  LOCALGROUP = 6 [deprecated = true]; // Deprecated
 }
