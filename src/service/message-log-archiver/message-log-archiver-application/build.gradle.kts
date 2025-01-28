@@ -14,6 +14,7 @@ dependencies {
   implementation(project(":lib:asic-core"))
 
   implementation("org.springframework:spring-context-support")
+  implementation(libs.logback.classic)
 }
 
 tasks.jar {

@@ -7,10 +7,11 @@ plugins {
 dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":service:proxy:proxy-core"))
+  implementation(libs.logback.classic)
 
   testImplementation(libs.hsqldb)
   testImplementation(libs.restAssured)
-
+  testImplementation(libs.apache.httpasyncclient)
   testImplementation(project(":common:common-domain"))
   testImplementation(project(":common:common-jetty"))
   testImplementation(project(":common:common-message"))

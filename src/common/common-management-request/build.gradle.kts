@@ -1,6 +1,6 @@
 plugins {
   id("xroad.java-conventions")
-  id("java-test-fixtures")
+  id("xroad.test-fixtures-conventions")
 }
 
 dependencies {
@@ -17,7 +17,4 @@ dependencies {
   testFixturesApi(project(":common:common-test"))
   testFixturesApi(project(":service:signer:signer-client"))
   testFixturesApi(project(":lib:globalconf-core"))
-
-  testFixturesCompileOnly(libs.lombok)
-  testFixturesAnnotationProcessor(libs.lombok)
 }

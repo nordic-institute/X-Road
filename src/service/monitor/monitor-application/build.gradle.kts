@@ -11,6 +11,7 @@ dependencies {
   implementation(project(":service:signer:signer-client"))
 
   implementation(libs.bundles.metrics)
+  implementation(libs.logback.classic)
   implementation("org.springframework:spring-context")
 }
 
