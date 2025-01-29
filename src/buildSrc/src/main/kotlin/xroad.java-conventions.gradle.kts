@@ -80,6 +80,7 @@ checkstyle {
 tasks.named<Checkstyle>("checkstyleMain") {
   source = fileTree("src/main/java")
   configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+  classpath = files()
 }
 
 tasks.named<Checkstyle>("checkstyleTest") {
