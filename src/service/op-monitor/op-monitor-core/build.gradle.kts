@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  alias(libs.plugins.jandex)
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -14,7 +15,7 @@ sourceSets {
 }
 
 dependencies {
-  api(platform(libs.springBoot.bom))
+  api(platform(libs.quarkus.bom))
 
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
@@ -22,15 +23,13 @@ dependencies {
   implementation(libs.jakarta.validationApi)
   implementation(libs.bundles.metrics)
   implementation(libs.mapstruct)
+  implementation(libs.quarkus.scheduler)
 
   implementation(project(":common:common-domain"))
-  implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-db"))
   implementation(project(":lib:globalconf-spring"))
   implementation(project(":service:op-monitor:op-monitor-api"))
-
-  api("org.springframework:spring-context-support")
 
   testImplementation(libs.hsqldb)
   testImplementation(libs.mockito.core)
@@ -68,10 +67,6 @@ tasks.register("xjc") {
       )
     }
   }
-}
-
-tasks.jar {
-  archiveBaseName.set("op-monitor-daemon-core")
 }
 
 tasks.named("xjc") {

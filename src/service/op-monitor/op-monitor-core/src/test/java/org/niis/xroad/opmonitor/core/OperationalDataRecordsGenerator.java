@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
@@ -35,9 +37,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Generates operational data records into the database.
@@ -66,6 +73,7 @@ public final class OperationalDataRecordsGenerator {
 
     /**
      * Main function.
+     *
      * @param args args
      * @throws Exception if something goes wrong.
      */
@@ -100,18 +108,47 @@ public final class OperationalDataRecordsGenerator {
                 ? getDummyStr(Integer.parseInt(cmd.getOptionValue(
                 "short-string-length")))
                 : getDummyStr(DEFAULT_SHORT_LONG_STRING_LENGTH);
+        String dbPropertiesFile = cmd.getOptionValue("db-properties", "db.properties");
 
         log.info("first timestamp: {}, batch-size: {}, batch-count: {}",
                 startTimestamp, batchSize, batchCount);
 
+        OperationalDataRecordManager operationalDataRecordManager = getOperationalDataRecordManager(dbPropertiesFile);
         for (int i = 0; i < batchCount; ++i) {
-            storeRecords(batchSize, startTimestamp++, longString, shortString);
+            storeRecords(batchSize, startTimestamp++, longString, shortString, operationalDataRecordManager);
         }
 
         log.info("{} records generated", batchCount * batchSize);
     }
 
-    private static CommandLine parseCommandLine(String args[]) {
+    private static OperationalDataRecordManager getOperationalDataRecordManager(String dbPropertiesFilePath) throws Exception {
+        final Properties dbProperties = new Properties() {
+            @Override
+            public synchronized Object put(Object key, Object value) {
+                String keyString = key.toString();
+                if (keyString.startsWith("op-monitor.")) {
+                    keyString = keyString.substring("op-monitor.".length());
+                }
+                if (keyString.startsWith("hibernate.")) {
+                    keyString = keyString.substring("hibernate.".length());
+                }
+                return super.put(keyString, value);
+            }
+        };
+        try (InputStream in = new FileInputStream(dbPropertiesFilePath)) {
+            dbProperties.load(in);
+        } catch (Exception e) {
+            log.error("Failed to load database properties from file '{}': {}", dbPropertiesFilePath, e.getMessage());
+            System.exit(1);
+        }
+        Map<String, String> hibernateProperties = dbProperties.stringPropertyNames()
+                .stream()
+                .collect(Collectors.toMap(k -> k, dbProperties::getProperty));
+        DatabaseCtxV2 databaseCtx = OpMonitorDaemonDatabaseCtx.create(hibernateProperties);
+        return new OperationalDataRecordManager(databaseCtx);
+    }
+
+    private static CommandLine parseCommandLine(String[] args) {
         try {
             return new BasicParser().parse(OPTIONS, args);
         } catch (ParseException e) {
@@ -157,6 +194,11 @@ public final class OperationalDataRecordsGenerator {
         shortStringLength.setRequired(false);
         options.addOption(shortStringLength);
 
+        Option dbProperties = new Option("db", "db-properties", true,
+                "database properties file");
+        dbProperties.setRequired(false);
+        options.addOption(dbProperties);
+
         Option usage = new Option("h", "help", false, "help");
         usage.setRequired(false);
         options.addOption(usage);
@@ -170,11 +212,11 @@ public final class OperationalDataRecordsGenerator {
     }
 
     private static void storeRecords(int count, long timestamp,
-                                     String longString, String shortString) throws Exception {
+                                     String longString, String shortString,
+                                     OperationalDataRecordManager operationalDataRecordManager) throws Exception {
         List<OperationalDataRecord> records = generateRecords(count, timestamp,
                 longString, shortString);
-
-        OperationalDataRecordManager.storeRecords(records, timestamp);
+        operationalDataRecordManager.storeRecords(records, timestamp);
     }
 
     private static List<OperationalDataRecord> generateRecords(int count,

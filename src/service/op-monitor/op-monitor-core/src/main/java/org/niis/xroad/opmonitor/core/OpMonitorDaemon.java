@@ -30,6 +30,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -40,8 +44,6 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -57,7 +59,9 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
-public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
+@ApplicationScoped
+@Startup
+public final class OpMonitorDaemon {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
@@ -68,34 +72,36 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     @Getter(AccessLevel.PRIVATE)
     private long startTimestamp;
 
-    private Server server = new Server();
+    private final Server server = new Server();
 
     private final GlobalConfProvider globalConfProvider;
+    private final OperationalDataRecordManager operationalDataRecordManager;
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
     /**
      * Constructor. Creates the connector and request handlers.
-     *
-     * @throws Exception in case of any errors
      */
-    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    public OpMonitorDaemon(GlobalConfProvider globalConfProvider, OperationalDataRecordManager operationalDataRecordManager) {
+        log.info("Creating OpMonitorDaemon.");
         this.globalConfProvider = globalConfProvider;
+        this.operationalDataRecordManager = operationalDataRecordManager;
 
         createConnector();
         createHandler();
         registerHealthMetrics();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         startTimestamp = getEpochMillisecond();
 
         reporter.start();
         server.start();
+        log.info("OpMonitorDaemon started.");
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
         reporter.stop();
@@ -143,7 +149,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     private void createHandler() {
-        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry));
+        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry, operationalDataRecordManager));
     }
 
     private void registerHealthMetrics() {

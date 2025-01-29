@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,25 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
 
-import ee.ria.xroad.common.util.JobManager;
+package org.niis.xroad.opmonitor.core;
 
-import org.niis.xroad.opmonitor.core.OperationalDataRecordCleaner;
-import org.quartz.SchedulerException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
+import lombok.Data;
 
-@Configuration
-public class OpMonitorDaemonJobConfig {
+import java.util.Map;
 
-    @Bean
-    JobManager jobManager() throws SchedulerException {
-        final var jobManager = new JobManager();
+@ConfigMapping(prefix = "xroad.op-monitor")
+@Data
+public class OpMonitorProperties {
 
-        OperationalDataRecordCleaner.init(jobManager);
+    @WithName("clean-interval")
+    String cleanIntervalCron; // op-monitor.clean-interval
 
-        return jobManager;
-    }
-
+    @WithName("hibernate")
+    Map<String, String> hibernate; // op-monitor.hibernate.* properties from db-properties file
 }

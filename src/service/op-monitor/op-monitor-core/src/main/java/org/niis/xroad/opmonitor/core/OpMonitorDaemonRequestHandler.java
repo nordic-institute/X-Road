@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.HttpStatus;
@@ -63,6 +64,7 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints.STORE_DAT
  * Query handler for operational data and health data requests.
  */
 @Slf4j
+@RequiredArgsConstructor
 class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
@@ -71,11 +73,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     private final GlobalConfProvider globalConfProvider;
     private final MetricRegistry healthMetricRegistry;
-
-    OpMonitorDaemonRequestHandler(GlobalConfProvider globalConfProvider, MetricRegistry healthMetricRegistry) {
-        this.globalConfProvider = globalConfProvider;
-        this.healthMetricRegistry = healthMetricRegistry;
-    }
+    private final OperationalDataRecordManager operationalDataRecordManager;
 
     @Override
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
@@ -117,7 +115,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received query request from {}", getRemoteAddr(request));
 
             new QueryRequestProcessor(globalConfProvider, RequestWrapper.of(request), ResponseWrapper.of(response),
-                    healthMetricRegistry).process();
+                    healthMetricRegistry, operationalDataRecordManager).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
@@ -147,7 +145,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received store request from {}", getRemoteAddr(request));
 
             new StoreRequestProcessor(
-                    RequestWrapper.of(request), healthMetricRegistry).process();
+                    RequestWrapper.of(request), healthMetricRegistry, operationalDataRecordManager).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling data store request", t);
 

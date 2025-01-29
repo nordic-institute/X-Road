@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectReader;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
  * The processor class for store operational monitoring data (JSON) requests.
  */
 @Slf4j
+@RequiredArgsConstructor
 class StoreRequestProcessor {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
@@ -50,18 +52,13 @@ class StoreRequestProcessor {
     /**
      * The servlet request.
      */
-    private RequestWrapper request;
+    private final RequestWrapper request;
 
     /**
      * The registry of health data.
      */
-    private MetricRegistry healthMetricRegistry;
-
-    StoreRequestProcessor(RequestWrapper request,
-                          MetricRegistry healthMetricRegistry) {
-        this.request = request;
-        this.healthMetricRegistry = healthMetricRegistry;
-    }
+    private final MetricRegistry healthMetricRegistry;
+    private final OperationalDataRecordManager operationalDataRecordManager;
 
     /**
      * Processes the incoming message: stores the data and updates the related
@@ -80,7 +77,7 @@ class StoreRequestProcessor {
         log.debug("Process {} record{}", records.size(),
                 records.size() == 1 ? "" : "s");
 
-        OperationalDataRecordManager.storeRecords(records, getEpochSecond());
+        operationalDataRecordManager.storeRecords(records, getEpochSecond());
 
         HealthDataMetrics.processRecords(healthMetricRegistry, records);
     }

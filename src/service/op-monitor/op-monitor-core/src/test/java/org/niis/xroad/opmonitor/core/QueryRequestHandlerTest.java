@@ -98,7 +98,8 @@ public class QueryRequestHandlerTest {
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(
                 MimeTypes.TEXT_XML_UTF8, is);
 
-        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(GlobalConfProvider.class)) {
+        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(GlobalConfProvider.class),
+                mock(OperationalDataRecordManager.class)) {
             @Override
             protected OperationalDataRecords getOperationalDataRecords(
                     ClientId filterByClient, long recordsFrom, long recordsTo,

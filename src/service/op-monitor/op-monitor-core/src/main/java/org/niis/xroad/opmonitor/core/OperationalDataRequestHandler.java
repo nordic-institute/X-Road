@@ -63,6 +63,7 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTP
 @RequiredArgsConstructor
 class OperationalDataRequestHandler extends QueryRequestHandler {
     private final GlobalConfProvider globalConfProvider;
+    private final OperationalDataRecordManager operationalDataRecordManager;
 
     private static final int OFFSET_SECONDS =
             OpMonitoringSystemProperties.
@@ -212,7 +213,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
             ClientId filterByClient, long recordsFrom, long recordsTo,
             ClientId filterByServiceProvider, Set<String> outputFields) {
         try {
-            return OperationalDataRecordManager.queryRecords(recordsFrom,
+            return operationalDataRecordManager.queryRecords(recordsFrom,
                     recordsTo, filterByClient, filterByServiceProvider,
                     outputFields);
         } catch (Exception e) {
@@ -233,8 +234,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
         return clientId != null && clientId.equals(globalConfProvider.getGlobalConfExtensions().getMonitoringClient());
     }
 
-    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId)
-            throws Exception {
+    private boolean isServerOwner(ClientId clientId, SecurityServerId serverId) {
         return serverId != null
                 && clientId.equals(globalConfProvider.getServerOwner(serverId));
     }
