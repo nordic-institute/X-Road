@@ -28,7 +28,7 @@ archUnitPlugin = "4.0.0"
 checkstyle = "10.21.1"
 jacoco = "0.8.12"
 
-quarkus = "3.18.0"
+quarkus = "3.17.8"
 quarkus-vault = "4.1.0"
 
 [libraries]
