@@ -173,7 +173,7 @@
  */
 import { computed, defineComponent, ref } from 'vue';
 import { Permissions } from '@/global';
-import {KeyUsageType, PossibleAction, Token, TokenType} from '@/openapi-types';
+import { PossibleAction, Token, TokenType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';

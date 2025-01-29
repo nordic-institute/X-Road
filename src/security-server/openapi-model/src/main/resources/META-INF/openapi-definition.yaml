@@ -5050,7 +5050,7 @@ paths:
             type: string
             format: text
             minLength: 1
-            maxLength: 64
+            maxLength: 1023
       responses:
         '200':
           description: token object
@@ -5099,6 +5099,8 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '409':
+          description: request action not possible
         '500':
           description: internal server error
     patch:
