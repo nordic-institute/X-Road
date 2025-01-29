@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.common.rpc.quarkus;
 
-
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import io.grpc.util.CertificateUtils;

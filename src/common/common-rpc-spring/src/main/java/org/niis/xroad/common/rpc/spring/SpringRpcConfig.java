@@ -71,9 +71,7 @@ public class SpringRpcConfig {
 
     @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
     SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
-        var scheduled = new SimpleAsyncTaskScheduler();
-        scheduled.setVirtualThreads(true);
-        return scheduled;
+        return new SimpleAsyncTaskScheduler();
     }
 
     @Bean

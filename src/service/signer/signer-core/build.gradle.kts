@@ -24,7 +24,7 @@ dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":common:common-jetty"))
   implementation(project(":lib:globalconf-spring"))
-  implementation(project(":common:common-rpc"))
+  implementation(project(":common:common-rpc-spring"))
   implementation(project(":service:signer:signer-api"))
 
   api("org.springframework:spring-context-support")

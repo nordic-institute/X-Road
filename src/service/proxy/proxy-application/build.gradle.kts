@@ -37,6 +37,7 @@ tasks.shadowJar {
   exclude("**/module-info.class")
   from(rootProject.file("LICENSE.txt"))
   mergeServiceFiles()
+  setProperty("zip64", true)
 }
 
 val testJar by tasks.registering(Jar::class) {

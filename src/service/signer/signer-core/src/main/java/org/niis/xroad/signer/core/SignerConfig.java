@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
@@ -56,7 +57,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @EnableScheduling
 @Import({SignerAdminPortConfig.class,
         SignerRpcConfig.class,
-        GlobalConfBeanConfig.class
+        GlobalConfBeanConfig.class,
+        SpringRpcConfig.class
 })
 @ComponentScan({
         "org.niis.xroad.signer.core.protocol",
