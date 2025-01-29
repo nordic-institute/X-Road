@@ -1,4 +1,9 @@
 ---
+- name: Remove old repo config
+  file:
+    path: /etc/apt/sources.list.d/xroad.list
+    state: absent
+
 - name: Install required packages
   apt:
     name: "{{ items }}"
@@ -28,11 +33,6 @@
 - name: Add X-Road dependencies apt repo key
   shell: "curl -sL {{ ubuntu_deps_apt_key }} | sudo gpg --dearmor --batch --yes -o {{ ubuntu_deps_apt_key_file }}"
   when: ansible_distribution == "Ubuntu"
-
-- name: Remove old repo config
-  file:
-    path: /etc/apt/sources.list.d/xroad.list
-    state: absent
 
 - name: xroad apt repository
   apt_repository:
