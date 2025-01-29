@@ -27,12 +27,8 @@
 
 package org.niis.xroad.common.rpc;
 
-import io.smallrye.config.WithName;
-
 public interface RpcServerProperties {
-    @WithName("listen-address")
     String listenAddress();
 
-    @WithName("port")
     int port();
 }

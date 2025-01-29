@@ -25,19 +25,15 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.common.properties;
+package org.niis.xroad.common.properties;
 
 import io.smallrye.config.ConfigMapping;
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Data
 @ConfigMapping(prefix = "xroad.common.global-conf")
-@ConfigurationProperties(prefix = "xroad.common.global-conf")
-public class CommonGlobalConfProperties {
-    private GlobalConfSource source;
+public interface CommonGlobalConfProperties {
+    GlobalConfSource source();
 
-    public enum GlobalConfSource {
+    enum GlobalConfSource {
         FILESYSTEM,
         REMOTE
     }

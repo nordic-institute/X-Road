@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,40 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
+package org.niis.xroad.common.rpc.credentials;
 
-import ee.ria.xroad.common.SystemProperties;
+import io.grpc.ChannelCredentials;
+import io.grpc.ServerCredentials;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+public interface RpcCredentialsConfigurer {
 
-@Slf4j
-@Import(SpringRpcConfig.class)
-@Configuration
-public class ProxyRpcConfig {
 
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        return new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-    }
+    ServerCredentials createServerCredentials();
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
-    }
+    ChannelCredentials createClientCredentials();
 }

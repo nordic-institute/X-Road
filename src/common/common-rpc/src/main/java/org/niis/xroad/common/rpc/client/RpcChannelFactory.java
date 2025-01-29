@@ -37,7 +37,7 @@ import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 
 import java.util.concurrent.ForkJoinPool;
 

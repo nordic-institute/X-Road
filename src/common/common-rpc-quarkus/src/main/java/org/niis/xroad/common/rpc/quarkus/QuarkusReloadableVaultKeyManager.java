@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,9 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.quarkus;
+package org.niis.xroad.common.rpc.quarkus;
 
-import org.niis.xroad.common.properties.CommonRpcProperties;
 
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
@@ -41,6 +39,7 @@ import io.quarkus.vault.pki.PrivateKeyEncoding;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 
 import javax.net.ssl.KeyManager;
@@ -55,16 +54,16 @@ import java.security.cert.X509Certificate;
 @ApplicationScoped
 @UnlessBuildProfile("test")
 public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
-    private final CommonRpcProperties certificateProvisionProperties;
+    private final CommonRpcProperties rpcProperties;
     private final AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
+
     private final AdvancedTlsX509TrustManager trustManager;
+    private final VaultPKISecretEngine pkiSecretEngine;
 
-    VaultPKISecretEngine pkiSecretEngine;
-
-    public QuarkusReloadableVaultKeyManager(CommonRpcProperties certificateProvisionProperties,
+    public QuarkusReloadableVaultKeyManager(CommonRpcProperties rpcProperties,
                                             VaultPKISecretEngineFactory pkiSecretEngineFactory) throws CertificateException {
-        this.certificateProvisionProperties = certificateProvisionProperties;
-        this.pkiSecretEngine = pkiSecretEngineFactory.engine(certificateProvisionProperties.certificateProvisioning().secretStorePkiPath());
+        this.rpcProperties = rpcProperties;
+        this.pkiSecretEngine = pkiSecretEngineFactory.engine(rpcProperties.certificateProvisioning().secretStorePkiPath());
 
         this.trustManager = AdvancedTlsX509TrustManager.newBuilder()
                 .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
@@ -91,11 +90,10 @@ public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
         var request = buildVaultCertificateRequest();
         if (log.isDebugEnabled()) {
             log.debug("Requesting new certificate from Vault secret-store [{}] with request cn: {}, altNames: {}, ipSubjectAltNames: {}",
-                    certificateProvisionProperties.certificateProvisioning().secretStorePkiPath(), "CN", "altNames", "ipSubjectAltNames");
+                    rpcProperties.certificateProvisioning().secretStorePkiPath(), "CN", "altNames", "ipSubjectAltNames");
         }
 
-        var vaultResponse = pkiSecretEngine.generateCertificate(
-                certificateProvisionProperties.certificateProvisioning().issuanceRoleName(), request);
+        var vaultResponse = pkiSecretEngine.generateCertificate(rpcProperties.certificateProvisioning().issuanceRoleName(), request);
 
 
         if (vaultResponse != null) {
@@ -116,19 +114,19 @@ public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
 
     private GenerateCertificateOptions buildVaultCertificateRequest() {
         var request = new GenerateCertificateOptions();
-        request.setTimeToLive("%sm".formatted(certificateProvisionProperties.certificateProvisioning().ttlMinutes()));
+        request.setTimeToLive("%sm".formatted(rpcProperties.certificateProvisioning().ttlMinutes()));
         request.setFormat(DataFormat.PEM);
         request.setPrivateKeyEncoding(PrivateKeyEncoding.PKCS8);
 
-        if (certificateProvisionProperties.certificateProvisioning().commonName() != null) {
-            request.setSubjectCommonName(certificateProvisionProperties.certificateProvisioning().commonName());
+        if (rpcProperties.certificateProvisioning().commonName() != null) {
+            request.setSubjectCommonName(rpcProperties.certificateProvisioning().commonName());
         }
-        if (certificateProvisionProperties.certificateProvisioning().altNames() != null) {
-            request.setSubjectAlternativeNames(certificateProvisionProperties.certificateProvisioning().altNames());
+        if (rpcProperties.certificateProvisioning().altNames() != null) {
+            request.setSubjectAlternativeNames(rpcProperties.certificateProvisioning().altNames());
 
         }
-        if (certificateProvisionProperties.certificateProvisioning().ipSubjectAltNames() != null) {
-            request.setIpSubjectAlternativeNames(certificateProvisionProperties.certificateProvisioning().ipSubjectAltNames());
+        if (rpcProperties.certificateProvisioning().ipSubjectAltNames() != null) {
+            request.setIpSubjectAlternativeNames(rpcProperties.certificateProvisioning().ipSubjectAltNames());
         }
         return request;
     }

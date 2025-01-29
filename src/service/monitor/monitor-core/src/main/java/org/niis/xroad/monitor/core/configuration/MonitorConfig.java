@@ -29,7 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;

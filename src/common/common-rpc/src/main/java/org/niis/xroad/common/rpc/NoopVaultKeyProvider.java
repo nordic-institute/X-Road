@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,40 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.rpc;
 
-import ee.ria.xroad.common.properties.CommonRpcProperties;
+import lombok.extern.slf4j.Slf4j;
 
-import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 
-@Configuration(proxyBeanMethods = false)
-public class RpcConfig {
-    public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
 
-//    @Bean
-//    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate,
-//                                                        CommonRpcProperties.CertificateProvisionProperties provisionProperties)
-//            throws Exception {
-//        return new ReloadableVaultKeyManager(provisionProperties, vaultTemplate);
-//    }
+@Slf4j
+public class NoopVaultKeyProvider implements VaultKeyProvider {
 
-    @Bean
-    RpcChannelFactory rpcChannelFactory(RpcCredentialsConfigurer credentialsConfigurer) {
-        return new RpcChannelFactory(credentialsConfigurer);
+    @Override
+    public KeyManager getKeyManager() {
+        throw new UnsupportedOperationException("Not supported");
     }
 
-    @Bean
-    RpcCredentialsConfigurer rpcCredentialsConfigurer(VaultKeyProvider vaultKeyProvider,
-                                                      CommonRpcProperties rpcCommonProperties) {
-        return new RpcCredentialsConfigurer(rpcCommonProperties, vaultKeyProvider);
+    @Override
+    public TrustManager getTrustManager() {
+        throw new UnsupportedOperationException("Not supported");
     }
-
-//    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
-//    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
-//        var scheduled = new SimpleAsyncTaskScheduler();
-//        scheduled.setVirtualThreads(true);
-//        return scheduled;
-//    }
 }

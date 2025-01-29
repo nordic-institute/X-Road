@@ -1,16 +1,10 @@
 plugins {
   id("xroad.java-conventions")
+  alias(libs.plugins.jandex)
 }
 
 dependencies {
-  implementation(platform(libs.springBoot.bom))
-  implementation("org.springframework.boot:spring-boot-starter")
+  implementation(platform(libs.quarkus.bom)) //TODO consider dropping bom as it might impact other deps.
 
-  api(libs.quarkus.springBoot.di)
-  api("io.smallrye.config:smallrye-config-core:3.10.2") //TODO test
+  implementation("io.smallrye.config:smallrye-config-core")
 }
-
-////todo: enable
-//archUnit {
-//    skip = true
-//}

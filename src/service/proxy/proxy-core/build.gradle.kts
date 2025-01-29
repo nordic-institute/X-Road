@@ -25,6 +25,7 @@ dependencies {
   api(project(":lib:globalconf-spring"))
   api(project(":lib:serverconf-spring"))
   api(project(":lib:keyconf-impl"))
+  api(project(":common:common-rpc-spring"))
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   api("org.springframework:spring-context-support")

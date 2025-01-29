@@ -27,8 +27,6 @@
 
 package org.niis.xroad.common.rpc.client;
 
-import io.smallrye.config.WithName;
-
 public interface RpcChannelProperties {
     /**
      * Hostname or IP address of the server
@@ -43,6 +41,5 @@ public interface RpcChannelProperties {
     /**
      * Deadline in ms for the RPC call
      */
-    @WithName("deadline-after")
     int deadlineAfter();
 }

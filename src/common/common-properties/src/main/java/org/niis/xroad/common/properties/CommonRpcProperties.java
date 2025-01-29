@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.common.properties;
+package org.niis.xroad.common.properties;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;

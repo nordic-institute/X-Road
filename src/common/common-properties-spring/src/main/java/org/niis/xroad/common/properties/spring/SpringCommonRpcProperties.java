@@ -25,23 +25,23 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.common.properties;
+package org.niis.xroad.common.properties.spring;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
-@Data
+
 @NoArgsConstructor
 @AllArgsConstructor
 @ConfigurationProperties(prefix = "xroad.common.rpc")
 public class SpringCommonRpcProperties implements CommonRpcProperties {
 
     private boolean useTls;
-    private CertificateProvisionPropertiesImpl certificateProvisioning;
+    private SpringCertificateProvisionProperties certificateProvisioning;
 
     @Override
     public boolean useTls() {
@@ -53,11 +53,10 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
         return certificateProvisioning;
     }
 
-    @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @ConfigurationProperties(prefix = "xroad.common.rpc.certificate-provisioning")
-    public static class CertificateProvisionPropertiesImpl
+    public class SpringCertificateProvisionProperties
             implements CertificateProvisionProperties {
 
         private String issuanceRoleName;
