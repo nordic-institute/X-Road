@@ -97,6 +97,20 @@ public final class HibernateUtil {
         }
     }
 
+    static void closeSessionFactory(SessionFactory sessionFactory) {
+        try {
+            sessionFactory.getCurrentSession().close();
+        } catch (HibernateException e) {
+            log.error("Error closing session", e);
+        }
+
+        try {
+            sessionFactory.close();
+        } catch (HibernateException e) {
+            log.error("Error closing session factory", e);
+        }
+    }
+
     /**
      * Closes the session factory.
      *
@@ -158,6 +172,37 @@ public final class HibernateUtil {
         SessionFactory sessionFactory = configuration.buildSessionFactory();
 
         return new SessionFactoryCtx(sessionFactory);
+    }
+
+    static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties, Interceptor interceptor) {
+        log.trace("Creating session factory for '{}'...", name);
+        try {
+            Configuration configuration = createEmptyConfiguration();
+            if (interceptor != null) {
+                configuration.setInterceptor(interceptor);
+            }
+
+            configuration
+                    .configure()
+                    .configure(name + ".hibernate.cfg.xml");
+
+            if (hibernateProperties != null) {
+                hibernateProperties.forEach((key, value) -> configuration.setProperty("hibernate." + key, value));
+            } else {
+                throw new CodedException(X_DATABASE_ERROR, "Database (%s) properties not found.", name);
+            }
+            applySystemProperties(configuration, name);
+
+            return configuration.buildSessionFactory();
+        } catch (Exception e) {
+            log.error("Failed to create session factory", e);
+
+            throw new CodedException(X_DATABASE_ERROR, e, "Error accessing database (%s)", name);
+        }
+    }
+
+    static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties) {
+        return createSessionFactory(name, hibernateProperties, null);
     }
 
     static Configuration createEmptyConfiguration() {
