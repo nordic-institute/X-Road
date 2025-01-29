@@ -24,7 +24,6 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -32,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,41 +49,13 @@ public class IdentifierRepository {
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Executes a Hibernate saveOrUpdate(identifier)
-     * @param identifier
-     */
-    public void saveOrUpdate(XRoadId.Conf identifier) {
-        saveOrUpdate(identifier, false);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(identifier) and flushes whole entityManager
-     * @param identifier
-     */
-    public void saveOrUpdateAndFlush(XRoadId.Conf identifier) {
-        saveOrUpdate(identifier, true);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(identifier) and flushes whole entityManager
-     * @param identifier
-     * @param flush
-     */
-    public void saveOrUpdate(XRoadId.Conf identifier, boolean flush) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(identifier);
-        if (flush) {
-            persistenceUtils.flush();
-        }
-    }
-
-    /**
      * Executes a Hibernate persist(XRoadId) for multiple group members
      * @param identifiers
      */
-    public void saveOrUpdate(Collection<XRoadId.Conf> identifiers) {
+    public void persist(Collection<XRoadId.Conf> identifiers) {
         Session session = persistenceUtils.getCurrentSession();
         for (XRoadId.Conf identifier : identifiers) {
-            session.saveOrUpdate(identifier);
+            session.persist(identifier);
         }
     }
 

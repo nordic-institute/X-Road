@@ -50,6 +50,11 @@
             </th>
             <th>
               {{
+                $t('diagnostics.mailNotificationConfiguration.authCertRegisteredEnabled')
+              }}
+            </th>
+            <th>
+              {{
                 $t('diagnostics.mailNotificationConfiguration.configuration')
               }}
             </th>
@@ -65,16 +70,16 @@
             <td data-test="mail-success-notification-status">
               <div
                 class="status-wrapper"
-                v-if="mailNotificationStatus.success_status !== undefined"
+                v-if="mailNotificationStatus.acme_success_status !== undefined"
               >
                 <xrd-status-icon
-                  v-if="mailNotificationStatus.success_status"
+                  v-if="mailNotificationStatus.acme_success_status"
                   status="ok"
                 />
                 <xrd-status-icon v-else status="ok-disabled" />
                 {{
                   $t(
-                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.success_status}`,
+                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.acme_success_status}`,
                   )
                 }}
               </div>
@@ -82,16 +87,33 @@
             <td data-test="mail-failure-notification-status">
               <div
                 class="status-wrapper"
-                v-if="mailNotificationStatus.failure_status !== undefined"
+                v-if="mailNotificationStatus.acme_failure_status !== undefined"
               >
                 <xrd-status-icon
-                  v-if="mailNotificationStatus.failure_status"
+                  v-if="mailNotificationStatus.acme_failure_status"
                   status="ok"
                 />
                 <xrd-status-icon v-else status="ok-disabled" />
                 {{
                   $t(
-                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.failure_status}`,
+                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.acme_failure_status}`,
+                  )
+                }}
+              </div>
+            </td>
+            <td data-test="mail-failure-notification-status">
+              <div
+                class="status-wrapper"
+                v-if="mailNotificationStatus.auth_cert_registered_status !== undefined"
+              >
+                <xrd-status-icon
+                  v-if="mailNotificationStatus.auth_cert_registered_status"
+                  status="ok"
+                />
+                <xrd-status-icon v-else status="ok-disabled" />
+                {{
+                  $t(
+                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.auth_cert_registered_status}`,
                   )
                 }}
               </div>

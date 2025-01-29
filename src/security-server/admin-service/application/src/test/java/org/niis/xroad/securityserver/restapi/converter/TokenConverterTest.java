@@ -25,10 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.Key;
@@ -37,6 +33,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Token;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenType;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;

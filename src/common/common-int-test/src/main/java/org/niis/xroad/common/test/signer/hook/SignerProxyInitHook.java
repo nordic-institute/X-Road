@@ -28,7 +28,6 @@
 package org.niis.xroad.common.test.signer.hook;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
@@ -70,8 +69,6 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
 
         System.setProperty("xroad.internal.passwordstore-provider", "file");
         System.setProperty("xroad.internal.passwordstore-file-path", "build/container-passwordstore/");
-
-        RpcSignerClient.init();
     }
 
 }

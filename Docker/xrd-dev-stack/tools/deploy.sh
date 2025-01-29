@@ -12,7 +12,7 @@ deploy_module() {
 
   case $module_name in
   "proxy")
-    jar_path="$XROAD_HOME/src/proxy/application/build/libs/proxy-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/proxy/proxy-application/build/libs/proxy-1.0.jar"
     service_name="xroad-proxy"
     ;;
   "messagelog-addon")
@@ -34,15 +34,15 @@ deploy_module() {
     service_name="xroad-proxy-ui-api"
     ;;
   "signer")
-    jar_path="$XROAD_HOME/src/signer/application/build/libs/signer-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/signer/service-application/build/libs/signer-1.0.jar"
     service_name="xroad-signer"
     ;;
   "configuration-client")
-    jar_path="$XROAD_HOME/src/configuration-client/application/build/libs/configuration-client-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar"
     service_name="xroad-confclient"
     ;;
   "op-monitor-daemon")
-    jar_path="$XROAD_HOME/src/op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/op-monitor/op-monitor-application/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
     ;;
   "cs-admin-service")
@@ -75,7 +75,7 @@ case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
   hosts=("ss0" "ss1")
   if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
-  deploy_module "$1" "${hosts[@]}"
+    deploy_module "$1" "${hosts[@]}"
   ;;
 "signer" | "hwtoken-addon")
   hosts=("ss0" "ss1" "cs")

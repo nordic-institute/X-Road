@@ -34,14 +34,14 @@ import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.ObjectFactory;
-import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsType;
-import ee.ria.xroad.proxymonitor.message.OutputSpecType;
 
 import io.cucumber.java.en.Step;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
+import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsType;
+import org.niis.xroad.proxymonitor.message.OutputSpecType;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

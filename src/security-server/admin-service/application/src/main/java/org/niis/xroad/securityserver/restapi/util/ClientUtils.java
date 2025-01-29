@@ -26,9 +26,9 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.List;
 

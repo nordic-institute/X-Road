@@ -27,15 +27,15 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.SignerProxy.GeneratedCertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.config.KeyAlgorithmConfig;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.client.SignerRpcClient.GeneratedCertRequestInfo;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -102,10 +102,10 @@ public class KeyAndCertificateRequestService {
                                                       Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat,
                                                       Boolean isAcmeOrder)
             throws ActionNotPossibleException,
-                   ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
-                   DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
-                   CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
-                   TokenCertificateService.AuthCertificateNotSupportedException {
+            ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
+            DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
+            CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
+            TokenCertificateService.AuthCertificateNotSupportedException {
 
         KeyAlgorithm algorithm = switch (keyUsageInfo) {
             case KEY_USAGE_UNSPECIFIED, UNRECOGNIZED -> KeyAlgorithm.RSA;
@@ -159,8 +159,9 @@ public class KeyAndCertificateRequestService {
 
     /**
      * Rollback key creation by deleting that key
+     *
      * @param rootCause root cause why we rollback, to log in case new exceptions would mask it
-     * @param keyId key id
+     * @param keyId     key id
      */
     private void tryRollbackCreateKey(Exception rootCause, String keyId) {
         // log error in case deleteKey throws an error, to not mask the original exception

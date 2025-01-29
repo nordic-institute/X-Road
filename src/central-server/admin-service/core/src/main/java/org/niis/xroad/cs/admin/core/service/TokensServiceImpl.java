@@ -46,8 +46,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_FINAL_TRY;
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_LOCKED;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
@@ -61,6 +59,8 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_PIN_LOCKE
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_SERIAL_NUMBER;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_FINAL_TRY;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_LOCKED;
 
 @Service
 @Transactional
@@ -100,7 +100,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
 
     @Override
     public TokenInfo login(TokenLoginRequest tokenLoginRequest) {
-        final ee.ria.xroad.signer.protocol.dto.TokenInfo token = getToken(tokenLoginRequest.getTokenId());
+        final org.niis.xroad.signer.api.dto.TokenInfo token = getToken(tokenLoginRequest.getTokenId());
         addAuditData(token);
 
         if (USER_PIN_LOCKED == token.getStatus()) {
@@ -113,7 +113,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             signerProxyFacade.activateToken(tokenLoginRequest.getTokenId(), tokenLoginRequest.getPassword().toCharArray());
         } catch (CodedException codedException) {
-            final ee.ria.xroad.signer.protocol.dto.TokenInfo token1 = getToken(tokenLoginRequest.getTokenId());
+            final org.niis.xroad.signer.api.dto.TokenInfo token1 = getToken(tokenLoginRequest.getTokenId());
             if (USER_PIN_FINAL_TRY == token1.getStatus()) {
                 throw new ValidationFailureException(TOKEN_PIN_FINAL_TRY);
             } else if (USER_PIN_LOCKED == token1.getStatus()) {
@@ -129,7 +129,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
 
     @Override
     public TokenInfo logout(String tokenId) {
-        final ee.ria.xroad.signer.protocol.dto.TokenInfo token = getToken(tokenId);
+        final org.niis.xroad.signer.api.dto.TokenInfo token = getToken(tokenId);
         addAuditData(token);
         tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token));
         try {
@@ -143,13 +143,13 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         return tokenInfoMapper.toTarget(getToken(tokenId));
     }
 
-    private void addAuditData(ee.ria.xroad.signer.protocol.dto.TokenInfo token) {
+    private void addAuditData(org.niis.xroad.signer.api.dto.TokenInfo token) {
         auditDataHelper.put(TOKEN_ID, token.getId());
         auditDataHelper.put(TOKEN_SERIAL_NUMBER, token.getSerialNumber());
         auditDataHelper.put(TOKEN_FRIENDLY_NAME, token.getFriendlyName());
     }
 
-    private void validatePinMeetsTheTokenRequirements(ee.ria.xroad.signer.protocol.dto.TokenInfo token, String password) {
+    private void validatePinMeetsTheTokenRequirements(org.niis.xroad.signer.api.dto.TokenInfo token, String password) {
         for (final Map.Entry<String, String> entry : token.getTokenInfo().entrySet()) {
             if (KEY_MIN_PIN_LENGTH.equals(entry.getKey())
                     && isInt(entry.getValue()) && password.length() < parseInt(entry.getValue())) {

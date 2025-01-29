@@ -25,22 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
@@ -48,6 +40,14 @@ import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.signer.api.dto.AuthKeyInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -118,9 +118,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             Optional<MemberInfo> m = globalMemberInfos.stream()
-                    .filter(g -> g.getId().equals(clientId))
+                    .filter(g -> g.id().equals(clientId))
                     .findFirst();
-            return m.map(MemberInfo::getName).orElse(null);
+            return m.map(MemberInfo::name).orElse(null);
         });
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
@@ -161,8 +161,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         Map<String, TokenInfo> tokens = new HashMap<>();
         tokens.put(tokenInfo.getId(), tokenInfo);
 
-        when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
-        when(signerProxyFacade.getAuthKey(any())).thenReturn(new AuthKeyInfo(
+        when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
+        when(signerRpcClient.getAuthKey(any())).thenReturn(new AuthKeyInfo(
                 KEY_AUTH_ID, null, null, certificateInfo));
     }
 

@@ -6,13 +6,13 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.30"
-jetty = "12.0.14"
+jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.2.Final"
+hibernate = "6.6.4.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
 mockito = "5.15.2"
-springBoot = "3.3.6"
+springBoot = "3.3.7"
 junitJupiter = "5.11.4"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
@@ -21,10 +21,12 @@ testAutomationFramework = "0.2.19"
 protoc = "4.29.0"
 grpc = "1.68.2"
 swaggerParser = "2.1.25"
-logback = "1.5.12"
-logbackAccess = "2.0.3"
+logback = "1.5.16"
+logbackAccess = "2.0.6"
 apacheCxf = "4.1.0"
 archUnitPlugin = "4.0.0"
+checkstyle = "10.21.1"
+jacoco = "0.8.12"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -87,7 +89,6 @@ mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
 hibernate-hikaricp = { module = "org.hibernate:hibernate-hikaricp", version.ref = "hibernate" }
 hibernate-jpamodelgen = { module = "org.hibernate:hibernate-jpamodelgen", version.ref = "hibernate" }
 hibernate-core = { module = "org.hibernate.orm:hibernate-core", version.ref = "hibernate" }
-hibernate-toolsAnt = { module = "org.hibernate.tool:hibernate-tools-ant", version.ref = "hibernate" }
 
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
@@ -108,7 +109,6 @@ apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version =
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.1" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
-apache-ant = { module = "org.apache.ant:ant", version = "1.10.15" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.17.2" }
@@ -126,7 +126,7 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
+logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.10.0" }
@@ -141,7 +141,7 @@ awaitility = { module = "org.awaitility:awaitility", version = "4.2.2" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
-licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
+
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
 hikariCP = { module = "com.zaxxer:HikariCP", version = "6.2.1" }
@@ -155,7 +155,11 @@ cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
+
+#Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
+licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
+archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
@@ -167,6 +171,6 @@ springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
-frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "9.1.0" }
+frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

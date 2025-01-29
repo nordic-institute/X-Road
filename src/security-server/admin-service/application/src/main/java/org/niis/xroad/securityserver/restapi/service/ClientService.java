@@ -25,21 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -53,6 +46,13 @@ import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
+import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,14 +72,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_DELETE_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_MAKE_OWNER;
@@ -89,6 +81,14 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_ALRE
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_DELINPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLED;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGINPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGISTERED;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_SAVED;
 
 /**
  * client service
@@ -169,7 +169,7 @@ public class ClientService {
                 .stream()
                 .map(memberInfo -> {
                     ClientType clientType = new ClientType();
-                    clientType.setIdentifier(memberInfo.getId());
+                    clientType.setIdentifier(memberInfo.id());
                     return clientType;
                 })
                 .collect(Collectors.toList());
@@ -773,8 +773,7 @@ public class ClientService {
         client.setConf(serverConfType);
         serverConfType.getClient().add(client);
 
-        clientRepository.saveOrUpdate(client);
-        return client;
+        return clientRepository.persist(client);
     }
 
     /**

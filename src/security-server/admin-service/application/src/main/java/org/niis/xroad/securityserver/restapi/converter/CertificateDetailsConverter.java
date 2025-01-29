@@ -26,15 +26,15 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
+import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;

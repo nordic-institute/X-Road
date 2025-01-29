@@ -29,16 +29,16 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 
@@ -137,7 +137,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 })
                 .toList()
                 .toArray(new String[]{});
-        doReturn(ocspResponses).when(signerProxyFacade).getOcspResponses(any());
+        doReturn(ocspResponses).when(signerRpcClient).getOcspResponses(any());
         when(clientRepository.getClient(any())).thenReturn(new ClientType());
     }
 
@@ -282,7 +282,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         evictCache();
         when(globalConfProvider.getAllCaCerts(any())).thenReturn(new ArrayList<>());
-        when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
+        when(signerRpcClient.getOcspResponses(any())).thenReturn(new String[]{});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
     }

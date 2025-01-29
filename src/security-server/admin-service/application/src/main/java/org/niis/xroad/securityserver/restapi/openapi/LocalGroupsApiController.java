@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -43,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Members;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupService;
+import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

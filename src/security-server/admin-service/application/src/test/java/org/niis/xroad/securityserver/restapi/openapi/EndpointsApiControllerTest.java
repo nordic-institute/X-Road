@@ -25,15 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.validation.ConstraintViolationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
@@ -47,6 +45,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -95,9 +95,9 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             Optional<MemberInfo> m = globalMemberInfos.stream()
-                    .filter(g -> g.getId().equals(clientId))
+                    .filter(g -> g.id().equals(clientId))
                     .findFirst();
-            return m.map(MemberInfo::getName).orElse(null);
+            return m.map(MemberInfo::name).orElse(null);
         });
         when(globalConfProvider.getGlobalGroupDescription(any())).thenReturn("");
     }

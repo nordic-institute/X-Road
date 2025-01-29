@@ -27,19 +27,19 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.serverconf.model.TspType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -110,7 +110,7 @@ public class GlobalConfService {
      */
     public boolean globalGroupsExist(Collection<? extends XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
-                .map(GlobalGroupInfo::getId)
+                .map(GlobalGroupInfo::id)
                 .collect(Collectors.toList());
         return existingIdentifiers.containsAll(identifiers);
     }
@@ -122,7 +122,7 @@ public class GlobalConfService {
      */
     public boolean clientsExist(Collection<? extends XRoadId> identifiers) {
         List<XRoadId> existingIdentifiers = globalConfProvider.getMembers().stream()
-                .map(MemberInfo::getId)
+                .map(MemberInfo::id)
                 .collect(Collectors.toList());
         return existingIdentifiers.containsAll(identifiers);
     }

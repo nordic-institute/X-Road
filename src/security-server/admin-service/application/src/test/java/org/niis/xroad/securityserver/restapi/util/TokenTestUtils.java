@@ -26,16 +26,17 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
+import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
+import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;

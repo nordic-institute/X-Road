@@ -1,7 +1,0 @@
-tasks.withType(Jar).configureEach {
-    enabled = false
-}
-
-archUnit {
-    skip = true
-}

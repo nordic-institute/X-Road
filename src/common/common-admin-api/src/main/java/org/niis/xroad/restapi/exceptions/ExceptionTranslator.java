@@ -26,12 +26,12 @@
 package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.exception.SignerException;
 
 import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;

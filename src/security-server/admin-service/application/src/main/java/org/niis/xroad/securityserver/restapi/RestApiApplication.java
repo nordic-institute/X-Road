@@ -26,9 +26,9 @@
 package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 
+import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
+import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -38,7 +38,8 @@ import org.springframework.context.annotation.Import;
 /**
  * main spring boot application.
  */
-@Import({GlobalConfBeanConfig.class,
+@Import({
+        GlobalConfBeanConfig.class,
         ServerConfBeanConfig.class})
 @ServletComponentScan
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",
@@ -55,7 +56,6 @@ public class RestApiApplication {
     public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
-        SpringApplication.run(RestApiApplication.class, args
-        );
+        SpringApplication.run(RestApiApplication.class, args);
     }
 }

@@ -69,7 +69,7 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
     @Test
     @WithMockUser(authorities = {"ROLE_XROAD_SECURITY_OFFICER", "ROLE_XROAD_REGISTRATION_OFFICER"})
     void testDelete() throws Exception {
-        String plainKey = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
+        String plainKey = apiKeyService.create(List.of("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
                 .getPlaintextKey();
         assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyService.listAll().size());
         PersistentApiKeyType apiKey = apiKeyService.getForPlaintextKey(plainKey);

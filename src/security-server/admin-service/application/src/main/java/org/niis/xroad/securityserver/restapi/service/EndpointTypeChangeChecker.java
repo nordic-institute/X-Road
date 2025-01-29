@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-
 import lombok.Data;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 

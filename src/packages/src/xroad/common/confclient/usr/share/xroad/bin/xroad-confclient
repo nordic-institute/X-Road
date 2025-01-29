@@ -1,4 +1,4 @@
 #!/bin/bash
 . /etc/xroad/services/confclient.conf
-exec java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -cp "${CP}${ADDON_CP}" ${XROAD_ADDON_PARAMS} org.niis.xroad.confclient.ConfClientDaemonMain
+exec java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -cp "${CP}${ADDON_CP}" ${XROAD_ADDON_PARAMS} org.niis.xroad.confclient.application.ConfClientDaemonMain
 

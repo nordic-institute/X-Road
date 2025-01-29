@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyValuePair;
@@ -34,6 +32,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Token;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenType;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

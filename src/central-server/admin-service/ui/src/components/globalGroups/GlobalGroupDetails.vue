@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view :title="globalGroup.code" :loading="loading" :data="globalGroup">
+  <xrd-titled-view :title="globalGroup.code" :loading="loading" :data="globalGroup">
     <template #header-buttons>
       <xrd-button
         v-if="allowGroupDelete"
@@ -70,7 +70,7 @@
       :group-code="globalGroup.code"
       @cancel="showDeleteGroupDialog = false"
     />
-  </titled-view>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
@@ -85,14 +85,12 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import DeleteGlobalGroupDialog from './DeleteGlobalGroupDialog.vue';
 import EditGlobalGroupDescriptionDialog from './EditGlobalGroupDescriptionDialog.vue';
-import TitledView from '@/components/ui/TitledView.vue';
 
 /**
  * Global group view
  */
 export default defineComponent({
   components: {
-    TitledView,
     EditGlobalGroupDescriptionDialog,
     DeleteGlobalGroupDialog,
     InfoCard,

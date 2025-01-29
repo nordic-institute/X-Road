@@ -30,15 +30,15 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
-import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 
 import com.google.protobuf.ByteString;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.mapper.ClientIdMapper;
+import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
+import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 

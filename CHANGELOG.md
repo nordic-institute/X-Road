@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.7.0 - UNRELEASED
+
 ## 7.6.1 - 2025-01-27
 - XRDDEV-2813: The Central Server is not able to automatically reconnect to a remote database cluster after the cluster leader change when pgBouncer and HAProxy are used to connect the Central Server to the cluster.
 - XRDDEV-2814: The Central Server backup restore failing when using remote database cluster with customized PostgreSQL ports.
@@ -7,7 +9,6 @@
 - XRDDEV-2818: Memory leak in messagelog archiver
 - XRDDEV-2819: Backup does not work with niis/xroad-security-server-sidecar:7.6.0-primary-ee image in kubernetes
 - XRDDEV-2820: Metaspace requirements have increased between 7.5.1 and 7.6.0
-
 
 ## 7.6.0 - 2025-12-01
 - XRDDEV-2185: As a Security Server Administrator I want the information system TLS certificate table under the subsystem internal server tab to show more information regarding the certificate so that I can differentiate them better
@@ -1331,7 +1332,7 @@
     - xroad-securityserver-fi (meta-package for Finnish instances), xroad-securityserver, xroad-proxy, xroad-common, xroad-jetty9, xroad-addon-messagelog, xroad-addon-metaservices
     - Note. optional package xroad-addon-hwtokens is not included in this release
 - Member Code/Identifier Extractor for Finnish instance (PVAYLADEV-94)
-  - Member Code/Identifier Extractor Method: ee.ria.xroad.common.util.FISubjectClientIdDecoder.getSubjectClientId
+  - Member Code/Identifier Extractor Method: org.niis.xroad.globalconf.util.FISubjectClientIdDecoder.getSubjectClientId
   - Signing certificate subject DN format supported by the decoder: C=FI,O=<instanceIdentifier>, OU=<memberClass>, CN=<memberCode> (e.g. C=FI, O=FI-DEV, OU=PUB, CN=1234567-8)
 - Configurable key size for signing and authentication RSA keys (PVAYLADEV-28)
   - New configuration parameter signer.key-length (default 2048)

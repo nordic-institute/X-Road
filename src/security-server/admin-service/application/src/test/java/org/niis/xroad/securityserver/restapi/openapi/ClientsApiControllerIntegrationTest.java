@@ -25,20 +25,16 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ConflictException;
@@ -68,6 +64,10 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.CertReque
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidatorTest;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -1113,9 +1113,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 .deleteOrphans("FI:GOV:ORPHAN:SS1");
         assertEquals(HttpStatus.NO_CONTENT, orphanResponse.getStatusCode());
 
-        verify(signerProxyFacade).deleteKey(orphanKeyId, true);
-        verify(signerProxyFacade).deleteKey(orphanKeyId, false);
-        verifyNoMoreInteractions(signerProxyFacade);
+        verify(signerRpcClient).deleteKey(orphanKeyId, true);
+        verify(signerRpcClient).deleteKey(orphanKeyId, false);
+        verifyNoMoreInteractions(signerRpcClient);
 
         try {
             clientsApiController.deleteOrphans("FI:GOV:M1:SS777");

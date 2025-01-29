@@ -26,13 +26,13 @@
 
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
+import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +71,7 @@ public class IdentifierService {
         Set<XRoadId.Conf> idsToPersist = new HashSet<>(xRoadIds);
         Set<XRoadId.Conf> managedEntities = getXroadIds(idsToPersist);
         idsToPersist.removeAll(managedEntities); // remove the persistent ones
-        identifierRepository.saveOrUpdate(idsToPersist); // persist the non-persisted
+        identifierRepository.persist(idsToPersist); // persist the non-persisted
         managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
         return managedEntities;
     }

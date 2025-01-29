@@ -27,21 +27,18 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -51,9 +48,12 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +107,6 @@ public class AccessRightService {
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException,
                    ServiceNotFoundException {
-
 
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 
@@ -511,11 +510,10 @@ public class AccessRightService {
         for (EndpointType endpoint : endpoints) {
             for (XRoadId.Conf subjectId : subjectIds) {
                 ServiceClientAccessRightDto dto = addAccessRightInternal(clientType, now, endpoint, subjectId);
-                List<ServiceClientAccessRightDto> addedAccessRightsForSubject = addedAccessRights
-                        .computeIfAbsent(subjectId, k -> new ArrayList<>());
-                addedAccessRightsForSubject.add(dto);
+                addedAccessRights.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(dto);
             }
         }
+        clientRepository.merge(clientType);
 
         return addedAccessRights;
     }
@@ -671,8 +669,8 @@ public class AccessRightService {
         return globalConfProvider.getMembers().stream()
                 .map(memberInfo -> {
                     ServiceClientDto serviceClientDto = new ServiceClientDto();
-                    serviceClientDto.setSubjectId(memberInfo.getId());
-                    serviceClientDto.setMemberName(memberInfo.getName());
+                    serviceClientDto.setSubjectId(memberInfo.id());
+                    serviceClientDto.setMemberName(memberInfo.name());
                     return serviceClientDto;
                 })
                 .collect(Collectors.toList());
@@ -701,8 +699,8 @@ public class AccessRightService {
         if (globalGroupInfos != null && !globalGroupInfos.isEmpty()) {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 ServiceClientDto serviceClientDto = new ServiceClientDto();
-                serviceClientDto.setSubjectId(globalGroupInfo.getId());
-                serviceClientDto.setGlobalGroupDescription(globalGroupInfo.getDescription());
+                serviceClientDto.setSubjectId(globalGroupInfo.id());
+                serviceClientDto.setGlobalGroupDescription(globalGroupInfo.description());
                 globalGroups.add(serviceClientDto);
             });
         }

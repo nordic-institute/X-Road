@@ -27,11 +27,11 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.util.HashCalculator;
 
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.Value;
+import org.niis.xroad.globalconf.util.HashCalculator;
 
 import java.time.Instant;
 import java.time.ZoneOffset;

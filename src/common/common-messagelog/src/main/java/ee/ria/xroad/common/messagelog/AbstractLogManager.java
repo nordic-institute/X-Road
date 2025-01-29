@@ -25,13 +25,12 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Base class for log manager actors.
  */
 @Slf4j
-public abstract class AbstractLogManager implements DisposableBean {
+public abstract class AbstractLogManager {
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
     protected AbstractLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
@@ -60,10 +59,5 @@ public abstract class AbstractLogManager implements DisposableBean {
     public abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 
     public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
-
-    @Override
-    public void destroy() {
-        // NO-OP
-    }
 
 }

@@ -24,6 +24,11 @@ Feature: 0900 - SS:Diagnostics
     And Message log database encryption is enabled
     And Message log grouping is set to NONE
 
+  Scenario: Administrator can download diagnostics report
+    Given Diagnostics tab is selected
+    When download diagnostic report button is clicked
+    Then downloaded diagnostic report contains required data
+
   @Skip
   Scenario: Message log archive encryption should have per member configuration
     When Diagnostics tab is selected

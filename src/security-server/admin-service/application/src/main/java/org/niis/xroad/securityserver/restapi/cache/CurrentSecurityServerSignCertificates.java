@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.cache;
 
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.List;
 

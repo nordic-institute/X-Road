@@ -26,7 +26,7 @@
  -->
 <template>
   <div data-test="timestamping-services">
-    <titled-view title-key="trustServices.timestampingServices">
+    <xrd-titled-view title-key="trustServices.timestampingServices">
       <template #header-buttons>
         <xrd-button
           v-if="showAddTsaButton"
@@ -102,7 +102,7 @@
           <custom-data-table-footer />
         </template>
       </v-data-table>
-    </titled-view>
+    </xrd-titled-view>
 
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
@@ -141,14 +141,14 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
+    XrdTitledView,
     CustomDataTableFooter,
-    TitledView,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
   },

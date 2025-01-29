@@ -25,18 +25,18 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.Members;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -197,6 +197,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
         doAnswer((Answer<String>) invocation -> {
             ClientType clientType = (ClientType) invocation.getArguments()[0];
             // cause a lazy loading exception
+            clientType.getServiceDescription().size();
             log.info("lazy loaded server code=" + clientType.getConf().getServerCode());
             return null;
         }).when(clientConverter).convert(any(ClientType.class));

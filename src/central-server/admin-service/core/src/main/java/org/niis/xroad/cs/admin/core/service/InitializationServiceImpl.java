@@ -31,10 +31,6 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +52,10 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -217,7 +217,7 @@ public class InitializationServiceImpl implements InitializationService {
         var status = NOT_INITIALIZED;
         TokenInfo tokenInfo;
         try {
-            tokenInfo = signerProxyFacade.getToken(SignerProxy.SSL_TOKEN_ID);
+            tokenInfo = signerProxyFacade.getToken(SignerRpcClient.SSL_TOKEN_ID);
             if (null != tokenInfo) {
                 status = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED ? INITIALIZED : NOT_INITIALIZED;
             }

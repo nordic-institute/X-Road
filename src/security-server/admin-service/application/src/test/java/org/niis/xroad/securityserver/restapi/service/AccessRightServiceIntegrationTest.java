@@ -25,11 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -37,11 +32,16 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -106,7 +106,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
                     Arrays.copyOf(args, args.length, String[].class)));
             return globalGroupInfos.stream()
                     .filter(globalGroupInfo -> foundInstanceIdentifiers
-                            .contains(globalGroupInfo.getId().getXRoadInstance()))
+                            .contains(globalGroupInfo.id().getXRoadInstance()))
                     .collect(Collectors.toList());
         });
 
@@ -315,7 +315,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         int initialServiceClients = countServiceClients(serviceOwner);
 
         // add access to test-globalgroup
-        Set<XRoadId.Conf> globalGroupSubject = new HashSet<>(Arrays.asList(
+        Set<XRoadId.Conf> globalGroupSubject = new HashSet<>(List.of(
                 GlobalGroupId.Conf.create("FI", "test-globalgroup")));
         accessRightService.addEndpointAccessRights(11L, globalGroupSubject);
         accessRightService.addEndpointAccessRights(12L, globalGroupSubject);

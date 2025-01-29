@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.serverconf.IsAuthentication;
 
 import java.util.Arrays;
 import java.util.Optional;

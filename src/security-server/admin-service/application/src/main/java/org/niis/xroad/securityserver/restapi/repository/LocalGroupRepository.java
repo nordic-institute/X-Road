@@ -25,15 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.GroupMemberDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.GroupMemberDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.LocalGroupDAOImpl;
+import org.niis.xroad.serverconf.model.GroupMemberType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,24 +74,8 @@ public class LocalGroupRepository {
     public void saveOrUpdateAll(List<GroupMemberType> groupMemberTypes) {
         Session session = persistenceUtils.getCurrentSession();
         for (GroupMemberType groupMemberType : groupMemberTypes) {
-            session.saveOrUpdate(groupMemberType);
+            session.persist(groupMemberType);
         }
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(localGroupType)
-     * @param localGroupType
-     */
-    public void saveOrUpdate(LocalGroupType localGroupType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(localGroupType);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(groupMemberType)
-     * @param groupMemberType
-     */
-    public void saveOrUpdate(GroupMemberType groupMemberType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(groupMemberType);
     }
 
     /**
@@ -100,6 +84,6 @@ public class LocalGroupRepository {
      * @return
      */
     public void delete(LocalGroupType localGroupType) {
-        persistenceUtils.getCurrentSession().delete(localGroupType);
+        persistenceUtils.getCurrentSession().remove(localGroupType);
     }
 }

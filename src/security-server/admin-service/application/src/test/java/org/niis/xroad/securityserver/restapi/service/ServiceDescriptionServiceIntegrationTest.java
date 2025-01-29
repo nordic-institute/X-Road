@@ -25,11 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.apache.commons.io.FileUtils;
@@ -44,6 +39,11 @@ import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionReposi
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -58,9 +58,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.conf.serverconf.model.DescriptionType.WSDL;
-import static ee.ria.xroad.common.conf.serverconf.model.EndpointType.ANY_METHOD;
-import static ee.ria.xroad.common.conf.serverconf.model.EndpointType.ANY_PATH;
 import static java.util.Collections.singleton;
 import static java.util.function.Predicate.isEqual;
 import static org.junit.Assert.assertEquals;
@@ -73,6 +70,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.serverconf.model.DescriptionType.WSDL;
+import static org.niis.xroad.serverconf.model.EndpointType.ANY_METHOD;
+import static org.niis.xroad.serverconf.model.EndpointType.ANY_PATH;
 
 /**
  * test ServiceDescription service.
@@ -496,13 +496,15 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         ServiceDescriptionType serviceDescription1 = createServiceDescription(clientType, "wsdl1");
         ServiceType serviceV1 = createServiceType("foo-service", "foo", "v1");
+        serviceV1.setServiceDescription(serviceDescription1);
         serviceDescription1.getService().add(serviceV1);
-        serviceDescriptionRepository.saveOrUpdate(serviceDescription1);
+        serviceDescriptionRepository.persist(serviceDescription1);
 
         ServiceDescriptionType serviceDescription2 = createServiceDescription(clientType, "wsdl2");
         ServiceType serviceV2 = createServiceType("foo-service", "foo", "v2");
+        serviceV2.setServiceDescription(serviceDescription2);
         serviceDescription2.getService().add(serviceV2);
-        serviceDescriptionRepository.saveOrUpdate(serviceDescription2);
+        serviceDescriptionRepository.persist(serviceDescription2);
 
         EndpointType endpointType = new EndpointType("foo", ANY_METHOD, ANY_PATH, true);
         clientType.getEndpoint().add(endpointType);

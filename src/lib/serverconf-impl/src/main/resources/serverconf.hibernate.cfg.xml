@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hikari.maximumPoolSize">20</property>
+        <property name="hibernate.id.db_structure_naming_strategy">single</property>
+        <mapping resource="serverconf.orm.xml"/>
+        <mapping resource="identifiers.orm.xml"/>
+    </session-factory>
+</hibernate-configuration>

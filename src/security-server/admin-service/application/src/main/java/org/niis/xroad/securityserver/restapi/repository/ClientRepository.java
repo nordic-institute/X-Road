@@ -25,14 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -41,6 +37,12 @@ import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.ServerConfType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,36 +55,10 @@ import java.util.List;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ClientRepository {
+public class ClientRepository extends AbstractRepository<ClientType> {
 
+    @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
-
-    /**
-     * Executes a Hibernate saveOrUpdate(client)
-     * @param clientType
-     */
-    public void saveOrUpdate(ClientType clientType) {
-        saveOrUpdate(clientType, false);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
-     * @param clientType
-     */
-    public void saveOrUpdateAndFlush(ClientType clientType) {
-        saveOrUpdate(clientType, true);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
-     * @param clientType
-     */
-    public void saveOrUpdate(ClientType clientType, boolean flush) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
-        if (flush) {
-            persistenceUtils.flush();
-        }
-    }
 
     /**
      * return one local client

@@ -8,6 +8,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="WARN"/>
+    <logger name="org.niis.xroad" level="WARN"/>
 
     <root level="ERROR">
         <appender-ref ref="STDOUT" />
