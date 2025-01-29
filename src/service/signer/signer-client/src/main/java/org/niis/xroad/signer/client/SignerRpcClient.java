@@ -284,17 +284,15 @@ public final class SignerRpcClient {
      * @param tokenId ID of the token
      * @throws SignerException if any errors occur
      */
-    public static void deleteToken(String tokenId) throws SignerException {
-        tryToRun(() -> internalDeleteToken(tokenId));
-    }
-
-    private static void internalDeleteToken(String tokenId) throws Exception {
+    public void deleteToken(String tokenId) throws SignerException {
         log.trace("Delete token '{}'", tokenId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .deleteToken(DeleteTokenReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .build()));
+        tryToRun(
+                () -> client.execute(ctx -> ctx.getBlockingTokenService()
+                        .deleteToken(DeleteTokenReq.newBuilder()
+                                .setTokenId(tokenId)
+                                .build()))
+        );
     }
 
     /**

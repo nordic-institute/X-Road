@@ -414,7 +414,7 @@ public class TokenService {
             auditDataHelper.put(tokenInfo);
 
             possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.DELETE_TOKEN, tokenInfo);
-            signerProxyFacade.deleteToken(id);
+            signerRpcClient.deleteToken(id);
         } catch (TokenNotFoundException e) {
             throw new NotFoundException(TOKEN_NOT_FOUND, e);
         } catch (ActionNotPossibleException e) {
