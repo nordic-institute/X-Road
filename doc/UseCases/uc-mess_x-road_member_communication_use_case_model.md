@@ -2,8 +2,8 @@
 
 **Analysis**
 
-Version: 1.10  
-17.04.2023
+Version: 1.11  
+07.01.2025
 <!-- 38 pages -->
 Doc. ID: UC-MESS
 
@@ -12,23 +12,24 @@ Doc. ID: UC-MESS
 
 ## Version history
 
-| Date         | Version | Description                                                                                                                                                                                                                                                              | Author             |
-|--------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
-| 02.06.2015   | 0.1     | Initial                                                                                                                                                                                                                                                                  | Riin Saarmäe       |
-| 17.08.2015   | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated.                                                                                                              | Riin Saarmäe       |
-| 31.08.2015   | 0.3     | Added comments and editorial changes                                                                                                                                                                                                                                     | Margus Freudenthal |
-| 14.09.2015   | 0.4     | Minor corrections                                                                                                                                                                                                                                                        | Riin Saarmäe       |
-| 20.09.2015   | 1.0     | Editorial changes made                                                                                                                                                                                                                                                   | Imbi Nõgisto       |
-| 23.09.2015   | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated                                                                                                   | Riin Saarmäe       |
-| 08.11.2015   | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done.                                                                                                                                                              | Riin Saarmäe       |
-| 26.11.2015   | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.                        | Riin Saarmäe       |
-| 05.02.2016   | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                                                                                                                                                                                               | Meril Vaht         |
-| 14.12.2016   | 1.5     | Operational monitoring functionality added                                                                                                                                                                                                                               | Meril Vaht         |
-| 22.02.2017   | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon) | Toomas Mölder      |
-| 06.03.2018   | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links                                                                                                                                                                                  | Tatu Repo          |
-| 19.01.2023   | 1.8     | Updates regarding the *ocspFreshnessSeconds* parameter                                                                                                                                                                                                                   | Justas Samuolis    |
-| 17.04.2023   | 1.9     | Remove central services support                                                                                                                                                                                                                                          | Justas Samuolis    |
-| 01.06.2023   | 1.10    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
+| Date       | Version | Description                                                                                                                                                                                                                                                              | Author             |
+|------------|---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| 02.06.2015 | 0.1     | Initial                                                                                                                                                                                                                                                                  | Riin Saarmäe       |
+| 17.08.2015 | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated.                                                                                                              | Riin Saarmäe       |
+| 31.08.2015 | 0.3     | Added comments and editorial changes                                                                                                                                                                                                                                     | Margus Freudenthal |
+| 14.09.2015 | 0.4     | Minor corrections                                                                                                                                                                                                                                                        | Riin Saarmäe       |
+| 20.09.2015 | 1.0     | Editorial changes made                                                                                                                                                                                                                                                   | Imbi Nõgisto       |
+| 23.09.2015 | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated                                                                                                   | Riin Saarmäe       |
+| 08.11.2015 | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done.                                                                                                                                                              | Riin Saarmäe       |
+| 26.11.2015 | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.                        | Riin Saarmäe       |
+| 05.02.2016 | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                                                                                                                                                                                               | Meril Vaht         |
+| 14.12.2016 | 1.5     | Operational monitoring functionality added                                                                                                                                                                                                                               | Meril Vaht         |
+| 22.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon) | Toomas Mölder      |
+| 06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links                                                                                                                                                                                  | Tatu Repo          |
+| 19.01.2023 | 1.8     | Updates regarding the *ocspFreshnessSeconds* parameter                                                                                                                                                                                                                   | Justas Samuolis    |
+| 17.04.2023 | 1.9     | Remove central services support                                                                                                                                                                                                                                          | Justas Samuolis    |
+| 01.06.2023 | 1.10    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
+| 07.01.2025 | 1.11    | Update references                                                                                                                                                                                                                                                        | Petteri Kivimäki   |
 
 ## Table of Contents
 
@@ -86,7 +87,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx).
+4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol.md).
 
 5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
 

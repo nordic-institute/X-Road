@@ -31,7 +31,7 @@
 
             <property name="timestampHashChain" access="field" type="text"/>
             <property name="response" access="field" type="boolean" update="false"/>
-            <bag name="attachments" access="field" cascade="persist">
+            <bag name="attachments" access="field" cascade="all">
                 <key column="logrecord_id" update="false"/>
                 <one-to-many class="ee.ria.xroad.common.messagelog.MessageAttachment"/>
             </bag>
