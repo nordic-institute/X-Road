@@ -71,6 +71,7 @@ include("service:message-log-archiver:message-log-archiver-application")
 // Tool projects
 include("tool")
 include("tool:asic-verifier-cli")
+include("tool:migration-cli")
 
 // Main projects
 include("shared-ui")
