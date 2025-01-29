@@ -23,7 +23,7 @@ Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
+Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road central server
  X-Road central server programs and utilities
 
@@ -72,7 +72,7 @@ Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
-Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-base (=${binary:Version})
+Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -208,3 +208,17 @@ Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
 Pre-depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Management Service
  X-Road Central Server management service component
+
+Package: xroad-secret-store-local
+Architecture: amd64 arm64
+Conflicts: xroad-secret-store-remote
+Pre-Depends: jq, wget, gpg, bao (>= 2.0.0)
+Depends: xroad-base (=${binary:Version})
+Replaces: bao
+Description: Meta-package for X-Road local secret store dependencies
+
+Package: xroad-secret-store-remote
+Architecture: all
+Conflicts: xroad-secret-store-local
+Depends: xroad-base (=${binary:Version})
+Description: Meta-package for X-Road remote secret store dependencies
