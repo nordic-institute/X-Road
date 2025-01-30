@@ -59,6 +59,7 @@ class RpcClientsConfig {
 
     @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
     @RequiredArgsConstructor
+    @SuppressWarnings("checkstyle:magicnumber")
     static class SpringEnvMonitorRpcChannelProperties implements EnvMonitorRpcChannelProperties {
         private String host = "127.0.0.1";
         private int port = 2552;
