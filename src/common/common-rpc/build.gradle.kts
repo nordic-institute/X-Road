@@ -1,17 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.test-fixtures-conventions")
-  alias(libs.plugins.protobuf)
-}
-
-sourceSets {
-  main {
-    java.srcDirs(
-      "build/generated-sources",
-      "build/generated/source/proto/main/grpc",
-      "build/generated/source/proto/main/java"
-    )
-  }
+  id("xroad.rpc-schema-generator-conventions")
 }
 
 dependencies {
@@ -28,28 +18,4 @@ dependencies {
   api(libs.quarkus.arc)
 
   testFixturesImplementation(libs.quarkus.junit5)
-}
-
-protobuf {
-  protoc {
-    artifact = libs.protobuf.protoc.get().toString()
-  }
-  plugins {
-    create("grpc") {
-      artifact = libs.grpc.protocGenGrpcJava.get().toString()
-    }
-  }
-  generateProtoTasks {
-    all().forEach {
-      it.plugins {
-        create("grpc") {
-          option("@generated=omit")
-        }
-      }
-    }
-  }
-}
-
-tasks.compileJava {
-  dependsOn(tasks.named("generateProto"))
 }

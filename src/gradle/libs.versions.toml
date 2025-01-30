@@ -25,6 +25,7 @@ logback = "1.5.16"
 logbackAccess = "2.0.6"
 apacheCxf = "4.1.0"
 archUnitPlugin = "4.0.0"
+protobufPlugin = "0.9.4"
 checkstyle = "10.21.1"
 jacoco = "0.8.12"
 
@@ -182,6 +183,7 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
+protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref= "protobufPlugin"}
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
@@ -204,7 +206,7 @@ quarkus = { id = "io.quarkus", version.ref = "quarkus" }
 jandex = { id = "org.kordamp.gradle.jandex", version = "2.1.0" }
 openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
-protobuf = { id = "com.google.protobuf", version = "0.9.4" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

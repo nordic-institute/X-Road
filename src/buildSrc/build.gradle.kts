@@ -15,6 +15,7 @@ dependencies {
 
   implementation(libs.licenseGradlePlugin)
   implementation(libs.archUnitGradlePlugin)
+  implementation(libs.protobufGradlePlugin)
 
   testImplementation(libs.junit.jupiterEngine)
 }
