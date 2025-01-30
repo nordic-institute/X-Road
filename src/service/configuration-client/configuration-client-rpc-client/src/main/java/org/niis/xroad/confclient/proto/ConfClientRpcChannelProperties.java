@@ -24,14 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.credentials;
+package org.niis.xroad.confclient.proto;
 
-import io.grpc.ChannelCredentials;
-import io.grpc.ServerCredentials;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-public interface RpcCredentialsConfigurer {
+public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
 
-    ServerCredentials createServerCredentials();
-
-    ChannelCredentials createClientCredentials();
 }

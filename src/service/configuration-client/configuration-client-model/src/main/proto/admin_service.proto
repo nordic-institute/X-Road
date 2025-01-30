@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,14 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.credentials;
+syntax = "proto3";
 
-import io.grpc.ChannelCredentials;
-import io.grpc.ServerCredentials;
+import "common_messages.proto";
 
-public interface RpcCredentialsConfigurer {
+package org.niis.xroad.confclient.proto;
 
-    ServerCredentials createServerCredentials();
+option java_multiple_files = true;
 
-    ChannelCredentials createClientCredentials();
+service AdminService {
+  rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
+}
+
+message DiagnosticsStatus {
+  int32 return_code = 1;
+  optional int64 prev_update = 2;
+  optional int64 next_update = 3;
+  optional string description = 4;
 }

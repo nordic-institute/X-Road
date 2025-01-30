@@ -24,14 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.credentials;
+package org.niis.xroad.confclient.proto;
 
-import io.grpc.ChannelCredentials;
-import io.grpc.ServerCredentials;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-public interface RpcCredentialsConfigurer {
+@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
+public interface QuarkusConfClientRpcChannelProperties extends ConfClientRpcChannelProperties {
 
-    ServerCredentials createServerCredentials();
+    @Override
+    @WithDefault("127.0.0.1")
+    String host();
 
-    ChannelCredentials createClientCredentials();
+    @Override
+    @WithDefault("5665")
+    int port();
+
+    @Override
+    @WithName("deadline-after")
+    @WithDefault("60000")
+    int deadlineAfter();
 }

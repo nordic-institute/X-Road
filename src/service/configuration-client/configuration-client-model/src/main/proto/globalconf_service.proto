@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,14 +23,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.credentials;
+syntax = "proto3";
 
-import io.grpc.ChannelCredentials;
-import io.grpc.ServerCredentials;
+import "common_messages.proto";
 
-public interface RpcCredentialsConfigurer {
+package org.niis.xroad.confclient.proto;
 
-    ServerCredentials createServerCredentials();
+option java_multiple_files = true;
 
-    ChannelCredentials createClientCredentials();
+service GlobalConfService {
+  rpc GetGlobalConf(GetGlobalConfReq) returns (GetGlobalConfRespWrapped) {}
+}
+
+message GetGlobalConfReq {
+}
+
+message GetGlobalConfRespWrapped {
+  GetGlobalConfRespStatus status = 1;
+  GetGlobalConfResp data = 2;
+}
+
+enum GetGlobalConfRespStatus {
+  GLOBAL_CONF_STATUS_UNSPECIFIED = 0;
+  GLOBAL_CONF_STATUS_UNINITIALIZED = 1;
+  GLOBAL_CONF_STATUS_OK = 2;
+  GLOBAL_CONF_STATUS_ERROR = 3;
+}
+
+message GetGlobalConfResp {
+  int64 date_refreshed = 1;
+  string instanceIdentifier = 2;
+  repeated GlobalConfInstance instances = 3;
+}
+
+message GlobalConfInstance {
+  int32 version = 1;
+  string instanceIdentifier = 2;
+  repeated GlobalConfFile files = 3;
+}
+
+message GlobalConfFile {
+  string name = 1;
+  string content = 2;
+  string checksum = 3;
 }

@@ -49,6 +49,8 @@ include("service")
 
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
+include("service:configuration-client:configuration-client-model")
+include("service:configuration-client:configuration-client-rpc-client")
 
 include("service:configuration-proxy:configuration-proxy-application")
 

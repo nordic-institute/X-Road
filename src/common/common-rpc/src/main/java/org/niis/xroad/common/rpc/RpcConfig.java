@@ -24,14 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc.credentials;
 
-import io.grpc.ChannelCredentials;
-import io.grpc.ServerCredentials;
+package org.niis.xroad.common.rpc;
 
-public interface RpcCredentialsConfigurer {
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
+import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 
-    ServerCredentials createServerCredentials();
+public class RpcConfig {
 
-    ChannelCredentials createClientCredentials();
+    @ApplicationScoped
+    public RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
+                                                             CommonRpcProperties rpcCommonProperties) {
+        if (rpcCommonProperties.useTls()) {
+            return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
+        } else {
+            return new InsecureRpcCredentialsConfigurer();
+        }
+    }
+
 }
