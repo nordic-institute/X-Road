@@ -57,6 +57,7 @@ include("service:configuration-proxy:configuration-proxy-application")
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
+include("service:monitor:monitor-rpc-client")
 
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
