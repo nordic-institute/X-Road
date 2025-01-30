@@ -64,6 +64,7 @@ include("service:op-monitor:op-monitor-core")
 
 include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
+include("service:proxy:proxy-rpc-client")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
