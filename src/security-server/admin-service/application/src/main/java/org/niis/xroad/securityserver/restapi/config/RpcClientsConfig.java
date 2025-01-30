@@ -52,7 +52,6 @@ class RpcClientsConfig {
     }
 
     @Bean
-    @Profile("nontest")
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
                                    SpringEnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
         return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
