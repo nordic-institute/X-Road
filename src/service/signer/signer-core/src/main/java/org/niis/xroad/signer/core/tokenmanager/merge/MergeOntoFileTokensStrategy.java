@@ -33,6 +33,7 @@ import org.niis.xroad.signer.core.model.Token;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.partitioningBy;
@@ -63,13 +64,17 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
 
 
         memoryTokens.stream()
-                .filter(Token::isActive)
+                .filter(token -> token.isActive() || isTokenExistsInFile(token, fileTokens))
                 .forEach(
                 // add any missing tokens from memory to file, match tokens based on token id
                 memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
                         this::mergeToken));
 
         return new MergeResult(new ArrayList<>(fileTokensMap.values()), this.newCertsFromFile);
+    }
+
+    private static boolean isTokenExistsInFile(Token token, List<Token> fileTokens) {
+        return fileTokens.stream().anyMatch(fileToken -> Objects.equals(fileToken.getId(), token.getId()));
     }
 
     Token mergeToken(Token fileToken, Token memoryToken) {
