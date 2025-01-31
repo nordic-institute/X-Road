@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.niis.xroad.signer.client.SignerRpcClient.SSL_TOKEN_ID;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
@@ -327,6 +328,13 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(false)
+                                .build())
+                .contains(PossibleActionEnum.TOKEN_DELETE));
+
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
+                        new TokenTestUtils.TokenInfoBuilder()
+                                .active(false)
+                                .id(SSL_TOKEN_ID)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
 
