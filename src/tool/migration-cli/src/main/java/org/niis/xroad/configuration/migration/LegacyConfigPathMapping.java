@@ -38,8 +38,10 @@ public class LegacyConfigPathMapping {
     private static final Map<String, String> MAPPING = new HashMap<>();
 
     static {
+        // configuration-client
         MAPPING.put("proxy.configuration-anchor-file", "configuration-client.configuration-anchor-file");
 
+        // proxy
         MAPPING.put("proxy.ocsp-responder-port", "proxy.ocsp-responder.port");
         MAPPING.put("proxy.ocsp-responder-listen-address", "proxy.ocsp-responder.listen-address");
         MAPPING.put("proxy.ocsp-responder-client-connect-timeout", "proxy.ocsp-responder.client-connect-timeout");

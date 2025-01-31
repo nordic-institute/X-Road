@@ -25,25 +25,18 @@
  */
 package org.niis.xroad.confclient.application;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.AssertionsForClassTypes.fail;
+import static com.ginsberg.junit.exit.assertions.SystemExitAssertion.assertThatCallsSystemExit;
+import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 
-
-class ConfClientDaemonMainTest {
+class ConfClientMainCLITVerifyTest {
 
     @Test
-    void shouldStart() {
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, "build/resources/test/configuration-anchor1.xml");
-
-
-        try {
-            ConfClientDaemonMain.main(new String[]{});
-        } catch (Exception e) {
-            fail("Should not throw exception");
-        }
+    void cliExecutesAndsExitsWithError122() {
+        assertThatCallsSystemExit(() -> ConfClientMain.main(new String[]{
+                "--" + OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE,
+                "build/resources/test/configuration-anchor1.xml"})
+        ).withExitCodeInRange(100, 150);
     }
 }

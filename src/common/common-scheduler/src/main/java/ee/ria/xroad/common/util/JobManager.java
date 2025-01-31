@@ -84,6 +84,11 @@ public class JobManager {
         jobScheduler.setJobFactory(jobFactory);
     }
 
+    public JobManager(Scheduler jobScheduler) throws SchedulerException {
+        this.jobScheduler = jobScheduler;
+        log.info("Created JobManager(Scheduler jobScheduler)");
+    }
+
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         jobScheduler.start();

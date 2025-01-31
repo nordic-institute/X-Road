@@ -106,7 +106,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/proxy*.jar
 /usr/share/xroad/scripts/backup_db.sh
 /usr/share/xroad/scripts/restore_db.sh
-/usr/share/xroad/scripts/verify_internal_configuration.sh
 /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh

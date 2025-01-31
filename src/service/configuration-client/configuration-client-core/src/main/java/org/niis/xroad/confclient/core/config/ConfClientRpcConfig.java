@@ -25,16 +25,32 @@
  */
 package org.niis.xroad.confclient.core.config;
 
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.confclient.core.ConfigurationClient;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.RpcServer;
 
-public class ConfClientRootConfig {
+import java.util.List;
+
+@Slf4j
+public class ConfClientRpcConfig {
 
     @ApplicationScoped
-    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClient(
-                configurationClientProperties.configurationAnchorFile(),
-                configurationClientProperties.globalConfDir());
+    @Startup
+    RpcServer rpcServer(@All List<BindableService> services,
+                        RpcServerProperties rpcServerProperties,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
+        var server = new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
+                }));
+        server.afterPropertiesSet();
+        return server;
     }
-
 }

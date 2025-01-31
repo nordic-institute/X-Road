@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core.config;
+package org.niis.xroad.confclient.application;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.confclient.core.ConfigurationClient;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-public class ConfClientRootConfig {
+import java.util.Map;
 
-    @ApplicationScoped
-    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClient(
-                configurationClientProperties.configurationAnchorFile(),
-                configurationClientProperties.globalConfDir());
+public class ConfClientTestProfile implements QuarkusTestProfile {
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+//                "xroad.common.rpc.use-tls", "false",
+                "xroad.common.global-conf.source", "FILESYSTEM"
+        );
     }
 
 }

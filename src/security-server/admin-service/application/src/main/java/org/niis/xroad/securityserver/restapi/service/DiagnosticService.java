@@ -33,6 +33,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
 import org.niis.xroad.globalconf.status.CertificationServiceStatus;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
@@ -63,7 +64,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.time.Instant.ofEpochMilli;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 /**
  * diagnostic service
@@ -75,8 +78,9 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_
 public class DiagnosticService {
     private static final int HTTP_CONNECT_TIMEOUT_MS = 1000;
     private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
+    private final ConfClientRpcClient confClientRpcClient;
+
     private final RestTemplate restTemplate;
-    private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
     private final String diagnosticsAddOnStatusUrl;
@@ -85,16 +89,15 @@ public class DiagnosticService {
 
     @Autowired
     public DiagnosticService(
-            @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
+            ConfClientRpcClient confClientRpcClient,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
             @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
+        this.confClientRpcClient = confClientRpcClient;
 
-        this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
-                SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
@@ -124,12 +127,14 @@ public class DiagnosticService {
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
-            ResponseEntity<DiagnosticsStatus> response = sendGetRequest(diagnosticsGlobalconfUrl,
-                    DiagnosticsStatus.class);
+            var status = confClientRpcClient.getStatus();
+            return new DiagnosticsStatus(status.getReturnCode(),
+                    status.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getPrevUpdate())) : null,
+                    status.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getNextUpdate())) : null,
+                    status.getDescription());
 
-            return response.getBody();
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 

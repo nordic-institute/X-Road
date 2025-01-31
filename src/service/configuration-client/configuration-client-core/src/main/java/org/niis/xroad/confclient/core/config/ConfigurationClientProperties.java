@@ -24,25 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.proto;
+package org.niis.xroad.confclient.core.config;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
-@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
-public interface QuarkusConfClientRpcChannelProperties extends ConfClientRpcChannelProperties {
+@ConfigMapping(prefix = "xroad.configuration-client")
+public interface ConfigurationClientProperties {
 
-    @Override
-    @WithDefault("127.0.0.1")
-    String host();
+    @WithName("update-interval")
+    @WithDefault("60")
+    int updateInterval();
 
-    @Override
-    @WithDefault("5665")
-    int port();
+    @WithName("proxy-configuration-backup-cron")
+    @WithDefault("0 15 3 * * ?")
+    String proxyConfigurationBackupCron();
 
-    @Override
-    @WithName("deadline-after")
-    @WithDefault("60000")
-    int deadlineAfter();
+    @WithName("configuration-anchor-file")
+    @WithDefault("/etc/xroad/configuration-anchor.xml")
+    String configurationAnchorFile();
+
+    @WithName("global-conf-dir")
+    @WithDefault("/etc/xroad/globalconf")
+    String globalConfDir();
 }

@@ -25,34 +25,24 @@
  */
 package org.niis.xroad.confclient;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.Version;
-
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.niis.xroad.confclient.core.ConfigurationClientCLI;
+import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static org.niis.xroad.confclient.core.ConfigurationClientCLI.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
-import static org.niis.xroad.confclient.core.ConfigurationClientCLI.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
+import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
 
 @Slf4j
-@UtilityClass
-public class ConfClientCLIMain {
-    private static final String APP_NAME = "xroad-confclient";
+@RequiredArgsConstructor
+public class ConfClientCLIRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_PROXY, "configuration-client")
-                .load();
-    }
+    private final ConfigurationClientActionExecutor executor;
 
     /**
      * Main entry point of configuration client. Based on the arguments, the configuration client run:
@@ -63,24 +53,30 @@ public class ConfClientCLIMain {
      * @param args the arguments
      * @throws Exception if an error occurs
      */
-    public static void main(String[] args) throws Exception {
-        Version.outputVersionInfo(APP_NAME);
-        CommandLine cmd = getCommandLine(args);
-        String[] actualArgs = cmd.getArgs();
+    public int run(String... args) throws Exception {
+        if (args.length > 0) {
+            CommandLine cmd = getCommandLine(args);
+            String[] actualArgs = cmd.getArgs();
 
-        int result = 1;
-        if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
-            // Run configuration client in one-shot mode downloading the specified global configuration version.
-            result = ConfigurationClientCLI.download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2]));
-        } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
-            // Run configuration client in one-shot mode downloading the current global configuration version.
-            result = ConfigurationClientCLI.download(actualArgs[0], actualArgs[1]);
-        } else if (actualArgs.length == 1) {
-            // Run configuration client in validate mode.
-            result = ConfigurationClientCLI.validate(actualArgs[0], cmd);
+            int result;
+            if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
+                // Run configuration client in one-shot mode downloading the specified global configuration version.
+                result = executor.download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2]));
+            } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
+                // Run configuration client in one-shot mode downloading the current global configuration version.
+                result = executor.download(actualArgs[0], actualArgs[1]);
+            } else if (actualArgs.length == 1) {
+                // Run configuration client in validate mode.
+                result = executor.validate(actualArgs[0], cmd);
+            } else {
+                result = 1;
+            }
+
+            return result;
+        } else {
+            log.debug("No arguments given.");
         }
-
-        System.exit(result);
+        return 0;
     }
 
     private static CommandLine getCommandLine(String[] args) throws Exception {

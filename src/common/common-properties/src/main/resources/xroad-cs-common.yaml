@@ -1,7 +1,0 @@
-# Common properties that are injected to all  Central Server deployed services
-
-xroad:
-  common:
-    global-conf:
-      source: FILESYSTEM
-

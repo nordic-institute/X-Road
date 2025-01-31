@@ -23,18 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core.config;
+package org.niis.xroad.confclient.application;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.confclient.core.ConfigurationClient;
+import ee.ria.xroad.common.util.JobManager;
 
-public class ConfClientRootConfig {
+import io.quarkus.arc.Arc;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.confclient.ConfClientCLIRunner;
 
-    @ApplicationScoped
-    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClient(
-                configurationClientProperties.configurationAnchorFile(),
-                configurationClientProperties.globalConfDir());
+@QuarkusTest
+@TestProfile(ConfClientTestProfile.class)
+class ConfClientMainTest {
+
+    @Test
+    void contextLoads() {
+
+        Assertions.assertFalse(Arc.container().select(JobManager.class).stream().toList().isEmpty());
+        Assertions.assertTrue(Arc.container().select(ConfClientCLIRunner.class).stream().toList().isEmpty());
     }
-
 }

@@ -50,8 +50,6 @@ ln -s /usr/share/xroad/jlib/configuration-client-1.0.jar %{buildroot}/usr/share/
 
 cp -p %{_sourcedir}/confclient/xroad-confclient.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../service/configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/default-configuration/confclient-logback.xml %{buildroot}/etc/xroad/conf.d
-cp -p %{srcdir}/default-configuration/confclient-logback-service.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/common/confclient/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/
 
 %clean
@@ -66,8 +64,6 @@ rm -rf %{buildroot}
 %dir /var/lib/xroad
 %dir /var/lib/xroad/backup
 %config /etc/xroad/services/confclient.conf
-%config /etc/xroad/conf.d/confclient-logback.xml
-%config /etc/xroad/conf.d/confclient-logback-service.xml
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-confclient
 
 %defattr(-,root,root,-)

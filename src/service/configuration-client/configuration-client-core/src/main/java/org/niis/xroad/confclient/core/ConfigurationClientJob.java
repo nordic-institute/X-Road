@@ -26,11 +26,12 @@
 package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.schedule.RetryingQuartzJob;
 import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
@@ -48,10 +49,13 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     private static final int RETRY_DELAY_SEC = 3;
 
     private final ConfigurationClient configClient;
+    private final ConfigurationClientProperties configurationClientProperties;
 
-    public ConfigurationClientJob(ConfigurationClient configClient) {
+    @Inject
+    public ConfigurationClientJob(ConfigurationClient configClient, ConfigurationClientProperties configurationClientProperties) {
         super(RETRY_DELAY_SEC);
         this.configClient = configClient;
+        this.configurationClientProperties = configurationClientProperties;
     }
 
     @Override
@@ -62,14 +66,14 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
             DiagnosticsStatus status =
                     new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
                             TimeUtils.offsetDateTimeNow()
-                                    .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                                    .plusSeconds(configurationClientProperties.updateInterval()));
 
             context.setResult(status);
         } catch (Exception e) {
             DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
                     TimeUtils.offsetDateTimeNow(),
                     TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                            .plusSeconds(configurationClientProperties.updateInterval()));
             context.setResult(status);
 
             throw new JobExecutionException(e);

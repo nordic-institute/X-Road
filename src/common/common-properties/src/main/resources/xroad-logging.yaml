@@ -1,6 +1,9 @@
 quarkus:
   log:
     level: INFO
+    category:
+      "ee.ria.xroad.common.SystemPropertiesLoader":
+        level: "OFF" #TODO remove this one SystemPropertiesLoader is removed
     file:
       format: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5p [%t] %c{1.} - %s%e%n"
       encoding: UTF-8

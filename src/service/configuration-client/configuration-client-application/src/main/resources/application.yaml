@@ -1,0 +1,22 @@
+quarkus:
+  application:
+    name: configuration-client
+  scheduler:
+    start-mode: forced
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+
+"%containerized":
+   xroad:
+     configuration-client:
+       rpc:
+         listen-address: 0.0.0.0
+
+"%native":
+  quarkus:
+    log:
+      file:
+        enable: true
+        path: /var/log/xroad/configuration_client.log

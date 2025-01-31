@@ -25,16 +25,20 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.confclient.core.ConfigurationClient;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 
-public class ConfClientRootConfig {
+@ConfigMapping(prefix = "xroad.configuration-client.rpc")
+public interface ConfigurationClientRpcServerProperties extends RpcServerProperties {
+    @WithName("listen-address")
+    @WithDefault("127.0.0.1")
+    @Override
+    String listenAddress();
 
-    @ApplicationScoped
-    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClient(
-                configurationClientProperties.configurationAnchorFile(),
-                configurationClientProperties.globalConfDir());
-    }
-
+    @WithName("port")
+    @WithDefault("5665")
+    @Override
+    int port();
 }

@@ -27,10 +27,12 @@ package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.SystemProperties;
 
-import lombok.NoArgsConstructor;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
@@ -46,21 +48,25 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
+/**
+ * Configuration client action executor for customized operations.
+ */
 @Slf4j
-@NoArgsConstructor(access = lombok.AccessLevel.NONE)
-public final class ConfigurationClientCLI {
+@RequiredArgsConstructor
+@ApplicationScoped
+public class ConfigurationClientActionExecutor {
     public static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
     public static final String OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE = "verifyAnchorForExternalSource";
 
-    public static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
+    private final ConfigurationClientProperties confClientProperties;
+
+    public int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
         log.debug("Downloading configuration using anchor {} path = {} version {}",
                 configurationAnchorFile,
                 configurationPath,
                 configurationVersion);
 
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-
-        var client = new ConfigurationClient(configurationPath, configurationVersion) {
+        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, configurationVersion) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -72,13 +78,12 @@ public final class ConfigurationClientCLI {
         return execute(client);
     }
 
-    public static int download(String configurationAnchorFile, String configurationPath) {
+    public int download(String configurationAnchorFile, String configurationPath) {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
 
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
-        var client = new ConfigurationClient(configurationPath) {
+        var client = new ConfigurationClient(configurationAnchorFile, configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -90,9 +95,15 @@ public final class ConfigurationClientCLI {
         return execute(client);
     }
 
-    public static int validate(String configurationAnchorFile, final CommandLine cmd) {
+    public int validate(String configurationAnchorFile, final CommandLine cmd) {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
         var paramsValidator = getParamsValidator(cmd);
+        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
+
+        return validate(configurationAnchor, paramsValidator);
+    }
+
+    public int validate(ConfigurationAnchor configurationAnchor, ParamsValidator paramsValidator) {
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
@@ -117,8 +128,8 @@ public final class ConfigurationClientCLI {
 
         };
 
-        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
-        var client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
+        var client = new ConfigurationClient(confClientProperties.configurationAnchorFile(),
+                configurationPath, configurationDownloader, configurationAnchor) {
             @Override
             protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
@@ -162,13 +173,13 @@ public final class ConfigurationClientCLI {
         }
     }
 
-    private static class ParamsValidator {
+    public static class ParamsValidator {
         protected final AtomicBoolean valid = new AtomicBoolean();
 
         private final String expectedContentId;
         private final int exitCodeWhenInvalid;
 
-        ParamsValidator(String expectedContentId, int exitCodeWhenInvalid) {
+        public ParamsValidator(String expectedContentId, int exitCodeWhenInvalid) {
             this.expectedContentId = expectedContentId;
             this.exitCodeWhenInvalid = exitCodeWhenInvalid;
         }
