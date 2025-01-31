@@ -47,7 +47,8 @@ public class SubsystemCreationRequestMapper implements GenericUniDirectionalMapp
 
         return new SubsystemCreationRequest(
                 subsystemId.getMemberId(),
-                subsystemId);
+                subsystemId,
+                source.getSubsystemName());
     }
 
     private SubsystemId createSubsystemId(NewSubsystemIdDto source) {

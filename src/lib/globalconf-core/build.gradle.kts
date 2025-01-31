@@ -118,6 +118,22 @@ tasks.register("xjc") {
         "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v4/private-parameters.xsd",
         "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
       )
+
+      // Generate classes for federateable global external conf v5
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v5",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v5/shared-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for global internal conf v5
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.privateparameters.v5",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v5/private-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
     }
   }
 }

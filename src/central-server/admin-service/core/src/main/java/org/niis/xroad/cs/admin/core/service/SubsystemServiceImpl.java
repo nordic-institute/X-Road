@@ -59,6 +59,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_REGIS
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
 
 @Service
 @Transactional
@@ -78,6 +79,7 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(MEMBER_CLASS, request.getMemberId().getMemberClass());
         auditDataHelper.put(MEMBER_CODE, request.getMemberId().getMemberCode());
         auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, request.getSubsystemId().getSubsystemCode());
+        auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, request.getSubsystemName());
 
         final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isPresent();
         if (exists) {
@@ -97,6 +99,8 @@ public class SubsystemServiceImpl implements SubsystemService {
                 ));
         var subsystemIdEntity = subsystemIds.findOrCreate(SubsystemIdEntity.ensure(request.getSubsystemId()));
         var subsystemEntity = new SubsystemEntity(memberEntity, subsystemIdEntity);
+        subsystemEntity.setName(request.getSubsystemName());
+
         return subsystemRepository.save(subsystemEntity);
     }
 

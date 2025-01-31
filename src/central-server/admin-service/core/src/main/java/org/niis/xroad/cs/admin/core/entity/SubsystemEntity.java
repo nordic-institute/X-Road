@@ -61,7 +61,11 @@ public class SubsystemEntity extends SecurityServerClientEntity {
     private String subsystemCode;
 
     public SubsystemEntity(XRoadMemberEntity member, ClientId identifier) {
-        super(SubsystemIdEntity.ensure(identifier));
+        this(null, member, identifier);
+    }
+
+    public SubsystemEntity(String name, XRoadMemberEntity member, ClientId identifier) {
+        super(name, SubsystemIdEntity.ensure(identifier));
         if (!identifier.subsystemContainsMember(member.getIdentifier())) {
             throw new IllegalArgumentException("Subsystem identifier does not match member");
         }

@@ -3981,6 +3981,8 @@ components:
     SubsystemAdd:
       description: x-road subsystem to add
       type: object
+      allOf:
+        - $ref: '#/components/schemas/SubsystemName'
       required:
         - subsystem_id
       properties:
@@ -3999,6 +4001,7 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+
       required:
         - subsystem_code
     NewMemberId:
@@ -4066,6 +4069,17 @@ components:
         member_name:
           description: Member name.
           example: Member123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      type: object
+    SubsystemName:
+      description: x-road subsystem name
+      properties:
+        subsystem_name:
+          description: Subsystem name.
+          example: Subsystem123
           format: text
           maxLength: 255
           minLength: 1
