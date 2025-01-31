@@ -6220,7 +6220,7 @@ components:
         - GENERATE_AUTH_CSR
         - GENERATE_SIGN_CSR
         - TOKEN_CHANGE_PIN
-        - DELETE_TOKEN
+        - TOKEN_DELETE
     Client:
       type: object
       description: x-road client

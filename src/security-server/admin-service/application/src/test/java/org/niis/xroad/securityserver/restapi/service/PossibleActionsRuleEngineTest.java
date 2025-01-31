@@ -312,8 +312,8 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
                                         .savedToConfiguration(true).build())
                         .build()).build();
         // just check we created test data successfully....
-        assertEquals(true, saved.isSavedToConfiguration());
-        assertEquals(false, unsaved.isSavedToConfiguration());
+        assertTrue(saved.isSavedToConfiguration());
+        assertFalse(unsaved.isSavedToConfiguration());
 
         // actual test
         assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(saved)
@@ -322,12 +322,27 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
                 .contains(PossibleActionEnum.EDIT_FRIENDLY_NAME));
     }
 
+    @Test
+    public void getPossibleTokenActionDeleteToken() {
+        assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
+                        new TokenTestUtils.TokenInfoBuilder()
+                                .active(false)
+                                .build())
+                .contains(PossibleActionEnum.TOKEN_DELETE));
+
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
+                        new TokenTestUtils.TokenInfoBuilder()
+                                .active(true)
+                                .build())
+                .contains(PossibleActionEnum.TOKEN_DELETE));
+    }
+
     /**
      * Helps when there is only one key. Uses the given token and the single key to request actions.
      */
     private EnumSet<PossibleActionEnum> getPossibleKeyActions(TokenInfo tokenInfo) {
         return possibleActionsRuleEngine.getPossibleKeyActions(tokenInfo,
-                tokenInfo.getKeyInfo().iterator().next());
+                tokenInfo.getKeyInfo().getFirst());
     }
 
     @Test
@@ -607,4 +622,3 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
 
     }
 }
-

@@ -62,7 +62,9 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
                 .collect(toMap(Token::getId, Function.identity()));
 
 
-        memoryTokens.forEach(
+        memoryTokens.stream()
+                .filter(Token::isActive)
+                .forEach(
                 // add any missing tokens from memory to file, match tokens based on token id
                 memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
                         this::mergeToken));

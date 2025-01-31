@@ -413,7 +413,7 @@ public class TokenService {
             TokenInfo tokenInfo = getToken(id);
             auditDataHelper.put(tokenInfo);
 
-            possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.DELETE_TOKEN, tokenInfo);
+            possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_DELETE, tokenInfo);
             signerRpcClient.deleteToken(id);
         } catch (TokenNotFoundException e) {
             throw new NotFoundException(TOKEN_NOT_FOUND, e);

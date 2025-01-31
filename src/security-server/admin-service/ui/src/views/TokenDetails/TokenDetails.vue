@@ -337,7 +337,7 @@ export default defineComponent({
     },
 
     canDelete(): boolean {
-      if (!this.token?.possible_actions?.includes(PossibleAction.DELETE_TOKEN)) {
+      if (!this.token?.possible_actions?.includes(PossibleAction.TOKEN_DELETE)) {
         return false;
       }
 

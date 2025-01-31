@@ -47,14 +47,14 @@ public enum PossibleActionMapping {
     LOGIN(PossibleActionEnum.TOKEN_ACTIVATE, PossibleAction.LOGIN),
     LOGOUT(PossibleActionEnum.TOKEN_DEACTIVATE, PossibleAction.LOGOUT),
     TOKEN_CHANGE_PIN(PossibleActionEnum.TOKEN_CHANGE_PIN, PossibleAction.TOKEN_CHANGE_PIN),
+    TOKEN_DELETE(PossibleActionEnum.TOKEN_DELETE, PossibleAction.TOKEN_DELETE),
     REGISTER(PossibleActionEnum.REGISTER, PossibleAction.REGISTER),
     UNREGISTER(PossibleActionEnum.UNREGISTER, PossibleAction.UNREGISTER),
     IMPORT_FROM_TOKEN(PossibleActionEnum.IMPORT_FROM_TOKEN, PossibleAction.IMPORT_FROM_TOKEN),
     GENERATE_KEY(PossibleActionEnum.GENERATE_KEY, PossibleAction.GENERATE_KEY),
     EDIT_FRIENDLY_NAME(PossibleActionEnum.EDIT_FRIENDLY_NAME, PossibleAction.EDIT_FRIENDLY_NAME),
     GENERATE_AUTH_CSR(PossibleActionEnum.GENERATE_AUTH_CSR, PossibleAction.GENERATE_AUTH_CSR),
-    GENERATE_SIGN_CSR(PossibleActionEnum.GENERATE_SIGN_CSR, PossibleAction.GENERATE_SIGN_CSR),
-    DELETE_TOKEN(PossibleActionEnum.DELETE_TOKEN, PossibleAction.DELETE_TOKEN);
+    GENERATE_SIGN_CSR(PossibleActionEnum.GENERATE_SIGN_CSR, PossibleAction.GENERATE_SIGN_CSR);
 
     private final PossibleActionEnum possibleActionEnum;
     private final PossibleAction possibleAction;
