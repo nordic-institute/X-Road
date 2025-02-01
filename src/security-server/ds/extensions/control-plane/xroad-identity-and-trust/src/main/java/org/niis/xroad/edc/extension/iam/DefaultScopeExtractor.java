@@ -26,7 +26,9 @@
  */
 package org.niis.xroad.edc.extension.iam;
 
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.RequestScope;
@@ -35,14 +37,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-public record DefaultScopeExtractor(Set<String> defaultScopes) implements BiFunction<Policy, PolicyContext, Boolean> {
+public record DefaultScopeExtractor<C extends RequestPolicyContext>(Set<String> defaultScopes) implements PolicyValidatorRule<C> {
 
     @Override
-    public Boolean apply(Policy policy, PolicyContext policyContext) {
-        var requestScopeBuilder = policyContext.getContextData(RequestScope.Builder.class);
-        if (requestScopeBuilder == null) {
-            throw new EdcException("%s not set in policy context".formatted(RequestScope.Builder.class));
-        }
+    public Boolean apply(Policy policy, C policyContext) {
+        var requestScopeBuilder = policyContext.requestScopeBuilder();
         var rq = requestScopeBuilder.build();
         var existingScope = rq.getScopes();
         var newScopes = new HashSet<>(defaultScopes);

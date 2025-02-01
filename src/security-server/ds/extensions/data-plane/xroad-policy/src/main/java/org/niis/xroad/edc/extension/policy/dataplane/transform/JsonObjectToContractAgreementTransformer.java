@@ -1,5 +1,6 @@
 package org.niis.xroad.edc.extension.policy.dataplane.transform;
 
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -15,6 +16,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreemen
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 
 public class JsonObjectToContractAgreementTransformer extends AbstractJsonLdTransformer<JsonObject, ContractAgreement> {
 
@@ -24,7 +27,15 @@ public class JsonObjectToContractAgreementTransformer extends AbstractJsonLdTran
 
     @Override
     public @Nullable ContractAgreement transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
+        String consumerId = transformString(object.get(CONTRACT_AGREEMENT_CONSUMER_ID), context);
+        String providerId = transformString(object.get(CONTRACT_AGREEMENT_PROVIDER_ID), context);
+
         var policyObject = returnMandatoryJsonObject(object.get(CONTRACT_AGREEMENT_POLICY), context, CONTRACT_AGREEMENT_POLICY);
+        // assignee and assigner are mandatory when transforming policy to POJO
+        policyObject = Json.createObjectBuilder(policyObject)
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, consumerId)
+                .add(ODRL_ASSIGNER_ATTRIBUTE, providerId)
+                .build();
         var policy = context.transform(policyObject, Policy.class);
         if (policy == null) {
             context.problem()
@@ -48,8 +59,8 @@ public class JsonObjectToContractAgreementTransformer extends AbstractJsonLdTran
 
         builder.id(agreementId)
                 .policy(policy)
-                .consumerId(transformString(object.get(CONTRACT_AGREEMENT_CONSUMER_ID), context))
-                .providerId(transformString(object.get(CONTRACT_AGREEMENT_PROVIDER_ID), context))
+                .consumerId(consumerId)
+                .providerId(providerId)
                 .assetId(transformString(object.get(CONTRACT_AGREEMENT_ASSET_ID), context))
                 .contractSigningDate(transformInt(object.get(CONTRACT_AGREEMENT_SIGNING_DATE), context));
         return builder.build();

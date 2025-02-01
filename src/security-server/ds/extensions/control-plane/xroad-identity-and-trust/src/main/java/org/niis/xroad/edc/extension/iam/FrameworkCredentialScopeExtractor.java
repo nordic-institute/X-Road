@@ -27,7 +27,7 @@
 package org.niis.xroad.edc.extension.iam;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractor;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 
 import java.util.Set;
@@ -40,7 +40,7 @@ class FrameworkCredentialScopeExtractor implements ScopeExtractor {
     }
 
     @Override
-    public Set<String> extractScopes(Object leftValue, Operator operator, Object rightValue, PolicyContext context) {
+    public Set<String> extractScopes(Object leftValue, Operator operator, Object rightValue, RequestPolicyContext context) {
         Set<String> scopes = Set.of();
         if (leftValue instanceof String leftOperand) {
             if (leftOperand.startsWith(FRAMEWORK_CREDENTIAL_PREFIX)) {

@@ -37,7 +37,7 @@ import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.agent.ParticipantIdMapper;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;

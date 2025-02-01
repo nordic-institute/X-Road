@@ -153,7 +153,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
                 .isDefaultPair(true)
                 .participantId(participantId)
                 .serializedPublicKey(publicKeyPem)
-                .state(KeyPairState.ACTIVE)
+                .state(KeyPairState.ACTIVATED)
                 .build();
         keyPairResourceStore.create(keyPairResource);
     }

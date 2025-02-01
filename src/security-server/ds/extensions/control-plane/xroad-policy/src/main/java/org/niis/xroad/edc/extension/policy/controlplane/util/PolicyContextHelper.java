@@ -30,8 +30,7 @@ package org.niis.xroad.edc.extension.policy.controlplane.util;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.experimental.UtilityClass;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 
 import java.util.Optional;
@@ -40,8 +39,8 @@ import java.util.Optional;
 public class PolicyContextHelper {
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
-    public static Optional<ClientId> findMemberIdFromContext(PolicyContext context) {
-        var participantAgent = context.getContextData(ParticipantAgent.class);
+    public static Optional<ClientId> findMemberIdFromContext(ParticipantAgentPolicyContext context) {
+        var participantAgent = context.participantAgent();
 
         if (participantAgent != null) {
             var memberIdentifierString = participantAgent.getAttributes().get("xrd:memberIdentifier");

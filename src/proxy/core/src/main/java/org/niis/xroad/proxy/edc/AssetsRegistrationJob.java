@@ -56,7 +56,7 @@ import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.agent.ParticipantIdMapper;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.TransformerContextImpl;

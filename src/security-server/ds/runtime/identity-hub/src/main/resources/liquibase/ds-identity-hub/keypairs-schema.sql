@@ -25,5 +25,6 @@ CREATE TABLE IF NOT EXISTS keypair_resource
   rotation_duration     BIGINT,                                     -- duration during which this keypair is in a transitional state (rotated, not yet deactivated)
   serialized_public_key VARCHAR             NOT NULL,               -- serialized public key (PEM, JWK,...)
   private_key_alias     VARCHAR             NOT NULL,               -- alias under which the private key is stored in the HSM/Vault
-  state                 INT                 NOT NULL DEFAULT 100    -- KeyPairState
+  state                 INT                 NOT NULL DEFAULT 100,   -- KeyPairState
+  key_context           VARCHAR                                     --the key context, will end up in the VerificationMethod of the DID Document
 );

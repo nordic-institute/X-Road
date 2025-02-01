@@ -7,6 +7,7 @@ dependencies {
     implementation(platform(libs.springBoot.bom))
     implementation libs.edc.dataplane.iam
     implementation libs.edc.core.token
+    implementation libs.edc.lib.token
 
     implementation(project(':signer-protocol'))
 

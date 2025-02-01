@@ -31,12 +31,11 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
+import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
 
 import java.util.Optional;
 
@@ -44,7 +43,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
-public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraintFunction<Permission> {
+public class XRoadLocalGroupMemberConstraintFunction<C extends DataPlaneTransferPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:localGroupMember";
 
@@ -53,7 +52,7 @@ public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraint
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, DataPlaneTransferPolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
             if (!(rightValue instanceof String globalGroupCode)) {
@@ -61,7 +60,7 @@ public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraint
                 return false;
             }
             LocalGroupId localGroupId = parseLocalGroup(globalGroupCode);
-            String clientIdString = context.getContextData(PolicyContextData.class).clientId();
+            String clientIdString = context.getClientId();
             return Optional.of(parseClientId(clientIdString))
                     .map(clientId -> switch (operator) {
                         case EQ, IN -> serverConfProvider.isSubjectInLocalGroup(clientId, localGroupId);

@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation libs.edc.spi.policy.engine
     implementation libs.edc.spi.contract
+    implementation libs.edc.spi.catalog
     implementation(project(':common:common-verifier'))
     implementation(project(':serverconf'))
 

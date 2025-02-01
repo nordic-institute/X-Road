@@ -29,14 +29,13 @@ package org.niis.xroad.edc.extension.policy.dataplane;
 
 
 import org.eclipse.edc.json.JacksonTypeManager;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
-import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
+import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -71,10 +70,7 @@ class XRoadDataPathConstraintFunctionTest {
     private boolean evaluate(Endpoint requested, String allowed) {
         XRoadDataPathConstraintFunction constraint = new XRoadDataPathConstraintFunction(monitor, typeManager);
 
-        return constraint.evaluate(Operator.EQ, allowed, rule,
-                PolicyContextImpl.Builder.newInstance()
-                        .additional(PolicyContextData.class, new PolicyContextData(null, requested))
-                        .build());
+        return constraint.evaluate(Operator.EQ, allowed, rule, new DataPlaneTransferPolicyContext(null, requested));
     }
 
 }

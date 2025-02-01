@@ -28,6 +28,9 @@ package org.niis.xroad.edc.extension.iam;
 
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -50,10 +53,6 @@ import static org.niis.xroad.edc.extension.iam.DcpScopeExtension.NAME;
 public class DcpScopeExtension implements ServiceExtension {
 
     static final String NAME = "X-Road DCP scope extension";
-
-    public static final String CATALOG_REQUEST_SCOPE = "request.catalog";
-    public static final String NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
-    public static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
 
     public static final String SCOPE_FORMAT = "%s:%s:read";
     public static final String CREDENTIAL_TYPE_NAMESPACE = "org.eclipse.edc.vc.type";
@@ -88,9 +87,9 @@ public class DcpScopeExtension implements ServiceExtension {
         // register a default scope provider
         var contextMappingFunction = new DefaultScopeExtractor(
                 Set.of(SCOPE_FORMAT.formatted(CREDENTIAL_TYPE_NAMESPACE, XROAD_CREDENTIAL_TYPE)));
-        policyEngine.registerPostValidator(CATALOG_REQUEST_SCOPE, contextMappingFunction);
-        policyEngine.registerPostValidator(NEGOTIATION_REQUEST_SCOPE, contextMappingFunction);
-        policyEngine.registerPostValidator(TRANSFER_PROCESS_REQUEST_SCOPE, contextMappingFunction);
+        policyEngine.registerPostValidator(RequestCatalogPolicyContext.class, contextMappingFunction);
+        policyEngine.registerPostValidator(RequestContractNegotiationPolicyContext.class, contextMappingFunction);
+        policyEngine.registerPostValidator(RequestTransferProcessPolicyContext.class, contextMappingFunction);
 
 
         //register scope extractor

@@ -34,7 +34,8 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFac
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
@@ -43,25 +44,25 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.agent.ParticipantIdMapper;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.edc.extension.policy.dataplane.transform.JsonObjectToContractAgreementTransformer;
+import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.niis.xroad.edc.extension.policy.dataplane.XRoadDataPlanePolicyExtension.NAME;
+import static org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext.XROAD_DATAPLANE_TRANSFER_SCOPE;
 
 @Extension(value = NAME)
 @Provides({IdentityService.class, DataPlaneAccessControlService.class})
 public class XRoadDataPlanePolicyExtension implements ServiceExtension {
 
     public static final String NAME = "X-Road Data Plane Policy extension";
-
-    static final String XROAD_DATAPLANE_TRANSFER_SCOPE = "xroad.dataplane.transfer";
 
     @Setting(value = "DataPlane selector api URL", required = true)
     static final String CONTROL_PLANE_MANAGEMENT_URL_SETTING = "edc.controlplane.management.url";
@@ -106,29 +107,29 @@ public class XRoadDataPlanePolicyExtension implements ServiceExtension {
         OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(transformerRegistry::register);
         transformerRegistry.register(new JsonObjectToContractAgreementTransformer());
 
-        registerFunction(XRoadClientIdConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
-                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
-        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
-                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
-        registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
-                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
-        registerFunction(XRoadDataPathConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
-                new XRoadDataPathConstraintFunction(monitor, typeManager));
+        // custom scope needs to be registered before adding functions to it
+        policyEngine.registerScope(XROAD_DATAPLANE_TRANSFER_SCOPE, DataPlaneTransferPolicyContext.class);
+
+        bindPermissionFunction(new XRoadClientIdConstraintFunction<>(globalConfProvider, monitor), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadClientIdConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadLocalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadGlobalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadDataPathConstraintFunction<>(monitor, typeManager), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadDataPathConstraintFunction.KEY);
     }
 
-    private void registerFunction(String key, String scope, AtomicConstraintFunction<Permission> function) {
-        ruleBindingRegistry.bind("USE", scope);
-        ruleBindingRegistry.bind(ODRL_SCHEMA + "use", scope);
-        ruleBindingRegistry.bind(key, scope);
 
-        policyEngine.registerFunction(scope, Permission.class, key, function);
+    private <C extends PolicyContext> void bindPermissionFunction(AtomicConstraintRuleFunction<Permission, C> function, Class<C> contextClass, String scope, String constraintType) {
+        ruleBindingRegistry.bind("use", scope);
+        ruleBindingRegistry.bind(ODRL_SCHEMA + "use", scope);
+        ruleBindingRegistry.bind(constraintType, scope);
+
+        policyEngine.registerFunction(contextClass, Permission.class, constraintType, function);
     }
 
     @Provider
     public DataPlaneAccessControlService xrdDataPlaneAccessControlService(ServiceExtensionContext context) {
         var controlPlaneManagementUrl = context.getConfig().getString(CONTROL_PLANE_MANAGEMENT_URL_SETTING);
         var contractAgreementApiUrl = getContractAgreementApiUrl(controlPlaneManagementUrl);
-        return new XrdDataPlaneAccessControlService(httpClient, contractAgreementApiUrl,
+        return new XRoadDataPlaneAccessControlService(httpClient, contractAgreementApiUrl,
                 typeManager.getMapper(JSON_LD), transformerRegistry, jsonLd, policyEngine, context.getMonitor());
     }
 

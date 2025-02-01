@@ -29,21 +29,20 @@ package org.niis.xroad.edc.extension.policy.dataplane;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
 import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
 import org.niis.xroad.edc.extension.policy.dataplane.util.PathGlob;
-import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
 import java.util.Collection;
 import java.util.Set;
 
 @RequiredArgsConstructor
-public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction<Permission> {
+public class XRoadDataPathConstraintFunction<C extends DataPlaneTransferPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:datapath";
 
@@ -55,7 +54,7 @@ public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction
 
     @Override
     @SneakyThrows
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, DataPlaneTransferPolicyContext context) {
         monitor.debug("XRoadDataPathConstraintFunction.evaluate");
 
         // rightValue is expected to be a json array of strings
@@ -64,7 +63,7 @@ public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction
             return false;
         }
 
-        var requestedEndpoint = context.getContextData(PolicyContextData.class).endpoint();
+        var requestedEndpoint = context.getEndpoint();
 
         Collection<String> allowedEndpointPatterns = Set.of(allowedPaths);
         for (String allowedPath : allowedEndpointPatterns) {

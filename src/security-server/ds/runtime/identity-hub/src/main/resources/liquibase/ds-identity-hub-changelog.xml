@@ -11,6 +11,7 @@
         <sqlFile path="ds-identity-hub/did-schema.sql" relativeToChangelogFile="true"/>
         <sqlFile path="ds-identity-hub/keypairs-schema.sql" relativeToChangelogFile="true"/>
         <sqlFile path="ds-identity-hub/participant-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="ds-identity-hub/sts-client-schema.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

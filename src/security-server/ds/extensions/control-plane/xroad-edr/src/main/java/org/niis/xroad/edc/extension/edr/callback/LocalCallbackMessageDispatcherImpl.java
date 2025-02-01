@@ -46,11 +46,6 @@ public class LocalCallbackMessageDispatcherImpl implements RemoteMessageDispatch
     private final LocalCallbackRegistryImpl registry;
 
     @Override
-    public String protocol() {
-        return CALLBACK_EVENT_LOCAL;
-    }
-
-    @Override
     public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message) {
         if (message instanceof CallbackEventRemoteMessage<?>) {
             var result = registry.handleMessage((CallbackEventRemoteMessage<? extends Event>) message);

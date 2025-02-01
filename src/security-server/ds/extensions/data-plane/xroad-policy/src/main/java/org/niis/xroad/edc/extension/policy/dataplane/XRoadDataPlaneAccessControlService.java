@@ -36,7 +36,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -45,16 +44,15 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.jetty.http.HttpStatus;
 import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
-import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
+import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
 
 import java.io.IOException;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static org.niis.xroad.edc.extension.policy.dataplane.XRoadDataPlanePolicyExtension.XROAD_DATAPLANE_TRANSFER_SCOPE;
 
 @RequiredArgsConstructor
-public class XrdDataPlaneAccessControlService implements DataPlaneAccessControlService {
+public class XRoadDataPlaneAccessControlService implements DataPlaneAccessControlService {
     private final EdcHttpClient httpClient;
     private final String contractAgreementApiUrl;
     private final ObjectMapper mapper;
@@ -79,11 +77,7 @@ public class XrdDataPlaneAccessControlService implements DataPlaneAccessControlS
         var endpoint = new Endpoint(requestData.get("method").toString(), requestData.get("resolvedPath").toString());
         monitor.debug("Checking access for endpoint: %s %s".formatted(endpoint.method(), endpoint.path()));
         var startTime = StopWatch.createStarted();
-        var result = this.policyEngine.evaluate(XROAD_DATAPLANE_TRANSFER_SCOPE,
-                contractAgreement.getPolicy(),
-                PolicyContextImpl.Builder.newInstance()
-                        .additional(PolicyContextData.class, new PolicyContextData(clientId, endpoint))
-                        .build());
+        var result = this.policyEngine.evaluate(contractAgreement.getPolicy(), new DataPlaneTransferPolicyContext(clientId, endpoint));
         monitor.debug("Access check for endpoint: %s %s took %s ms".formatted(endpoint.method(), endpoint.path(), startTime.getTime()));
         return result;
     }

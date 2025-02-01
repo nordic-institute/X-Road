@@ -31,19 +31,18 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
+import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
 
 import java.util.Optional;
 
 import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
-public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction<Permission> {
+public class XRoadClientIdConstraintFunction<C extends DataPlaneTransferPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:clientId";
 
@@ -51,7 +50,7 @@ public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission permission, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission permission, DataPlaneTransferPolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
             if (!(rightValue instanceof String allowedClientIdString)) {
@@ -59,7 +58,7 @@ public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction
                 return false;
             }
             var allowedClientId = parseClientId(allowedClientIdString);
-            String clientIdString = context.getContextData(PolicyContextData.class).clientId();
+            String clientIdString = context.getClientId();
             return Optional.of(parseClientId(clientIdString))
                     .map(clientId -> switch (operator) {
                         case EQ -> allowedClientId.equals(clientId);

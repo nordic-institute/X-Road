@@ -44,6 +44,9 @@ web:
   http:
     port: 9391
     path: /api
+    sts:
+      port: 9392
+      path: /api/v1/sts
     identity:
       port: 9393
       path: /identity

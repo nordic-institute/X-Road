@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.edc.monitor.jdk.logger)
 
     implementation(libs.bundles.sql.ih)
+    runtimeOnly(libs.bundles.sts)
 
     implementation(project(":security-server:ds:extensions:common:xroad-jsonld"))
     implementation(project(":security-server:ds:extensions:common:xroad-ldp-verifiable-credentials"))

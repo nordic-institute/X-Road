@@ -31,8 +31,8 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -41,7 +41,7 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @RequiredArgsConstructor
-public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraintFunction<Permission> {
+public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:localGroupMember";
 
@@ -50,7 +50,7 @@ public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraint
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, ParticipantAgentPolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
             if (!(rightValue instanceof String globalGroupCode)) {

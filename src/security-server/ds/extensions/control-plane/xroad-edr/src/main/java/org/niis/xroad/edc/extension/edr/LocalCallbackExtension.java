@@ -56,7 +56,7 @@ public class LocalCallbackExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         callbackResolverRegistry.registerResolver(this::resolveProtocol);
-        remoteMessageDispatcherRegistry.register(new LocalCallbackMessageDispatcherImpl(localCallbackRegistry));
+        remoteMessageDispatcherRegistry.register(CALLBACK_EVENT_LOCAL, new LocalCallbackMessageDispatcherImpl(localCallbackRegistry));
 
         context.registerService(LocalCallbackRegistryImpl.class, localCallbackRegistry);
 

@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @RequiredArgsConstructor
@@ -110,7 +111,7 @@ public class AssetAuthorizationManager {
     private Catalog getCatalog(String assetId, String counterPartyId, String counterPartyAddress) {
         CompletableFuture<StatusResult<byte[]>> result = catalogService.requestCatalog(counterPartyId,
                 counterPartyAddress,
-                "dataspace-protocol-http", assetIdQuery(assetId));
+                DATASPACE_PROTOCOL_HTTP, assetIdQuery(assetId));
 
         byte[] content = result.get()
                 .orElseThrow(failure -> new EdcException("Failed to get catalog: " + failure.getFailureDetail()));
@@ -149,8 +150,7 @@ public class AssetAuthorizationManager {
 
     private String initiateNegotiation(String counterPartyAddress, ContractOffer contractOffer) {
         ContractRequest contractRequest = ContractRequest.Builder.newInstance()
-                .protocol("dataspace-protocol-http")
-
+                .protocol(DATASPACE_PROTOCOL_HTTP)
                 .counterPartyAddress(counterPartyAddress)
                 .contractOffer(contractOffer)
                 .callbackAddresses(List.of(negotiationCallback))

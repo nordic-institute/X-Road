@@ -47,7 +47,7 @@ public class TrustedIssuerExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         // register VC issuers
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:cs%3A9396", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xrd-cs%3A9396", Map.of()));
+        trustedIssuerRegistry.register(new Issuer("did:web:cs%3A9396", Map.of()), "XRoadCredential");
+        trustedIssuerRegistry.register(new Issuer("did:web:xrd-cs%3A9396", Map.of()), "XRoadCredential");
     }
 }

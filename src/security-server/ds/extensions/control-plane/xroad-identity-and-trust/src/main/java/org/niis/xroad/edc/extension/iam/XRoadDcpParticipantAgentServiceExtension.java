@@ -30,7 +30,7 @@ import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
+import org.eclipse.edc.participant.spi.ParticipantAgentServiceExtension;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension.CLAIMTOKEN_VC_KEY;
-import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
+import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.VC_CLAIM;
 
 /**

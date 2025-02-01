@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation project(":security-server:ds:spi:xroad-core-spi")
 
-    implementation libs.edc.spi.core
+    implementation libs.edc.dsp
     implementation libs.edc.core.edrstore
     implementation(libs.edc.edr.storereceiver)
 

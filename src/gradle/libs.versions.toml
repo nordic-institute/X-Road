@@ -28,7 +28,7 @@ apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
 checkstyle = "10.21.1"
 jacoco = "0.8.12"
-edc = "0.9.1"
+edc = "0.10.1"
 nimbusJoseJwt = "9.39.1"
 dss = "6.0"
 caffeine = "3.1.8"
@@ -254,8 +254,9 @@ edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.re
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
 edc-spi-transfer = { module = "org.eclipse.edc:transfer-spi", version.ref = "edc" }
 edc-spi-policy-engine = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
-edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
 edc-spi-dataplane= { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
+edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
+edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 
 # EDC lib dependencies
 edc-lib-jws2020 = { module = "org.eclipse.edc:jws2020-lib", version.ref = "edc" }
@@ -267,6 +268,7 @@ edc-lib-util = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
 edc-lib-vp = { module = "org.eclipse.edc:verifiable-presentation-lib", version.ref = "edc" }
 edc-lib-store = { "module" = "org.eclipse.edc:store-lib", version.ref = "edc" }
+edc-lib-token = { module = "org.eclipse.edc:token-lib", version.ref = "edc" }
 
 # EDC dataplane client modules (used in controlplane)
 edc-dpf-transfer-signaling = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
@@ -310,6 +312,7 @@ edc-sql-ih-credstore-sql = { module = "org.eclipse.edc:identity-hub-credentials-
 edc-sql-ih-didstore-sql = { module = "org.eclipse.edc:identity-hub-did-store-sql", version.ref = "edc" }
 edc-sql-ih-keypairstore-sql = { module = "org.eclipse.edc:identity-hub-keypair-store-sql", version.ref = "edc" }
 edc-sql-ih-pcstore-sql = { module = "org.eclipse.edc:identity-hub-participantcontext-store-sql", version.ref = "edc" }
+edc-sql-ih-stsstore-sql = { module = "org.eclipse.edc:sts-client-store-sql", version.ref = "edc" }
 
 # identityhub dependenciesl
 edc-ih-core = { module = "org.eclipse.edc:identity-hub-core", version.ref = "edc" }
@@ -333,6 +336,16 @@ edc-ih-mgmt-did = { module = "org.eclipse.edc:did-api", version.ref = "edc" }
 edc-ih-mgmt-keypairs = { module = "org.eclipse.edc:keypair-api", version.ref = "edc" }
 edc-ih-did-localpub = { module = "org.eclipse.edc:local-did-publisher", version.ref = "edc" }
 edc-ih-lib-credentialquery = { module = "org.eclipse.edc:credential-query-lib", version.ref = "edc" }
+
+# EDC STS dependencies, used in IdentityHub
+edc-sts-spi = { module = "org.eclipse.edc:identity-trust-sts-spi", version.ref = "edc" }
+edc-sts-core = { module = "org.eclipse.edc:identity-trust-sts-core", version.ref = "edc" }
+edc-sts = { module = "org.eclipse.edc:identity-trust-sts-embedded", version.ref = "edc" }
+edc-sts-api = { module = "org.eclipse.edc:identity-trust-sts-api", version.ref = "edc" }
+edc-sts-accountprovisioner = { module = "org.eclipse.edc:sts-account-provisioner", version.ref = "edc" }
+edc-sts-accountservice-local = { module = "org.eclipse.edc:sts-account-service-local", version.ref = "edc" }
+edc-sts-accountservice-remote = { module = "org.eclipse.edc:sts-account-service-remote", version.ref = "edc" }
+edc-sts-remote-client = { module = "org.eclipse.edc:identity-trust-sts-remote-client", version.ref = "edc" }
 
 # federated catalog modules
 edc-fc-spi-crawler = { module = "org.eclipse.edc:crawler-spi", version.ref = "edc" }
@@ -367,7 +380,8 @@ identityhub = ["edc-ih-core", "edc-ih-api-presentation", "edc-ih-participants", 
 dcp = ["edc-dcp", "edc-did-core", "edc-did-web", "edc-dcp-core"]
 sql-edc = ["edc-sql-assetindex", "edc-sql-contractdef", "edc-sql-contractneg", "edc-sql-policydef", "edc-sql-edrcache", "edc-sql-transferprocess", "edc-sql-dataplane-instancestore","edc-sql-core", "edc-sql-lease", "edc-sql-pool", "edc-sql-transactionlocal", "postgresql"]
 sql-edc-dataplane = ["edc-sql-accesstokendata", "edc-sql-dataplane", "edc-sql-core", "edc-sql-lease", "edc-sql-pool", "edc-sql-transactionlocal", "edc-sql-dataplane-instancestore", "postgresql"]
-sql-ih = ["edc-sql-ih-credstore-sql", "edc-sql-ih-didstore-sql", "edc-sql-ih-keypairstore-sql", "edc-sql-ih-pcstore-sql", "edc-sql-core", "edc-sql-pool", "edc-sql-transactionlocal", "postgresql"]
+sql-ih = ["edc-sql-ih-credstore-sql", "edc-sql-ih-didstore-sql", "edc-sql-ih-keypairstore-sql", "edc-sql-ih-pcstore-sql", "edc-sql-ih-stsstore-sql", "edc-sql-core", "edc-sql-pool", "edc-sql-transactionlocal", "postgresql"]
+sts = ["edc-sts-core", "edc-sts-api", "edc-sts-accountprovisioner", "edc-sts-spi", "edc-sts", "edc-sts-accountservice-local"]
 sql-fc = ["edc-fc-cache-sql"]
 
 edc-monitoring = ["edc-micrometer-core", "edc-micrometer-jersey", "edc-micrometer-jetty"]

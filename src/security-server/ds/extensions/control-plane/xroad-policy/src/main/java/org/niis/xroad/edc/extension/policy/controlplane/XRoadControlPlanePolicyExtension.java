@@ -30,8 +30,12 @@ package org.niis.xroad.edc.extension.policy.controlplane;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
+import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
@@ -76,39 +80,24 @@ public class XRoadControlPlanePolicyExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        // edc scopes:
-        // - catalog
-        // - request.catalog
-        // - contract.negotiation
-        // - request.contract.negotiation <- participant agent is not set in policy context.
+        bindPermissionFunction(new XRoadClientIdConstraintFunction<>(monitor), CatalogPolicyContext.class, CatalogPolicyContext.CATALOG_SCOPE, XRoadClientIdConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadClientIdConstraintFunction<>(monitor), ContractNegotiationPolicyContext.class, ContractNegotiationPolicyContext.NEGOTIATION_SCOPE, XRoadClientIdConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadClientIdConstraintFunction<>(monitor), TransferProcessPolicyContext.class, TransferProcessPolicyContext.TRANSFER_SCOPE, XRoadClientIdConstraintFunction.KEY);
 
-        registerFunction(XRoadClientIdConstraintFunction.KEY, "catalog",
-                new XRoadClientIdConstraintFunction(monitor));
-        registerFunction(XRoadClientIdConstraintFunction.KEY, "request.catalog",
-                new XRoadClientIdConstraintFunction(monitor));
-        registerFunction(XRoadClientIdConstraintFunction.KEY, "contract.negotiation",
-                new XRoadClientIdConstraintFunction(monitor));
+        bindPermissionFunction(new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor), CatalogPolicyContext.class, CatalogPolicyContext.CATALOG_SCOPE, XRoadLocalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor), ContractNegotiationPolicyContext.class, ContractNegotiationPolicyContext.NEGOTIATION_SCOPE, XRoadLocalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor), TransferProcessPolicyContext.class, TransferProcessPolicyContext.TRANSFER_SCOPE, XRoadLocalGroupMemberConstraintFunction.KEY);
 
-        registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "catalog",
-                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
-        registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "request.catalog",
-                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
-        registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "contract.negotiation",
-                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
-
-        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "catalog",
-                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
-        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "request.catalog",
-                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
-        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "contract.negotiation",
-                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
+        bindPermissionFunction(new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor), CatalogPolicyContext.class, CatalogPolicyContext.CATALOG_SCOPE, XRoadGlobalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor), ContractNegotiationPolicyContext.class, ContractNegotiationPolicyContext.NEGOTIATION_SCOPE, XRoadGlobalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor), TransferProcessPolicyContext.class, TransferProcessPolicyContext.TRANSFER_SCOPE, XRoadGlobalGroupMemberConstraintFunction.KEY);
     }
 
-    private void registerFunction(String key, String scope, AtomicConstraintFunction<Permission> function) {
-        ruleBindingRegistry.bind("USE", scope);
+    private <C extends PolicyContext> void bindPermissionFunction(AtomicConstraintRuleFunction<Permission, C> function, Class<C> contextClass, String scope, String constraintType) {
+        ruleBindingRegistry.bind("use", scope);
         ruleBindingRegistry.bind(ODRL_SCHEMA + "use", scope);
-        ruleBindingRegistry.bind(key, scope);
+        ruleBindingRegistry.bind(constraintType, scope);
 
-        policyEngine.registerFunction(scope, Permission.class, key, function);
+        policyEngine.registerFunction(contextClass, Permission.class, constraintType, function);
     }
 }
