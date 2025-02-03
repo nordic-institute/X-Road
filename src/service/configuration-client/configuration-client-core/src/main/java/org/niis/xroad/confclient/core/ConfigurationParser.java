@@ -376,7 +376,7 @@ public class ConfigurationParser {
     /**
      * @return the input stream acquired by connecting to the download url.
      */
-    public InputStream getConfigurationInputStream(ConfigurationLocation configurationLocation) {
+    private InputStream getConfigurationInputStream(ConfigurationLocation configurationLocation) {
         try {
             var connection = downloader.getDownloadURLConnection(URI.create(configurationLocation.getDownloadURL()).toURL());
             return connection.getInputStream();
