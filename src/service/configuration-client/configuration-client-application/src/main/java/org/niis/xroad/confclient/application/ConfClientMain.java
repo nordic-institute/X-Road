@@ -28,7 +28,6 @@ package org.niis.xroad.confclient.application;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 import org.niis.xroad.confclient.ConfClientCLIRunner;
 import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
@@ -68,12 +67,22 @@ public class ConfClientMain {
 
             @Override
             public String configurationAnchorFile() {
-                return ConfigProvider.getConfig().getConfigValue("xroad.configuration-client.configuration-anchor-file").getValue();
+                return args[0];
             }
 
             @Override
             public String globalConfDir() {
-                return "";
+                return args[1];
+            }
+
+            @Override
+            public String globalConfHostnameVerification() {
+                return Boolean.TRUE.toString();
+            }
+
+            @Override
+            public String globalConfTlsCertVerification() {
+                return Boolean.TRUE.toString();
             }
         };
 

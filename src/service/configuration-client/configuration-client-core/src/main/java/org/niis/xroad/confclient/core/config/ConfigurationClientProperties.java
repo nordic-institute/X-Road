@@ -48,4 +48,12 @@ public interface ConfigurationClientProperties {
     @WithName("global-conf-dir")
     @WithDefault("/etc/xroad/globalconf")
     String globalConfDir();
+
+    @WithName("global-conf-hostname-verification")
+    @WithDefault("true")
+    String globalConfHostnameVerification();
+
+    @WithName("global-conf-tls-cert-verification")
+    @WithDefault("true")
+    String globalConfTlsCertVerification();
 }
