@@ -31,6 +31,7 @@ import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.monitor.core.CertificateInfoSensor;
@@ -53,7 +54,8 @@ import java.util.List;
 @Slf4j
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class})
+        ServerConfBeanConfig.class,
+        SpringRpcConfig.class})
 @EnableScheduling
 @Configuration
 public class MonitorConfig {
