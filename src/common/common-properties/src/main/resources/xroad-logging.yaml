@@ -2,6 +2,10 @@ quarkus:
   log:
     level: INFO
     category:
+      "io.quarkus":
+        level: DEBUG #TODO should be reduced to INFO once development is done
+      "io.smallrye":
+        level: DEBUG #TODO should be reduced to INFO once development is done
       "ee.ria.xroad.common.SystemPropertiesLoader":
         level: "OFF" #TODO remove this one SystemPropertiesLoader is removed
     file:

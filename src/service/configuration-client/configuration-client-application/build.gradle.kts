@@ -18,12 +18,14 @@ quarkus {
           put("quarkus.package.jar.type", "uber-jar")
           put("quarkus.package.jar.add-runner-suffix", "false")
         }
+
         "containerized" -> {
           put("quarkus.container-image.build", "true")
           put("quarkus.container-image.group", "niis")
           put("quarkus.container-image.name", "xroad-configuration-client")
           put("quarkus.container-image.tag", "latest")
         }
+
         else -> error("Unsupported buildType: $buildType. Use 'native' or 'containerized'")
       }
     }
@@ -84,6 +86,8 @@ tasks.jar {
 }
 
 tasks.test {
+  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+
   jvmArgumentProviders.add(CommandLineArgumentProvider {
     listOf(
       "-javaagent:${
