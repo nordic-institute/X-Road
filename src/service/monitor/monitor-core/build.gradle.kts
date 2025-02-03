@@ -6,6 +6,7 @@ dependencies {
   implementation(platform(libs.springBoot.bom))
 
   implementation(project(":common:common-domain"))
+  implementation(project(":common:common-rpc-spring"))
   implementation(project(":lib:globalconf-spring"))
   implementation(project(":lib:serverconf-spring"))
   implementation(project(":service:monitor:monitor-api"))

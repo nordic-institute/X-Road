@@ -27,7 +27,7 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
@@ -58,12 +58,11 @@ class RpcClientsConfig {
     }
 
     @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
-    @RequiredArgsConstructor
-    @SuppressWarnings("checkstyle:magicnumber")
+    @Setter
     static class SpringEnvMonitorRpcChannelProperties implements EnvMonitorRpcChannelProperties {
-        private String host = "127.0.0.1";
-        private int port = 2552;
-        private int deadlineAfter = 60000;
+        private String host = DEFAULT_HOST;
+        private int port = DEFAULT_PORT;
+        private int deadlineAfter = DEFAULT_DEADLINE_AFTER;
 
         @Override
         public String host() {

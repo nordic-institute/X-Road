@@ -29,5 +29,10 @@ package org.niis.xroad.monitor.rpc;
 
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
+@SuppressWarnings("checkstyle:InterfaceIsType")
 public interface EnvMonitorRpcChannelProperties extends RpcChannelProperties {
+
+    String DEFAULT_HOST = "127.0.0.1";
+    int DEFAULT_PORT = 2552;
+    int DEFAULT_DEADLINE_AFTER = 60000;
 }
