@@ -24,10 +24,11 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.globalconf.model;
+package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 
@@ -45,7 +46,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 @Slf4j
-public final class ConfigurationHttpUrlConnectionConfig {
+@NoArgsConstructor
+public class HttpUrlConnectionConfigurer {
 
     private static final String TLS = "TLS";
     private static final SSLSocketFactory SSL_SOCKET_FACTORY;
@@ -60,10 +62,7 @@ public final class ConfigurationHttpUrlConnectionConfig {
         }
     }
 
-    private ConfigurationHttpUrlConnectionConfig() {
-    }
-
-    public static void apply(HttpURLConnection conn) {
+    public void apply(HttpURLConnection conn) {
         if (conn instanceof HttpsURLConnection httpsConn) {
             logSystemPropertiesInfo();
 

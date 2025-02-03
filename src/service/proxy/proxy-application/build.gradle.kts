@@ -28,7 +28,6 @@ tasks.jar {
     attributes("Main-Class" to "org.niis.xroad.proxy.application.ProxyMain")
   }
   archiveClassifier.set("plain")
-  archiveBaseName.set("proxy")
 }
 
 tasks.shadowJar {
