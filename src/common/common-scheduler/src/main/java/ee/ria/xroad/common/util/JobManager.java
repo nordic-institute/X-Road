@@ -54,24 +54,10 @@ import static org.quartz.TriggerBuilder.newTrigger;
 @Slf4j
 public class JobManager {
 
-    static {
-        // Disable update check
-        System.setProperty("org.terracotta.quartz.skipUpdateCheck", "true");
-    }
-
     private static final String DEFAULT_JOB_GROUP = "jobs";
 
     @Getter
     private Scheduler jobScheduler;
-
-    /**
-     * Creates a new job manager.
-     *
-     * @throws SchedulerException if there is a problem with the underlying Scheduler
-     */
-    public JobManager() throws SchedulerException {
-        jobScheduler = new StdSchedulerFactory().getScheduler();
-    }
 
     /**
      * Creates a new job manager.
