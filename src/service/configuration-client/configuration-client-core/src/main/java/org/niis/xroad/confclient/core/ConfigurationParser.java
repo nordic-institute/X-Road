@@ -45,6 +45,7 @@ import org.niis.xroad.globalconf.model.ConfigurationUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
@@ -54,6 +55,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
@@ -68,6 +70,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
  * Parses and handles the downloaded configuration directory.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ConfigurationParser {
 
     // We cache the certificates we have found for a given hash
@@ -82,6 +85,8 @@ public class ConfigurationParser {
         HEADER,
         CONTENT
     }
+
+    private final ConfigurationDownloader downloader;
 
     protected Configuration configuration;
 
@@ -120,7 +125,7 @@ public class ConfigurationParser {
     }
 
     protected InputStream getInputStream() throws Exception {
-        return configuration.getLocation().getInputStream();
+        return getConfigurationInputStream(configuration.getLocation());
     }
 
     private void verifyIntegrity() {
@@ -367,4 +372,18 @@ public class ConfigurationParser {
 
         return ConfigurationUtils.parseISODateTime(expireDateStr);
     }
+
+    /**
+     * @return the input stream acquired by connecting to the download url.
+     */
+    public InputStream getConfigurationInputStream(ConfigurationLocation configurationLocation) {
+        try {
+            var connection = downloader.getDownloadURLConnection(URI.create(configurationLocation.getDownloadURL()).toURL());
+            return connection.getInputStream();
+        } catch (IOException e) {
+            throw new CodedException(X_HTTP_ERROR, e);
+        }
+    }
+
+
 }

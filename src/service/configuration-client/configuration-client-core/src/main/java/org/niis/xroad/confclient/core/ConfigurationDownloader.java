@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
-import org.niis.xroad.globalconf.model.ConfigurationHttpUrlConnectionConfig;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
@@ -81,6 +80,7 @@ public class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
     protected final FileNameProvider fileNameProvider;
+    private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
     private final SharedParametersConfigurationLocations sharedParametersConfigurationLocations;
 
@@ -106,7 +106,7 @@ public class ConfigurationDownloader {
     }
 
     ConfigurationParser getParser() {
-        return new ConfigurationParser();
+        return new ConfigurationParser(this);
     }
 
     /**
@@ -302,11 +302,11 @@ public class ConfigurationDownloader {
 
     private LocationVersionResolver locationVersionResolver(ConfigurationLocation location) {
         if (configurationVersion == null) {
-            return LocationVersionResolver.range(location,
+            return LocationVersionResolver.range(connectionConfigurer, location,
                     MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION,
                     CURRENT_GLOBAL_CONFIGURATION_VERSION);
         } else {
-            return LocationVersionResolver.fixed(location, configurationVersion);
+            return LocationVersionResolver.fixed(connectionConfigurer, location, configurationVersion);
         }
     }
 
@@ -355,9 +355,9 @@ public class ConfigurationDownloader {
         return new URI(location.getDownloadURL()).resolve(file.getContentLocation()).toURL();
     }
 
-    public static URLConnection getDownloadURLConnection(URL url) throws IOException {
+    public URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
-        ConfigurationHttpUrlConnectionConfig.apply((HttpURLConnection) connection);
+        connectionConfigurer.apply((HttpURLConnection) connection);
         connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }
