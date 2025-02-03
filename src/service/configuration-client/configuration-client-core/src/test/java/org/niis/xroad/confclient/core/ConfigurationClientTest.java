@@ -50,6 +50,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
@@ -169,7 +170,7 @@ class ConfigurationClientTest {
                 tempDir.getAbsolutePath(), 2) {
             @Override
             ConfigurationParser getParser() {
-                return new ConfigurationParser() {
+                return new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                     @Override
                     protected InputStream getInputStream() throws Exception {
                         String downloadURL = configuration.getLocation().getDownloadURL();
