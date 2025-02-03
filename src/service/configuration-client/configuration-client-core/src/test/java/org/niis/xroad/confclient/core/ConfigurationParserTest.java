@@ -44,6 +44,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.TestExceptionUtils.codedException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests to verify configuration parser functionality.
@@ -155,7 +156,7 @@ class ConfigurationParserTest {
         ConfigurationParser.HASH_TO_CERT.clear();
 
         if (!source.getLocations().isEmpty()) {
-            ConfigurationParser parser = new ConfigurationParser() {
+            ConfigurationParser parser = new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                 @Override
                 protected InputStream getInputStream() throws Exception {
                     return new FileInputStream(path + ".txt");
