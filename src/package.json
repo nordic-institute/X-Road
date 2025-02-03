@@ -47,7 +47,7 @@
       "cross-spawn": "7.0.5"
     }
   },
-  "packageManager": "pnpm@9.12.2",
+  "packageManager": "pnpm@9.15.2",
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
