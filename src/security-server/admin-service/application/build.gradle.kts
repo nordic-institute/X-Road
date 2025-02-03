@@ -34,6 +34,8 @@ dependencies {
   implementation(project(":common:common-mail"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))
+  implementation(project(":service:monitor:monitor-rpc-client"))
+  implementation(project(":common:common-rpc-spring"))
 
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")
