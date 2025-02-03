@@ -125,7 +125,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
         // swap an invalid proxy to the valid address, set up valid proxy to the secondary address.
         final DummySslServerProxy invalid =
-                new DummySslServerProxy(port1, new DummySslServerProxy.DummyAuthKeyManager());
+                new DummySslServerProxy(host, port1, new DummySslServerProxy.DummyAuthKeyManager());
         final DummySslServerProxy valid = new DummySslServerProxy(host, port2, validAuthKey);
 
         try {
