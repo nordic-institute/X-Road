@@ -1,7 +1,7 @@
 plugins {
   id("xroad.java-conventions")
-  id("xroad.java-exec-conventions")
   id("xroad.int-test-conventions")
+  id("xroad.test-fixtures-conventions")
 }
 
 sourceSets {
@@ -24,6 +24,7 @@ dependencies {
 
   api(project(":lib:globalconf-spring"))
   api(project(":lib:serverconf-spring"))
+  api(project(":lib:keyconf-impl"))
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   api("org.springframework:spring-context-support")
@@ -32,7 +33,14 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:globalconf-impl")))
+  testImplementation(testFixtures(project(":lib:serverconf-impl")))
+  testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(libs.wsdl4j)
+
+  testFixturesImplementation(project(":common:common-test"))
+  testFixturesImplementation(project(":common:common-jetty"))
+  testFixturesImplementation(libs.wsdl4j)
 
   "intTestRuntimeOnly"(project(":service:signer:signer-application"))
   "intTestImplementation"(project(":common:common-test"))
@@ -43,39 +51,6 @@ val testJar by tasks.registering(Jar::class) {
   archiveBaseName.set("proxy-core")
   archiveClassifier.set("test")
   from(sourceSets.test.get().output)
-}
-
-configurations {
-  create("testArtifacts") {
-    extendsFrom(configurations.testRuntimeOnly.get())
-  }
-}
-
-artifacts {
-  add("testArtifacts", testJar)
-}
-
-tasks.test {
-  useJUnit {
-    excludeCategories("org.niis.xroad.proxy.core.testutil.IntegrationTest")
-  }
-}
-
-val integrationTest by tasks.registering(Test::class) {
-  description = "Runs integration tests."
-  group = "verification"
-  shouldRunAfter(tasks.test)
-
-  useJUnit {
-    includeCategories("org.niis.xroad.proxy.core.testutil.IntegrationTest")
-  }
-  reports {
-    junitXml.required.set(false)
-  }
-}
-
-tasks.check {
-  dependsOn(integrationTest)
 }
 
 tasks.register<Test>("intTest") {

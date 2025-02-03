@@ -43,7 +43,7 @@ import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.globalconf.util.HashCalculator;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -89,6 +89,7 @@ public class OutputBuilder implements AutoCloseable {
     private static final DateTimeFormatter DATETIME_FORMAT =
             DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"));
 
+    private final SignerRpcClient signerRpcClient;
     private final VersionedConfigurationDirectory confDir;
     private final ConfProxyProperties conf;
     private final int version;
@@ -110,8 +111,10 @@ public class OutputBuilder implements AutoCloseable {
      * @param configuration configuration proxy instance configuration
      * @throws IOException in case of errors when a temporary directory
      */
-    public OutputBuilder(final VersionedConfigurationDirectory confDirectory, final ConfProxyProperties configuration, int version)
+    public OutputBuilder(SignerRpcClient signerRpcClient, VersionedConfigurationDirectory confDirectory,
+                         ConfProxyProperties configuration, int version)
             throws IOException {
+        this.signerRpcClient = signerRpcClient;
         this.confDir = confDirectory;
         this.conf = configuration;
         this.version = version;
@@ -372,8 +375,8 @@ public class OutputBuilder implements AutoCloseable {
         }
     }
 
-    private static SignAlgorithm getSignatureAlgorithmId(String keyId, DigestAlgorithm digestAlgoId) throws Exception {
-        var signMechanismName = SignerProxy.getSignMechanism(keyId);
+    private SignAlgorithm getSignatureAlgorithmId(String keyId, DigestAlgorithm digestAlgoId) throws Exception {
+        var signMechanismName = signerRpcClient.getSignMechanism(keyId);
 
         return SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
     }
@@ -387,9 +390,8 @@ public class OutputBuilder implements AutoCloseable {
      * @return the configuration directory signature string (base64)
      * @throws Exception if cryptographic operations fail
      */
-    private String getSignature(final String keyId, final SignAlgorithm signatureAlgorithmId, final byte[] digest)
-            throws Exception {
-        byte[] signature = SignerProxy.sign(keyId, signatureAlgorithmId, digest);
+    private String getSignature(final String keyId, final SignAlgorithm signatureAlgorithmId, final byte[] digest) {
+        byte[] signature = signerRpcClient.sign(keyId, signatureAlgorithmId, digest);
 
         return encodeBase64(signature);
     }

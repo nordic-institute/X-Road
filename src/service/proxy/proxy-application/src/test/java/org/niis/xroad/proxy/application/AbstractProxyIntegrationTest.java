@@ -32,21 +32,21 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
-import org.niis.xroad.proxy.core.testutil.IntegrationTest;
-import org.niis.xroad.proxy.core.testutil.TestGlobalConf;
-import org.niis.xroad.proxy.core.testutil.TestKeyConf;
-import org.niis.xroad.proxy.core.testutil.TestServerConf;
-import org.niis.xroad.proxy.core.testutil.TestServerConfWrapper;
-import org.niis.xroad.proxy.core.testutil.TestService;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.application.testsuite.TestService;
+import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
+import org.niis.xroad.test.keyconf.TestKeyConf;
+import org.niis.xroad.test.serverconf.TestServerConf;
+import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -67,7 +67,6 @@ import static org.mockito.Mockito.mock;
  * Base class for proxy integration tests
  * Starts and stops the test proxy instance and a service simulator.
  */
-@Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
     private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
@@ -136,7 +135,7 @@ public abstract class AbstractProxyIntegrationTest {
         }
     }
 
-    @Configuration
+    @Configuration(proxyBeanMethods = false)
     static class TestProxySpringConfig {
 
         @Bean
@@ -165,6 +164,12 @@ public abstract class AbstractProxyIntegrationTest {
         @Bean
         ServerConfProvider serverConfProvider() {
             return TEST_SERVER_CONF;
+        }
+
+        @Bean
+        @Primary
+        SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+            return new TestSigningCtxProvider(globalConfProvider, keyConfProvider);
         }
     }
 

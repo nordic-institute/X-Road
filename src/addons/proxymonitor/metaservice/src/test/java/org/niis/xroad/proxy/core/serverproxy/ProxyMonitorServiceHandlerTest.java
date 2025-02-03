@@ -62,7 +62,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.proxy.core.util.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
+import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 
 /**
  * Unit tests for {@link ProxyMonitorServiceHandlerImpl}

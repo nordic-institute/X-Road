@@ -31,10 +31,11 @@ import ee.ria.xroad.common.SystemProperties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -64,8 +65,8 @@ public class ProxyDiagnosticsConfig {
     @Bean
     @Conditional(HealthCheckEnabledCondition.class)
     HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                              ServerConfProvider serverConfProvider) {
-        return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
+                              ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
+        return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient);
     }
 
     @Bean

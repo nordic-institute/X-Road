@@ -10,6 +10,7 @@ dependencies {
   implementation(project(":service:signer:signer-client"))
 
   implementation(libs.commons.cli)
+  implementation(libs.logback.classic)
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.assertj.core)

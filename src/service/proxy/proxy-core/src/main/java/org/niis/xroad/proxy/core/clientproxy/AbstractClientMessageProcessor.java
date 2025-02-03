@@ -41,12 +41,9 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.ClientType;
 
@@ -86,14 +83,11 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected AbstractClientMessageProcessor(GlobalConfProvider globalConfProvider,
-                                             KeyConfProvider keyConfProvider,
-                                             ServerConfProvider serverConfProvider,
-                                             CertChainFactory certChainFactory,
+    protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
                                              OpMonitoringData opMonitoringData) throws Exception {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient);
+        super(commonBeanProxy, request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
@@ -163,7 +157,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames = globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+        Collection<String> hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -171,7 +165,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (serverId != null) {
-            final String securityServerAddress = globalConfProvider.getSecurityServerAddress(serverId);
+            final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
 
             if (securityServerAddress == null) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
@@ -214,7 +208,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
-        String status = serverConfProvider.getMemberStatus(client);
+        String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }

@@ -32,7 +32,6 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -43,20 +42,16 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.proxy.core.conf.AuthKeyManager;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
-import org.niis.xroad.proxy.core.testsuite.DummySslServerProxy;
-import org.niis.xroad.proxy.core.testutil.IntegrationTest;
-import org.niis.xroad.proxy.core.testutil.TestGlobalConf;
-import org.niis.xroad.proxy.core.testutil.TestKeyConf;
-import org.niis.xroad.proxy.core.util.SystemMetrics;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.impl.AuthKeyManager;
+import org.niis.xroad.proxy.core.test.DummySslServerProxy;
+import org.niis.xroad.test.globalconf.TestGlobalConf;
+import org.niis.xroad.test.keyconf.TestKeyConf;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -79,8 +74,7 @@ import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSS
  * Fastest connection selecting SSL socket factory test program.
  */
 @Slf4j
-@Category(IntegrationTest.class)
-public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
+class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
@@ -97,14 +91,13 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         }
     };
 
-    private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private AuthTrustVerifier authTrustVerifier;
     private CloseableHttpClient client;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        globalConfProvider = new TestGlobalConf();
+        GlobalConfProvider globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
         authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
                 new CertChainFactory(globalConfProvider));
@@ -113,17 +106,16 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     @Test
-    public void testWithSender() throws Exception {
-        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
-
+    void testWithSender() throws Exception {
         createClient();
+        var host = "127.0.0.1";
         int port1 = getFreePort();
         int port2 = getFreePort();
-        final URI uri1 = URI.create("https://127.0.0.5:" + port1);
-        final URI uri2 = URI.create("https://127.0.0.5:" + port2);
+        final URI uri1 = URI.create("https://%s:%s".formatted(host, port1));
+        final URI uri2 = URI.create("https://%s:%s".formatted(host, port2));
 
         // try with only valid proxy running
-        final DummySslServerProxy proxy = new DummySslServerProxy(port1, validAuthKey);
+        final DummySslServerProxy proxy = new DummySslServerProxy(host, port1, validAuthKey);
         try {
             proxy.start();
             testWithSender(uri1, uri2);
@@ -134,7 +126,7 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         // swap an invalid proxy to the valid address, set up valid proxy to the secondary address.
         final DummySslServerProxy invalid =
                 new DummySslServerProxy(port1, new DummySslServerProxy.DummyAuthKeyManager());
-        final DummySslServerProxy valid = new DummySslServerProxy(port2, validAuthKey);
+        final DummySslServerProxy valid = new DummySslServerProxy(host, port2, validAuthKey);
 
         try {
             invalid.start();
@@ -191,10 +183,6 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new SecureRandom());
 
         return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx);
-    }
-
-    private void logFH() {
-        log.info("\nfree fd = {}\n", SystemMetrics.getFreeFileDescriptorCount());
     }
 
     static class NoopTrustManager implements X509TrustManager {

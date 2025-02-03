@@ -31,13 +31,10 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.apache.http.client.HttpClient;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.auth.AuthKey;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
@@ -50,11 +47,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 class ClientMessageHandler extends AbstractClientProxyHandler {
 
-    ClientMessageHandler(GlobalConfProvider globalConfProvider,
-                         KeyConfProvider keyConfProvider,
-                         ServerConfProvider serverConfProvider,
-                         CertChainFactory certChainFactory, HttpClient client) {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
+    ClientMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+        super(commonBeanProxy, client, true);
     }
 
     @Override
@@ -63,7 +57,7 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
             OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
-        return new ClientMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+        return new ClientMessageProcessor(commonBeanProxy,
                 request, response, client, getIsAuthenticationData(request), opMonitoringData);
     }
 
@@ -74,13 +68,13 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
                     request.getMethod());
         }
 
-        globalConfProvider.verifyValidity();
+        commonBeanProxy.globalConfProvider.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = keyConfProvider.getAuthKey();
+        AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
         if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

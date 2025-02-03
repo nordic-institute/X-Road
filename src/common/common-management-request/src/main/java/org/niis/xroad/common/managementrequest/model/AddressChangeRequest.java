@@ -30,8 +30,10 @@ package org.niis.xroad.common.managementrequest.model;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
+import org.niis.xroad.signer.client.SignerRpcClient;
+
 public class AddressChangeRequest extends GenericClientRequest {
-    public AddressChangeRequest(ClientId client, SoapMessageImpl request) {
-        super(client, request);
+    public AddressChangeRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
+        super(signerRpcClient, client, request);
     }
 }

@@ -27,7 +27,7 @@ package org.niis.xroad.confproxy.commandline;
 
 import org.apache.commons.cli.CommandLine;
 import org.niis.xroad.confproxy.ConfProxyProperties;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
 
@@ -39,8 +39,8 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
     /**
      * Constructs a confproxy-del-signing-key utility program instance.
      */
-    ConfProxyUtilDelSigningKey() {
-        super("confproxy-del-signing-key");
+    ConfProxyUtilDelSigningKey(SignerRpcClient signerRpcClient) {
+        super("confproxy-del-signing-key", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
                 .addOption("k", "key-id", true, "Id of the signing key to delete");
@@ -65,7 +65,7 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
             conf.deleteCert(keyId);
             System.out.println("Deleted self-signed certificate 'cert_"
                     + keyId + ".pem'");
-            SignerProxy.deleteKey(keyId, true);
+            signerRpcClient.deleteKey(keyId, true);
             System.out.println("Deleted key from signer");
         } else {
             printHelp();

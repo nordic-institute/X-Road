@@ -33,13 +33,13 @@ import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -65,7 +65,7 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_
 @RequiredArgsConstructor
 public class TokenService {
 
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final AuditDataHelper auditDataHelper;
     private final TokenPinValidator tokenPinValidator;
@@ -77,7 +77,7 @@ public class TokenService {
      */
     public List<TokenInfo> getAllTokens() {
         try {
-            return signerProxyFacade.getTokens();
+            return signerRpcClient.getTokens();
         } catch (Exception e) {
             throw new ServiceException(TOKEN_FETCH_FAILED, e);
         }
@@ -146,7 +146,7 @@ public class TokenService {
         possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_ACTIVATE,
                 tokenInfo);
         try {
-            signerProxyFacade.activateToken(id, password);
+            signerRpcClient.activateToken(id, password);
         } catch (SignerException e) {
             if (e.isCausedByTokenNotFound()) {
                 throw new TokenNotFoundException(e);
@@ -180,7 +180,7 @@ public class TokenService {
                 tokenInfo);
 
         try {
-            signerProxyFacade.deactivateToken(id);
+            signerRpcClient.deactivateToken(id);
         } catch (SignerException e) {
             if (e.isCausedByTokenNotFound()) {
                 throw new TokenNotFoundException(e);
@@ -202,7 +202,7 @@ public class TokenService {
      */
     public TokenInfo getToken(String id) throws TokenNotFoundException {
         try {
-            return signerProxyFacade.getToken(id);
+            return signerRpcClient.getToken(id);
         } catch (SignerException e) {
             if (e.isCausedByTokenNotFound()) {
                 throw new TokenNotFoundException(e);
@@ -234,8 +234,8 @@ public class TokenService {
                 tokenInfo);
 
         try {
-            signerProxyFacade.setTokenFriendlyName(tokenId, friendlyName);
-            tokenInfo = signerProxyFacade.getToken(tokenId);
+            signerRpcClient.setTokenFriendlyName(tokenId, friendlyName);
+            tokenInfo = signerRpcClient.getToken(tokenId);
         } catch (SignerException e) {
             if (e.isCausedByTokenNotFound()) {
                 throw new TokenNotFoundException(e);
@@ -255,7 +255,7 @@ public class TokenService {
      */
     public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
         try {
-            return signerProxyFacade.getTokenForKeyId(keyId);
+            return signerRpcClient.getTokenForKeyId(keyId);
         } catch (SignerException e) {
             if (e.isCausedByKeyNotFound()) {
                 throw new KeyNotFoundException(e);
@@ -275,7 +275,7 @@ public class TokenService {
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateHash(String hash) throws KeyNotFoundException,
             CertificateNotFoundException {
         try {
-            return signerProxyFacade.getTokenAndKeyIdForCertHash(hash);
+            return signerRpcClient.getTokenAndKeyIdForCertHash(hash);
         } catch (SignerException e) {
             if (e.isCausedByKeyNotFound()) {
                 throw new KeyNotFoundException(e);
@@ -335,7 +335,7 @@ public class TokenService {
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateRequestId(String csrId) throws KeyNotFoundException,
             CsrNotFoundException {
         try {
-            return signerProxyFacade.getTokenAndKeyIdForCertRequestId(csrId);
+            return signerRpcClient.getTokenAndKeyIdForCertRequestId(csrId);
         } catch (SignerException e) {
             if (e.isCausedByKeyNotFound()) {
                 throw new KeyNotFoundException(e);
@@ -384,7 +384,7 @@ public class TokenService {
         char[] newPinCharArray = newPin.toCharArray();
         tokenPinValidator.validateSoftwareTokenPin(newPinCharArray);
         try {
-            signerProxyFacade.updateSoftwareTokenPin(tokenId, oldPin.toCharArray(), newPinCharArray);
+            signerRpcClient.updateTokenPin(tokenId, oldPin.toCharArray(), newPinCharArray);
         } catch (SignerException se) {
             if (se.isCausedByTokenNotFound()) {
                 throw new TokenNotFoundException(se);

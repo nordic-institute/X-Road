@@ -42,7 +42,7 @@ final class TestcaseLoader {
             TestcaseLoader.class);
 
     private static final String TESTCASES_PACKAGE_NAME =
-            "org.niis.xroad.proxy.core.testsuite.testcases.";
+            "org.niis.xroad.proxy.application.testsuite.testcases.";
 
     // currently hard coded flag for sorting the all testcases
     private static final boolean SORT_ALPHABETICALLY = false;

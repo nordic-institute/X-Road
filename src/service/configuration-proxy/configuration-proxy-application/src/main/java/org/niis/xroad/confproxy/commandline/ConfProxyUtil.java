@@ -34,6 +34,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -53,6 +54,8 @@ public abstract class ConfProxyUtil {
     private final String name;
 
     private Options options = new Options();
+
+    protected final SignerRpcClient signerRpcClient;
 
     protected static final Option PROXY_INSTANCE =
             new Option("p", "proxy-instance", true,

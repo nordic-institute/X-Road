@@ -45,8 +45,8 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -81,7 +81,7 @@ public class CertificateAuthorityService {
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
     private final ClientService clientService;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AcmeService acmeService;
     private final AcmeProperties acmeProperties;
@@ -131,7 +131,7 @@ public class CertificateAuthorityService {
         String[] base64EncodedOcspResponses;
         try {
             String[] certHashes = CertUtils.getSha1Hashes(new ArrayList<>(filteredCerts));
-            base64EncodedOcspResponses = signerProxyFacade.getOcspResponses(certHashes);
+            base64EncodedOcspResponses = signerRpcClient.getOcspResponses(certHashes);
         } catch (Exception e) {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
         }

@@ -31,7 +31,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.util.Date;
 
@@ -46,8 +46,8 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
     /**
      * Constructs a confproxy-add-signing-key utility program instance.
      */
-    ConfProxyUtilAddSigningKey() {
-        super("confproxy-add-signing-key");
+    ConfProxyUtilAddSigningKey(SignerRpcClient signerRpcClient) {
+        super("confproxy-add-signing-key", signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
                 .addOption("k", "key-id", true, "Id of the key to be added")
@@ -68,7 +68,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
             String tokenId = commandLine.getOptionValue("t");
             String alg = commandLine.getOptionValue("a", KeyAlgorithm.RSA.name());
             KeyAlgorithm keyAlgorithm = StringUtils.equalsIgnoreCase(KeyAlgorithm.EC.name(), alg) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
-            KeyInfo keyInfo = SignerProxy.generateKey(tokenId, "key-" + System.currentTimeMillis(), keyAlgorithm);
+            KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, "key-" + System.currentTimeMillis(), keyAlgorithm);
             System.out.println("Generated key with ID " + keyInfo.getId());
             addSigningKey(conf, keyInfo.getId());
         } else {
@@ -85,7 +85,7 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
      */
     private void addSigningKey(final ConfProxyProperties conf,
                                final String keyId) throws Exception {
-        final byte[] certBytes = SignerProxy.generateSelfSignedCert(keyId, null, SIGNING, "N/A",
+        final byte[] certBytes = signerRpcClient.generateSelfSignedCert(keyId, null, SIGNING, "N/A",
                 new Date(0), new Date(Integer.MAX_VALUE));
         conf.saveCert(keyId, certBytes);
         System.out.println("Saved self-signed certificate to cert_"

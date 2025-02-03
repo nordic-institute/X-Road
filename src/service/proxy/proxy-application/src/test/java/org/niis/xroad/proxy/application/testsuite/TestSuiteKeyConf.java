@@ -40,10 +40,9 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
-import org.niis.xroad.proxy.core.auth.AuthKey;
-import org.niis.xroad.proxy.core.conf.SigningCtx;
-import org.niis.xroad.proxy.core.testsuite.EmptyKeyConf;
-import org.niis.xroad.proxy.core.util.TestUtil;
+import org.niis.xroad.keyconf.SigningInfo;
+import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.test.keyconf.EmptyKeyConf;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -62,22 +61,11 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 public class TestSuiteKeyConf extends EmptyKeyConf {
     private final GlobalConfProvider globalConfProvider;
 
-    Map<String, SigningCtx> signingCtx = new HashMap<>();
     Map<String, OCSPResp> ocspResponses = new HashMap<>();
 
     @Override
-    public SigningCtx getSigningCtx(ClientId clientId) {
-        String orgName = clientId.getMemberCode();
-        SigningCtx ctx = currentTestCase().getSigningCtx(orgName);
-        if (ctx != null) {
-            return ctx;
-        }
-
-        if (!signingCtx.containsKey(orgName)) {
-            signingCtx.put(orgName, TestUtil.getSigningCtx(globalConfProvider, this, orgName));
-        }
-
-        return signingCtx.get(orgName);
+    public SigningInfo getSigningInfo(ClientId clientId) {
+        return super.getSigningInfo(clientId);
     }
 
     @Override
@@ -120,10 +108,6 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
         }
 
         return ocspResponses.get(certHash);
-    }
-
-    private static MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
     }
 
     private X509Certificate getOcspSignerCert() throws Exception {

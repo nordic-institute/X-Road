@@ -28,19 +28,13 @@ package org.niis.xroad.proxy.core.clientproxy;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Handler;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.proxy.core.conf.KeyConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.lang.reflect.Constructor;
 
 @RequiredArgsConstructor
 final class HandlerLoader {
-    private final GlobalConfProvider globalConfProvider;
-    private final KeyConfProvider keyConfProvider;
-    private final ServerConfProvider serverConfProvider;
-    private final CertChainFactory certChainFactory;
+    private final CommonBeanProxy commonBeanProxy;
 
 
     Handler loadHandler(String className, HttpClient client)
@@ -59,12 +53,9 @@ final class HandlerLoader {
         try {
             Constructor<? extends Handler> constructor =
                     handlerClass.getConstructor(
-                            GlobalConfProvider.class,
-                            KeyConfProvider.class,
-                            ServerConfProvider.class,
-                            CertChainFactory.class,
+                            CommonBeanProxy.class,
                             HttpClient.class);
-            return constructor.newInstance(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client);
+            return constructor.newInstance(commonBeanProxy, client);
         } catch (NoSuchMethodException e) {
             throw new Exception("Handler must have constructor taking "
                     + "1 parameter (" + HttpClient.class + ")", e);

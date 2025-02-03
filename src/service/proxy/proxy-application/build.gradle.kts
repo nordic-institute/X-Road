@@ -7,15 +7,20 @@ plugins {
 dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":service:proxy:proxy-core"))
+  implementation(libs.logback.classic)
 
   testImplementation(libs.hsqldb)
   testImplementation(libs.restAssured)
-
+  testImplementation(libs.apache.httpasyncclient)
   testImplementation(project(":common:common-domain"))
   testImplementation(project(":common:common-jetty"))
   testImplementation(project(":common:common-message"))
   testImplementation(project(":common:common-test"))
-  testImplementation(project(path = ":service:proxy:proxy-core", configuration = "testArtifacts"))
+
+  testImplementation(testFixtures(project(":lib:globalconf-impl")))
+  testImplementation(testFixtures(project(":lib:serverconf-impl")))
+  testImplementation(testFixtures(project(":lib:keyconf-impl")))
+  testImplementation(testFixtures(project(":service:proxy:proxy-core")))
 }
 
 tasks.jar {
@@ -23,7 +28,6 @@ tasks.jar {
     attributes("Main-Class" to "org.niis.xroad.proxy.application.ProxyMain")
   }
   archiveClassifier.set("plain")
-  archiveBaseName.set("proxy")
 }
 
 tasks.shadowJar {
@@ -53,28 +57,9 @@ tasks.assemble {
   finalizedBy(tasks.shadowJar)
 }
 
-tasks.test {
-  useJUnit {
-    excludeCategories("org.niis.xroad.proxy.core.testutil.IntegrationTest")
-  }
-}
-
-val integrationTest by tasks.registering(Test::class) {
-  description = "Runs integration tests."
-  group = "verification"
-  shouldRunAfter(tasks.test)
-
-  useJUnit {
-    includeCategories("org.niis.xroad.proxy.core.testutil.IntegrationTest")
-  }
-  reports {
-    junitXml.required.set(false)
-  }
-}
-
 val runProxyTest by tasks.registering(JavaExec::class) {
   group = "verification"
-  shouldRunAfter(integrationTest)
+  shouldRunAfter(tasks.test)
   jvmArgs(
     "-Xmx2g",
     "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
@@ -95,7 +80,3 @@ val runProxyTest by tasks.registering(JavaExec::class) {
 }
 
 project.extensions.getByType<JacocoPluginExtension>().applyTo(tasks.named<JavaExec>("runProxyTest").get())
-
-tasks.check {
-  dependsOn(integrationTest)
-}

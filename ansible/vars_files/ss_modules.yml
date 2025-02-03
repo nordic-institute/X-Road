@@ -17,7 +17,7 @@ ss_modules:
     lib: proxymonitor-metaservice-1.0.jar
     target: /usr/share/xroad/jlib/addon/proxy
   addon-message-log-archiver:
-    dir: addons/messagelog/messagelog-archiver/application
+    dir: service/message-log-archiver/message-log-archiver-application
     build: build
     lib: messagelog-archiver.jar
     target: /usr/share/xroad/jlib/addon/proxy
