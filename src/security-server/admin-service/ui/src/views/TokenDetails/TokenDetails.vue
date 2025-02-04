@@ -26,12 +26,24 @@
 <template>
   <div class="xrd-tab-max-width detail-view-outer">
     <div class="detail-view-content">
-      <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
+      <xrd-sub-view-title :title="$t('keys.token.details')" @close="close" />
+      <div class="detail-view-tools">
+        <xrd-button
+          v-if="canDelete()"
+          :loading="deleting"
+          data-test="token-delete-button"
+          outlined
+          @click="confirmDelete = true"
+        >{{ $t('action.delete') }}
+        </xrd-button>
+      </div>
+      <v-row class="empty">
+      </v-row>
       <v-row>
         <v-col>
-          <h3>{{ $t('keys.tokenInfo') }}</h3>
+          <h3>{{ $t('keys.token.info') }}</h3>
           <div class="d-flex">
-            <div class="row-title">{{ $t('keys.tokenId') }}</div>
+            <div class="row-title">{{ $t('keys.token.id') }}</div>
             <div class="row-data text-break">{{ token.id }}</div>
           </div>
           <div class="d-flex">
@@ -143,6 +155,15 @@
       >{{ $t('action.save') }}
       </xrd-button>
     </div>
+
+    <!-- Confirm dialog delete token -->
+    <xrd-confirm-dialog
+      v-if="confirmDelete"
+      title="keys.token.deleteTitle"
+      text="keys.token.deleteText"
+      @cancel="confirmDelete = false"
+      @accept="deleteToken()"
+    />
   </div>
 </template>
 
@@ -159,6 +180,8 @@ import { useNotifications } from '@/store/modules/notifications';
 import { AxiosError } from 'axios';
 import { PublicPathState, useForm } from 'vee-validate';
 import { useTokens } from '@/store/modules/tokens';
+import * as api from "@/util/api";
+import {encodePathParameter} from "@/util/api";
 
 export default defineComponent({
   props: {
@@ -237,12 +260,17 @@ export default defineComponent({
   data() {
     return {
       saving: false,
+      confirmDelete: false,
+      deleting: false as boolean,
     };
   },
   computed: {
     ...mapState(useUser, ['hasPermission', 'isEnforceTokenPolicyEnabled']),
     hasEditPermission(): boolean {
       return this.hasPermission(Permissions.EDIT_TOKEN_FRIENDLY_NAME);
+    },
+    hasDeletePermission(): boolean {
+      return this.hasPermission(Permissions.DELETE_TOKEN);
     },
     canUpdatePin(): boolean {
       return this.hasPermission(Permissions.UPDATE_TOKEN_PIN);
@@ -275,7 +303,7 @@ export default defineComponent({
       this.saving = true;
 
       try {
-        let successMsg = this.$t('keys.tokenSaved') as string;
+        let successMsg = this.$t('keys.token.saved') as string;
         if (this.isChangePinOpen) {
           await this.updatePin(
             this.id,
@@ -306,6 +334,26 @@ export default defineComponent({
           PossibleAction.EDIT_FRIENDLY_NAME,
         ) ?? false
       );
+    },
+
+    canDelete(): boolean {
+      if (!this.token?.possible_actions?.includes(PossibleAction.TOKEN_DELETE)) {
+        return false;
+      }
+
+      return this.hasDeletePermission
+    },
+
+    deleteToken(): void {
+      this.deleting = true;
+      this.confirmDelete = false;
+      api.remove(`/tokens/${encodePathParameter(this.id)}`)
+        .then(() => {
+          this.showSuccess(this.$t('keys.token.deleteSuccess'));
+          this.$router.back();
+        })
+        .catch((error) => this.showError(error))
+        .finally(() => (this.deleting = false));
     },
 
     isTokenLoggedIn(): boolean {
@@ -343,6 +391,11 @@ export default defineComponent({
 .expandable::v-deep(.exp-header) {
   padding: 0;
   margin-left: -12px;
+}
+
+.empty {
+  margin: 1px;
+  text-align: center;
 }
 
 .pointer {

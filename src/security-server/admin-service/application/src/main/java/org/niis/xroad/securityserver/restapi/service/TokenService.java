@@ -29,6 +29,8 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -50,9 +52,10 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_ACTIVE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_FOUND;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_PIN_INCORRECT;
 
 /**
@@ -400,15 +403,32 @@ public class TokenService {
         }
     }
 
-    public static class PinIncorrectException extends ServiceException {
-        public PinIncorrectException(Throwable t) {
-            super(TOKEN_PIN_INCORRECT, t);
+    /**
+     * Delete inactive token
+     *
+     * @param id ID of the token
+     */
+    public void deleteToken(String id) {
+        try {
+            TokenInfo tokenInfo = getToken(id);
+            auditDataHelper.put(tokenInfo);
+
+            possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_DELETE, tokenInfo);
+            signerRpcClient.deleteToken(id);
+        } catch (TokenNotFoundException e) {
+            throw new NotFoundException(TOKEN_NOT_FOUND, e);
+        } catch (ActionNotPossibleException e) {
+            throw new DataIntegrityException(ACTION_NOT_POSSIBLE, e);
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception other) {
+            throw new ServiceException(INTERNAL_ERROR, other);
         }
     }
 
-    public static class TokenNotActiveException extends ServiceException {
-        public TokenNotActiveException(Throwable t) {
-            super(TOKEN_NOT_ACTIVE, t);
+    public static class PinIncorrectException extends ServiceException {
+        public PinIncorrectException(Throwable t) {
+            super(TOKEN_PIN_INCORRECT, t);
         }
     }
 }

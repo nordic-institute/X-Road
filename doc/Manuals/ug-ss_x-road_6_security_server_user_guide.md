@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.91  
+Version: 2.92  
 Doc. ID: UG-SS
 
 ---
@@ -120,6 +120,7 @@ Doc. ID: UG-SS
 | 17.12.2024 | 2.89    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 07.01.2025 | 2.90    | Updated references                                                                                                                                                                                                                                                                                                                                                                                          | Petteri Kivimäki     |
 | 15.01.2025 | 2.91    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki     |
+| 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -178,6 +179,7 @@ Doc. ID: UG-SS
     - [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
     - [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
   - [5.7 Deleting a Key](#57-deleting-a-key)
+  - [5.8 Deleting an inactive Token](#58-deleting-an-inactive-token)
 - [6 X-Road Services](#6-x-road-services)
   - [6.1 Adding a service description](#61-adding-a-service-description)
     - [6.1.1 SOAP](#611-soap)
@@ -1296,6 +1298,19 @@ To delete a key, follow these steps.
 
     3.1 In the opening **Key** dialog, click **DELETE**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
 
+### 5.8 Deleting an inactive Token
+
+**Warning:** Deleting an inactive token from the server configuration also deletes all associated information of the token.
+
+**Access rights:** [Service Administrator](#xroad-service-administrator)
+
+To delete a token, follow these steps.
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  Select the inactive token, then end of the token name click **Edit** icon.
+
+3.  In the opening **Edit** dialog, click **DELETE**. Confirm the deletion of the token (and its associated information) by clicking **YES**.
 
 ## 6 X-Road Services
 

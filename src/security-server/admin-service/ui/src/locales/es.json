@@ -625,12 +625,17 @@
     "signDetailsTitle": "Detalles de la clave de firma",
     "signKeyCert": "Firmar claves y certificados",
     "status": "Estado",
-    "token": "Token:",
-    "tokenDetails": "Detalles del token",
-    "tokenId": "ID de token:",
-    "tokenInfo": "Información del token",
-    "tokenPin": "PIN",
-    "tokenSaved": "Token guardado",
+    "token": {
+      "label": "Token:",
+      "details": "Detalles del token",
+      "id": "ID de token:",
+      "info": "Información del token",
+      "pin": "PIN",
+      "saved": "Token guardado",
+      "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
+      "deleteTitle": "¿Eliminar token?",
+      "deleteSuccess": "Token fue eliminado"
+    },
     "tokenStatus": {
       "active": "",
       "available": "",
