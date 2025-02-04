@@ -80,6 +80,11 @@ public class MonitorConfig {
 
     @ConfigMapping(prefix = "xroad.env-monitor.rpc")
     public interface EnvMonitorServerProperties extends RpcServerProperties {
+        @WithName("enabled")
+        @WithDefault("true")
+        @Override
+        boolean enabled();
+
         @WithName("listen-address")
         @WithDefault("127.0.0.1")
         @Override
