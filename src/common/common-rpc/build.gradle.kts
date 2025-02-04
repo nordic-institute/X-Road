@@ -15,7 +15,9 @@ dependencies {
   api(libs.grpc.nettyShaded)
   api(libs.protobuf.javaUtil)
   api(libs.jakarta.annotationApi)
-  api(libs.quarkus.arc)
+
+  api(libs.jakarta.cdiApi)
+  api(libs.smallrye.config.core)
 
   testFixturesImplementation(libs.quarkus.junit5)
 }
