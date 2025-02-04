@@ -380,7 +380,7 @@ public class ConfigurationParser {
         try {
             var connection = downloader.getDownloadURLConnection(URI.create(configurationLocation.getDownloadURL()).toURL());
             return connection.getInputStream();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new CodedException(X_HTTP_ERROR, e);
         }
     }

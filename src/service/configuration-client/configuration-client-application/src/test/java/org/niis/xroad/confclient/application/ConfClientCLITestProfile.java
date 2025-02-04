@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,28 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core.config;
+package org.niis.xroad.confclient.application;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-@ConfigMapping(prefix = "xroad.configuration-client.rpc")
-public interface ConfigurationClientRpcServerProperties extends RpcServerProperties {
+import java.util.Map;
 
-    @WithName("enabled")
-    @WithDefault("true")
+import static java.lang.String.join;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
+
+public class ConfClientCLITestProfile implements QuarkusTestProfile {
     @Override
-    boolean enabled();
+    public String getConfigProfile() {
+        return join(",", CLI, NATIVE, TEST);
+    }
 
-    @WithName("listen-address")
-    @WithDefault("127.0.0.1")
     @Override
-    String listenAddress();
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO"
+        );
+    }
 
-    @WithName("port")
-    @WithDefault("5665")
-    @Override
-    int port();
 }

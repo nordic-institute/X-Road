@@ -28,6 +28,8 @@
 package org.niis.xroad.common.rpc;
 
 public interface RpcServerProperties {
+    boolean enabled();
+
     String listenAddress();
 
     int port();

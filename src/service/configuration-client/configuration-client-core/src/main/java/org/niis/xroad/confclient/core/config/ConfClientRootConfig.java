@@ -27,14 +27,18 @@ package org.niis.xroad.confclient.core.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.confclient.core.ConfigurationClient;
+import org.niis.xroad.confclient.core.ConfigurationDownloader;
+import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
 
 public class ConfClientRootConfig {
 
     @ApplicationScoped
-    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
+    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties,
+                                            HttpUrlConnectionConfigurer connectionConfigurer) {
+        var downloader = new ConfigurationDownloader(connectionConfigurer, configurationClientProperties.globalConfDir());
         return new ConfigurationClient(
                 configurationClientProperties.configurationAnchorFile(),
-                configurationClientProperties.globalConfDir());
+                configurationClientProperties.globalConfDir(), downloader);
     }
 
 }

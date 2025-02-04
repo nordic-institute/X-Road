@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.confclient;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
@@ -38,6 +39,7 @@ import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.O
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class ConfClientCLIRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;

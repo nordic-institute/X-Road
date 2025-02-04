@@ -33,6 +33,7 @@ import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
@@ -50,17 +51,19 @@ public class ConfClientJobConfig {
     @Startup
     public static class JobManagerInitializer {
 
-        public JobManagerInitializer(ConfigurationClientJobListener listener,
+        public JobManagerInitializer(@ConfigProperty(name = "quarkus.scheduler.enabled") boolean schedulerEnabled,
+                                     ConfigurationClientJobListener listener,
                                      ConfigurationClientProperties configurationClientProperties,
                                      JobManager jobManager) throws SchedulerException {
+            if (schedulerEnabled) {
+                jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
 
-            jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+                jobManager.registerRepeatingJob(ConfigurationClientJob.class,
+                        configurationClientProperties.updateInterval(), new JobDataMap());
 
-            jobManager.registerRepeatingJob(ConfigurationClientJob.class,
-                    configurationClientProperties.updateInterval(), new JobDataMap());
-
-            jobManager.registerJob(ProxyConfigurationBackupJob.class,
-                    configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
+                jobManager.registerJob(ProxyConfigurationBackupJob.class,
+                        configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
+            }
         }
     }
 

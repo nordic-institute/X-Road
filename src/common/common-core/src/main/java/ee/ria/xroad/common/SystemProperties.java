@@ -497,12 +497,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
             PREFIX + "configuration-client.admin-port";
 
-    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
-            PREFIX + "configuration-client.global-conf-tls-cert-verification";
-
-    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
-            PREFIX + "configuration-client.global-conf-hostname-verification";
-
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
 
@@ -1256,14 +1250,6 @@ public final class SystemProperties {
     public static int getConfigurationClientAdminPort() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
-    }
-
-    public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, TRUE));
-    }
-
-    public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, TRUE));
     }
 
     public static String getConfigurationClientAllowedFederations() {

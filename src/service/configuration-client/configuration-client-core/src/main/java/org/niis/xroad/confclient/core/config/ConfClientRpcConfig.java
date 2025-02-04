@@ -30,6 +30,7 @@ import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
@@ -41,7 +42,8 @@ public class ConfClientRpcConfig {
 
     @ApplicationScoped
     @Startup
-    RpcServer rpcServer(@All List<BindableService> services,
+    RpcServer rpcServer(@ConfigProperty(name = "xroad.configuration-client.rpc.enabled") boolean rpcEnabled,
+                        @All List<BindableService> services,
                         RpcServerProperties rpcServerProperties,
                         RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
         var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
@@ -50,7 +52,9 @@ public class ConfClientRpcConfig {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
                 }));
-        server.afterPropertiesSet();
+        if (rpcEnabled) {
+            server.afterPropertiesSet();
+        }
         return server;
     }
 }

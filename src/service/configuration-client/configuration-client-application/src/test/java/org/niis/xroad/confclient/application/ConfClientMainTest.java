@@ -32,7 +32,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.confclient.ConfClientCLIRunner;
 
 @QuarkusTest
 @TestProfile(ConfClientTestProfile.class)
@@ -40,8 +39,6 @@ class ConfClientMainTest {
 
     @Test
     void contextLoads() {
-
         Assertions.assertFalse(Arc.container().select(JobManager.class).stream().toList().isEmpty());
-        Assertions.assertTrue(Arc.container().select(ConfClientCLIRunner.class).stream().toList().isEmpty());
     }
 }

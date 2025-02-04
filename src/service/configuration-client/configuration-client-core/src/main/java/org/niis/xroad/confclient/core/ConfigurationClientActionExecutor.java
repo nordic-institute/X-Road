@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.confclient.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +41,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
@@ -58,6 +55,7 @@ public class ConfigurationClientActionExecutor {
     public static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
     public static final String OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE = "verifyAnchorForExternalSource";
 
+    private final HttpUrlConnectionConfigurer httpUrlConnectionConfigurer;
     private final ConfigurationClientProperties confClientProperties;
 
     public int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
@@ -66,7 +64,8 @@ public class ConfigurationClientActionExecutor {
                 configurationPath,
                 configurationVersion);
 
-        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, configurationVersion) {
+        var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath, configurationVersion);
+        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, downloader) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -82,8 +81,8 @@ public class ConfigurationClientActionExecutor {
         log.debug("Downloading configuration using anchor {} path = {})",
                 configurationAnchorFile, configurationPath);
 
-
-        var client = new ConfigurationClient(configurationAnchorFile, configurationPath) {
+        var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath);
+        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, downloader) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -105,9 +104,7 @@ public class ConfigurationClientActionExecutor {
 
     public int validate(ConfigurationAnchor configurationAnchor, ParamsValidator paramsValidator) {
         // Create configuration that does not persist files to disk.
-        final String configurationPath = SystemProperties.getConfigurationPath();
-
-        var configurationDownloader = new ConfigurationDownloader(configurationPath) {
+        var configurationDownloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, confClientProperties.globalConfDir()) {
             @Override
             void validateContent(ConfigurationFile file) {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
@@ -128,8 +125,9 @@ public class ConfigurationClientActionExecutor {
 
         };
 
-        var client = new ConfigurationClient(confClientProperties.configurationAnchorFile(),
-                configurationPath, configurationDownloader, configurationAnchor) {
+        var client = new ConfigurationClient(
+                confClientProperties.configurationAnchorFile(),
+                confClientProperties.globalConfDir(), configurationDownloader, configurationAnchor) {
             @Override
             protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
@@ -164,9 +162,7 @@ public class ConfigurationClientActionExecutor {
     }
 
     private static ParamsValidator getParamsValidator(CommandLine cmd) {
-        if (cmd.hasOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS)) {
-            return new ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
-        } else if (cmd.hasOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE)) {
+        if (cmd.hasOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE)) {
             return new SharedParamsValidator(CONTENT_ID_SHARED_PARAMETERS, ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
         } else {
             return new ParamsValidator(null, 0);

@@ -62,16 +62,8 @@ public class ConfigurationClient {
 
     private ConfigurationSource configurationAnchor;
 
-    public ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, int configurationVersion) {
-        this.configurationAnchorFilePath = configurationAnchorFilePath;
-        this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
-    }
-
-    public ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir) {
-        this.configurationAnchorFilePath = configurationAnchorFilePath;
-        this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir);
+    public ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, ConfigurationDownloader downloader) {
+        this(configurationAnchorFilePath, globalConfigurationDir, downloader, null);
     }
 
     ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, ConfigurationDownloader downloader,

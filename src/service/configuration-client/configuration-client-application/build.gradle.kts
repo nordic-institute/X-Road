@@ -77,7 +77,6 @@ dependencies {
   implementation(libs.quarkus.quartz)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.junit.system.exit)
   testImplementation(libs.quarkus.junit5)
 }
 
@@ -87,13 +86,4 @@ tasks.jar {
 
 tasks.test {
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
-
-  jvmArgumentProviders.add(CommandLineArgumentProvider {
-    listOf(
-      "-javaagent:${
-        configurations.testRuntimeClasspath.get().files.find {
-          it.name.contains("junit5-system-exit")
-        }
-      }")
-  })
 }

@@ -25,18 +25,21 @@
  */
 package org.niis.xroad.confclient.application;
 
+import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.junit.main.Launch;
+import io.quarkus.test.junit.main.QuarkusMainTest;
 import org.junit.jupiter.api.Test;
 
-import static com.ginsberg.junit.exit.assertions.SystemExitAssertion.assertThatCallsSystemExit;
 import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 
+@QuarkusMainTest
+@TestProfile(ConfClientCLITestProfile.class)
 class ConfClientMainCLITVerifyTest {
 
     @Test
+    @Launch(value = {"--" + OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE,
+            "../configuration-client-core/src/test/resources/configuration-anchor1.xml"}, exitCode = 122)
     void cliExecutesAndsExitsWithError122() {
-        assertThatCallsSystemExit(() -> ConfClientMain.main(new String[]{
-                "--" + OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE,
-                "build/resources/test/configuration-anchor1.xml"})
-        ).withExitCodeInRange(100, 150);
+        //Do nothing
     }
 }

@@ -51,9 +51,9 @@ public interface ConfigurationClientProperties {
 
     @WithName("global-conf-hostname-verification")
     @WithDefault("true")
-    String globalConfHostnameVerification();
+    boolean globalConfHostnameVerification();
 
     @WithName("global-conf-tls-cert-verification")
     @WithDefault("true")
-    String globalConfTlsCertVerification();
+    boolean globalConfTlsCertVerification();
 }

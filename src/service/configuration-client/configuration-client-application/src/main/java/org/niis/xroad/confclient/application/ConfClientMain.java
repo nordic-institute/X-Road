@@ -26,73 +26,45 @@
 package org.niis.xroad.confclient.application;
 
 import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 import org.niis.xroad.confclient.ConfClientCLIRunner;
-import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
-import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 
 @QuarkusMain
-@Slf4j
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ConfClientMain {
 
     public static void main(String[] args) {
-        if (args.length > 0) {
-            // run cli.
-            // todo consider using Quarkus for CLI
-            int result = runCli(args);
-            System.exit(result);
-        } else {
-            Quarkus.run(XrdQuarkusApplication.class, args);
-        }
+        Quarkus.run(ConfClientApplication.class, args);
     }
 
-    private static final int ERROR_CODE_INTERNAL = 125;
+    @Slf4j
+    @RequiredArgsConstructor
+    public static class ConfClientApplication implements QuarkusApplication {
+        private static final int ERROR_CODE_INTERNAL = 125;
 
-    public static int runCli(String... args) {
-        ConfigurationClientProperties config = new ConfigurationClientProperties() {
-            @Override
-            public int updateInterval() {
-                // not used in CLI
+        private final ConfClientCLIRunner confClientCLIRunner;
+
+        @Override
+        public int run(String... args) {
+            if (args.length > 0) {
+                return runCli(args);
+            } else {
+                Quarkus.waitForExit();
                 return 0;
             }
+        }
 
-            @Override
-            public String proxyConfigurationBackupCron() {
-                // not used in CLI
-                return "";
+        public int runCli(String... args) {
+            try {
+                return confClientCLIRunner.run(args);
+            } catch (Exception e) {
+                log.error("Failed to run Configuration Client CLI command", e);
+                return ERROR_CODE_INTERNAL;
             }
-
-            @Override
-            public String configurationAnchorFile() {
-                return args[0];
-            }
-
-            @Override
-            public String globalConfDir() {
-                return args[1];
-            }
-
-            @Override
-            public String globalConfHostnameVerification() {
-                return Boolean.TRUE.toString();
-            }
-
-            @Override
-            public String globalConfTlsCertVerification() {
-                return Boolean.TRUE.toString();
-            }
-        };
-
-        ConfClientCLIRunner confClientCLIRunner = new ConfClientCLIRunner(new ConfigurationClientActionExecutor(config));
-        try {
-            return confClientCLIRunner.run(args);
-        } catch (Exception e) {
-            log.error("Failed to run Configuration Client CLI command", e);
-            return ERROR_CODE_INTERNAL;
         }
     }
-
 }
