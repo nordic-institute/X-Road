@@ -24,18 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+package org.niis.xroad.serverconf;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-    public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
-    }
+import java.util.Map;
 
+@ConfigMapping(prefix = "xroad.common.server-conf")
+public interface ServerConfProperties {
+    @WithName("cache-period")
+    @WithDefault("60")
+    int cachePeriod();
+
+    @WithName("client-cache-size")
+    @WithDefault("100")
+    long clientCacheSize();
+
+    @WithName("service-cache-size")
+    @WithDefault("1000")
+    long serviceCacheSize();
+
+    @WithName("service-endpoints-cache-size")
+    @WithDefault("100000")
+    long serviceEndpointsCacheSize();
+
+    @WithName("acl-cache-size")
+    @WithDefault("100000")
+    long aclCacheSize();
+
+    @WithName("hibernate")
+    Map<String, String> hibernate();
 }
