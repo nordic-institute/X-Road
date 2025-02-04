@@ -4,7 +4,5 @@ plugins {
 }
 
 dependencies {
-  implementation(platform(libs.quarkus.bom)) //TODO consider dropping bom as it might impact other deps.
-
-  implementation("io.smallrye.config:smallrye-config-core")
+  implementation(libs.smallrye.config.core)
 }
