@@ -25,25 +25,20 @@
  */
 package org.niis.xroad.confclient.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.confclient.core.ConfigurationClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.confclient.core.ConfigurationDownloader;
+import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
 
-@Import({
-        ConfClientAdminPortConfig.class,
-        ConfClientJobConfig.class,
-})
-@ComponentScan("org.niis.xroad.confclient")
-@Configuration
 public class ConfClientRootConfig {
 
-    @Bean
-    ConfigurationClient configurationClient() {
-        return new ConfigurationClient(SystemProperties.getConfigurationPath());
+    @ApplicationScoped
+    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties,
+                                            HttpUrlConnectionConfigurer connectionConfigurer) {
+        var downloader = new ConfigurationDownloader(connectionConfigurer, configurationClientProperties.globalConfDir());
+        return new ConfigurationClient(
+                configurationClientProperties.configurationAnchorFile(),
+                configurationClientProperties.globalConfDir(), downloader);
     }
 
 }

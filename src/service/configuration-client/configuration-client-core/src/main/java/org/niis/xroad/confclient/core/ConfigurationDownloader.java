@@ -79,31 +79,26 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 public class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
-    protected final FileNameProvider fileNameProvider;
-    private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
+
+    private final FileNameProvider fileNameProvider;
+    private final HttpUrlConnectionConfigurer connectionConfigurer;
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
     private final SharedParametersConfigurationLocations sharedParametersConfigurationLocations;
 
     @Getter
     private final Integer configurationVersion;
 
-    ConfigurationDownloader(String globalConfigurationDir, int configurationVersion) {
-        fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
+    public ConfigurationDownloader(HttpUrlConnectionConfigurer connectionConfigurer, String globalConfigurationDir) {
+        this(connectionConfigurer, globalConfigurationDir, null);
+    }
+
+    ConfigurationDownloader(HttpUrlConnectionConfigurer connectionConfigurer, String globalConfigurationDir, Integer configurationVersion) {
+        this.fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
         this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
         this.configurationVersion = configurationVersion;
+        this.connectionConfigurer = connectionConfigurer;
     }
 
-    ConfigurationDownloader(String globalConfigurationDir) {
-        fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
-        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
-        this.configurationVersion = null;
-    }
-
-    public ConfigurationDownloader(FileNameProvider fileNameProvider) {
-        this.fileNameProvider = fileNameProvider;
-        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
-        this.configurationVersion = null;
-    }
 
     ConfigurationParser getParser() {
         return new ConfigurationParser(this);

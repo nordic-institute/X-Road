@@ -4,8 +4,7 @@ plugins {
 }
 
 dependencies {
-  implementation(platform(libs.quarkus.bom))
-
   api(project(":common:common-domain"))
-  implementation("io.smallrye.config:smallrye-config-core")
+
+  implementation(libs.smallrye.config.core)
 }

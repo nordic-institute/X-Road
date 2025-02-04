@@ -1,0 +1,42 @@
+quarkus:
+  application:
+    name: configuration-client
+  config:
+    locations:
+      - /etc/xroad/conf.d/local.yaml
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  scheduler:
+    start-mode: forced
+    enabled: true
+  quartz:
+    thread-count: 3
+
+"%containerized":
+  xroad:
+    configuration-client:
+      rpc:
+        listen-address: 0.0.0.0
+
+"%native":
+  quarkus:
+    log:
+      file:
+        enable: true
+        path: /var/log/xroad/configuration_client.log
+
+"%cli":
+  quarkus:
+    scheduler:
+      enabled: false
+      start-mode: halted
+
+"%test":
+  quarkus:
+    log:
+      file:
+        enable: false
+  xroad:
+    configuration-client:
+      rpc:
+        enabled: false

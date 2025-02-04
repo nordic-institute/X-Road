@@ -11,7 +11,7 @@ case $1 in
   gradleArgs+="-xintTest"
   ;;
 "configuration-client")
-  gradleModule="configuration-client"
+  gradleModule="service/configuration-client/configuration-client-application"
   ;;
 "signer")
   gradleModule="signer"

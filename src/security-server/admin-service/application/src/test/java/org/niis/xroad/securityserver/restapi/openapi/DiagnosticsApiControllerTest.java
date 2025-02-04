@@ -55,10 +55,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -159,12 +160,11 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsSuccess() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
-        final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
-        stubForDiagnosticsRequest("/status",
-                "{\"returnCode\":" + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"prevUpdate\":\"" + prevUpdate
-                        + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsSuccess() throws Exception {
+        final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -172,16 +172,17 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
-    public void getGlobalConfDiagnosticsWaiting() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
-        final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
-        stubForDiagnosticsRequest("/status", "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED + ","
-                + "\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsWaiting() throws Exception {
+        final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
+
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -189,17 +190,17 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.ERROR_CODE_UNINITIALIZED, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
-    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
-        final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
-        stubForDiagnosticsRequest("/status",
-                "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_INTERNAL + ",\"prevUpdate\":\"" + prevUpdate
-                        + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() throws Exception {
+        final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
+
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -207,17 +208,17 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.ERROR_CODE_INTERNAL, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
-    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow().with(LocalTime.of(0, 0));
-        final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
-        stubForDiagnosticsRequest("/status",
-                "{\"returnCode\":" + ERROR_CODE_UNKNOWN + ",\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\""
-                        + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() throws Exception {
+        final Instant prevUpdate = TimeUtils.offsetDateTimeNow().with(LocalTime.of(0, 0)).toInstant();
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
+
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(ERROR_CODE_UNKNOWN, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -225,8 +226,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.UNKNOWN, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
@@ -429,7 +430,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
-    public void downloadDiagnosticsReportWithoutRequiredAuthorities() throws IOException {
+    public void downloadDiagnosticsReportWithoutRequiredAuthorities() throws Exception {
         byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
         when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -440,7 +441,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_DIAGNOSTICS_REPORT"})
-    public void downloadDiagnosticsReport() throws IOException {
+    public void downloadDiagnosticsReport() throws Exception {
         byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
         when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -455,5 +456,15 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
         stubFor(get(urlEqualTo(requestPath))
                 .willReturn(aResponse().withBody(responseBody)));
+    }
+
+    private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(int statusCode,
+                                                                                      Instant prevUpdate,
+                                                                                      Instant nextUpdate) {
+        return org.niis.xroad.confclient.proto.DiagnosticsStatus.newBuilder()
+                .setReturnCode(statusCode)
+                .setPrevUpdate(prevUpdate.toEpochMilli())
+                .setNextUpdate(nextUpdate.toEpochMilli())
+                .build();
     }
 }

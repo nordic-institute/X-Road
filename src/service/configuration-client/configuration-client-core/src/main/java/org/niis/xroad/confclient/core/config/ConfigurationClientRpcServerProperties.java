@@ -23,27 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.application;
+package org.niis.xroad.confclient.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import org.junit.jupiter.api.Test;
+@ConfigMapping(prefix = "xroad.configuration-client.rpc")
+public interface ConfigurationClientRpcServerProperties extends RpcServerProperties {
 
-import static org.assertj.core.api.AssertionsForClassTypes.fail;
+    @WithName("enabled")
+    @WithDefault("true")
+    @Override
+    boolean enabled();
 
+    @WithName("listen-address")
+    @WithDefault("127.0.0.1")
+    @Override
+    String listenAddress();
 
-class ConfClientDaemonMainTest {
-
-    @Test
-    void shouldStart() {
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, "build/resources/test/configuration-anchor1.xml");
-
-
-        try {
-            ConfClientDaemonMain.main(new String[]{});
-        } catch (Exception e) {
-            fail("Should not throw exception");
-        }
-    }
+    @WithName("port")
+    @WithDefault("5665")
+    @Override
+    int port();
 }

@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
@@ -65,5 +66,6 @@ public abstract class AbstractFacadeMockingTestContext {
     protected AcmeService acmeService;
     @MockBean
     MonitorRpcClient monitorClient;
-
+    @MockBean
+    protected ConfClientRpcClient confClientRpcClient;
 }

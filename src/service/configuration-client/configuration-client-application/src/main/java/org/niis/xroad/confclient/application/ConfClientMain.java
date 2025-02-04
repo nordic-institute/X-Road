@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +23,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.proto;
+package org.niis.xroad.confclient.application;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.ConfClientCLIRunner;
 
-@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
-public interface QuarkusConfClientRpcChannelProperties extends ConfClientRpcChannelProperties {
+@QuarkusMain
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+public class ConfClientMain {
 
-    @Override
-    @WithDefault("127.0.0.1")
-    String host();
+    public static void main(String[] args) {
+        Quarkus.run(ConfClientApplication.class, args);
+    }
 
-    @Override
-    @WithDefault("5665")
-    int port();
+    @Slf4j
+    @RequiredArgsConstructor
+    public static class ConfClientApplication implements QuarkusApplication {
+        private static final int ERROR_CODE_INTERNAL = 125;
 
-    @Override
-    @WithName("deadline-after")
-    @WithDefault("60000")
-    int deadlineAfter();
+        private final ConfClientCLIRunner confClientCLIRunner;
+
+        @Override
+        public int run(String... args) {
+            if (args.length > 0) {
+                return runCli(args);
+            } else {
+                Quarkus.waitForExit();
+                return 0;
+            }
+        }
+
+        public int runCli(String... args) {
+            try {
+                return confClientCLIRunner.run(args);
+            } catch (Exception e) {
+                log.error("Failed to run Configuration Client CLI command", e);
+                return ERROR_CODE_INTERNAL;
+            }
+        }
+    }
 }

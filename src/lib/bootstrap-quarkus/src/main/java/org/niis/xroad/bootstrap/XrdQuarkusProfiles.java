@@ -30,12 +30,14 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class XrdQuarkusProfiles {
-    static final String OVERRIDE = "override";
-    static final String NATIVE = "native";
-    static final String CONTAINERIZED = "containerized";
-    static final String SECRET_STORE = "secret-store";
-    static final String K8 = "kubernetes";
+    public static final String NATIVE = "native";
+    public static final String CONTAINERIZED = "containerized";
+    public static final String CLI = "cli";
+    public static final String TEST = "test";
 
-    static final String SS = "ss";
-    static final String CS = "cs";
+    public static final String SECRET_STORE = "secret-store";
+    public static final String K8 = "kubernetes";
+
+    public static final String SS = "ss";
+    public static final String CS = "cs";
 }

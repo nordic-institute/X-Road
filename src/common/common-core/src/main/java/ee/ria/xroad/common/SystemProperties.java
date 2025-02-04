@@ -169,10 +169,6 @@ public final class SystemProperties {
     public static final String PROXY_SSL_SUPPORT =
             PROXY_PREFIX + "ssl-enabled";
 
-    /** Property name of the configuration anchor file. */
-    public static final String CONFIGURATION_ANCHOR_FILE =
-            PROXY_PREFIX + "configuration-anchor-file";
-
     /** Property name of the Proxy's local configuration file. */
     public static final String DATABASE_PROPERTIES =
             PROXY_PREFIX + "database-properties";
@@ -498,18 +494,6 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
             PREFIX + "configuration-client.admin-port";
-
-    public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
-            PREFIX + "configuration-client.update-interval";
-
-    public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
-            PREFIX + "configuration-client.proxy-configuration-backup-cron";
-
-    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
-            PREFIX + "configuration-client.global-conf-tls-cert-verification";
-
-    public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
-            PREFIX + "configuration-client.global-conf-hostname-verification";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -866,14 +850,6 @@ public final class SystemProperties {
     public static boolean isAcmeChallengePortEnabled() {
         return "true".equalsIgnoreCase(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
                 DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED));
-    }
-
-    /**
-     * @return path to the configuration anchor file, '/etc/xroad/configuration-anchor.xml' by default.
-     */
-    public static String getConfigurationAnchorFile() {
-        return System.getProperty(CONFIGURATION_ANCHOR_FILE,
-                getConfPath() + DefaultFilepaths.CONFIGURATION_ANCHOR_FILE);
     }
 
     /**
@@ -1247,30 +1223,6 @@ public final class SystemProperties {
     public static int getConfigurationClientAdminPort() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
-    }
-
-    /**
-     * @return the update interval in seconds at which configuration client
-     * downloads the global configuration, '60' by default.
-     */
-    public static int getConfigurationClientUpdateIntervalSeconds() {
-        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
-    }
-
-    /**
-     * @return the proxy configuration auto backup cron expression.
-     * defaults to '0 15 3 * * ?'
-     */
-    public static String getConfigurationClientProxyConfigurationBackupCron() {
-        return System.getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
-    }
-
-    public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, TRUE));
-    }
-
-    public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, TRUE));
     }
 
     public static String getConfigurationClientAllowedFederations() {

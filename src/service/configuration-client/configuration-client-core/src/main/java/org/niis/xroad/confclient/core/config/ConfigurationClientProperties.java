@@ -24,17 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.application;
+package org.niis.xroad.confclient.core.config;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+@ConfigMapping(prefix = "xroad.configuration-client")
+public interface ConfigurationClientProperties {
 
-    public static void main(String[] args) {
-        Quarkus.run(args);
-    }
+    @WithName("update-interval")
+    @WithDefault("60")
+    int updateInterval();
 
+    @WithName("proxy-configuration-backup-cron")
+    @WithDefault("0 15 3 * * ?")
+    String proxyConfigurationBackupCron();
+
+    @WithName("configuration-anchor-file")
+    @WithDefault("/etc/xroad/configuration-anchor.xml")
+    String configurationAnchorFile();
+
+    @WithName("global-conf-dir")
+    @WithDefault("/etc/xroad/globalconf")
+    String globalConfDir();
+
+    @WithName("global-conf-hostname-verification")
+    @WithDefault("true")
+    boolean globalConfHostnameVerification();
+
+    @WithName("global-conf-tls-cert-verification")
+    @WithDefault("true")
+    boolean globalConfTlsCertVerification();
 }

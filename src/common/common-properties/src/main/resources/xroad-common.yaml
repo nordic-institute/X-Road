@@ -1,4 +1,22 @@
 # Common properties that are injected to all services
+quarkus:
+  application:
+    version: 1.0.0
+  vault:
+    devservices:
+      enabled: false
+    url: "${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+    authentication:
+      client-token: "${XROAD_SECRET_STORE_TOKEN}"
+    kv-secret-engine-version: 1
+    kv-secret-engine-mount-path: xrd-secret
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+  log:
+    level: DEBUG
+
 spring:
   main:
     banner-mode: log

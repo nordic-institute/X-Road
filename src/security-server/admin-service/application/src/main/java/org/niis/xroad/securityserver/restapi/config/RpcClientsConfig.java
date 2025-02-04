@@ -30,6 +30,8 @@ package org.niis.xroad.securityserver.restapi.config;
 import lombok.Setter;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
+import org.niis.xroad.confclient.proto.ConfClientRpcChannelProperties;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -43,7 +45,9 @@ import org.springframework.context.annotation.Profile;
 @Profile("!test")
 @Configuration
 @Import(SpringRpcConfig.class)
-@EnableConfigurationProperties(RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class)
+@EnableConfigurationProperties({
+        RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
+        RpcClientsConfig.SpringConfClientRpcChannelProperties.class})
 class RpcClientsConfig {
 
     @Bean
@@ -80,4 +84,31 @@ class RpcClientsConfig {
         }
     }
 
+    @Bean
+    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory, SpringConfClientRpcChannelProperties channelProperties) {
+        return new ConfClientRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.configuration-client")
+    public static class SpringConfClientRpcChannelProperties implements ConfClientRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
+    }
 }

@@ -84,6 +84,7 @@ class SignatureVerifierTest {
     private static final ClientId CONSUMER_ID = createClientId("consumer");
 
     private GlobalConfProvider globalConfProvider;
+
     @BeforeAll
     public static void init() {
         TestSecurityUtil.initSecurity();
@@ -97,8 +98,7 @@ class SignatureVerifierTest {
      */
     @BeforeEach
     void setUp() {
-        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4",
-                "../globalconf-core/src/test/resources/configuration-anchor1.xml", true);
+        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4", true);
     }
 
     /**
@@ -334,8 +334,7 @@ class SignatureVerifierTest {
 
         @BeforeEach
         void before() {
-            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3",
-                    "../globalconf-core/src/test/resources/configuration-anchor1.xml", false);
+            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3", false);
         }
 
         @Test
@@ -452,9 +451,8 @@ class SignatureVerifierTest {
         }
     }
 
-    void loadGlobalConf(String globalConfPath, String configurationAnchorFile, boolean useTestCaCert) {
+    void loadGlobalConf(String globalConfPath, boolean useTestCaCert) {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, globalConfPath);
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
         globalConfProvider = new TestGlobalConfImpl() {
             @Override

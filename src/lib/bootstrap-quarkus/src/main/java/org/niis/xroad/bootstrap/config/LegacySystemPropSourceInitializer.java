@@ -24,37 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.bootstrap;
+package org.niis.xroad.bootstrap.config;
 
 import ee.ria.xroad.common.SystemPropertySource;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.event.Observes;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.Config;
 
 @Slf4j
+@Singleton
 @RequiredArgsConstructor
-public class XrdQuarkusApplication implements QuarkusApplication {
+public class LegacySystemPropSourceInitializer {
     private final Config config;
 
-    void onStart(@Observes StartupEvent ev) {
-        log.info("Setting property source to Quarkus config..");
-        initializePropertyResolver();
-        log.info("Initializing Apache Santuario XML Security library..");
-        org.apache.xml.security.Init.init();
-    }
-
-    @Override
-    public int run(String... args) {
-        Quarkus.waitForExit();
-        return 0;
-    }
-
-    private void initializePropertyResolver() {
+    @Startup
+    void initializePropertyResolver(@Observes @Priority(Integer.MIN_VALUE) StartupEvent ev) {
+        log.info("Setting property source to Quarkus config.");
         SystemPropertySource.setPropertyResolver(new SystemPropertySource.PropertyResolver() {
             @Override
             public String getProperty(String key) {

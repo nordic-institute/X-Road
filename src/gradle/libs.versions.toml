@@ -29,8 +29,9 @@ protobufPlugin = "0.9.4"
 checkstyle = "10.21.1"
 jacoco = "0.8.12"
 
-quarkus = "3.17.8"
+quarkus = "3.18.1"
 quarkus-vault = "4.1.0"
+smallryeConfig = "3.11.2"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -67,6 +68,8 @@ quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-b
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
 
+smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
+
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junitJupiter" }
@@ -102,6 +105,7 @@ testAutomation-restassured = { module = "com.nortal.test:test-automation-restass
 jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.0" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
+jakarta-cdiApi = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version = "4.1.0" }
 jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
 jakarta-soapApi = { module = "jakarta.xml.soap:jakarta.xml.soap-api", version = "3.0.2" }
 jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }

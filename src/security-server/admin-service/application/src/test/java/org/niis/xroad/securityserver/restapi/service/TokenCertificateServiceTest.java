@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -179,6 +180,9 @@ public class TokenCertificateServiceTest {
 
     @MockBean
     MonitorRpcClient monitorClient;
+
+    @MockBean
+    ConfClientRpcClient confClientRpcClient;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,
             TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1);

@@ -27,6 +27,7 @@ dependencies {
   implementation(project(":lib:globalconf-spring"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":lib:serverconf-spring"))
+  implementation(project(":common:common-rpc-spring"))
   implementation(project(":common:common-acme"))
   implementation(project(":common:common-admin-api"))
   implementation(project(":common:common-management-request"))
@@ -34,6 +35,7 @@ dependencies {
   implementation(project(":common:common-mail"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))
+  implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))
   implementation(project(":common:common-rpc-spring"))
 

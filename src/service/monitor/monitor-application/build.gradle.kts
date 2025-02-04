@@ -50,3 +50,7 @@ dependencies {
 tasks.jar {
   enabled = false
 }
+
+tasks.test {
+  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+}

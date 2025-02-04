@@ -37,10 +37,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.niis.xroad.common.exception.util.CommonDeviationMessage;
-import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -49,7 +47,6 @@ import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.model.TspType;
@@ -64,6 +61,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.ConfigurationVerifier.EXIT_STATUS_MISSING_PRIVATE_PARAMS;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SystemServiceTest {
@@ -78,13 +76,11 @@ public class SystemServiceTest {
     @Mock
     private GlobalConfService globalConfService;
     @Mock
-    private AnchorRepository anchorRepository;
-    @Mock
-    private ConfigurationVerifier configurationVerifier;
-    @Mock
     private CurrentSecurityServerId currentSecurityServerId;
     @Mock
     private ManagementRequestSenderService managementRequestSenderService;
+    @Mock
+    private ConfClientRpcClient confClientRpcClient;
     @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
@@ -105,11 +101,10 @@ public class SystemServiceTest {
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
-        systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
-                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus);
+        systemService = new SystemService(globalConfService, serverConfService,
+                currentSecurityServerId, managementRequestSenderService, auditDataHelper,
+                addressChangeStatus, confClientRpcClient);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
-        systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
 
     @Test
@@ -217,9 +212,7 @@ public class SystemServiceTest {
 
     @Test
     public void replaceAnchorFailVerification() throws Exception {
-        Mockito.doThrow(new ConfigurationVerifier.ConfigurationVerificationException(
-                        CommonDeviationMessage.MISSING_PRIVATE_PARAMS))
-                .when(configurationVerifier).verifyConfiguration(any(), any());
+        when(confClientRpcClient.verifyAndSaveConfigurationAnchor(any())).thenReturn(EXIT_STATUS_MISSING_PRIVATE_PARAMS);
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         try {
             systemService.replaceAnchor(anchorBytes);
@@ -240,16 +233,14 @@ public class SystemServiceTest {
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));
+        when(confClientRpcClient.getConfigurationAnchor()).thenThrow(new NoSuchFileException(""));
         systemService.uploadInitialAnchor(anchorBytes);
     }
 
     @Test(expected = SystemService.AnchorAlreadyExistsException.class)
     public void uploadInitialAnchorAgain() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(anchorRepository.readAnchorFile()).thenReturn(anchorBytes);
-        when(anchorRepository.loadAnchorFromFile())
-                .thenReturn(new ConfigurationAnchor("src/test/resources/internal-configuration-anchor.xml"));
+        when(confClientRpcClient.getConfigurationAnchor()).thenReturn(anchorBytes);
         systemService.uploadInitialAnchor(anchorBytes);
     }
 

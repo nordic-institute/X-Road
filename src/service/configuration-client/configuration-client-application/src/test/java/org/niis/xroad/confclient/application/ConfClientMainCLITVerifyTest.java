@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.application;
+package org.niis.xroad.confclient.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
+import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.junit.main.Launch;
+import io.quarkus.test.junit.main.QuarkusMainTest;
+import org.junit.jupiter.api.Test;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 
-    public static void main(String[] args) {
-        Quarkus.run(args);
+@QuarkusMainTest
+@TestProfile(ConfClientCLITestProfile.class)
+class ConfClientMainCLITVerifyTest {
+
+    @Test
+    @Launch(value = {"--" + OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE,
+            "../configuration-client-core/src/test/resources/configuration-anchor1.xml"}, exitCode = 122)
+    void cliExecutesAndsExitsWithError122() {
+        //Do nothing
     }
-
 }
