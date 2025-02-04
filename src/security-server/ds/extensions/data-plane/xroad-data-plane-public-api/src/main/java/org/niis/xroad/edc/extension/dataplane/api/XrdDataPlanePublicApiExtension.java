@@ -70,7 +70,8 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
     public static final String NAME = "X-Road Data Plane Public API";
     private static final int DEFAULT_THREAD_POOL = 10;
 
-    @Setting(description = "Base url of the public API endpoint without the trailing slash. This should point to the public endpoint configured.",
+    @Setting(description = "Base url of the public API endpoint without the trailing slash."
+            + "This should point to the public endpoint configured.",
             required = false,
             key = "edc.dataplane.api.public.baseurl", warnOnMissingConfig = true)
     private String publicBaseUrl;
@@ -141,7 +142,8 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
 
         if (publicBaseUrl == null) {
             publicBaseUrl = "https://%s:%d%s".formatted(hostname.get(), apiConfiguration.port(), apiConfiguration.path());
-            context.getMonitor().warning("The public API endpoint was not explicitly configured, the default '%s' will be used.".formatted(publicBaseUrl));
+            context.getMonitor().warning("The public API endpoint was not explicitly configured, the default '%s' will be used."
+                    .formatted(publicBaseUrl));
         }
 
         monitor.debug("X-Road public endpoint is set to: %s".formatted(publicBaseUrl));

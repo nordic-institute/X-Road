@@ -43,8 +43,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.jetty.http.HttpStatus;
-import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
 import org.niis.xroad.edc.extension.policy.dataplane.util.DataPlaneTransferPolicyContext;
+import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
 
 import java.io.IOException;
 import java.util.Map;

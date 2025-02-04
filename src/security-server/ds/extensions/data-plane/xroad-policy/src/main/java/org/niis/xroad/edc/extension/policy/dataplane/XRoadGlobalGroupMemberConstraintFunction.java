@@ -45,7 +45,8 @@ import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHe
 
 
 @RequiredArgsConstructor
-public class XRoadGlobalGroupMemberConstraintFunction<C extends DataPlaneTransferPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public class XRoadGlobalGroupMemberConstraintFunction<C extends DataPlaneTransferPolicyContext>
+        implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:globalGroupMember";
 

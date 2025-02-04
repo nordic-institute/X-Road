@@ -101,7 +101,7 @@ public class SecurityServerConfiguration {
     // todo: should be moved to monitor-rpc-client
     static class EnvMonitorRpcChannelProperties extends RpcChannelProperties {
 
-        public EnvMonitorRpcChannelProperties(String host, int port, int deadlineAfter) {
+        EnvMonitorRpcChannelProperties(String host, int port, int deadlineAfter) {
             super(host, port, deadlineAfter);
         }
     }

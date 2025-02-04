@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFac
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -44,7 +45,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -110,14 +110,27 @@ public class XRoadDataPlanePolicyExtension implements ServiceExtension {
         // custom scope needs to be registered before adding functions to it
         policyEngine.registerScope(XROAD_DATAPLANE_TRANSFER_SCOPE, DataPlaneTransferPolicyContext.class);
 
-        bindPermissionFunction(new XRoadClientIdConstraintFunction<>(globalConfProvider, monitor), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadClientIdConstraintFunction.KEY);
-        bindPermissionFunction(new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadLocalGroupMemberConstraintFunction.KEY);
-        bindPermissionFunction(new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadGlobalGroupMemberConstraintFunction.KEY);
-        bindPermissionFunction(new XRoadDataPathConstraintFunction<>(monitor, typeManager), DataPlaneTransferPolicyContext.class, XROAD_DATAPLANE_TRANSFER_SCOPE, XRoadDataPathConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadClientIdConstraintFunction<>(globalConfProvider, monitor),
+                DataPlaneTransferPolicyContext.class,
+                XROAD_DATAPLANE_TRANSFER_SCOPE,
+                XRoadClientIdConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadLocalGroupMemberConstraintFunction<>(serverConfProvider, monitor),
+                DataPlaneTransferPolicyContext.class,
+                XROAD_DATAPLANE_TRANSFER_SCOPE,
+                XRoadLocalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadGlobalGroupMemberConstraintFunction<>(globalConfProvider, monitor),
+                DataPlaneTransferPolicyContext.class,
+                XROAD_DATAPLANE_TRANSFER_SCOPE,
+                XRoadGlobalGroupMemberConstraintFunction.KEY);
+        bindPermissionFunction(new XRoadDataPathConstraintFunction<>(monitor, typeManager),
+                DataPlaneTransferPolicyContext.class,
+                XROAD_DATAPLANE_TRANSFER_SCOPE,
+                XRoadDataPathConstraintFunction.KEY);
     }
 
 
-    private <C extends PolicyContext> void bindPermissionFunction(AtomicConstraintRuleFunction<Permission, C> function, Class<C> contextClass, String scope, String constraintType) {
+    private <C extends PolicyContext> void bindPermissionFunction(
+            AtomicConstraintRuleFunction<Permission, C> function, Class<C> contextClass, String scope, String constraintType) {
         ruleBindingRegistry.bind("use", scope);
         ruleBindingRegistry.bind(ODRL_SCHEMA + "use", scope);
         ruleBindingRegistry.bind(constraintType, scope);

@@ -43,7 +43,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
-public class XRoadLocalGroupMemberConstraintFunction<C extends DataPlaneTransferPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public class XRoadLocalGroupMemberConstraintFunction<C extends DataPlaneTransferPolicyContext>
+        implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:localGroupMember";
 

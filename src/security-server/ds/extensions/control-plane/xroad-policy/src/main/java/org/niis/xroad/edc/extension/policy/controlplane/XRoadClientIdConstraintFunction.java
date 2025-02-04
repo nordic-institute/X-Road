@@ -39,7 +39,8 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
-public class XRoadClientIdConstraintFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public class XRoadClientIdConstraintFunction<C extends ParticipantAgentPolicyContext>
+        implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:clientId";
     private final Monitor monitor;

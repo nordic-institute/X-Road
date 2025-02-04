@@ -27,7 +27,8 @@ public record JettyConfiguration(
         String keymanagerPassword,
         @Setting(key = "xroad.web.tls.enabled", description = "Overrides keystore based TLS", defaultValue = "true")
         boolean xroadTlsEnabled,
-        @Setting(key = "web.http." + XROAD_PUBLIC_API_CONTEXT + ".needClientAuth", description = "mTLS conf for " + XROAD_PUBLIC_API_CONTEXT + " api context", defaultValue = "false")
+        @Setting(key = "web.http." + XROAD_PUBLIC_API_CONTEXT + ".needClientAuth", defaultValue = "false",
+                description = "mTLS conf for " + XROAD_PUBLIC_API_CONTEXT + " api context")
         boolean xroadPublicApiNeedClientAuth
 ) {
 }

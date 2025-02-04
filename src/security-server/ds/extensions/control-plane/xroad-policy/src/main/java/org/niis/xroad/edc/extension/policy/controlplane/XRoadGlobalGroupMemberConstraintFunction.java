@@ -44,7 +44,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 
 @RequiredArgsConstructor
-public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public class XRoadGlobalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext>
+        implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:globalGroupMember";
 

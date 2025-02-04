@@ -42,7 +42,8 @@ import java.util.Collection;
 import java.util.Set;
 
 @RequiredArgsConstructor
-public class XRoadDataPathConstraintFunction<C extends DataPlaneTransferPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public class XRoadDataPathConstraintFunction<C extends DataPlaneTransferPolicyContext>
+        implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:datapath";
 

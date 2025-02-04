@@ -55,10 +55,12 @@ public class XrdDataPlaneIamExtension implements ServiceExtension {
 
     static final String NAME = "XRD Data Plane IAM Services";
 
-    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver", key = "edc.transfer.proxy.token.signer.privatekey.alias")
+    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver",
+            key = "edc.transfer.proxy.token.signer.privatekey.alias")
     private String tokenSignerPrivateKeyAlias;
 
-    @Setting(description = "Alias of public key used for verifying the tokens, retrieved from the vault", key = "edc.transfer.proxy.token.verifier.publickey.alias")
+    @Setting(description = "Alias of public key used for verifying the tokens, retrieved from the vault",
+            key = "edc.transfer.proxy.token.verifier.publickey.alias")
     private String tokenVerifierPublicKeyAlias;
 
     @Inject

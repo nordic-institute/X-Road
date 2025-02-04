@@ -15,10 +15,14 @@
 package org.eclipse.edc.web.jetty;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
-
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
-import org.eclipse.edc.runtime.metamodel.annotation.*;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -80,8 +84,10 @@ public class JettyExtension implements ServiceExtension {
         if (deprecatedConfig.getRelativeEntries().isEmpty()) {
             portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, apiConfiguration.port(), apiConfiguration.path()));
         } else {
-            monitor.warning("Config group %s has been deprecated, please configure the default api context under web.http".formatted(DEPRECATED_SETTING_PATH));
-            portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, deprecatedApiConfiguration.port(), deprecatedApiConfiguration.path()));
+            monitor.warning("Config group %s has been deprecated, please configure the default api context under web.http"
+                    .formatted(DEPRECATED_SETTING_PATH));
+            portMappingRegistry.register(
+                    new PortMapping(DEFAULT_CONTEXT_NAME, deprecatedApiConfiguration.port(), deprecatedApiConfiguration.path()));
         }
 
         KeyStore ks = null;

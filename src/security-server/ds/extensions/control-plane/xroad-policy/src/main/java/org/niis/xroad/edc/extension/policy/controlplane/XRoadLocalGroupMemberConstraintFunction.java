@@ -41,7 +41,8 @@ import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @RequiredArgsConstructor
-public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public class XRoadLocalGroupMemberConstraintFunction<C extends ParticipantAgentPolicyContext>
+        implements AtomicConstraintRuleFunction<Permission, C> {
 
     static final String KEY = "xroad:localGroupMember";
 

@@ -19,6 +19,7 @@ package org.eclipse.edc.web.jetty;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import jakarta.servlet.Servlet;
 import lombok.SneakyThrows;
 import org.eclipse.edc.spi.EdcException;
@@ -83,7 +84,7 @@ public class JettyService implements WebServer {
         this.portMappingRegistry = portMappingRegistry;
         System.setProperty(LOG_ANNOUNCE, "false");
         // for websocket endpoints
-        handlers.put("/", new ServletContextHandler( "/", NO_SESSIONS));
+        handlers.put("/", new ServletContextHandler("/", NO_SESSIONS));
     }
 
     public JettyService(JettyConfiguration configuration, Monitor monitor, PortMappingRegistry portMappingRegistry) {
@@ -100,7 +101,7 @@ public class JettyService implements WebServer {
         this.portMappingRegistry = portMappingRegistry;
         System.setProperty(LOG_ANNOUNCE, "false");
         // for websocket endpoints
-        handlers.put("/", new ServletContextHandler( "/", NO_SESSIONS));
+        handlers.put("/", new ServletContextHandler("/", NO_SESSIONS));
     }
 
     public void start() {
@@ -180,7 +181,7 @@ public class JettyService implements WebServer {
 
     @NotNull
     private ServletContextHandler createHandler(PortMapping mapping) {
-        var handler = new ServletContextHandler( "/", NO_SESSIONS);
+        var handler = new ServletContextHandler("/", NO_SESSIONS);
         handler.setVirtualHosts(List.of("@" + mapping.name()));
         return handler;
     }
