@@ -11,9 +11,6 @@ spring:
     generate-ddl: true
     show-sql: false
     defer-datasource-initialization: true
-  cloud:
-    vault:
-      enabled: false
   profiles:
     active: test
   cloud:
