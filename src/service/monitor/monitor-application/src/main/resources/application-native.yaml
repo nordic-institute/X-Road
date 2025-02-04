@@ -1,0 +1,12 @@
+config_ordinal: 275 # make local.yaml take precedence over other config files.
+
+quarkus:
+  config:
+    locations:
+      - /etc/xroad/conf.d/local.yaml
+  log:
+    console:
+      enable: false
+    file:
+      enable: true
+      path: /var/log/xroad/monitor.log

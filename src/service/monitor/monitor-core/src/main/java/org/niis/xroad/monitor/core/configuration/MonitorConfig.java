@@ -25,91 +25,78 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
-import org.niis.xroad.monitor.core.CertificateInfoSensor;
-import org.niis.xroad.monitor.core.DiskSpaceSensor;
-import org.niis.xroad.monitor.core.ExecListingSensor;
-import org.niis.xroad.monitor.core.MetricsRpcService;
-import org.niis.xroad.monitor.core.SystemMetricsSensor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import java.io.IOException;
 import java.util.List;
 
-@Slf4j
-@Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-        SpringRpcConfig.class})
-@EnableScheduling
-@Configuration
-public class MonitorConfig {
-    private static final int TASK_EXECUTOR_POOL_SIZE = 5;
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 
-    @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices,
-                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        RpcServer rpcServer = new RpcServer(SystemProperties.getGrpcInternalHost(), SystemProperties.getEnvMonitorPort(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
+@Slf4j
+public class MonitorConfig {
+
+    @ApplicationScoped
+    @Startup
+    RpcServer rpcServer(@All List<BindableService> services,
+                        EnvMonitorServerProperties rpcServerProperties,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws IOException {
+        log.info("Starting Monitor RPC server on port {}.", rpcServerProperties.port());
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
+        RpcServer rpcServer = new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
                 }));
-//        rpcServer.afterPropertiesSet();
+        rpcServer.afterPropertiesSet();
         return rpcServer;
     }
 
-    @Bean
-    TaskScheduler taskScheduler() {
-        var taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.setPoolSize(TASK_EXECUTOR_POOL_SIZE);
-        return taskScheduler;
+    // todo will be dropped after global conf updates
+    @ApplicationScoped
+    FileSystemGlobalConfSource fileSystemGlobalConfSource() {
+        return new FileSystemGlobalConfSource(getConfigurationPath());
     }
 
-    @Bean
-    MetricsRpcService metricsRpcService() {
-        return new MetricsRpcService();
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(globalConfProvider, serverConfProperties.cachePeriod()); //, databaseCtx);
     }
 
-    @Bean
-    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
-        return new SystemMetricsSensor(taskScheduler);
+    @ConfigMapping(prefix = "xroad.env-monitor.rpc")
+    public interface EnvMonitorServerProperties extends RpcServerProperties {
+        @WithName("listen-address")
+        @WithDefault("127.0.0.1")
+        @Override
+        String listenAddress();
+
+        @WithName("port")
+        @WithDefault("2552")
+        @Override
+        int port();
     }
 
-    @Bean
-    DiskSpaceSensor diskSpaceSensor(TaskScheduler taskScheduler) {
-        return new DiskSpaceSensor(taskScheduler);
-    }
-
-    @Bean
-    ExecListingSensor execListingSensor(TaskScheduler taskScheduler) {
-        return new ExecListingSensor(taskScheduler);
-    }
-
-    @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider,
-                                                SignerRpcClient signerRpcClient) {
-        return new CertificateInfoSensor(taskScheduler, serverConfProvider, signerRpcClient);
-    }
-
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    // todo will be dropped after signer migration
+    @ApplicationScoped
+    SignerRpcClient signerRpcClient() throws Exception {
+        var signerClient = new SignerRpcClient();
+        signerClient.init();
+        return signerClient;
     }
 
 }

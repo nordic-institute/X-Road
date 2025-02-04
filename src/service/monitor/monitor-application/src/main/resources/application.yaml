@@ -1,0 +1,13 @@
+quarkus:
+  application:
+    name: monitor
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+
+"%containerized":
+  xroad:
+    env-monitor:
+      rpc:
+        listen-address: 0.0.0.0

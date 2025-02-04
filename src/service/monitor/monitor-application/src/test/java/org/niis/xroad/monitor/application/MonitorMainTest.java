@@ -24,18 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.monitor.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+import io.quarkus.arc.Arc;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.monitor.core.configuration.JmxReporterWrapper;
 
-    public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@QuarkusTest
+@TestProfile(MonitorTestProfile.class)
+class MonitorMainTest {
+
+    @Test
+    void contextLoads() {
+        assertNotNull(Arc.container().select(JmxReporterWrapper.class).get());
+        assertNotNull(Arc.container().select(RpcServer.class).get());
     }
 
 }

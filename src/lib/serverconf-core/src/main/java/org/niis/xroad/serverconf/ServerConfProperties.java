@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.TaskScheduler;
+package org.niis.xroad.serverconf;
 
-import java.time.Duration;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-/**
- * Base class for sensors
- */
-@RequiredArgsConstructor
-public abstract class AbstractSensor {
-    private final TaskScheduler taskScheduler;
+import java.util.Map;
 
-    protected void scheduleSingleMeasurement(Duration delay) {
-        taskScheduler.schedule(this::measure, taskScheduler.getClock().instant().plus(delay));
-    }
+@ConfigMapping(prefix = "xroad.common.server-conf")
+public interface ServerConfProperties {
+    @WithName("cache-period") //xroad.proxy.server-conf-cache-period: 60
+    @WithDefault("60")
+    int cachePeriod();
 
-    protected abstract Duration getInterval();
+    @WithName("client-cache-size") //xroad.proxy.server-conf-client-cache-size: 100
+    @WithDefault("100")
+    long clientCacheSize();
 
-    protected abstract void measure();
+    @WithName("service-cache-size") //xroad.proxy.server-conf-service-cache-size: 1000
+    @WithDefault("1000")
+    long serviceCacheSize();
 
+    @WithName("service-endpoints-cache-size") //xroad.proxy.server-conf-service-endpoints-cache-size: 100_000
+    @WithDefault("100000")
+    long serviceEndpointsCacheSize();
+
+    @WithName("acl-cache-size") //xroad.proxy.server-conf-acl-cache-size: 100_000
+    @WithDefault("100000")
+    long aclCacheSize();
+
+    @WithName("hibernate") // serverconf.hibernate.* properties from db-properties file
+    Map<String, String> hibernate();
 }

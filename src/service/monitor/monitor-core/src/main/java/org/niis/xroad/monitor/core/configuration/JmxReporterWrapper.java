@@ -24,18 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+package org.niis.xroad.monitor.core.configuration;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+import com.codahale.metrics.jmx.JmxReporter;
+import com.google.common.collect.Lists;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.monitor.core.MetricRegistryHolder;
+import org.niis.xroad.monitor.core.common.SystemMetricNames;
 
-    public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Startup
+@ApplicationScoped
+public class JmxReporterWrapper {
+
+    private final JmxReporter jmxReporter;
+
+    JmxReporterWrapper() {
+        jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
+                        SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
+                .build();
     }
 
+    @PostConstruct
+    public void afterPropertiesSet() {
+        jmxReporter.start();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.trace("stopReporter()");
+
+        if (jmxReporter != null) {
+            jmxReporter.stop();
+        }
+    }
 }
