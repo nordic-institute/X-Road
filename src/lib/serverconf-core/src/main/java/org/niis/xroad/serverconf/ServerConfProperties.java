@@ -35,26 +35,26 @@ import java.util.Map;
 
 @ConfigMapping(prefix = "xroad.common.server-conf")
 public interface ServerConfProperties {
-    @WithName("cache-period") //xroad.proxy.server-conf-cache-period: 60
+    @WithName("cache-period")
     @WithDefault("60")
     int cachePeriod();
 
-    @WithName("client-cache-size") //xroad.proxy.server-conf-client-cache-size: 100
+    @WithName("client-cache-size")
     @WithDefault("100")
     long clientCacheSize();
 
-    @WithName("service-cache-size") //xroad.proxy.server-conf-service-cache-size: 1000
+    @WithName("service-cache-size")
     @WithDefault("1000")
     long serviceCacheSize();
 
-    @WithName("service-endpoints-cache-size") //xroad.proxy.server-conf-service-endpoints-cache-size: 100_000
+    @WithName("service-endpoints-cache-size")
     @WithDefault("100000")
     long serviceEndpointsCacheSize();
 
-    @WithName("acl-cache-size") //xroad.proxy.server-conf-acl-cache-size: 100_000
+    @WithName("acl-cache-size")
     @WithDefault("100000")
     long aclCacheSize();
 
-    @WithName("hibernate") // serverconf.hibernate.* properties from db-properties file
+    @WithName("hibernate")
     Map<String, String> hibernate();
 }
