@@ -24,18 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+package org.niis.xroad.monitor.core;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-    public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
-    }
+import java.time.Duration;
 
+@ConfigMapping(prefix = "xroad.env-monitor")
+public interface EnvMonitorProperties {
+
+    @WithName("certificate-info-sensor-interval")
+    @WithDefault("1d")
+    Duration certificateInfoSensorInterval();
+
+    @WithName("disk-space-sensor-interval")
+    @WithDefault("60s")
+    Duration diskSpaceSensorInterval();
+
+    @WithName("exec-listing-sensor-interval")
+    @WithDefault("60s")
+    Duration execListingSensorInterval();
+
+    @WithName("system-metrics-sensor-interval")
+    @WithDefault("5s")
+    Duration systemMetricsSensorInterval();
+
+    @WithName("limit-remote-data-set")
+    @WithDefault("false")
+    boolean limitRemoteDataSet();
 }

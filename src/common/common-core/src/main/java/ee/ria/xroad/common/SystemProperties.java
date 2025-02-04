@@ -399,8 +399,6 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
-    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = FALSE;
-
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
     private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
@@ -594,9 +592,6 @@ public final class SystemProperties {
 
     // Proxy & Central monitor agent ------------------------------------------
 
-    /** Property name of the proxy monitor info collection interval. */
-    public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
-            PREFIX + "proxy-monitor-agent.params-collecting-interval";
 
     public static final String NET_STATS_FILE =
             PREFIX + "proxy-monitor-agent.net-stats-file";
@@ -632,28 +627,6 @@ public final class SystemProperties {
     /** Property name of environmental monitor port. */
     public static final String ENV_MONITOR_PORT =
             PREFIX + "env-monitor.port";
-
-    /** Property name of environmental monitor limiting remote data set. */
-    public static final String ENV_MONITOR_LIMIT_REMOTE_DATA_SET =
-            PREFIX + "env-monitor.limit-remote-data-set";
-
-    /** Property name of system metrics sensor interval. */
-    public static final String ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.system-metrics-sensor-interval";
-
-    /** Property name of disk space sensor interval. */
-    public static final String ENV_MONITOR_DISK_SPACE_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.disk-space-sensor-interval";
-
-    /** Property name of system metrics sensor interval. */
-    public static final String ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.exec-listing-sensor-interval";
-
-    /** Property name of certificate info sensor refresh interval. */
-    public static final String ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.certificate-info-sensor-interval";
-
-    public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
 
     // gRPC internal cross-component transport configuration  -------------------------- //
 
@@ -1412,13 +1385,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the interval in seconds at which proxy monitor agent collects monitoring data, '60' by default.
-     */
-    public static int getProxyParamsCollectingInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
-    }
-
-    /**
      * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
      */
     public static int getProxyGrpcPort() {
@@ -1430,42 +1396,6 @@ public final class SystemProperties {
      */
     public static int getEnvMonitorPort() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_PORT, "2552"));
-    }
-
-    /**
-     * @return enviroonmental monitoring limiting remote return data set, 'false' by default.
-     */
-    public static boolean getEnvMonitorLimitRemoteDataSet() {
-        return Boolean.parseBoolean(System.getProperty(ENV_MONITOR_LIMIT_REMOTE_DATA_SET,
-                DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET));
-    }
-
-    /**
-     * @return system metrics sensor interval in seconds,'5' by default.
-     */
-    public static int getEnvMonitorSystemMetricsSensorInterval() {
-        return Integer.parseInt(System.getProperty(ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "5"));
-    }
-
-    /**
-     * @return disk space sensor interval in seconds, '60' by default.
-     */
-    public static int getEnvMonitorDiskSpaceSensorInterval() {
-        return Integer.parseInt(System.getProperty(ENV_MONITOR_DISK_SPACE_SENSOR_INTERVAL, "60"));
-    }
-
-    /**
-     * @return exec listing sensor interval in seconds, '60' by default.
-     */
-    public static int getEnvMonitorExecListingSensorInterval() {
-        return Integer.parseInt(System.getProperty(ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL, "60"));
-    }
-
-    /**
-     * @return exec listing sensor interval in seconds, 1 day by default.
-     */
-    public static int getEnvMonitorCertificateInfoSensorInterval() {
-        return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
     }
 
     /**

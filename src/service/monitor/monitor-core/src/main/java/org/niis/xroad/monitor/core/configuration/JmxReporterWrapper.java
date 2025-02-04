@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.TaskScheduler;
+package org.niis.xroad.monitor.core.configuration;
 
-import java.time.Duration;
+import com.codahale.metrics.jmx.JmxReporter;
+import com.google.common.collect.Lists;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.monitor.core.MetricRegistryHolder;
+import org.niis.xroad.monitor.core.common.SystemMetricNames;
 
-/**
- * Base class for sensors
- */
-@RequiredArgsConstructor
-public abstract class AbstractSensor {
-    private final TaskScheduler taskScheduler;
+import java.util.concurrent.TimeUnit;
 
-    protected void scheduleSingleMeasurement(Duration delay) {
-        taskScheduler.schedule(this::measure, taskScheduler.getClock().instant().plus(delay));
+@Slf4j
+@Startup
+@ApplicationScoped
+public class JmxReporterWrapper {
+
+    private final JmxReporter jmxReporter;
+
+    JmxReporterWrapper() {
+        jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
+                        SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
+                .build();
     }
 
-    protected abstract Duration getInterval();
+    @PostConstruct
+    public void afterPropertiesSet() {
+        jmxReporter.start();
+    }
 
-    protected abstract void measure();
+    @PreDestroy
+    public void destroy() {
+        log.trace("stopReporter()");
 
+        if (jmxReporter != null) {
+            jmxReporter.stop();
+        }
+    }
 }

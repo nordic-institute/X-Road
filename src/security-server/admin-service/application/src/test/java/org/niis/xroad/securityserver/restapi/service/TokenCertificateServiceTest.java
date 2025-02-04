@@ -42,10 +42,10 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -179,7 +179,7 @@ public class TokenCertificateServiceTest {
     private AcmeService acmeService;
 
     @MockBean
-    MonitorClient monitorClient;
+    MonitorRpcClient monitorClient;
 
     @MockBean
     ConfClientRpcClient confClientRpcClient;

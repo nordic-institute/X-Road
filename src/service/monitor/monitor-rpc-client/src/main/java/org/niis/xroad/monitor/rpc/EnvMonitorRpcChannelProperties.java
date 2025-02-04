@@ -24,18 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+package org.niis.xroad.monitor.rpc;
 
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public final class MonitorMain {
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-    public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
-    }
+@SuppressWarnings("checkstyle:InterfaceIsType")
+public interface EnvMonitorRpcChannelProperties extends RpcChannelProperties {
 
+    String DEFAULT_HOST = "127.0.0.1";
+    int DEFAULT_PORT = 2552;
+    int DEFAULT_DEADLINE_AFTER = 60000;
 }

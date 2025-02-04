@@ -32,6 +32,8 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcChannelProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -41,14 +43,45 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 @Profile("!test")
-@EnableConfigurationProperties(RpcClientsConfig.SpringConfClientRpcChannelProperties.class)
-@Import(SpringRpcConfig.class)
 @Configuration
+@Import(SpringRpcConfig.class)
+@EnableConfigurationProperties({
+        RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
+        RpcClientsConfig.SpringConfClientRpcChannelProperties.class})
 class RpcClientsConfig {
 
     @Bean
     SignerRpcClient signerRpcClient() {
         return new SignerRpcClient();
+    }
+
+    @Bean
+    MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
+                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
+        return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
+    @Setter
+    static class SpringEnvMonitorRpcChannelProperties implements EnvMonitorRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = DEFAULT_PORT;
+        private int deadlineAfter = DEFAULT_DEADLINE_AFTER;
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
     }
 
     @Bean
