@@ -121,7 +121,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         monitor.info("Creating participant context for %s".formatted(participantId));
         createParticipantContext(hostname, participantId, keyId, publicKeyPem);
         createKeyPairs(participantId, keyId, publicKeyPem);
-        createCredentials(config.getString(EDC_XROAD_MEMBER_ID), participantId, keyId);
+        createSelfDescriptiveCredentials(config.getString(EDC_XROAD_MEMBER_ID), participantId, keyId);
     }
 
 
@@ -138,8 +138,8 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
                         .build())
                 .serviceEndpoint(new Service("credentialService-1", "CredentialService", "https://%s:%d%s/v1/participants/%s".formatted(
                         hostname,
-                        config.getInteger("web.http.resolution.port", 20001),
-                        config.getString("web.http.resolution.path", "/resolution"),
+                        config.getInteger("web.http.presentation.port", 20001),
+                        config.getString("web.http.presentation.path", "/presentation"),
                         Base64.getUrlEncoder().encodeToString(participantId.getBytes(StandardCharsets.UTF_8)))))
                 .build();
         participantContextService.createParticipantContext(manifest);
@@ -158,7 +158,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         keyPairResourceStore.create(keyPairResource);
     }
 
-    private void createCredentials(String xroadMemberIdentifier, String participantId, String keyId) throws Exception {
+    private void createSelfDescriptiveCredentials(String xroadMemberIdentifier, String participantId, String keyId) throws Exception {
         var signer = jwsSignerProvider.createJwsSigner(keyId)
                 .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
         var selfDescription = new XRoadSelfDescriptionGenerator(signerRpcClient)
@@ -176,7 +176,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
                 .id(participantId)
                 .build();
 
-        var verifiableCredentialContainer = new VerifiableCredentialContainer(credential, CredentialFormat.JWT, verifiableCredential);
+        var verifiableCredentialContainer = new VerifiableCredentialContainer(credential, CredentialFormat.VC1_0_JWT, verifiableCredential);
         var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
                 .issuerId("test-issuer")
                 .holderId("test-holder")

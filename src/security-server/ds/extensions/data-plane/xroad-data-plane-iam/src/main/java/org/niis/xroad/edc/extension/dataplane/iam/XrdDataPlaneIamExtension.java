@@ -38,6 +38,7 @@ import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -49,13 +50,16 @@ import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-import static org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
-import static org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension.TOKEN_VERIFIER_PUBLIC_KEY_ALIAS;
-
 @Extension(value = XrdDataPlaneIamExtension.NAME)
 public class XrdDataPlaneIamExtension implements ServiceExtension {
 
     static final String NAME = "XRD Data Plane IAM Services";
+
+    @Setting(description = "Alias of private key used for signing tokens, retrieved from private key resolver", key = "edc.transfer.proxy.token.signer.privatekey.alias")
+    private String tokenSignerPrivateKeyAlias;
+
+    @Setting(description = "Alias of public key used for verifying the tokens, retrieved from the vault", key = "edc.transfer.proxy.token.verifier.publickey.alias")
+    private String tokenVerifierPublicKeyAlias;
 
     @Inject
     private JwsSignerProvider jwsSignerProvider;
@@ -68,8 +72,6 @@ public class XrdDataPlaneIamExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneAccessTokenService dataplaneAccessTokenService(ServiceExtensionContext context) {
-        var tokenVerifierPublicKeyAlias = context.getConfig().getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS);
-        var tokenSignerPrivateKeyAlias = context.getConfig().getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
         var monitor = context.getMonitor().withPrefix("DataPlane IAM");
         return new DefaultDataPlaneAccessTokenServiceImpl(new JwtGenerationService(jwsSignerProvider),
                 accessTokenDataStore, monitor,

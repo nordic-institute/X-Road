@@ -1,1 +1,1 @@
-org.niis.xroad.edc.extension.webservice.XrdJettyExtension
+org.eclipse.edc.web.jetty.JettyExtension

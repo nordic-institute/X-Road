@@ -56,6 +56,6 @@ web:
     did:
       path: /
       port: 9396
-    resolution:
-      path: /resolution
+    presentation:
+      path: /presentation
       port: 20001

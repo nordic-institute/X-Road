@@ -42,8 +42,10 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.Hostname;
@@ -51,38 +53,32 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.eclipse.edc.web.spi.configuration.PortMapping;
+import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.niis.xroad.edc.sig.XrdSignatureService;
-import org.niis.xroad.edc.spi.XrdWebServer;
+import org.niis.xroad.edc.spi.XRoadPublicApiConfiguration;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 import java.util.concurrent.Executors;
+
+import static org.niis.xroad.edc.spi.XRoadPublicApiConfiguration.XROAD_PUBLIC_API_CONTEXT;
 
 @SuppressWarnings("checkstyle:MagicNumber") //TODO xroad8
 @Extension(value = XrdDataPlanePublicApiExtension.NAME)
 public class XrdDataPlanePublicApiExtension implements ServiceExtension {
 
     public static final String NAME = "X-Road Data Plane Public API";
-    private static final int DEFAULT_PUBLIC_PORT = 9294;
-    private static final String PUBLIC_API_CONFIG = "web.http.xroad.public";
-    private static final String PUBLIC_CONTEXT_ALIAS = "xroad";
-    private static final String PUBLIC_CONTEXT_PATH = "/xroad/public";
     private static final int DEFAULT_THREAD_POOL = 10;
 
-    private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
-            .apiConfigKey(PUBLIC_API_CONFIG)
-            .contextAlias(PUBLIC_CONTEXT_ALIAS)
-            .defaultPath(PUBLIC_CONTEXT_PATH)
-            .defaultPort(DEFAULT_PUBLIC_PORT)
-            .name(NAME)
-            .build();
+    @Setting(description = "Base url of the public API endpoint without the trailing slash. This should point to the public endpoint configured.",
+            required = false,
+            key = "edc.dataplane.api.public.baseurl", warnOnMissingConfig = true)
+    private String publicBaseUrl;
 
+    @Configuration
+    private XRoadPublicApiConfiguration apiConfiguration;
     @Inject
-    private XrdWebServer webServer;
-
-    @Inject
-    private WebServiceConfigurer webServiceConfigurer;
+    private PortMappingRegistry portMappingRegistry;
 
     @Inject
     private PipelineService pipelineService;
@@ -135,27 +131,25 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
 
         loadSystemProperties(monitor);
 
-        var config = context.getConfig(PUBLIC_SETTINGS.apiConfigKey());
-        var needClientAuth = config.getBoolean("needClientAuth", false);
-        var configuration = webServiceConfigurer.configure(config, webServer, PUBLIC_SETTINGS);
+        var needClientAuth = apiConfiguration.needClientAuth();
+        var portMapping = new PortMapping(XROAD_PUBLIC_API_CONTEXT, apiConfiguration.port(), apiConfiguration.path());
+        portMappingRegistry.register(portMapping);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
         );
 
-        var publicEndpoint = context.getSetting(PUBLIC_API_CONFIG, null);
-        if (publicEndpoint == null) {
-            publicEndpoint = "https://%s:%d%s".formatted(hostname.get(), configuration.getPort(), configuration.getPath());
-            context.getMonitor().warning("Config property '%s' was not specified, the default '%s' will be used."
-                    .formatted(PUBLIC_API_CONFIG, publicEndpoint));
+        if (publicBaseUrl == null) {
+            publicBaseUrl = "https://%s:%d%s".formatted(hostname.get(), apiConfiguration.port(), apiConfiguration.path());
+            context.getMonitor().warning("The public API endpoint was not explicitly configured, the default '%s' will be used.".formatted(publicBaseUrl));
         }
 
-        monitor.debug("X-Road public endpoint is set to: %s".formatted(publicEndpoint));
+        monitor.debug("X-Road public endpoint is set to: %s".formatted(publicBaseUrl));
 
         // todo remove this workaround...
         SigningCtxProvider.setSigner(new SimpleSigner(signerRpcClient));
 
-        var endpoint = Endpoint.url(publicEndpoint);
+        var endpoint = Endpoint.url(publicBaseUrl);
         generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
         var signService = new XrdSignatureService(globalConfProvider, null, null);
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
@@ -165,11 +159,8 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
                 new XrdEdcSignService(signService, monitor), monitor, executorService,
                 xRoadMessageLog, authorizationService);
 
-        //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
-        webServer.addPortMapping(PUBLIC_SETTINGS.getContextAlias(), configuration.getPort(), configuration.getPath(),
-                needClientAuth);
-        webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), proxyApiController);
-        webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), lcController);
+        webService.registerResource(XROAD_PUBLIC_API_CONTEXT, proxyApiController);
+        webService.registerResource(XROAD_PUBLIC_API_CONTEXT, lcController);
     }
 
     private void loadSystemProperties(Monitor monitor) {
@@ -180,4 +171,3 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
     }
 
 }
-

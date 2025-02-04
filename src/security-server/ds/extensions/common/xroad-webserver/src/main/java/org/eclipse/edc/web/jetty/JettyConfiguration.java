@@ -15,121 +15,19 @@
 package org.eclipse.edc.web.jetty;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import static org.niis.xroad.edc.spi.XRoadPublicApiConfiguration.XROAD_PUBLIC_API_CONTEXT;
 
-public class JettyConfiguration {
-
-    public static final String WEB_HTTP_PREFIX = "web.http";
-    public static final String DEFAULT_PATH = "/api";
-    public static final String DEFAULT_CONTEXT_NAME = "default";
-    public static final int DEFAULT_PORT = 8181;
-    public static final int DEFAULT_MAX_HEADER_SIZE = 16384;
-    @Setting
-    private static final String HTTP_PORT = "web.http.port";
-    @Setting
-    private static final String XROAD_SSL_DISABLE = "xroad.web.ssl.disable";
-    @Setting
-    private static final String XROAD_MAX_HEADER_SIZE = "xroad.web.maxHeaderSize";
-    private final String keystorePassword;
-    private final String keymanagerPassword;
-    private final Set<PortMapping> portMappings;
-    private boolean sslDisable;
-    private int maxHeaderSize;
-
-    protected JettyConfiguration(String keystorePassword, String keymanagerPassword) {
-        this.keystorePassword = keystorePassword;
-        this.keymanagerPassword = keymanagerPassword;
-        portMappings = new HashSet<>();
-    }
-
-    public static JettyConfiguration createFromConfig(String keystorePassword, String keyManagerPassword, Config config) {
-        var jettyConfig = new JettyConfiguration(keystorePassword, keyManagerPassword);
-        jettyConfig.sslDisable = config.getBoolean(XROAD_SSL_DISABLE, false);
-        jettyConfig.maxHeaderSize = config.getInteger(XROAD_MAX_HEADER_SIZE, DEFAULT_MAX_HEADER_SIZE);
-
-        var subConfig = config.getConfig(WEB_HTTP_PREFIX);
-
-        Map<String, Map<String, String>> tempMappings = new HashMap<>();
-        subConfig.getRelativeEntries().entrySet().stream()
-                .map(e -> new AbstractMap.SimpleEntry<>(expandKey(e), e.getValue()))
-                .forEach(e -> split(tempMappings, e));
-
-        var portMappings = tempMappings.entrySet().stream()
-                .map(e -> new PortMapping(e.getKey(),
-                        Integer.parseInt(e.getValue().getOrDefault("port", "" + DEFAULT_PORT)),
-                        e.getValue().getOrDefault("path", DEFAULT_PATH),
-                        Boolean.parseBoolean(e.getValue().getOrDefault("needClientAuth", "false"))))
-                .collect(Collectors.toSet());
-
-        jettyConfig.portMappings.addAll(portMappings);
-
-        if (jettyConfig.getPortMappings().isEmpty()) {
-            jettyConfig.portMapping(PortMapping.getDefault());
-        }
-
-        return jettyConfig;
-    }
-
-    /**
-     * converts a map entry, that looks like "something.port" -> 1234, into a map entry, that looks like
-     * "something" -> ("port" -> "1234") and adds it to an existing map
-     */
-    private static void split(Map<String, Map<String, String>> rawMappings, Map.Entry<String, String> entry) {
-
-        var key = entry.getKey();
-        var value = entry.getValue();
-
-        // only <alias>.[port|path] is accepted
-        if (key.split("\\.").length != 2) {
-            return;
-        }
-
-        var lastDotIndex = key.lastIndexOf(".");
-        var keyNamePart = key.substring(0, lastDotIndex);
-        var keyComponentPart = key.substring(lastDotIndex + 1);
-
-        var map = rawMappings.computeIfAbsent(keyNamePart, s -> new HashMap<>());
-        if (map.containsKey(keyComponentPart)) {
-            throw new IllegalArgumentException(String.format("A port mapping for web.http.%s already exists, currently mapped to %s",
-                    key, map));
-        }
-        map.put(keyComponentPart, value);
-    }
-
-
-    //prepends the default context name ("default") to a key if necessary
-    private static String expandKey(Map.Entry<String, ?> entry) {
-        return entry.getKey().contains(".") ? entry.getKey() : DEFAULT_CONTEXT_NAME + "." + entry.getKey();
-    }
-
-    public Set<PortMapping> getPortMappings() {
-        return portMappings;
-    }
-
-    public boolean isSslDisabled() {
-        return sslDisable;
-    }
-
-    public void portMapping(PortMapping mapping) {
-        portMappings.add(mapping);
-    }
-
-    public String getKeystorePassword() {
-        return keystorePassword;
-    }
-
-    public String getKeymanagerPassword() {
-        return keymanagerPassword;
-    }
-
-    public int getMaxHeaderSize() {
-        return maxHeaderSize;
-    }
+@Settings
+public record JettyConfiguration(
+        @Setting(key = "edc.web.https.keystore.password", description = "Keystore password", defaultValue = "password")
+        String keystorePassword,
+        @Setting(key = "edc.web.https.keymanager.password", description = "Keymanager password", defaultValue = "password")
+        String keymanagerPassword,
+        @Setting(key = "xroad.web.tls.enabled", description = "Overrides keystore based TLS", defaultValue = "true")
+        boolean xroadTlsEnabled,
+        @Setting(key = "web.http." + XROAD_PUBLIC_API_CONTEXT + ".needClientAuth", description = "mTLS conf for " + XROAD_PUBLIC_API_CONTEXT + " api context", defaultValue = "false")
+        boolean xroadPublicApiNeedClientAuth
+) {
 }

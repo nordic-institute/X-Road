@@ -8,6 +8,6 @@ dependencies {
     implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
     api libs.jetty.server
     api libs.jetty.servlet.ee10
-    implementation libs.edc.spi.core
-    implementation libs.edc.spi.web
+    api libs.edc.spi.core
+    api libs.edc.spi.web
 }

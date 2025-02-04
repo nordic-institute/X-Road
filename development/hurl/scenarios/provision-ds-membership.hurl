@@ -31,7 +31,7 @@ Content-Type: application/json
   "participantId": "did:web:{{ss0_host}}%3A9396",
   "verifiableCredentialContainer": {
     "rawVc": "{{ss0_membership_credential}}",
-    "format": "JWT",
+    "format": "VC1_0_JWT",
     "credential": {
       "credentialSubject": [
         {
@@ -86,7 +86,7 @@ Content-Type: application/json
   "participantId": "did:web:{{ss1_host}}%3A9396",
   "verifiableCredentialContainer": {
     "rawVc": "{{ss0_membership_credential}}",
-    "format": "JWT",
+    "format": "VC1_0_JWT",
     "credential": {
       "credentialSubject": [
         {
