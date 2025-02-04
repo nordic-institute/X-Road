@@ -3,6 +3,7 @@ quarkus:
     name: monitor
   config:
     locations:
+      - /etc/xroad/conf.d/local.yaml
       - xroad-common.yaml
       - xroad-logging.yaml
 
