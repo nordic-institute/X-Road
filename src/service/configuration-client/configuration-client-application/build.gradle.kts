@@ -76,7 +76,6 @@ dependencies {
   implementation(libs.bundles.quarkus.core)
   implementation(libs.quarkus.quartz)
 
-  testImplementation(project(":common:common-test"))
   testImplementation(libs.quarkus.junit5)
 }
 

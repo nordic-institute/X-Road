@@ -36,7 +36,7 @@ public class MonitorTestProfile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
-//                "xroad.common.rpc.use-tls", "false",
+                "quarkus.log.level", "INFO",
                 "xroad.common.global-conf.source", "FILESYSTEM"
         );
     }

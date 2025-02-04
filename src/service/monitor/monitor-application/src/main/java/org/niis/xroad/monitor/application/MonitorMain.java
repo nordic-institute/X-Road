@@ -28,14 +28,13 @@ package org.niis.xroad.monitor.application;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 
 @QuarkusMain
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public final class MonitorMain {
 
     public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
+        Quarkus.run(args);
     }
 
 }
