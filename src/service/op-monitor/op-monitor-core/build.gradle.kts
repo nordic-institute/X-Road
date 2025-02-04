@@ -70,10 +70,6 @@ tasks.register("xjc") {
   }
 }
 
-tasks.jar {
-  archiveBaseName.set("op-monitor-daemon-core")
-}
-
 tasks.named("xjc") {
   dependsOn(createDirs)
   dependsOn(tasks.processResources)

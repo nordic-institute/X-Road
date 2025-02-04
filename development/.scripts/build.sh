@@ -8,7 +8,7 @@ gradleArgs="clean build -xtest -xcheckstyleMain -xcheckstyleTest "
 case $1 in
 "proxy")
   gradleModule="proxy"
-  gradleArgs+="-xintTest -xintegrationTest"
+  gradleArgs+="-xintTest"
   ;;
 "configuration-client")
   gradleModule="configuration-client"

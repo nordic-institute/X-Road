@@ -145,10 +145,10 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
             try {
                 if (original != null) {
                     configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir, original);
-                    log.info("Configuration source was successfully reloaded");
+                    log.debug("Successfully reloaded globalconf source");
                 } else {
                     configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
-                    log.info("Configuration source was successfully loaded");
+                    log.debug("Successfully loaded globalconf source");
                 }
 
                 lastState = GlobalConfInitState.INITIALIZED;

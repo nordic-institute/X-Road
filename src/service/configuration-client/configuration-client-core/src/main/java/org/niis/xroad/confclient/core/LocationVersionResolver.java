@@ -30,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
-import org.niis.xroad.globalconf.model.ConfigurationHttpUrlConnectionConfig;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.io.IOException;
@@ -43,13 +42,18 @@ import java.net.URL;
 @Slf4j
 abstract class LocationVersionResolver {
     private static final String VERSION_QUERY_PARAMETER = "version";
+
+    protected final HttpUrlConnectionConfigurer connectionConfig;
     private final ConfigurationLocation location;
 
-    static LocationVersionResolver fixed(ConfigurationLocation location, int version) {
-        return new FixedVersionResolver(location, version);
+    static LocationVersionResolver fixed(HttpUrlConnectionConfigurer connectionConfig,
+                                         ConfigurationLocation location, int version) {
+        return new FixedVersionResolver(connectionConfig, location, version);
     }
-    static LocationVersionResolver range(ConfigurationLocation location, int minVersion, int maxVersion) {
-        return new VersionRangeResolver(location, minVersion, maxVersion);
+
+    static LocationVersionResolver range(HttpUrlConnectionConfigurer connectionConfig,
+                                         ConfigurationLocation location, int minVersion, int maxVersion) {
+        return new VersionRangeResolver(connectionConfig, location, minVersion, maxVersion);
     }
 
     abstract String chooseVersion(String url) throws Exception;
@@ -65,8 +69,8 @@ abstract class LocationVersionResolver {
         private final int minVersion;
         private final int maxVersion;
 
-        VersionRangeResolver(ConfigurationLocation location, int minVersion, int maxVersion) {
-            super(location);
+        VersionRangeResolver(HttpUrlConnectionConfigurer connectionConfig, ConfigurationLocation location, int minVersion, int maxVersion) {
+            super(connectionConfig, location);
             this.minVersion = minVersion;
             this.maxVersion = maxVersion;
         }
@@ -98,7 +102,7 @@ abstract class LocationVersionResolver {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) url.openConnection();
-                ConfigurationHttpUrlConnectionConfig.apply(connection);
+                connectionConfig.apply(connection);
                 return connection.getResponseCode() != HttpStatus.SC_NOT_FOUND;
             } finally {
                 if (connection != null) {
@@ -119,8 +123,8 @@ abstract class LocationVersionResolver {
     private static class FixedVersionResolver extends LocationVersionResolver {
         private final int version;
 
-        FixedVersionResolver(ConfigurationLocation location, int version) {
-            super(location);
+        FixedVersionResolver(HttpUrlConnectionConfigurer connectionConfig, ConfigurationLocation location, int version) {
+            super(connectionConfig, location);
             this.version = version;
         }
 

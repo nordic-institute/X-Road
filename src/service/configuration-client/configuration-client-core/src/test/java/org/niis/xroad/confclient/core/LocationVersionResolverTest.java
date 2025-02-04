@@ -28,7 +28,10 @@ package org.niis.xroad.confclient.core;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.util.List;
@@ -44,17 +47,19 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-
+@ExtendWith(MockitoExtension.class)
 class LocationVersionResolverTest {
     @RegisterExtension
     static WireMockExtension wm = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
             .build();
+    @Mock
+    private HttpUrlConnectionConfigurer connectionConfigurer;
 
     @Test
     void enforcedVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
-        LocationVersionResolver resolver = LocationVersionResolver.fixed(initialLocation, 8);
+        LocationVersionResolver resolver = LocationVersionResolver.fixed(connectionConfigurer, initialLocation, 8);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
@@ -66,7 +71,7 @@ class LocationVersionResolverTest {
     @Test
     void presetVersionPrevailsWhenVersionNotEnforced() throws Exception {
         ConfigurationLocation location = getConfigurationLocation(wm.getRuntimeInfo().getHttpBaseUrl() + "?version=1");
-        LocationVersionResolver resolver = LocationVersionResolver.range(location, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, location, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
@@ -78,7 +83,7 @@ class LocationVersionResolverTest {
     @Test
     void enforcedVersionPrevailsPresetVersion() throws Exception {
         ConfigurationLocation location = getConfigurationLocation(wm.getRuntimeInfo().getHttpBaseUrl() + "?version=1");
-        LocationVersionResolver resolver = LocationVersionResolver.fixed(location, 8);
+        LocationVersionResolver resolver = LocationVersionResolver.fixed(connectionConfigurer, location, 8);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
@@ -91,7 +96,7 @@ class LocationVersionResolverTest {
     void chooseFirstAvailableVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(ok()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
@@ -105,7 +110,7 @@ class LocationVersionResolverTest {
         var initialLocation = getConfigurationLocation();
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(notFound()));
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")).willReturn(ok()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
@@ -121,7 +126,7 @@ class LocationVersionResolverTest {
         var initialLocation = getConfigurationLocation();
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(notFound()));
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")).willReturn(notFound()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
