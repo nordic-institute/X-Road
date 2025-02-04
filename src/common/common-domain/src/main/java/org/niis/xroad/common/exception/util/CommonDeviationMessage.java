@@ -31,6 +31,7 @@ import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
 public enum CommonDeviationMessage implements DeviationProvider {
     INTERNAL_ERROR("internal_error", "Internal error. See server logs for more details"),
+    ACTION_NOT_POSSIBLE("action_not_possible", "Action not possible"),
     GENERIC_VALIDATION_FAILURE("invalid_parameters", "Validation failure"),
     SECURITY_SERVER_NOT_FOUND("security_server_not_found", "Security server not found"),
     INVALID_ENCODED_ID("invalid_encoded_id", "Invalid encoded id"),
@@ -76,7 +77,8 @@ public enum CommonDeviationMessage implements DeviationProvider {
 
     TOKEN_FETCH_FAILED("token_fetch_failed", "Error getting tokens"),
     TOKEN_PIN_INCORRECT("pin_incorrect", "Entered PIN was incorrect"),
-    TOKEN_NOT_ACTIVE("token_not_active", "Token is not active");
+    TOKEN_NOT_ACTIVE("token_not_active", "Token is not active"),
+    TOKEN_NOT_FOUND("token_not_found", "Token not found");
 
     @Getter
     private final String code;
