@@ -23,7 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { AccessRight, Service, ServiceDescription } from '@/openapi-types';
+import {
+  AccessRight,
+  CertificateAuthority,
+  CsrSubjectFieldDescription,
+  Service,
+  ServiceDescription,
+  TimestampingService
+} from '@/openapi-types';
 
 /**
  * Sorting function for comparing Services by (full) service codes
@@ -64,5 +71,23 @@ export const sortAccessRightsByServiceCode = (
 ): AccessRight[] => {
   return acls.sort((a: AccessRight, b: AccessRight) => {
     return a.service_code.localeCompare(b.service_code);
+  });
+};
+
+export const sortCsrSubjectFields = (fields: CsrSubjectFieldDescription[],): CsrSubjectFieldDescription[] => {
+  return fields.sort((a: CsrSubjectFieldDescription, b: CsrSubjectFieldDescription) => {
+    return a.id.localeCompare(b.id);
+  });
+};
+
+export const sorCertificateAuthorities = (cas: CertificateAuthority[],): CertificateAuthority[] => {
+  return cas.sort((a: CertificateAuthority, b: CertificateAuthority) => {
+    return a.name.localeCompare(b.name);
+  });
+};
+
+export const sortTimestampingServices = (timestamp: TimestampingService[],): TimestampingService[] => {
+  return timestamp.sort((a: TimestampingService, b: TimestampingService) => {
+    return a.name.localeCompare(b.name);
   });
 };
