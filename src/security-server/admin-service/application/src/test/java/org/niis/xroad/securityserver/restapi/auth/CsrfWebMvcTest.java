@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;

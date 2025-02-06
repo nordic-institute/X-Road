@@ -8,5 +8,5 @@ dependencies {
   api(project(":common:common-rpc"))
   api(project(":service:configuration-client:configuration-client-model"))
 
-  implementation(libs.quarkus.arc)
+  implementation(libs.smallrye.config.core)
 }

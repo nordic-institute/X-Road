@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
@@ -72,9 +73,9 @@ public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";
 
+    private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final CertHelper certHelper;
-    private final CertChainFactory certChainFactory;
 
     void verify(HttpContext context, SSLSession sslSession,
                 URI selectedAddress) {
@@ -105,7 +106,9 @@ public class AuthTrustVerifier {
         List<OCSPResp> ocspResponses;
         try {
             List<X509Certificate> additionalCerts = Arrays.asList(ArrayUtils.subarray(certs, 1, certs.length));
-            chain = certChainFactory.create(serviceProvider.getXRoadInstance(), certs[0], additionalCerts);
+            chain = CertChainFactory.create(serviceProvider.getXRoadInstance(),
+                    globalConfProvider.getCaCert(serviceProvider.getXRoadInstance(), certs[0]),
+                    certs[0], additionalCerts);
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
         } catch (CodedException e) {

@@ -26,31 +26,61 @@
 package org.niis.xroad.globalconf.spring;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
-import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
-import org.niis.xroad.globalconf.impl.GlobalConfImpl;
+import org.niis.xroad.globalconf.impl.GlobalConfRefreshJob;
+import org.niis.xroad.globalconf.impl.config.GlobalConfConfig;
+import org.niis.xroad.globalconf.impl.config.GlobalConfProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import java.util.Optional;
+
+import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.MAPPING_PREFIX;
 
 @Slf4j
 @Configuration
-@EnableScheduling
 @RequiredArgsConstructor
-public class GlobalConfBeanConfig {
+@EnableConfigurationProperties(SpringGlobalConfConfig.SpringCommonGlobalConfProperties.class)
+public class SpringGlobalConfConfig extends GlobalConfConfig {
 
     @Bean
-    GlobalConfSource globalConfSource() {
-        log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
-        return new FileSystemGlobalConfSource(getConfigurationPath());
+    @Override
+    public GlobalConfProvider globalConfProvider(GlobalConfSource source) {
+        return super.globalConfProvider(source);
     }
 
     @Bean
-    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
-        return new GlobalConfImpl(source);
+    public GlobalConfSource globalConfSource(Optional<ConfClientRpcClient> confClientRpcClient, GlobalConfProperties globalConfProperties) {
+        return super.globalConfSource(confClientRpcClient::get, globalConfProperties);
     }
+
+    @Bean(initMethod = "init")
+    public GlobalConfRefreshJob globalConfRefreshJob(GlobalConfProperties config, GlobalConfProvider globalConfProvider) {
+        return new GlobalConfRefreshJob(config, globalConfProvider);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = MAPPING_PREFIX)
+    public static class SpringCommonGlobalConfProperties implements GlobalConfProperties {
+        private GlobalConfSource source = GlobalConfSource.valueOf(DEFAULT_SOURCE);
+
+        private int refreshRateSeconds = Integer.parseInt(DEFAULT_RATE_INTERVAL);
+
+        @Override
+        public GlobalConfSource source() {
+            return source;
+        }
+
+        @Override
+        public int refreshRateSeconds() {
+            return refreshRateSeconds;
+        }
+    }
+
 }

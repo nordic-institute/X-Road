@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.properties.spring;
+package org.niis.xroad.globalconf.model;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.properties.CommonGlobalConfProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import java.time.OffsetDateTime;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@ConfigurationProperties(prefix = "xroad.common.global-conf")
-public class SpringCommonGlobalConfProperties implements CommonGlobalConfProperties {
-    private GlobalConfSource source = GlobalConfSource.FILESYSTEM;
+public interface ParameterProvider {
 
-    @Override
-    public GlobalConfSource source() {
-        return source;
-    }
+    OffsetDateTime getExpiresOn();
 
+    boolean hasChanged();
 }
-

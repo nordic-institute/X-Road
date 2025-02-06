@@ -28,22 +28,20 @@ package org.niis.xroad.bootstrap.config;
 
 import ee.ria.xroad.common.SystemPropertySource;
 
-import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.Config;
 
 @Slf4j
-@Singleton
+@ApplicationScoped
 @RequiredArgsConstructor
 public class LegacySystemPropSourceInitializer {
     private final Config config;
 
-    @Startup
     void initializePropertyResolver(@Observes @Priority(Integer.MIN_VALUE) StartupEvent ev) {
         log.info("Setting property source to Quarkus config.");
         SystemPropertySource.setPropertyResolver(new SystemPropertySource.PropertyResolver() {

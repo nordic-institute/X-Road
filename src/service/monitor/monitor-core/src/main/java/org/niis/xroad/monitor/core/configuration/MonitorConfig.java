@@ -37,7 +37,6 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
@@ -45,8 +44,6 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.IOException;
 import java.util.List;
-
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 
 @Slf4j
 public class MonitorConfig {
@@ -65,12 +62,6 @@ public class MonitorConfig {
                 }));
         rpcServer.afterPropertiesSet();
         return rpcServer;
-    }
-
-    // todo will be dropped after global conf updates
-    @ApplicationScoped
-    FileSystemGlobalConfSource fileSystemGlobalConfSource() {
-        return new FileSystemGlobalConfSource(getConfigurationPath());
     }
 
     @ApplicationScoped

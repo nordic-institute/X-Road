@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -71,7 +71,7 @@ public class AsicContainerVerifierTest {
     public static void setUpConf() {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "../../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
 
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create();
     }
 
     /**

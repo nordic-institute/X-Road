@@ -67,6 +67,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -333,7 +334,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            CertChain chain = commonBeanProxy.certChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
+            CertChain chain = CertChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
                     trustAnchor));
             commonBeanProxy.certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
         } catch (Exception e) {

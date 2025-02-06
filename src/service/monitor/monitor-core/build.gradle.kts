@@ -6,7 +6,7 @@ plugins {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":lib:globalconf-core"))
+  implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":service:monitor:monitor-api"))
   implementation(project(":service:signer:signer-client"))

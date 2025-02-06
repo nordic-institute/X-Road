@@ -29,6 +29,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.core.FileSource;
 import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
@@ -36,6 +37,7 @@ import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.SharedParametersCache;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
+import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -177,14 +179,16 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
 
     @ToString
     @RequiredArgsConstructor
-    public static class FileSystemFileSource implements FileSource {
+    public static class FileSystemFileSource implements FileSource<Path> {
         private final Path path;
 
-        public Optional<Path> getExistingPath() {
+        @Override
+        public Optional<Path> getFile() {
             if (path != null && Files.exists(path)) {
                 return Optional.of(path);
             }
             return Optional.empty();
         }
+
     }
 }

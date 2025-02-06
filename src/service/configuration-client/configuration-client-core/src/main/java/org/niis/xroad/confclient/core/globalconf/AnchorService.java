@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core.admin;
+package org.niis.xroad.confclient.core.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AtomicSave;
@@ -62,7 +62,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClientProperties confClientProperties;
     private final ConfigurationClient configurationClient;
     private final ConfigurationClientActionExecutor configurationClientActionExecutor;
-//    private final GlobalConfRpcCache globalConfRpcCache;
+    private final GlobalConfRpcCache globalConfRpcCache;
 
     @Override
     public void verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage request, StreamObserver<VerificationResult> responseObserver) {
@@ -85,7 +85,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
             if (result == RETURN_SUCCESS) {
                 AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), confClientProperties.configurationAnchorFile());
                 configurationClient.execute();
-//                globalConfRpcCache.refreshCache();
+                globalConfRpcCache.refreshCache();
             }
             return VerificationResult.newBuilder()
                     .setReturnCode(result)
