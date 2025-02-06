@@ -67,6 +67,18 @@ services:
       MP_SMTP_TLS_CERT: /data/mailpit_cert.pem
       MP_SMTP_TLS_KEY: /data/mailpit_key.pem
       MP_SMTP_AUTH_FILE: /data/password_file
+  isopenapi:
+    image: ${IS_OPENAPI_IMG}
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/v3/api-docs" ]
   issoap:
     image: ${IS_SOAP_IMG}
     deploy:
@@ -114,6 +126,8 @@ services:
       ss0:
         condition: service_healthy
       ss1:
+        condition: service_healthy
+      isopenapi:
         condition: service_healthy
       issoap:
         condition: service_healthy
