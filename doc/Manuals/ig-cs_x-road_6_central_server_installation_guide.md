@@ -277,7 +277,7 @@ For advanced setup, e.g. if storing the database administrator password on the s
 
 For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-CS](#Ref_UG-CS) section „Passing additional parameters to psql“.
 
-When the installer create the database and user, then perform the following steps:
+When the installer creates the database and user, perform the following steps:
 
 Create the property file:
 ```bash
