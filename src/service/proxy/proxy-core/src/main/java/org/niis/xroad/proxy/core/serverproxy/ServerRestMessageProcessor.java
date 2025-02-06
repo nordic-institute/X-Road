@@ -176,8 +176,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             X509Certificate authCert = getClientAuthCert();
 
             if (authCert != null) {
-                opMonitoringData.setClientSecurityServerAddress(commonBeanProxy.globalConfProvider.getSecurityServerAddress(
-                        commonBeanProxy.globalConfProvider.getServerId(authCert)));
+                opMonitoringData.setClientSecurityServerAddress(commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(
+                        commonBeanProxy.getGlobalConfProvider().getServerId(authCert)));
             }
         } catch (Exception e) {
             log.error("Failed to assign operational monitoring data field {}",
@@ -216,7 +216,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         String serviceHandlerNames = System.getProperty(SERVERPROXY_REST_SERVICE_HANDLERS);
         if (!StringUtils.isBlank(serviceHandlerNames)) {
             for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(RestServiceHandlerLoader.load(commonBeanProxy.serverConfProvider, serviceHandlerName));
+                handlers.add(RestServiceHandlerLoader.load(commonBeanProxy.getServerConfProvider(), serviceHandlerName));
                 log.trace("Loaded rest service handler: " + serviceHandlerName);
             }
         }
@@ -234,7 +234,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void handleRequest() throws Exception {
         RestServiceHandler handler = getServiceHandler(requestMessage);
         if (handler == null) {
-            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.serverConfProvider);
+            handler = new DefaultRestServiceHandlerImpl(commonBeanProxy.getServerConfProvider());
         }
         log.trace("handler={}", handler);
         if (handler.shouldVerifyAccess()) {
@@ -266,14 +266,14 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
-                responseSigningCtx = commonBeanProxy.signingCtxProvider.createSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = commonBeanProxy.getSigningCtxProvider().createSigningCtx(requestServiceId.getClientId());
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
                 }
             }
         };
 
-        decoder = new ProxyMessageDecoder(commonBeanProxy.globalConfProvider, requestMessage, jRequest.getContentType(), false,
+        decoder = new ProxyMessageDecoder(commonBeanProxy.getGlobalConfProvider(), requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
@@ -311,7 +311,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void verifyClientStatus() {
         ClientId client = requestServiceId.getClientId();
 
-        String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
+        String status = commonBeanProxy.getServerConfProvider().getMemberStatus(client);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
@@ -325,7 +325,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         String instanceIdentifier = requestMessage.getRest().getClientId().getXRoadInstance();
-        X509Certificate trustAnchor = commonBeanProxy.globalConfProvider.getCaCert(instanceIdentifier,
+        X509Certificate trustAnchor = commonBeanProxy.getGlobalConfProvider().getCaCert(instanceIdentifier,
                 clientSslCerts[clientSslCerts.length - 1]);
 
         if (trustAnchor == null) {
@@ -333,9 +333,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            CertChain chain = commonBeanProxy.certChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
+            CertChain chain = commonBeanProxy.getCertChainFactory().create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
                     trustAnchor));
-            commonBeanProxy.certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
+            commonBeanProxy.getCertHelper().verifyAuthCert(chain, requestMessage.getOcspResponses(),
+                    requestMessage.getRest().getClientId());
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
@@ -344,18 +345,18 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void verifyAccess() {
         log.trace("verifyAccess()");
 
-        if (!commonBeanProxy.serverConfProvider.serviceExists(requestServiceId)) {
+        if (!commonBeanProxy.getServerConfProvider().serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        DescriptionType descriptionType = commonBeanProxy.serverConfProvider.getDescriptionType(requestServiceId);
+        DescriptionType descriptionType = commonBeanProxy.getServerConfProvider().getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.REST
                 && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
-        if (!commonBeanProxy.serverConfProvider.isQueryAllowed(
+        if (!commonBeanProxy.getServerConfProvider().isQueryAllowed(
                 requestMessage.getRest().getClientId(),
                 requestServiceId,
                 requestMessage.getRest().getVerb().name(),
@@ -363,7 +364,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
-        String disabledNotice = commonBeanProxy.serverConfProvider.getDisabledNotice(requestServiceId);
+        String disabledNotice = commonBeanProxy.getServerConfProvider().getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,

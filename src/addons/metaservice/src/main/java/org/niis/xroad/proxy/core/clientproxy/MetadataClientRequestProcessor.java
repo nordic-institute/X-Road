@@ -103,7 +103,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
         list.getMember().addAll(
-                commonBeanProxy.globalConfProvider.getMembers(instanceIdentifier).stream().map(m -> {
+                commonBeanProxy.getGlobalConfProvider().getMembers(instanceIdentifier).stream().map(m -> {
                     ClientType client = OBJECT_FACTORY.createClientType();
                     client.setId(m.id());
                     client.setName(m.name());
@@ -135,7 +135,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     private String getInstanceIdentifierFromRequest() throws Exception {
         String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
-            instanceIdentifier = commonBeanProxy.globalConfProvider.getInstanceIdentifier();
+            instanceIdentifier = commonBeanProxy.getGlobalConfProvider().getInstanceIdentifier();
         }
 
         return instanceIdentifier;

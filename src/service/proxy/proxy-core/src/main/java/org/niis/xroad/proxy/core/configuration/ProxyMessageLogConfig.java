@@ -34,13 +34,11 @@ import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.JobManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
-import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,22 +46,16 @@ import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-@Configuration
 public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
-    @Bean
+    @ApplicationScoped
     AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
                                          ServerConfProvider serverConfProvider) {
         return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
     }
 
-    @Bean("messageLogEnabledStatus")
-    Boolean messageLogEnabledStatus(AbstractLogManager logManager) {
-        return NullLogManager.class != logManager.getClass();
-    }
-
-    @Bean
+    @ApplicationScoped
     MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
         return new MessageLogEncryptionStatusDiagnostics(
                 MessageLogProperties.isArchiveEncryptionEnabled(),

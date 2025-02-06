@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.proxy.core.addon.AddOn;
+package org.niis.xroad.proxy.core;
 
-import java.util.ServiceLoader;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-public class ProxyAddonConfig {
+@ConfigMapping(prefix = "xroad.proxy")
+public interface ProxyProperties {
 
-    @ApplicationScoped
-    public AddOn.BindableServiceRegistry bindableServiceRegistry() {
-        AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
-        ServiceLoader.load(AddOn.class)
-                .forEach(addOn -> addOn.init(bindableServiceRegistry));
-
-        return bindableServiceRegistry;
-    }
+    @WithName("health-check-port")
+    @WithDefault("0")
+    int healthCheckPort();
 }

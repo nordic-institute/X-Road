@@ -66,9 +66,4 @@ public final class PortNumbers {
     /** Port of the operational monitoring daemon. */
     public static final int OP_MONITOR_DAEMON_PORT = 2080;
 
-    /**
-     * Proxy grpc port
-     */
-    public static final int PROXY_GRPC_PORT = 5567;
-
 }

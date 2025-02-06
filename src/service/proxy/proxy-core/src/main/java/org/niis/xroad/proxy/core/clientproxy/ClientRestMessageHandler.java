@@ -92,13 +92,13 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     private void verifyCanProcess() {
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
+        AuthKey authKey = commonBeanProxy.getKeyConfProvider().getAuthKey();
         if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

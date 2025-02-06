@@ -86,7 +86,7 @@ class ServerProxyHandler extends HandlerBase {
                         request.getMethod());
             }
 
-            commonBeanProxy.globalConfProvider.verifyValidity();
+            commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
             ClientProxyVersionVerifier.check(request);
             final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),

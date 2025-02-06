@@ -37,7 +37,9 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
@@ -71,6 +73,12 @@ public class MonitorConfig {
     @ApplicationScoped
     FileSystemGlobalConfSource fileSystemGlobalConfSource() {
         return new FileSystemGlobalConfSource(getConfigurationPath());
+    }
+
+    @ApplicationScoped
+        // todo: will be removed after globalconf updates
+    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
+        return new GlobalConfImpl(source);
     }
 
     @ApplicationScoped

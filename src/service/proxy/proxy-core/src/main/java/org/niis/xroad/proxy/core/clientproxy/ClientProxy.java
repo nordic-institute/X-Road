@@ -29,6 +29,10 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -60,8 +64,6 @@ import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -81,7 +83,9 @@ import java.util.Optional;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
-public class ClientProxy implements InitializingBean, DisposableBean {
+@Startup
+@Singleton
+public class ClientProxy {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
     // SSL session timeout
@@ -306,7 +310,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         return handlers;
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.trace("start()");
 
@@ -317,7 +321,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         }
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         log.trace("stop()");
 

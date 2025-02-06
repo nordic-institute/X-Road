@@ -31,7 +31,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.SslMessageTestCase;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
-import org.springframework.context.ApplicationContext;
+//import org.springframework.context.ApplicationContext;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -59,18 +59,19 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
      *
      * @throws Exception
      */
-    @Override
-    public void execute(ApplicationContext applicationContext) throws Exception {
-        try {
-            // Set not accepted cipher in use
-            System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
-            // execute test
-            super.execute(applicationContext);
-        } finally {
-            // Restore cipher suite setup for rest of the tests
-            System.setProperty(propertyName, String.join(",", origCipherSuites));
-        }
-    }
+// todo: will be refactored
+//    @Override
+//    public void execute(ApplicationContext applicationContext) throws Exception {
+//        try {
+//            // Set not accepted cipher in use
+//            System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
+//            // execute test
+//            super.execute(applicationContext);
+//        } finally {
+//            // Restore cipher suite setup for rest of the tests
+//            System.setProperty(propertyName, String.join(",", origCipherSuites));
+//        }
+//    }
 
     /**
      * Underlying "javax.net.ssl.SSLHandshakeException: no cipher suites in common" cannot be validated

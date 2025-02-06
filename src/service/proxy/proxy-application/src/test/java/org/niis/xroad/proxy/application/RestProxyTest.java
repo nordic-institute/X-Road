@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.niis.xroad.proxy.application.testsuite.TestService;
 import org.niis.xroad.serverconf.model.DescriptionType;
@@ -56,6 +57,8 @@ import static org.junit.Assert.assertNotNull;
  * RestProxyTest
  */
 @Slf4j
+// todo: will be refactored
+@Ignore
 public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;

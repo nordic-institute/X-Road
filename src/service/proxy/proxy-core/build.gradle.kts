@@ -2,6 +2,7 @@ plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
   id("xroad.test-fixtures-conventions")
+//  alias(libs.plugins.jandex)
 }
 
 sourceSets {
@@ -12,40 +13,50 @@ sourceSets {
   }
 }
 
+configurations.configureEach {
+  exclude(module = "logback-classic") //TODO remove once actual source is removed
+  exclude(module = "logback-core") //TODO remove once actual source is removed
+}
+
 dependencies {
-  api(platform(libs.springBoot.bom))
+  api(platform(libs.quarkus.bom))
 
   implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-message"))
+//  implementation(project(":common:common-message"))
   implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
 
-  api(project(":lib:globalconf-spring"))
-  api(project(":lib:serverconf-spring"))
-  api(project(":lib:keyconf-impl"))
-  api(project(":common:common-rpc-spring"))
+  implementation(libs.quarkus.scheduler)
 
-  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-  api("org.springframework:spring-context-support")
+  implementation(project(":lib:globalconf-impl"))
+  implementation(project(":lib:serverconf-impl"))
+  implementation(project(":lib:keyconf-impl"))
+//  api(project(":common:common-rpc-spring"))
+
+//  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)
-  implementation(libs.xerces.impl)
+//  implementation(libs.xerces.impl)
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
-  testImplementation(testFixtures(project(":lib:serverconf-impl")))
+//  testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
-  testImplementation(libs.wsdl4j)
-
-  testFixturesImplementation(project(":common:common-test"))
+//  testImplementation(libs.wsdl4j)
+//
+  testFixturesImplementation(project(":common:common-domain"))
   testFixturesImplementation(project(":common:common-jetty"))
+  testFixturesImplementation(project(":common:common-test"))
+  testFixturesImplementation(project(":common:common-message"))
+  testFixturesImplementation(project(":lib:keyconf-api"))
+  testFixturesImplementation(project(":lib:serverconf-impl"))
   testFixturesImplementation(libs.wsdl4j)
-
-  "intTestRuntimeOnly"(project(":service:signer:signer-application"))
-  "intTestImplementation"(project(":common:common-test"))
-  "intTestImplementation"(project(":common:common-int-test"))
+//
+//  "intTestRuntimeOnly"(project(":service:signer:signer-application"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":common:common-int-test"))
 }
 
 val testJar by tasks.registering(Jar::class) {

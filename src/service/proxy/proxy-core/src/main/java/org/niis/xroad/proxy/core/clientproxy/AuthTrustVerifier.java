@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -68,6 +69,7 @@ import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.ge
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";

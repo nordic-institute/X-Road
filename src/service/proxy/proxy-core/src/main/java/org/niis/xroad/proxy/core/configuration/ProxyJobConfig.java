@@ -27,27 +27,17 @@ package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.util.JobManager;
 
-import org.niis.xroad.proxy.core.util.ServerConfStatsLogger;
-import org.quartz.SchedulerException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.quartz.impl.StdSchedulerFactory;
 
-@Configuration
 public class ProxyJobConfig {
-    private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
-    @Bean
-    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
-
-        jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
-
+    // todo will be removed after migration is complete
+    @ApplicationScoped
+    JobManager jobManager() throws Exception {
+        var jobManager = new JobManager(new StdSchedulerFactory().getScheduler());
+        jobManager.afterPropertiesSet();
         return jobManager;
     }
 
-    @Bean
-    SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
-    }
 }

@@ -32,7 +32,6 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -58,7 +57,6 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtx;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
-import org.springframework.context.ApplicationContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -70,11 +68,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+//import java.util.Map.Entry;
 
-import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+//import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
+//import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+//import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 /**
  * Base class for a message test case.
@@ -225,94 +223,95 @@ public class MessageTestCase {
      *
      * @throws Exception in case of any unexpected errors
      */
-    public void execute(ApplicationContext applicationContext) throws Exception {
-        init(applicationContext);
-        startUp();
-        generateQueryId();
+//    public void execute(ApplicationContext applicationContext) throws Exception {
+//        init(applicationContext);
+//        startUp();
+//        generateQueryId();
+//
+//        CloseableHttpAsyncClient client = getClient();
+//        client.start();
+//
+//        // Request input stream is read twice, once for recording,
+//        // second time for HTTP request.
+//        Pair<String, InputStream> requestInput = getRequestInput(false);
+//
+//        try (InputStream is = requestInput.getRight()) {
+//            sentRequest = new Message(is, requestInput.getLeft()).parse();
+//        }
+//
+//        AsyncHttpSender sender = new AsyncHttpSender(client);
+//        // Needed by some test cases
+//        sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM.name());
+//
+//        // Get the input again.
+//        requestInput = getRequestInput(addUtf8BomToRequestFile);
+//
+//        try (InputStream is = requestInput.getRight()) {
+//            for (Entry<String, String> e : requestHeaders.entrySet()) {
+//                sender.addHeader(e.getKey(), e.getValue());
+//            }
+//
+//            if ("post".equalsIgnoreCase(httpMethod)) {
+//                sender.doPost(getClientUri(), is, CHUNKED_LENGTH,
+//                        requestInput.getLeft());
+//            } else {
+//                sender.doGet(getClientUri());
+//            }
+//
+//            sender.waitForResponse(DEFAULT_CLIENT_TIMEOUT);
+//        }
+//
+//        try {
+//            receivedResponse = extractResponse(sender);
+//
+//            if (sentRequest != null && sentRequest.getSoap() != null
+//                    && sentRequest.getSoap() instanceof SoapMessageImpl) {
+//                sentResponse = receivedResponse;
+//            }
+//        } finally {
+//            sender.close();
+//            client.close();
+//            closeDown();
+//        }
+//
+//        if (failed) {
+//            throw new Exception("Test failed in previous stage");
+//        }
+//
+//        if (receivedResponse.getSoap() != null) {
+//            log.debug("Validating SOAP message\n{}",
+//                    receivedResponse.getSoap().getXml());
+//        }
+//
+//
+//        if (receivedResponse.isFault()) {
+//            log.debug("Validating fault: {}, {}",
+//                    ((SoapFault) receivedResponse.getSoap()).getCode(),
+//                    ((SoapFault) receivedResponse.getSoap()).getString());
+//            validateFaultResponse(receivedResponse);
+//            return;
+//        }
+//
+//        if (!receivedResponse.isResponse()) {
+//            throw new Exception("Received SOAP message is not a response");
+//        }
+//
+//        if (sentResponse != null
+//                && !checkConsistency(sentResponse, receivedResponse)) {
+//            throw new Exception(
+//                    "Received response is not the same as sent response");
+//        }
+//
+//        log.debug("Validating normal response");
+//        validateNormalResponse(receivedResponse);
+//    }
 
-        CloseableHttpAsyncClient client = getClient();
-        client.start();
-
-        // Request input stream is read twice, once for recording,
-        // second time for HTTP request.
-        Pair<String, InputStream> requestInput = getRequestInput(false);
-
-        try (InputStream is = requestInput.getRight()) {
-            sentRequest = new Message(is, requestInput.getLeft()).parse();
-        }
-
-        AsyncHttpSender sender = new AsyncHttpSender(client);
-        // Needed by some test cases
-        sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM.name());
-
-        // Get the input again.
-        requestInput = getRequestInput(addUtf8BomToRequestFile);
-
-        try (InputStream is = requestInput.getRight()) {
-            for (Entry<String, String> e : requestHeaders.entrySet()) {
-                sender.addHeader(e.getKey(), e.getValue());
-            }
-
-            if ("post".equalsIgnoreCase(httpMethod)) {
-                sender.doPost(getClientUri(), is, CHUNKED_LENGTH,
-                        requestInput.getLeft());
-            } else {
-                sender.doGet(getClientUri());
-            }
-
-            sender.waitForResponse(DEFAULT_CLIENT_TIMEOUT);
-        }
-
-        try {
-            receivedResponse = extractResponse(sender);
-
-            if (sentRequest != null && sentRequest.getSoap() != null
-                    && sentRequest.getSoap() instanceof SoapMessageImpl) {
-                sentResponse = receivedResponse;
-            }
-        } finally {
-            sender.close();
-            client.close();
-            closeDown();
-        }
-
-        if (failed) {
-            throw new Exception("Test failed in previous stage");
-        }
-
-        if (receivedResponse.getSoap() != null) {
-            log.debug("Validating SOAP message\n{}",
-                    receivedResponse.getSoap().getXml());
-        }
-
-
-        if (receivedResponse.isFault()) {
-            log.debug("Validating fault: {}, {}",
-                    ((SoapFault) receivedResponse.getSoap()).getCode(),
-                    ((SoapFault) receivedResponse.getSoap()).getString());
-            validateFaultResponse(receivedResponse);
-            return;
-        }
-
-        if (!receivedResponse.isResponse()) {
-            throw new Exception("Received SOAP message is not a response");
-        }
-
-        if (sentResponse != null
-                && !checkConsistency(sentResponse, receivedResponse)) {
-            throw new Exception(
-                    "Received response is not the same as sent response");
-        }
-
-        log.debug("Validating normal response");
-        validateNormalResponse(receivedResponse);
-    }
-
-    protected void init(ApplicationContext applicationContext) throws Exception {
-        globalConfProvider = applicationContext.getBean(TestGlobalConfWrapper.class);
-        keyConfProvider = applicationContext.getBean(KeyConfProvider.class);
-        serverConfProvider = applicationContext.getBean(TestServerConfWrapper.class);
-    }
+//    protected void init(ApplicationContext applicationContext) throws Exception {
+// todo: will be refactored
+//        globalConfProvider = applicationContext.getBean(TestGlobalConfWrapper.class);
+//        keyConfProvider = applicationContext.getBean(KeyConfProvider.class);
+//        serverConfProvider = applicationContext.getBean(TestServerConfWrapper.class);
+//    }
 
     protected void startUp() throws Exception {
         globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf());

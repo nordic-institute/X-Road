@@ -25,110 +25,66 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
-import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
-import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
-import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
-import org.niis.xroad.proxy.core.signature.MessageSigner;
-import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-})
-@Configuration
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+
 public class ProxyConfig {
 
-    @Bean
-    MessageSigner messageSigner(SignerRpcClient signerRpcClient) {
-        return new BatchSigner(signerRpcClient);
-    }
-
-    @Bean
-    SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                          MessageSigner messageSigner) {
-        return new SigningCtxProviderImpl(globalConfProvider, keyConfProvider, messageSigner);
-    }
-
-    @Bean
-    CommonBeanProxy commonBeanProxy(GlobalConfProvider globalConfProvider,
-                                    KeyConfProvider keyConfProvider,
-                                    SigningCtxProvider signingCtxProvider,
-                                    ServerConfProvider serverConfProvider,
-                                    CertChainFactory certChainFactory,
-                                    CertHelper certHelper) {
-        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
-                certHelper);
-    }
-
-    @Bean
-    ClientProxy clientProxy(CommonBeanProxy commonBeanProxy,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
-    }
-
-    @Bean
+    @ApplicationScoped
     CertHelper certHelper(GlobalConfProvider globalConfProvider) {
         return new CertHelper(globalConfProvider);
     }
 
-    @Bean
+    @ApplicationScoped
     CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
         return new CertChainFactory(globalConfProvider);
     }
 
-    @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
-    }
-
-    @Bean
-    ServerProxy serverProxy(CommonBeanProxy commonBeanProxy) throws Exception {
-        return new ServerProxy(commonBeanProxy);
-    }
-
-    @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        return new CertHashBasedOcspResponder(keyConfProvider);
-    }
-
-    @Bean
+    @ApplicationScoped
+    @Startup
     AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
         return OpMonitoring.init(serverConfProvider);
     }
 
-    @Bean
+    @ApplicationScoped
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) throws Exception {
         return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
+    }
+
+    @ApplicationScoped
+        // todo: will be removed after globalconf updates
+    GlobalConfSource globalConfSource() {
+        var source = new FileSystemGlobalConfSource(getConfigurationPath());
+        source.afterPropertiesSet();
+        return source;
+    }
+
+    @ApplicationScoped
+        // todo: will be removed after globalconf updates
+    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
+        return new GlobalConfImpl(source);
+    }
+
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(globalConfProvider, serverConfProperties.cachePeriod()); //, databaseCtx);
     }
 
 }

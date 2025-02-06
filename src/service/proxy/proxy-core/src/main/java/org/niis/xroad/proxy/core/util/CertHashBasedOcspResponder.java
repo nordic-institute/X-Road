@@ -30,6 +30,10 @@ import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.io.Content;
@@ -45,8 +49,6 @@ import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,7 +69,9 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
-public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
+@ApplicationScoped
+@Startup
+public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";
     private static final String METHOD_GET = "GET";
@@ -136,12 +140,12 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         server.setHandler(new RequestHandler());
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
     }

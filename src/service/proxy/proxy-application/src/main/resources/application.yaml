@@ -1,0 +1,29 @@
+quarkus:
+  application:
+    name: proxy
+  config:
+    locations:
+      - /etc/xroad/conf.d/local.yaml
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  log:
+    level: DEBUG
+    console:
+      enable: true
+
+"%containerized":
+  xroad:
+    proxy:
+      rpc:
+        listen-address: 0.0.0.0
+
+"%native":
+  quarkus:
+    log:
+      file:
+        enable: true
+        path: /var/log/xroad/proxy.log
+#   TODO: clientproxy-access-log
+#   TODO: serverproxy-access-log
+#   TODO: and the rest logging configuration, check logback config
+

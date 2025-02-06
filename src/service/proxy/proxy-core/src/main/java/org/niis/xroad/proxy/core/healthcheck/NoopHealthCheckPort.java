@@ -25,12 +25,17 @@
  * THE SOFTWARE.
  */
 
-/**
- * Annotation support for the Application Context, including JSR-250 "common"
- * annotations, component-scanning, and Java-based metadata for creating
- * Spring-managed objects.
- */
-@NonNullApi
-package org.niis.xroad.proxy.core.configuration;
+package org.niis.xroad.proxy.core.healthcheck;
 
-import org.springframework.lang.NonNullApi;
+public class NoopHealthCheckPort implements HealthCheckPort {
+
+    @Override
+    public String setMaintenanceMode(boolean targetState) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
+}

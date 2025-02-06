@@ -25,38 +25,64 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import io.quarkus.runtime.Startup;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.proxy.core.addon.AddOn;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @Slf4j
-@Import(SpringRpcConfig.class)
-@Configuration
 public class ProxyRpcConfig {
 
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
+    @ApplicationScoped
+    @Startup
+    RpcServer proxyRpcServer(AddOn.BindableServiceRegistry bindableServiceRegistry,
+                             ProxyRpcServerProperties rpcServerProperties,
                              RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        return new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
+        var rpcServer =  new RpcServer(
+                rpcServerProperties.listenAddress(),
+                rpcServerProperties.port(),
                 rpcCredentialsConfigurer.createServerCredentials(),
                 builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+        if (rpcServerProperties.enabled()) {
+            rpcServer.afterPropertiesSet();
+        }
+        return rpcServer;
     }
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    @ConfigMapping(prefix = "xroad.proxy.rpc")
+    public interface ProxyRpcServerProperties extends RpcServerProperties {
+        @WithName("enabled")
+        @WithDefault("true")
+        @Override
+        boolean enabled();
+
+        @WithName("listen-address")
+        @WithDefault("127.0.0.1")
+        @Override
+        String listenAddress();
+
+        @WithName("port")
+        @WithDefault("5567")
+        @Override
+        int port();
     }
+
+    // todo will be removed after signer migration
+    @ApplicationScoped
+    SignerRpcClient signerRpcClient() throws Exception {
+        var signerRpcClient = new SignerRpcClient();
+        signerRpcClient.init();
+        return signerRpcClient;
+    }
+
 }

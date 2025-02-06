@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.proxy.core.addon.AddOn;
+package org.niis.xroad.proxy.application;
 
-import java.util.ServiceLoader;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-public class ProxyAddonConfig {
+import java.util.Map;
 
-    @ApplicationScoped
-    public AddOn.BindableServiceRegistry bindableServiceRegistry() {
-        AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
-        ServiceLoader.load(AddOn.class)
-                .forEach(addOn -> addOn.init(bindableServiceRegistry));
+public class ProxyTestProfile implements QuarkusTestProfile {
 
-        return bindableServiceRegistry;
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.global-conf.source", "FILESYSTEM"
+        );
     }
+
 }

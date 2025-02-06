@@ -6,7 +6,7 @@ ss_modules:
     lib: monitor-1.0.jar
     target: /usr/share/xroad/jlib
   proxy:
-    dir: proxy/application
+    dir: service/proxy/proxy-application
     build: build
     lib: proxy-1.0.jar
     target: /usr/share/xroad/jlib

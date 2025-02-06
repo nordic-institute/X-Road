@@ -336,8 +336,6 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_INTERFACE = PROXY_PREFIX + "health-check-interface";
 
-    public static final String PROXY_HEALTH_CHECK_PORT = PROXY_PREFIX + "health-check-port";
-
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
@@ -410,8 +408,6 @@ public final class SystemProperties {
     private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = FALSE;
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
-
-    private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = FALSE;
 
@@ -646,11 +642,6 @@ public final class SystemProperties {
      * Property name for gRPC signer port.
      */
     public static final String GRPC_SIGNER_PORT = SIGNER_PREFIX + "grpc-port";
-
-    /**
-     * Property name for gRPC proxy port.
-     */
-    public static final String PROXY_GRPC_PORT = PROXY_PREFIX + "grpc-port";
 
     /**
      * Property name for gRPC internal keystore location.
@@ -1385,13 +1376,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
-     */
-    public static int getProxyGrpcPort() {
-        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
-    }
-
-    /**
      * @return environmental monitoring port, '2552' by default.
      */
     public static int getEnvMonitorPort() {
@@ -1687,17 +1671,8 @@ public final class SystemProperties {
         return NodeType.fromStringIgnoreCaseOrReturnDefault(System.getProperty(NODE_TYPE));
     }
 
-    public static boolean isHealthCheckEnabled() {
-        return getHealthCheckPort() > 0;
-    }
-
     public static String getHealthCheckInterface() {
         return System.getProperty(PROXY_HEALTH_CHECK_INTERFACE, DEFAULT_PROXY_HEALTH_CHECK_INTERFACE);
-    }
-
-    public static int getHealthCheckPort() {
-        return Integer.parseInt(System.getProperty(PROXY_HEALTH_CHECK_PORT,
-                DEFAULT_PROXY_HEALTH_CHECK_PORT));
     }
 
     /**

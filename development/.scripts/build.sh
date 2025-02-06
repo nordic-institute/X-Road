@@ -7,7 +7,7 @@ gradleModule=""
 gradleArgs="clean build -xtest -xcheckstyleMain -xcheckstyleTest "
 case $1 in
 "proxy")
-  gradleModule="proxy"
+  gradleModule="service/proxy/proxy-application"
   gradleArgs+="-xintTest"
   ;;
 "configuration-client")
