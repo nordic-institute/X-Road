@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.41
+Version: 2.42
 Doc. ID: IG-CS
 
 ---
@@ -59,6 +59,7 @@ Doc. ID: IG-CS
 | 25.04.2024 | 2.39    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa        |
 | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki     |
 | 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA Configuration signing keys                                                                   | Ovidijus Narkevicius |
+| 06.02.2025 | 2.42    | Setup database connection with SSL certificates                                                                                                                                               | Eneli Reimets        |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -271,7 +272,11 @@ psql -h <database host> -U <superuser> -tAc 'show server_version'
 
 The installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
 
-For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. 
+
+For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-CS](#Ref_UG-CS) section „Passing additional parameters to psql“.
+
+When the installer create the database and user, then perform the following steps:
 
 Create the property file:
 ```bash
