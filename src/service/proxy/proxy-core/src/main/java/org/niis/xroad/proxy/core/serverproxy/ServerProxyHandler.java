@@ -32,12 +32,15 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
@@ -55,18 +58,14 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.PRODUCER;
 
 @Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ServerProxyHandler extends HandlerBase {
     private final CommonBeanProxy commonBeanProxy;
-
+    private final ProxyProperties.ServerProperties serverProperties;
     private final HttpClient client;
     private final HttpClient opMonitorClient;
-    private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
-    ServerProxyHandler(CommonBeanProxy commonBeanProxy, HttpClient client, HttpClient opMonitorClient) {
-        this.commonBeanProxy = commonBeanProxy;
-        this.client = client;
-        this.opMonitorClient = opMonitorClient;
-    }
+    private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
     @Override
     @WithSpan
@@ -75,7 +74,7 @@ class ServerProxyHandler extends HandlerBase {
 
         long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
 
-        if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
+        if (!serverProperties.serverSupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
             response.getHeaders().add("Connection", "close");
         }

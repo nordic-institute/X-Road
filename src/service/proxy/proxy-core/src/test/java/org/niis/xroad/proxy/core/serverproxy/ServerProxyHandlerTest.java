@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -56,7 +57,8 @@ public class ServerProxyHandlerTest {
         var commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null,
                 certChainFactory, null);
 
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(HttpClient.class), mock(HttpClient.class));
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
+                mock(HttpClient.class), mock(HttpClient.class));
 
         try (
                 var checkMock = mockStatic(ClientProxyVersionVerifier.class)

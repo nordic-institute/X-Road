@@ -6,10 +6,6 @@ quarkus:
       - /etc/xroad/conf.d/local.yaml
       - xroad-common.yaml
       - xroad-logging.yaml
-  log:
-    level: DEBUG
-    console:
-      enable: true
 
 "%containerized":
   xroad:
@@ -20,6 +16,8 @@ quarkus:
 "%native":
   quarkus:
     log:
+      console:
+        enable: false
       file:
         enable: true
         path: /var/log/xroad/proxy.log

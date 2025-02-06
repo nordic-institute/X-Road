@@ -90,7 +90,7 @@ public class MaintenanceModeTest {
         testClient = HttpClients.createDefault();
 
         testProvider = mock(StoppableCombinationHealthCheckProvider.class);
-        testPort = new HealthCheckPortImpl(testProvider, TEST_PORT_NUMBER);
+        testPort = new HealthCheckPortImpl(testProvider, TEST_PORT_NUMBER, "0.0.0.0");
         testPort.init();
     }
 

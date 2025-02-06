@@ -49,7 +49,9 @@ import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.AuthKeyManager;
+import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.test.DummySslServerProxy;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.keyconf.TestKeyConf;
 
@@ -99,7 +101,35 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     public void setup() {
         GlobalConfProvider globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
-        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
+        CertHashBasedOcspResponderClient ocspResponderClient = new CertHashBasedOcspResponderClient(
+                new ProxyProperties.OcspResponderProperties() {
+
+                    @Override
+                    public String listenAddress() {
+                        return "0.0.0.0";
+                    }
+
+                    @Override
+                    public int port() {
+                        return 5577;
+                    }
+
+                    @Override
+                    public int clientConnectTimeout() {
+                        return 20000;
+                    }
+
+                    @Override
+                    public int clientReadTimeout() {
+                        return 30000;
+                    }
+
+                    @Override
+                    public String jettyConfigurationFile() {
+                        return "src/test/ocsp-responder.xml";
+                    }
+                });
+        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, keyConfProvider, new CertHelper(globalConfProvider),
                 new CertChainFactory(globalConfProvider));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));

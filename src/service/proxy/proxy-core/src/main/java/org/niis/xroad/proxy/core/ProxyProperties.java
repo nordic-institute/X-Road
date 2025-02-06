@@ -31,10 +31,130 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.util.List;
+import java.util.Optional;
+
 @ConfigMapping(prefix = "xroad.proxy")
 public interface ProxyProperties {
+
+    ServerProperties server();
+    ClientProxyProperties clientProxy();
+    OcspResponderProperties ocspResponder();
 
     @WithName("health-check-port")
     @WithDefault("0")
     int healthCheckPort();
+
+    @WithName("backup-encryption-enabled")
+    @WithDefault("false")
+    boolean backupEncryptionEnabled();
+
+    @WithName("backup-encryption-keyids")
+    Optional<List<String>> backupEncryptionKeyids();
+
+    @WithName("health-check-interface")
+    @WithDefault("0.0.0.0")
+    String healthCheckInterface();
+
+    @ConfigMapping(prefix = "xroad.proxy.client-proxy")
+    interface ClientProxyProperties {
+        @WithName("connector-host")
+        @WithDefault("0.0.0.0")
+        String connectorHost();
+
+        @WithName("client-http-port")
+        @WithDefault("8080")
+        int clientHttpPort();
+
+        @WithName("client-https-port")
+        @WithDefault("8443")
+        int clientHttpsPort();
+
+        @WithName("jetty-configuration-file")
+        @WithDefault("classpath:jetty/clientproxy.xml")
+        String jettyConfigurationFile();
+
+        @WithName("client-connector-initial-idle-time")
+        @WithDefault("30000")
+        int clientConnectorInitialIdleTime();
+
+        @WithName("client-httpclient-so-linger")
+        @WithDefault("-1")
+        int clientHttpclientSoLinger();
+
+        @WithName("client-httpclient-timeout")
+        @WithDefault("0")
+        int clientHttpclientTimeout();
+
+        @WithName("pool-total-max-connections")
+        @WithDefault("10000")
+        int poolTotalMaxConnections();
+
+        @WithName("pool-total-default-max-connections-per-route")
+        @WithDefault("2500")
+        int poolTotalDefaultMaxConnectionsPerRoute();
+
+        @WithName("pool-validate-connections-after-inactivity-of-millis")
+        @WithDefault("2000")
+        int poolValidateConnectionsAfterInactivityOfMillis();
+
+        @WithName("client-idle-connection-monitor-interval")
+        @WithDefault("30000")
+        int clientIdleConnectionMonitorInterval();
+
+        @WithName("client-idle-connection-monitor-timeout")
+        @WithDefault("60000")
+        int clientIdleConnectionMonitorTimeout();
+
+        @WithName("client-use-idle-connection-monitor")
+        @WithDefault("true")
+        boolean clientUseIdleConnectionMonitor();
+    }
+
+    @ConfigMapping(prefix = "xroad.proxy.server")
+    interface ServerProperties {
+        @WithName("listen-address")
+        @WithDefault("0.0.0.0")
+        String listenAddress();
+
+        @WithName("listen-port")
+        @WithDefault("5500")
+        int listenPort();
+
+        @WithName("connector-initial-idle-time")
+        @WithDefault("30000")
+        int connectorInitialIdleTime();
+
+        @WithName("jetty-configuration-file")
+        @WithDefault("classpath:jetty/serverproxy.xml")
+        String jettyConfigurationFile();
+
+        @WithName("support-clients-pooled-connections")
+        @WithDefault("false")
+        boolean serverSupportClientsPooledConnections();
+
+    }
+
+    @ConfigMapping(prefix = "xroad.proxy.ocsp-responder")
+    interface OcspResponderProperties {
+        @WithName("listen-address")
+        @WithDefault("0.0.0.0")
+        String listenAddress();
+
+        @WithName("port")
+        @WithDefault("5577")
+        int port();
+
+        @WithName("client-connect-timeout")
+        @WithDefault("20000")
+        int clientConnectTimeout();
+
+        @WithName("client-read-timeout")
+        @WithDefault("30000")
+        int clientReadTimeout();
+
+        @WithName("jetty-configuration-file")
+        @WithDefault("classpath:jetty/ocsp-responder.xml")
+        String jettyConfigurationFile();
+    }
 }

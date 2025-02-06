@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -76,24 +74,24 @@ public class HealthCheckPortImpl implements HealthCheckPort {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
         stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider(healthChecks);
         portNumber = proxyProperties.healthCheckPort();
-        createHealthCheckConnector();
+        createHealthCheckConnector(proxyProperties.healthCheckInterface());
     }
 
-    public HealthCheckPortImpl(StoppableHealthCheckProvider testProvider, int testPort) {
+    public HealthCheckPortImpl(StoppableHealthCheckProvider testProvider, int testPort, String healthCheckInterface) {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
         stoppableHealthCheckProvider = testProvider;
         portNumber = testPort;
-        createHealthCheckConnector();
+        createHealthCheckConnector(healthCheckInterface);
     }
 
-    private void createHealthCheckConnector() {
+    private void createHealthCheckConnector(String healthCheckInterface) {
         HttpConfiguration httpConfiguration = new HttpConfiguration();
         httpConfiguration.setSendServerVersion(false);
         HttpConnectionFactory connectionFactory = new HttpConnectionFactory(httpConfiguration);
         ServerConnector connector = new ServerConnector(server, ACCEPTOR_THREAD_COUNT, SELECTOR_THREAD_COUNT,
                 connectionFactory);
         connector.setName("HealthCheckPort");
-        connector.setHost(SystemProperties.getHealthCheckInterface());
+        connector.setHost(healthCheckInterface);
         connector.setPort(portNumber);
         connector.setIdleTimeout(SOCKET_MAX_IDLE_MILLIS);
         server.addConnector(connector);

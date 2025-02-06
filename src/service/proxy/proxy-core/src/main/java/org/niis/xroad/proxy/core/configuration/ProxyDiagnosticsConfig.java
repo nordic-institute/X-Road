@@ -27,12 +27,10 @@ package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
@@ -40,16 +38,15 @@ import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
 import org.niis.xroad.proxy.core.healthcheck.NoopHealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ProxyDiagnosticsConfig {
 
     @ApplicationScoped
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics() {
+    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics(ProxyProperties proxyProperties) {
         return new BackupEncryptionStatusDiagnostics(
-                SystemProperties.isBackupEncryptionEnabled(),
-                getBackupEncryptionKeyIds());
+                proxyProperties.backupEncryptionEnabled(),
+                proxyProperties.backupEncryptionKeyids().orElse(List.of()));
     }
 
     @ApplicationScoped
@@ -80,10 +77,4 @@ public class ProxyDiagnosticsConfig {
 //        }
     }
 
-    private static List<String> getBackupEncryptionKeyIds() {
-        return Arrays.stream(StringUtils.split(
-                        SystemProperties.getBackupEncryptionKeyIds(), ','))
-                .map(String::trim)
-                .toList();
-    }
 }

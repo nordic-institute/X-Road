@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.clientproxy;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.JettyUtils;
 
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
@@ -55,11 +56,11 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
@@ -70,8 +71,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -102,6 +101,7 @@ public class ClientProxy {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final ProxyProperties.ClientProxyProperties clientProxyProperties;
 
     private final AuthTrustVerifier authTrustVerifier;
 
@@ -119,27 +119,23 @@ public class ClientProxy {
                        GlobalConfProvider globalConfProvider,
                        KeyConfProvider keyConfProvider,
                        ServerConfProvider serverConfProvider,
-                       AuthTrustVerifier authTrustVerifier) throws Exception {
+                       AuthTrustVerifier authTrustVerifier,
+                       ProxyProperties.ClientProxyProperties clientProxyProperties) {
         this.commonBeanProxy = commonBeanProxy;
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serverConfProvider;
         this.authTrustVerifier = authTrustVerifier;
-
-        configureServer();
-
-        createClient();
-        createConnectors();
-        createHandlers();
+        this.clientProxyProperties = clientProxyProperties;
     }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyClientProxyConfFile());
+        var file = clientProxyProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
@@ -163,11 +159,11 @@ public class ClientProxy {
         HttpClientConnectionManager connectionManager = getClientConnectionManager();
         cb.setConnectionManager(connectionManager);
 
-        if (SystemProperties.isClientUseIdleConnectionMonitor()) {
+        if (clientProxyProperties.clientUseIdleConnectionMonitor()) {
             connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
-            connectionMonitor.setIntervalMilliseconds(SystemProperties.getClientProxyIdleConnectionMonitorInterval());
+            connectionMonitor.setIntervalMilliseconds(clientProxyProperties.clientIdleConnectionMonitorInterval());
             connectionMonitor.setConnectionIdleTimeMilliseconds(
-                    SystemProperties.getClientProxyIdleConnectionMonitorIdleTime());
+                    clientProxyProperties.clientIdleConnectionMonitorTimeout());
         }
 
         cb.setDefaultRequestConfig(rb.build());
@@ -188,16 +184,16 @@ public class ClientProxy {
         }
 
         SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
-        sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
-        sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        sockBuilder.setSoLinger(clientProxyProperties.clientHttpclientSoLinger());
+        sockBuilder.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
         SocketConfig socketConfig = sockBuilder.build();
 
         PoolingHttpClientConnectionManager poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
-        poolingManager.setMaxTotal(SystemProperties.getClientProxyPoolTotalMaxConnections());
-        poolingManager.setDefaultMaxPerRoute(SystemProperties.getClientProxyPoolDefaultMaxConnectionsPerRoute());
+        poolingManager.setMaxTotal(clientProxyProperties.poolTotalMaxConnections());
+        poolingManager.setDefaultMaxPerRoute(clientProxyProperties.poolTotalDefaultMaxConnectionsPerRoute());
         poolingManager.setDefaultSocketConfig(socketConfig);
         poolingManager.setValidateAfterInactivity(
-                SystemProperties.getClientProxyValidatePoolConnectionsAfterInactivityMs());
+                clientProxyProperties.poolValidateConnectionsAfterInactivityOfMillis());
 
         return poolingManager;
     }
@@ -210,8 +206,8 @@ public class ClientProxy {
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
-        createClientHttpConnector(SystemProperties.getConnectorHost(), SystemProperties.getClientProxyHttpPort());
-        createClientHttpsConnector(SystemProperties.getConnectorHost(), SystemProperties.getClientProxyHttpsPort());
+        createClientHttpConnector(clientProxyProperties.connectorHost(), clientProxyProperties.clientHttpPort());
+        createClientHttpsConnector(clientProxyProperties.connectorHost(), clientProxyProperties.clientHttpsPort());
     }
 
     private void createClientHttpConnector(String hostname, int port) {
@@ -222,7 +218,7 @@ public class ClientProxy {
         connector.setName(CLIENT_HTTP_CONNECTOR_NAME);
         connector.setHost(hostname);
         connector.setPort(port);
-        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
+        connector.setIdleTimeout(clientProxyProperties.clientConnectorInitialIdleTime());
 
         applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
@@ -254,7 +250,7 @@ public class ClientProxy {
         connector.setName(CLIENT_HTTPS_CONNECTOR_NAME);
         connector.setHost(hostname);
         connector.setPort(port);
-        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
+        connector.setIdleTimeout(clientProxyProperties.clientConnectorInitialIdleTime());
 
         applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
@@ -313,6 +309,11 @@ public class ClientProxy {
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.trace("start()");
+
+        configureServer();
+        createClient();
+        createConnectors();
+        createHandlers();
 
         server.start();
 

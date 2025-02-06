@@ -43,9 +43,6 @@ public final class PortNumbers {
     /** Port for connection between client and server proxy. */
     public static final int PROXY_PORT = 5500;
 
-    /** Server proxy listens for OCSP requests. */
-    public static final int PROXY_OCSP_PORT = 5577;
-
     /** Admin port for proxy. */
     public static final int ADMIN_PORT = 5566;
 

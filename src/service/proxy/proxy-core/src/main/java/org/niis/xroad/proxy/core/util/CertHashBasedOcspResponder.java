@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -46,12 +45,10 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.ProxyProperties;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -78,47 +75,36 @@ public class CertHashBasedOcspResponder {
 
     private static final String CERT_PARAM = "cert";
 
+    private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
     private final KeyConfProvider keyConfProvider;
     private final Server server = new Server();
 
     /**
-     * Constructs a cert hash responder.
-     *
-     * @throws Exception in case of any errors
-     */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        this(keyConfProvider, SystemProperties.getOcspResponderListenAddress());
-    }
-
-    /**
      * Constructs a cert hash responder that listens on the specified address.
      *
-     * @param host the address this responder should listen at
-     * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider, String host) throws Exception {
+    public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider) {
         this.keyConfProvider = keyConfProvider;
-        configureServer();
-        createConnector(host);
-        createHandler();
+        this.ocspResponderProperties = ocspResponderProperties;
     }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyOcspResponderConfFile());
+        var file = ocspResponderProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
     }
 
-    private void createConnector(String host) {
+    private void createConnector() {
+        String host = ocspResponderProperties.listenAddress();
         log.trace("createConnector({})", host);
 
         ServerConnector ocspConnector = new ServerConnector(server);
 
         ocspConnector.setName("OcspResponseConnector");
-        ocspConnector.setPort(SystemProperties.getOcspResponderPort());
+        ocspConnector.setPort(ocspResponderProperties.port());
         ocspConnector.setHost(host);
         ocspConnector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
@@ -142,6 +128,10 @@ public class CertHashBasedOcspResponder {
 
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
+        configureServer();
+        createConnector();
+        createHandler();
+
         server.start();
     }
 
