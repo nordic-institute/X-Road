@@ -5,7 +5,25 @@
 
     <include schemaLocation="../common/shared-parameters.xsd"/>
 
-    <element name="conf" type="tns:SharedParametersTypeV4">
+    <redefine schemaLocation="../common/shared-parameters.xsd">
+        <complexType name="SubsystemType">
+            <complexContent>
+                <extension base="tns:SubsystemType">
+                    <sequence>
+                        <element name="subsystemName" type="string" minOccurs="0">
+                            <annotation>
+                                <documentation>
+                                    Full, official name of the subsystem, used in user interfaces.
+                                </documentation>
+                            </annotation>
+                        </element>
+                    </sequence>
+                </extension>
+            </complexContent>
+        </complexType>
+    </redefine>
+
+    <element name="conf" type="tns:SharedParametersTypeV5">
         <annotation>
             <documentation>
                 Set of configuration parameters that are used by members of this X-Road instance and other federated
@@ -13,22 +31,6 @@
             </documentation>
         </annotation>
     </element>
-
-    <complexType name="NamedSubsystemType">
-        <complexContent>
-            <extension base="tns:SubsystemType">
-                <sequence>
-                    <element name="name" type="string">
-                        <annotation>
-                            <documentation>
-                                Full, official name of the subsystem, used in user interfaces.
-                            </documentation>
-                        </annotation>
-                    </element>
-                </sequence>
-            </extension>
-        </complexContent>
-    </complexType>
 
     <complexType name="ConfigurationSourceType">
         <sequence>
@@ -56,7 +58,7 @@
         </sequence>
     </complexType>
 
-    <complexType name="SharedParametersTypeV4">
+    <complexType name="SharedParametersTypeV5">
         <sequence>
             <element name="instanceIdentifier" type="string">
                 <annotation>

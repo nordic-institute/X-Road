@@ -46,7 +46,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.niis.xroad.cs.admin.core.entity.validation.EntityIdentifier;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -86,15 +85,8 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
     @Setter
     private Set<ServerClientEntity> serverClients = new HashSet<>();
 
-    @EntityIdentifier
-    @Column(name = "name")
-    @Getter
-    @Setter
-    private String name;
-
-    protected SecurityServerClientEntity(String name, ClientIdEntity identifier) {
+    protected SecurityServerClientEntity(ClientIdEntity identifier) {
         this.identifier = identifier;
-        this.name = name;
     }
 
 }

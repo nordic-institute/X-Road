@@ -135,6 +135,20 @@ public class SubsystemServiceImpl implements SubsystemService {
         subsystemRepository.deleteById(subsystem.getId());
     }
 
+    @Override
+    public Optional<Subsystem> updateSubsystemName(ClientId clientId, String newName) {
+        auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, newName);
+        auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, newName);
+        auditDataHelper.put(MEMBER_CLASS, clientId.getMemberClass());
+        auditDataHelper.put(MEMBER_CODE, clientId.getMemberCode());
+        return subsystemRepository.findByIdentifier(clientId)
+                .map(subsystem -> {
+                    subsystem.setName(newName);
+                    return subsystem;
+                })
+                .map(subsystemConverter::toDto);
+    }
+
     private boolean isRegistered(SubsystemEntity subsystem) {
         return !CollectionUtils.isEmpty(subsystem.getServerClients());
     }

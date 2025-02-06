@@ -42,7 +42,7 @@ public class Subsystem extends SecurityServerClient {
     private String subsystemCode;
     private String name;
 
-    public Subsystem(String name, XRoadMember member, ClientId identifier) {
+    public Subsystem(XRoadMember member, ClientId identifier, String name) {
         super(SubsystemId.create(identifier), name);
         if (!identifier.subsystemContainsMember(member.getIdentifier())) {
             throw new IllegalArgumentException("Subsystem identifier does not match member");

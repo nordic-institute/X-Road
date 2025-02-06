@@ -72,6 +72,12 @@ public class XRoadMemberEntity extends SecurityServerClientEntity {
     @Access(AccessType.FIELD)
     private String memberCode;
 
+    @EntityIdentifier
+    @Column(name = "name")
+    @Getter
+    @Setter
+    private String name;
+
     @Column(name = "administrative_contact")
     @Getter
     @Setter
@@ -88,11 +94,12 @@ public class XRoadMemberEntity extends SecurityServerClientEntity {
     private Set<SubsystemEntity> subsystems = new HashSet<>(0);
 
     public XRoadMemberEntity(String name, ClientId identifier, MemberClassEntity memberClass) {
-        super(MemberIdEntity.ensure(identifier), name);
+        super(MemberIdEntity.ensure(identifier));
         boolean isMemberClassInconsistent = !Objects.equals(identifier.getMemberClass(), memberClass.getCode());
         if (isMemberClassInconsistent) {
             throw new IllegalArgumentException("identifier and memberClass are not consistent");
         }
+        this.name = name;
         this.memberCode = identifier.getMemberCode();
         this.memberClass = memberClass;
     }

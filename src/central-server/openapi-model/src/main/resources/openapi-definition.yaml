@@ -1974,11 +1974,11 @@ paths:
       tags:
         - subsystems
   /subsystems/{subsystem_id}:
+    parameters:
+      - $ref: '#/components/parameters/SubsystemIdParam'
     delete:
       description: <h3>CS administrator deletes a subsystem</h3>
       operationId: deleteSubsystem
-      parameters:
-        - $ref: '#/components/parameters/SubsystemIdParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -1993,6 +1993,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: delete a subsystem
+      tags:
+        - subsystems
+    patch:
+      description: <h3>CS administrator edits the name of a subsystem.</h3>
+      operationId: updateSubsystemName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubsystemName'
+        description: subsystem name
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: the updated member
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the name of a subsystem
       tags:
         - subsystems
   /subsystems/{subsystem_id}/servers/{server_id}:
@@ -4025,6 +4055,8 @@ components:
         - code
       type: object
     Subsystem:
+      allOf:
+        - $ref: '#/components/schemas/SubsystemName'
       properties:
         subsystem_id:
           $ref: '#/components/schemas/ClientId'
@@ -4082,7 +4114,7 @@ components:
           example: Subsystem123
           format: text
           maxLength: 255
-          minLength: 1
+          minLength: 0
           type: string
       type: object
     MemberCode:
