@@ -21,6 +21,8 @@ configurations.configureEach {
 dependencies {
   api(platform(libs.quarkus.bom))
 
+  implementation(project(":service:proxy:proxy-rpc-client"))
+
   implementation(project(":common:common-jetty"))
 //  implementation(project(":common:common-message"))
   implementation(project(":common:common-scheduler"))
@@ -33,7 +35,6 @@ dependencies {
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:keyconf-impl"))
-//  api(project(":common:common-rpc-spring"))
 
 //  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)

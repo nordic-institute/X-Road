@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import io.grpc.BindableService;
 import io.quarkus.runtime.Startup;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
@@ -35,7 +36,11 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.proxy.core.addon.AddOn;
+import org.niis.xroad.proxy.core.admin.AdminService;
 import org.niis.xroad.signer.client.SignerRpcClient;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class ProxyRpcConfig {
@@ -43,13 +48,16 @@ public class ProxyRpcConfig {
     @ApplicationScoped
     @Startup
     RpcServer proxyRpcServer(AddOn.BindableServiceRegistry bindableServiceRegistry,
+                             AdminService adminService,
                              ProxyRpcServerProperties rpcServerProperties,
                              RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
+        List<BindableService> rpcServices = new ArrayList<>(bindableServiceRegistry.getRegisteredServices());
+        rpcServices.add(adminService);
         var rpcServer =  new RpcServer(
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),
                 rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
+                builder -> rpcServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
