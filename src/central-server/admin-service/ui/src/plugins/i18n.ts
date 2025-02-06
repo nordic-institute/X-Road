@@ -27,7 +27,7 @@
 import { prepareI18n } from '@niis/shared-ui';
 import enMessages from '@/locales/en.json';
 
-export const availableLanguages = ['en', 'es', 'ru'];
+export const availableLanguages = ['en', 'es', 'ru', 'tk'];
 
 export const { i18n, languageHelper } = prepareI18n(enMessages, loadMessages);
 
