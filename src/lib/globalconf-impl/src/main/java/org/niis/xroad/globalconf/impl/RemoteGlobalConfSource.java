@@ -60,8 +60,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class
-RemoteGlobalConfSource implements GlobalConfSource {
+public class RemoteGlobalConfSource implements GlobalConfSource {
     private final ConfClientRpcClient client;
     private final RemoteGlobalConfDataLoader dataLoader;
 
@@ -71,7 +70,7 @@ RemoteGlobalConfSource implements GlobalConfSource {
     private volatile GlobalConfData globalConfData;
 
     @PostConstruct
-    public void afterPropertiesSet() {
+    public void init() {
         CompletableFuture.runAsync(this::load);
     }
 

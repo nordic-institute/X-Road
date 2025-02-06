@@ -61,7 +61,7 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() {
+    public void init() {
         try {
             load();
         } catch (Exception e) {

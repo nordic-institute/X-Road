@@ -53,7 +53,7 @@ public class GlobalConfRpcCache {
             Optional.empty());
 
     @PostConstruct
-    public void afterPropertiesSet() {
+    public void init() {
         refreshCache();
     }
 
