@@ -292,15 +292,6 @@ public final class TokenManager {
     }
 
     /**
-     * @param tokenId the token id
-     * @return the module id for the token id or null if not found
-     */
-    public static synchronized String getModuleId(String tokenId) {
-        return forToken(t -> t.getId().equals(tokenId),
-                Token::getModuleId).orElse(null);
-    }
-
-    /**
      * @param keyId the key id
      * @return the key info for the key id or throws exception if not found
      */
@@ -361,20 +352,6 @@ public final class TokenManager {
         }
 
         return keyInfo;
-    }
-
-    /**
-     * @param certId the certificate id
-     * @return the certificate info for the certificate id or
-     * throws exception if not found
-     */
-    public static CertificateInfo findCertificateInfo(String certId) {
-        CertificateInfo certificateInfo = getCertificateInfo(certId);
-        if (certificateInfo != null) {
-            return certificateInfo;
-        }
-
-        throw certWithIdNotFound(certId);
     }
 
     /**
@@ -567,16 +544,6 @@ public final class TokenManager {
         log.trace("setTokenFriendlyName({}, {})", tokenId, friendlyName);
 
         findToken(tokenId).setFriendlyName(friendlyName);
-    }
-
-    /**
-     * @param tokenId the token if
-     * @return the token status info
-     */
-    public static synchronized TokenStatusInfo getTokenStatus(String tokenId) {
-        log.trace("getTokenStatus({})", tokenId);
-
-        return findToken(tokenId).getStatus();
     }
 
     /**

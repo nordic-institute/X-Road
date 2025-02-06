@@ -35,8 +35,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
@@ -54,7 +52,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.niis.xroad.proxy.core.messagelog.MessageLogDatabaseCtx.doInTransaction;
@@ -184,78 +181,4 @@ final class TestUtil {
         assertEquals(expectedSize, taskQueue.size());
     }
 
-    static ShellCommandOutput runShellCommand(String command) {
-        if (isBlank(command)) {
-            return null;
-        }
-
-        log.info("Executing shell command: \t{}",
-                command);
-
-        try {
-            Process process =
-                    new ProcessBuilder(command.split("\\s+")).start();
-
-            StandardErrorCollector standardErrorReader =
-                    new StandardErrorCollector(process);
-
-            StandardOutputReader standardOutputReader =
-                    new StandardOutputReader(process);
-
-            standardOutputReader.start();
-            standardErrorReader.start();
-
-            standardOutputReader.join();
-            standardErrorReader.join();
-            process.waitFor();
-
-            int exitCode = process.exitValue();
-
-            return new ShellCommandOutput(
-                    exitCode,
-                    standardOutputReader.getStandardOutput(),
-                    standardErrorReader.getStandardError());
-        } catch (Exception e) {
-            log.error(
-                    "Failed to execute archive transfer command '{}'",
-                    command);
-            throw new RuntimeException(e);
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static final class StandardOutputReader extends Thread {
-        private final Process process;
-
-        @Getter
-        private String standardOutput;
-
-        @Override
-        public void run() {
-            try (InputStream input = process.getInputStream()) {
-                standardOutput = IOUtils.toString(input, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // We can ignore it.
-                log.error("Could not read standard output", e);
-            }
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static final class StandardErrorCollector extends Thread {
-        private final Process process;
-
-        @Getter
-        private String standardError;
-
-        @Override
-        public void run() {
-            try (InputStream error = process.getErrorStream()) {
-                standardError = IOUtils.toString(error, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // We can ignore it.
-                log.error("Could not read standard error", e);
-            }
-        }
-    }
 }

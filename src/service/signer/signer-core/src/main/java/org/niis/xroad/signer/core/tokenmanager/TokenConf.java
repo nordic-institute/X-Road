@@ -39,7 +39,6 @@ import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
 import org.niis.xroad.signer.core.model.Token;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
-import org.niis.xroad.signer.core.tokenmanager.token.TokenType;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.keyconf.CertRequestType;
 import org.niis.xroad.signer.keyconf.CertificateType;
@@ -109,35 +108,6 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         return keyConfType.getDevice().stream()
                 .map(TokenConf::from)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * @param tokenType the token type
-     * @return token for a specific type or null, if not found
-     */
-    public Token getToken(TokenType tokenType) {
-        for (DeviceType d : confType.getDevice()) {
-            if (tokenType.getModuleType().equals(SoftwareModuleType.TYPE)
-                    && tokenType.getModuleType().equals(d.getDeviceType())) {
-                return from(d);
-            }
-
-            Token token = from(d);
-
-            if (token.matches(tokenType)) {
-                return token;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param id the token id
-     * @return true if configuration contains token with given token id
-     */
-    public boolean hasToken(String id) {
-        return confType.getDevice().stream().anyMatch(t -> t.getId().equals(id));
     }
 
     /**

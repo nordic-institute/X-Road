@@ -99,12 +99,6 @@ public class ConfigurationDownloader {
         this.configurationVersion = null;
     }
 
-    public ConfigurationDownloader(FileNameProvider fileNameProvider) {
-        this.fileNameProvider = fileNameProvider;
-        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
-        this.configurationVersion = null;
-    }
-
     ConfigurationParser getParser() {
         return new ConfigurationParser(this);
     }

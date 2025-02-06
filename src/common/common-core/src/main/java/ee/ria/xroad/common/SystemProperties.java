@@ -263,20 +263,12 @@ public final class SystemProperties {
 
     public static final String SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-endpoints-cache-size";
 
-    /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
-    private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PROXY_PREFIX + "server-connector-max-idle-time";
-
     /**
      * Property name of the idle time that connections to the serverproxy connector are initially allowed,
      * in milliseconds
      */
     private static final String SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME =
             PROXY_PREFIX + "server-connector-initial-idle-time";
-
-    /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
-    private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
-            PROXY_PREFIX + "server-connector-so-linger";
 
     /** Property name of the server's minimum supported client version */
     private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
@@ -291,14 +283,6 @@ public final class SystemProperties {
      */
     private static final String CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME =
             PROXY_PREFIX + "client-connector-initial-idle-time";
-
-    /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
-    private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PROXY_PREFIX + "client-connector-max-idle-time";
-
-    /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
-    private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
-            PROXY_PREFIX + "client-connector-so-linger";
 
     /**
      * Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
@@ -369,17 +353,9 @@ public final class SystemProperties {
 
     private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = FALSE;
 
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
-
     private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
 
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
-
     private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = FALSE;
-
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
-
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
@@ -467,7 +443,6 @@ public final class SystemProperties {
     public static final String SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM = SIGNER_PREFIX + "selfsigned-cert-digest-algorithm";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
-    public static final KeyAlgorithm DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM = KeyAlgorithm.RSA;
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
     public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
@@ -494,9 +469,6 @@ public final class SystemProperties {
             PREFIX + "anti-dos.max-heap-usage";
 
     // Configuration client ---------------------------------------------------
-
-    public static final String CONFIGURATION_CLIENT_PORT =
-            PREFIX + "configuration-client.port";
 
     public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
             PREFIX + "configuration-client.admin-port";
@@ -553,9 +525,6 @@ public final class SystemProperties {
     /** Property name of the configuration files path. */
     public static final String CONF_PATH = PREFIX + "conf.path";
 
-    /** Property name of the log folder for Log Reader. */
-    public static final String LOG_READER_PATH = PREFIX + "logReader.path";
-
     /** Property name of the application log file path. */
     public static final String LOG_PATH = PREFIX + "appLog.path";
 
@@ -607,15 +576,6 @@ public final class SystemProperties {
             PREFIX + "proxy-ui-api.management-request-sender-client-truststore-password";
     private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV =
             propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD);
-
-    // Proxy & Central monitor agent ------------------------------------------
-
-    /** Property name of the proxy monitor info collection interval. */
-    public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
-            PREFIX + "proxy-monitor-agent.params-collecting-interval";
-
-    public static final String NET_STATS_FILE =
-            PREFIX + "proxy-monitor-agent.net-stats-file";
 
     // Configuration proxy ------------------------------------------------- //
 
@@ -1010,13 +970,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where query logs are archived, '/var/lib/xroad/' by default.
-     */
-    public static String getLogReaderPath() {
-        return System.getProperty(LOG_READER_PATH, DefaultFilepaths.SECURE_LOG_PATH);
-    }
-
-    /**
      * @return path to the directory where temporary files are stored, '/var/tmp/xroad/' by default.
      */
     public static String getTempFilesPath() {
@@ -1261,14 +1214,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the gRPC port on which the configuration client is listening, '5665' by default.
-     */
-    public static int getConfigurationClientPort() {
-        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
-    }
-
-    /**
      * @return the HTTP port on which the configuration client is listening, '5675' by default.
      */
     public static int getConfigurationClientAdminPort() {
@@ -1460,13 +1405,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the interval in seconds at which proxy monitor agent collects monitoring data, '60' by default.
-     */
-    public static int getProxyParamsCollectingInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
-    }
-
-    /**
      * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
      */
     public static int getProxyGrpcPort() {
@@ -1514,14 +1452,6 @@ public final class SystemProperties {
      */
     public static int getEnvMonitorCertificateInfoSensorInterval() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
-    }
-
-    /**
-     * @return path to the file containing network statistics,
-     * '/proc/net/dev' by default.
-     */
-    public static String getNetStatsFile() {
-        return System.getProperty(NET_STATS_FILE, "/proc/net/dev");
     }
 
     /**
@@ -1662,26 +1592,6 @@ public final class SystemProperties {
                 DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
     }
 
-    /**
-     * @return the connection maximum idle time that should be set for server proxy connector
-     */
-    public static int getServerProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
-                DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
-    }
-
-    /**
-     * @return the so_linger value in milliseconds that should be set for server proxy connector, -1 (disabled) by
-     * default
-     */
-    @SuppressWarnings("checkstyle:magicnumber")
-    public static int getServerProxyConnectorSoLinger() {
-        final int linger = Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
-                DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
-        if (linger >= 0) return linger * 1000;
-        return -1;
-    }
-
     public static String getServerProxyMinSupportedClientVersion() {
         return System.getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
     }
@@ -1704,28 +1614,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
-     */
-    public static int getClientProxyConnectorSoLinger() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
-                DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER));
-    }
-
-    /**
      * @return clientproxy initial idle time (used until the request processing starts)
      */
     public static long getClientProxyConnectorInitialIdleTime() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME,
                 DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
-    }
-
-    /**
-     * @return the connection maximum idle time that should be set for client proxy connector
-     */
-    public static int getClientProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME,
-                DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME));
-
     }
 
     /**

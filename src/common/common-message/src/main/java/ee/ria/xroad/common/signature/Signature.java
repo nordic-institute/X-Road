@@ -55,21 +55,16 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.signature.Helper.BASE_URI;
-import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_ID;
 import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_TIMESTAMP_TAG;
-import static ee.ria.xroad.common.signature.Helper.ID_TS_MANIFEST;
 import static ee.ria.xroad.common.signature.Helper.ID_TS_ROOT_MANIFEST;
 import static ee.ria.xroad.common.signature.Helper.SIGNATURE_TIMESTAMP_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_ID;
 import static ee.ria.xroad.common.signature.Helper.UNSIGNED_SIGNATURE_PROPS_TAG;
 import static ee.ria.xroad.common.signature.Helper.URI_ATTRIBUTE;
-import static ee.ria.xroad.common.signature.Helper.addManifestReference;
 import static ee.ria.xroad.common.signature.Helper.dsElement;
 import static ee.ria.xroad.common.signature.Helper.elementNotFound;
 import static ee.ria.xroad.common.signature.Helper.getCertificateRefElements;
 import static ee.ria.xroad.common.signature.Helper.getEncapsulatedOCSPValueElements;
 import static ee.ria.xroad.common.signature.Helper.getFirstElementByTagName;
-import static ee.ria.xroad.common.signature.Helper.parseDocument;
 import static ee.ria.xroad.common.signature.Helper.verifyDigest;
 import static ee.ria.xroad.common.signature.Helper.xadesElement;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
@@ -157,15 +152,6 @@ public class Signature {
     }
 
     /**
-     * Returns the object container.
-     *
-     * @return ObjectContainer
-     */
-    public ObjectContainer getObjectContainer() {
-        return objectContainer;
-    }
-
-    /**
      * @param uri the uri that is expected to be found in the signature
      * @return true, if the signature contains the specified URI, false otherwise.
      * @throws Exception if errors occur when reading the signature
@@ -205,62 +191,6 @@ public class Signature {
         }
 
         return manifests;
-    }
-
-    /**
-     * Creates the time stamp manifest and adds it to the signature.
-     *
-     * @param rnd random string to append to the manifest ID
-     * @return the newly created Manifest
-     * @throws Exception in case of any errors
-     */
-    public Manifest createTimestampManifest(String rnd) throws Exception {
-        Manifest manifest = new Manifest(document);
-        manifest.setId(ID_TS_MANIFEST + "-" + rnd);
-
-        // add references
-        addManifestReference(manifest, SIGNATURE_VALUE_ID);
-        //addManifestReference(manifest, COMPLETE_REVOCATION_REFS_ID);
-
-        // this reference is optional
-        if (XmlUtils.getElementById(document, COMPLETE_CERTIFICATE_REFS_ID) != null) {
-            addManifestReference(manifest, COMPLETE_CERTIFICATE_REFS_ID);
-        }
-
-        manifest.addResourceResolver(new IdResolver(document));
-        manifest.generateDigestValues();
-
-        objectContainer.appendChild(manifest.getElement());
-
-        return manifest;
-    }
-
-    /**
-     * @param manifestId ID of the manifest to retrieve
-     * @return reference to the specified manifest. Does not modify the object.
-     * @throws Exception if errors occurred during manifest retrieval
-     */
-    public Reference getManifestRef(String manifestId) throws Exception {
-        Manifest manifest = new Manifest(document);
-
-        addManifestReference(manifest, manifestId);
-        manifest.generateDigestValues();
-
-        return manifest.item(0);
-    }
-
-    /**
-     * Adds a timestamp manifest to this signature.
-     *
-     * @param timestampManifestXml the timestamp manifest XML
-     * @throws Exception if errors occur when parsing the signature document part
-     */
-    public void addTimestampManifest(String timestampManifestXml) throws Exception {
-        Element object = getFirstElementByTagName(document, dsElement(Constants._TAG_OBJECT));
-
-        Document timestampManifestDoc = parseDocument(timestampManifestXml, false);
-        Element timestampManifestElement = timestampManifestDoc.getDocumentElement();
-        object.appendChild(document.importNode(timestampManifestElement, true));
     }
 
     /**

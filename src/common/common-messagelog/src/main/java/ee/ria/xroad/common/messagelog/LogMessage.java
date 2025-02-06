@@ -50,14 +50,4 @@ public abstract sealed class LogMessage permits SoapLogMessage, RestLogMessage {
 
     public abstract ServiceId getService();
 
-    /**
-     * Constructs a new LogMessage without x-request-id header.
-     * @param signature signature of the message
-     * @param clientSide whether this message is logged by the client proxy
-     */
-    public LogMessage(SignatureData signature, boolean clientSide) {
-        this.signature = signature;
-        this.clientSide = clientSide;
-        this.xRequestId = null;
-    }
 }

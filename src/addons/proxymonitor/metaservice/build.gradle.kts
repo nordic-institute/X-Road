@@ -79,9 +79,7 @@ tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
     "-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml",
     "-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml",
     "-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml",
-    "-Dxroad.proxy.client-connector-so-linger=-1",
     "-Dxroad.proxy.client-httpclient-so-linger=-1",
-    "-Dxroad.proxy.server-connector-so-linger=-1",
     "-Dxroad.proxy.serverServiceHandlers=org.niis.xroad.proxy.core.serverproxy.ProxyMonitorServiceHandlerImpl",
     "-Dxroad.common.grpc-internal-tls-enabled=false",
     "-Dtest.queries.dir=src/test/queries"

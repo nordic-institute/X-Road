@@ -61,8 +61,6 @@ public final class HardwareTokenUtil {
 
     private static final int MAX_OBJECTS = 64;
 
-    private static final Mechanism EC_KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
-
     private HardwareTokenUtil() {
     }
 

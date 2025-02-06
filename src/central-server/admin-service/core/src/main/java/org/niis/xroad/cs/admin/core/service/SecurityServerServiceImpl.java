@@ -226,10 +226,6 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         return request;
     }
 
-    private ClientDeletionRequest createClientDeletionRequest(SecurityServerId serverId, ClientId clientId) {
-        return createClientDeletionRequest(serverId, clientId, null);
-    }
-
     private void registerAuthCertsDeleteRequests(SecurityServerEntity securityServerEntity) {
         final var comment = DELETE_SS_COMMENT_TPL.formatted(securityServerEntity.getServerId().toString());
 

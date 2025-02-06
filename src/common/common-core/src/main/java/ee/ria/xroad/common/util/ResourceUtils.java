@@ -67,12 +67,4 @@ public final class ResourceUtils {
                 + File.separator;
     }
 
-    /**
-     * Extracts the filename from the full file path.
-     * @param fullPath full path of the file
-     * @return String
-     */
-    public static String getFileNameFromFullPath(String fullPath) {
-        return new File(fullPath).getName();
-    }
 }

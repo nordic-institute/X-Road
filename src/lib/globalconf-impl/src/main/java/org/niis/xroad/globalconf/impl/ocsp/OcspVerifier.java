@@ -306,19 +306,6 @@ public final class OcspVerifier {
     }
 
     /**
-     * Returns true if the OCSP response is about to expire at the current date.
-     *
-     * @param response the response
-     * @return true, if the OCSP response is expired
-     * @throws Exception if an error occurs
-     */
-    public boolean isExpired(OCSPResp response) throws Exception {
-        BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
-        SingleResp singleResp = basicResp.getResponses()[0];
-        return isExpired(singleResp, new Date());
-    }
-
-    /**
      * Returns true if the OCSP response is about to expire at the
      * specified date.
      *

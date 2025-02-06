@@ -34,7 +34,6 @@ import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.serverconf.model.TspType;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -47,7 +46,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -93,7 +91,6 @@ public final class TestUtils {
     public static final String SUBSYSTEM5 = "SS5";
     public static final String SUBSYSTEM6 = "SS6";
     public static final String OWNER_ID = "FI:GOV:M1";
-    public static final String NEW_OWNER_ID = "FI:GOV:M2";
     public static final String CLIENT_ID_SS1 = "FI:GOV:M1:SS1";
     public static final String CLIENT_ID_SS2 = "FI:GOV:M1:SS2";
     public static final String CLIENT_ID_SS3 = "FI:GOV:M1:SS3";
@@ -217,23 +214,6 @@ public final class TestUtils {
      */
     public static GlobalGroupInfo getGlobalGroupInfo(String instance, String groupCode) {
         return new GlobalGroupInfo(GlobalGroupId.Conf.create(instance, groupCode), groupCode + "-description");
-    }
-
-    /**
-     * Finds warning with matching code, or returns null
-     *
-     * @param code
-     * @param warningDeviations
-     * @return
-     */
-    public static WarningDeviation findWarning(String code, Collection<WarningDeviation> warningDeviations) {
-        if (warningDeviations != null) {
-            return warningDeviations.stream()
-                    .filter(warning -> code.equals(warning.getCode()))
-                    .findFirst()
-                    .orElse(null);
-        }
-        return null;
     }
 
     /**

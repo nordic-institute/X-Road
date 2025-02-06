@@ -106,11 +106,6 @@ public class TestGenericClientRequestBuilder {
         return this;
     }
 
-    public TestGenericClientRequestBuilder withRequestAssembler(RequestAssembler requestAssembler) {
-        this.requestAssembler = requestAssembler;
-        return this;
-    }
-
     public TestGenericClientRequestBuilder withSoapMessageBuilder(SoapMessageBuilder soapMessageBuilder) {
         this.soapMessageBuilder = soapMessageBuilder;
         return this;
