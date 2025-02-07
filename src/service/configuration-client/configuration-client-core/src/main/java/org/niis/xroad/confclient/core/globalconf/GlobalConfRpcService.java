@@ -23,46 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.globalconf.spring;
+package org.niis.xroad.confclient.core.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import jakarta.annotation.PostConstruct;
+import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.niis.xroad.confclient.proto.GetGlobalConfReq;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
+import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig.BEAN_GLOBAL_CONF_SCHEDULER;
-
-/**
- * Periodic reload of global configuration
- */
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalConfRefreshJob {
-    private final GlobalConfProvider globalConfProvider;
+@ApplicationScoped
+public class GlobalConfRpcService extends GlobalConfServiceGrpc.GlobalConfServiceImplBase {
+    private final GlobalConfRpcCache globalConfRpcCache;
 
-    @PostConstruct
-    public void afterPropertiesSet() {
-        log.info("{} initialized with refresh rate of {} seconds",
-                getClass().getSimpleName(),
-                SystemProperties.getGlobalConfRefreshRateSeconds());
+    @Override
+    public void getGlobalConf(GetGlobalConfReq request, StreamObserver<GetGlobalConfRespWrapped> responseObserver) {
+
+        GlobalConfRpcCache.CachedGlobalConf cachedGlobalConf = globalConfRpcCache.getGlobalConf();
+
+        GetGlobalConfRespWrapped.Builder builder = GetGlobalConfRespWrapped.newBuilder();
+        builder.setStatus(cachedGlobalConf.status());
+        cachedGlobalConf.globalConf().ifPresent(builder::setData);
+
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
-
-    @Scheduled(scheduler = BEAN_GLOBAL_CONF_SCHEDULER,
-            fixedRateString = "#{T(ee.ria.xroad.common.SystemProperties).getGlobalConfRefreshRateSeconds()}",
-            initialDelayString = "#{T(ee.ria.xroad.common.SystemProperties).getGlobalConfRefreshRateSeconds()}",
-            timeUnit = SECONDS)
-    public void execute() {
-        try {
-            log.trace("Updating globalconf");
-            globalConfProvider.reload();
-        } catch (Exception e) {
-            log.error("Error while refreshing GlobalConf", e);
-        }
-    }
-
 
 }

@@ -100,7 +100,9 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
 
     @Override
     public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
-        return new CertChainFactory(this).create(instanceIdentifier, subject, null);
+        return CertChainFactory.create(instanceIdentifier,
+                getCaCert(instanceIdentifier, subject),
+                subject, null);
     }
 
     @Override

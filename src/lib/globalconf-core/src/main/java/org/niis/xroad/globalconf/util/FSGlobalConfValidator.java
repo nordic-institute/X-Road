@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.globalconf.impl;
+package org.niis.xroad.globalconf.util;
 
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;

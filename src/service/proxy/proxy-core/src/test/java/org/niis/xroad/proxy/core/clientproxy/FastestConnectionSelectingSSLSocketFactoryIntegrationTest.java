@@ -45,7 +45,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.AuthKeyManager;
@@ -99,8 +98,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     public void setup() {
         GlobalConfProvider globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
-        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
-                new CertChainFactory(globalConfProvider));
+        authTrustVerifier = new AuthTrustVerifier(globalConfProvider, keyConfProvider, new CertHelper(globalConfProvider));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
     }

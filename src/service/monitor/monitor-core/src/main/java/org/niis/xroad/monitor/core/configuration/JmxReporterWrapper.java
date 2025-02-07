@@ -56,7 +56,7 @@ public class JmxReporterWrapper {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() {
+    public void init() {
         jmxReporter.start();
     }
 

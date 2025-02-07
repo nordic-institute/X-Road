@@ -72,7 +72,6 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final GlobalConfProvider globalConfProvider;
     private final OcspResponseManager ocspResponseManager;
-    private final CertChainFactory certChainFactory;
 
     @Override
     protected ImportCertResp handle(ImportCertReq request) throws Exception {
@@ -225,8 +224,10 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
 
         globalConfProvider.verifyValidity();
         try {
-            CertChain chain = certChainFactory.create(
-                    globalConfProvider.getInstanceIdentifier(), cert, null);
+            var instanceIdentifier = globalConfProvider.getInstanceIdentifier();
+            CertChain chain = CertChainFactory.create(instanceIdentifier,
+                    globalConfProvider.getCaCert(instanceIdentifier, cert),
+                    cert, null);
             new CertChainVerifier(globalConfProvider, chain).verifyChainOnly(new Date());
         } catch (Exception e) {
             log.error("Failed to import certificate", e);
