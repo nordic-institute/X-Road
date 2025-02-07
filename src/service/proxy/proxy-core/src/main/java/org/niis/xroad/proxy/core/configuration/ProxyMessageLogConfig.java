@@ -34,6 +34,7 @@ import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.JobManager;
 
+import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -50,6 +51,7 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @ApplicationScoped
+    @Startup
     AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
                                          ServerConfProvider serverConfProvider) {
         return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);

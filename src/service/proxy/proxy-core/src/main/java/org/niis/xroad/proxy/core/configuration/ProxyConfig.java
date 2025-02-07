@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.core.configuration;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
@@ -44,11 +43,6 @@ public class ProxyConfig {
     @ApplicationScoped
     CertHelper certHelper(GlobalConfProvider globalConfProvider) {
         return new CertHelper(globalConfProvider);
-    }
-
-    @ApplicationScoped
-    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
-        return new CertChainFactory(globalConfProvider);
     }
 
     @ApplicationScoped

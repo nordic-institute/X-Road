@@ -128,7 +128,8 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                         return "src/test/ocsp-responder.xml";
                     }
                 });
-        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider, new CertHelper(globalConfProvider));
+        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider,
+                new CertHelper(globalConfProvider));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
     }

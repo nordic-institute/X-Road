@@ -27,12 +27,8 @@ package org.niis.xroad.proxy.core.configuration;
 
 import io.grpc.BindableService;
 import io.quarkus.runtime.Startup;
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.proxy.core.addon.AddOn;
@@ -53,7 +49,7 @@ public class ProxyRpcConfig {
                              RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
         List<BindableService> rpcServices = new ArrayList<>(bindableServiceRegistry.getRegisteredServices());
         rpcServices.add(adminService);
-        var rpcServer =  new RpcServer(
+        var rpcServer = new RpcServer(
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),
                 rpcCredentialsConfigurer.createServerCredentials(),
@@ -67,57 +63,12 @@ public class ProxyRpcConfig {
         return rpcServer;
     }
 
-    @ConfigMapping(prefix = "xroad.proxy.rpc")
-    public interface ProxyRpcServerProperties extends RpcServerProperties {
-        @WithName("enabled")
-        @WithDefault("true")
-        @Override
-        boolean enabled();
-
-        @WithName("listen-address")
-        @WithDefault("127.0.0.1")
-        @Override
-        String listenAddress();
-
-        @WithName("port")
-        @WithDefault("5567")
-        @Override
-        int port();
-    }
-
     // todo will be removed after signer migration
     @ApplicationScoped
     SignerRpcClient signerRpcClient() throws Exception {
         var signerRpcClient = new SignerRpcClient();
         signerRpcClient.init();
         return signerRpcClient;
-    }
-
-
-    @Bean
-    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory, ConfClientRpcChannelProperties channelProperties) {
-        return new ConfClientRpcClient(rpcChannelFactory, channelProperties);
-    }
-
-    @Bean
-    @Deprecated
-    ConfClientRpcChannelProperties confClientRpcChannelProperties() {
-        return new ConfClientRpcChannelProperties() {
-            @Override
-            public String host() {
-                return DEFAULT_HOST;
-            }
-
-            @Override
-            public int port() {
-                return Integer.parseInt(DEFAULT_PORT);
-            }
-
-            @Override
-            public int deadlineAfter() {
-                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-            }
-        };
     }
 
 }
