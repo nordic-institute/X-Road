@@ -56,6 +56,10 @@ public interface ProxyProperties {
     @WithDefault("0.0.0.0")
     String healthCheckInterface();
 
+    @WithName("hsm-health-check-enabled")
+    @WithDefault("false")
+    boolean hsmHealthCheckEnabled();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

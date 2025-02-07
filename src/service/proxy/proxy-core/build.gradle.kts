@@ -13,11 +13,6 @@ sourceSets {
   }
 }
 
-configurations.configureEach {
-  exclude(module = "logback-classic") //TODO remove once actual source is removed
-  exclude(module = "logback-core") //TODO remove once actual source is removed
-}
-
 dependencies {
   api(platform(libs.quarkus.bom))
 
@@ -54,8 +49,8 @@ dependencies {
   testFixturesImplementation(project(":lib:keyconf-api"))
   testFixturesImplementation(project(":lib:serverconf-impl"))
   testFixturesImplementation(libs.wsdl4j)
-//
-//  "intTestRuntimeOnly"(project(":service:signer:signer-application"))
+
+  intTestRuntimeOnly(project(":service:signer:signer-application"))
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":common:common-int-test"))
 }
@@ -97,4 +92,8 @@ tasks.register<Test>("intTest") {
 
 tasks.named("check") {
   dependsOn(tasks.named("intTest"))
+}
+
+tasks.test {
+  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

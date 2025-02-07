@@ -265,12 +265,10 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
-    private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
 
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
-    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
     private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
@@ -615,11 +613,6 @@ public final class SystemProperties {
             getConfPath() + "conf.d/addons/";
 
     public static final String CONF_FILE_MESSAGE_LOG = CONF_FILE_ADDON_PATH + "message-log.ini";
-
-    // --------------------------------------------------------------------- //
-
-    // For testing purpose only!
-    public static final boolean IGNORE_SIGNATURE_VERIFICATION = false;
 
     // --------------------------------------------------------------------- //
 
@@ -1440,14 +1433,6 @@ public final class SystemProperties {
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
         return Boolean.parseBoolean(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
-    }
-
-    /**
-     * @return Whether Hardware Security Modules Healthcheck is enabled
-     * 'false' by default
-     */
-    public static boolean isHSMHealthCheckEnabled() {
-        return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
     }
 
     /**

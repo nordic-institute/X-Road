@@ -72,7 +72,7 @@ public class HealthCheckPortImpl implements HealthCheckPort {
      */
     public HealthCheckPortImpl(HealthChecks healthChecks, ProxyProperties proxyProperties) {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
-        stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider(healthChecks);
+        stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider(healthChecks, proxyProperties.hsmHealthCheckEnabled());
         portNumber = proxyProperties.healthCheckPort();
         createHealthCheckConnector(proxyProperties.healthCheckInterface());
     }
