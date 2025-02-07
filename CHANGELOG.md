@@ -2,6 +2,14 @@
 
 ## 7.7.0 - UNRELEASED
 
+## 7.6.1 - 2025-01-27
+- XRDDEV-2813: The Central Server is not able to automatically reconnect to a remote database cluster after the cluster leader change when pgBouncer and HAProxy are used to connect the Central Server to the cluster.
+- XRDDEV-2814: The Central Server backup restore failing when using remote database cluster with customized PostgreSQL ports.
+- XRDDEV-2817: When running backup/restore on a Central Server cluster with multiple database nodes, the Central Server always connects to the first db host in the list and not the primary node.
+- XRDDEV-2818: Memory leak in messagelog archiver
+- XRDDEV-2819: Backup does not work with niis/xroad-security-server-sidecar:7.6.0-primary-ee image in kubernetes
+- XRDDEV-2820: Metaspace requirements have increased between 7.5.1 and 7.6.0
+
 ## 7.6.0 - 2025-12-01
 - XRDDEV-2185: As a Security Server Administrator I want the information system TLS certificate table under the subsystem internal server tab to show more information regarding the certificate so that I can differentiate them better
 - XRDDEV-2536: As a Security Server Administrator I want the software to automatically renew signing and authentication certificates issued by trusted CA-s that support ACME so that the renewal would happen automatically
