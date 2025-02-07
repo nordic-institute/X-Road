@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.proto;
+package org.niis.xroad.confclient.rpc;
 
 import com.google.protobuf.ByteString;
 import jakarta.annotation.PostConstruct;
@@ -33,6 +33,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.confclient.proto.AdminServiceGrpc;
+import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
+import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
+import org.niis.xroad.confclient.proto.DiagnosticsStatus;
+import org.niis.xroad.confclient.proto.GetGlobalConfReq;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
+import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
 import org.niis.xroad.rpc.common.Empty;
 
 @Slf4j

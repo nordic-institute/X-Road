@@ -29,6 +29,7 @@ package org.niis.xroad.common.properties.spring;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -53,8 +54,7 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
         return certificateProvisioning;
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Setter
     @ConfigurationProperties(prefix = "xroad.common.rpc.certificate-provisioning")
     public class SpringCertificateProvisionProperties
             implements CertificateProvisionProperties {

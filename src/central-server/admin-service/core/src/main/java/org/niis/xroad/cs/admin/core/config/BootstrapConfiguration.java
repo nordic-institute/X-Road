@@ -30,8 +30,7 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
@@ -43,8 +42,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
-@Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class})
+@Import({SpringGlobalConfConfig.class})
 @Configuration
 public class BootstrapConfiguration {
 

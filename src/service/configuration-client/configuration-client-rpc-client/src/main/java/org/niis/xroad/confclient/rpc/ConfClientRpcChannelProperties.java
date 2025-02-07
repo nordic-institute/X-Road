@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.test.globalconf;
+package org.niis.xroad.confclient.rpc;
 
-import org.niis.xroad.globalconf.GlobalConfSource;
-import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
-import org.niis.xroad.globalconf.impl.GlobalConfImpl;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
+public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
+    String DEFAULT_HOST = "127.0.0.1";
+    String DEFAULT_PORT = "5665";
+    String DEFAULT_DEADLINE_AFTER = "60000";
 
-/**
- * Test globalconf implementation.
- */
-public class TestGlobalConfImpl extends GlobalConfImpl {
-    /**
-     * Constructs a new test globalconf.
-     */
-    public TestGlobalConfImpl() {
-        super(globalConfSource());
-    }
+    @Override
+    @WithDefault(DEFAULT_HOST)
+    String host();
 
-    private static GlobalConfSource globalConfSource() {
-        try {
-            return new FileSystemGlobalConfSource(getConfigurationPath());
-        } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
-        }
-    }
+    @Override
+    @WithDefault(DEFAULT_PORT)
+    int port();
 
+    @Override
+    @WithName("deadline-after")
+    @WithDefault(DEFAULT_DEADLINE_AFTER)
+    int deadlineAfter();
 }

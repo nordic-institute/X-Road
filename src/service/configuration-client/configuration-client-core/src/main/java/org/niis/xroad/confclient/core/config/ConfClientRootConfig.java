@@ -29,6 +29,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationDownloader;
 import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
+import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
 
 public class ConfClientRootConfig {
 
@@ -41,4 +42,8 @@ public class ConfClientRootConfig {
                 configurationClientProperties.globalConfDir(), downloader);
     }
 
+    @ApplicationScoped
+    FSGlobalConfValidator fsGlobalConfValidator() {
+        return new FSGlobalConfValidator();
+    }
 }

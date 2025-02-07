@@ -31,7 +31,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

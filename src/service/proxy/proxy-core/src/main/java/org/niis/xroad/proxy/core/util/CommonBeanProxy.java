@@ -29,7 +29,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
@@ -49,6 +48,5 @@ public class CommonBeanProxy {
     private final ServerConfProvider serverConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final SigningCtxProvider signingCtxProvider;
-    private final CertChainFactory certChainFactory;
     private final CertHelper certHelper;
 }

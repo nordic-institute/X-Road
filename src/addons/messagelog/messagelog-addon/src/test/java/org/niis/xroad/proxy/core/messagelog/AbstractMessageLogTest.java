@@ -94,7 +94,7 @@ abstract class AbstractMessageLogTest {
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, certChainFactory, null);
+                null, null);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

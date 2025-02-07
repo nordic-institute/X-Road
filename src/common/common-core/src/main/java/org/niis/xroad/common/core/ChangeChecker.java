@@ -23,33 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.globalconf.spring;
+package org.niis.xroad.common.core;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
-@Slf4j
-@Configuration
-@EnableScheduling
-@RequiredArgsConstructor
-public class GlobalConfRefreshJobConfig {
-    public static final String BEAN_GLOBAL_CONF_SCHEDULER = "globalConfRefreshScheduler";
-
-    @Bean
-    GlobalConfRefreshJob globalConfRefreshJob(GlobalConfProvider globalConfProvider) {
-        return new GlobalConfRefreshJob(globalConfProvider);
-    }
-
-    @Bean
-    ScheduledExecutorService globalConfRefreshScheduler() {
-        return Executors.newSingleThreadScheduledExecutor();
-    }
-
+public interface ChangeChecker {
+    /**
+     * @return true, if the file has changed
+     * @throws Exception if an error occurs
+     */
+    boolean hasChanged() throws Exception;
 }

@@ -28,9 +28,6 @@ package org.niis.xroad.proxy.core.configuration;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.GlobalConfSource;
-import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
-import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -41,8 +38,6 @@ import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcClient;
-
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 
 public class ProxyConfig {
 
@@ -66,20 +61,6 @@ public class ProxyConfig {
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) throws Exception {
         return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
-    }
-
-    @ApplicationScoped
-        // todo: will be removed after globalconf updates
-    GlobalConfSource globalConfSource() {
-        var source = new FileSystemGlobalConfSource(getConfigurationPath());
-        source.afterPropertiesSet();
-        return source;
-    }
-
-    @ApplicationScoped
-        // todo: will be removed after globalconf updates
-    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
-        return new GlobalConfImpl(source);
     }
 
     @ApplicationScoped

@@ -7,6 +7,7 @@ dependencies {
   api(project(":common:common-core"))
   api(project(":common:common-message"))
   api(project(":lib:globalconf-core"))
+  api(project(":service:configuration-client:configuration-client-rpc-client"))
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.junit.jupiter.params)

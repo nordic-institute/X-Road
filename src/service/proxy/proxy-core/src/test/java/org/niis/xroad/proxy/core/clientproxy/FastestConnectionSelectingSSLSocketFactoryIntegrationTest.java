@@ -45,7 +45,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.AuthKeyManager;
@@ -129,8 +128,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                         return "src/test/ocsp-responder.xml";
                     }
                 });
-        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, keyConfProvider, new CertHelper(globalConfProvider),
-                new CertChainFactory(globalConfProvider));
+        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, globalConfProvider, keyConfProvider, new CertHelper(globalConfProvider));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
     }

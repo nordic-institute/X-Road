@@ -33,7 +33,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
 import org.niis.xroad.globalconf.status.CertificationServiceStatus;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;

@@ -26,16 +26,14 @@
 package org.niis.xroad.opmonitor.core.config;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.opmonitor.core.OpMonitorDaemon;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Import({OpMonitorDaemonJobConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class
+        SpringGlobalConfConfig.class
 })
 @Configuration
 public class OpMonitorDaemonRootConfig {

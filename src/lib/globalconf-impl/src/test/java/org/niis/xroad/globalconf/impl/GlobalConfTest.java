@@ -41,6 +41,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 
@@ -90,8 +92,8 @@ public class GlobalConfTest {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
-
-        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
+        var source = new FileSystemGlobalConfSource(getConfigurationPath());
+        globalConfProvider = new GlobalConfImpl(source, new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
     }
 
     private static void createConfigurationFiles() throws IOException {

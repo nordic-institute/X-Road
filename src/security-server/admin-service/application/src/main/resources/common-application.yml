@@ -27,6 +27,9 @@ server:
         same-site: Strict
 
 xroad:
+  common:
+    global-conf:
+      refresh-rate-seconds: -1 # UI has its own refresh job.
   proxy-ui-api:
     rate-limit-requests-per-second: 20
     rate-limit-requests-per-minute: 600

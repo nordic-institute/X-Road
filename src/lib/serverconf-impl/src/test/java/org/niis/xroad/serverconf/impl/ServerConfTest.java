@@ -41,7 +41,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class ServerConfTest {
     public static void setUpBeforeClass() throws Exception {
         prepareDB();
 
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create();
         serverConfProvider = new ServerConfImpl(globalConfProvider);
     }
 

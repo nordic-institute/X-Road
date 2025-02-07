@@ -72,7 +72,7 @@ public class SharedParametersCache {
     }
 
     @SneakyThrows
-    SharedParametersCache(@NonNull SharedParameters sharedParameters) {
+    public SharedParametersCache(@NonNull SharedParameters sharedParameters) {
         this.sharedParameters = sharedParameters;
 
         cacheCaCerts();

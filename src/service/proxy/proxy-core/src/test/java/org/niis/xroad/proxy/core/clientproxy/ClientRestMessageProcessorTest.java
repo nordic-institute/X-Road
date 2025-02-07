@@ -37,7 +37,6 @@ import org.eclipse.jetty.http.PreEncodedHttpField;
 import org.eclipse.jetty.server.Request;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -76,13 +75,12 @@ public class ClientRestMessageProcessorTest {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
-        var certChainFactory = mock(CertChainFactory.class);
         RequestWrapper request = RequestWrapper.of(getMockedRequest());
         var respWrapper = mock(ResponseWrapper.class);
         var httpClient = mock(HttpClient.class);
         var isAuthenticationData = mock(IsAuthenticationData.class);
         var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, certChainFactory, null);
+                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null);
         var clientRestMessageProcessor =
                 new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);

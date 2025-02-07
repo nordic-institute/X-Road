@@ -28,8 +28,7 @@ package org.niis.xroad.messagelog.archiver.application;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
 import org.springframework.context.annotation.Bean;
@@ -37,8 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-@Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class})
+@Import({SpringGlobalConfConfig.class})
 @Configuration
 public class LogArchiverConfig {
 

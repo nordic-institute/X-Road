@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -68,10 +69,13 @@ public class TestKeyConf extends EmptyKeyConf {
     }
 
     @Override
+    @SneakyThrows
     public AuthKey getAuthKey() {
         PKCS12 consumer = TestCertUtil.getConsumer();
-        return new AuthKey(new CertChainFactory(globalConfProvider)
-                .create("EE", consumer.certChain[0], null), consumer.key);
+        return new AuthKey(CertChainFactory
+                .create("EE",
+                        globalConfProvider.getCaCert("EE", consumer.certChain[0]),
+                        consumer.certChain[0], null), consumer.key);
     }
 
     @Override

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.proto;
+package org.niis.xroad.common.core.dto;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
-
-@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
-public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
-    String DEFAULT_HOST = "127.0.0.1";
-    String DEFAULT_PORT = "5665";
-    String DEFAULT_DEADLINE_AFTER = "60000";
-
-    @Override
-    @WithDefault(DEFAULT_HOST)
-    String host();
-
-    @Override
-    @WithDefault(DEFAULT_PORT)
-    int port();
-
-    @Override
-    @WithName("deadline-after")
-    @WithDefault(DEFAULT_DEADLINE_AFTER)
-    int deadlineAfter();
+public record InMemoryFile(String content, String checksum) {
 }

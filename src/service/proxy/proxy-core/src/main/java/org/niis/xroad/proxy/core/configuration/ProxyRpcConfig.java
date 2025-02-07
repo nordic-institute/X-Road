@@ -93,4 +93,31 @@ public class ProxyRpcConfig {
         return signerRpcClient;
     }
 
+
+    @Bean
+    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory, ConfClientRpcChannelProperties channelProperties) {
+        return new ConfClientRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Bean
+    @Deprecated
+    ConfClientRpcChannelProperties confClientRpcChannelProperties() {
+        return new ConfClientRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
+
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_PORT);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        };
+    }
+
 }

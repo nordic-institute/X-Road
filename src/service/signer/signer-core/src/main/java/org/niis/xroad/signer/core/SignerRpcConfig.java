@@ -29,8 +29,11 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -53,5 +56,31 @@ public class SignerRpcConfig {
                 }));
         // rpcServer.afterPropertiesSet();
         return rpcServer;
+    }
+
+    @Bean
+    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory, ConfClientRpcChannelProperties channelProperties) {
+        return new ConfClientRpcClient(rpcChannelFactory, channelProperties);
+    }
+
+    @Bean
+    @Deprecated
+    ConfClientRpcChannelProperties confClientRpcChannelProperties() {
+        return new ConfClientRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
+
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_PORT);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        };
     }
 }

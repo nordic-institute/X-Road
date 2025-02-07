@@ -84,7 +84,7 @@ public class MetadataHandlerTest {
         serverConfProvider = mock(ServerConfProvider.class);
         certChainFactory = mock(CertChainFactory.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, certChainFactory, null);
+                null, null);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
