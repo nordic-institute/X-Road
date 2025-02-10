@@ -27,7 +27,6 @@ package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -35,6 +34,7 @@ import java.util.Optional;
 /**
  * Contains system-wide constants for system properties.
  */
+@Deprecated(forRemoval = true)
 public final class SystemProperties {
 
     private SystemProperties() {
@@ -428,9 +428,6 @@ public final class SystemProperties {
     /** Property name of the device configuration file. */
     public static final String DEVICE_CONFIGURATION_FILE = SIGNER_PREFIX + "device-configuration-file";
 
-    /** Property name of the Signer's admin port number. */
-    public static final String SIGNER_ADMIN_PORT = SIGNER_PREFIX + "admin-port";
-
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
 
@@ -448,20 +445,9 @@ public final class SystemProperties {
 
     public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM = SIGNER_PREFIX + "csr-signature-digest-algorithm";
 
-    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE = SIGNER_PREFIX + "ocsp-response-retrieval-active";
-
-    public static final String SIGNER_OCSP_RETRY_DELAY = SIGNER_PREFIX + "ocsp-retry-delay";
-
-    private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
-
-    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = SIGNER_PREFIX + "module-manager-update-interval";
-    public static final String SOFT_TOKEN_RSA_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-rsa-sign-mechanism";
-    public static final String SOFT_TOKEN_EC_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-ec-sign-mechanism";
     public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
     public static final String SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM = SIGNER_PREFIX + "selfsigned-cert-digest-algorithm";
 
-    public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
-    public static final KeyAlgorithm DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM = KeyAlgorithm.RSA;
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
     public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
@@ -491,9 +477,6 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_PORT =
             PREFIX + "configuration-client.port";
-
-    public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
-            PREFIX + "configuration-client.admin-port";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -1034,13 +1017,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the port on which the signer admin listens for requests
-     */
-    public static int getSignerAdminPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_ADMIN_PORT, Integer.toString(PortNumbers.SIGNER_ADMIN_PORT)));
-    }
-
-    /**
      * @return the signer connection timeout in milliseconds, '60000' by default.
      */
     public static int getSignerClientTimeout() {
@@ -1079,47 +1055,6 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA256);
-    }
-
-    /**
-     * @return whether OCSP-response retrieval loop should be activated
-     */
-    public static boolean isOcspResponseRetrievalActive() {
-        return Boolean.parseBoolean(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, TRUE));
-    }
-
-    /**
-     * @return the OCSP-response retry delay in seconds that should be set for signer, 60 by default
-     */
-    public static int getOcspResponseRetryDelay() {
-        return Integer.parseInt(System.getProperty(SIGNER_OCSP_RETRY_DELAY,
-                DEFAULT_SIGNER_OCSP_RETRY_DELAY));
-    }
-
-    /**
-     * @return the module manager update interval in seconds that should be set for signer, 60 by default
-     */
-    public static int getModuleManagerUpdateInterval() {
-        return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
-                DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
-    }
-
-    /**
-     * @return software token signing mechanism type, CKM_RSA_PKCS by default
-     */
-    public static SignMechanism getSoftTokenRsaSignMechanism() {
-        return Optional.ofNullable(System.getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM))
-                .map(SignMechanism::valueOf)
-                .orElse(SignMechanism.CKM_RSA_PKCS);
-    }
-
-    /**
-     * @return software token signing mechanism type for EC keys, CKM_ECDSA by default
-     */
-    public static SignMechanism getSofTokenEcSignMechanism() {
-        return Optional.ofNullable(System.getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM))
-                .map(SignMechanism::valueOf)
-                .orElse(SignMechanism.CKM_ECDSA);
     }
 
     /**
@@ -1211,14 +1146,6 @@ public final class SystemProperties {
     public static int getConfigurationClientPort() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
-    }
-
-    /**
-     * @return the HTTP port on which the configuration client is listening, '5675' by default.
-     */
-    public static int getConfigurationClientAdminPort() {
-        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
     }
 
     public static String getConfigurationClientAllowedFederations() {

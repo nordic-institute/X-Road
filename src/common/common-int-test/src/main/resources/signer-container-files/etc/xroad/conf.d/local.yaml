@@ -1,0 +1,4 @@
+xroad:
+  signer:
+    rpc:
+      listen-address: "0.0.0.0"
