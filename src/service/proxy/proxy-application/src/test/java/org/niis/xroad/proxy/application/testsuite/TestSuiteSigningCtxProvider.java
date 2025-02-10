@@ -41,7 +41,7 @@ public class TestSuiteSigningCtxProvider extends TestSigningCtxProvider {
     @Override
     public SigningCtx createSigningCtx(ClientId clientId) {
         String orgName = clientId.getMemberCode();
-        SigningCtx ctx = ProxyTestSuite.currentTestCase.getSigningCtx(orgName);
+        SigningCtx ctx = ProxyTestSuiteHelper.currentTestCase.getSigningCtx(orgName);
         if (ctx != null) {
             return ctx;
         }

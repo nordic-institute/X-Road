@@ -26,12 +26,11 @@
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
 import ee.ria.xroad.common.SystemProperties;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.SslMessageTestCase;
+import org.niis.xroad.proxy.application.testsuite.TestContext;
 import org.niis.xroad.proxy.core.util.SSLContextUtil;
-import org.springframework.context.ApplicationContext;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -60,12 +59,12 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
      * @throws Exception
      */
     @Override
-    public void execute(ApplicationContext applicationContext) throws Exception {
+    public boolean execute(TestContext testContext) throws Exception {
         try {
             // Set not accepted cipher in use
             System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
             // execute test
-            super.execute(applicationContext);
+            return super.execute(testContext);
         } finally {
             // Restore cipher suite setup for rest of the tests
             System.setProperty(propertyName, String.join(",", origCipherSuites));

@@ -144,20 +144,11 @@ public class MessageTestCase {
     }
 
     /**
-     * @param service the service name
-     * @return the address if the service with the given name
-     */
-    public String getServiceAddress(String service) {
-        return "http://127.0.0.1:" + ProxyTestSuite.SERVICE_PORT
-                + ((service != null) ? "/" + service : "");
-    }
-
-    /**
      * @param service the service ID
      * @return the service address of the address with the given ID
      */
     public String getServiceAddress(ServiceId service) {
-        return "http://127.0.0.1:" + ProxyTestSuite.SERVICE_PORT
+        return "http://127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_PORT
                 + ((service != null) ? "/" + service.getServiceCode() : "");
     }
 
@@ -225,8 +216,10 @@ public class MessageTestCase {
      *
      * @throws Exception in case of any unexpected errors
      */
-    public void execute(ApplicationContext applicationContext) throws Exception {
-        init(applicationContext);
+//    public boolean execute(ApplicationContext applicationContext) throws Exception {
+    public boolean execute(TestContext testContext) throws Exception {
+        ProxyTestSuiteHelper.currentTestCase = this;
+        init(testContext);
         startUp();
         generateQueryId();
 
@@ -291,7 +284,7 @@ public class MessageTestCase {
                     ((SoapFault) receivedResponse.getSoap()).getCode(),
                     ((SoapFault) receivedResponse.getSoap()).getString());
             validateFaultResponse(receivedResponse);
-            return;
+            return true;
         }
 
         if (!receivedResponse.isResponse()) {
@@ -306,12 +299,17 @@ public class MessageTestCase {
 
         log.debug("Validating normal response");
         validateNormalResponse(receivedResponse);
+        return true;
     }
 
-    protected void init(ApplicationContext applicationContext) throws Exception {
-        globalConfProvider = applicationContext.getBean(TestGlobalConfWrapper.class);
-        keyConfProvider = applicationContext.getBean(KeyConfProvider.class);
-        serverConfProvider = applicationContext.getBean(TestServerConfWrapper.class);
+//    protected void init(ApplicationContext applicationContext) throws Exception {
+    protected void init(TestContext applicationContext) throws Exception {
+//        globalConfProvider = applicationContext.getBean(TestGlobalConfWrapper.class);
+//        keyConfProvider = applicationContext.getBean(KeyConfProvider.class);
+//        serverConfProvider = applicationContext.getBean(TestServerConfWrapper.class);
+//
+        globalConfProvider = applicationContext.globalConfProvider;
+        serverConfProvider = applicationContext.serverConfProvider;
     }
 
     protected void startUp() throws Exception {

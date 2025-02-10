@@ -55,9 +55,9 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-class DummyServerProxy extends Server implements InitializingBean, DisposableBean {
+public class DummyServerProxy extends Server implements InitializingBean, DisposableBean {
 
-    DummyServerProxy() {
+    public DummyServerProxy() {
         ServerConnector connector = new ServerConnector(this);
 
         connector.setName("ClientConnector");
@@ -137,6 +137,6 @@ class DummyServerProxy extends Server implements InitializingBean, DisposableBea
     }
 
     private static MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
+        return ProxyTestSuiteHelper.currentTestCase;
     }
 }

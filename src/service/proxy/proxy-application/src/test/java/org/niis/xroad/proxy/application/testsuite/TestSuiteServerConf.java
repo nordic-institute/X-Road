@@ -66,7 +66,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
             return serviceAddress;
         }
 
-        return "127.0.0.1:" + ProxyTestSuite.SERVICE_PORT
+        return "127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_PORT
                 + ((service != null) ? "/" + service.getServiceCode() : "");
     }
 
@@ -129,6 +129,6 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     private static MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
+        return ProxyTestSuiteHelper.currentTestCase;
     }
 }

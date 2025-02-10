@@ -21,6 +21,9 @@ dependencies {
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
+  testImplementation(project(":common:common-scheduler"))
+  testImplementation(project(":common:common-messagelog"))
+  testImplementation(project(":service:op-monitor:op-monitor-api"))
 }
 
 tasks.jar {
@@ -57,26 +60,6 @@ tasks.assemble {
   finalizedBy(tasks.shadowJar)
 }
 
-val runProxyTest by tasks.registering(JavaExec::class) {
-  group = "verification"
-  shouldRunAfter(tasks.test)
-  jvmArgs(
-    "-Xmx2g",
-    "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
-    "-Dxroad.tempFiles.path=build/attach-tmp",
-    "-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml",
-    "-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml",
-    "-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml",
-    "-Dxroad.proxy.client-connector-so-linger=-1",
-    "-Dxroad.proxy.client-httpclient-so-linger=-1",
-    "-Dxroad.proxy.server-connector-so-linger=-1",
-    "-Dlogback.configurationFile=src/test/logback-proxytest.xml",
-    "-Dxroad.common.grpc-internal-tls-enabled=false"
-    // "-Djava.security.properties==src/main/resources/java.security"
-  )
-
-  mainClass.set("org.niis.xroad.proxy.application.testsuite.ProxyTestSuite")
-  classpath = sourceSets.test.get().runtimeClasspath
+tasks.withType<Test> {
+  jvmArgs("-Xmx2G")
 }
-
-project.extensions.getByType<JacocoPluginExtension>().applyTo(tasks.named<JavaExec>("runProxyTest").get())

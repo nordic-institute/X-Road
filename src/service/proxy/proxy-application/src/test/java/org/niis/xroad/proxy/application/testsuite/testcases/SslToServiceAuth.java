@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.proxy.application.testsuite.Message;
-import org.niis.xroad.proxy.application.testsuite.ProxyTestSuite;
+import org.niis.xroad.proxy.application.testsuite.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.application.testsuite.SslMessageTestCase;
 import org.niis.xroad.proxy.application.testsuite.TestSuiteServerConf;
 
@@ -73,7 +73,7 @@ public class SslToServiceAuth extends SslMessageTestCase {
 
     @Override
     public String getServiceAddress(ServiceId service) {
-        return "https://127.0.0.1:" + ProxyTestSuite.SERVICE_SSL_PORT;
+        return "https://127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_SSL_PORT;
     }
 
     @Override

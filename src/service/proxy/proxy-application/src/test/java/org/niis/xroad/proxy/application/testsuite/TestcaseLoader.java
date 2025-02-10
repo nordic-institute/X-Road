@@ -37,7 +37,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 
-final class TestcaseLoader {
+public final class TestcaseLoader {
     private static final Logger LOG = LoggerFactory.getLogger(
             TestcaseLoader.class);
 
@@ -50,7 +50,7 @@ final class TestcaseLoader {
     private TestcaseLoader() {
     }
 
-    static List<MessageTestCase> getTestCasesToRun(String[] ids) {
+    public static List<MessageTestCase> getTestCasesToRun(String[] ids) {
         List<MessageTestCase> testsToRun = new ArrayList<>();
         if (ids.length > 0) {
             for (String id : ids) {

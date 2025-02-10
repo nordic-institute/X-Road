@@ -74,12 +74,12 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-class DummyService extends Server implements InitializingBean, DisposableBean {
+public class DummyService extends Server implements InitializingBean, DisposableBean {
 
     private static X509Certificate[] serverCertChain;
     private static PrivateKey serverKey;
 
-    DummyService() {
+    public DummyService() {
         super();
         try {
             setupConnectors();
@@ -106,12 +106,12 @@ class DummyService extends Server implements InitializingBean, DisposableBean {
     private void setupConnectors() throws Exception {
         ServerConnector connector = new ServerConnector(this);
         connector.setName("httpConnector");
-        connector.setPort(ProxyTestSuite.SERVICE_PORT);
+        connector.setPort(ProxyTestSuiteHelper.SERVICE_PORT);
         addConnector(connector);
 
         ServerConnector sslConnector = createSslConnector();
         sslConnector.setName("httpsConnector");
-        sslConnector.setPort(ProxyTestSuite.SERVICE_SSL_PORT);
+        sslConnector.setPort(ProxyTestSuiteHelper.SERVICE_SSL_PORT);
         sslConnector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)
                 .map(HttpConnectionFactory.class::cast)
@@ -242,7 +242,7 @@ class DummyService extends Server implements InitializingBean, DisposableBean {
     }
 
     private static MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
+        return ProxyTestSuiteHelper.currentTestCase;
     }
 
     private static final class DummyServiceKeyManager extends X509ExtendedKeyManager {

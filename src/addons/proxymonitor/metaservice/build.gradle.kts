@@ -31,6 +31,7 @@ dependencies {
   testImplementation(libs.hamcrest)
 
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
+  testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
 }
 
@@ -61,34 +62,3 @@ tasks.build {
 tasks.compileJava {
   dependsOn(tasks.processResources)
 }
-
-tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
-  group = "verification"
-  if (System.getProperty("DEBUG", "false") == "true") {
-    jvmArgs(
-      "-Xdebug",
-      "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-    )
-  }
-
-  jvmArgs(
-    "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
-    "-Dxroad.tempFiles.path=build/attach-tmp",
-    "-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml",
-    "-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml",
-    "-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml",
-    "-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml",
-    "-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml",
-    "-Dxroad.proxy.client-connector-so-linger=-1",
-    "-Dxroad.proxy.client-httpclient-so-linger=-1",
-    "-Dxroad.proxy.server-connector-so-linger=-1",
-    "-Dxroad.proxy.serverServiceHandlers=org.niis.xroad.proxy.core.serverproxy.ProxyMonitorServiceHandlerImpl",
-    "-Dxroad.common.grpc-internal-tls-enabled=false",
-    "-Dtest.queries.dir=src/test/queries"
-  )
-
-  mainClass.set("org.niis.xroad.proxy.application.testsuite.ProxyTestSuite")
-  classpath(sourceSets.test.get().runtimeClasspath)
-}
-
-project.extensions.getByType<JacocoPluginExtension>().applyTo(tasks.named<JavaExec>("runProxymonitorMetaserviceTest").get())

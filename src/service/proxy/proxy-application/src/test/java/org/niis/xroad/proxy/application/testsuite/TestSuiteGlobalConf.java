@@ -90,7 +90,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     private MessageTestCase currentTestCase() {
-        return ProxyTestSuite.currentTestCase;
+        return ProxyTestSuiteHelper.currentTestCase;
     }
 
     @Override
