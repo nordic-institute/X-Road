@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
 import org.niis.xroad.signer.api.message.GetOcspResponsesResponse;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
@@ -38,8 +40,12 @@ import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Map.Entry;
 
+import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -215,5 +221,20 @@ public class OcspResponseManager {
             }
         }
         return null;
+    }
+
+    public void verifyOcspResponses(X509Certificate x509Certificate) throws Exception {
+        CertChain certChain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), x509Certificate);
+        GetOcspResponses message = new GetOcspResponses(getSha1Hashes(certChain.getAllCertsWithoutTrustedRoot()));
+        GetOcspResponsesResponse result = handleGetOcspResponses(message);
+        List<OCSPResp> ocspResponses = new ArrayList<>();
+        for (String encodedResponse : result.getBase64EncodedResponses()) {
+            if (encodedResponse != null) {
+                ocspResponses.add(new OCSPResp(decodeBase64(encodedResponse)));
+            } else {
+                throw new IllegalStateException("OCSP Response was null");
+            }
+        }
+        new CertChainVerifier(globalConfProvider, certChain).verifyOcspResponses(ocspResponses, new Date());
     }
 }
