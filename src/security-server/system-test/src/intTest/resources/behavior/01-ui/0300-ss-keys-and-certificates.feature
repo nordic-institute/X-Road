@@ -93,3 +93,10 @@ Feature: 0300 - SS: Keys and certificates
     Then Token: softToken-0 is logged-out
     And User logs in token: softToken-0 with PIN: T0ken1zer3
     And Token: softToken-0 is logged-in
+
+  Scenario: Inactive token can be deleted
+    Given Predefined inactive signer token is uploaded
+    And Keys and certificates tab is selected
+    When Token: softToken-for-deletion edit page is opened
+    Then Inactive token softToken-for-deletion is successfully deleted
+

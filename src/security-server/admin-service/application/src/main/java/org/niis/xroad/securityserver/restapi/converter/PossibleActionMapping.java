@@ -47,6 +47,7 @@ public enum PossibleActionMapping {
     LOGIN(PossibleActionEnum.TOKEN_ACTIVATE, PossibleAction.LOGIN),
     LOGOUT(PossibleActionEnum.TOKEN_DEACTIVATE, PossibleAction.LOGOUT),
     TOKEN_CHANGE_PIN(PossibleActionEnum.TOKEN_CHANGE_PIN, PossibleAction.TOKEN_CHANGE_PIN),
+    TOKEN_DELETE(PossibleActionEnum.TOKEN_DELETE, PossibleAction.TOKEN_DELETE),
     REGISTER(PossibleActionEnum.REGISTER, PossibleAction.REGISTER),
     UNREGISTER(PossibleActionEnum.UNREGISTER, PossibleAction.UNREGISTER),
     IMPORT_FROM_TOKEN(PossibleActionEnum.IMPORT_FROM_TOKEN, PossibleAction.IMPORT_FROM_TOKEN),

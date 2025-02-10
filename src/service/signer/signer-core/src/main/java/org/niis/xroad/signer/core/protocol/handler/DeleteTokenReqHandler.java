@@ -23,26 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.e2e;
+package org.niis.xroad.signer.core.protocol.handler;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.proto.DeleteTokenReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-@Getter
-@Setter
+@Slf4j
 @Component
-@ConfigurationProperties(prefix = "test-automation.custom")
-public class CustomProperties {
-    private boolean useCustomEnv;
-    private Map<String, String> customEnvMapping;
+public class DeleteTokenReqHandler extends AbstractRpcHandler<DeleteTokenReq, Empty> {
 
-    private String csImage;
-    private String ssImage;
-    private String caImage;
-    private String isopenapiImage;
-    private String issoapImage;
+    @Override
+    protected Empty handle(DeleteTokenReq request) throws Exception {
+        deleteToken(request.getTokenId());
+
+        return Empty.getDefaultInstance();
+    }
+
+    public void deleteToken(String tokenId) {
+        TokenManager.deleteToken(tokenId);
+
+        log.info("Token with id '{}' was deleted", tokenId);
+    }
 }

@@ -41,6 +41,7 @@ import {
 import { defineStore } from "pinia";
 import * as api from "@/util/api";
 import { encodePathParameter } from "@/util/api";
+import { sorCertificateAuthorities, sortCsrSubjectFields } from "@/util/sorting";
 
 export interface CsrState {
   csrKey: Key | undefined;
@@ -163,7 +164,7 @@ export const useCsr = defineStore('csr', {
       return api
         .get<CertificateAuthority[]>('/certificate-authorities')
         .then((res) => {
-          this.certificationServiceList = res.data;
+          this.certificationServiceList = sorCertificateAuthorities(res.data);
         })
         .catch((error) => {
           throw error;
@@ -192,7 +193,7 @@ export const useCsr = defineStore('csr', {
           },
         )
         .then((res) => {
-          this.form = res.data;
+          this.form = sortCsrSubjectFields(res.data);
         })
         .catch((error) => {
           throw error;

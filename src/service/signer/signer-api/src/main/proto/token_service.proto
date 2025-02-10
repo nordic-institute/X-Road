@@ -54,6 +54,8 @@ service TokenService {
 
   rpc UpdateSoftwareTokenPin(UpdateSoftwareTokenPinReq) returns (Empty) {}
 
+  rpc DeleteToken(DeleteTokenReq) returns (Empty) {}
+
   rpc GetHSMOperationalInfo(Empty) returns (GetHSMOperationalInfoResp) {}
 
   rpc GetMemberSigningInfo(GetMemberSigningInfoReq) returns (GetMemberSigningInfoResp) {}
@@ -105,6 +107,10 @@ message UpdateSoftwareTokenPinReq {
   string token_id = 1;
   string old_pin = 2;
   string new_pin = 3;
+}
+
+message DeleteTokenReq {
+  string token_id = 1;
 }
 
 message GetHSMOperationalInfoResp {
