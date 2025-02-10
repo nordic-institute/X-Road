@@ -26,16 +26,20 @@
 package org.niis.xroad.signer.core.protocol;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.DeleteKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GenerateKeyReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.GetAuthKeyCertReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetAuthKeyReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetKeyIdForCertHashReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetSignMechanismReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SetKeyFriendlyNameReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SignCertificateReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SignReqHandler;
-import org.niis.xroad.signer.proto.AuthKeyInfoProto;
+import org.niis.xroad.signer.proto.AuthKeyCertInfoProto;
+import org.niis.xroad.signer.proto.AuthKeyProto;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
@@ -49,14 +53,12 @@ import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignResp;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
-import org.springframework.stereotype.Service;
 
 /**
  * Token Key gRPC service.
  */
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     private final SignReqHandler signReqHandler;
@@ -66,6 +68,7 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     private final GenerateKeyReqHandler generateKeyReqHandler;
     private final SetKeyFriendlyNameReqHandler setKeyFriendlyNameReqHandler;
     private final DeleteKeyReqHandler deleteKeyReqHandler;
+    private final GetAuthKeyCertReqHandler getAuthKeyCertReqHandler;
     private final GetAuthKeyReqHandler getAuthKeyReqHandler;
 
     @Override
@@ -74,7 +77,7 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     }
 
     @Override
-    public void setKeyFriendlyName(SetKeyFriendlyNameReq request, StreamObserver<Empty> responseObserver) {
+    public void setKeyFriendlyName(SetKeyFriendlyNameReq request, StreamObserver<org.niis.xroad.rpc.common.Empty> responseObserver) {
         setKeyFriendlyNameReqHandler.processSingle(request, responseObserver);
     }
 
@@ -104,7 +107,12 @@ public class KeyService extends KeyServiceGrpc.KeyServiceImplBase {
     }
 
     @Override
-    public void getAuthKey(GetAuthKeyReq request, StreamObserver<AuthKeyInfoProto> responseObserver) {
+    public void getAuthKeyCert(GetAuthKeyReq request, StreamObserver<AuthKeyCertInfoProto> responseObserver) {
+        getAuthKeyCertReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void getAuthKey(GetAuthKeyReq request, StreamObserver<AuthKeyProto> responseObserver) {
         getAuthKeyReqHandler.processSingle(request, responseObserver);
     }
 }

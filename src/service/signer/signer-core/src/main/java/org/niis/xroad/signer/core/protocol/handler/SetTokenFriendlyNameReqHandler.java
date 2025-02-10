@@ -25,16 +25,16 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for setting the token friendly name.
  */
-@Component
+@ApplicationScoped
 public class SetTokenFriendlyNameReqHandler extends AbstractRpcHandler<SetTokenFriendlyNameReq, Empty> {
 
     @Override

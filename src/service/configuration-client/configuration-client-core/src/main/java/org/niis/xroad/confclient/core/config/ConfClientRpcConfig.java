@@ -28,9 +28,11 @@ package org.niis.xroad.confclient.core.config;
 import io.grpc.BindableService;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
@@ -40,11 +42,29 @@ import java.util.List;
 @Slf4j
 public class ConfClientRpcConfig {
 
-    @ApplicationScoped
+    @ConfigMapping(prefix = "xroad.configuration-client.rpc")
+    public interface ConfigurationClientRpcServerProperties extends RpcServerProperties {
+
+        @WithName("enabled")
+        @WithDefault("true")
+        @Override
+        boolean enabled();
+
+        @WithName("listen-address")
+        @WithDefault("127.0.0.1")
+        @Override
+        String listenAddress();
+
+        @WithName("port")
+        @WithDefault("5665")
+        @Override
+        int port();
+    }
+
     @Startup
-    RpcServer rpcServer(@ConfigProperty(name = "xroad.configuration-client.rpc.enabled") boolean rpcEnabled,
-                        @All List<BindableService> services,
-                        RpcServerProperties rpcServerProperties,
+    @ApplicationScoped
+    RpcServer rpcServer(@All List<BindableService> services,
+                        ConfigurationClientRpcServerProperties rpcServerProperties,
                         RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
         var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
         var server = new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
@@ -52,9 +72,12 @@ public class ConfClientRpcConfig {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
                 }));
-        if (rpcEnabled) {
+
+        if (rpcServerProperties.enabled()) {
             server.afterPropertiesSet();
         }
         return server;
     }
+
+
 }

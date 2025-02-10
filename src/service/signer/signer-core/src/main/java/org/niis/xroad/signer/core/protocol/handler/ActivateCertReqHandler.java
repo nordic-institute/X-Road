@@ -27,11 +27,13 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
 import org.niis.xroad.signer.api.message.GetOcspResponsesResponse;
@@ -39,8 +41,6 @@ import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound
  * Handles certificate activations and deactivations.
  */
 @RequiredArgsConstructor
-@Component
+@ApplicationScoped
 public class ActivateCertReqHandler
         extends AbstractRpcHandler<ActivateCertReq, Empty> {
 

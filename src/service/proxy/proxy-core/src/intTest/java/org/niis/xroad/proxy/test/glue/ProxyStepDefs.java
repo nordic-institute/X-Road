@@ -211,14 +211,14 @@ public class ProxyStepDefs extends BaseStepDefs {
     private KeyConfProvider createKeyConf() {
         var globalConf = TestGlobalConfFactory.create();
         var serverConf = new ServerConfImpl(globalConf);
-        return CachingKeyConfImpl.newInstance(globalConf, serverConf, signerRpcClient);
+        return new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
     }
 
     @SneakyThrows
     private SigningCtxProvider createSigningCtxProvider() {
         var globalConf = TestGlobalConfFactory.create();
         var serverConf = new ServerConfImpl(globalConf);
-        var keyconf = CachingKeyConfImpl.newInstance(globalConf, serverConf, signerRpcClient);
+        var keyconf = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
         return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient));
     }

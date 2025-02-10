@@ -28,8 +28,8 @@ package org.niis.xroad.signer.core.model;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.Value;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
 import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
 
 import static java.util.Optional.ofNullable;

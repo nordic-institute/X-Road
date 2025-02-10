@@ -26,8 +26,6 @@
 package org.niis.xroad.signer.cli;
 
 import ee.ria.xroad.common.AuditLogger;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
@@ -41,6 +39,7 @@ import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
+import io.quarkus.runtime.QuarkusApplication;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -51,6 +50,7 @@ import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -67,7 +67,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.Version.XROAD_VERSION;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -115,21 +115,15 @@ import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
  * Signer command line interface.
  */
 @RequiredArgsConstructor
-public class SignerCLI {
+public class SignerCLI implements QuarkusApplication {
 
     private static final String APP_NAME = "xroad-signer-console";
     private static final String PIN_PROMPT = "PIN: ";
     private static final int BENCHMARK_ITERATIONS = 10;
     static boolean verbose;
 
+    private final SignerRpcChannelProperties rpcChannelProperties;
     private final SignerRpcClient signerRpcClient;
-
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_SIGNER)
-                .load();
-    }
 
     /**
      * Shell input converters
@@ -413,9 +407,8 @@ public class SignerCLI {
         AuthKeyInfo authKey = signerRpcClient.getAuthKey(serverId);
 
         System.out.println("Auth key:");
-        System.out.println("\tAlias:\t" + authKey.getAlias());
-        System.out.println("\tKeyStore:\t" + authKey.getKeyStoreFileName());
-        System.out.println("\tCert:   " + authKey.getCert());
+        System.out.println("\tAlias:\t" + authKey.alias());
+        System.out.println("\tCert:   " + authKey.cert());
     }
 
     /**
@@ -792,50 +785,46 @@ public class SignerCLI {
      * @param args arguments
      * @throws Exception if an error occurs
      */
-    public static void main(String[] args) throws Exception {
+    @Override
+    public int run(String... args) throws Exception {
         Version.outputVersionInfo(APP_NAME);
+        System.out.printf("%s %s%n", APP_NAME, XROAD_VERSION);
 
         CommandLine cmd = getCommandLine(args);
         if (cmd.hasOption("verbose")) {
             verbose = true;
         }
 
-        SignerRpcClient signerClient = new SignerRpcClient();
-        signerClient.init();
-
         if (cmd.hasOption("help")) {
-            processCommandAndExit("?list", signerClient);
-            return;
+            processCommandAndExit("?list");
+            return 0;
         }
 
-        try {
-            String[] arguments = cmd.getArgs();
+        String[] arguments = cmd.getArgs();
 
-            if (arguments.length > 0) {
-                processCommandAndExit(StringUtils.join(arguments, " "), signerClient);
-            } else {
-                startCommandLoop(signerClient);
-            }
-        } finally {
-            signerClient.destroy();
+        if (arguments.length > 0) {
+            processCommandAndExit(StringUtils.join(arguments, " "));
+        } else {
+            startCommandLoop();
         }
+        return 0;
     }
 
-    private static void startCommandLoop(SignerRpcClient signerClient) throws IOException {
-        String prompt = "signer@" + SystemProperties.getGrpcSignerPort();
+    private void startCommandLoop() throws IOException {
+        String prompt = "signer@%s:%s".formatted(rpcChannelProperties.host(), rpcChannelProperties.port());
 
         String description = "Enter '?list' to get list of available commands\n"
                 + "Enter '?help <command>' to get command description\n"
                 + "\nNOTE: Member identifier is entered as \"<INSTANCE> <CLASS> <CODE>\" (in quotes)\n";
 
-        getShell(prompt, description, signerClient).commandLoop();
+        getShell(prompt, description).commandLoop();
     }
 
-    private static void processCommandAndExit(String command, SignerRpcClient signerClient) throws CLIException {
-        getShell("", "", signerClient).processLine(command);
+    private void processCommandAndExit(String command) throws CLIException {
+        getShell("", "").processLine(command);
     }
 
-    private static CommandLine getCommandLine(String[] args) throws Exception {
+    private CommandLine getCommandLine(String[] args) throws Exception {
         CommandLineParser parser = new DefaultParser();
 
         Options options = new Options();
@@ -846,7 +835,7 @@ public class SignerCLI {
         return parser.parse(options, args);
     }
 
-    private static Shell getShell(String prompt, String description, SignerRpcClient signerClient) {
-        return ShellFactory.createConsoleShell(prompt, description, new SignerCLI(signerClient));
+    private Shell getShell(String prompt, String description) {
+        return ShellFactory.createConsoleShell(prompt, description, this);
     }
 }

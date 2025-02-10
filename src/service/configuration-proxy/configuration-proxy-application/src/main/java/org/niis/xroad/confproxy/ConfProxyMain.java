@@ -29,7 +29,10 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.util.Arrays;
@@ -81,12 +84,28 @@ public final class ConfProxyMain {
      *
      * @throws Exception if initialization fails
      */
+    @Deprecated
     private static void setup() throws Exception {
         log.trace("startup()");
 
         Version.outputVersionInfo(APP_NAME);
+        var factory = new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
+        signerRpcClient = new SignerRpcClient(factory, new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
 
-        signerRpcClient = new SignerRpcClient();
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
         signerRpcClient.init();
     }
 
@@ -122,8 +141,8 @@ public final class ConfProxyMain {
     /**
      * Shutdown configuration proxy components.
      */
-    private static void shutdown() {
+    private static void shutdown() throws Exception {
         log.trace("shutdown()");
-        signerRpcClient.destroy();
+        signerRpcClient.close();
     }
 }

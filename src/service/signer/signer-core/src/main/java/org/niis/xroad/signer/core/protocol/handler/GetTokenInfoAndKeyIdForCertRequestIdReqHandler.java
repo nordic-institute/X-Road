@@ -25,16 +25,16 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetTokenByCertRequestIdReq;
 import org.niis.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for TokenInfo + key id based on certificate request ids.
  */
-@Component
+@ApplicationScoped
 public class GetTokenInfoAndKeyIdForCertRequestIdReqHandler
         extends AbstractRpcHandler<GetTokenByCertRequestIdReq, TokenInfoAndKeyIdProto> {
 

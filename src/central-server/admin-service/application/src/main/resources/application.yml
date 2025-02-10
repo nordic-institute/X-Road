@@ -20,6 +20,9 @@ spring:
     default-property-inclusion: NON_NULL
   liquibase:
     enabled: false
+  cloud:
+    vault:
+      enabled: false #TODO disabled until vault is properly configured
   servlet:
     multipart:
       max-request-size: ${xroad.admin-service.request-size-limit-binary-upload}
