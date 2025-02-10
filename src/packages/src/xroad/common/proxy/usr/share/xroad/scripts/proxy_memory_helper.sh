@@ -25,15 +25,15 @@ default_xms="100m"
 default_xmx="512m"
 
 verify_config(){
-  local -r xms=$(to_megabytes "$1")
-  local -r xmx=$(to_megabytes "$2")
+  local -r xms=$(to_bytes "$1")
+  local -r xmx=$(to_bytes "$2")
 
   if [ -z "$xms" ]; then
-    die "Invalid first argument. Must be in <number><m|g> format, for example 128m"
+    die "Invalid first argument. Must be in <number>[k|m|g] format, for example 128m"
   fi
 
   if [ -z "$xmx" ]; then
-    die "Invalid second argument. Must be in <number><m|g> format, for example 3g"
+    die "Invalid second argument. Must be in <number>[k|m|g] format, for example 3g"
   fi
 
   if [ "$xms" -ge "$xmx" ]; then
@@ -94,7 +94,7 @@ display_status(){
   local -r recommended_xms=$(get_recommended_xms)
   local -r recommended_xmx=$(get_recommended_xmx)
 
-  local -r total_memory_str=$(to_gigabytes_str "$total_memory")
+  local -r total_memory_str=$(to_unit_str "$total_memory")
   local -r used_memory_str=$(($used_memory * 100 / total_memory))
 
 cat << EOF
