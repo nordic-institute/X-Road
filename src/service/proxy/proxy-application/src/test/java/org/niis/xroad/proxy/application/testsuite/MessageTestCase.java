@@ -215,7 +215,6 @@ public class MessageTestCase {
      *
      * @throws Exception in case of any unexpected errors
      */
-//    public boolean execute(ApplicationContext applicationContext) throws Exception {
     public boolean execute(TestContext testContext) throws Exception {
         ProxyTestSuiteHelper.currentTestCase = this;
         init(testContext);
@@ -301,14 +300,9 @@ public class MessageTestCase {
         return true;
     }
 
-//    protected void init(ApplicationContext applicationContext) throws Exception {
-    protected void init(TestContext applicationContext) throws Exception {
-//        globalConfProvider = applicationContext.getBean(TestGlobalConfWrapper.class);
-//        keyConfProvider = applicationContext.getBean(KeyConfProvider.class);
-//        serverConfProvider = applicationContext.getBean(TestServerConfWrapper.class);
-//
-        globalConfProvider = applicationContext.globalConfProvider;
-        serverConfProvider = applicationContext.serverConfProvider;
+    protected void init(TestContext testContext) throws Exception {
+        globalConfProvider = testContext.globalConfProvider;
+        serverConfProvider = testContext.serverConfProvider;
     }
 
     protected void startUp() throws Exception {
