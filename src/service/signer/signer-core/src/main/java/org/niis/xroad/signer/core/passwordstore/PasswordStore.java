@@ -38,10 +38,21 @@ import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
 @SuppressWarnings("squid:S2068")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PasswordStore {
+    private static final String CFG_PASSWORD_STORE_PROVIDER = "xroad.internal.passwordstore-provider";
+    private static final String CFG_PASSWORD_STORE_FILE = "file";
     private static final PasswordStoreProvider PASSWORD_STORE_PROVIDER;
 
     static {
-        PASSWORD_STORE_PROVIDER = new LocalPasswordStoreProvider();
+        if (isFilePasswordStoreEnabled()) {
+            log.warn("WARNING: FilePasswordStoreProvider is enabled. This provider is not production ready.");
+            PASSWORD_STORE_PROVIDER = new FilePasswordStoreProvider();
+        } else {
+            PASSWORD_STORE_PROVIDER = new LocalPasswordStoreProvider();
+        }
+    }
+
+    private static boolean isFilePasswordStoreEnabled() {
+        return CFG_PASSWORD_STORE_FILE.equals(System.getProperty(CFG_PASSWORD_STORE_PROVIDER));
     }
 
     /**
