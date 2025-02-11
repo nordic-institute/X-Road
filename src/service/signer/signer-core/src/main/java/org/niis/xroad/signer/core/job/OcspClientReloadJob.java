@@ -56,7 +56,7 @@ public class OcspClientReloadJob {
     public void init() {
         if (signerProperties.ocspResponseRetrievalActive()) {
             log.info("Scheduling OcspClientReloadJob");
-            scheduler.newJob("OcspClientReloadJob")
+            scheduler.newJob(getClass().getSimpleName())
                     .setDelayed("100ms")
                     .setInterval("60s")
                     .setTask(this::reload)

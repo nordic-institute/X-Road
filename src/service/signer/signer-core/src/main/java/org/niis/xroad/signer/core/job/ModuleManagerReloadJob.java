@@ -50,7 +50,7 @@ public class ModuleManagerReloadJob {
     @PostConstruct
     public void init() {
         log.info("Scheduling ModuleManagerReloadJob every {}", signerProperties.moduleManagerUpdateInterval());
-        scheduler.newJob("OcspClientReloadJob")
+        scheduler.newJob(getClass().getSimpleName())
                 .setDelayed("100ms")
                 .setInterval("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
                 .setTask(this::update)

@@ -27,6 +27,11 @@ quarkus:
         enable: true
         path: /var/log/xroad/signer.log
 
+"%ss":
+  xroad:
+    signer:
+      ocsp-response-retrieval-active: true
+
 "%test":
   quarkus:
     log:
