@@ -23,18 +23,15 @@
 package org.niis.xroad.keyconf.impl;
 
 import ee.ria.xroad.common.OcspTestUtils;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +39,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.SigningInfo;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -49,12 +47,7 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 import org.niis.xroad.test.serverconf.EmptyServerConf;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -62,6 +55,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -73,13 +67,14 @@ import java.util.function.BooleanSupplier;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 /**
  * Test to verify that CachingKeyConf works as expected when it comes to threading
  */
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class CachingKeyConfImplTest {
+class CachingKeyConfImplTest {
 
     // booleanSuppliers for different uses
     // some duplicates for more readability
@@ -91,7 +86,6 @@ public class CachingKeyConfImplTest {
     private static final BooleanSupplier VALID_SIGNING_INFO = ALWAYS_TRUE;
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
-    private static final Path KEY_CONF = Paths.get("build", "tmp", "keyConf.xml");
 
     @Mock
     private SignerRpcClient signerRpcClient;
@@ -101,7 +95,6 @@ public class CachingKeyConfImplTest {
 
     @BeforeEach
     public void before() throws IOException {
-        System.setProperty(SystemProperties.CONF_PATH, "build/tmp/");
         globalConfProvider = new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
@@ -114,18 +107,11 @@ public class CachingKeyConfImplTest {
                 return SecurityServerId.Conf.create("TEST", "CLASS", "CODE", "SERVER");
             }
         };
-        Files.deleteIfExists(KEY_CONF);
-        Files.createFile(KEY_CONF);
-    }
-
-    @AfterEach
-    public void after() throws Exception {
-        Files.deleteIfExists(KEY_CONF);
     }
 
     @Test
     @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
-    public void testSigningInfoReads() throws Exception {
+    void testSigningInfoReads() throws Exception {
         AtomicInteger callsToGetInfo = new AtomicInteger(0);
         ClientId client1 = ClientId.Conf.create("FI", "GOV", "1");
         ClientId client2 = ClientId.Conf.create("FI", "GOV", "1", "SS");
@@ -174,7 +160,7 @@ public class CachingKeyConfImplTest {
 
     @Test
     @Timeout(value = 15000, unit = TimeUnit.MILLISECONDS)
-    public void testAuthKeyReadsWithChangedKeyConf() throws Exception {
+    void testAuthKeyReadsWithChangedKeyConf() throws Exception {
 
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         ToggleableBooleanSupplier keyConfHasChanged = new ToggleableBooleanSupplier(false);
@@ -185,28 +171,25 @@ public class CachingKeyConfImplTest {
                 VALID_AUTH_KEY,
                 VALID_SIGNING_INFO,
                 NO_DELAY);
-        try (FileWatcherRunner unused = CachingKeyConfImpl.createChangeWatcher(
-                new WeakReference<>(testCachingKeyConf),
-                new TestChangeChecker(keyConfHasChanged))) {
 
-            testCachingKeyConf.ready.await();
+        when(signerRpcClient.getKeyConfChecksum()).thenAnswer(
+                (Answer<String>) invocation -> keyConfHasChanged.getAsBoolean() ? UUID.randomUUID().toString() : "theSameChecksum");
 
-            int expectedCacheHits = 1;
-            // should cause 1 cache refresh
-            testCachingKeyConf.getAuthKey();
-            assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        int expectedCacheHits = 1;
+        // should cause 1 cache refresh
+        testCachingKeyConf.getAuthKey();
+        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
-            keyConfHasChanged.setValue(true);
-            // change keyconf
-            Files.write(KEY_CONF, "test".getBytes());
-            // wait for change to propagate
-            // next read one key, but this time key conf has changed -> one more hit
-            testCachingKeyConf.changed.await();
-            testCachingKeyConf.getAuthKey();
+        // change keyconf
+        keyConfHasChanged.setValue(true);
+        testCachingKeyConf.checkForKeyConfChanges();
+        // next read one key, but this time key conf has changed -> one more hit
+        testCachingKeyConf.changed.await();
+        testCachingKeyConf.getAuthKey();
 
-            expectedCacheHits++;
-            assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
-        }
+        expectedCacheHits++;
+        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+
     }
 
     @Test
@@ -265,7 +248,7 @@ public class CachingKeyConfImplTest {
 
     @Test
     @Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
-    public void testAuthKeyReadsWithChangedServerId() throws Exception {
+    void testAuthKeyReadsWithChangedServerId() throws Exception {
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         int expectedCacheHits = 0;
         // first read keys from cache with 5 threads, server id is not changing
@@ -289,7 +272,7 @@ public class CachingKeyConfImplTest {
     }
 
     @Test
-    public void testCalculateNotAfter() throws Exception {
+    void testCalculateNotAfter() throws Exception {
         final X509Certificate ca = TestCertUtil.getCaCert();
         final TestCertUtil.PKCS12 consumer = TestCertUtil.getConsumer();
         final TestCertUtil.PKCS12 ocsp = TestCertUtil.getOcspSigner();
@@ -437,27 +420,6 @@ public class CachingKeyConfImplTest {
             result.get();
         }
         executorService.shutdown();
-        return;
-    }
-
-    private static class TestChangeChecker extends FileContentChangeChecker {
-        private BooleanSupplier keyConfHasChanged;
-
-        TestChangeChecker(BooleanSupplier keyConfHasChanged) throws Exception {
-            super(KEY_CONF.toString());
-            this.keyConfHasChanged = keyConfHasChanged;
-        }
-
-        @Override
-        protected String calculateConfFileChecksum(File file) {
-            return "dummyChecksum";
-        }
-
-        @Override
-        public boolean hasChanged() {
-            log.debug("asking if key conf has changed, answer: " + keyConfHasChanged.getAsBoolean());
-            return keyConfHasChanged.getAsBoolean();
-        }
     }
 
     /**
@@ -471,7 +433,6 @@ public class CachingKeyConfImplTest {
         final BooleanSupplier signingInfoIsValid;
         final int cacheReadDelayMs;
         final CountDownLatch changed = new CountDownLatch(1);
-        final CountDownLatch ready = new CountDownLatch(1);
 
         TestCachingKeyConfImpl(AtomicInteger dataRefreshes,
                                BooleanSupplier keyConfHasChanged,
@@ -486,11 +447,6 @@ public class CachingKeyConfImplTest {
             this.authKeyIsValid = authKeyIsValid;
             this.signingInfoIsValid = signingInfoIsValid;
             this.cacheReadDelayMs = cacheReadDelayMs;
-        }
-
-        @Override
-        protected void watcherStarted() {
-            ready.countDown();
         }
 
         @Override
@@ -520,7 +476,8 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        public SigningInfo createSigningInfo(ClientId clientId) throws Exception {
+        @SneakyThrows
+        public SigningInfo createSigningInfo(ClientId clientId) {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
             return new SigningInfo("keyid", SignMechanism.valueOf("CKM_RSA_PKCS_PSS"), null, null, null, null) {

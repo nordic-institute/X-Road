@@ -27,7 +27,9 @@
 package org.niis.xroad.confclient.rpc;
 
 import com.google.protobuf.ByteString;
+import io.grpc.ManagedChannel;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +49,10 @@ import org.niis.xroad.rpc.common.Empty;
 @ApplicationScoped
 public class ConfClientRpcClient extends AbstractRpcClient {
     private final RpcChannelFactory rpcChannelFactory;
+
     private final ConfClientRpcChannelProperties rpcChannelProperties;
 
+    private ManagedChannel channel;
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
     private AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
     private GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
@@ -57,11 +61,19 @@ public class ConfClientRpcClient extends AbstractRpcClient {
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        var channel = rpcChannelFactory.createChannel(rpcChannelProperties);
+        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
         this.anchorServiceBlockingStub = AnchorServiceGrpc.newBlockingStub(channel).withWaitForReady();
         this.globalConfServiceBlockingStub = GlobalConfServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    }
+
+    @Override
+    @PreDestroy
+    public void close() throws Exception {
+        if (channel != null) {
+            channel.shutdown();
+        }
     }
 
     public DiagnosticsStatus getStatus() throws Exception {

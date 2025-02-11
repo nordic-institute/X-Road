@@ -45,6 +45,7 @@ public class FileContentChangeChecker implements ChangeChecker {
     @Getter
     private final String fileName;
 
+    @Getter
     private String checksum;
     private String previousChecksum;
 

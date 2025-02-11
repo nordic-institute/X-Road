@@ -73,9 +73,7 @@ script:
     path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 
 url:
-  download-configuration-anchor: http://localhost:%s/execute
   diagnostics-timestamping-services: http://localhost:%s/timestampstatus
-  diagnostics-ocsp-responders: http://localhost:%s/status
   clear-configuration-cache: http://localhost:%s/clearconfcache
   diagnostics-addon-status: http://localhost:%s/addonstatus
   diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status

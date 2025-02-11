@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.globalconf.impl;
 
+import ee.ria.xroad.common.CustomForkJoinWorkerThreadFactory;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.annotation.PostConstruct;
@@ -51,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -71,7 +73,9 @@ public class RemoteGlobalConfSource implements GlobalConfSource {
 
     @PostConstruct
     public void init() {
-        CompletableFuture.runAsync(this::load);
+        var pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+                new CustomForkJoinWorkerThreadFactory(), null, true);
+        CompletableFuture.runAsync(this::load, pool);
     }
 
     @Override

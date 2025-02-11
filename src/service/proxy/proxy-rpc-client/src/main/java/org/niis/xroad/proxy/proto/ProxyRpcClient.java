@@ -32,13 +32,15 @@ import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
+import io.grpc.ManagedChannel;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 
 import java.util.HashSet;
 import java.util.List;
@@ -55,15 +57,24 @@ public class ProxyRpcClient extends AbstractRpcClient {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final ProxyRpcChannelProperties rpcChannelProperties;
 
+    private ManagedChannel channel;
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+        channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withInterceptors().withWaitForReady();
+    }
+
+    @Override
+    @PreDestroy
+    public void close() throws Exception {
+        if (channel != null) {
+            channel.shutdown();
+        }
     }
 
     public BackupEncryptionStatusDiagnostics getBackupEncryptionStatus() throws Exception {

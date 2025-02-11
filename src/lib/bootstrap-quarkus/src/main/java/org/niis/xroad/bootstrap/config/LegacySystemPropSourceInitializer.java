@@ -47,7 +47,8 @@ public class LegacySystemPropSourceInitializer {
         SystemPropertySource.setPropertyResolver(new SystemPropertySource.PropertyResolver() {
             @Override
             public String getProperty(String key) {
-                return config.getValue(key, String.class);
+                return config.getOptionalValue(key, String.class)
+                        .orElse(null);
             }
 
             @Override

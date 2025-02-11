@@ -30,7 +30,6 @@ import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.common.util.PasswordStore;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -41,6 +40,7 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
@@ -77,6 +77,12 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     @Override
     public void handleActivateToken(ActivateTokenReq message) {
         try {
+            if (!message.getActivate()) {
+                PasswordStore.storePassword(message.getTokenId(), null);
+            } else if (message.hasPin()) {
+                PasswordStore.storePassword(message.getTokenId(), message.getPin().toByteArray());
+            }
+
             activateToken(message);
 
             refresh();

@@ -33,7 +33,7 @@ import lombok.Setter;
  * This is a temporary SystemPropertySource class that will be removed once the SystemProperties class is refactored.
  * TODO xroad8 should be removed
  */
-@Deprecated(forRemoval = true)
+@Deprecated
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SystemPropertySource {
     private static final SystemPropertiesPropertyResolver SYSTEM_PROPERTIES_PROPERTY_RESOLVER = new SystemPropertiesPropertyResolver();

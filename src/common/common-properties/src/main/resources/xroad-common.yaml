@@ -14,8 +14,6 @@ quarkus:
     enabled: false
   http:
     host-enabled: false
-  log:
-    level: DEBUG
 
 spring:
   main:

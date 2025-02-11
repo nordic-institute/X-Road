@@ -25,18 +25,18 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
 /**
  * Handles requests for setting the certificate renewal error.
  */
-@Component
+@ApplicationScoped
 public class SetNextPlannedRenewalReqHandler
         extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
 
