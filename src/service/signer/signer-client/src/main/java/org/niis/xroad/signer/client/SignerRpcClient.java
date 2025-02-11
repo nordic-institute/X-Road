@@ -72,6 +72,7 @@ import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
+import org.niis.xroad.signer.proto.DeleteTokenReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
@@ -247,7 +248,7 @@ public class SignerRpcClient extends AbstractRpcClient {
                 () -> blockingTokenService.listTokens(Empty.newBuilder().build())
                         .getTokensList().stream()
                         .map(TokenInfo::new)
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 
@@ -322,6 +323,23 @@ public class SignerRpcClient extends AbstractRpcClient {
                         .setTokenId(tokenId)
                         .setActivate(false)
                         .build())
+        );
+    }
+
+    /**
+     * Delete the token with the given ID.
+     *
+     * @param tokenId ID of the token
+     * @throws SignerException if any errors occur
+     */
+    public void deleteToken(String tokenId) throws SignerException {
+        log.trace("Delete token '{}'", tokenId);
+
+        tryToRun(
+                () -> client.execute(ctx -> ctx.getBlockingTokenService()
+                        .deleteToken(DeleteTokenReq.newBuilder()
+                                .setTokenId(tokenId)
+                                .build()))
         );
     }
 
@@ -973,7 +991,7 @@ public class SignerRpcClient extends AbstractRpcClient {
                                 .build())
                         .getCertsList().stream()
                         .map(CertificateInfo::new)
-                        .collect(Collectors.toList())
+                        .toList()
         );
     }
 

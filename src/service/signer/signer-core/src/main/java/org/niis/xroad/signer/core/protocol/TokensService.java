@@ -30,6 +30,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.ActivateTokenReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.DeleteTokenReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetHSMOperationalInfoReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetMemberSigningInfoReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetTokenBatchSigningEnabledReqHandler;
@@ -42,6 +43,7 @@ import org.niis.xroad.signer.core.protocol.handler.ListTokensReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.SetTokenFriendlyNameReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.UpdateSoftwareTokenPinReqHandler;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.DeleteTokenReq;
 import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
@@ -77,6 +79,7 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     private final GetMemberSigningInfoReqHandler getMemberSigningInfoReqHandler;
     private final SetTokenFriendlyNameReqHandler setTokenFriendlyNameReqHandler;
     private final ListTokensReqHandler listTokensReqHandler;
+    private final DeleteTokenReqHandler deleteTokenReqHandler;
 
     @Override
     public void listTokens(Empty request, StreamObserver<ListTokensResp> responseObserver) {
@@ -133,6 +136,11 @@ public class TokensService extends TokenServiceGrpc.TokenServiceImplBase {
     @Override
     public void updateSoftwareTokenPin(UpdateSoftwareTokenPinReq request, StreamObserver<Empty> responseObserver) {
         updateSoftwareTokenPinReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void deleteToken(DeleteTokenReq request, StreamObserver<Empty> responseObserver) {
+        deleteTokenReqHandler.processSingle(request, responseObserver);
     }
 
     @Override

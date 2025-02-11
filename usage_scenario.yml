@@ -13,6 +13,8 @@ services:
     image: ghcr.io/nordic-institute/xrddev-security-server:latest
   testca:
     image: ghcr.io/nordic-institute/xrddev-testca:latest
+  isopenapi:
+    image: ghcr.io/nordic-institute/xrddev-example-restapi:latest
   issoap:
     image: niis/example-adapter:latest
   isrest:

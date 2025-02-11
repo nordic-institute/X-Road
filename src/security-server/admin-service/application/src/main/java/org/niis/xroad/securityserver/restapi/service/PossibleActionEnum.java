@@ -38,6 +38,7 @@ public enum PossibleActionEnum {
     TOKEN_ACTIVATE,
     TOKEN_CHANGE_PIN,
     TOKEN_DEACTIVATE, // token
+    TOKEN_DELETE,
     REGISTER,
     UNREGISTER,
     IMPORT_FROM_TOKEN,

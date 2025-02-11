@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 
+import static org.niis.xroad.signer.client.SignerRpcClient.SSL_TOKEN_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -60,14 +61,14 @@ public class PossibleActionsRuleEngine {
 
         if (tokenInfo.isActive()) {
             actions.add(PossibleActionEnum.GENERATE_KEY);
-        }
-
-        if (tokenInfo.isActive()) {
             actions.add(PossibleActionEnum.TOKEN_DEACTIVATE);
             actions.add(PossibleActionEnum.TOKEN_CHANGE_PIN);
         } else {
             if (tokenInfo.isAvailable()) {
                 actions.add(PossibleActionEnum.TOKEN_ACTIVATE);
+            }
+            if (!isSslTokenId(tokenInfo)) { // we can't delete initialized software token id
+                actions.add(PossibleActionEnum.TOKEN_DELETE);
             }
         }
 
@@ -76,6 +77,10 @@ public class PossibleActionsRuleEngine {
         }
 
         return actions;
+    }
+
+    private static boolean isSslTokenId(TokenInfo tokenInfo) {
+        return SSL_TOKEN_ID.equals(tokenInfo.getId());
     }
 
     /**

@@ -341,6 +341,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
+import { sortTimestampingServices } from "@/util/sorting";
 
 export default defineComponent({
   components: {
@@ -418,7 +419,7 @@ export default defineComponent({
       this.loadingTimestampingservices = true;
       return api
         .get<TimestampingService[]>('/system/timestamping-services')
-        .then((resp) => (this.configuredTimestampingServices = resp.data))
+        .then((resp) => (this.configuredTimestampingServices = sortTimestampingServices(resp.data)))
         .catch((error) => this.showError(error))
         .finally(() => (this.loadingTimestampingservices = false));
     },

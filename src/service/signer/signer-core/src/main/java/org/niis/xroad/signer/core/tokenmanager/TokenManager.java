@@ -629,6 +629,17 @@ public final class TokenManager {
     }
 
     /**
+     * Delete token.
+     *
+     * @param tokenId        the token id
+     */
+    public static synchronized void deleteToken(String tokenId) {
+        log.trace("deleteToken({})", tokenId);
+
+        currentTokens.remove(findToken(tokenId));
+    }
+
+    /**
      * Sets the key label.
      *
      * @param keyId the key id
