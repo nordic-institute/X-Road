@@ -42,6 +42,7 @@ dependencies {
 
   implementation(project(":common:common-core"))
   implementation(project(":service:signer:signer-core"))
+  implementation(project(":lib:bootstrap-quarkus"))
 
   implementation(libs.bundles.quarkus.core)
 

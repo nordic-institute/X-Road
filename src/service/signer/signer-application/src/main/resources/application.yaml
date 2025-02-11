@@ -27,12 +27,6 @@ quarkus:
         enable: true
         path: /var/log/xroad/signer.log
 
-"%cli":
-  quarkus:
-    scheduler:
-      enabled: false
-      start-mode: halted
-
 "%test":
   quarkus:
     log:
