@@ -63,3 +63,10 @@ tasks.assemble {
 tasks.withType<Test> {
   jvmArgs("-Xmx2G")
 }
+
+val runProxyTest by tasks.registering(JavaExec::class) {
+  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+  group = "verification"
+  logger.warn("WARNING: The 'runProxyTest' task is deprecated and does nothing. It will be removed in the future versions.")
+  enabled = false
+}

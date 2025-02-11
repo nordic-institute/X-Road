@@ -62,3 +62,10 @@ tasks.build {
 tasks.compileJava {
   dependsOn(tasks.processResources)
 }
+
+tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
+  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+  group = "verification"
+  logger.warn("WARNING: The 'runProxymonitorMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
+  enabled = false
+}

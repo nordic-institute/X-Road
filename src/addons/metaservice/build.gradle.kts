@@ -28,3 +28,10 @@ dependencies {
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
 }
+
+val runMetaserviceTest by tasks.registering(JavaExec::class) {
+  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+  group = "verification"
+  logger.warn("WARNING: The 'runMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
+  enabled = false
+}
