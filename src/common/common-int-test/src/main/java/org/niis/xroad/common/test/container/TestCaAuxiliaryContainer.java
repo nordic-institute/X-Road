@@ -94,7 +94,7 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
         var reuse = testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns();
         return new ReusableImageFromDockerfile("xrd-test-ca", !reuse, reuse)
                 .withFileFromClasspath(".", "META-INF/ca-container/")
-                .withFileFromPath("files/acme2certifier", Paths.get("../../../../development/acme2certifier"));
+                .withFileFromPath("files/acme2certifier", Paths.get("../../../development/acme2certifier"));
     }
 
     @NotNull
