@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -46,19 +45,6 @@ public class HashCalculator {
 
     @Getter
     private final DigestAlgorithm algoURI;
-
-    /**
-     * Calculates hash value in base64 format.
-     * @param data input data from which to calculate the hash
-     * @return the calculated hash String
-     * @throws Exception in case of any errors
-     */
-    public String calculateFromString(String data) throws Exception {
-        log.trace("Calculating digest with algorithm URI '{}' for data:\n{}",
-                algoURI, data);
-
-        return calculateFromBytes(data.getBytes(StandardCharsets.UTF_8));
-    }
 
     /**
      * Calculates hash value in base64 format.

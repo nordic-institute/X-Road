@@ -36,7 +36,6 @@ import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 /**
  * Downloaded configuration directory.
@@ -56,22 +55,11 @@ public class Configuration {
     private String version;
 
     /**
-     * For each file, calls a function taking the ConfigurationLocation
-     * and ConfigurationFile as arguments.
-     * @param consumer the consumer
-     */
-    public void eachFile(BiConsumer<ConfigurationLocation,
-            ConfigurationFile> consumer) {
-        files.forEach(file -> consumer.accept(location, file));
-    }
-
-    /**
      * @return true, if the configuration is expired at the current date
      */
     public boolean isExpired() {
         return expirationDate != null && TimeUtils.now().isAfter(expirationDate.toInstant());
     }
-
 
     /**
      * @return Instance identifier of this configuration

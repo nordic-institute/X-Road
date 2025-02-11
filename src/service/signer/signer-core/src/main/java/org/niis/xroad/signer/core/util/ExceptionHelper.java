@@ -34,7 +34,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGOUT_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
 
@@ -72,15 +71,6 @@ public final class ExceptionHelper {
     public static CodedException tokenNotInitialized(String tokenId) {
         return CodedException.tr(X_TOKEN_NOT_INITIALIZED,
                 "token_not_initialized", "Token '%s' not initialized", tokenId);
-    }
-
-    /**
-     * @param tokenId the token id
-     * @return exception indicating a token is not available
-     */
-    public static CodedException tokenNotAvailable(String tokenId) {
-        return CodedException.tr(X_TOKEN_NOT_AVAILABLE,
-                "token_not_available", "Token '%s' not available", tokenId);
     }
 
     /**

@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -56,7 +55,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -184,30 +182,6 @@ public final class XmlUtils {
     }
 
     /**
-     * Returns an element matching the given xpath expression and using the specified namespace context.
-     * @param parent the parent element from which to search
-     * @param xpathExpr the xpath expression
-     * @param nsCtx the namespace context (can be null)
-     * @return the element or null if the element cannot be found or the xpath expression is invalid
-     */
-    public static Element getElementXPathNS(Element parent, String xpathExpr, NamespaceContext nsCtx) {
-        try {
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xpath = factory.newXPath();
-
-            if (nsCtx != null) {
-                xpath.setNamespaceContext(nsCtx);
-            }
-
-            return (Element) xpath.evaluate(xpathExpr, parent, XPathConstants.NODE);
-        } catch (XPathExpressionException e) {
-            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
-
-            return null;
-        }
-    }
-
-    /**
      * Returns a list of elements matching the given xpath expression and using the specified namespace context.
      * @param parent the parent element from which to search
      * @param xpathExpr the xpath expression
@@ -253,20 +227,6 @@ public final class XmlUtils {
 
             return null;
         }
-    }
-
-    /**
-     * Calculates and return the result of canonicalization of the specified node, using the specified
-     * canonicalization method.
-     * @param algorithmUri the URI of the canonicalization algorithm that is known to the class Canonicalizer.
-     * @param node the node to canonicalize
-     * @return the c14n result.
-     * @throws Exception if any errors occur
-     */
-    public static byte[] canonicalize(String algorithmUri, Node node) throws Exception {
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        Canonicalizer.getInstance(algorithmUri).canonicalizeSubtree(node, buf);
-        return buf.toByteArray();
     }
 
     /**

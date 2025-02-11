@@ -54,7 +54,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -347,15 +346,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
         }
-    }
-
-    public static boolean isCurrentVersion(Path filePath) {
-        return isVersion(filePath, CURRENT_GLOBAL_CONFIGURATION_VERSION);
-    }
-
-    public static boolean isVersion(Path filePath, int version) {
-        Integer confVersion = getVersion(filePath);
-        return confVersion != null && confVersion == version;
     }
 
     public static Integer getVersion(Path filePath) {

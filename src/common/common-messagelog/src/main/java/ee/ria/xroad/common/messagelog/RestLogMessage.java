@@ -47,20 +47,6 @@ public final class RestLogMessage extends LogMessage {
     private final ServiceId service;
 
     /**
-     * Create Loggable Rest Message
-     */
-    public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
-                          SignatureData signature,
-                          CacheInputStream body, boolean clientside) {
-        super(signature, clientside);
-        this.queryId = queryId;
-        this.client = client;
-        this.service = service;
-        this.message = message;
-        this.body = body;
-    }
-
-    /**
      * Create Loggable Rest Message with xRequestId
      */
     public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,

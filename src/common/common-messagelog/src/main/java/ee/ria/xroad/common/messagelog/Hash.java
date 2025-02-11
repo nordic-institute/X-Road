@@ -60,18 +60,6 @@ public final class Hash {
         verifyFields();
     }
 
-    /**
-     * Constructs a hash object from a algorithm ID and hash value.
-     * @param algoId the algorithm ID
-     * @param hashValue the hash value
-     */
-    public Hash(String algoId, String hashValue) {
-        this.algoId = algoId;
-        this.hashValue = hashValue;
-
-        verifyFields();
-    }
-
     @Override
     public String toString() {
         return algoId + SEPARATOR + hashValue;

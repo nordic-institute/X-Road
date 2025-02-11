@@ -55,10 +55,4 @@ public final class ConfigurationUtils {
         return URLEncoder.encode(instanceIdentifier, UTF_8);
     }
 
-    /**
-     * Generates configuration location with version number
-     */
-    public static String generateConfigurationLocation(String base, int version) {
-        return String.format("%s?version=%d", base, version);
-    }
 }

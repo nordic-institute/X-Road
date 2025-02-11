@@ -326,15 +326,6 @@ public class ConfProxyProperties {
     }
 
     /**
-     * Checks whether the configuration is loaded correctly.
-     *
-     * @return true if the configuration file has been loaded.
-     */
-    public final boolean exists() {
-        return config != null;
-    }
-
-    /**
      * Deletes the certificate file for the given key id.
      *
      * @param keyId the id for the key corresponding to the certificate

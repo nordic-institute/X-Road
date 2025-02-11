@@ -98,17 +98,6 @@ public class TokenService {
     }
 
     /**
-     * get all certificates for a given client.
-     *
-     * @param clientType client whose member certificates need to be
-     *                   linked to
-     * @return
-     */
-    public List<CertificateInfo> getAllCertificates(ClientType clientType) {
-        return getCertificates(clientType, false);
-    }
-
-    /**
      * Get all certificates for a given client
      *
      * @param clientType

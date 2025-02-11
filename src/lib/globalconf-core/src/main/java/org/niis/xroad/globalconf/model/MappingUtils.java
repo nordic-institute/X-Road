@@ -27,7 +27,6 @@
 package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -37,10 +36,6 @@ class MappingUtils {
 
     ClientId.Conf mapClientId(ClientId value) {
         return value != null ? ClientId.Conf.ensure(value) : null;
-    }
-
-    ServiceId.Conf mapServiceId(ServiceId value) {
-        return value != null ? ServiceId.Conf.ensure(value) : null;
     }
 
     // Required for conversion to XMLGregorianCalendar, Instant -> ZonedDateTime -> XMLGregorianCalendar

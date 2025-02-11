@@ -177,16 +177,6 @@ public class SystemPropertiesLoader {
     }
 
     /**
-     * Specifies that the system override INI files should not be included when
-     * loading.
-     * @return this instance
-     */
-    public SystemPropertiesLoader withoutOverrides() {
-        withOverrides = false;
-        return this;
-    }
-
-    /**
      * Specifies that the system local INI file should be included when
      * loading.
      * @return this instance

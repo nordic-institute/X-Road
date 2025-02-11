@@ -36,7 +36,6 @@ import java.util.Map;
  * Various MIME related utility methods.
  */
 public final class HeaderValueUtils {
-    public static final String HEADER_CONTENT_TYPE = "content-type";
 
     public static final String UTF8 = StandardCharsets.UTF_8.name();
 

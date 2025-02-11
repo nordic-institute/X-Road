@@ -61,8 +61,6 @@ public final class DefaultFilepaths {
 
     static final String LOG_PATH = "/var/log/xroad/";
 
-    static final String SECURE_LOG_PATH = "/var/lib/xroad/";
-
     static final String OCSP_CACHE_PATH = "/var/cache/xroad/";
 
     static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";

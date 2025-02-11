@@ -98,7 +98,6 @@ public final class MetaserviceTestUtil {
     public static final QName GET_WSDL_REQUEST = new QName(NS_PRODUCER, "getWsdl");
     public static final QName ALLOWED_METHODS_REQUEST = new QName(NS_PRODUCER, "allowedMethods");
     public static final QName LIST_METHODS_REQUEST = new QName(NS_PRODUCER, "listMethods");
-    public static final QName GET_METRICS_REQUEST = new QName(NS_PRODUCER, "getSecurityServerMetrics");
 
     private static Unmarshaller unmarshaller;
     private static Marshaller marshaller;

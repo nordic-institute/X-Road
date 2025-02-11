@@ -84,26 +84,6 @@ public final class ConfProxyHelper {
     }
 
     /**
-     * Invoke the configuration client script to check whether the downloaded
-     * global configuration is valid according to the provided source anchor.
-     *
-     * @param sourceAnchor path to the source anchor xml file
-     * @throws Exception if an configuration client error occurs
-     */
-    public static void validateConfiguration(final String sourceAnchor)
-            throws Exception {
-        ProcessBuilder pb = new ProcessBuilder(
-                ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor);
-        pb.redirectErrorStream(true);
-        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.info("Running '{} {}' ...",
-                ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor);
-        runConfClient(pb);
-    }
-
-    /**
      * Helper method for running the configuration client script.
      *
      * @param pb the configuration client script process builder

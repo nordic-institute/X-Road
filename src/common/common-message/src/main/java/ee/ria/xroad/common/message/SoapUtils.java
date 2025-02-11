@@ -105,45 +105,10 @@ public final class SoapUtils {
     }
 
     /**
-     * Returns all namespace prefixes of a given SOAP element.
-     * @param element the SOAP element from which to retrieve namespace prefixes
-     * @return a List of namespace prefix Strings
-     */
-    public static List<String> getNamespacePrefixes(SOAPElement element) {
-        List<String> nsPrefixes = new ArrayList<>();
-
-        Iterator<?> it = element.getNamespacePrefixes();
-        while (it.hasNext()) {
-            nsPrefixes.add(it.next().toString());
-        }
-
-        return nsPrefixes;
-    }
-
-    /**
      * @return ID of the digest algorithm used to calculate SOAP message hashes
      */
     public static DigestAlgorithm getHashAlgoId() {
         return Digests.DEFAULT_DIGEST_ALGORITHM;
-    }
-
-    /**
-     * Returns namespace URIs from a SOAPMessage.
-     * @param soap soap message from which to retrieve namespace URIs
-     * @return a List of namespace URI Strings
-     * @throws Exception if there is a SOAP error
-     */
-    public static List<String> getNamespaceURIs(SOAPMessage soap)
-            throws Exception {
-        List<String> nsURIs = new ArrayList<>();
-
-        SOAPEnvelope envelope = soap.getSOAPPart().getEnvelope();
-        Iterator<?> it = envelope.getNamespacePrefixes();
-        while (it.hasNext()) {
-            nsURIs.add(envelope.getNamespaceURI((String) it.next()));
-        }
-
-        return nsURIs;
     }
 
     /**

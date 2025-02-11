@@ -54,7 +54,6 @@ public enum OcspStatusMapping {
             OcspStatus.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED),
     UNKNOWN(-1, OcspStatus.UNKNOWN);
 
-    private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
     private final OcspStatus ocspStatus;
 

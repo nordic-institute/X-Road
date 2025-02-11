@@ -32,7 +32,6 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.Constants;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -42,16 +41,12 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.NamespaceContext;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
-import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Local helper class for constructing Xades signatures.
@@ -71,7 +66,6 @@ public final class Helper {
     public static final String NS_DS = "http://www.w3.org/2000/09/xmldsig#";
     public static final String NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
     public static final String NS_XADES = "http://uri.etsi.org/01903/v1.3.2#";
-    public static final String NS_MANIFEST = "http://www.w3.org/2000/09/xmldsig#Manifest";
     public static final String NS_SIG_PROP = "http://uri.etsi.org/01903#SignedProperties";
 
     public static final String ASIC_TAG = "asic:XAdESSignatures";
@@ -81,7 +75,6 @@ public final class Helper {
     public static final String UNSIGNED_PROPS_TAG = "UnsignedProperties";
     public static final String UNSIGNED_SIGNATURE_PROPS_TAG = "UnsignedSignatureProperties";
     public static final String COMPLETE_CERTIFICATE_REFS_TAG = "CompleteCertificateRefs";
-    public static final String COMPLETE_REVOCATION_REFS_TAG = "CompleteRevocationRefs";
     public static final String SIGNED_DATAOBJ_TAG = "SignedDataObjectProperties";
     public static final String DATAOBJECTFORMAT_TAG = "DataObjectFormat";
     public static final String MIMETYPE_TAG = "MimeType";
@@ -110,33 +103,20 @@ public final class Helper {
     public static final String CERTIFFICATE_VALUES_TAG = "CertificateValues";
     public static final String DIGEST_VALUE_TAG = "DigestValue";
     public static final String DIGEST_METHOD_TAG = "DigestMethod";
-    public static final String DIGEST_ALG_AND_VALUE_TAG = "DigestAlgAndValue";
-    public static final String PRODUCED_AT_TAG = "ProducedAt";
-    public static final String RESPONDER_ID_TAG = "ResponderID";
-    public static final String BYNAME_TAG = "ByName";
     public static final String URI_ATTRIBUTE = "URI";
-    public static final String OCSP_IDENTIFIER_TAG = "OCSPIdentifier";
-    public static final String OCSP_REF_TAG = "OCSPRef";
-    public static final String OCSP_REFS_TAG = "OCSPRefs";
     public static final String CERT_TAG = "Cert";
     public static final String CERT_REFS_TAG = "CertRefs";
     public static final String ALGORITHM_ATTRIBUTE = "Algorithm";
     public static final String X509_SERIAL_NUMBER_TAG = "X509SerialNumber";
     public static final String X509_ISSUER_NAME_TAG = "X509IssuerName";
-    public static final String XADES_TIMESTAMP_TAG = "XAdESTimeStamp";
     public static final String SIGNATURE_TIMESTAMP_TAG = "SignatureTimeStamp";
-    public static final String INCLUDE_TAG = "Include";
     public static final String ENCAPSULATED_TIMESTAMP_TAG = "EncapsulatedTimeStamp";
-    public static final String REFERENCE_INFO_TAG = "ReferenceInfo";
     public static final String ID_TS_ROOT_MANIFEST = "ts-root-manifest";
-    public static final String ID_TS_MANIFEST = "ts-manifest";
     public static final String ID_SIGNATURE = "signature";
     public static final String SIGNATURE_REFERENCE_ID = ID_SIGNATURE + "-reference-";
-    public static final String SIG_MANIFEST = "sig-manifest-";
     public static final String SIGNATURE_VALUE_ID = "signature-value";
     public static final String ENCAPSULATED_CERT_ID = "encapsulated-cert-";
     public static final String OCSP_RESPONSE_ID = "ocsp-response-";
-    public static final String COMPLETE_REVOCATION_REFS_ID = "complete-revocation-refs";
     public static final String COMPLETE_CERTIFICATE_REFS_ID = "complete-certificate-refs";
 
     private Helper() {
@@ -163,37 +143,12 @@ public final class Helper {
         return document;
     }
 
-    static Document parseDocument(String documentXml, boolean namespaceAware) throws Exception {
-        return XmlUtils.parseDocument(new ByteArrayInputStream(documentXml.getBytes(StandardCharsets.UTF_8)),
-                namespaceAware);
-    }
-
     public static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithmUri) throws Exception {
         XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri.uri());
         signature.setId(ID_SIGNATURE);
         document.getDocumentElement().appendChild(signature.getElement());
 
         return signature;
-    }
-
-    /**
-     * Creates and returns a ds:DigestMethod element.
-     */
-    static Element createDigestMethodElement(Document doc, DigestAlgorithm hashMethod) throws Exception {
-        Element digestMethodElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
-        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, hashMethod.uri());
-
-        return digestMethodElement;
-    }
-
-    /**
-     * Creates and returns a ds:DigestValue element.
-     */
-    static Element createDigestValueElement(Document doc, byte[] hashValue) {
-        Element digestValueElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
-        digestValueElement.setTextContent(encodeBase64(hashValue));
-
-        return digestValueElement;
     }
 
     /**
@@ -212,45 +167,6 @@ public final class Helper {
         byte[] digest = calculateDigest(digestMethod, data);
 
         return MessageDigestAlgorithm.isEqual(decodeBase64(digestValue), digest);
-    }
-
-    /**
-     * Shortcut for adding a reference to a manifest.
-     */
-    static void addManifestReference(Manifest manifest, String uri) throws Exception {
-        manifest.addDocument(null, "#" + uri, null, DEFAULT_DIGEST_ALGORITHM.uri(), null, null);
-    }
-
-    /**
-     * Returns the nodelist of OCSPRef elements using XPath evaluation.
-     */
-    static NodeList getOcspRefElements(Element objectContainer) {
-        // the OCSP refs are located in the XML:
-        // asic:XAdESSignatures
-        // - ds:Signature
-        // -- ds:Object
-        // --- xades:QualifiyingProperties
-        // ---- xades:UnsignedProperties
-        // ----- xades:UnsignedSignatureProperties
-        // ------ xades:CompleteRevocationRefs
-        // ------- xades:OCSPRefs
-        // -------- xades:OCSPRef
-
-        StringBuilder xpath = new StringBuilder();
-        xpath.append(PREFIX_XADES);
-        xpath.append(QUALIFYING_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(COMPLETE_REVOCATION_REFS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(OCSP_REFS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(OCSP_REF_TAG);
-
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
     }
 
     /**

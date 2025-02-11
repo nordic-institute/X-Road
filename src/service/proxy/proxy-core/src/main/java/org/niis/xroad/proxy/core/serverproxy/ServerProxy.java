@@ -69,7 +69,6 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
     private final Server server = new Server();

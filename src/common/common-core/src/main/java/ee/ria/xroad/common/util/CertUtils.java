@@ -32,7 +32,6 @@ import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -47,7 +46,6 @@ import org.bouncycastle.asn1.x509.AccessDescription;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -96,7 +94,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
@@ -204,17 +201,6 @@ public final class CertUtils {
             }
         }
         return builder.isEmpty() ? null : builder.toString();
-    }
-
-    public static String getSubjectAlternativeNameFromCsr(byte[] certRequest) throws IOException {
-        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(certRequest);
-        return Optional.ofNullable(csr.getRequestedExtensions())
-                .map(extensions -> extensions.getExtension(Extension.subjectAlternativeName))
-                .map(sanExtension -> GeneralNames.getInstance(sanExtension.getExtnValue().getOctets()))
-                .map(GeneralNames::getNames)
-                .filter(ArrayUtils::isNotEmpty)
-                .map(names -> names[0].getName().toString())
-                .orElse(null);
     }
 
     /**

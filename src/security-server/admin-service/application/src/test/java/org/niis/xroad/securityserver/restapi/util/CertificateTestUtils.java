@@ -401,16 +401,6 @@ public final class CertificateTestUtils {
     }
 
     /**
-     * Subject = O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
-     * expires = Thu Apr 23 09:59:02 EEST 2020
-     *
-     * @return
-     */
-    public static X509Certificate getWidgitsCertificate() {
-        return getCertificate(getWidgitsCertificateBytes());
-    }
-
-    /**
      * Return hash for getWidgitsCertificateBytes
      *
      * @return

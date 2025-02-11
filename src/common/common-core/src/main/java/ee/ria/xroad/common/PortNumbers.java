@@ -57,9 +57,6 @@ public final class PortNumbers {
      */
     public static final int SIGNER_GRPC_PORT = 5560;
 
-    /** Port for Distributed Files Client. */
-    public static final int CONFIGURATION_CLIENT_PORT = 5665;
-
     /** Port for Configuration Admin Port. */
     public static final int CONFIGURATION_CLIENT_ADMIN_PORT = 5675;
 

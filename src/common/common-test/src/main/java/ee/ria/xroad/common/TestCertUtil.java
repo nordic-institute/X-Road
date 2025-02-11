@@ -309,17 +309,6 @@ public final class TestCertUtil {
     }
 
     /**
-     * Loads a JKS keystore with the specified filename.
-     *
-     * @param file     keystore filename
-     * @param password keystore password
-     * @return KeyStore
-     */
-    public static KeyStore loadJKSKeyStore(String file, String password) {
-        return loadKeyStore("jks", file, password);
-    }
-
-    /**
      * Loads a keystore with the given type from the specified filename.
      *
      * @param type     type of the keystore
