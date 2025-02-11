@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
@@ -56,6 +57,10 @@ public class SignerConfig {
 
         moduleManager.start();
         return moduleManager;
+    }
+
+    public void cleanup(@Disposes AbstractModuleManager moduleManager) {
+        moduleManager.destroy();
     }
 
     @ApplicationScoped
