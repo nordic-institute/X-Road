@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-public class ProxyTestSuiteV2 {
+public class ProxyTests {
 
     @BeforeAll
     static void beforeAll() throws Exception {
