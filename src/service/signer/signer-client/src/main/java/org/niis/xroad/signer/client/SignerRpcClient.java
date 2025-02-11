@@ -336,10 +336,10 @@ public class SignerRpcClient extends AbstractRpcClient {
         log.trace("Delete token '{}'", tokenId);
 
         tryToRun(
-                () -> client.execute(ctx -> ctx.getBlockingTokenService()
+                () -> blockingTokenService
                         .deleteToken(DeleteTokenReq.newBuilder()
                                 .setTokenId(tokenId)
-                                .build()))
+                                .build())
         );
     }
 
