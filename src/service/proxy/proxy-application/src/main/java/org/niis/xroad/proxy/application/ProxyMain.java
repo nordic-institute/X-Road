@@ -35,7 +35,6 @@ import org.springframework.context.support.GenericApplicationContext;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Main program for the proxy server.
@@ -84,7 +83,6 @@ public class ProxyMain {
                 .withCommonAndLocal()
                 .withAddOn()
                 .with(CONF_FILE_PROXY)
-                .with(CONF_FILE_SIGNER)
                 .withLocalOptional(CONF_FILE_NODE)
                 .load();
 

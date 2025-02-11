@@ -163,7 +163,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
         when(signerRpcClient.getAuthKey(any())).thenReturn(new AuthKeyInfo(
-                KEY_AUTH_ID, null, null, certificateInfo));
+                KEY_AUTH_ID, null, certificateInfo));
     }
 
     @Test

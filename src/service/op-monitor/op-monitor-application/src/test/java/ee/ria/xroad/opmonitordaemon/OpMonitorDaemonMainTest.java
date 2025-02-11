@@ -25,8 +25,6 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.opmonitordaemon;
-
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 

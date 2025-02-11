@@ -49,6 +49,7 @@ import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.quartz.JobExecutionContext;
+import org.quartz.impl.StdSchedulerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -88,12 +89,12 @@ abstract class AbstractMessageLogTest {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesDir);
 
-        jobManager = new JobManager();
+        jobManager = new JobManager(new StdSchedulerFactory().getScheduler());
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, certChainFactory, null);
+                null, null);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

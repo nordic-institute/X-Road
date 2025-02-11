@@ -26,10 +26,8 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
@@ -57,8 +55,7 @@ import org.springframework.context.annotation.Import;
         ProxyDiagnosticsConfig.class,
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
+        SpringGlobalConfConfig.class,
         ServerConfBeanConfig.class,
 })
 @Configuration
@@ -80,9 +77,8 @@ public class ProxyConfig {
                                     KeyConfProvider keyConfProvider,
                                     SigningCtxProvider signingCtxProvider,
                                     ServerConfProvider serverConfProvider,
-                                    CertChainFactory certChainFactory,
                                     CertHelper certHelper) {
-        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
+        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider,
                 certHelper);
     }
 
@@ -101,13 +97,8 @@ public class ProxyConfig {
     }
 
     @Bean
-    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
-        return new CertChainFactory(globalConfProvider);
-    }
-
-    @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
+    AuthTrustVerifier authTrustVerifier(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, CertHelper certHelper) {
+        return new AuthTrustVerifier(globalConfProvider, keyConfProvider, certHelper);
     }
 
     @Bean
@@ -127,8 +118,8 @@ public class ProxyConfig {
 
     @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
+                                    SignerRpcClient signerRpcClient) {
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
 }

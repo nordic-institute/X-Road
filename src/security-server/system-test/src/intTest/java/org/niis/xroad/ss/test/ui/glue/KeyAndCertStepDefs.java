@@ -119,7 +119,16 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
     @Step("Token: {} edit page is opened")
     public void tokenIsVisibleAndEdited(String tokenKey) {
-        keyAndCertPageObj.section(tokenKey).tokenEditButton().shouldBe(visible).click();
+        keyAndCertPageObj.section(tokenKey).tokenEditButton(tokenKey).shouldBe(visible).click();
+    }
+
+    @Step("Inactive token {} is successfully deleted")
+    public void tokenDeleted(String tokenKey) {
+        keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldBe(visible).click();
+        commonPageObj.dialog.btnCancel().click();
+
+        keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldBe(visible).click();
+        commonPageObj.dialog.btnSave().click();
     }
 
     @Step("Token Alert about token policy being enforced is present")

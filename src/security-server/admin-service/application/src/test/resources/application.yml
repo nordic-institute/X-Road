@@ -13,6 +13,9 @@ spring:
     defer-datasource-initialization: true
   profiles:
     active: test
+  cloud:
+    vault:
+      enabled: false
 
 logging:
   level:

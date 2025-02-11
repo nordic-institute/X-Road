@@ -50,10 +50,7 @@ ln -s /usr/share/xroad/jlib/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/sig
 ln -s /usr/share/xroad/jlib/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/signer-console.jar
 
 cp -p %{_sourcedir}/signer/xroad-signer.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/default-configuration/signer.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/devices.ini %{buildroot}/etc/xroad/
-cp -p %{srcdir}/default-configuration/signer-logback.xml %{buildroot}/etc/xroad/conf.d/
-cp -p %{srcdir}/default-configuration/signer-console-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../service/signer/signer-application/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../service/signer/signer-cli/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 
@@ -84,9 +81,6 @@ rm -rf %{buildroot}
 %config /etc/xroad/devices.ini
 %config /etc/xroad/services/signer.conf
 %config /etc/xroad/services/signer-console.conf
-%config /etc/xroad/conf.d/signer.ini
-%config /etc/xroad/conf.d/signer-logback.xml
-%config /etc/xroad/conf.d/signer-console-logback.xml
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-signer
 
 %defattr(-,root,root,-)

@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
@@ -95,7 +94,6 @@ public class MetadataClientRequestProcessorTest {
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
-    private CertChainFactory certChainFactory;
 
     /**
      * Init class-wide test instances
@@ -114,10 +112,9 @@ public class MetadataClientRequestProcessorTest {
         globalConfProvider = new TestSuiteGlobalConf();
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
-        certChainFactory = mock(CertChainFactory.class);
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, certChainFactory, null);
+                null, null);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -170,7 +167,7 @@ public class MetadataClientRequestProcessorTest {
 
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, certChainFactory, null);
+                null, null);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -218,7 +215,7 @@ public class MetadataClientRequestProcessorTest {
             }
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, certChainFactory, null);
+                null, null);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,

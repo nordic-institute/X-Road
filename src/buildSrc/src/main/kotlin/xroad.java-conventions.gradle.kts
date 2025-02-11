@@ -128,11 +128,13 @@ tasks.named("jacocoTestReport") {
 }
 
 archUnit {
+  setSkip(true) //TODO add rules once patterns have stabilized
+
   testScopePath = "/classes/java/main" // disabling default test scanning
 
   preConfiguredRules = listOf(
-    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
 // These rules are disabled in preparation for X-Road 8
+//    "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
 //            "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
 //            "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
   )

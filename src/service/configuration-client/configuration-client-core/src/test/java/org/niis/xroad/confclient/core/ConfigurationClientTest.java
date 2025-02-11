@@ -31,7 +31,11 @@ import ee.ria.xroad.common.TestCertUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
@@ -50,6 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
@@ -57,10 +62,14 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
  * Tests to verify configuration downloading procedure.
  */
 @Slf4j
+@ExtendWith(MockitoExtension.class)
 class ConfigurationClientTest {
 
     @TempDir
     File tempDir;
+
+    @Mock
+    ConfigurationClientProperties clientProperties;
 
     /**
      * Test to ensure a simple configuration will be downloaded.
@@ -165,11 +174,11 @@ class ConfigurationClientTest {
     private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
         ConfigurationAnchor configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
-        ConfigurationDownloader configurations = new ConfigurationDownloader(
+        ConfigurationDownloader configurations = new ConfigurationDownloader(new HttpUrlConnectionConfigurer(clientProperties),
                 tempDir.getAbsolutePath(), 2) {
             @Override
             ConfigurationParser getParser() {
-                return new ConfigurationParser() {
+                return new ConfigurationParser(mock(ConfigurationDownloader.class)) {
                     @Override
                     protected InputStream getInputStream() throws Exception {
                         String downloadURL = configuration.getLocation().getDownloadURL();
@@ -210,6 +219,6 @@ class ConfigurationClientTest {
             }
         };
 
-        return new ConfigurationClient(tempDir.getAbsolutePath(), configurations, configurationAnchor);
+        return new ConfigurationClient("", tempDir.getAbsolutePath(), configurations, configurationAnchor);
     }
 }

@@ -27,6 +27,9 @@ server:
         same-site: Strict
 
 xroad:
+  common:
+    global-conf:
+      refresh-rate-seconds: -1 # UI has its own refresh job.
   proxy-ui-api:
     rate-limit-requests-per-second: 20
     rate-limit-requests-per-minute: 600
@@ -64,18 +67,13 @@ script:
   generate-backup:
     path: /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
     valid-filename-pattern: "^(?!\\.)[\\w\\.\\-]+\\.gpg$"
-  internal-configuration-verifier:
-    path: /usr/share/xroad/scripts/verify_internal_configuration.sh
   external-configuration-verifier:
     path: /usr/share/xroad/scripts/verify_external_configuration.sh
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 
 url:
-  download-configuration-anchor: http://localhost:%s/execute
-  diagnostics-globalconf: http://localhost:%s/status
   diagnostics-timestamping-services: http://localhost:%s/timestampstatus
-  diagnostics-ocsp-responders: http://localhost:%s/status
   clear-configuration-cache: http://localhost:%s/clearconfcache
   diagnostics-addon-status: http://localhost:%s/addonstatus
   diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status

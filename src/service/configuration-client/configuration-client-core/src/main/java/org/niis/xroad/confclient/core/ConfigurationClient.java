@@ -26,7 +26,6 @@
 package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,23 +55,20 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
  */
 @Slf4j
 public class ConfigurationClient {
+    private final String configurationAnchorFilePath;
     private final String globalConfigurationDir;
 
     private final ConfigurationDownloader downloader;
 
     private ConfigurationSource configurationAnchor;
 
-    public ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
-        this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
+    public ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, ConfigurationDownloader downloader) {
+        this(configurationAnchorFilePath, globalConfigurationDir, downloader, null);
     }
 
-    public ConfigurationClient(String globalConfigurationDir) {
-        this.globalConfigurationDir = globalConfigurationDir;
-        downloader = new ConfigurationDownloader(globalConfigurationDir);
-    }
-
-    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader, ConfigurationSource configurationAnchor) {
+    ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, ConfigurationDownloader downloader,
+                        ConfigurationSource configurationAnchor) {
+        this.configurationAnchorFilePath = configurationAnchorFilePath;
         this.globalConfigurationDir = globalConfigurationDir;
         this.downloader = downloader;
         this.configurationAnchor = configurationAnchor;
@@ -106,17 +102,16 @@ public class ConfigurationClient {
     private void initConfigurationAnchor() throws Exception {
         log.trace("initConfigurationAnchor()");
 
-        String anchorFileName = SystemProperties.getConfigurationAnchorFile();
-        if (!Files.exists(Paths.get(anchorFileName))) {
-            log.warn("Cannot download configuration, anchor file {} does not exist", anchorFileName);
+        if (!Files.exists(Paths.get(configurationAnchorFilePath))) {
+            log.warn("Cannot download configuration, anchor file {} does not exist", configurationAnchorFilePath);
 
-            throw new FileNotFoundException(anchorFileName);
+            throw new FileNotFoundException(configurationAnchorFilePath);
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchor(anchorFileName);
+            configurationAnchor = new ConfigurationAnchor(configurationAnchorFilePath);
         } catch (Exception e) {
-            String message = String.format("Failed to load configuration anchor from file %s", anchorFileName);
+            String message = String.format("Failed to load configuration anchor from file %s", configurationAnchorFilePath);
 
             log.error(message, e);
 

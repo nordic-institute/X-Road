@@ -13,8 +13,15 @@ spring:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
         id:
           db_structure_naming_strategy: single
+  cloud:
+    vault:
+      enabled: false #TODO disabled until rpc tls is enabled
   profiles:
     include: nontest
+  config:
+    import:
+      - classpath:/xroad-common.yaml
+      - optional:file:/etc/xroad/conf.d/local.yaml
 
 # TLS
 # (can be overridden with external ssl.properties)

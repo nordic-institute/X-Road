@@ -27,14 +27,14 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
-import org.springframework.stereotype.Component;
 
 import static org.niis.xroad.signer.core.tokenmanager.TokenManager.findTokenIdForKeyId;
 
-@Component
+@ApplicationScoped
 public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
 
     @Override

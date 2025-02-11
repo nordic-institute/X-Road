@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
@@ -40,11 +41,12 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
-import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
-import org.niis.xroad.globalconf.status.CertificationServiceStatus;
-import org.niis.xroad.globalconf.status.OcspResponderStatus;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
+import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
+import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
+import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
@@ -76,6 +78,7 @@ import static java.util.Collections.emptyList;
  * The certificate status is queried from the server at a fixed interval.
  */
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
 public class OcspClientWorker {
     private static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
@@ -145,7 +148,7 @@ public class OcspClientWorker {
     }
 
     @SuppressWarnings("squid:S3776")
-    public void execute(OcspClientExecuteScheduler ocspClientExecuteScheduler) {
+    public void execute(OcspClientExecuteSchedulerImpl ocspClientExecuteScheduler) {
         log.trace("execute()");
         log.info("OCSP-response refresh cycle started");
 

@@ -56,7 +56,7 @@ val testJar by tasks.registering(Jar::class) {
 
 tasks.register<Test>("intTest") {
   useJUnitPlatform()
-  dependsOn(":service:signer:signer-application:shadowJar")
+  dependsOn(":service:signer:signer-application:quarkusBuild")
 
   description = "Runs integration tests."
   group = "verification"

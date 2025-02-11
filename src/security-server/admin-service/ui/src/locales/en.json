@@ -628,12 +628,17 @@
     "signDetailsTitle": "SIGN Key details",
     "signKeyCert": "SIGN Keys and Certificates",
     "status": "Status",
-    "token": "Token:",
-    "tokenDetails": "Token details",
-    "tokenId": "Token ID:",
-    "tokenInfo": "Token information",
-    "tokenPin": "Token PIN",
-    "tokenSaved": "Token saved",
+    "token": {
+      "label": "Token:",
+      "details": "Token details",
+      "id": "Token ID:",
+      "info": "Token information",
+      "pin": "Token PIN",
+      "saved": "Token saved",
+      "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
+      "deleteTitle": "Delete token?",
+      "deleteSuccess": "Token was deleted"
+    },
     "tokenStatus": {
       "active": "",
       "available": "",

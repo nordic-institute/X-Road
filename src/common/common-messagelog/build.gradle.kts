@@ -9,6 +9,9 @@ dependencies {
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:asic-core"))
 
+  api(project(":service:configuration-client:configuration-client-model")) //TODO this is due to diagnostic status, might be dropped
+  // if messagelog moves to proxy
+
   testImplementation(project(":common:common-test"))
   testImplementation(libs.bouncyCastle.bcpg)
   testImplementation(libs.mockito.core)

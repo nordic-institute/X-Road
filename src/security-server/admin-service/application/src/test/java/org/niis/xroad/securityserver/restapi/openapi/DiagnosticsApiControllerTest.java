@@ -27,10 +27,8 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -45,6 +43,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
+import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
+import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
+import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -55,10 +56,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -95,13 +98,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     DiagnosticsApiController diagnosticsApiController;
     @MockBean
     private DiagnosticReportService diagnosticReportService;
-
-    @BeforeClass
-    public static void setUp() {
-        // Make them point to Wiremock port
-        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_ADMIN_PORT, Integer.toString(PortNumbers.ADMIN_PORT));
-        System.setProperty(SystemProperties.SIGNER_ADMIN_PORT, Integer.toString(PortNumbers.ADMIN_PORT));
-    }
 
     @Test
     public void getAddOnDiagnostics() {
@@ -159,12 +155,11 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsSuccess() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
-        final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
-        stubForDiagnosticsRequest("/status",
-                "{\"returnCode\":" + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"prevUpdate\":\"" + prevUpdate
-                        + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsSuccess() throws Exception {
+        final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -172,16 +167,17 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.SUCCESS, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
-    public void getGlobalConfDiagnosticsWaiting() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
-        final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
-        stubForDiagnosticsRequest("/status", "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED + ","
-                + "\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsWaiting() throws Exception {
+        final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.HOURS);
+
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -189,17 +185,17 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.ERROR_CODE_UNINITIALIZED, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
-    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
-        final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
-        stubForDiagnosticsRequest("/status",
-                "{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_INTERNAL + ",\"prevUpdate\":\"" + prevUpdate
-                        + "\",\"nextUpdate\":\"" + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() throws Exception {
+        final Instant prevUpdate = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
+
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -207,17 +203,17 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.ERROR_CODE_INTERNAL, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
-    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() {
-        final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow().with(LocalTime.of(0, 0));
-        final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
-        stubForDiagnosticsRequest("/status",
-                "{\"returnCode\":" + ERROR_CODE_UNKNOWN + ",\"prevUpdate\":\"" + prevUpdate + "\",\"nextUpdate\":\""
-                        + nextUpdate + "\"}");
+    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() throws Exception {
+        final Instant prevUpdate = TimeUtils.offsetDateTimeNow().with(LocalTime.of(0, 0)).toInstant();
+        final Instant nextUpdate = prevUpdate.plus(1, ChronoUnit.DAYS);
+
+        when(confClientRpcClient.getStatus()).thenReturn(
+                createDiagnosticsStatus(ERROR_CODE_UNKNOWN, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -225,8 +221,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         GlobalConfDiagnostics globalConfDiagnostics = response.getBody();
         assertEquals(ConfigurationStatus.UNKNOWN, globalConfDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, globalConfDiagnostics.getStatusClass());
-        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt());
-        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt());
+        assertEquals(prevUpdate, globalConfDiagnostics.getPrevUpdateAt().toInstant());
+        assertEquals(nextUpdate, globalConfDiagnostics.getNextUpdateAt().toInstant());
     }
 
     @Test
@@ -317,13 +313,13 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getOcspResponderDiagnosticsSuccess() {
-        stubForDiagnosticsRequest("/status",
-                "{\"certificationServiceStatusMap\":{\"" + CA_NAME_1 + "\":{\"name\":\"" + CA_NAME_1
-                        + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"status\":"
-                        + DiagnosticsErrorCodes.RETURN_SUCCESS + ",\"url\":\""
-                        + OCSP_URL_1 + "\",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"nextUpdate\":\"" + NEXT_UPDATE
-                        + "\"}}}}}");
+    public void getOcspResponderDiagnosticsSuccess() throws Exception {
+        var certServiceStatus = new CertificationServiceStatus(CA_NAME_1);
+        certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
+                new OcspResponderStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OCSP_URL_1, PREVIOUS_UPDATE, NEXT_UPDATE));
+        var diagnosticsResponse = new CertificationServiceDiagnostics();
+        diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
@@ -334,20 +330,21 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         OcspResponderDiagnostics diagnostics = diagnosticsSet.stream().findFirst().orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
-        assertEquals(OcspStatus.SUCCESS, diagnostics.getOcspResponders().get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.OK, diagnostics.getOcspResponders().get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(OcspStatus.SUCCESS, diagnostics.getOcspResponders().getFirst().getStatusCode());
+        assertEquals(DiagnosticStatusClass.OK, diagnostics.getOcspResponders().getFirst().getStatusClass());
+        assertEquals(PREVIOUS_UPDATE, diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
+        assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().getFirst().getUrl());
     }
 
     @Test
     public void getOcspResponderDiagnosticsWaiting() {
-        stubForDiagnosticsRequest("/status",
-                "{\"certificationServiceStatusMap\":{\"" + CA_NAME_2 + "\":{\"name\":\"" + CA_NAME_2 + "\","
-                        + "\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"status\":"
-                        + DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED + ",\"url\":\"" + OCSP_URL_2
-                        + "\",\"nextUpdate\":\"" + NEXT_UPDATE + "\"}}}}}");
+        var certServiceStatus = new CertificationServiceStatus(CA_NAME_2);
+        certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
+                new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, OCSP_URL_2, null, NEXT_UPDATE));
+        var diagnosticsResponse = new CertificationServiceDiagnostics();
+        diagnosticsResponse.update(Map.of(CA_NAME_2, certServiceStatus));
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
@@ -359,20 +356,21 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
         assertEquals(OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED, diagnostics.getOcspResponders()
-                .get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.WAITING, diagnostics.getOcspResponders().get(0).getStatusClass());
-        assertNull(diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().get(0).getUrl());
+                .getFirst().getStatusCode());
+        assertEquals(DiagnosticStatusClass.WAITING, diagnostics.getOcspResponders().getFirst().getStatusClass());
+        assertNull(diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
+        assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().getFirst().getUrl());
     }
 
     @Test
     public void getOcspResponderDiagnosticsFailNextUpdateTomorrow() {
-        stubForDiagnosticsRequest("/status",
-                "{\"certificationServiceStatusMap\":{\"" + CA_NAME_1 + "\":{\"name\":\"" + CA_NAME_1
-                        + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_1 + "\":{\"status\":"
-                        + DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID + ",\"url\":\"" + OCSP_URL_1
-                        + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
+        var certServiceStatus = new CertificationServiceStatus(CA_NAME_1);
+        certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_1,
+                new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, OCSP_URL_1, null, NEXT_UPDATE_MIDNIGHT));
+        var diagnosticsResponse = new CertificationServiceDiagnostics();
+        diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
@@ -384,20 +382,21 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
         assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, diagnostics.getOcspResponders()
-                .get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.getOcspResponders().get(0).getStatusClass());
-        assertNull(diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().get(0).getUrl());
+                .getFirst().getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.getOcspResponders().getFirst().getStatusClass());
+        assertNull(diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
+        assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().getFirst().getUrl());
     }
 
     @Test
     public void getOcspResponderDiagnosticsFailPreviousUpdateYesterday() {
-        stubForDiagnosticsRequest("/status",
-                "{\"certificationServiceStatusMap\":{\"" + CA_NAME_2 + "\":{\"name\":\"" + CA_NAME_2
-                        + "\",\"ocspResponderStatusMap\":{\"" + OCSP_URL_2 + "\":{\"status\":" + ERROR_CODE_UNKNOWN
-                        + ",\"url\":\"" + OCSP_URL_2 + "\",\"prevUpdate\":\""
-                        + PREVIOUS_UPDATE_MIDNIGHT + "\",\"nextUpdate\":\"" + NEXT_UPDATE_MIDNIGHT + "\"}}}}}");
+        var certServiceStatus = new CertificationServiceStatus(CA_NAME_2);
+        certServiceStatus.getOcspResponderStatusMap().put(OCSP_URL_2,
+                new OcspResponderStatus(ERROR_CODE_UNKNOWN, OCSP_URL_2, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT));
+        var diagnosticsResponse = new CertificationServiceDiagnostics();
+        diagnosticsResponse.update(Map.of(CA_NAME_2, certServiceStatus));
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
@@ -411,11 +410,11 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .orElse(null);
         assertEquals(1, diagnostics.getOcspResponders().size());
         assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
-        assertEquals(OcspStatus.UNKNOWN, diagnostics.getOcspResponders().get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.getOcspResponders().get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().get(0).getUrl());
+        assertEquals(OcspStatus.UNKNOWN, diagnostics.getOcspResponders().getFirst().getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.getOcspResponders().getFirst().getStatusClass());
+        assertEquals(PREVIOUS_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().getFirst().getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().getFirst().getNextUpdateAt());
+        assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().getFirst().getUrl());
     }
 
     @Test
@@ -429,7 +428,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
-    public void downloadDiagnosticsReportWithoutRequiredAuthorities() throws IOException {
+    public void downloadDiagnosticsReportWithoutRequiredAuthorities() throws Exception {
         byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
         when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -440,7 +439,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_DIAGNOSTICS_REPORT"})
-    public void downloadDiagnosticsReport() throws IOException {
+    public void downloadDiagnosticsReport() throws Exception {
         byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
         when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -455,5 +454,15 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
         stubFor(get(urlEqualTo(requestPath))
                 .willReturn(aResponse().withBody(responseBody)));
+    }
+
+    private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(int statusCode,
+                                                                                      Instant prevUpdate,
+                                                                                      Instant nextUpdate) {
+        return org.niis.xroad.confclient.proto.DiagnosticsStatus.newBuilder()
+                .setReturnCode(statusCode)
+                .setPrevUpdate(prevUpdate.toEpochMilli())
+                .setNextUpdate(nextUpdate.toEpochMilli())
+                .build();
     }
 }

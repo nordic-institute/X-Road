@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
@@ -42,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -93,6 +95,9 @@ public class CsrfWebMvcTest {
 
     @SpyBean
     private ApiKeyAuthenticationManager apiKeyAuthenticationManager;
+
+    @MockBean
+    private ConfClientRpcClient confClientRpcClient;
 
     @Before
     // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)

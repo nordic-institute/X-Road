@@ -1,14 +1,48 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.shadow)
+  alias(libs.plugins.quarkus)
   id("maven-publish")
+}
+
+val buildType: String = project.findProperty("buildType")?.toString() ?: "native"
+
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      // Common properties
+      put("quarkus.package.output-directory", "libs")
+      put("quarkus.package.output-name", "configuration-client-1.0")
+
+      when (buildType) {
+        "native" -> {
+          put("quarkus.package.jar.type", "uber-jar")
+          put("quarkus.package.jar.add-runner-suffix", "false")
+        }
+
+        "containerized" -> {
+          put("quarkus.container-image.build", "true")
+          put("quarkus.container-image.group", "niis")
+          put("quarkus.container-image.name", "xroad-configuration-client")
+          put("quarkus.container-image.tag", "latest")
+        }
+
+        else -> error("Unsupported buildType: $buildType. Use 'native' or 'containerized'")
+      }
+    }
+  )
+}
+
+tasks {
+  named<JavaCompile>("compileJava") {
+    dependsOn("compileQuarkusGeneratedSourcesJava")
+  }
 }
 
 publishing {
   publications {
-    create<MavenPublication>("shadow") {
-      project.extensions.getByType<com.github.jengelman.gradle.plugins.shadow.ShadowExtension>()
-        .component(this)
+    create<MavenPublication>("quarkus") {
+      from(components["java"])
+
       groupId = "org.niis.xroad"
       artifactId = "configuration-client"
       version = buildString {
@@ -34,33 +68,21 @@ publishing {
 }
 
 dependencies {
-  implementation(platform(libs.springBoot.bom))
-
+  implementation(platform(libs.quarkus.bom))
+  implementation(project(":lib:bootstrap-quarkus"))
   implementation(project(":common:common-core"))
   implementation(project(":service:configuration-client:configuration-client-core"))
 
-  implementation("org.springframework:spring-context")
-  implementation(libs.logback.classic)
-  testImplementation(project(":common:common-test"))
-}
+  implementation(libs.bundles.quarkus.core)
+  implementation(libs.quarkus.quartz)
 
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.confclient.application.ConfClientDaemonMain")
-  }
-}
-
-tasks.shadowJar {
-  exclude("**/module-info.class")
-  archiveClassifier.set("")
-  archiveBaseName.set("configuration-client")
-  mergeServiceFiles()
+  testImplementation(libs.quarkus.junit5)
 }
 
 tasks.jar {
   enabled = false
 }
 
-tasks.build {
-  dependsOn(tasks.shadowJar)
+tasks.test {
+  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

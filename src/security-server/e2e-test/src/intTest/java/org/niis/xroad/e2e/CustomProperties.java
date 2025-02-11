@@ -43,5 +43,6 @@ public class CustomProperties {
     private String csImage;
     private String ssImage;
     private String caImage;
+    private String isopenapiImage;
     private String issoapImage;
 }

@@ -57,6 +57,7 @@ include("service:configuration-proxy:configuration-proxy-application")
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
+include("service:monitor:monitor-rpc-client")
 
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
@@ -71,6 +72,7 @@ include("service:signer:signer-api")
 include("service:signer:signer-core")
 include("service:signer:signer-cli")
 include("service:signer:signer-client")
+include("service:signer:signer-client-spring")
 
 include("service:message-log-archiver:message-log-archiver-application")
 
@@ -119,7 +121,6 @@ include("security-server:e2e-test")
 include("common:common-test")
 
 // Addons
-include("addons:hwtoken")
 include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")

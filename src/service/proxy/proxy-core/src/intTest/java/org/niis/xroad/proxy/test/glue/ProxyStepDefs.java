@@ -55,7 +55,7 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -209,16 +209,16 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     @SneakyThrows
     private KeyConfProvider createKeyConf() {
-        var globalConf = new TestGlobalConfImpl();
+        var globalConf = TestGlobalConfFactory.create();
         var serverConf = new ServerConfImpl(globalConf);
-        return CachingKeyConfImpl.newInstance(globalConf, serverConf, signerRpcClient);
+        return new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
     }
 
     @SneakyThrows
     private SigningCtxProvider createSigningCtxProvider() {
-        var globalConf = new TestGlobalConfImpl();
+        var globalConf = TestGlobalConfFactory.create();
         var serverConf = new ServerConfImpl(globalConf);
-        var keyconf = CachingKeyConfImpl.newInstance(globalConf, serverConf, signerRpcClient);
+        var keyconf = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
         return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient));
     }
@@ -240,7 +240,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private static void verify(final BatchSignResult batchSignResult)
             throws Exception {
-        var globalConfProvider = new TestGlobalConfImpl();
+        var globalConfProvider = TestGlobalConfFactory.create();
         SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, batchSignResult.signatureData());
         verifier.addParts(batchSignResult.messageParts());
 

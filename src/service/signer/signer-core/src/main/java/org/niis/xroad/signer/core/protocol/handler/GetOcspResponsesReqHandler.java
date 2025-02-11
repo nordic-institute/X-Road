@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
@@ -33,7 +34,6 @@ import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * Handles OCSP requests.
  */
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class GetOcspResponsesReqHandler
         extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {

@@ -55,6 +55,20 @@ public class SignerStepDefs extends BaseUiStepDefs {
     }
 
     @SneakyThrows
+    @Step("Predefined inactive signer token is uploaded")
+    public void addInactiveSignerToken() {
+        execInContainer("supervisorctl", "stop", "xroad-signer");
+        execInContainer("sed", "-i", "/<\\/device>/a\\\n"
+                + "<device>\\\n"
+                + "        <deviceType>softToken</deviceType>\\\n"
+                + "        <friendlyName>softToken-for-deletion</friendlyName>\\\n"
+                + "        <id>1</id>\\\n"
+                + "        <pinIndex>1</pinIndex>\\\n"
+                + "    </device>", "/etc/xroad/signer/keyconf.xml");
+        execInContainer("supervisorctl", "start", "xroad-signer");
+    }
+
+    @SneakyThrows
     private void execInContainer(String... args) {
         var execResult = containerProvider.getContainer().execInContainer(args);
         testReportService.attachJson(StringUtils.join(args, " "), execResult);

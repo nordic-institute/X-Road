@@ -7,13 +7,13 @@ common_modules:
     target: /usr/share/xroad/jlib
     service: xroad-configuration-service
   signer:
-    dir: signer
+    dir: service/signer/signer-application
     build: build
     lib: signer-1.0.jar
     target: /usr/share/xroad/jlib
     service: xroad-signer
   signer-console:
-    dir: signer-console
+    dir: service/signer/signer-cli
     build: build
     lib: signer-console-1.0.jar
     target: /usr/share/xroad/jlib

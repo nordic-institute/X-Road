@@ -25,17 +25,17 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for setting the OCSP responses for certificates.
  */
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class SetOcspResponsesReqHandler
         extends AbstractRpcHandler<SetOcspResponsesReq, Empty> {

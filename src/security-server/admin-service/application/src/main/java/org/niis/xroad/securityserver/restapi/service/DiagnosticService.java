@@ -29,18 +29,19 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
-import org.niis.xroad.globalconf.status.CertificationServiceStatus;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
-import org.niis.xroad.globalconf.status.OcspResponderStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
+import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
+import org.niis.xroad.signer.api.dto.OcspResponderStatus;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -63,7 +64,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.time.Instant.ofEpochMilli;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 /**
  * diagnostic service
@@ -75,30 +78,30 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_
 public class DiagnosticService {
     private static final int HTTP_CONNECT_TIMEOUT_MS = 1000;
     private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
+
+    private final ConfClientRpcClient confClientRpcClient;
+    private final SignerRpcClient signerRpcClient;
+
     private final RestTemplate restTemplate;
-    private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
-    private final String diagnosticsOcspRespondersUrl;
     private final String diagnosticsAddOnStatusUrl;
     private final String backupEncryptionStatusUrl;
     private final String messageLogEncryptionStatusUrl;
 
     @Autowired
     public DiagnosticService(
-            @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
+            ConfClientRpcClient confClientRpcClient,
+            SignerRpcClient signerRpcClient,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
             @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
+        this.confClientRpcClient = confClientRpcClient;
+        this.signerRpcClient = signerRpcClient;
 
-        this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
-                SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
-        this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
-                SystemProperties.getSignerAdminPort());
         this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
         this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
@@ -124,12 +127,14 @@ public class DiagnosticService {
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
-            ResponseEntity<DiagnosticsStatus> response = sendGetRequest(diagnosticsGlobalconfUrl,
-                    DiagnosticsStatus.class);
+            var status = confClientRpcClient.getStatus();
+            return new DiagnosticsStatus(status.getReturnCode(),
+                    status.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getPrevUpdate())) : null,
+                    status.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getNextUpdate())) : null,
+                    status.getDescription());
 
-            return response.getBody();
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 
@@ -164,17 +169,17 @@ public class DiagnosticService {
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
         try {
-            ResponseEntity<CertificationServiceDiagnostics> response = sendGetRequest(diagnosticsOcspRespondersUrl,
-                    CertificationServiceDiagnostics.class);
+            CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
 
-            return Objects.requireNonNull(response.getBody())
+            return Objects.requireNonNull(response)
                     .getCertificationServiceStatusMap()
                     .entrySet()
                     .stream()
                     .map(this::parseOcspResponderDiagnosticsStatus)
-                    .collect(Collectors.toList());
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+                    .toList();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e.getMessage(),
+                    new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 

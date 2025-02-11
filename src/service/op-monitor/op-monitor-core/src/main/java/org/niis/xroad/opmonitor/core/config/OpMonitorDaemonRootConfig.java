@@ -31,10 +31,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx;
 import org.niis.xroad.opmonitor.core.OpMonitorProperties;
 
-//@Import({
-//        GlobalConfBeanConfig.class,
-//        GlobalConfRefreshJobConfig.class
-//})
 public class OpMonitorDaemonRootConfig {
 
     @ApplicationScoped

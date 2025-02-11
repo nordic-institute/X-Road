@@ -34,12 +34,16 @@ Feature: 0100 - SS: Proxy
         </soapenv:Body>
     </soapenv:Envelope>
     """
-    Then response is sent of http status code 200 and body path "Envelope.Body" is not empty
+    Then response is received with http status code 200 and body path "Envelope.Body" is not empty
 
 
-  Scenario: REST request is successful transferred over X-Road proxy
+  Scenario: REST request is successfully transferred over X-Road proxy
     When REST request is sent to "ss1" proxy
     """json
     {"data": 1.0, "service": "random"}
     """
-    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world from POST service!"
+    Then response is received with http status code 200 and body path "message" is equal to "Hello, world from POST service!"
+
+  Scenario: REST request with valid API path permission is successfully transferred over X-Road proxy
+    When REST request targeted at "/api/members" API endpoint is sent to "ss1" proxy
+    Then response is received with http status code 200 and body path "[0].name" is equal to "MTÜ Nordic Institute for Interoperability Solutions"
