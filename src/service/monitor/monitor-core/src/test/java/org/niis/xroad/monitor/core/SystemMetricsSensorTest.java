@@ -44,7 +44,6 @@ import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.springframework.scheduling.TaskScheduler;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
@@ -73,11 +72,7 @@ class SystemMetricsSensorTest {
     private MetricRegistry metricRegistry = new MetricRegistry();
 
     static {
-        try {
-            PORT = TestPortUtils.findRandomPort();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PORT = TestPortUtils.findRandomPort();
 
         System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
         System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));

@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
-import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;

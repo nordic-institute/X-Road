@@ -65,8 +65,8 @@ public class TestContext {
             CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
 
-            CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
-                    certHelper);
+            CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
+                    keyConfProvider, signingCtxProvider, certChainFactory, certHelper);
 
             clientProxy = new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
             clientProxy.afterPropertiesSet();

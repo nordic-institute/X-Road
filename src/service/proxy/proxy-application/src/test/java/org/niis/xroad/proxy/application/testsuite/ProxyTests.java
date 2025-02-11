@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.niis.xroad.proxy.application.testsuite.ProxyTestSuiteHelper.PROXY_PORT;
 
 public class ProxyTests {
 
@@ -68,7 +69,7 @@ public class ProxyTests {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         ProxyTestSuiteHelper.startTestServices();
-        ProxyTestSuiteHelper.startDummyProxies();
+        ProxyTestSuiteHelper.startDummyProxy();
     }
 
     @AfterAll
@@ -79,7 +80,7 @@ public class ProxyTests {
     TestContext ctx;
 
     @TestFactory
-    Stream<DynamicTest> proxyTestSuite_normalTestCases() {
+    Stream<DynamicTest> proxyTestSuiteNormalTestCases() {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
                 .filter(testCase -> !(testCase instanceof UsingDummyServerProxy))
                 .filter(testCase -> !(testCase instanceof UsingAbortingServerProxy))
@@ -89,22 +90,23 @@ public class ProxyTests {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
         ctx = new TestContext();
 
         return createDynamicTests(testCasesToRun);
     }
 
     @TestFactory
-    Stream<DynamicTest> proxyTestSuite_normalTestCasesDummyProxy() {
+    Stream<DynamicTest> proxyTestSuiteNormalTestCasesDummyProxy() {
         // tests using dummy proxy
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
-                .filter(testCase -> !(testCase instanceof SslMessageTestCase))
-                .filter(testCase -> !(testCase instanceof IsolatedSslMessageTestCase))
                 .filter(testCase -> testCase instanceof UsingDummyServerProxy)
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
         ctx = new TestContext(false);
 
@@ -112,13 +114,15 @@ public class ProxyTests {
     }
 
     @TestFactory
-    Stream<DynamicTest> proxyTestSuite_abortingDummyProxy() {
+    Stream<DynamicTest> proxyTestSuiteAbortingDummyProxy() {
         // tests using dummy proxy
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
                 .filter(testCase -> testCase instanceof UsingAbortingServerProxy)
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
         ctx = new TestContext(false);
 
@@ -139,6 +143,8 @@ public class ProxyTests {
         };
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
 
         ctx = new TestContext(false);
 
@@ -146,7 +152,7 @@ public class ProxyTests {
     }
 
     @TestFactory
-    Stream<DynamicTest> proxyTestSuite_SslTestCases() {
+    Stream<DynamicTest> proxyTestSuiteSslTestCases() {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
                 .filter(testCase -> testCase instanceof SslMessageTestCase)
                 .filter(testCase -> !(testCase instanceof UsingDummyServerProxy))
@@ -154,19 +160,24 @@ public class ProxyTests {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+
         ctx = new TestContext();
         return createDynamicTests(testCasesToRun);
     }
 
     @TestFactory
-    Stream<DynamicTest> proxyTestSuite_IsolatedSslTestCases() {
+    Stream<DynamicTest> proxyTestSuiteIsolatedSslTestCases() {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
                 .filter(testCase -> testCase instanceof IsolatedSslMessageTestCase)
-                .filter(testCase -> !(testCase instanceof UsingDummyServerProxy))
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
+
         ctx = new TestContext();
         return createDynamicTests(testCasesToRun);
     }

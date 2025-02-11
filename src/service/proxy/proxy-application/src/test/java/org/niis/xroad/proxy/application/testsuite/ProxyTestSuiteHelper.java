@@ -29,17 +29,20 @@ package org.niis.xroad.proxy.application.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 
+@UtilityClass
 public class ProxyTestSuiteHelper {
     public static final int SERVICE_PORT = findRandomPort();
     public static final int SERVICE_SSL_PORT = findRandomPort();
+    public static final int PROXY_PORT = findRandomPort();
     public static final int DUMMY_SERVER_PROXY_PORT = findRandomPort();
 
     public static volatile MessageTestCase currentTestCase;
@@ -52,7 +55,7 @@ public class ProxyTestSuiteHelper {
         dummyService.start();
     }
 
-    public static void startDummyProxies() throws Exception {
+    public static void startDummyProxy() throws Exception {
         dummyServerProxy = new DummyServerProxy(DUMMY_SERVER_PROXY_PORT);
         dummyServerProxy.start();
     }
@@ -67,14 +70,12 @@ public class ProxyTestSuiteHelper {
 
         solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(findRandomPort()));
         solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(findRandomPort()));
-        final var proxyPort = valueOf(findRandomPort());
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, proxyPort);
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
         solver.setIfNotSet(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-        System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
     }

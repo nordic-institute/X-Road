@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
 import ee.ria.xroad.common.SystemProperties;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.SslMessageTestCase;
