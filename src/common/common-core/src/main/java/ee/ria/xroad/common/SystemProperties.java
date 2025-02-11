@@ -737,35 +737,35 @@ public final class SystemProperties {
      * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
      */
     public static String getConfPath() {
-        return System.getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
+        return getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
     }
 
     /**
      * @return path to the directory where application logs are stored, '/var/log/xroad/' by default.
      */
     public static String getLogPath() {
-        return System.getProperty(LOG_PATH, DefaultFilepaths.LOG_PATH);
+        return getProperty(LOG_PATH, DefaultFilepaths.LOG_PATH);
     }
 
     /**
      * @return log level of the 'ee.ria.xroad.*' packages, 'DEBUG' by default.
      */
     public static String getXROADLogLevel() {
-        return System.getProperty(XROAD_LOG_LEVEL, "DEBUG");
+        return getProperty(XROAD_LOG_LEVEL, "DEBUG");
     }
 
     /**
      * @return path to the proxy database configuration file, '/etc/xroad/db.properties' by default.
      */
     public static String getDatabasePropertiesFile() {
-        return System.getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
+        return getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
     /**
      * @return path to the proxy ssl configuration file, '/etc/xroad/ssl.properties' by default.
      */
     public static String getSslPropertiesFile() {
-        return System.getProperty(PROXY_UI_API_SSL_PROPERTIES,
+        return getProperty(PROXY_UI_API_SSL_PROPERTIES,
                 getConfPath() + DefaultFilepaths.PROXY_UI_API_SSL_PROPERTIES);
     }
 
@@ -775,7 +775,7 @@ public final class SystemProperties {
      * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
      */
     public static String getKeyManagementApiWhitelist() {
-        return System.getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
+        return getProperty(PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST,
                 DEFAULT_KEY_MANAGEMENT_API_WHITELIST);
     }
 
@@ -783,7 +783,7 @@ public final class SystemProperties {
      * @return whitelist for Proxy UI API's regular APIs, "0.0.0.0/0, ::/0" (allow all) by default
      */
     public static String getRegularApiWhitelist() {
-        return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
+        return getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
                 DEFAULT_REGULAR_API_WHITELIST);
     }
 
@@ -791,7 +791,7 @@ public final class SystemProperties {
      * @return whether automatic update of timestamp service URLs is enabled, 'false' by default.
      */
     public static boolean geUpdateTimestampServiceUrlsAutomatically() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
                 DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
     }
 
@@ -799,32 +799,32 @@ public final class SystemProperties {
      * @return whether generating CSR is allowed for with existing certificate, 'false' by default
      */
     public static boolean getAllowCsrForKeyWithCertificate() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
                 DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
     }
 
     public static int getAcmeAuthorizationWaitAttempts() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS, "5"));
+        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS, "5"));
     }
 
     public static long getAcmeAuthorizationWaitInterval() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5"));
+        return Long.parseLong(getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5"));
     }
 
     public static int getAcmeCertificateWaitAttempts() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS, "5"));
+        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS, "5"));
     }
 
     public static long getAcmeCertificateWaitInterval() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5"));
+        return Long.parseLong(getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5"));
     }
 
     public static long getAcmeAccountKeyPairExpirationInDays() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
+        return Long.parseLong(getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
     }
 
     public static boolean isAcmeChallengePortEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
+        return "true".equalsIgnoreCase(getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
                 DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED));
     }
 
@@ -833,21 +833,21 @@ public final class SystemProperties {
      * '/etc/xroad/globalconf/' by default.
      */
     public static String getConfigurationPath() {
-        return System.getProperty(CONFIGURATION_PATH, getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
+        return getProperty(CONFIGURATION_PATH, getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
     }
 
     /**
      * @return path to the signing key configuration file, '/etc/xroad/signer/keyconf.xml' by default.
      */
     public static String getKeyConfFile() {
-        return System.getProperty(KEY_CONFIGURATION_FILE, getConfPath() + DefaultFilepaths.KEY_CONFIGURATION_FILE);
+        return getProperty(KEY_CONFIGURATION_FILE, getConfPath() + DefaultFilepaths.KEY_CONFIGURATION_FILE);
     }
 
     /**
      * @return path to the signing key device configuration file, '/etc/xroad/signer/devices.ini' by default.
      */
     public static String getDeviceConfFile() {
-        return System.getProperty(DEVICE_CONFIGURATION_FILE,
+        return getProperty(DEVICE_CONFIGURATION_FILE,
                 getConfPath() + DefaultFilepaths.DEVICE_CONFIGURATION_FILE);
     }
 
@@ -855,7 +855,7 @@ public final class SystemProperties {
      * @return path to the client proxy jetty server configuration file, '/etc/xroad/jetty/clientproxy.xml' by default.
      */
     public static String getJettyClientProxyConfFile() {
-        return System.getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
+        return getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
                 getConfPath() + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
     }
 
@@ -863,7 +863,7 @@ public final class SystemProperties {
      * @return path to the server proxy jetty server configuration file, '/etc/xroad/jetty/serverproxy.xml' by default.
      */
     public static String getJettyServerProxyConfFile() {
-        return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
+        return getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
                 getConfPath() + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
     }
 
@@ -872,7 +872,7 @@ public final class SystemProperties {
      * '/etc/xroad/jetty/ocsp-responder.xml' by default.
      */
     public static String getJettyOcspResponderConfFile() {
-        return System.getProperty(JETTY_OCSP_RESPONDER_CONFIGURATION_FILE,
+        return getProperty(JETTY_OCSP_RESPONDER_CONFIGURATION_FILE,
                 getConfPath() + DefaultFilepaths.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE);
     }
 
@@ -880,7 +880,7 @@ public final class SystemProperties {
      * @return WSDL validator command string. Defaults to null.
      */
     public static String getWsdlValidatorCommand() {
-        return System.getProperty(WSDL_VALIDATOR_COMMAND, null);
+        return getProperty(WSDL_VALIDATOR_COMMAND, (String) null);
     }
 
     /**
@@ -888,7 +888,7 @@ public final class SystemProperties {
      * SHA-512 by default.
      */
     public static DigestAlgorithm getAuthCertRegSignatureDigestAlgorithmId() {
-        return Optional.ofNullable(System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID))
+        return Optional.ofNullable(getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }
@@ -897,21 +897,21 @@ public final class SystemProperties {
      * @return Security Server url, used to send management requests from Proxy UI. Defaults to 'https://localhost:8443'.
      */
     public static String getProxyUiSecurityServerUrl() {
-        return System.getProperty(PROXYUI_SECURITY_SERVER_URL, "https://localhost:" + getClientProxyHttpsPort());
+        return getProperty(PROXYUI_SECURITY_SERVER_URL, "https://localhost:" + getClientProxyHttpsPort());
     }
 
     /**
      * @return path to the management request sender client keystore. Uses PKCS#12 format.
      */
     public static String getManagementRequestSenderClientKeystore() {
-        return System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE);
+        return getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE);
     }
 
     /**
      * @return management request sender client keystore password.
      */
     public static char[] getManagementRequestSenderClientKeystorePassword() {
-        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,
+        return Optional.ofNullable(getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,
                         System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV)))
                 .map(String::toCharArray)
                 .orElse(null);
@@ -921,14 +921,14 @@ public final class SystemProperties {
      * @return path to the management request sender client truststore. Uses PKCS#12 format.
      */
     public static String getManagementRequestSenderClientTruststore() {
-        return System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE);
+        return getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE);
     }
 
     /**
      * @return management request sender client truststore password.
      */
     public static char[] getManagementRequestSenderClientTruststorePassword() {
-        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD,
+        return Optional.ofNullable(getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD,
                         System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV)))
                 .map(String::toCharArray)
                 .orElse(null);
@@ -938,42 +938,42 @@ public final class SystemProperties {
      * @return path to the directory where query logs are archived, '/var/lib/xroad/' by default.
      */
     public static String getLogReaderPath() {
-        return System.getProperty(LOG_READER_PATH, DefaultFilepaths.SECURE_LOG_PATH);
+        return getProperty(LOG_READER_PATH, DefaultFilepaths.SECURE_LOG_PATH);
     }
 
     /**
      * @return path to the directory where temporary files are stored, '/var/tmp/xroad/' by default.
      */
     public static String getTempFilesPath() {
-        return System.getProperty(TEMP_FILES_PATH, DefaultFilepaths.TEMP_FILES_PATH);
+        return getProperty(TEMP_FILES_PATH, DefaultFilepaths.TEMP_FILES_PATH);
     }
 
     /**
      * @return path to the directory where OCSP responses are stored, '/var/cache/xroad/' by default.
      */
     public static String getOcspCachePath() {
-        return System.getProperty(OCSP_CACHE_PATH, DefaultFilepaths.OCSP_CACHE_PATH);
+        return getProperty(OCSP_CACHE_PATH, DefaultFilepaths.OCSP_CACHE_PATH);
     }
 
     /**
      * @return path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default.
      */
     public static String getConfBackupPath() {
-        return System.getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
+        return getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
     }
 
     /**
      * @return the host address on which the client proxy is listening, '0.0.0.0' by default.
      */
     public static String getConnectorHost() {
-        return System.getProperty(PROXY_CONNECTOR_HOST, DEFAULT_CONNECTOR_HOST);
+        return getProperty(PROXY_CONNECTOR_HOST, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
      * @return the HTTP port on which the client proxy is listening, '8080' by default.
      */
     public static int getClientProxyHttpPort() {
-        return Integer.parseInt(System.getProperty(PROXY_CLIENT_HTTP_PORT,
+        return Integer.parseInt(getProperty(PROXY_CLIENT_HTTP_PORT,
                 Integer.toString(PortNumbers.CLIENT_HTTP_PORT)));
     }
 
@@ -981,7 +981,7 @@ public final class SystemProperties {
      * @return the HTTPS port on which the client proxy is listening, '8443' by default.
      */
     public static int getClientProxyHttpsPort() {
-        return Integer.parseInt(System.getProperty(PROXY_CLIENT_HTTPS_PORT,
+        return Integer.parseInt(getProperty(PROXY_CLIENT_HTTPS_PORT,
                 Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
     }
 
@@ -989,35 +989,35 @@ public final class SystemProperties {
      * @return the client proxy connect timeout in milliseconds, '30000' by default.
      */
     public static int getClientProxyTimeout() {
-        return Integer.parseInt(System.getProperty(PROXY_CLIENT_TIMEOUT, DEFAULT_CLIENTPROXY_TIMEOUT));
+        return Integer.parseInt(getProperty(PROXY_CLIENT_TIMEOUT, DEFAULT_CLIENTPROXY_TIMEOUT));
     }
 
     /**
      * @return the HTTP port on which the server proxy listens for messages, '5500' by default.
      */
     public static int getServerProxyPort() {
-        return Integer.parseInt(System.getProperty(PROXY_SERVER_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
+        return Integer.parseInt(getProperty(PROXY_SERVER_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
     }
 
     /**
      * @return the HTTP port on which the server proxy listens for messages, '5500' by default.
      */
     public static int getServerProxyListenPort() {
-        return Integer.parseInt(System.getProperty(PROXY_SERVER_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
+        return Integer.parseInt(getProperty(PROXY_SERVER_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
     }
 
     /**
      * @return the host address on which the server proxy listens for messages, '0.0.0.0' by default.
      */
     public static String getServerProxyListenAddress() {
-        return System.getProperty(PROXY_SERVER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
+        return getProperty(PROXY_SERVER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
      * @return the signer connection timeout in milliseconds, '60000' by default.
      */
     public static int getSignerClientTimeout() {
-        return Integer.parseInt(System.getProperty(SIGNER_CLIENT_TIMEOUT, DEFAULT_SIGNER_CLIENT_TIMEOUT));
+        return Integer.parseInt(getProperty(SIGNER_CLIENT_TIMEOUT, DEFAULT_SIGNER_CLIENT_TIMEOUT));
     }
 
     /**
@@ -1031,7 +1031,7 @@ public final class SystemProperties {
      * @return authentication and signing key named curve when EC is used.
      */
     public static String getSignerKeyNamedCurve() {
-        return System.getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
+        return getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
     }
 
     /**
@@ -1040,7 +1040,7 @@ public final class SystemProperties {
      * @return path
      */
     public static String getSignerPasswordStoreIPCKeyPathname() {
-        return System.getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
+        return getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
     }
 
     /**
@@ -1049,7 +1049,7 @@ public final class SystemProperties {
      * @return algorithm
      */
     public static DigestAlgorithm getSignerCsrSignatureDigestAlgorithm() {
-        return Optional.ofNullable(System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
+        return Optional.ofNullable(getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA256);
     }
@@ -1058,7 +1058,7 @@ public final class SystemProperties {
      * @return software token keystore PIN file algorithm, RSA by default
      */
     public static KeyAlgorithm getSofTokenPinKeystoreAlgorithm() {
-        return Optional.ofNullable(System.getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
+        return Optional.ofNullable(getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
                 .map(KeyAlgorithm::valueOf)
                 .orElse(DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
     }
@@ -1067,7 +1067,7 @@ public final class SystemProperties {
      * @return software token keystore PIN file algorithm, RSA by default
      */
     public static DigestAlgorithm getSelfSignedCertDigestAlgorithm() {
-        return Optional.ofNullable(System.getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
+        return Optional.ofNullable(getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }
@@ -1076,21 +1076,21 @@ public final class SystemProperties {
      * @return the ACME certificate renewal toggle
      */
     public static boolean isAcmeCertificateRenewalActive() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_ACTIVE, "true"));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ACME_RENEWAL_ACTIVE, "true"));
     }
 
     /**
      * @return the ACME certificate renewal retry delay in seconds
      */
     public static int getAcmeCertificateRenewalRetryDelay() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY, "60"));
+        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY, "60"));
     }
 
     /**
      * @return the ACME certificate renewal job interval in seconds
      */
     public static int getAcmeCertificateRenewalInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "3600"));
+        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "3600"));
     }
 
     /**
@@ -1098,35 +1098,35 @@ public final class SystemProperties {
      * Used when it's not possible to receive the ACME renewal information from the ACME server.
      */
     public static int getAcmeRenewalTimeBeforeExpirationDate() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
     }
 
     /**
      * @return when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
      */
     public static int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+        return Integer.parseInt(getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
     }
 
     /**
      * @return true if ACME automatic renewal job success notifications are enabled
      */
     public static boolean getAcmeRenewalSuccessNotificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**
      * @return true if ACME automatic renewal job failure notifications are enabled
      */
     public static boolean getAcmeRenewalFailureNotificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**
      * @return true if authentication certificate registered notifications are enabled
      */
     public static boolean getAuthCertRegisteredNotificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**
@@ -1134,47 +1134,47 @@ public final class SystemProperties {
      * No default value here, notifications' resource bundle already has defaults in notifications.properties
      */
     public static String getMailNotificationLocale() {
-        return System.getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
+        return getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
     }
 
     /**
      * @return the gRPC port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
-        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
+        return Integer.parseInt(getProperty(CONFIGURATION_CLIENT_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
     }
 
     public static String getConfigurationClientAllowedFederations() {
-        return System.getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
+        return getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
     }
 
     /**
      * @return the HTTP port on which the server proxy OCSP responder is listening, '5577' by default.
      */
     public static int getOcspResponderPort() {
-        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_PORT, Integer.toString(PortNumbers.PROXY_OCSP_PORT)));
+        return Integer.parseInt(getProperty(OCSP_RESPONDER_PORT, Integer.toString(PortNumbers.PROXY_OCSP_PORT)));
     }
 
     /**
      * @return the host address on which the server proxy OCSP responder is listening, '0.0.0.0' by default.
      */
     public static String getOcspResponderListenAddress() {
-        return System.getProperty(OCSP_RESPONDER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
+        return getProperty(OCSP_RESPONDER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
      * @return the OCSP Responder Client connect timeout in milliseconds, '20000' by default.
      */
     public static int getOcspResponderClientConnectTimeout() {
-        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT, "20000"));
+        return Integer.parseInt(getProperty(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT, "20000"));
     }
 
     /**
      * @return the OCSP Responder Client read timeout in milliseconds, '30000' by default.
      */
     public static int getOcspResponderClientReadTimeout() {
-        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT,
+        return Integer.parseInt(getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT,
                 DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT));
     }
 
@@ -1182,14 +1182,14 @@ public final class SystemProperties {
      * @return whether SSL should be used between client and server proxies, 'true' by default.
      */
     public static boolean isSslEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_SSL_SUPPORT, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_SSL_SUPPORT, TRUE));
     }
 
     /**
      * @return path to the central server database configuration file, '/etc/xroad/db.properties' by default.
      */
     public static String getCenterDatabasePropertiesFile() {
-        return System.getProperty(CENTER_DATABASE_PROPERTIES,
+        return getProperty(CENTER_DATABASE_PROPERTIES,
                 getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
@@ -1197,7 +1197,7 @@ public final class SystemProperties {
      * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
-        return Boolean.parseBoolean(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
+        return Boolean.parseBoolean(getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
                 DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
     }
 
@@ -1206,7 +1206,7 @@ public final class SystemProperties {
      * that will be distributed to security servers inside the instance, internalconf' by default.
      */
     public static String getCenterInternalDirectory() {
-        return System.getProperty(CENTER_INTERNAL_DIRECTORY, "internalconf");
+        return getProperty(CENTER_INTERNAL_DIRECTORY, "internalconf");
     }
 
     /**
@@ -1214,7 +1214,7 @@ public final class SystemProperties {
      * that will be distributed to security servers inside the federation, 'externalconf' by default.
      */
     public static String getCenterExternalDirectory() {
-        return System.getProperty(CENTER_EXTERNAL_DIRECTORY, "externalconf");
+        return getProperty(CENTER_EXTERNAL_DIRECTORY, "externalconf");
     }
 
     /**
@@ -1222,14 +1222,14 @@ public final class SystemProperties {
      * and shared parameter files are created for distribution, '/var/lib/xroad/public' by default.
      */
     public static String getCenterGeneratedConfDir() {
-        return System.getProperty(CENTER_GENERATED_CONF_DIR, DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
+        return getProperty(CENTER_GENERATED_CONF_DIR, DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
     }
 
     /**
      * @return whether automatic approval of auth cert registration requests is enabled, 'false' by default.
      */
     public static boolean getCenterAutoApproveAuthCertRegRequests() {
-        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS,
+        return Boolean.parseBoolean(getProperty(CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS,
                 DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS));
     }
 
@@ -1237,7 +1237,7 @@ public final class SystemProperties {
      * @return whether automatic approval of client registration requests is enabled, 'false' by default.
      */
     public static boolean getCenterAutoApproveClientRegRequests() {
-        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS,
+        return Boolean.parseBoolean(getProperty(CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS,
                 DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS));
     }
 
@@ -1245,7 +1245,7 @@ public final class SystemProperties {
      * @return whether automatic approval of owner change requests is enabled, 'false' by default.
      */
     public static boolean getCenterAutoApproveOwnerChangeRequests() {
-        return Boolean.parseBoolean(System.getProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS,
+        return Boolean.parseBoolean(getProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS,
                 DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
     }
 
@@ -1254,7 +1254,7 @@ public final class SystemProperties {
      * '/etc/xroad/confproxy' by default.
      */
     public static String getConfigurationProxyConfPath() {
-        return System.getProperty(CONFIGURATION_PROXY_CONF_PATH, getConfPath() + "confproxy/");
+        return getProperty(CONFIGURATION_PROXY_CONF_PATH, getConfPath() + "confproxy/");
     }
 
     /**
@@ -1262,7 +1262,7 @@ public final class SystemProperties {
      * '/usr/share/xroad/scripts/download_instance_configuration.sh' by default.
      */
     public static String getConfigurationProxyDownloadScript() {
-        return System.getProperty(CONFIGURATION_PROXY_DOWNLOAD_SCRIPT,
+        return getProperty(CONFIGURATION_PROXY_DOWNLOAD_SCRIPT,
                 "/usr/share/xroad/scripts/download_instance_configuration.sh");
     }
 
@@ -1271,7 +1271,7 @@ public final class SystemProperties {
      * configuration files are generated for distribution, '/var/lib/xroad/public' by default.
      */
     public static String getConfigurationProxyGeneratedConfPath() {
-        return System.getProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH,
+        return getProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH,
                 DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
     }
 
@@ -1280,7 +1280,7 @@ public final class SystemProperties {
      * signing generated global configuration directories, 'SHA-512' by default.
      */
     public static DigestAlgorithm getConfigurationProxySignatureDigestAlgorithmId() {
-        return Optional.ofNullable(System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID))
+        return Optional.ofNullable(getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }
@@ -1291,7 +1291,7 @@ public final class SystemProperties {
      * 'http://www.w3.org/2001/04/xmlenc#sha512' by default.
      */
     public static DigestAlgorithm getConfigurationProxyHashAlgorithmUri() {
-        return Optional.ofNullable(System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI))
+        return Optional.ofNullable(getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI))
                 .map(DigestAlgorithm::ofUri)
                 .orElse(DigestAlgorithm.SHA512);
     }
@@ -1301,7 +1301,7 @@ public final class SystemProperties {
      * global configuration download requests, '0.0.0.0' by default.
      */
     public static String getConfigurationProxyAddress() {
-        return System.getProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
+        return getProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
@@ -1315,7 +1315,7 @@ public final class SystemProperties {
      * @return environmental monitoring port, '2552' by default.
      */
     public static int getEnvMonitorPort() {
-        return Integer.parseInt(System.getProperty(ENV_MONITOR_PORT, "2552"));
+        return Integer.parseInt(getProperty(ENV_MONITOR_PORT, "2552"));
     }
 
     /**
@@ -1323,7 +1323,7 @@ public final class SystemProperties {
      * '/proc/net/dev' by default.
      */
     public static String getNetStatsFile() {
-        return System.getProperty(NET_STATS_FILE, "/proc/net/dev");
+        return getProperty(NET_STATS_FILE, "/proc/net/dev");
     }
 
     /**
@@ -1335,7 +1335,7 @@ public final class SystemProperties {
      * 'true' by default.
      */
     public static boolean shouldVerifyClientCert() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_VERIFY_CLIENT_CERT, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_VERIFY_CLIENT_CERT, TRUE));
     }
 
     /**
@@ -1345,7 +1345,7 @@ public final class SystemProperties {
      * 'false' by default.
      */
     public static boolean shouldLogClientCert() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_LOG_CLIENT_CERT, FALSE));
+        return Boolean.parseBoolean(getProperty(PROXY_LOG_CLIENT_CERT, FALSE));
     }
 
     /**
@@ -1353,7 +1353,7 @@ public final class SystemProperties {
      * Anti-Dos will let through to be processed, '5000' by default.
      */
     public static int getAntiDosMaxParallelConnections() {
-        return Integer.parseInt(System.getProperty(ANTIDOS_MAX_PARALLEL_CONNECTIONS, "5000"));
+        return Integer.parseInt(getProperty(ANTIDOS_MAX_PARALLEL_CONNECTIONS, "5000"));
     }
 
     /**
@@ -1362,7 +1362,7 @@ public final class SystemProperties {
      * '1.1' by default.
      */
     public static double getAntiDosMaxCpuLoad() {
-        return Double.parseDouble(System.getProperty(ANTIDOS_MAX_CPU_LOAD, "1.1"));
+        return Double.parseDouble(getProperty(ANTIDOS_MAX_CPU_LOAD, "1.1"));
     }
 
     /**
@@ -1370,7 +1370,7 @@ public final class SystemProperties {
      * start rejecting incoming connections, '100' by default.
      */
     public static int getAntiDosMinFreeFileHandles() {
-        return Integer.parseInt(System.getProperty(ANTIDOS_MIN_FREE_FILEHANDLES, "100"));
+        return Integer.parseInt(getProperty(ANTIDOS_MIN_FREE_FILEHANDLES, "100"));
     }
 
     /**
@@ -1379,14 +1379,14 @@ public final class SystemProperties {
      * '1.1' by default.
      */
     public static double getAntiDosMaxHeapUsage() {
-        return Double.parseDouble(System.getProperty(ANTIDOS_MAX_HEAP_USAGE, "1.1"));
+        return Double.parseDouble(getProperty(ANTIDOS_MAX_HEAP_USAGE, "1.1"));
     }
 
     /**
      * @return whether Anti-Dos should be used, 'true' by default.
      */
     public static boolean isAntiDosEnabled() {
-        return Boolean.parseBoolean(System.getProperty(ANTIDOS_ENABLED, TRUE));
+        return Boolean.parseBoolean(getProperty(ANTIDOS_ENABLED, TRUE));
     }
 
     /**
@@ -1395,7 +1395,7 @@ public final class SystemProperties {
      * @return protocols.
      */
     public static String[] getProxyClientTLSProtocols() {
-        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").trim().split(COMMA_SPLIT);
+        return getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2").trim().split(COMMA_SPLIT);
     }
 
     private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
@@ -1413,7 +1413,7 @@ public final class SystemProperties {
      * @return cipher suites.
      */
     public static String[] getProxyClientTLSCipherSuites() {
-        return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
+        return getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
     private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
@@ -1426,7 +1426,7 @@ public final class SystemProperties {
      * @return cipher suites.
      */
     public static String[] getXroadTLSCipherSuites() {
-        return System.getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
+        return getProperty(PROXY_XROAD_TLS_CIPHERS, DEFAULT_XROAD_SSL_CIPHER_SUITES).trim().split(COMMA_SPLIT);
     }
 
     /**
@@ -1435,7 +1435,7 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.parseBoolean(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
+        return Boolean.parseBoolean(getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY,
                 DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY));
     }
 
@@ -1443,7 +1443,7 @@ public final class SystemProperties {
      * @return the update interval in seconds at which server conf in cached, '60' by default
      */
     public static int getServerConfCachePeriod() {
-        return Integer.parseInt(System.getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
+        return Integer.parseInt(getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
     }
 
     /**
@@ -1452,7 +1452,7 @@ public final class SystemProperties {
      * Default is 60 s.
      */
     public static int getOcspVerifierCachePeriod() {
-        int period = Integer.parseInt(System.getProperty(OCSP_VERIFIER_CACHE_PERIOD, "60"));
+        int period = Integer.parseInt(getProperty(OCSP_VERIFIER_CACHE_PERIOD, "60"));
         return period < OCSP_VERIFIER_CACHE_PERIOD_MAX ? period : OCSP_VERIFIER_CACHE_PERIOD_MAX;
     }
 
@@ -1460,7 +1460,7 @@ public final class SystemProperties {
      * @return serverproxy initial idle time (used until the request processing starts)
      */
     public static long getServerProxyConnectorInitialIdleTime() {
-        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME,
+        return Integer.parseInt(getProperty(SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME,
                 DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
     }
 
@@ -1468,7 +1468,7 @@ public final class SystemProperties {
      * @return the connection maximum idle time that should be set for server proxy connector
      */
     public static int getServerProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
+        return Integer.parseInt(getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
                 DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
     }
 
@@ -1478,21 +1478,21 @@ public final class SystemProperties {
      */
     @SuppressWarnings("checkstyle:magicnumber")
     public static int getServerProxyConnectorSoLinger() {
-        final int linger = Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
+        final int linger = Integer.parseInt(getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
                 DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
         if (linger >= 0) return linger * 1000;
         return -1;
     }
 
     public static String getServerProxyMinSupportedClientVersion() {
-        return System.getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
+        return getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
     }
 
     /**
      * @return the connection maximum idle time that should be set for client proxy apache HttpClient
      */
     public static int getClientProxyHttpClientTimeout() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
+        return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT));
 
     }
@@ -1501,7 +1501,7 @@ public final class SystemProperties {
      * @return the so_linger value in seconds that should be set for client proxy apache HttpClient, -1 by default
      */
     public static int getClientProxyHttpClientSoLinger() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_HTTPCLIENT_SO_LINGER,
+        return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_SO_LINGER,
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER));
     }
 
@@ -1509,7 +1509,7 @@ public final class SystemProperties {
      * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
      */
     public static int getClientProxyConnectorSoLinger() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
+        return Integer.parseInt(getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
                 DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER));
     }
 
@@ -1517,7 +1517,7 @@ public final class SystemProperties {
      * @return clientproxy initial idle time (used until the request processing starts)
      */
     public static long getClientProxyConnectorInitialIdleTime() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME,
+        return Integer.parseInt(getProperty(CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME,
                 DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
     }
 
@@ -1525,7 +1525,7 @@ public final class SystemProperties {
      * @return the connection maximum idle time that should be set for client proxy connector
      */
     public static int getClientProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME,
+        return Integer.parseInt(getProperty(CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME,
                 DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME));
 
     }
@@ -1534,7 +1534,7 @@ public final class SystemProperties {
      * @return true if the idle connection monitor thread should be used for client proxy
      */
     public static boolean isClientUseIdleConnectionMonitor() {
-        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR,
+        return Boolean.parseBoolean(getProperty(CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR,
                 DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR));
     }
 
@@ -1542,7 +1542,7 @@ public final class SystemProperties {
      * @return the interval at which pooled idle connections should be cleaned up by the connection monitor
      */
     public static int getClientProxyIdleConnectionMonitorInterval() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL,
+        return Integer.parseInt(getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL,
                 DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL));
     }
 
@@ -1550,27 +1550,27 @@ public final class SystemProperties {
      * @return the idle time after which pooled connections should be discarded
      */
     public static int getClientProxyIdleConnectionMonitorIdleTime() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME,
+        return Integer.parseInt(getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME,
                 DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME));
     }
 
     public static boolean isEnableClientProxyPooledConnectionReuse() {
-        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
+        return Boolean.parseBoolean(getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
     }
 
     public static boolean isServerProxySupportClientsPooledConnections() {
-        return Boolean.parseBoolean(System.getProperty(SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS,
+        return Boolean.parseBoolean(getProperty(SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS,
                 DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS));
     }
 
     public static int getClientProxyPoolTotalMaxConnections() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS,
+        return Integer.parseInt(getProperty(CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS));
     }
 
     public static int getClientProxyPoolDefaultMaxConnectionsPerRoute() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE,
+        return Integer.parseInt(getProperty(CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE,
                 DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE));
     }
 
@@ -1578,7 +1578,7 @@ public final class SystemProperties {
      * @return true if SSL sockets should close the underlying socket layer when the SSL socket is closed
      */
     public static boolean isUseSslSocketAutoClose() {
-        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE,
+        return Boolean.parseBoolean(getProperty(CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE,
                 DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE));
     }
 
@@ -1586,7 +1586,7 @@ public final class SystemProperties {
      * @return period in seconds the fastest provider uri should be cached, or 0 to disable
      */
     public static int getClientProxyFastestConnectingSslUriCachePeriod() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
+        return Integer.parseInt(getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
                 DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
     }
 
@@ -1596,7 +1596,7 @@ public final class SystemProperties {
      * Non-positive value disables connection validation. '2000' by default.
      */
     public static int getClientProxyValidatePoolConnectionsAfterInactivityMs() {
-        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS,
+        return Integer.parseInt(getProperty(CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS,
                 DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS));
     }
 
@@ -1604,7 +1604,7 @@ public final class SystemProperties {
      * @return the {@link #NODE_TYPE} in a cluster for this Server.
      */
     public static NodeType getServerNodeType() {
-        return NodeType.fromStringIgnoreCaseOrReturnDefault(System.getProperty(NODE_TYPE));
+        return NodeType.fromStringIgnoreCaseOrReturnDefault(getProperty(NODE_TYPE));
     }
 
     public static boolean isHealthCheckEnabled() {
@@ -1612,11 +1612,11 @@ public final class SystemProperties {
     }
 
     public static String getHealthCheckInterface() {
-        return System.getProperty(PROXY_HEALTH_CHECK_INTERFACE, DEFAULT_PROXY_HEALTH_CHECK_INTERFACE);
+        return getProperty(PROXY_HEALTH_CHECK_INTERFACE, DEFAULT_PROXY_HEALTH_CHECK_INTERFACE);
     }
 
     public static int getHealthCheckPort() {
-        return Integer.parseInt(System.getProperty(PROXY_HEALTH_CHECK_PORT,
+        return Integer.parseInt(getProperty(PROXY_HEALTH_CHECK_PORT,
                 DEFAULT_PROXY_HEALTH_CHECK_PORT));
     }
 
@@ -1625,7 +1625,7 @@ public final class SystemProperties {
      */
     public static int getMinimumCentralServerGlobalConfigurationVersion() {
         // read the setting
-        int minVersion = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
+        int minVersion = Integer.parseInt(getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
         checkVersionValidity(minVersion, CURRENT_GLOBAL_CONFIGURATION_VERSION,
@@ -1642,7 +1642,7 @@ public final class SystemProperties {
      */
     public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
         // read the setting
-        int minVersion = Integer.parseInt(System.getProperty(
+        int minVersion = Integer.parseInt(getProperty(
                 MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
         // check that it is a valid looking version number
@@ -1693,7 +1693,7 @@ public final class SystemProperties {
      * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
      */
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
-        return Boolean.parseBoolean(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
+        return Boolean.parseBoolean(getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 
@@ -1702,7 +1702,7 @@ public final class SystemProperties {
      * 'false' by default.
      */
     public static boolean isBackupEncryptionEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
+        return Boolean.parseBoolean(getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
                 DEFAULT_PROXY_BACKUP_ENCRYPTED));
     }
 
@@ -1710,7 +1710,7 @@ public final class SystemProperties {
      * @return Comma-separated list of additional recipient OpenPGP key identifiers
      */
     public static String getBackupEncryptionKeyIds() {
-        return System.getProperty(PROXY_BACKUP_ENCRYPTION_KEY_IDS, "");
+        return getProperty(PROXY_BACKUP_ENCRYPTION_KEY_IDS, "");
     }
 
     /**
@@ -1718,7 +1718,7 @@ public final class SystemProperties {
      * 'false' by default
      */
     public static boolean isHSMHealthCheckEnabled() {
-        return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+        return Boolean.parseBoolean(getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
     }
 
     /**
@@ -1726,7 +1726,7 @@ public final class SystemProperties {
      * 'SHA-512' by default
      */
     public static DigestAlgorithm getProxyMessageSignDigestName() {
-        return Optional.ofNullable(System.getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
+        return Optional.ofNullable(getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }
@@ -1735,52 +1735,61 @@ public final class SystemProperties {
      * @return gRPC signer host.
      */
     public static String getGrpcInternalHost() {
-        return System.getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
+        return getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
     }
 
     /**
      * @return gRPC signer host.
      */
     public static boolean isGrpcInternalTlsEnabled() {
-        return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
+        return Boolean.parseBoolean(getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
     }
 
     /**
      * @return gRPC signer host.
      */
     public static int getGrpcSignerPort() {
-        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
+        return Integer.parseInt(getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
     }
 
     /**
      * @return gRPC internal key store path. Uses JKS format.
      */
     public static String getGrpcInternalKeyStore() {
-        return System.getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
+        return getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
 
     /**
      * @return gRPC internal key store password.
      */
     public static String getGrpcInternalKeyStorePassword() {
-        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
+        return getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
     }
 
     /**
      * @return gRPC internal trust store path. Uses JKS format.
      */
     public static String getGrpcInternalTrustStore() {
-        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
+        return getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
 
     /**
      * @return gRPC internal trust store path password.
      */
     public static String getGrpcInternalTruststorePassword() {
-        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
+        return getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
 
     private static String propertyNameToEnvVariable(String propName) {
         return propName.toUpperCase().replaceAll("[.-]", "_");
     }
+
+    private static String getProperty(String key) {
+        return SystemPropertySource.getPropertyResolver().getProperty(key);
+    }
+
+    private static String getProperty(String key, String defaultValue) {
+        return SystemPropertySource.getPropertyResolver().getProperty(key, defaultValue);
+    }
+
 }
