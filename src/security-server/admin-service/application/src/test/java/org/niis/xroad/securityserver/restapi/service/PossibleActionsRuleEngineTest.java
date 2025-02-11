@@ -328,12 +328,14 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(false)
+                                .available(false)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
 
         assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(false)
+                                .available(false)
                                 .id(SSL_TOKEN_ID)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
@@ -341,6 +343,13 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(true)
+                                .available(false)
+                                .build())
+                .contains(PossibleActionEnum.TOKEN_DELETE));
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
+                        new TokenTestUtils.TokenInfoBuilder()
+                                .active(false)
+                                .available(true)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
     }
