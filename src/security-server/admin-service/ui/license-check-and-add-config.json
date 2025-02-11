@@ -19,7 +19,8 @@
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/e2e/testdata/**",
-    "build/"
+    "build/",
+    ".settings/**"
   ],
   "license": "LICENSE.txt",
   "licenseFormats": {

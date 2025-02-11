@@ -24,7 +24,8 @@ warn() {
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then
-  errorExit "XROAD_HOME is not set. Exiting."
+  XROAD_HOME=$(realpath "$(pwd)/../..")
+  warn "XROAD_HOME is not set. Setting it to $XROAD_HOME"
 fi
 
 TARGET_PACKAGE_SOURCE=internal
