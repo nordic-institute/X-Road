@@ -9,6 +9,10 @@ quarkus:
   scheduler:
     start-mode: forced
     enabled: true
+  log:
+    category:
+      "org.niis.xroad.signer.core.tokenmanager.TokenManager":
+        level: "OFF"
 
 "%containerized":
   xroad:

@@ -35,7 +35,7 @@ import io.smallrye.config.WithName;
 public interface SignerProperties {
 
     @WithName("device-configuration-file")
-    @WithDefault("/etc/xroad/signer/devices.ini")
+    @WithDefault("/etc/xroad/devices.ini")
     String deviceConfigurationFile();
 
     @WithName("key-configuration-file")
@@ -78,9 +78,17 @@ public interface SignerProperties {
     @WithDefault("CKM_ECDSA")
     String softTokenEcSignMechanism();
 
-    @WithName("soft-token-pin-keystore-algorithm")
+    @WithName("key-length")
     @WithDefault("RSA")
     String softTokenPinKeystoreAlgorithm();
+
+    @WithName("soft-token-pin-keystore-provider")
+    @WithDefault("2048")
+    int keyLength();
+
+    @WithName("key-named-curve")
+    @WithDefault("secp256r1")
+    String keyNamedCurve();
 
     @WithName("addon")
     SignerAddonProperties addon();

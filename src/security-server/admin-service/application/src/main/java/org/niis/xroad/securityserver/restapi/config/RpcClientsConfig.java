@@ -44,13 +44,12 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("!test")
 @Configuration
-@Import(SpringRpcConfig.class)
+@Import({SpringRpcConfig.class,
+        SpringSignerClientConfiguration.class})
 @EnableConfigurationProperties({
         RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
-        RpcClientsConfig.SpringConfClientRpcChannelProperties.class,
-        SpringSignerClientConfiguration.class})
+        RpcClientsConfig.SpringConfClientRpcChannelProperties.class})
 class RpcClientsConfig {
-
 
     @Bean
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,

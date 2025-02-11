@@ -72,7 +72,7 @@ public class ProxyRpcConfig {
 
             @Override
             public int port() {
-                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+                return Integer.parseInt(DEFAULT_PORT);
             }
 
             @Override

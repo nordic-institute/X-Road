@@ -36,7 +36,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Import(SpringRpcConfig.class)
@@ -44,7 +43,6 @@ import org.springframework.context.annotation.Profile;
 public class SpringSignerClientConfiguration {
 
     @Bean
-    @Profile("!int-test")
     SignerRpcClient signerRpcClient(RpcChannelFactory rpcChannelFactory, SignerRpcChannelProperties signerRpcChannelProperties) {
         return new SignerRpcClient(rpcChannelFactory, signerRpcChannelProperties);
     }

@@ -704,9 +704,6 @@ public final class SystemProperties {
     public static final String CONF_FILE_PROXY_UI_API =
             getConfPath() + "conf.d/proxy-ui-api.ini";
 
-    public static final String CONF_FILE_SIGNER =
-            getConfPath() + "conf.d/signer.ini";
-
     public static final String CONF_FILE_CENTER =
             getConfPath() + "conf.d/center.ini";
 
