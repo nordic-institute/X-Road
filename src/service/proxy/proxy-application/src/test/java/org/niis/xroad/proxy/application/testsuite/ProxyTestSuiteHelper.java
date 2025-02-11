@@ -33,15 +33,17 @@ import ee.ria.xroad.common.TestPortUtils;
 import lombok.SneakyThrows;
 import org.niis.xroad.proxy.core.test.DummySslServerProxy;
 
+import java.net.ServerSocket;
 import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static java.lang.String.valueOf;
+import static java.util.Optional.ofNullable;
 
 public class ProxyTestSuiteHelper {
-    public static final int SERVICE_PORT = 8081;
-    public static final int SERVICE_SSL_PORT = 8088;
+    public static final int SERVICE_PORT = getFreePort();
+    public static final int SERVICE_SSL_PORT = getFreePort();
     public static volatile MessageTestCase currentTestCase;
 
     private static DummyService dummyService;
@@ -51,7 +53,9 @@ public class ProxyTestSuiteHelper {
     public static void startTestServices() throws Exception {
         dummyService = new DummyService();
         dummyService.start();
+    }
 
+    public static void startDummyProxies() throws Exception {
         dummyServerProxy = new DummyServerProxy();
         dummyServerProxy.start();
 
@@ -60,9 +64,9 @@ public class ProxyTestSuiteHelper {
     }
 
     public static void destroyTestServices() {
-        dummyService.destroy();
-        dummyServerProxy.destroy();
-        dummySslServerProxy.destroy();
+        ofNullable(dummyService).ifPresent(DummyService::destroy);
+        ofNullable(dummyServerProxy).ifPresent(DummyServerProxy::destroy);
+        ofNullable(dummySslServerProxy).ifPresent(DummySslServerProxy::destroy);
     }
 
     @SneakyThrows
@@ -90,6 +94,14 @@ public class ProxyTestSuiteHelper {
             if (!setProperties.contains(property)) {
                 System.setProperty(property, defaultValue);
             }
+        }
+    }
+
+    static int getFreePort() {
+        try (ServerSocket ss = new ServerSocket(0)) {
+            return ss.getLocalPort();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 }

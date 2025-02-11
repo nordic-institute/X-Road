@@ -63,6 +63,7 @@ public class ProxyTests {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         ProxyTestSuiteHelper.startTestServices();
+        ProxyTestSuiteHelper.startDummyProxies();
     }
 
     @AfterAll
