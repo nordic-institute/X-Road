@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -38,7 +39,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
  * MUST be fault).
  * Result: CP responds with error.
  */
-public class ServerProxyInvalidFault extends MessageTestCase {
+public class ServerProxyInvalidFault extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
@@ -48,11 +49,6 @@ public class ServerProxyInvalidFault extends MessageTestCase {
 
         responseFile = "getstate.query";
         responseContentType = "text/xml; charset=\"UTF-8\"; boundary=foobar";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
     }
 
     @Override

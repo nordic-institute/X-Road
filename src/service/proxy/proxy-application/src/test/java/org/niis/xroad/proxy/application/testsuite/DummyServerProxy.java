@@ -26,9 +26,6 @@
  */
 package org.niis.xroad.proxy.application.testsuite;
 
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -39,8 +36,6 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -55,24 +50,18 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-public class DummyServerProxy extends Server implements InitializingBean, DisposableBean {
+public class DummyServerProxy extends Server {
 
-    public DummyServerProxy() {
+    public DummyServerProxy(int port) {
         ServerConnector connector = new ServerConnector(this);
 
         connector.setName("ClientConnector");
-        connector.setHost("127.0.0.2");
+        connector.setHost("127.0.0.1");
 
-        final var port = System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
-        connector.setPort(Integer.parseInt(port));
+        connector.setPort(port);
 
         addConnector(connector);
         setHandler(new ServiceHandler());
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        start();
     }
 
     @Override

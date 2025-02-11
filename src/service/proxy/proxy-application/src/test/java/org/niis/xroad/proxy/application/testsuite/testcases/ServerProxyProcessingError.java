@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
-import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 
 import org.niis.xroad.proxy.application.testsuite.Message;
@@ -49,12 +48,7 @@ public class ServerProxyProcessingError extends MessageTestCase {
         requestFileName = "getstate.query";
         requestContentType = "multipart/mixed; boundary=foobar";
 
-        url = "http://127.0.0.1:" + System.getProperty(SystemProperties.PROXY_SERVER_PORT, String.valueOf(PortNumbers.PROXY_PORT));
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
+        url = "http://127.0.0.1:" + SystemProperties.getServerProxyPort();
     }
 
     @Override

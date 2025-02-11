@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -36,7 +37,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
  * that does not contain signature.
  * Result: CP sends error.
  */
-public class UnsignedMessageFromServerProxy extends MessageTestCase {
+public class UnsignedMessageFromServerProxy extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
@@ -47,11 +48,6 @@ public class UnsignedMessageFromServerProxy extends MessageTestCase {
         responseFile = "no-signature.query";
         responseContentType = "multipart/mixed; charset=UTF-8; "
                 + "boundary=jetty42534330h7vzfqv2";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
     }
 
     @Override

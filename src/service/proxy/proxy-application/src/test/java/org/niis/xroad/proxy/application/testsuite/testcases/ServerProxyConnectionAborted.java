@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
+import org.niis.xroad.proxy.application.testsuite.UsingAbortingServerProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
  * Client sends normal message, SP aborts connection.
  * Result: CP responds with RequestFailed
  */
-public class ServerProxyConnectionAborted extends MessageTestCase {
+public class ServerProxyConnectionAborted extends MessageTestCase implements UsingAbortingServerProxy {
     private static final int STARTUP_DELAY = 1000;
 
     private static final Logger LOG = LoggerFactory.getLogger(
@@ -72,12 +73,6 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
     }
 
     @Override
-    public String getProviderAddress(String providerName) {
-        // We'll connect to local AbortingServer
-        return "127.0.0.3";
-    }
-
-    @Override
     protected void validateFaultResponse(Message receivedResponse) {
         assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
     }
@@ -89,9 +84,9 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
                 byte[] buffer = new byte[1024];
                 int port = SystemProperties.getServerProxyPort();
 
-                LOG.debug("Starting to listen at 127.0.0.3:{}", port);
+                LOG.debug("Starting to listen at 127.0.0.1:{}", port);
 
-                try (ServerSocket srvr = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.3")); Socket skt = srvr.accept()) {
+                try (ServerSocket srvr = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1")); Socket skt = srvr.accept()) {
                     LOG.debug("Received connection from {}", skt.getRemoteSocketAddress());
 
                     // Read something.

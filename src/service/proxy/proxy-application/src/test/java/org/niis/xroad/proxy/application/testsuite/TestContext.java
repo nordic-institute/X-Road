@@ -53,6 +53,10 @@ public class TestContext {
     ClientProxy clientProxy;
 
     public TestContext() {
+        this(true);
+    }
+
+    public TestContext(boolean startServerProxy) {
         try {
             org.apache.xml.security.Init.init();
             SigningCtxProvider signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
@@ -65,10 +69,12 @@ public class TestContext {
                     certHelper);
 
             clientProxy = new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
-            serverProxy = new ServerProxy(commonBeanProxy);
-
             clientProxy.afterPropertiesSet();
-            serverProxy.afterPropertiesSet();
+
+            if (startServerProxy) {
+                serverProxy = new ServerProxy(commonBeanProxy);
+                serverProxy.afterPropertiesSet();
+            }
 
             OpMonitoring.init(serverConfProvider);
             MessageLog.init(mock(JobManager.class), globalConfProvider, serverConfProvider);
@@ -78,9 +84,11 @@ public class TestContext {
     }
 
     public void destroy() {
-        try {
-            serverProxy.destroy();
-        } catch (Exception e) {
+        if (serverProxy != null) {
+            try {
+                serverProxy.destroy();
+            } catch (Exception e) {
+            }
         }
 
         try {

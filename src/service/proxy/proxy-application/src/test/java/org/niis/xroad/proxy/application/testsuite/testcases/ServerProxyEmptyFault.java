@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -37,7 +38,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
  * (content type is text/xml instead of multipart) that is empty.
  * Result: CP responds with error.
  */
-public class ServerProxyEmptyFault extends MessageTestCase {
+public class ServerProxyEmptyFault extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
@@ -46,11 +47,6 @@ public class ServerProxyEmptyFault extends MessageTestCase {
         requestFileName = "getstate.query";
 
         responseFile = "empty.query";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
     }
 
     @Override

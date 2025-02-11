@@ -29,10 +29,12 @@ package org.niis.xroad.proxy.application.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.time.Clock;
@@ -42,6 +44,9 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,8 +79,10 @@ public class ProxyTests {
     TestContext ctx;
 
     @TestFactory
-    Stream<DynamicTest> proxyTestSuite_nonSslTestCases() {
+    Stream<DynamicTest> proxyTestSuite_normalTestCases() {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
+                .filter(testCase -> !(testCase instanceof UsingDummyServerProxy))
+                .filter(testCase -> !(testCase instanceof UsingAbortingServerProxy))
                 .filter(testCase -> !(testCase instanceof SslMessageTestCase))
                 .filter(testCase -> !(testCase instanceof IsolatedSslMessageTestCase))
                 .toList();
@@ -88,9 +95,61 @@ public class ProxyTests {
     }
 
     @TestFactory
+    Stream<DynamicTest> proxyTestSuite_normalTestCasesDummyProxy() {
+        // tests using dummy proxy
+        List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
+                .filter(testCase -> !(testCase instanceof SslMessageTestCase))
+                .filter(testCase -> !(testCase instanceof IsolatedSslMessageTestCase))
+                .filter(testCase -> testCase instanceof UsingDummyServerProxy)
+                .toList();
+        assertThat(testCasesToRun.size()).isGreaterThan(0);
+
+        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
+        ctx = new TestContext(false);
+
+        return createDynamicTests(testCasesToRun);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> proxyTestSuite_abortingDummyProxy() {
+        // tests using dummy proxy
+        List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
+                .filter(testCase -> testCase instanceof UsingAbortingServerProxy)
+                .toList();
+        assertThat(testCasesToRun.size()).isGreaterThan(0);
+
+        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+        ctx = new TestContext(false);
+
+        return createDynamicTests(testCasesToRun);
+    }
+
+    @Test
+    void serverProxyConnectionRefused() throws Exception {
+        MessageTestCase testCase = new MessageTestCase() {
+            {
+                requestFileName = "getstate.query";
+            }
+
+            @Override
+            protected void validateFaultResponse(Message receivedResponse) {
+                assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
+            }
+        };
+
+        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
+
+        ctx = new TestContext(false);
+
+        assertTrue(testCase.execute(ctx));
+    }
+
+    @TestFactory
     Stream<DynamicTest> proxyTestSuite_SslTestCases() {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
                 .filter(testCase -> testCase instanceof SslMessageTestCase)
+                .filter(testCase -> !(testCase instanceof UsingDummyServerProxy))
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
@@ -103,6 +162,7 @@ public class ProxyTests {
     Stream<DynamicTest> proxyTestSuite_IsolatedSslTestCases() {
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{}).stream()
                 .filter(testCase -> testCase instanceof IsolatedSslMessageTestCase)
+                .filter(testCase -> !(testCase instanceof UsingDummyServerProxy))
                 .toList();
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
@@ -118,7 +178,9 @@ public class ProxyTests {
                             try {
                                 assertTrue(testCase.execute(ctx));
                             } finally {
-                                ctx.serverProxy.closeIdleConnections();
+                                if (ctx.serverProxy != null) {
+                                    ctx.serverProxy.closeIdleConnections();
+                                }
                             }
                         })));
     }

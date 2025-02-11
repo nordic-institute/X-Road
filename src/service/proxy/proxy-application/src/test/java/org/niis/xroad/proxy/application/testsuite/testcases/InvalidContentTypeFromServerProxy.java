@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -37,7 +38,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
  * back response with invalid content type (multipart/mixed expected).
  * Result: CP responds with error.
  */
-public class InvalidContentTypeFromServerProxy extends MessageTestCase {
+public class InvalidContentTypeFromServerProxy extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
@@ -47,13 +48,6 @@ public class InvalidContentTypeFromServerProxy extends MessageTestCase {
 
         responseFile = "getstate.query";
         responseContentType = "oih";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        // Turn to dummy server proxy.
-        return "127.0.0.2";
-
     }
 
     @Override

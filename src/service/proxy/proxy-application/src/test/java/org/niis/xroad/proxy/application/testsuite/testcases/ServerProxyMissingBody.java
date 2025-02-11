@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -37,7 +38,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
  * with missing body.
  * Result: CP responds with error.
  */
-public class ServerProxyMissingBody extends MessageTestCase {
+public class ServerProxyMissingBody extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
@@ -47,11 +48,6 @@ public class ServerProxyMissingBody extends MessageTestCase {
 
         responseFile = "missing-body.query";
         responseContentType = "text/xml; boundary=jetty771207119h3h10dty";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
     }
 
     @Override

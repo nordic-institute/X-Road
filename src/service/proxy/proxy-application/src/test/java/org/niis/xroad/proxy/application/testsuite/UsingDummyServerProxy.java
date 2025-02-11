@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,37 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.application.testsuite.testcases;
 
-import org.niis.xroad.proxy.application.testsuite.Message;
-import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+package org.niis.xroad.proxy.application.testsuite;
 
 /**
- * Client proxy attempts to make query to non-existing server proxy address
- * and fails.
- * Result: clientproxy sends error message.
+ * Marker interface for tests using {@link org.niis.xroad.proxy.application.testsuite.DummyServerProxy}
  */
-public class InvalidProviderAddress2 extends MessageTestCase {
-
-    /**
-     * Constructs the test case.
-     */
-    public InvalidProviderAddress2() {
-        requestFileName = "attachm.query";
-        requestContentType = "multipart/related; charset=UTF-8; "
-                + "boundary=jetty771207119h3h10dty";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.7";
-    }
-
-    @Override
-    protected void validateFaultResponse(Message receivedResponse) {
-        assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
-    }
+public interface UsingDummyServerProxy {
 }

@@ -31,6 +31,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -45,18 +46,13 @@ import static org.eclipse.jetty.io.Content.Source.asInputStream;
  * Client sends normal message, SP aborts connection (content type: text/xml).
  * Result: CP responds with RequestFailed
  */
-public class ServerProxyConnectionAborted2 extends MessageTestCase {
+public class ServerProxyConnectionAborted2 extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
      */
     public ServerProxyConnectionAborted2() {
         requestFileName = "getstate.query";
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
     }
 
     @Override

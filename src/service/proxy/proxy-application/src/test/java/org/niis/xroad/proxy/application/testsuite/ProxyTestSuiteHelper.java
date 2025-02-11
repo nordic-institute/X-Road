@@ -28,27 +28,24 @@
 package org.niis.xroad.proxy.application.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestPortUtils;
 
-import lombok.SneakyThrows;
-import org.niis.xroad.proxy.core.test.DummySslServerProxy;
-
-import java.net.ServerSocket;
 import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 
 public class ProxyTestSuiteHelper {
-    public static final int SERVICE_PORT = getFreePort();
-    public static final int SERVICE_SSL_PORT = getFreePort();
+    public static final int SERVICE_PORT = findRandomPort();
+    public static final int SERVICE_SSL_PORT = findRandomPort();
+    public static final int DUMMY_SERVER_PROXY_PORT = findRandomPort();
+
     public static volatile MessageTestCase currentTestCase;
 
     private static DummyService dummyService;
     private static DummyServerProxy dummyServerProxy;
-    private static DummySslServerProxy dummySslServerProxy;
 
     public static void startTestServices() throws Exception {
         dummyService = new DummyService();
@@ -56,26 +53,21 @@ public class ProxyTestSuiteHelper {
     }
 
     public static void startDummyProxies() throws Exception {
-        dummyServerProxy = new DummyServerProxy();
+        dummyServerProxy = new DummyServerProxy(DUMMY_SERVER_PROXY_PORT);
         dummyServerProxy.start();
-
-        dummySslServerProxy = new DummySslServerProxy();
-        dummySslServerProxy.start();
     }
 
     public static void destroyTestServices() {
         ofNullable(dummyService).ifPresent(DummyService::destroy);
         ofNullable(dummyServerProxy).ifPresent(DummyServerProxy::destroy);
-        ofNullable(dummySslServerProxy).ifPresent(DummySslServerProxy::destroy);
     }
 
-    @SneakyThrows
     public static void setPropsIfNotSet() {
         PropsSolver solver = new PropsSolver();
 
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(TestPortUtils.findRandomPort()));
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(TestPortUtils.findRandomPort()));
-        final var proxyPort = valueOf(TestPortUtils.findRandomPort());
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(findRandomPort()));
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(findRandomPort()));
+        final var proxyPort = valueOf(findRandomPort());
         solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, proxyPort);
         solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
@@ -97,11 +89,4 @@ public class ProxyTestSuiteHelper {
         }
     }
 
-    static int getFreePort() {
-        try (ServerSocket ss = new ServerSocket(0)) {
-            return ss.getLocalPort();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

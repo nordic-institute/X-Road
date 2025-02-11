@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -40,8 +39,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -54,7 +51,6 @@ import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 
@@ -64,15 +60,7 @@ import java.util.Optional;
  * but it uses a different SSL certificate to cause the TrustVerifier to fail
  * when establishing the SSL connection.
  */
-public class DummySslServerProxy extends Server implements InitializingBean, DisposableBean {
-
-    public DummySslServerProxy() throws Exception {
-        this(PortNumbers.PROXY_PORT, new DummyAuthKeyManager());
-    }
-
-    public DummySslServerProxy(int port, KeyManager keyManager) throws Exception {
-        this("127.0.0.5", port, keyManager);
-    }
+public class DummySslServerProxy extends Server {
 
     @SuppressWarnings("checkstyle:MagicNumber")
     public DummySslServerProxy(String host, int port, KeyManager keyManager) throws Exception {
@@ -106,11 +94,6 @@ public class DummySslServerProxy extends Server implements InitializingBean, Dis
 
         addConnector(connector);
         setHandler(new DummyHandler());
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        start();
     }
 
     @Override
@@ -184,13 +167,11 @@ public class DummySslServerProxy extends Server implements InitializingBean, Dis
     public static class DummyAuthTrustManager implements X509TrustManager {
 
         @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
         }
 
         @Override

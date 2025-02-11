@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.application.testsuite.testcases;
 
+import org.niis.xroad.proxy.application.testsuite.UsingDummyServerProxy;
 import org.niis.xroad.proxy.application.testsuite.Message;
 import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
 
@@ -37,7 +38,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
  * invalid attachment (no content-type header).
  * Result: CP responds with error.
  */
-public class ServerProxyFaultyAttachment extends MessageTestCase {
+public class ServerProxyFaultyAttachment extends MessageTestCase implements UsingDummyServerProxy {
 
     /**
      * Constructs the test case.
@@ -49,11 +50,6 @@ public class ServerProxyFaultyAttachment extends MessageTestCase {
         responseContentType = "multipart/mixed; "
                 + "charset=UTF-8; boundary=jetty771207119h3h10dty";
 
-    }
-
-    @Override
-    public String getProviderAddress(String providerName) {
-        return "127.0.0.2";
     }
 
     @Override
