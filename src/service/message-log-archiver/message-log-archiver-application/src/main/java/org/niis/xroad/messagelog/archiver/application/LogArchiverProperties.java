@@ -33,8 +33,6 @@ import java.util.Optional;
 
 @ConfigMapping(prefix = "xroad.message-log-archiver")
 public interface LogArchiverProperties {
-    String DEFAULT_CLEAN_BATCH_SIZE = "10000";
-    String DEFAULT_ARCHIVE_BATCH_SIZE = "10000";
 
     @WithName("archive-interval")
     @WithDefault("0 0 0/6 1/1 * ? *")
@@ -45,7 +43,7 @@ public interface LogArchiverProperties {
     String cleanInterval();
 
     @WithName("clean-transaction-batch")
-    @WithDefault(DEFAULT_CLEAN_BATCH_SIZE)
+    @WithDefault("10000")
     int cleanTransactionBatchSize();
 
     @WithName("keep-records-for")
@@ -53,7 +51,7 @@ public interface LogArchiverProperties {
     int cleanKeepRecordsFor();
 
     @WithName("archive-transaction-batch")
-    @WithDefault(DEFAULT_ARCHIVE_BATCH_SIZE)
+    @WithDefault("10000")
     int archiveTransactionBatchSize();
 
     @WithName("archive-path")

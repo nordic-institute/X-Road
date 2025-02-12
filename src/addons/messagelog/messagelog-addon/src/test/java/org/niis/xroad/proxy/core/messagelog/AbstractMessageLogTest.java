@@ -39,6 +39,8 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.JobManager;
 
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -55,14 +57,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.niis.xroad.messagelog.archiver.application.LogArchiverProperties.DEFAULT_ARCHIVE_BATCH_SIZE;
-import static org.niis.xroad.messagelog.archiver.application.LogArchiverProperties.DEFAULT_CLEAN_BATCH_SIZE;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.getGlobalConf;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.getServerConf;
 
@@ -109,10 +109,16 @@ abstract class AbstractMessageLogTest {
             Files.createDirectory(archivesPath);
         }
 
-        logArchiverProperties = mock(LogArchiverProperties.class);
-        when(logArchiverProperties.archivePath()).thenReturn(archivesDir);
-        when(logArchiverProperties.archiveTransactionBatchSize()).thenReturn(Integer.parseInt(DEFAULT_ARCHIVE_BATCH_SIZE));
-        when(logArchiverProperties.cleanTransactionBatchSize()).thenReturn(Integer.parseInt(DEFAULT_CLEAN_BATCH_SIZE));
+
+        logArchiverProperties = new SmallRyeConfigBuilder()
+                .withMapping(LogArchiverProperties.class)
+                .withSources(new PropertiesConfigSource(
+                        Map.of("xroad.message-log-archiver.archive-path", archivesDir,
+                                "xroad.message-log-archiver.keep-records-for", "0"),
+                        "testProperties"))
+                .build()
+                .getConfigMapping(LogArchiverProperties.class);
+
         logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider);
         logCleanerRef = new TestLogCleaner(logArchiverProperties);
     }

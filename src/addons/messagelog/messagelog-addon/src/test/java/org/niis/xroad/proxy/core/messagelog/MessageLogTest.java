@@ -91,7 +91,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.cleanUpDatabase;
@@ -316,8 +315,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
     @Test
     public void logTimestampArchiveAndClean() throws Exception {
         log.trace("logTimestampArchiveAndClean()");
-
-        when(logArchiverProperties.cleanKeepRecordsFor()).thenReturn(0);
 
         assertTaskQueueSize(0);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());

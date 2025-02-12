@@ -31,7 +31,6 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
-import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.createMessage;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.createSignature;
 
@@ -98,7 +97,7 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         TestUtil.initForTest();
 
-        when(logArchiverProperties.archivePath()).thenReturn("build/slog");
+//        when(logArchiverProperties.archivePath()).thenReturn("build/slog");
         System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE,
                 "2000000");
 
