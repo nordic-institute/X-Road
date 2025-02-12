@@ -109,7 +109,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                                 "code",
                                 clientIdDto.getMemberCode()
                         ));
-                return new Subsystem(xRoadMember, clientId, source.getMemberName()); //TODO #subs verify this
+                return new Subsystem(xRoadMember, clientId, null);
             case null:
             default:
                 throw new IllegalArgumentException("Invalid client type: " + clientType);
