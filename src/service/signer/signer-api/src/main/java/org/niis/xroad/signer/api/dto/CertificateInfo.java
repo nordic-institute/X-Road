@@ -101,6 +101,11 @@ public class CertificateInfo implements Serializable {
     }
 
     @ToString.Include
+    public String getOcspVerifyBeforeActivationError() {
+        return message.getOcspVerifyBeforeActivationError();
+    }
+
+    @ToString.Include
     public String getRenewedCertHash() {
         return message.getRenewedCertHash();
     }

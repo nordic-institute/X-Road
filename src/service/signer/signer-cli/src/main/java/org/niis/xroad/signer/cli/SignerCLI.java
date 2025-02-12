@@ -33,6 +33,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import asg.cliche.CLIException;
@@ -70,6 +71,7 @@ import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -139,7 +141,7 @@ public class SignerCLI {
     @SuppressWarnings({"squid:S1873", "squid:S2386"})
     public static final InputConverter[] CLI_INPUT_CONVERTERS = {
             (original, toClass) -> {
-                if (toClass.equals(ClientId.class)) {
+                if (toClass.equals(ClientId.class) || toClass.equals(ClientId.Conf.class)) {
                     return createClientId(original);
                 } else {
                     return null;
@@ -456,6 +458,13 @@ public class SignerCLI {
             logData.put(KEY_ID_PARAM, keyId);
             AuditLogger.log(IMPORT_A_CERTIFICATE_FROM_THE_FILE, XROAD_USER, null, logData);
 
+            String certHash = CryptoUtils.calculateCertHexHash(certBytes);
+            CertificateInfo certificateInfo = signerRpcClient.getCertForHash(certHash);
+            if (!CertUtils.isAuthCert(readCertificate(certificateInfo.getCertificateBytes()))
+                    && StringUtils.isNotBlank(certificateInfo.getOcspVerifyBeforeActivationError())) {
+                System.out.println("WARNING: certificate was not activated because OCSP Responses could not be verified. Error message: "
+                        + certificateInfo.getOcspVerifyBeforeActivationError());
+            }
             System.out.println(keyId);
         } catch (Exception e) {
             AuditLogger.log(IMPORT_A_CERTIFICATE_FROM_THE_FILE, XROAD_USER, null, e.getMessage(), logData);
@@ -732,7 +741,7 @@ public class SignerCLI {
         ClientId.Conf memberId = ClientId.Conf.create("FOO", "BAR", "BAZ");
 
         final byte[] certificateBytes = signerRpcClient.generateSelfSignedCert(keyId, memberId, SIGNING, cn, notBefore, notAfter);
-        X509Certificate cert = CryptoUtils.readCertificate(certificateBytes);
+        X509Certificate cert = readCertificate(certificateBytes);
 
         System.out.println("Certificate base64:");
         System.out.println(encodeBase64(cert.getEncoded()));
@@ -773,7 +782,7 @@ public class SignerCLI {
             for (KeyInfo key : token.getKeyInfo()) {
                 for (CertificateInfo cert : key.getCerts()) {
                     if (certId.equals(cert.getId())) {
-                        X509Certificate x509 = CryptoUtils.readCertificate(cert.getCertificateBytes());
+                        X509Certificate x509 = readCertificate(cert.getCertificateBytes());
                         System.out.println(x509);
                         return;
                     }

@@ -166,12 +166,10 @@ public class CertChainVerifier {
         try {
             certPath = buildCertPath(pkixParams);
 
-            PKIXCertPathValidatorResult pkixResult =
-                    verifyCertPath(certPath, pkixParams);
+            verifyCertPath(certPath, pkixParams);
 
             if (ocspResponses != null) {
-                verifyOcspResponses(
-                        getCerts(), ocspResponses, pkixResult, atDate);
+                verifyOcspResponses(getCerts(), ocspResponses, atDate);
             }
         } catch (CertPathBuilderException ex) {
             throw translateWithPrefix(X_CANNOT_CREATE_CERT_PATH, ex);
@@ -180,25 +178,33 @@ public class CertChainVerifier {
         }
     }
 
+    public void verifyOcspResponses(List<OCSPResp> ocspResponses,
+                                     Date atDate) throws Exception {
+        pkixParams.setDate(atDate);
+        try {
+            certPath = buildCertPath(pkixParams);
+            verifyOcspResponses(getCerts(), ocspResponses, atDate);
+        } catch (CertPathBuilderException ex) {
+            throw translateWithPrefix(X_CANNOT_CREATE_CERT_PATH, ex);
+        } catch (Exception ex) {
+            throw translateWithPrefix(X_INVALID_CERT_PATH_X, ex);
+        }
+    }
+
     private void verifyOcspResponses(List<X509Certificate> certs,
-                                     List<OCSPResp> ocspResponses, PKIXCertPathValidatorResult result,
+                                     List<OCSPResp> ocspResponses,
                                      Date atDate) throws Exception {
         for (X509Certificate subject : certs) {
-            X509Certificate issuer =
-                    globalConfProvider.getCaCert(certChain.getInstanceIdentifier(),
-                            subject);
-            OCSPResp response =
-                    getOcspResponseForCert(subject, issuer, ocspResponses);
+            X509Certificate issuer = globalConfProvider.getCaCert(certChain.getInstanceIdentifier(), subject);
+            OCSPResp response = getOcspResponseForCert(subject, issuer, ocspResponses);
             if (response == null) {
                 throw new CodedException(X_CERT_VALIDATION,
-                        "Unable to find OCSP response for certificate "
-                                + subject.getSubjectX500Principal().getName());
+                        "Unable to find OCSP response for certificate " + subject.getSubjectX500Principal().getName());
             }
 
             OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                     new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
-            verifier.verifyValidityAndStatus(response, subject, issuer,
-                    atDate);
+            verifier.verifyValidityAndStatus(response, subject, issuer, atDate);
         }
     }
 

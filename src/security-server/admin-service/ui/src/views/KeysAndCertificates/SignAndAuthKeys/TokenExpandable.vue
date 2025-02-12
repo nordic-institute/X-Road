@@ -314,7 +314,11 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, [
+      'showError',
+      'showSuccess',
+      'showWarningMessage',
+    ]),
     ...mapActions(useTokens, ['setSelectedToken', 'hideToken', 'expandToken']),
     addKey(): void {
       this.setSelectedToken(this.token);
@@ -380,7 +384,15 @@ export default defineComponent({
           },
         })
         .then(
-          () => {
+          (resp) => {
+            const certificate: TokenCertificate = resp.data;
+            if (certificate.ocsp_verify_before_activation_error) {
+              this.showWarningMessage(
+                this.$t('keys.importCertOcspVerifyWarning', {
+                  errorMessage: certificate.ocsp_verify_before_activation_error,
+                }),
+              );
+            }
             this.showSuccess(this.$t('keys.importCertSuccess'));
             this.fetchData();
           },

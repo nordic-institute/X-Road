@@ -117,6 +117,11 @@ public class Cert {
     private OCSPResp ocspResponse;
 
     /**
+     * Error message thrown during the certificate activation when verifying ocsp responses
+     */
+    private String ocspVerifyBeforeActivationError;
+
+    /**
      * Sets the certificate and hash
      *
      * @param cert the certificate
@@ -199,6 +204,9 @@ public class Cert {
             }
             if (ocspResponse != null) {
                 builder.setOcspBytes(ByteString.copyFrom(ocspResponse.getEncoded()));
+            }
+            if (ocspVerifyBeforeActivationError != null) {
+                builder.setOcspVerifyBeforeActivationError(ocspVerifyBeforeActivationError);
             }
             if (renewedCertHash != null) {
                 builder.setRenewedCertHash(renewedCertHash);

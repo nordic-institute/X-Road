@@ -63,9 +63,15 @@ public class MailNotificationHelper {
             String authCertContent =
                     notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_content",
                             new String[]{securityServerId.asEncodedId(), newCertInfo.getCertificateDisplayName()});
+            if (!SystemProperties.getAutomaticActivateAuthCertificate()) {
+                authCertContent += " " + notificationMessageSourceAccessor.getMessage("acme_auth_cert_renewal_success_content_activate");
+            }
             String signCertContent =
                     notificationMessageSourceAccessor.getMessage("acme_sign_cert_renewal_success_content",
-                            new String[]{memberId.asEncodedId(), securityServerId.asEncodedId(), newCertInfo.getCertificateDisplayName()});
+                            new String[]{newCertInfo.getCertificateDisplayName(), memberId.asEncodedId(), securityServerId.asEncodedId()});
+            if (!SystemProperties.getAutomaticActivateAcmeSignCertificate()) {
+                signCertContent += " " + notificationMessageSourceAccessor.getMessage("acme_sign_cert_renewal_success_content_activate");
+            }
             String content = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo) ? authCertContent : signCertContent;
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(memberId.asEncodedId()))
@@ -103,11 +109,63 @@ public class MailNotificationHelper {
         if (SystemProperties.getAuthCertRegisteredNotificationEnabled()) {
             String title =
                     notificationMessageSourceAccessor.getMessage("auth_cert_registration_success_title");
-            String content =
+            String baseContent =
                     notificationMessageSourceAccessor.getMessage("auth_cert_registration_success_content",
                             new String[]{certInfo.getCertificateDisplayName(), securityServerId.getServerCode()});
+            String contentWhitManualActivation =
+                    baseContent + " " + notificationMessageSourceAccessor.getMessage("auth_cert_registration_success_content_activate");
+            String content = SystemProperties.getAutomaticActivateAuthCertificate() ? baseContent : contentWhitManualActivation;
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(securityServerId.getOwner().asEncodedId()))
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
+    public void sendCertActivatedNotification(String memberId,
+                                              SecurityServerId securityServerId,
+                                              CertificateInfo certInfo,
+                                              KeyUsageInfo keyUsageInfo) {
+        if (SystemProperties.getAcmeCertAutomaticallyActivatedNotificationEnabled()) {
+            String authCertTitle =
+                    notificationMessageSourceAccessor.getMessage("auth_cert_automatic_activation_title");
+            String signCertTitle =
+                    notificationMessageSourceAccessor.getMessage("sign_cert_automatic_activation_title");
+            String title = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo) ? authCertTitle : signCertTitle;
+            String authCertContent =
+                    notificationMessageSourceAccessor.getMessage("auth_cert_automatic_activation_content",
+                            new String[]{certInfo.getCertificateDisplayName(), securityServerId.getServerCode()});
+            String signCertContent =
+                    notificationMessageSourceAccessor.getMessage("sign_cert_automatic_activation_content",
+                            new String[]{certInfo.getCertificateDisplayName(), securityServerId.getServerCode()});
+            String content = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo) ? authCertContent : signCertContent;
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId))
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
+        }
+    }
+
+
+    public void sendCertActivationFailureNotification(String memberId,
+                                                      String certDisplayName,
+                                                      SecurityServerId.Conf securityServerId,
+                                                      KeyUsageInfo keyUsageInfo,
+                                                      String errorDescription) {
+        if (SystemProperties.getAcmeCertAutomaticActivationFailureNotificationEnabled()) {
+            boolean isSignCert = keyUsageInfo == KeyUsageInfo.SIGNING;
+            String authCertTitle =
+                    notificationMessageSourceAccessor.getMessage("auth_cert_automatic_activation_failure_title");
+            String signCertTitle =
+                    notificationMessageSourceAccessor.getMessage("sign_cert_automatic_activation_failure_title");
+            String title = isSignCert ? signCertTitle : authCertTitle;
+            String authCertContent =
+                    notificationMessageSourceAccessor.getMessage("auth_cert_automatic_activation_failure_content",
+                            new String[]{certDisplayName, securityServerId.asEncodedId(), errorDescription});
+            String signCertContent =
+                    notificationMessageSourceAccessor.getMessage("sign_cert_automatic_activation_failure_content",
+                            new String[]{certDisplayName, memberId, securityServerId.asEncodedId(), errorDescription});
+            String content = isSignCert ? signCertContent : authCertContent;
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId))
                     .ifPresent(address -> mailService.sendMailAsync(address, title, content));
         }
     }
