@@ -74,6 +74,16 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.server-conf-acl-cache-size", "common.server-conf.acl-cache-size");
 
         MAPPING.put("proxy-ui-api.wsdl-validator-command", "proxy-ui-api.addon.wsdl-validator.command");
+
+        // message-log-archiver
+        MAPPING.put("xroad.message-log.archive-max-filesize", "xroad-message-log-archiver.archive-max-filesize");
+        MAPPING.put("xroad.message-log.archive-path", "xroad-message-log-archiver.archive-path");
+        MAPPING.put("xroad.message-log.archive-transfer-command", "xroad-message-log-archiver.archive-transfer-command");
+        MAPPING.put("xroad.message-log.clean-interval", "xroad-message-log-archiver.clean-interval");
+        MAPPING.put("xroad.message-log.keep-records-for", "xroad-message-log-archiver.keep-records-for");
+        MAPPING.put("xroad.message-log.archive-transaction-batch", "xroad-message-log-archiver.archive-transaction-batch");
+        MAPPING.put("xroad.message-log.archive-transfer-command-parameters", "xroad-message-log-archiver.archive-transfer-command-parameters");
+
     }
 
     String map(String oldPath) {

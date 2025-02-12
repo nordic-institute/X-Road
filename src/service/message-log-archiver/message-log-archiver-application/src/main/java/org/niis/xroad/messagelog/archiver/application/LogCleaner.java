@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.messagelog.archiver.application;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.MutationQuery;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import java.time.temporal.ChronoUnit;
 
@@ -40,12 +39,12 @@ import java.time.temporal.ChronoUnit;
  * Deletes all archived log records from the database.
  */
 @Slf4j
-public class LogCleaner implements Job {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class LogCleaner {
+    private final LogArchiverProperties logArchiverProperties;
 
-    public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
-
-    @Override
-    public void execute(JobExecutionContext context) {
+    public void execute() {
         try {
             log.info("Removing archived records from database...");
             final long removed = handleClean();
@@ -62,14 +61,14 @@ public class LogCleaner implements Job {
     protected long handleClean() throws Exception {
 
         final Long time =
-                TimeUtils.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
+                TimeUtils.now().minus(logArchiverProperties.cleanKeepRecordsFor(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {
             removed = MessageLogDatabaseCtx.doInTransaction(session -> {
                 final MutationQuery query = session.createNamedMutationQuery("delete-logrecords");
                 query.setParameter("time", time);
-                query.setParameter("limit", CLEAN_BATCH_LIMIT);
+                query.setParameter("limit", logArchiverProperties.cleanTransactionBatchSize());
                 return query.executeUpdate();
             });
             log.debug("Removed {} archived records", removed);

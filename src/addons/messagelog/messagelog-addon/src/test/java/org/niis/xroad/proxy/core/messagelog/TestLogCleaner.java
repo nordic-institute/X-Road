@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core.messagelog;
 
 
+import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 
 import java.util.concurrent.CountDownLatch;
@@ -34,6 +35,10 @@ import java.util.concurrent.TimeUnit;
 class TestLogCleaner extends LogCleaner {
 
     private static CountDownLatch gate = new CountDownLatch(1);
+
+    TestLogCleaner(LogArchiverProperties logArchiverProperties) {
+        super(logArchiverProperties);
+    }
 
     public static void waitForCleanSuccessful() throws Exception {
         try {

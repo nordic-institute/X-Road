@@ -42,13 +42,12 @@ import ee.ria.xroad.common.util.JobManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.application.LogArchiver;
+import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.quartz.JobExecutionContext;
 import org.quartz.impl.StdSchedulerFactory;
 
 import java.io.ByteArrayInputStream;
@@ -61,6 +60,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.niis.xroad.messagelog.archiver.application.LogArchiverProperties.DEFAULT_ARCHIVE_BATCH_SIZE;
+import static org.niis.xroad.messagelog.archiver.application.LogArchiverProperties.DEFAULT_CLEAN_BATCH_SIZE;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.getGlobalConf;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.getServerConf;
 
@@ -70,10 +72,10 @@ abstract class AbstractMessageLogTest {
     GlobalConfProvider globalConfProvider;
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
-    CertChainFactory certChainFactory;
     CommonBeanProxy commonBeanProxy;
     JobManager jobManager;
     LogManager logManager;
+    LogArchiverProperties logArchiverProperties;
 
     protected final String archivesDir = "build/archive";
     protected final Path archivesPath = Paths.get(archivesDir);
@@ -87,7 +89,6 @@ abstract class AbstractMessageLogTest {
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesDir);
 
         jobManager = new JobManager(new StdSchedulerFactory().getScheduler());
         globalConfProvider = getGlobalConf();
@@ -107,8 +108,13 @@ abstract class AbstractMessageLogTest {
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
         }
-        logArchiverRef = new TestLogArchiver(globalConfProvider);
-        logCleanerRef = new TestLogCleaner();
+
+        logArchiverProperties = mock(LogArchiverProperties.class);
+        when(logArchiverProperties.archivePath()).thenReturn(archivesDir);
+        when(logArchiverProperties.archiveTransactionBatchSize()).thenReturn(Integer.parseInt(DEFAULT_ARCHIVE_BATCH_SIZE));
+        when(logArchiverProperties.cleanTransactionBatchSize()).thenReturn(Integer.parseInt(DEFAULT_CLEAN_BATCH_SIZE));
+        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider);
+        logCleanerRef = new TestLogCleaner(logArchiverProperties);
     }
 
     void testTearDown() throws Exception {
@@ -168,11 +174,11 @@ abstract class AbstractMessageLogTest {
     }
 
     void startArchiving() {
-        logArchiverRef.execute(mock(JobExecutionContext.class));
+        logArchiverRef.execute();
     }
 
     void startCleaning() {
-        logCleanerRef.execute(mock(JobExecutionContext.class));
+        logCleanerRef.execute();
     }
 
     static void assertMessageRecord(Object o, String queryId) {

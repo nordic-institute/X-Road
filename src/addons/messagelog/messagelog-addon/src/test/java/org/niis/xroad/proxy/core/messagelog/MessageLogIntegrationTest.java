@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -37,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.createMessage;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.createSignature;
 
@@ -84,9 +84,7 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         TestUtil.initForTest();
 
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/slog");
-        System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL,
-                "0 0/2 * 1/1 * ? *");
+        when(logArchiverProperties.archivePath()).thenReturn("build/slog");
 
         new File("build/slog/").mkdirs();
 

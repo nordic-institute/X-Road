@@ -25,36 +25,42 @@
  */
 package org.niis.xroad.messagelog.archiver.application;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.util.JobManager;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import java.util.Optional;
 
-@Import({SpringGlobalConfConfig.class})
-@Configuration
-public class LogArchiverConfig {
+@ConfigMapping(prefix = "xroad.message-log-archiver")
+public interface LogArchiverProperties {
+    String DEFAULT_CLEAN_BATCH_SIZE = "10000";
+    String DEFAULT_ARCHIVE_BATCH_SIZE = "10000";
 
-    @Bean
-    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
+    @WithName("archive-interval")
+    @WithDefault("0 0 0/6 1/1 * ? *")
+    String archiveInterval();
 
-        jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
-                new JobDataMap());
+    @WithName("clean-interval")
+    @WithDefault("0 0 0/12 1/1 * ? *")
+    String cleanInterval();
 
-        jobManager.registerJob(LogCleaner.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
-                new JobDataMap());
+    @WithName("clean-transaction-batch")
+    @WithDefault(DEFAULT_CLEAN_BATCH_SIZE)
+    int cleanTransactionBatchSize();
 
-        return jobManager;
-    }
+    @WithName("keep-records-for")
+    @WithDefault("30")
+    int cleanKeepRecordsFor();
 
-    @Bean
-    SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
-    }
+    @WithName("archive-transaction-batch")
+    @WithDefault(DEFAULT_ARCHIVE_BATCH_SIZE)
+    int archiveTransactionBatchSize();
+
+    @WithName("archive-path")
+    @WithDefault("/var/lib/xroad")
+    String archivePath();
+
+    @WithName("archive-transfer-command")
+    Optional<String> archiveTransferCommand();
+
 }

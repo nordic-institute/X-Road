@@ -91,6 +91,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.assertTaskQueueSize;
 import static org.niis.xroad.proxy.core.messagelog.TestUtil.cleanUpDatabase;
@@ -316,7 +317,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void logTimestampArchiveAndClean() throws Exception {
         log.trace("logTimestampArchiveAndClean()");
 
-        System.setProperty(MessageLogProperties.KEEP_RECORDS_FOR, "0");
+        when(logArchiverProperties.cleanKeepRecordsFor()).thenReturn(0);
 
         assertTaskQueueSize(0);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());
@@ -486,10 +487,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         // we do manual time-stamping
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
-        System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL, "0 0 0 1 1 ? 2099");
-        System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
 
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/");
+
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
 
         System.setProperty(MessageLogProperties.MESSAGELOG_ENCRYPTION_ENABLED, Boolean.valueOf(encrypted).toString());
@@ -499,6 +498,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         initForTest();
         testSetUp();
+
         initLastHashStep();
 
         // initialize states
