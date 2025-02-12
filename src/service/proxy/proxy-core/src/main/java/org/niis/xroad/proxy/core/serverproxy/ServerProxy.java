@@ -165,7 +165,8 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, client, opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, client, opMonitorClient,
+                new ClientProxyVersionVerifier(SystemProperties.getServerProxyMinSupportedClientVersion()));
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);

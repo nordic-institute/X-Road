@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.niis.xroad.proxy.application.testsuite.TestService;
+import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.serverconf.TestServerConf;
