@@ -5906,6 +5906,11 @@ components:
           format: text
           description: error message thrown during the certificate automatic renewal process
           readOnly: true
+        ocsp_verify_before_activation_error:
+          type: string
+          format: text
+          description: error message thrown when verifying ocsp responses before the certificate activation
+          readOnly: true
         next_automatic_renewal_time:
           type: string
           format: date-time
