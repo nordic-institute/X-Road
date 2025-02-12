@@ -27,11 +27,7 @@ dependencies {
   implementation(libs.guava)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(path = "::service:proxy:proxy-application", configuration = "testArtifacts"))
-  testImplementation(libs.hamcrest)
-
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
-  testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
 }
 

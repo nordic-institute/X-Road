@@ -9,21 +9,14 @@ dependencies {
   implementation(project(":service:proxy:proxy-core"))
   implementation(libs.logback.classic)
 
-  testImplementation(libs.hsqldb)
   testImplementation(libs.restAssured)
-  testImplementation(libs.apache.httpasyncclient)
-  testImplementation(project(":common:common-domain"))
   testImplementation(project(":common:common-jetty"))
-  testImplementation(project(":common:common-message"))
   testImplementation(project(":common:common-test"))
 
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
-  testImplementation(project(":common:common-scheduler"))
-  testImplementation(project(":common:common-messagelog"))
-  testImplementation(project(":service:op-monitor:op-monitor-api"))
 }
 
 tasks.jar {
@@ -41,27 +34,8 @@ tasks.shadowJar {
   mergeServiceFiles()
 }
 
-val testJar by tasks.registering(Jar::class) {
-  archiveClassifier.set("test")
-  from(sourceSets.test.get().output)
-}
-
-configurations {
-  create("testArtifacts") {
-    extendsFrom(configurations.testRuntimeOnly.get())
-  }
-}
-
-artifacts {
-  add("testArtifacts", testJar)
-}
-
 tasks.assemble {
   finalizedBy(tasks.shadowJar)
-}
-
-tasks.withType<Test> {
-  jvmArgs("-Xmx2G")
 }
 
 val runProxyTest by tasks.registering(JavaExec::class) {

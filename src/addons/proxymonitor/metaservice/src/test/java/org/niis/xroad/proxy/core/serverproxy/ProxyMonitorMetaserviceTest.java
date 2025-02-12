@@ -35,11 +35,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import org.niis.xroad.proxy.application.testsuite.MessageTestCase;
-import org.niis.xroad.proxy.application.testsuite.ProxyTestSuiteHelper;
-import org.niis.xroad.proxy.application.testsuite.TestContext;
-import org.niis.xroad.proxy.application.testsuite.TestcaseLoader;
 import org.niis.xroad.proxy.core.addon.AddOn;
+import org.niis.xroad.proxy.core.test.MessageTestCase;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
+import org.niis.xroad.proxy.core.test.TestContext;
+import org.niis.xroad.proxy.core.test.TestcaseLoader;
 import org.niis.xroad.proxymonitor.ProxyMonitor;
 
 import java.time.Clock;

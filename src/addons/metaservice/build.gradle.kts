@@ -12,18 +12,13 @@ dependencies {
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(path = ":service:proxy:proxy-application", configuration = "testArtifacts"))
 
   testImplementation(libs.wiremock.standalone)
   testImplementation(libs.wsdl4j)
-  testImplementation(libs.apache.httpmime)
-  testImplementation(libs.xmlunit.core)
   testImplementation(libs.xmlunit.matchers)
   testImplementation(libs.hsqldb)
-  testImplementation(libs.mockito.core)
   testImplementation(libs.jsonUnit.assertj)
 
-  testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(testFixtures(project(":service:proxy:proxy-core")))
