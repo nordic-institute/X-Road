@@ -48,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Objects;
 
+import static org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequestBuilder.likeWithName;
 import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_RECEIVER;
 import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_SERVER_ID;
 
@@ -115,6 +116,11 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .execute();
     }
 
+    @Step("Client Registration request for {string} with clientId {string} was sent")
+    public void executeRequest(String clientName, String clientIdStr) throws Exception {
+        executeRequestWithCustomServerId(clientName, clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
     @Step("Client Registration request with clientId {string} was sent")
     public void executeRequest(String clientIdStr) throws Exception {
         executeRequestWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
@@ -122,12 +128,17 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
 
     @Step("Client Registration request with clientId {string} and serverId {string} was sent")
     public void executeRequestWithCustomServerId(String clientIdStr, String serverId) throws Exception {
+        executeRequestWithCustomServerId(null, clientIdStr, serverId);
+    }
+
+    private void executeRequestWithCustomServerId(String clientName, String clientIdStr, String serverId) throws Exception {
         var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
-                .withSenderClientId(clientId)
+                .withSenderClientId(clientId.getMemberId())
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
+                .withClientName(clientName)
                 .withClientOcsp(CertificateStatus.GOOD)
                 .build();
         executeRequest(req.createPayload());
@@ -147,7 +158,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(TestManagementRequestBuilder::buildOwnerChangeRegRequest)
+                .withSoapMessageBuilder(likeWithName(TestManagementRequestBuilder::buildOwnerChangeRegRequest))
                 .build();
         executeRequest(req.createPayload());
     }
@@ -222,7 +233,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
                 .withSoapMessageBuilder(
-                        (builder, serverId1, clientId1) -> builder.buildAddressChangeRequest(serverId1, address))
+                        (builder, serverId1, clientId1, name) -> builder.buildAddressChangeRequest(serverId1, address))
                 .build();
         executeRequest(req.createPayload());
     }
@@ -241,7 +252,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientDisableRequest)
+                .withSoapMessageBuilder(likeWithName(TestManagementRequestBuilder::buildClientDisableRequest))
                 .build();
         executeRequest(req.createPayload());
     }
@@ -260,7 +271,27 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientEnableRequest)
+                .withSoapMessageBuilder(likeWithName(TestManagementRequestBuilder::buildClientEnableRequest))
+                .build();
+        executeRequest(req.createPayload());
+    }
+
+    @Step("Client rename request for {string} with clientId {string} was sent")
+    public void executeRequestClientRename(String clientName, String clientIdStr) throws Exception {
+        executeRequestClientRenameWithCustomServerId(clientName, clientIdStr, DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Client rename request for {string} with clientId {string} and serverId {string} was sent")
+    public void executeRequestClientRenameWithCustomServerId(String clientName, String clientIdStr, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdStr);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientName(clientName)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientRenameRequest)
                 .build();
         executeRequest(req.createPayload());
     }

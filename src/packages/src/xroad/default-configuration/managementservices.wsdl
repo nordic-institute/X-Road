@@ -138,6 +138,8 @@
             <xsd:element name="clientDisableResponse" type="tns:ClientRequestType"/>
             <xsd:element name="clientEnable" type="tns:ClientRequestType"/>
             <xsd:element name="clientEnableResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="clientRename" type="tns:ClientRequestType"/>
+            <xsd:element name="clientRenameResponse" type="tns:ClientRequestType"/>
             <xsd:element name="authCertReg" type="tns:AuthCertRegRequestType"/>
             <xsd:element name="authCertRegResponse" type="tns:AuthCertRegRequestType"/>
             <xsd:element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
@@ -224,6 +226,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+                    <xsd:element name="clientName" type="string" minOccurs="0" />
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:complexType name="AddressChangeRequestType">
@@ -284,6 +287,12 @@
     <wsdl:message name="clientEnableResponse">
         <wsdl:part element="xroad:clientEnableResponse" name="parameters"/>
     </wsdl:message>
+  <wsdl:message name="clientRename">
+    <wsdl:part element="xroad:clientRename" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientRenameResponse">
+    <wsdl:part element="xroad:clientRenameResponse" name="parameters"/>
+  </wsdl:message>
     <wsdl:message name="authCertReg">
         <wsdl:part element="xroad:authCertReg" name="parameters"/>
     </wsdl:message>
@@ -325,6 +334,10 @@
             <wsdl:input message="tns:clientEnable"/>
             <wsdl:output message="tns:clientEnableResponse"/>
         </wsdl:operation>
+      <wsdl:operation name="clientRename">
+        <wsdl:input message="tns:clientRename"/>
+        <wsdl:output message="tns:clientRenameResponse"/>
+      </wsdl:operation>
         <wsdl:operation name="authCertDeletion">
             <wsdl:input message="tns:authCertDeletion"/>
             <wsdl:output message="tns:authCertDeletionResponse"/>
@@ -412,6 +425,24 @@
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
+      <wsdl:operation name="clientRename">
+        <soap:operation soapAction=""/>
+        <wsdl:input>
+          <soap:body use="literal"/>
+          <soap:header message="tns:requestheader" part="client" use="literal"/>
+          <soap:header message="tns:requestheader" part="service" use="literal"/>
+          <soap:header message="tns:requestheader" part="id" use="literal"/>
+          <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        </wsdl:input>
+        <wsdl:output>
+          <soap:body use="literal"/>
+          <soap:header message="tns:requestheader" part="client" use="literal"/>
+          <soap:header message="tns:requestheader" part="service" use="literal"/>
+          <soap:header message="tns:requestheader" part="id" use="literal"/>
+          <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+          <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+        </wsdl:output>
+      </wsdl:operation>
         <wsdl:operation name="authCertDeletion">
             <soap:operation soapAction=""/>
             <wsdl:input>

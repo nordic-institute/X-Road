@@ -41,11 +41,13 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 public class ClientRegistrationRequest extends RequestWithProcessing {
 
     private ClientId clientId;
+    private String clientName;
 
     public ClientRegistrationRequest(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
-                                     ClientId clientId) {
+                                     ClientId clientId, String clientName) {
         super(origin, serverId);
         this.clientId = ClientId.ensure(clientId);
+        this.clientName = clientName;
     }
 
     @Override

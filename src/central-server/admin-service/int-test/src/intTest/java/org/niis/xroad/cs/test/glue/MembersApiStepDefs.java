@@ -120,7 +120,29 @@ public class MembersApiStepDefs extends BaseStepDefs {
 
         validate(response)
                 .assertion(equalsStatusCodeAssertion(OK))
-                .assertion(equalsAssertion(1, "body.?[subsystemId.subsystemCode == '" + subsystemCode + "'].size"))
+                .assertion(equalsAssertion(1, "body.?[subsystemId.subsystemCode == '%s'].size".formatted(subsystemCode)))
+                .execute();
+    }
+
+    @Step("member {string} subsystems contains {string} with name {string}")
+    public void memberSubsystemsContainsSubsystemWithName(String memberId, String subsystemCode, String subsystemName) {
+        final ResponseEntity<List<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.?[subsystemId.subsystemCode == '%s' and subsystemName == '%s'].size"
+                        .formatted(subsystemCode, subsystemName)))
+                .execute();
+    }
+
+    @Step("member {string} subsystems contains {string} without name")
+    public void memberSubsystemsContainsSubsystemWithoutName(String memberId, String subsystemCode) {
+        final ResponseEntity<List<SubsystemDto>> response = membersApi.getSubsystems(memberId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(1, "body.?[subsystemId.subsystemCode == '%s' and subsystemName == null].size"
+                        .formatted(subsystemCode)))
                 .execute();
     }
 

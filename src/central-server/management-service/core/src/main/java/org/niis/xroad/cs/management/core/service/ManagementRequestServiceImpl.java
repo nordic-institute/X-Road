@@ -43,6 +43,7 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
@@ -106,6 +107,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         ManagementRequestDto managementRequest = switch (requestType) {
             case CLIENT_REGISTRATION_REQUEST -> new ClientRegistrationRequestDto()
                     .clientId(clientIdConverter.convertId(request.getClient()))
+                    .clientName(request.getClientName())
                     .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
             case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestDto()
                     .clientId(clientIdConverter.convertId(request.getClient()))
@@ -119,6 +121,10 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestDto()
                     .clientId(clientIdConverter.convertId(request.getClient()))
                     .type(ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST);
+            case CLIENT_RENAME_REQUEST -> new ClientRenameRequestDto()
+                    .clientId(clientIdConverter.convertId(request.getClient()))
+                    .clientName(request.getClientName())
+                    .type(ManagementRequestTypeDto.CLIENT_RENAME_REQUEST);
             default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
         };
 

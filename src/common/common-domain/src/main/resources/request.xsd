@@ -11,6 +11,7 @@
     <element name="clientDeletion" type="tns:ClientRequestType"/>
     <element name="clientDisable" type="tns:ClientRequestType"/>
     <element name="clientEnable" type="tns:ClientRequestType"/>
+    <element name="clientRename" type="tns:ClientRequestType"/>
     <element name="ownerChange" type="tns:ClientRequestType"/>
     <element name="addressChange" type="tns:AddressChangeRequestType"/>
 
@@ -86,6 +87,7 @@
                 </annotation>
             </element>
             <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
+            <element name="clientName" type="string" minOccurs="0" />
         </sequence>
     </complexType>
     <complexType name="AddressChangeRequestType">

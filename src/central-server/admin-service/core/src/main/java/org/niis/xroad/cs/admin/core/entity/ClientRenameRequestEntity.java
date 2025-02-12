@@ -26,62 +26,53 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import jakarta.persistence.Access;
-import jakarta.persistence.AccessType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AccessLevel;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.niis.xroad.cs.admin.core.entity.validation.OptionalEntityIdentifier;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.Origin;
 
-import static org.niis.xroad.cs.admin.core.entity.SubsystemEntity.DISCRIMINATOR_VALUE;
+import static org.niis.xroad.cs.admin.core.entity.ClientRenameRequestEntity.DISCRIMINATOR_VALUE;
 
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
-public class SubsystemEntity extends SecurityServerClientEntity {
+public class ClientRenameRequestEntity extends RequestEntity {
+    public static final String DISCRIMINATOR_VALUE = "ClientRenameRequest";
 
-    public static final String DISCRIMINATOR_VALUE = "Subsystem";
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "xroad_member_id")
-    @Access(AccessType.FIELD)
-    @Getter
-    private XRoadMemberEntity xroadMember;
-
-    @Column(name = "subsystem_code")
-    @Access(AccessType.FIELD)
-    @Getter
-    private String subsystemCode;
-
-    @OptionalEntityIdentifier
-    @Column(name = "name")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "sec_serv_user_id")
     @Getter
     @Setter
-    private String name;
+    private ClientIdEntity clientId;
 
-    public SubsystemEntity(XRoadMemberEntity member, ClientId identifier) {
-        this(member, identifier, null);
+    @Column(name = "client_name")
+    @Getter
+    @Setter
+    private String clientName;
+
+    @Override
+    @Transient
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.CLIENT_RENAME_REQUEST;
     }
 
-    public SubsystemEntity(XRoadMemberEntity member, ClientId identifier, String name) {
-        super(SubsystemIdEntity.ensure(identifier));
-        if (!identifier.subsystemContainsMember(member.getIdentifier())) {
-            throw new IllegalArgumentException("Subsystem identifier does not match member");
-        }
-        this.xroadMember = member;
-        this.subsystemCode = identifier.getSubsystemCode();
-        this.name = name;
+    public ClientRenameRequestEntity(Origin origin,
+                                     SecurityServerId serverId,
+                                     ee.ria.xroad.common.identifier.ClientId clientId,
+                                     String clientName,
+                                     String comments) {
+        super(origin, serverId, comments);
+        this.clientId = ClientIdEntity.ensure(clientId);
+        this.clientName = clientName;
     }
-
 }
-
-

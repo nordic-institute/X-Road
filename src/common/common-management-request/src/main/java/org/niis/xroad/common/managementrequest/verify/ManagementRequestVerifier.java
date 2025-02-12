@@ -47,6 +47,7 @@ import org.niis.xroad.common.managementrequest.verify.decode.ClientDeletionReque
 import org.niis.xroad.common.managementrequest.verify.decode.ClientDisableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientRenameRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -196,6 +197,7 @@ public final class ManagementRequestVerifier {
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, this);
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, this);
+                case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, this);
             };
         }
 

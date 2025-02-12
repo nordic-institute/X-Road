@@ -91,8 +91,8 @@ public class TestManagementRequestBuilder {
         return buildMessage(element(ManagementRequestType.ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
     }
 
-    public SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
-        return buildGenericClientRequestType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST, securityServer, clientId);
+    public SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String clientName) {
+        return buildGenericClientRequestType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST, securityServer, clientId, clientName);
     }
 
     public SoapMessageImpl buildOwnerChangeRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
@@ -111,13 +111,23 @@ public class TestManagementRequestBuilder {
         return buildGenericClientRequestType(ManagementRequestType.CLIENT_ENABLE_REQUEST, securityServer, clientId);
     }
 
+    public SoapMessageImpl buildClientRenameRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String clientName) {
+        return buildGenericClientRequestType(ManagementRequestType.CLIENT_RENAME_REQUEST, securityServer, clientId, clientName);
+    }
+
     private SoapMessageImpl buildGenericClientRequestType(ManagementRequestType type, SecurityServerId.Conf securityServer,
                                                           ClientId.Conf clientId) {
+        return buildGenericClientRequestType(type, securityServer, clientId, null);
+    }
+
+    private SoapMessageImpl buildGenericClientRequestType(ManagementRequestType type, SecurityServerId.Conf securityServer,
+                                                          ClientId.Conf clientId, String clientName) {
         log.debug("buildClientRegRequest(server: {}, clientId: {})", securityServer, clientId);
 
         ClientRequestType request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(clientId);
+        request.setClientName(clientName);
 
         return buildMessage(element(type, ClientRequestType.class, request));
     }

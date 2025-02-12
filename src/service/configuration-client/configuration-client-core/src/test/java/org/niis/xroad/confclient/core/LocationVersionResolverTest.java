@@ -71,7 +71,7 @@ class LocationVersionResolverTest {
     @Test
     void presetVersionPrevailsWhenVersionNotEnforced() throws Exception {
         ConfigurationLocation location = getConfigurationLocation(wm.getRuntimeInfo().getHttpBaseUrl() + "?version=1");
-        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, location, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, location, 2, 5);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
@@ -95,30 +95,32 @@ class LocationVersionResolverTest {
     @Test
     void chooseFirstAvailableVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(ok()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 4);
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("5")).willReturn(ok()));
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 5);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
         assertThat(resolvedLocation).isNotNull();
-        assertThat(resolvedLocation.getDownloadURL()).isEqualTo(initialLocation.getDownloadURL() + "?version=4");
+        assertThat(resolvedLocation.getDownloadURL()).isEqualTo(initialLocation.getDownloadURL() + "?version=5");
         wm.verify(1, anyRequestedFor(anyUrl()));
     }
 
     @Test
     void fallbackToPreviousVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("5")).willReturn(notFound()));
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(notFound()));
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")).willReturn(ok()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 5);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
         assertThat(resolvedLocation).isNotNull();
         assertThat(resolvedLocation.getDownloadURL()).isEqualTo(initialLocation.getDownloadURL() + "?version=3");
+        wm.verify(1, getRequestedFor(urlEqualTo("/?version=5")));
         wm.verify(1, getRequestedFor(urlEqualTo("/?version=4")));
         wm.verify(1, getRequestedFor(urlEqualTo("/?version=3")));
-        wm.verify(2, anyRequestedFor(anyUrl()));
+        wm.verify(3, anyRequestedFor(anyUrl()));
     }
 
     @Test
@@ -126,15 +128,16 @@ class LocationVersionResolverTest {
         var initialLocation = getConfigurationLocation();
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(notFound()));
         wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")).willReturn(notFound()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 4);
+        LocationVersionResolver resolver = LocationVersionResolver.range(connectionConfigurer, initialLocation, 2, 5);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
 
         assertThat(resolvedLocation).isNotNull();
         assertThat(resolvedLocation.getDownloadURL()).isEqualTo(initialLocation.getDownloadURL() + "?version=2");
+        wm.verify(1, getRequestedFor(urlEqualTo("/?version=5")));
         wm.verify(1, getRequestedFor(urlEqualTo("/?version=4")));
         wm.verify(1, getRequestedFor(urlEqualTo("/?version=3")));
-        wm.verify(2, anyRequestedFor(anyUrl()));
+        wm.verify(3, anyRequestedFor(anyUrl()));
     }
 
     private ConfigurationLocation getConfigurationLocation() {

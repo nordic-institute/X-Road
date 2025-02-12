@@ -129,7 +129,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         ClientRegistrationRequestEntity req;
         switch (pending.size()) {
             case 0:
-                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getComments());
+                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getClientName(), request.getComments());
                 break;
             case 1:
                 ClientRegistrationRequestEntity anotherReq = pending.getFirst();
@@ -168,7 +168,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
             case SUBSYSTEM -> clients
                     .findOneBy(clientRegistrationRequest.getClientId())
                     // create new subsystem if necessary
-                    .orElseGet(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
+                    .orElseGet(() -> createSubsystem(clientMember, clientRegistrationRequest));
             default -> throw new IllegalArgumentException("Invalid client type");
         };
 
@@ -184,5 +184,9 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     @Override
     public Class<ClientRegistrationRequest> requestType() {
         return ClientRegistrationRequest.class;
+    }
+
+    private SecurityServerClientEntity createSubsystem(XRoadMemberEntity clientMember, ClientRegistrationRequestEntity request) {
+        return clients.save(new SubsystemEntity(clientMember, request.getClientId(), request.getClientName()));
     }
 }

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -38,6 +39,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 
@@ -55,14 +57,25 @@ public class ClientRegistrationRequestEntity extends RequestWithProcessingEntity
     @Getter
     private ClientIdEntity clientId;
 
-    public ClientRegistrationRequestEntity(Origin origin, SecurityServerId serverId, ClientIdEntity clientId, String comments) {
+    @Column(name = "client_name")
+    @Getter
+    @Setter
+    private String clientName;
+
+    public ClientRegistrationRequestEntity(Origin origin,
+                                           SecurityServerId serverId,
+                                           ClientIdEntity clientId,
+                                           String clientName,
+                                           String comments) {
         super(origin, serverId, comments, new ClientRegistrationRequestProcessingEntity());
         this.clientId = ClientIdEntity.ensure(clientId);
+        this.clientName = clientName;
     }
 
     public ClientRegistrationRequestEntity(Origin origin, String comments, ClientRegistrationRequestEntity other) {
         super(origin, other.getSecurityServerId(), comments, other.getRequestProcessing());
         this.clientId = ClientIdEntity.ensure(other.getClientId());
+        this.clientName = other.getClientName();
     }
 
     @Override
