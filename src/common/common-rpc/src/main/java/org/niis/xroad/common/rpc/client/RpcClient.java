@@ -33,6 +33,7 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
+import io.grpc.InsecureChannelCredentials;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
@@ -42,7 +43,6 @@ import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
 
 import java.util.concurrent.ForkJoinPool;
@@ -81,7 +81,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
         // will be removed
 //        var credentials = SystemProperties.isGrpcInternalTlsEnabled()
 //                ? RpcCredentialsConfigurer.createClientCredentials() : InsecureRpcCredentialsConfigurer.createClientCredentials();
-        var credentials = InsecureRpcCredentialsConfigurer.createClientCredentials();
+        var credentials = InsecureChannelCredentials.create(); //InsecureRpcCredentialsConfigurer.createClientCredentials();
 
         log.info("Starting grpc client to {}:{} with {} credentials..", host, port, credentials.getClass().getSimpleName());
 

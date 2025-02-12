@@ -29,7 +29,6 @@ package org.niis.xroad.proxy.core.test;
 
 import ee.ria.xroad.common.util.JobManager;
 
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
@@ -62,11 +61,10 @@ public class TestContext {
             SigningCtxProvider signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
 
             CertHelper certHelper = new CertHelper(globalConfProvider);
-            CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);
-            AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
+            AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(globalConfProvider, keyConfProvider, certHelper);
 
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certChainFactory, certHelper);
+                    keyConfProvider, signingCtxProvider, certHelper);
 
             clientProxy = new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
             clientProxy.afterPropertiesSet();

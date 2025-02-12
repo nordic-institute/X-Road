@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
