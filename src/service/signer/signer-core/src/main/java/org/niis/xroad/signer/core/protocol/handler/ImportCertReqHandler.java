@@ -168,11 +168,15 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             TokenManager.removeCert(existingCert.getId());
         }
 
-        TokenManager.addCert(keyInfo.getId(), memberId,
-                activate, true, initialStatus, SignerUtil.randomId(),
+        String certId = SignerUtil.randomId();
+        TokenManager.addCert(keyInfo.getId(), memberId, true, initialStatus, certId,
                 cert.getEncoded());
         TokenManager.setKeyUsage(keyInfo.getId(), keyUsage);
-        updateOcspResponse(cert);
+        boolean validOcspResponses = updateOcspResponseAndVerify(certId, cert);
+        if (validOcspResponses && activate) {
+            TokenManager.setCertActive(certId, true);
+        }
+
 
         log.info("Imported certificate to key '{}', certificate hash:\n{}",
                 keyInfo.getId(), certHash);
@@ -180,13 +184,18 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         deleteCertRequest(keyInfo.getId(), memberId);
     }
 
-    private void updateOcspResponse(X509Certificate cert) {
-        try {
-            ocspResponseManager.getOcspResponse(cert);
-        } catch (Exception e) {
-            log.error("Failed to update OCSP response for certificate "
-                    + cert.getSerialNumber(), e);
+    private boolean updateOcspResponseAndVerify(String certId, X509Certificate cert) {
+        if (CertUtils.isSelfSigned(cert)) {
+            return true;
         }
+        try {
+            ocspResponseManager.verifyOcspResponses(cert);
+        } catch (Exception e) {
+            log.error("Failed to verify OCSP responses for certificate {}", cert.getSerialNumber(), e);
+            TokenManager.setOcspVerifyBeforeActivationError(certId, e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     private void validateCertKeyUsage(boolean signing, boolean authentication,

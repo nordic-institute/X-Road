@@ -66,8 +66,7 @@ public class PossibleActionsRuleEngine {
         } else {
             if (tokenInfo.isAvailable()) {
                 actions.add(PossibleActionEnum.TOKEN_ACTIVATE);
-            }
-            if (!isSslTokenId(tokenInfo)) { // we can't delete initialized software token id
+            } else if (!isSslTokenId(tokenInfo)) { // we can't delete initialized software token id
                 actions.add(PossibleActionEnum.TOKEN_DELETE);
             }
         }

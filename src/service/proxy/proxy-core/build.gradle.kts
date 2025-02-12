@@ -41,17 +41,16 @@ dependencies {
 
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
+  testFixturesImplementation(project(":common:common-messagelog"))
+  testFixturesImplementation(project(":common:common-scheduler"))
+  testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
+  testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
+  testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
   testFixturesImplementation(libs.wsdl4j)
 
   "intTestRuntimeOnly"(project(":service:signer:signer-application"))
   "intTestImplementation"(project(":common:common-test"))
   "intTestImplementation"(project(":common:common-int-test"))
-}
-
-val testJar by tasks.registering(Jar::class) {
-  archiveBaseName.set("proxy-core")
-  archiveClassifier.set("test")
-  from(sourceSets.test.get().output)
 }
 
 tasks.register<Test>("intTest") {
@@ -85,4 +84,8 @@ tasks.register<Test>("intTest") {
 
 tasks.named("check") {
   dependsOn(tasks.named("intTest"))
+}
+
+tasks.withType<Test> {
+  jvmArgs("-Xmx2G")
 }

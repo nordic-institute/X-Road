@@ -49,9 +49,9 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteServerConf;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
