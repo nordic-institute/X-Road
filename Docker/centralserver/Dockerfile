@@ -5,6 +5,8 @@ ARG PACKAGE_SOURCE
 
 FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
+ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
+ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \

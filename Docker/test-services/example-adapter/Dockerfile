@@ -21,7 +21,7 @@ EOF
 
 #################################################################################
 FROM eclipse-temurin:17 AS build-example-adapter
-ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dmaven.repo.local=/app/.m2_repository -Dgradle.user.home=/app/.gradle_home"
+ENV GRADLE_OPTS="-XX:UseSVE=0 -Dorg.gradle.daemon=false -Dmaven.repo.local=/app/.m2_repository -Dgradle.user.home=/app/.gradle_home"
 RUN --mount=type=cache,from=build-xrd4j-lib,source=/app,target=/app <<EOF
     set -ex
     cd /app/xrd4j/example-adapter
@@ -32,6 +32,8 @@ EOF
 ################################################################################
 # copy/paste from xrd4j repo
 FROM eclipse-temurin:17-jre AS final
+ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
+ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
 
 # Add Rest Gateway jar to container
 COPY --from=build-example-adapter /example-adapter.war example-adapter.war

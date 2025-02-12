@@ -2,6 +2,7 @@
 set -e
 shopt -s nullglob
 XROAD_CONF_PATH="${XROAD_CONF_PATH:-/etc/xroad}"
+export _JAVA_OPTIONS=-XX:UseSVE=0
 
 gen_pw() {
   head -c 24 /dev/urandom | base64 | tr "/+" "_-"

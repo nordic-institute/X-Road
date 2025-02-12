@@ -16,6 +16,9 @@
     wait_for_ipv4_addresses: true
     devices: "{{ hostvars[item].container_ports | default({}) }}"
     timeout: 600
+    config:
+      environment.JDK_JAVA_OPTIONS: "-XX:UseSVE=0"
+      environment.JAVA_TOOL_OPTIONS: "-XX:UseSVE=0"
   tags:
     - ubuntu-container-init
 
@@ -34,6 +37,9 @@
     profiles: [ "default" ]
     wait_for_ipv4_addresses: true
     timeout: 600
+    config:
+      environment.JDK_JAVA_OPTIONS: "-XX:UseSVE=0"
+      environment.JAVA_TOOL_OPTIONS: "-XX:UseSVE=0"
   tags:
     - centos-container-init
   vars:
