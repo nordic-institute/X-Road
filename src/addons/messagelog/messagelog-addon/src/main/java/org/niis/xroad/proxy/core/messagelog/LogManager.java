@@ -42,8 +42,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.InputStream;

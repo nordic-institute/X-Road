@@ -6,3 +6,5 @@ xroad:
     update-interval: 3
     global-conf-tls-cert-verification: false
     global-conf-hostname-verification: false
+  signer:
+    enforce-token-pin-policy: true

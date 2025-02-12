@@ -45,9 +45,9 @@ import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
+import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 

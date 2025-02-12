@@ -27,24 +27,67 @@
 
 package org.niis.xroad.signer.test;
 
-import lombok.experimental.UtilityClass;
+import com.nortal.test.core.services.TestableApplicationInfoProvider;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 
 /**
  * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would
  * need to recreate on every feature.
  */
-@UtilityClass
+@Slf4j
+@Component
+@ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
+@RequiredArgsConstructor
 public class SignerClientHolder {
+    private final TestableApplicationInfoProvider testableApplicationInfoProvider;
 
-    private static SignerRpcClient signerRpcClientInstance;
+    @Value("${test-automation.custom.grpc-client-host-override:#{null}}")
+    private final String grpcHostOverride;
 
-    public static void set(SignerRpcClient signerRpcClient) {
-        signerRpcClientInstance = signerRpcClient;
-    }
+    private SignerRpcClient signerRpcClientInstance;
 
-    public static SignerRpcClient get() {
+
+    public SignerRpcClient get() {
         return signerRpcClientInstance;
     }
 
+    @SneakyThrows
+    public SignerRpcClient initWithTimeout(int timeoutMillis) {
+        var properties = new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return grpcHostOverride != null ? grpcHostOverride : testableApplicationInfoProvider.getHost();
+            }
+
+            @Override
+            public int port() {
+                return testableApplicationInfoProvider.getMappedPort(SIGNER_GRPC_PORT);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return timeoutMillis;
+            }
+        };
+
+        signerRpcClientInstance = new SignerRpcClient(getFactory(), properties);
+        signerRpcClientInstance.init();
+        log.info("Will use {}:{} (original port {})  for signer RPC connection..", properties.host(), properties.port(), SIGNER_GRPC_PORT);
+        return signerRpcClientInstance;
+    }
+
+    private RpcChannelFactory getFactory() {
+        return new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
+    }
 }

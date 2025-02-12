@@ -26,16 +26,14 @@
 package org.niis.xroad.keyconf.impl;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -45,13 +43,15 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
-import java.lang.ref.WeakReference;
-import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -64,10 +64,13 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     private final Cache<ClientId, SigningInfo> signingInfoCache;
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
-    private FileWatcherRunner keyConfChangeWatcher;
 
-    CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                       SignerRpcClient signerRpcClient) {
+    private final int checkPeriod = 5;
+    private String previousChecksum;
+    private final ScheduledExecutorService taskScheduler;
+
+    public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                              SignerRpcClient signerRpcClient) {
         super(globalConfProvider, serverConfProvider, signerRpcClient);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
@@ -76,14 +79,14 @@ public class CachingKeyConfImpl extends KeyConfImpl {
                 .maximumSize(1)
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
+        taskScheduler = Executors.newSingleThreadScheduledExecutor();
+        taskScheduler.scheduleAtFixedRate(this::checkForKeyConfChanges, checkPeriod, checkPeriod, TimeUnit.SECONDS);
     }
 
     @Override
+    @PreDestroy
     public void destroy() {
         invalidateCaches();
-        if (keyConfChangeWatcher != null) {
-            keyConfChangeWatcher.stop();
-        }
         super.destroy();
     }
 
@@ -98,7 +101,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
             return signingInfo;
 
         } catch (ExecutionException e) {
-            throw new CodedException(ErrorCodes.X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }
@@ -137,14 +140,14 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        org.niis.xroad.signer.api.dto.AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
+        var keyInfo = signerRpcClient.getAuthKey(serverId);
 
-        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
+        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.cert().getCertificateBytes());
 
         List<OCSPResp> ocspResponses = getOcspResponses(certChain.getAdditionalCerts());
-        ocspResponses.add(new OCSPResp(keyInfo.getCert().getOcspBytes()));
+        ocspResponses.add(new OCSPResp(keyInfo.cert().getOcspBytes()));
 
-        PrivateKey key = loadAuthPrivateKey(keyInfo);
+        PrivateKey key = keyInfo.key();
 
         // Lower bound for validity is "now", verify validity of the chain at that time.
         final Date notBefore = new Date();
@@ -155,56 +158,19 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         return new AuthKeyInfo(key, certChain, notBefore, notAfter);
     }
 
-    protected void watcherStarted() {
-        //for testability
+    void checkForKeyConfChanges() {
+        try {
+            String checkSum = signerRpcClient.getKeyConfChecksum();
+            if (!StringUtils.equals(previousChecksum, checkSum)) {
+                log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
+                previousChecksum = checkSum;
+                invalidateCaches();
+            }
+        } catch (Exception e) {
+            log.error("Failed to get key conf checksum", e);
+            invalidateCaches();
+        }
     }
 
-    /**
-     * Create a new CachingKeyConf instance and set up keyconf change watcher.
-     */
-    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                                SignerRpcClient signerRpcClient)
-            throws Exception {
-        final FileContentChangeChecker changeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
-        final CachingKeyConfImpl instance = new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
-        // the change watcher can not be created in the constructor, because that would publish the
-        // instance reference to another thread before the constructor finishes.
-        instance.keyConfChangeWatcher = createChangeWatcher(new WeakReference<>(instance), changeChecker);
-        return instance;
-    }
 
-    /* Implementation note:
-     * Weak reference for the callback is used so that CachingKeyConf instance can be garbage collected
-     * (e.g. after KeyConf reload). Otherwise, the FileWatcher background thread keeps it alive and creates a leak
-     * if one fails to call destroy.
-     */
-    static FileWatcherRunner createChangeWatcher(WeakReference<CachingKeyConfImpl> ref,
-                                                 FileContentChangeChecker changeChecker) {
-        return FileWatcherRunner.create()
-                .watchForChangesIn(Paths.get(changeChecker.getFileName()))
-                .listenToCreate()
-                .listenToModify()
-                .andOnChangeNotify(() -> {
-                    final CachingKeyConfImpl conf = ref.get();
-                    if (conf == null) {
-                        //stop watcher since the CachingKeyConf has become garbage
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                    boolean changed = true;
-                    try {
-                        changed = changeChecker.hasChanged();
-                    } catch (Exception e) {
-                        log.error("Failed to check if key conf has changed", e);
-                    }
-                    if (changed) conf.invalidateCaches();
-                })
-                .andOnStartupNotify(() -> {
-                    final CachingKeyConfImpl conf = ref.get();
-                    if (conf != null) {
-                        conf.watcherStarted();
-                    }
-                })
-                .buildAndStartWatcher();
-    }
 }

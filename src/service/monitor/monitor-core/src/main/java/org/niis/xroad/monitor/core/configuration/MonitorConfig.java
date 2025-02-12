@@ -40,7 +40,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
-import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.io.IOException;
 import java.util.List;
@@ -85,14 +84,6 @@ public class MonitorConfig {
         @WithDefault("2552")
         @Override
         int port();
-    }
-
-    // todo will be dropped after signer migration
-    @ApplicationScoped
-    SignerRpcClient signerRpcClient() throws Exception {
-        var signerClient = new SignerRpcClient();
-        signerClient.init();
-        return signerClient;
     }
 
 }

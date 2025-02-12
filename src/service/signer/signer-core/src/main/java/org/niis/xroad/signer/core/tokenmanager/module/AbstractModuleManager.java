@@ -29,17 +29,16 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -59,21 +58,19 @@ import static java.util.Objects.requireNonNull;
  * Module manager base class.
  */
 @Slf4j
-public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider, InitializingBean, DisposableBean {
+@RequiredArgsConstructor
+public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
-    @Autowired
-    private OcspResponseManager ocspResponseManager;
+    private final ModuleConf moduleConf;
+    protected final SignerProperties signerProperties;
+    protected final OcspResponseManager ocspResponseManager;
 
     @SuppressWarnings("java:S3077")
     private volatile Map<String, AbstractModuleWorker> moduleWorkers = Collections.emptyMap();
 
     private FileWatcherRunner keyConfFileWatcherRunner;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        start();
-    }
 
     @Override
     public void start() {
@@ -159,12 +156,12 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     private void loadModules() {
         log.trace("loadModules()");
 
-        if (!ModuleConf.hasChanged()) {
+        if (!moduleConf.hasChanged()) {
             // do not reload, if conf has not changed
             return;
         }
 
-        ModuleConf.reload();
+        moduleConf.reload();
 
         final Collection<ModuleType> modules = ModuleConf.getModules();
         final Map<String, AbstractModuleWorker> refreshedWorkerModules = loadModules(modules);

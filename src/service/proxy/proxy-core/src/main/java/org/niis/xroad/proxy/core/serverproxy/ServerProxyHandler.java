@@ -64,8 +64,17 @@ class ServerProxyHandler extends HandlerBase {
     private final ProxyProperties.ServerProperties serverProperties;
     private final HttpClient client;
     private final HttpClient opMonitorClient;
+    private final ClientProxyVersionVerifier clientProxyVersionVerifier;
 
     private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
+
+    ServerProxyHandler(CommonBeanProxy commonBeanProxy, HttpClient client, HttpClient opMonitorClient,
+                       ClientProxyVersionVerifier clientProxyVersionVerifier) {
+        this.commonBeanProxy = commonBeanProxy;
+        this.client = client;
+        this.opMonitorClient = opMonitorClient;
+        this.clientProxyVersionVerifier = clientProxyVersionVerifier;
+    }
 
     @Override
     @WithSpan
@@ -87,7 +96,7 @@ class ServerProxyHandler extends HandlerBase {
 
             commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
-            ClientProxyVersionVerifier.check(request);
+            clientProxyVersionVerifier.check(request);
             final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
                     ResponseWrapper.of(response), opMonitoringData);
             processor.process();

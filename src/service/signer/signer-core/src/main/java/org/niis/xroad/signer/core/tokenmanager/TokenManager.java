@@ -629,6 +629,17 @@ public final class TokenManager {
     }
 
     /**
+     * Delete token.
+     *
+     * @param tokenId        the token id
+     */
+    public static synchronized void deleteToken(String tokenId) {
+        log.trace("deleteToken({})", tokenId);
+
+        currentTokens.remove(findToken(tokenId));
+    }
+
+    /**
      * Sets the key label.
      *
      * @param keyId the key id
@@ -720,14 +731,13 @@ public final class TokenManager {
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
      */
-    public static synchronized void addCert(String keyId, ClientId.Conf memberId, boolean active, boolean savedToConfiguration,
+    public static synchronized void addCert(String keyId, ClientId.Conf memberId, boolean savedToConfiguration,
                                             String initialStatus, String id, byte[] certificate) {
         log.trace("addCert({})", keyId);
 
         Key key = findKey(keyId);
 
         Cert cert = new Cert(id);
-        cert.setActive(active);
         cert.setCertificate(certificate);
         cert.setMemberId(memberId);
         cert.setSavedToConfiguration(savedToConfiguration);
@@ -786,6 +796,19 @@ public final class TokenManager {
         log.trace("setRenewalError({}, {})", certId, errorMessage);
 
         findCert(certId).setRenewalError(errorMessage);
+    }
+
+    /**
+     * Sets the error message that was thrown during the automatic certificate renewal process.
+     *
+     * @param certId the certificate id
+     * @param errorMessage error message of the thrown error
+     */
+    public static synchronized void setOcspVerifyBeforeActivationError(String certId,
+                                                                       String errorMessage) {
+        log.trace("setOcspVerifyError({}, {})", certId, errorMessage);
+
+        findCert(certId).setOcspVerifyBeforeActivationError(errorMessage);
     }
 
     /**

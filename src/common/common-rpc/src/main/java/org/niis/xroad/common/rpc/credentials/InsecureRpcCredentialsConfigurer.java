@@ -30,11 +30,9 @@ import io.grpc.ChannelCredentials;
 import io.grpc.InsecureChannelCredentials;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.ServerCredentials;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
 public class InsecureRpcCredentialsConfigurer implements RpcCredentialsConfigurer {
     @Override
     public ServerCredentials createServerCredentials() {

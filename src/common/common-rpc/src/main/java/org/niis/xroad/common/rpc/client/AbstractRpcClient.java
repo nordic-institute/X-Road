@@ -36,7 +36,7 @@ import org.niis.xroad.rpc.error.CodedExceptionProto;
 
 import java.util.concurrent.Callable;
 
-public abstract class AbstractRpcClient {
+public abstract class AbstractRpcClient implements AutoCloseable {
 
     public <V> V exec(Callable<V> grpcCall) throws Exception {
         try {

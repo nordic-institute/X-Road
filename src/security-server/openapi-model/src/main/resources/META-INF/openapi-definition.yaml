@@ -5050,6 +5050,7 @@ paths:
             type: string
             format: text
             minLength: 1
+            maxLength: 1023
       responses:
         '200':
           description: token object
@@ -5067,6 +5068,39 @@ paths:
           description: resource requested does not exists
         '406':
           description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete:
+      tags:
+        - tokens
+      summary: delete security server token
+      operationId: deleteToken
+      description: <h3>Administrator delete inactive token of the security server.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: request action not possible
         '500':
           description: internal server error
     patch:
@@ -5872,6 +5906,11 @@ components:
           format: text
           description: error message thrown during the certificate automatic renewal process
           readOnly: true
+        ocsp_verify_before_activation_error:
+          type: string
+          format: text
+          description: error message thrown when verifying ocsp responses before the certificate activation
+          readOnly: true
         next_automatic_renewal_time:
           type: string
           format: date-time
@@ -6186,6 +6225,7 @@ components:
         - GENERATE_AUTH_CSR
         - GENERATE_SIGN_CSR
         - TOKEN_CHANGE_PIN
+        - TOKEN_DELETE
     Client:
       type: object
       description: x-road client

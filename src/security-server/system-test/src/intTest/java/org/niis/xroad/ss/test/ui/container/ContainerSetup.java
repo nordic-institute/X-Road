@@ -99,7 +99,7 @@ public class ContainerSetup {
                 genericContainer
                         .withNetworkAliases(NETWORK_ALIAS)
                         .withCreateContainerCmdModifier(cmd ->
-                                Objects.requireNonNull(cmd.getHostConfig()).withMemory(2248 * 1024 * 1024L));
+                                Objects.requireNonNull(cmd.getHostConfig()).withMemory(2500 * 1024 * 1024L));
             }
 
             @Override

@@ -28,17 +28,17 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for signing mechanism based on key id.
  */
-@Component
+@ApplicationScoped
 public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechanismReq, GetSignMechanismResp> {
 
     @Override

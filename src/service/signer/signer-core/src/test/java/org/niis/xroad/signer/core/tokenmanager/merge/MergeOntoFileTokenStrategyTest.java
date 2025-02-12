@@ -88,45 +88,91 @@ public class MergeOntoFileTokenStrategyTest {
      * @see MergeOntoFileTokensStrategy#merge(List, List)
      */
     @Test
-    public void mergeShouldAddMissingTokens() {
+    public void mergeShouldAddMissingActiveTokensFromMemory() {
 
-        Token fileToken1 = new Token(SoftwareModuleType.TYPE, "1");
-        Token fileToken2 = new Token(SoftwareModuleType.TYPE, "2");
-        Token memoryToken1 = new Token(SoftwareModuleType.TYPE, "1");
-        Token memoryToken2 = new Token(SoftwareModuleType.TYPE, "2");
-        Token memoryToken3 = new Token(SoftwareModuleType.TYPE, "3");
-
-
+        Token fileToken1 = createActiveToken("1");
+        Token fileToken2 = createAvailableToken("2");
+        Token memoryToken1 = createActiveToken("1");
+        Token memoryToken2 = createAvailableToken("2");
+        Token memoryToken3 = createActiveToken("3");
         List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
-
         List<Token> memoryList = Arrays.asList(memoryToken1, memoryToken2, memoryToken3);
-        final int memListSize = memoryList.size();
 
         MergeResult result = testedStrategy.merge(fileList, memoryList);
 
-        List<Token> mergedList = result.getResultTokens();
+        assertThat("Missing tokens were added", result.getResultTokens().size(), is(memoryList.size()));
+        assertThat("Missing tokens were added", result.getResultTokens(), hasItems(fileToken1, fileToken2, memoryToken3));
+    }
 
-        assertThat("Missing tokens were not added", mergedList.size(), is(memListSize));
-        assertThat("Missing tokens were not added", mergedList, hasItems(fileToken1, fileToken2, memoryToken3));
+    @Test
+    public void mergeShouldAddMissingAvailableTokensFromMemory() {
+
+        Token fileToken1 = createActiveToken("1");
+        Token fileToken2 = createAvailableToken("2");
+        Token memoryToken1 = createActiveToken("1");
+        Token memoryToken2 = createAvailableToken("2");
+        Token memoryToken3 = createAvailableToken("3");
+        List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
+        List<Token> memoryList = Arrays.asList(memoryToken1, memoryToken2, memoryToken3);
+
+        MergeResult result = testedStrategy.merge(fileList, memoryList);
+
+        assertThat("Missing tokens were added", result.getResultTokens().size(), is(memoryList.size()));
+        assertThat("Missing tokens were added", result.getResultTokens(), hasItems(fileToken1, fileToken2, memoryToken3));
+    }
+
+    @Test
+    public void mergeShouldNotAddMissingInactiveAndUnavailableTokensFromMemory() {
+
+        Token fileToken1 = createActiveToken("1");
+        Token fileToken2 = createInactiveAndUnavailableToken("2");
+        Token memoryToken1 = createActiveToken("1");
+        Token memoryToken2 = createInactiveAndUnavailableToken("2");
+        Token memoryToken3 = createInactiveAndUnavailableToken("3");
+        List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
+        List<Token> memoryList = Arrays.asList(memoryToken1, memoryToken2, memoryToken3);
+
+        MergeResult result = testedStrategy.merge(fileList, memoryList);
+
+        assertThat("Missing tokens were not added", result.getResultTokens().size(), is(fileList.size()));
+        assertThat("Missing tokens were not added", result.getResultTokens(), hasItems(fileToken1, fileToken2));
     }
 
     /**
      * @see MergeOntoFileTokensStrategy#merge(List, List)
      */
     @Test
-    public void mergeShouldMergeTokensInLists() {
+    public void mergeShouldNotChangeTokensActiveState() {
         final String tokenId = "1124";
 
-        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId);
-        fileToken.setActive(false);
+        Token fileToken = createInactiveAndUnavailableToken(tokenId);
 
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId);
+        Token memoryToken = createInactiveAndUnavailableToken(tokenId);
         memoryToken.setActive(true);
 
         MergeResult result = testedStrategy.merge(Collections.singletonList(fileToken),
                 Collections.singletonList(memoryToken));
 
-        assertTrue("Token was not merged, isActive was not changed", result.getResultTokens().get(0).isActive());
+        assertTrue("Token was not merged, isActive was not changed", result.getResultTokens().getFirst().isActive());
+    }
+
+    private static Token createActiveToken(String id) {
+        return createToken(id, true, true);
+    }
+
+    private static Token createAvailableToken(String id) {
+        return createToken(id, false, true);
+    }
+
+    private static Token createInactiveAndUnavailableToken(String id) {
+        return createToken(id, false, false);
+    }
+
+    private static Token createToken(String id, boolean active, boolean available) {
+        Token token = new Token(SoftwareModuleType.TYPE, id);
+        token.setActive(active);
+        token.setAvailable(available);
+        return token;
     }
 
     /**

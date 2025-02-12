@@ -41,7 +41,7 @@ import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.serverconf.ServerConfProvider;

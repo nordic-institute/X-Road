@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.91  
+Version: 2.93  
 Doc. ID: UG-SS
 
 ---
@@ -120,6 +120,8 @@ Doc. ID: UG-SS
 | 17.12.2024 | 2.89    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 07.01.2025 | 2.90    | Updated references                                                                                                                                                                                                                                                                                                                                                                                          | Petteri Kivimäki     |
 | 15.01.2025 | 2.91    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki     |
+| 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
+| 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -178,6 +180,7 @@ Doc. ID: UG-SS
     - [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
     - [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
   - [5.7 Deleting a Key](#57-deleting-a-key)
+  - [5.8 Deleting an inactive Token](#58-deleting-an-inactive-token)
 - [6 X-Road Services](#6-x-road-services)
   - [6.1 Adding a service description](#61-adding-a-service-description)
     - [6.1.1 SOAP](#611-soap)
@@ -1194,7 +1197,7 @@ A Security Server certificate can be in one of the following validity states.
 
 -   For signing certificates: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
-Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled".
+Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled". Certificate can be activated only when OCSP responses are valid.
 
 To activate or disable a certificate, follow these steps.
 
@@ -1296,6 +1299,19 @@ To delete a key, follow these steps.
 
     3.1 In the opening **Key** dialog, click **DELETE**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
 
+### 5.8 Deleting an inactive Token
+
+**Warning:** Deleting an inactive token from the server configuration also deletes all associated information of the token.
+
+**Access rights:** [Service Administrator](#xroad-service-administrator)
+
+To delete a token, follow these steps.
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  Select the inactive token, then end of the token name click **Edit** icon.
+
+3.  In the opening **Edit** dialog, click **DELETE**. Confirm the deletion of the token (and its associated information) by clicking **YES**.
 
 ## 6 X-Road Services
 
@@ -3280,9 +3296,13 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
+**Automatic certificate activation**
+
+It is also possible to let the Security Server automatically activate new certificate once it is ordered for signing certificates or once it is registered for authentication certificates. This behaviour can be controlled by respective [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+
 **E-mail notifications**
 
-The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure and authentication certificate registration success. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure, authentication certificate registration success and signing and authentication certificate automatic activation success or failure. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
 
 The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
 

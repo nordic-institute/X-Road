@@ -46,7 +46,6 @@ import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.proxy.proto.QuarkusProxyRpcChannelProperties;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -101,11 +100,7 @@ class SystemMetricsSensorTest {
     private MetricRegistry metricRegistry = new MetricRegistry();
 
     static {
-        try {
-            PORT = TestPortUtils.findRandomPort();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        PORT = TestPortUtils.findRandomPort();
     }
 
     @BeforeAll

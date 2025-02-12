@@ -1,45 +1,46 @@
 plugins {
   id("xroad.java-conventions")
-  id("xroad.java-exec-conventions")
-  alias(libs.plugins.shadow)
+  alias(libs.plugins.quarkus)
 }
 
-dependencies {
-  implementation(libs.commons.cli)
-  implementation(libs.cliche)
-
-  implementation(project(":common:common-domain"))
-  implementation(project(":service:signer:signer-client"))
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      // Common properties
+      put("quarkus.package.output-directory", "libs")
+      put("quarkus.package.output-name", "signer-console-1.0")
+      put("quarkus.package.jar.type", "uber-jar")
+      put("quarkus.package.jar.add-runner-suffix", "false")
+    }
+  )
 }
 
-val mainClassName = "org.niis.xroad.signer.cli.SignerCLI"
-
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to mainClassName)
+tasks {
+  named<JavaCompile>("compileJava") {
+    dependsOn("compileQuarkusGeneratedSourcesJava")
   }
 }
 
-tasks.shadowJar {
-  archiveBaseName.set("signer-console")
-  archiveClassifier.set("")
-  exclude("**/module-info.class")
-  exclude("asg/cliche/example/**")
-  from(rootProject.file("LICENSE.txt"))
-  mergeServiceFiles()
+dependencies {
+  implementation(platform(libs.quarkus.bom))
+
+  implementation(libs.commons.cli)
+  implementation(libs.cliche)
+
+  implementation(libs.bundles.quarkus.core)
+
+  implementation(project(":common:common-domain"))
+  implementation(project(":service:signer:signer-client"))
+  implementation(project(":lib:bootstrap-quarkus"))
+
+  testImplementation(libs.quarkus.junit5)
+  testImplementation(libs.mockito.jupiter)
 }
 
 tasks.jar {
   enabled = false
 }
 
-tasks.build {
-  dependsOn(tasks.shadowJar)
-}
-
-tasks.register<JavaExec>("runSignerConsole") {
-  jvmArgs("-Djava.library.path=../passwordstore")
-  mainClass.set("org.niis.xroad.signer.cli.SignerCLI")
-  classpath = sourceSets.test.get().runtimeClasspath
-  standardInput = System.`in`
+tasks.test {
+  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

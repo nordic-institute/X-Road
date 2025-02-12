@@ -1,0 +1,5 @@
+xroad:
+  signer:
+    device-configuration-file: /etc/xroad/signer/devices.ini
+    rpc:
+      listen-address: "0.0.0.0"

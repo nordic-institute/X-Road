@@ -33,8 +33,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 
 import java.security.cert.CertificateEncodingException;
@@ -115,6 +115,11 @@ public class Cert {
      * Holds the OCSP response of the certificate.
      */
     private OCSPResp ocspResponse;
+
+    /**
+     * Error message thrown during the certificate activation when verifying ocsp responses
+     */
+    private String ocspVerifyBeforeActivationError;
 
     /**
      * Sets the certificate and hash
@@ -199,6 +204,9 @@ public class Cert {
             }
             if (ocspResponse != null) {
                 builder.setOcspBytes(ByteString.copyFrom(ocspResponse.getEncoded()));
+            }
+            if (ocspVerifyBeforeActivationError != null) {
+                builder.setOcspVerifyBeforeActivationError(ocspVerifyBeforeActivationError);
             }
             if (renewedCertHash != null) {
                 builder.setRenewedCertHash(renewedCertHash);

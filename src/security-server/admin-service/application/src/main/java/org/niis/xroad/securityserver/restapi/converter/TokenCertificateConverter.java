@@ -92,6 +92,7 @@ public class TokenCertificateConverter {
                 .orElse(null));
         tokenCertificate.setRenewedCertHash(certificateInfo.getRenewedCertHash());
         tokenCertificate.setRenewalError(certificateInfo.getRenewalError());
+        tokenCertificate.setOcspVerifyBeforeActivationError(certificateInfo.getOcspVerifyBeforeActivationError());
         if (certificateInfo.getNextAutomaticRenewalTime() != null) {
             tokenCertificate.setNextAutomaticRenewalTime(certificateInfo.getNextAutomaticRenewalTime().atOffset(ZoneOffset.UTC));
         }

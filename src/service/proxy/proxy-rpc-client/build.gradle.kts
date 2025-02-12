@@ -5,8 +5,8 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
-  implementation(project(":lib:globalconf-core")) //for the ee.ria.xroad.common.DiagnosticsStatus
+  implementation(project(":common:common-domain"))
+  implementation(project(":service:configuration-client:configuration-client-model")) //TODO this is due to diagnostic status
   implementation(project(":common:common-rpc"))
 }
 

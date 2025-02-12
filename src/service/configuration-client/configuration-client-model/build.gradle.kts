@@ -5,4 +5,6 @@ plugins {
 
 dependencies {
   api(project(":common:common-rpc"))
+
+  implementation(project(":common:common-core"))
 }

@@ -53,8 +53,8 @@ public class ProxyConfig {
 
     @ApplicationScoped
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
+                                    SignerRpcClient signerRpcClient) {
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
     @ApplicationScoped

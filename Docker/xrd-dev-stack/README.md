@@ -19,6 +19,8 @@ The Compose environment also contains a Hurl container and scripts to initialize
 * **SS1** One consumer Security Server, which has the `DEV:COM:4321:TestClient` subsystem registered to it.
 * **ISSOAP** The `example-adapter` container. More information regarding it is available in
   [its own repository](https://github.com/nordic-institute/xrd4j/tree/develop/example-adapter).
+* **ISOPENAPI** The `example-restapi` container. More information regarding it is available in
+  [its own repository](https://github.com/nordic-institute/x-road-example-restapi).
 * **ISREST** Wiremock container with a simple predefined rest endpoint.
 * **TESTCA** CA authority for dev env.
 

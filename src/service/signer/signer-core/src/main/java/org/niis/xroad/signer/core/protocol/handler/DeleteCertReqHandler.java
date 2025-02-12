@@ -27,14 +27,14 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.DeleteCertReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound;
@@ -44,7 +44,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound
  * we delete it on the token. Otherwise we remove the certificate from the
  * configuration.
  */
-@Component
+@ApplicationScoped
 public class DeleteCertReqHandler
         extends AbstractRpcHandler<DeleteCertReq, Empty> {
 

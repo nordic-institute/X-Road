@@ -35,7 +35,7 @@ import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.globalconf.GlobalConfRpcCache;
 import org.niis.xroad.confclient.core.schedule.RetryingQuartzJob;
 import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;

@@ -114,6 +114,11 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
                     <documentation>Message of the error that is thrown during the automatic renewal process</documentation>
                 </annotation>
             </element>
+            <element name="ocspVerifyBeforeActivationError" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Message of the error that is thrown during the ocsp responses verification before the certificates activation</documentation>
+                </annotation>
+            </element>
         </sequence>
         <attribute default="true" name="active" type="boolean">
             <annotation>

@@ -66,7 +66,7 @@ fun gitCommitDate(): String? {
 }
 
 tasks.processResources {
-  filesMatching("**/version.properties") {
+  filesMatching("**/xroad-version.properties") {
     filter(
       mapOf(
         "tokens" to mapOf(

@@ -155,7 +155,8 @@ public class ServerProxy {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, serverProperties, client, opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, serverProperties, client,
+                opMonitorClient, SystemProperties.getServerProxyMinSupportedClientVersion());
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);

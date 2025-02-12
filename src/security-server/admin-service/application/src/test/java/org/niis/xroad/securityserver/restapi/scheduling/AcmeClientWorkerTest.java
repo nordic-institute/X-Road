@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -37,6 +38,7 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -45,6 +47,7 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -89,6 +92,8 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     private AcmeClientWorker acmeClientWorker;
     @Mock
     ManagementRequestSender managementRequestSenderMock;
+    @SpyBean
+    MailNotificationHelper mailNotificationHelper;
 
     private final KeyPair keyPair = getKeyPairGenerator().generateKeyPair();
     private final TestCertUtil.PKCS12 ca = getCa();
@@ -163,6 +168,11 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         doReturn(managementRequestSenderMock).when(acmeClientWorker).createManagementRequestSender();
     }
 
+    @After
+    public void tearDown() throws Exception {
+        System.clearProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE);
+    }
+
     private CertificateInfo createCertificateInfo(String certId, String commonName, KeyUsage keyUsage, Date notBefore,
                                                   Date notAfter, String renewedCertHash)
             throws OperatorCreationException, IOException, CertificateException {
@@ -205,7 +215,28 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
-    public void failureAuthAndSignCertRollback() throws Exception {
+    public void successfulAuthAndSignCertRenewalsAutoActivateCert() {
+        System.setProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, "true");
+        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
+        acmeClientWorker.execute(scheduler);
+
+        verify(signerRpcClient).importCert(any(), any(), any(), eq(false));
+        verify(signerRpcClient).importCert(any(), any(), any(), eq(true));
+        verify(mailNotificationHelper).sendCertActivatedNotification(any(), any(), any(), any());
+    }
+
+    @Test
+    public void successfulAuthAndSignCertRenewalsManualActivateCert() {
+        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
+        acmeClientWorker.execute(scheduler);
+
+        verify(signerRpcClient, times(2)).importCert(any(), any(), any(), eq(false));
+        verify(signerRpcClient, times(0)).importCert(any(), any(), any(), eq(true));
+        verify(mailNotificationHelper, times(0)).sendCertActivatedNotification(any(), any(), any(), any());
+    }
+
+    @Test
+    public void failureAuthAndSignCertRollback() {
         when(acmeService.renew(any(), any(), any(), any(), any(), any())).thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE));
 
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());

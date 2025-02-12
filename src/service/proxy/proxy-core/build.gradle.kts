@@ -48,6 +48,11 @@ dependencies {
   testFixturesImplementation(project(":common:common-message"))
   testFixturesImplementation(project(":lib:keyconf-api"))
   testFixturesImplementation(project(":lib:serverconf-impl"))
+  testFixturesImplementation(project(":common:common-messagelog"))
+  testFixturesImplementation(project(":common:common-scheduler"))
+  testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
+  testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
+  testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
   testFixturesImplementation(libs.wsdl4j)
 
   intTestRuntimeOnly(project(":service:signer:signer-application"))
@@ -55,15 +60,9 @@ dependencies {
   intTestImplementation(project(":common:common-int-test"))
 }
 
-val testJar by tasks.registering(Jar::class) {
-  archiveBaseName.set("proxy-core")
-  archiveClassifier.set("test")
-  from(sourceSets.test.get().output)
-}
-
 tasks.register<Test>("intTest") {
   useJUnitPlatform()
-  dependsOn(":service:signer:signer-application:shadowJar")
+  dependsOn(":service:signer:signer-application:quarkusBuild")
 
   description = "Runs integration tests."
   group = "verification"
@@ -96,4 +95,6 @@ tasks.named("check") {
 
 tasks.test {
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+  jvmArgs("-Xmx2G")
 }
+

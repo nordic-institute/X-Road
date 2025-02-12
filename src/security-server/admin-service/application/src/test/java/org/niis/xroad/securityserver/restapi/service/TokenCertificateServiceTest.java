@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
@@ -55,7 +56,6 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
@@ -482,7 +482,7 @@ public class TokenCertificateServiceTest {
         verify(signerRpcClient).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
                 client.getMemberId(),
-                true);
+                false);
     }
 
     @Test
@@ -640,7 +640,7 @@ public class TokenCertificateServiceTest {
         verify(signerRpcClient).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
                 client.getMemberId(),
-                true);
+                false);
         verify(signerRpcClient).setNextPlannedRenewal(any(), any());
     }
 

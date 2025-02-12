@@ -27,6 +27,8 @@
 
 package org.niis.xroad.monitor.rpc;
 
+import io.grpc.ManagedChannel;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -39,16 +41,24 @@ import java.util.List;
 
 @Slf4j
 public class MonitorRpcClient extends AbstractRpcClient {
-
+    private final ManagedChannel channel;
     private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
     public MonitorRpcClient(RpcChannelFactory proxyRpcChannelFactory, EnvMonitorRpcChannelProperties rpcChannelProperties)
             throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
-        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+        channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    }
+
+    @Override
+    @PreDestroy
+    public void close() throws Exception {
+        if (channel != null) {
+            channel.shutdown();
+        }
     }
 
     public MetricsGroup getMetrics(String... metricNames) {
