@@ -392,6 +392,16 @@ Upon the first installation of the packages, the system asks for the following i
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
+* The memory allocation configuration for the Java Virtual Machine (JVM) used by the proxy service.
+  Allowed values are:
+    * *d* - default, adds `-Xms100m -Xmx512m` config. to the JVM options in `XROAD_PROXY_PARAMS` in `/etc/xroad/services/local.properties` file;
+  
+    * *r* - recommended, adds recommended Xms and Xmx values based on total memory in current server. to the JVM options in `XROAD_PROXY_PARAMS` in `/etc/xroad/services/local.properties` file;
+  
+    * `<initialSize>[k|m|g] <maxSize>[k|m|g]` - custom values, which will be transformed to `-Xms<initialSize>[k|m|g] -Xmx<maxSize>[k|m|g]`.
+  
+    In all cases `/etc/xroad/services/local.properties` file is updated so that `XROAD_PROXY_PARAMS` property contains new memory configs in the end.
+
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-packages `xroad-securityserver-ee`, `xroad-securityserver-fi`, `xroad-securityserver-is`, and `xroad-securityserver-fo` install operational data monitoring module `xroad-addon-opmonitoring`.
 
 **N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
