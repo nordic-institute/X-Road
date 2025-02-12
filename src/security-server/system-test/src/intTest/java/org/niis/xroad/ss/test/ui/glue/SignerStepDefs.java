@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
+import com.codeborne.selenide.Selenide;
 import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -42,6 +43,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 .execInContainer("supervisorctl", "restart", "xroad-signer");
 
         testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
+        Selenide.sleep(3000L);
     }
 
     @SneakyThrows
