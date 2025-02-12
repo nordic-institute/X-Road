@@ -62,14 +62,14 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .then();
     }
 
-    @Step("response is sent of http status code {int} and body path {string} is equal to {string}")
+    @Step("response is received with http status code {int} and body path {string} is equal to {string}")
     public void responseValidated(int httpStatus, String path, String value) {
         response.assertThat()
                 .statusCode(httpStatus)
                 .body(path, equalTo(value));
     }
 
-    @Step("response is sent of http status code {int} and body path {string} is not empty")
+    @Step("response is received with http status code {int} and body path {string} is not empty")
     public void responseValidated(int httpStatus, String path) {
         response.assertThat()
                 .statusCode(httpStatus)
@@ -88,5 +88,16 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .then();
     }
 
+    @Step("REST request targeted at {string} API endpoint is sent to {string} proxy")
+    public void requestOpenapiRestIsSentToProxy(String apiEndpoint, String targetProxy) {
+        var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
+
+        response = given()
+                .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                .header(HEADER_CLIENT_ID, "DEV/COM/4321/TestClient")
+                .get("http://%s:%s/r1/DEV/COM/1234/TestService/restapi/%s"
+                        .formatted(mapping.host(), mapping.port(), apiEndpoint.replaceFirst("^/", "")))
+                .then();
+    }
 
 }

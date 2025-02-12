@@ -33,6 +33,9 @@ tasks.register<Test>("e2eTest") {
   if (project.hasProperty("e2eTestCAImage")) {
     systemTestArgs += "-Dtest-automation.custom.cs-image=${project.property("e2eTestCAImage")}"
   }
+  if (project.hasProperty("e2eTestISOPENAPIImage")) {
+    systemTestArgs += "-Dtest-automation.custom.isopenapi-image=${project.property("e2eTestISOPENAPIImage")}"
+  }
   if (project.hasProperty("e2eTestISSOAPImage")) {
     systemTestArgs += "-Dtest-automation.custom.issoap-image=${project.property("e2eTestISSOAPImage")}"
   }
