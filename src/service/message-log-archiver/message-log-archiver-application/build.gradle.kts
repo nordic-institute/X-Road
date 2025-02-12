@@ -10,7 +10,7 @@ quarkus {
     buildMap {
       // Common properties
       put("quarkus.package.output-directory", "libs")
-      put("quarkus.package.output-name", "messagelog-archiver-1.0")
+      put("quarkus.package.output-name", "messagelog-archiver")
 
       when (buildType) {
         "native" -> {
