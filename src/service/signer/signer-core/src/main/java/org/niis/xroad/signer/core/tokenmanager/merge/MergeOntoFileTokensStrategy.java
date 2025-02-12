@@ -64,7 +64,8 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
 
 
         memoryTokens.stream()
-                .filter(token -> token.isActive() || isTokenExistsInFile(token, fileTokens))
+                // except inactive and unavailable and deleted from file tokens we will not merge back from memory
+                .filter(token -> token.isActive() || token.isAvailable() || isTokenExistsInFile(token, fileTokens))
                 .forEach(
                 // add any missing tokens from memory to file, match tokens based on token id
                 memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
