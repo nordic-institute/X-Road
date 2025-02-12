@@ -33,7 +33,6 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -53,7 +52,6 @@ public class ServerProxyHandlerTest {
         var globalConfProvider = mock(GlobalConfProvider.class);
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
-        var certChainFactory = mock(CertChainFactory.class);
         var checkMock = mock(ClientProxyVersionVerifier.class);
         var commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null);
 

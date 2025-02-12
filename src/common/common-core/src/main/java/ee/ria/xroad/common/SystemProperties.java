@@ -850,13 +850,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the port on which the signer admin listens for requests
-     */
-    public static int getSignerAdminPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_ADMIN_PORT, Integer.toString(PortNumbers.SIGNER_ADMIN_PORT)));
-    }
-
-    /**
      * @return the signer connection timeout in milliseconds, '60000' by default.
      */
     public static int getSignerClientTimeout() {

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.MimeTypes;

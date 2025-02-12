@@ -68,14 +68,6 @@ class ServerProxyHandler extends HandlerBase {
 
     private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
-    ServerProxyHandler(CommonBeanProxy commonBeanProxy, HttpClient client, HttpClient opMonitorClient,
-                       ClientProxyVersionVerifier clientProxyVersionVerifier) {
-        this.commonBeanProxy = commonBeanProxy;
-        this.client = client;
-        this.opMonitorClient = opMonitorClient;
-        this.clientProxyVersionVerifier = clientProxyVersionVerifier;
-    }
-
     @Override
     @WithSpan
     public boolean handle(Request request, Response response, Callback callback) throws Exception {

@@ -33,7 +33,6 @@ import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.proxy.core.addon.AddOn;
 import org.niis.xroad.proxy.core.admin.AdminService;
-import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,14 +60,6 @@ public class ProxyRpcConfig {
             rpcServer.afterPropertiesSet();
         }
         return rpcServer;
-    }
-
-    // todo will be removed after signer migration
-    @ApplicationScoped
-    SignerRpcClient signerRpcClient() throws Exception {
-        var signerRpcClient = new SignerRpcClient();
-        signerRpcClient.init();
-        return signerRpcClient;
     }
 
 }

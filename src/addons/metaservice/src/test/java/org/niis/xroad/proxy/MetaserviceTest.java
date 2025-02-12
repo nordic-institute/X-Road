@@ -30,11 +30,14 @@ package org.niis.xroad.proxy;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
@@ -44,7 +47,9 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,18 +59,27 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class MetaserviceTest {
 
+    static ProxyProperties proxyProperties;
+
     @BeforeAll
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
-        System.setProperty("xroad.proxy.jetty-serverproxy-configuration-file", "src/test/resources/serverproxy.xml");
-        System.setProperty("xroad.proxy.jetty-clientproxy-configuration-file", "src/test/resources/clientproxy.xml");
-        System.setProperty("logback.configurationFile", "src/test/resources/logback-metaservicetest.xml");
         System.setProperty("xroad.proxy.serverServiceHandlers", "org.niis.xroad.proxy.core.serverproxy.MetadataServiceHandlerImpl");
         System.setProperty("xroad.proxy.clientHandlers", "org.niis.xroad.proxy.core.clientproxy.MetadataHandler");
         System.setProperty("test.queries.dir", "src/test/queries");
 
-        ProxyTestSuiteHelper.setPropsIfNotSet();
+        Map<String, String> props = new HashMap<>();
+        props.put("xroad.proxy.server.jetty-configuration-file", "src/test/resources/serverproxy.xml");
+        props.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/resources/clientproxy.xml");
+
+        ProxyTestSuiteHelper.setPropsIfNotSet(props);
+
+        proxyProperties = new SmallRyeConfigBuilder()
+                .withMapping(ProxyProperties.class)
+                .withSources(new PropertiesConfigSource(props, "testProperties"))
+                .build()
+                .getConfigMapping(ProxyProperties.class);
 
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
@@ -86,7 +100,7 @@ public class MetaserviceTest {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        ctx = new TestContext();
+        ctx = new TestContext(proxyProperties);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

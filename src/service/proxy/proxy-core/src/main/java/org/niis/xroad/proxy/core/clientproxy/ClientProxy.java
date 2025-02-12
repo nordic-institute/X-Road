@@ -307,7 +307,7 @@ public class ClientProxy {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void init() throws Exception {
         log.trace("start()");
 
         configureServer();

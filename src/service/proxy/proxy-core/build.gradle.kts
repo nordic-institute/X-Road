@@ -38,16 +38,12 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
-//  testImplementation(testFixtures(project(":lib:serverconf-impl")))
+  testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
-//  testImplementation(libs.wsdl4j)
-//
-  testFixturesImplementation(project(":common:common-domain"))
-  testFixturesImplementation(project(":common:common-jetty"))
+  testImplementation(libs.wsdl4j)
+
   testFixturesImplementation(project(":common:common-test"))
-  testFixturesImplementation(project(":common:common-message"))
-  testFixturesImplementation(project(":lib:keyconf-api"))
-  testFixturesImplementation(project(":lib:serverconf-impl"))
+  testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":common:common-messagelog"))
   testFixturesImplementation(project(":common:common-scheduler"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))

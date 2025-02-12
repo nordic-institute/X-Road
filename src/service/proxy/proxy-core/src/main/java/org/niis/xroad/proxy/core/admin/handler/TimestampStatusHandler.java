@@ -35,7 +35,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
 import org.niis.xroad.serverconf.ServerConfProvider;
