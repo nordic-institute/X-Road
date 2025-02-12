@@ -42,6 +42,7 @@ public final class OpMonitorDaemonDatabaseCtx {
     public static DatabaseCtxV2 create(Map<String, String> hibernateProperties) {
         return new DatabaseCtxV2("op-monitor", hibernateProperties, new StringValueTruncator());
     }
+
     private OpMonitorDaemonDatabaseCtx() {
     }
 

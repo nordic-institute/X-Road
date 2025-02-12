@@ -36,6 +36,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -43,7 +44,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -59,8 +60,9 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
-@ApplicationScoped
 @Startup
+@ApplicationScoped
+@RequiredArgsConstructor
 public final class OpMonitorDaemon {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
@@ -74,28 +76,22 @@ public final class OpMonitorDaemon {
 
     private final Server server = new Server();
 
+    private final OpMonitorProperties opMonitorProperties;
     private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
+    private final HealthDataMetrics healthDataMetrics;
+
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
-    /**
-     * Constructor. Creates the connector and request handlers.
-     */
-    public OpMonitorDaemon(GlobalConfProvider globalConfProvider, OperationalDataRecordManager operationalDataRecordManager) {
+    @PostConstruct
+    public void init() throws Exception {
         log.info("Creating OpMonitorDaemon.");
-        this.globalConfProvider = globalConfProvider;
-        this.operationalDataRecordManager = operationalDataRecordManager;
+        startTimestamp = getEpochMillisecond();
 
         createConnector();
         createHandler();
         registerHealthMetrics();
-    }
-
-    @PostConstruct
-    public void afterPropertiesSet() throws Exception {
-        startTimestamp = getEpochMillisecond();
-
         reporter.start();
         server.start();
         log.info("OpMonitorDaemon started.");
@@ -108,10 +104,10 @@ public final class OpMonitorDaemon {
     }
 
     private void createConnector() {
-        String listenAddress = OpMonitoringSystemProperties.getOpMonitorHost();
-        int port = OpMonitoringSystemProperties.getOpMonitorPort();
+        String listenAddress = opMonitorProperties.host();
+        int port = opMonitorProperties.port();
 
-        String scheme = OpMonitoringSystemProperties.getOpMonitorDaemonScheme();
+        String scheme = opMonitorProperties.scheme();
         ServerConnector connector = "https".equalsIgnoreCase(scheme)
                 ? createDaemonSslConnector(server) : createDaemonConnector(server);
 
@@ -132,7 +128,7 @@ public final class OpMonitorDaemon {
     }
 
     @SneakyThrows
-    private static ServerConnector createDaemonSslConnector(Server server) {
+    private ServerConnector createDaemonSslConnector(Server server) {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
@@ -141,7 +137,7 @@ public final class OpMonitorDaemon {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()}, new TrustManager[]{new OpMonitorSslTrustManager()},
+        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()}, new TrustManager[]{new OpMonitorSslTrustManager(opMonitorProperties)},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -149,10 +145,11 @@ public final class OpMonitorDaemon {
     }
 
     private void createHandler() {
-        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry, operationalDataRecordManager));
+        server.setHandler(new OpMonitorDaemonRequestHandler(opMonitorProperties, globalConfProvider,
+                healthMetricRegistry, operationalDataRecordManager, healthDataMetrics));
     }
 
     private void registerHealthMetrics() {
-        HealthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
+        healthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
     }
 }

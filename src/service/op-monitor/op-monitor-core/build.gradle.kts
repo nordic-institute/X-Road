@@ -15,8 +15,6 @@ sourceSets {
 }
 
 dependencies {
-  api(platform(libs.quarkus.bom))
-
   annotationProcessor(libs.mapstructProcessor)
   annotationProcessor(libs.lombokMapstructBinding)
 

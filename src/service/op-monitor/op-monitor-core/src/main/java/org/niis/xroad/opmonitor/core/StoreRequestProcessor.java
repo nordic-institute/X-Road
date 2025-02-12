@@ -58,6 +58,7 @@ class StoreRequestProcessor {
      * The registry of health data.
      */
     private final MetricRegistry healthMetricRegistry;
+    private final HealthDataMetrics healthDataMetrics;
     private final OperationalDataRecordManager operationalDataRecordManager;
 
     /**
@@ -79,7 +80,7 @@ class StoreRequestProcessor {
 
         operationalDataRecordManager.storeRecords(records, getEpochSecond());
 
-        HealthDataMetrics.processRecords(healthMetricRegistry, records);
+        healthDataMetrics.processRecords(healthMetricRegistry, records);
     }
 
     // Get usable operational data to be stored. If no such data is found,

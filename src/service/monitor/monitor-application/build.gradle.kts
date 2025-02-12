@@ -37,7 +37,6 @@ tasks {
   }
 }
 
-
 dependencies {
   implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))

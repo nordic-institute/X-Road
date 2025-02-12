@@ -31,9 +31,11 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
@@ -55,6 +57,8 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
  * Service handler for operational monitoring.
  */
 @Slf4j
+
+@ApplicationScoped
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
@@ -64,6 +68,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
             OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds());
 
     private static final String OP_MONITOR_ADDRESS = getOpMonitorAddress();
+
+    private final OpMonitorCommonProperties commonProperties;
 
     private HttpSender sender;
 
@@ -160,9 +166,11 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-    private static String getOpMonitorAddress() {
-        return String.format("%s://%s:%s%s", OpMonitoringSystemProperties.getOpMonitorDaemonScheme(),
-                OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
+    private String getOpMonitorAddress() {
+        return String.format("%s://%s:%s%s",
+                commonProperties.scheme(),
+                commonProperties.host(),
+                commonProperties.port(),
                 OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
     }
 

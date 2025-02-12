@@ -38,6 +38,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import com.codahale.metrics.MetricRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -70,11 +71,13 @@ class QueryRequestProcessor {
                           RequestWrapper request,
                           ResponseWrapper response,
                           MetricRegistry healthMetricRegistry,
-                          OperationalDataRecordManager operationalDataRecordManager) {
+                          OperationalDataRecordManager operationalDataRecordManager,
+                          OpMonitorProperties opMonitorProperties) {
         this.request = request;
         this.response = response;
 
-        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager);
+        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager,
+                opMonitorProperties);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 

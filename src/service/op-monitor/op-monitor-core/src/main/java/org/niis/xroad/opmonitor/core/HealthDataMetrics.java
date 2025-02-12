@@ -32,9 +32,11 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.HashMap;
 import java.util.List;
@@ -54,17 +56,15 @@ import static org.niis.xroad.opmonitor.core.HealthDataMetricsUtil.getServiceType
  * health data is requested using the getSecurityServerHealthData SOAP request.
  */
 @Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
 final class HealthDataMetrics {
-
-    private static final int OP_MONITOR_HEALTH_STATS_PERIOD_SECONDS =
-            OpMonitoringSystemProperties
-                    .getOpMonitorHealthStatisticsPeriodSeconds();
+    private final OpMonitorProperties opMonitorProperties;
 
     // The names of metrics that are registered when the operational
     // monitoring daemon starts.
     static final String STATISTICS_PERIOD_SECONDS = "statisticsPeriodSeconds";
-    static final String MONITORING_STARTUP_TIMESTAMP =
-            "monitoringStartupTimestamp";
+    static final String MONITORING_STARTUP_TIMESTAMP = "monitoringStartupTimestamp";
 
     // The timestamps of last successful and unsuccessful requests are stored
     // for each service that is handled for, and are provided when the
@@ -74,17 +74,16 @@ final class HealthDataMetrics {
     // Stores the service types of the services
     private static Map<String, String> serviceTypes = new HashMap<>();
 
-    private HealthDataMetrics() {
-    }
 
     /**
      * Register the metrics of health data known at startup.
+     *
      * @param registry                 the metric registry of the operational monitoring daemon
      * @param startupTimestampProvider a Supplier instance whose get() method
      *                                 is called when the startup timestamp gauge is queried for data
      */
-    static void registerInitialMetrics(MetricRegistry registry,
-                                       Supplier<Long> startupTimestampProvider) {
+    void registerInitialMetrics(MetricRegistry registry,
+                                Supplier<Long> startupTimestampProvider) {
         registerMonitoringStartupTimestampGauge(registry,
                 startupTimestampProvider);
         registerHealthStatisticsPeriodSecondsGauge(registry);
@@ -93,12 +92,13 @@ final class HealthDataMetrics {
     /**
      * Pick the required health data from all the records and update the
      * metrics registry. If necessary, new metrics are registered.
+     *
      * @param registry the metric registry of the operational monitoring daemon
      * @param records  a list of operational data records that will be
      *                 analyzed for health metrics
      */
-    static void processRecords(MetricRegistry registry,
-                               List<OperationalDataRecord> records) {
+    void processRecords(MetricRegistry registry,
+                        List<OperationalDataRecord> records) {
         for (OperationalDataRecord rec : records) {
             if (!SecurityServerType.PRODUCER.equals(
                     SecurityServerType.fromString(rec.getSecurityServerType()))) {
@@ -150,8 +150,8 @@ final class HealthDataMetrics {
         }
     }
 
-    private static void registerOrUpdateCounters(MetricRegistry registry,
-                                                 ServiceId serviceId, OperationalDataRecord rec) {
+    private void registerOrUpdateCounters(MetricRegistry registry,
+                                          ServiceId serviceId, OperationalDataRecord rec) {
         String expectedCounterName = getRequestCounterName(serviceId,
                 rec.getSucceeded());
         Counter counter = HealthDataMetricsUtil.findCounter(registry,
@@ -160,22 +160,22 @@ final class HealthDataMetrics {
         if (counter == null) {
             // Register and increment a new counter.
             counter = new SlidingTimeWindowCounter(
-                    OP_MONITOR_HEALTH_STATS_PERIOD_SECONDS, TimeUnit.SECONDS);
+                    opMonitorProperties.healthStatisticsPeriodSeconds(), TimeUnit.SECONDS);
             registry.register(expectedCounterName, counter);
         }
 
         counter.inc();
     }
 
-    private static void registerOrUpdateHistograms(MetricRegistry registry,
-                                                   ServiceId serviceId, OperationalDataRecord rec) {
+    private void registerOrUpdateHistograms(MetricRegistry registry,
+                                            ServiceId serviceId, OperationalDataRecord rec) {
         registerOrUpdateHistogram(registry, getRequestDurationName(serviceId), getRequestDuration(rec));
 
         registerOrUpdateHistogram(registry, getRequestSizeName(serviceId), rec.getRequestSize());
         registerOrUpdateHistogram(registry, getResponseSizeName(serviceId), rec.getResponseSize());
     }
 
-    private static void registerOrUpdateHistogram(MetricRegistry registry, String histogramName, Long newValue) {
+    private void registerOrUpdateHistogram(MetricRegistry registry, String histogramName, Long newValue) {
 
         if (newValue == null) return;
 
@@ -185,8 +185,7 @@ final class HealthDataMetrics {
             // Add a histogram corresponding to the service and update it.
             histogram = registry.register(histogramName,
                     new Histogram(new SlidingTimeWindowReservoir(
-                            OP_MONITOR_HEALTH_STATS_PERIOD_SECONDS,
-                            TimeUnit.SECONDS)));
+                            opMonitorProperties.healthStatisticsPeriodSeconds(), TimeUnit.SECONDS)));
         }
 
         histogram.update(newValue);
@@ -204,17 +203,19 @@ final class HealthDataMetrics {
     /**
      * Registers the gauge that returns the period of gathering health
      * statistics.
+     *
      * @param registry metric registry
      */
-    private static void registerHealthStatisticsPeriodSecondsGauge(
+    private void registerHealthStatisticsPeriodSecondsGauge(
             MetricRegistry registry) {
         registry.register(STATISTICS_PERIOD_SECONDS,
-                (Gauge<Integer>) () -> OP_MONITOR_HEALTH_STATS_PERIOD_SECONDS);
+                (Gauge<Integer>) () -> opMonitorProperties.healthStatisticsPeriodSeconds());
     }
 
     /**
      * Registers the gauge that returns the timestamp of the moment when
      * the current instance of the operational monitoring daemon was started.
+     *
      * @param registry                 metric registry
      * @param startupTimestampProvider startup timestamp provider
      */

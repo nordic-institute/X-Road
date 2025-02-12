@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -68,7 +69,9 @@ public class OpMonitoringDaemonSender {
     private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
+
     private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
+    private final OpMonitorCommonProperties commonProperties;
     private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final CloseableHttpClient httpClient;
@@ -137,7 +140,7 @@ public class OpMonitoringDaemonSender {
     }
 
     private URI getAddress() throws URISyntaxException {
-        return new URI(OpMonitoringSystemProperties.getOpMonitorDaemonScheme(), null,
+        return new URI(commonProperties.scheme(), null,
                 OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }

@@ -1,4 +1,4 @@
-/*
+package org.niis.xroad.opmonitor.application;/*
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -25,21 +25,14 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.opmonitor.core;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithName;
-import lombok.Data;
+@QuarkusTest
+class OpMonitorDaemonMainTest {
 
-import java.util.Map;
-
-@ConfigMapping(prefix = "xroad.op-monitor")
-@Data
-public class OpMonitorProperties {
-
-    @WithName("clean-interval")
-    String cleanIntervalCron; // op-monitor.clean-interval
-
-    @WithName("hibernate")
-    Map<String, String> hibernate; // op-monitor.hibernate.* properties from db-properties file
+    @Test
+    void contextLoads() {
+        // ok
+    }
 }

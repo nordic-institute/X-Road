@@ -28,7 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import javax.net.ssl.X509TrustManager;
 
@@ -42,9 +42,8 @@ class OpMonitorSslTrustManager implements X509TrustManager {
 
     private X509Certificate expectedClientCert = null;
 
-    OpMonitorSslTrustManager() throws Exception {
-        String location = OpMonitoringSystemProperties
-                .getOpMonitorClientCertificatePath();
+    OpMonitorSslTrustManager(OpMonitorProperties opMonitorProperties) throws Exception {
+        String location = opMonitorProperties.clientTlsCertificate();
 
         try (InputStream fis = new FileInputStream(location)) {
             expectedClientCert = CryptoUtils.readCertificate(fis);

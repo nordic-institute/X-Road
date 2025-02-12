@@ -28,14 +28,17 @@ package org.niis.xroad.opmonitor.core.config;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx;
-import org.niis.xroad.opmonitor.core.OpMonitorProperties;
 
 public class OpMonitorDaemonRootConfig {
 
     @ApplicationScoped
     DatabaseCtxV2 opMonitorDatabaseCtx(OpMonitorProperties opMonitorProperties) {
-        return OpMonitorDaemonDatabaseCtx.create(opMonitorProperties.getHibernate());
+        return OpMonitorDaemonDatabaseCtx.create(opMonitorProperties.hibernate());
     }
 
+    public void cleanup(@Disposes DatabaseCtxV2 databaseCtxV2) throws Exception {
+        databaseCtxV2.destroy();
+    }
 }

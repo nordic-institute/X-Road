@@ -42,7 +42,7 @@ import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,10 +64,7 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.OUTP
 class OperationalDataRequestHandler extends QueryRequestHandler {
     private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
-
-    private static final int OFFSET_SECONDS =
-            OpMonitoringSystemProperties.
-                    getOpMonitorRecordsAvailableTimestampOffsetSeconds();
+    private final OpMonitorProperties opMonitorProperties;
 
     protected static final String CID = "operational-monitoring-data.json.gz";
 
@@ -239,7 +236,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
                 && clientId.equals(globalConfProvider.getServerOwner(serverId));
     }
 
-    private static long getRecordsAvailableBeforeTimestamp() {
-        return TimeUtils.getEpochSecond() - OFFSET_SECONDS;
+    private  long getRecordsAvailableBeforeTimestamp() {
+        return TimeUtils.getEpochSecond() - opMonitorProperties.recordsAvailableTimestampOffsetSeconds();
     }
 }

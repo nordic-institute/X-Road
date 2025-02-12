@@ -28,11 +28,15 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.ScheduledExecution;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -42,16 +46,25 @@ import java.util.concurrent.TimeUnit;
  * Deletes outdated operational data records from the database.
  */
 @Slf4j
+@Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 public final class OperationalDataRecordCleaner {
-
+    private final OpMonitorProperties opMonitorProperties;
+    private final Scheduler scheduler;
     private final DatabaseCtxV2 databaseCtx;
 
-    @Scheduled(cron = "${xroad.op-monitor.clean-interval}",
-            identity = "OperationalDataRecordCleanerJob",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
-    public void doClean() {
+    @PostConstruct
+    public void init() {
+        log.info("Scheduling OcspClientReloadJob");
+        scheduler.newJob("OperationalDataRecordCleanerJob")
+                .setCron(opMonitorProperties.cleanInterval())
+                .setTask(this::doClean)
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .schedule();
+    }
+
+    void doClean(ScheduledExecution execution) {
         try {
             handleCleanup(databaseCtx);
         } catch (Exception e) {
@@ -62,7 +75,7 @@ public final class OperationalDataRecordCleaner {
 
     private void handleCleanup(DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
         cleanRecords(
-                TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS),
+                TimeUtils.now().minus(opMonitorProperties.keepRecordsForDays(), ChronoUnit.DAYS),
                 opMonitorDatabaseCtx);
     }
 

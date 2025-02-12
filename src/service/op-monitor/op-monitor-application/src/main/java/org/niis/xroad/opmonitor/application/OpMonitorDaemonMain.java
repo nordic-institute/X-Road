@@ -28,7 +28,8 @@ package org.niis.xroad.opmonitor.application;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * The main class of the operational monitoring daemon.
@@ -36,45 +37,12 @@ import org.niis.xroad.bootstrap.XrdQuarkusApplication;
  * and providing monitoring data.
  */
 @QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class OpMonitorDaemonMain {
-//    private static final String APP_NAME = "xroad-opmonitor";
 
-    /**
-     * Main entry point of the daemon.
-     *
-     * @param args command-line arguments
-     * @throws Exception in case of any errors
-     */
     public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
-//
-//        try {
-//            new OpMonitorDaemonMain().createApplicationContext();
-//        } catch (Exception e) {
-//            log.error("Operational monitoring daemon failed to start", e);
-//            throw e;
-//        }
+        Quarkus.run(args);
     }
-
-//    private GenericApplicationContext createApplicationContext() {
-//        var startTime = System.currentTimeMillis();
-//        log.info("Starting the operational monitoring daemon");
-//        Version.outputVersionInfo(APP_NAME);
-//
-//        SystemPropertiesLoader.create().withCommonAndLocal()
-//                .with(CONF_FILE_OP_MONITOR, "op-monitor")
-//                .load();
-//        log.info("Loaded system properties...");
-//
-//        var springCtx = new AnnotationConfigApplicationContext();
-//        springCtx.register(OpMonitorDaemonRootConfig.class);
-//        springCtx.refresh();
-//        springCtx.registerShutdownHook();
-//
-//        log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
-//        return springCtx;
-//    }
 
 }
 

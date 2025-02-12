@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
@@ -64,48 +65,51 @@ import java.security.cert.X509Certificate;
  * Operational monitoring daemon HTTP client.
  */
 @Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
 public final class OpMonitoringDaemonHttpClient {
 
     // HttpClient configuration parameters.
     private static final int DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10000;
 
-    private OpMonitoringDaemonHttpClient() {
-    }
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     /**
      * Creates HTTP client.
-     * @param authKey the client's authentication key
+     *
+     * @param authKey                       the client's authentication key
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds
-     * @param socketTimeoutMilliseconds socket timeout in milliseconds
+     * @param socketTimeoutMilliseconds     socket timeout in milliseconds
      * @return HTTP client
      * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
-    public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
+    public CloseableHttpClient createHttpClient(InternalSSLKey authKey,
+                                                int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         return createHttpClient(authKey, DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
 
     /**
      * Creates HTTP client.
-     * @param authKey the client's authentication key
-     * @param clientMaxTotalConnections client max total connections
-     * @param clientMaxConnectionsPerRoute client max connections per route
+     *
+     * @param authKey                       the client's authentication key
+     * @param clientMaxTotalConnections     client max total connections
+     * @param clientMaxConnectionsPerRoute  client max connections per route
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds
-     * @param socketTimeoutMilliseconds socket timeout in milliseconds
+     * @param socketTimeoutMilliseconds     socket timeout in milliseconds
      * @return HTTP client
      * @throws Exception if creating a HTTPS client and SSLContext
-     * initialization fails
+     *                   initialization fails
      */
-    public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-                                                       int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
-                                                       int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
+    public CloseableHttpClient createHttpClient(InternalSSLKey authKey,
+                                                int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
+                                                int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         log.trace("createHttpClient()");
 
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
-        if ("https".equalsIgnoreCase(OpMonitoringSystemProperties.getOpMonitorDaemonScheme())) {
+        if ("https".equalsIgnoreCase(opMonitorCommonProperties.scheme())) {
             sfr.register("https", createSSLSocketFactory(authKey));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
@@ -131,16 +135,16 @@ public final class OpMonitoringDaemonHttpClient {
         return cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey) throws Exception {
+    private SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(getKeyManager(authKey), new TrustManager[]{new OpMonitorTrustManager()}, new SecureRandom());
+        ctx.init(getKeyManager(authKey), new TrustManager[]{new OpMonitorTrustManager(opMonitorCommonProperties)}, new SecureRandom());
 
         return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
                 SystemProperties.getXroadTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
         // We don't need hostname verification
     }
 
-    private static KeyManager[] getKeyManager(InternalSSLKey authKey) {
+    private KeyManager[] getKeyManager(InternalSSLKey authKey) {
         if (authKey == null) {
             log.error("No internal TLS key required by operational monitoring daemon HTTP client");
 
@@ -153,8 +157,8 @@ public final class OpMonitoringDaemonHttpClient {
     private static final class OpMonitorTrustManager implements X509TrustManager {
         private X509Certificate opMonitorCert = null;
 
-        private OpMonitorTrustManager() {
-            String monitorCertPath = OpMonitoringSystemProperties.getOpMonitorCertificatePath();
+        private OpMonitorTrustManager(OpMonitorCommonProperties properties) {
+            String monitorCertPath = properties.clientTlsCertificate();
 
             try (InputStream monitorCertStream = new FileInputStream(monitorCertPath)) {
                 opMonitorCert = CryptoUtils.readCertificate(monitorCertStream);
