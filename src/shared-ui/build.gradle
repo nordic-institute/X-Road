@@ -10,6 +10,7 @@ frontend {
     cacheDirectory = file("${projectDir}/.gradle/pnpm-cache")
     nodeDistributionUrlRoot = 'https://artifactory.niis.org/artifactory/nodejs-dist-remote/'
     maxDownloadAttempts = 3
+    corepackVersion = "0.31.0"
 
     packageJsonDirectory = file("${rootDir}/")
     if (System.getenv().containsKey("CI")) {
