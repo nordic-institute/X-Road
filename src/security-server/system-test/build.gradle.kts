@@ -27,9 +27,6 @@ tasks.register<Test>("systemTest") {
 
   val systemTestArgs = mutableListOf("-XX:MaxMetaspaceSize=200m")
 
-  // Pass the root directory of the project for TestCA setup
-  systemTestArgs += "-Dgradle.rootDir=${project.rootDir}"
-
   if (project.hasProperty("systemTestSsTags")) {
     systemTestArgs += "-Dtest-automation.cucumber.filter.tags=${project.property("systemTestSsTags")}"
   }

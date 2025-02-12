@@ -89,9 +89,6 @@ tasks.register<Test>("intTest") {
 
   val intTestArgs = mutableListOf<String>()
 
-  // Pass the root directory of the project for TestCA setup
-  intTestArgs += "-Dgradle.rootDir=${project.rootDir}"
-
   if (project.hasProperty("intTestProfilesInclude")) {
     intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
   }
