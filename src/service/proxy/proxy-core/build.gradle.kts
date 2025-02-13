@@ -37,6 +37,7 @@ dependencies {
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(libs.wsdl4j)
+  testImplementation(libs.restAssured)
 
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))

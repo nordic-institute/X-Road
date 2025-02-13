@@ -8,15 +8,6 @@ dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":service:proxy:proxy-core"))
   implementation(libs.logback.classic)
-
-  testImplementation(libs.restAssured)
-  testImplementation(project(":common:common-jetty"))
-  testImplementation(project(":common:common-test"))
-
-  testImplementation(testFixtures(project(":lib:globalconf-impl")))
-  testImplementation(testFixtures(project(":lib:serverconf-impl")))
-  testImplementation(testFixtures(project(":lib:keyconf-impl")))
-  testImplementation(testFixtures(project(":service:proxy:proxy-core")))
 }
 
 tasks.jar {
