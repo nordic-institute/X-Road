@@ -39,6 +39,8 @@ dependencies {
   implementation(project(":service:proxy:proxy-core"))
 
   testImplementation(libs.quarkus.junit5)
+  testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:serverconf-impl")))
 }
 
 val runProxyTest by tasks.registering(JavaExec::class) {

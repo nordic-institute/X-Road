@@ -29,6 +29,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -36,9 +38,9 @@ import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
@@ -47,6 +49,7 @@ import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
@@ -59,9 +62,10 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
+import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -111,18 +115,11 @@ public abstract class AbstractProxyIntegrationTest {
 
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
         System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
 
         final String serverPort = String.valueOf(getFreePort());
-        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
 
-        System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-
-        System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
@@ -132,29 +129,44 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         org.apache.xml.security.Init.init();
+        Map<String, String> properties = Map.of(
+                "xroad.proxy.server.listen-address", "127.0.0.1",
+                "xroad.proxy.server.listen-port", serverPort,
+                "xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml",
+                "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
+                "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
+                "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())
 
-        startServices();
+        );
+
+        ProxyProperties proxyProperties = new SmallRyeConfigBuilder()
+                .withMapping(ProxyProperties.class)
+                .withSources(new PropertiesConfigSource(properties, "testProperties"))
+                .build()
+                .getConfigMapping(ProxyProperties.class);
+
+        startServices(proxyProperties);
     }
 
-    static void startServices() throws Exception {
+    static void startServices(ProxyProperties proxyProperties) throws Exception {
         service = new TestService(servicePort);
         service.start();
 
         KeyConfProvider keyConfProvider = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
-        CertChainFactory certChainFactory = new CertChainFactory(TEST_GLOBAL_CONF);
-        AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
+        AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
+                TEST_GLOBAL_CONF, keyConfProvider, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, keyConfProvider);
 
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                keyConfProvider, signingCtxProvider, certChainFactory, certHelper);
+                keyConfProvider, signingCtxProvider, certHelper);
 
         clientProxy = new ClientProxy(commonBeanProxy, TEST_GLOBAL_CONF, keyConfProvider, TEST_SERVER_CONF,
-                authTrustVerifier);
-        clientProxy.afterPropertiesSet();
+                authTrustVerifier, proxyProperties.clientProxy());
+        clientProxy.init();
 
-        serverProxy = new ServerProxy(commonBeanProxy);
-        serverProxy.afterPropertiesSet();
+        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy);
+        serverProxy.init();
 
         OpMonitoring.init(TEST_SERVER_CONF);
         MessageLog.init(mock(JobManager.class), TEST_GLOBAL_CONF, TEST_SERVER_CONF);

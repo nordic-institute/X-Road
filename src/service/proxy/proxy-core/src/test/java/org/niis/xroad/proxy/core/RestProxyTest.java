@@ -57,8 +57,6 @@ import static org.junit.Assert.assertNotNull;
  * RestProxyTest
  */
 @Slf4j
-// todo: will be refactored
-@Ignore
 public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
