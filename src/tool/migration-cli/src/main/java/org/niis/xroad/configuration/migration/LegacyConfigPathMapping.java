@@ -76,13 +76,13 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy-ui-api.wsdl-validator-command", "proxy-ui-api.addon.wsdl-validator.command");
 
         // message-log-archiver
-        MAPPING.put("xroad.message-log.archive-max-filesize", "xroad-message-log-archiver.archive-max-filesize");
-        MAPPING.put("xroad.message-log.archive-path", "xroad-message-log-archiver.archive-path");
-        MAPPING.put("xroad.message-log.archive-transfer-command", "xroad-message-log-archiver.archive-transfer-command");
-        MAPPING.put("xroad.message-log.clean-interval", "xroad-message-log-archiver.clean-interval");
-        MAPPING.put("xroad.message-log.keep-records-for", "xroad-message-log-archiver.keep-records-for");
-        MAPPING.put("xroad.message-log.archive-transaction-batch", "xroad-message-log-archiver.archive-transaction-batch");
-        MAPPING.put("xroad.message-log.archive-transfer-command-parameters", "xroad-message-log-archiver.archive-transfer-command-parameters");
+        MAPPING.put("message-log.archive-max-filesize", "message-log-archiver.archive-max-filesize");
+        MAPPING.put("message-log.archive-path", "message-log-archiver.archive-path");
+        MAPPING.put("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
+        MAPPING.put("message-log.clean-interval", "message-log-archiver.clean-interval");
+        MAPPING.put("message-log.keep-records-for", "message-log-archiver.keep-records-for");
+        MAPPING.put("message-log.archive-transaction-batch", "message-log-archiver.archive-transaction-batch");
+        MAPPING.put("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
 
     }
 
