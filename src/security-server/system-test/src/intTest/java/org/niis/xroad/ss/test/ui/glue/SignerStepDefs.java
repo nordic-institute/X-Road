@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
+import com.codeborne.selenide.Selenide;
 import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -36,12 +37,14 @@ public class SignerStepDefs extends BaseUiStepDefs {
     private TestableApplicationContainerProvider containerProvider;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
         var execResult = containerProvider.getContainer()
                 .execInContainer("supervisorctl", "restart", "xroad-signer");
 
         testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
+        Selenide.sleep(3000L);
     }
 
     @SneakyThrows

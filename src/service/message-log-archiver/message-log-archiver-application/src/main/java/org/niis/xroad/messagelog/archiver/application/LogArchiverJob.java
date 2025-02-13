@@ -23,34 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package org.niis.xroad.messagelog.archiver.application;
 
+import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.ScheduledExecution;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.archiver.application.LogArchiver;
-import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
+@Slf4j
+@Startup
+@ApplicationScoped
+@RequiredArgsConstructor
+public class LogArchiverJob {
+    private final LogArchiverProperties logArchiverProperties;
+    private final LogArchiver logArchiver;
+    private final Scheduler scheduler;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-class TestLogArchiver extends LogArchiver {
-
-    private static CountDownLatch gate = new CountDownLatch(1);
-
-    TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider) {
-        super(logArchiverProperties, globalConfProvider);
+    @PostConstruct
+    public void init() {
+        log.info("Scheduling LogArchiver with cron {}", logArchiverProperties.cleanInterval());
+        scheduler.newJob(getClass().getSimpleName())
+                .setCron(logArchiverProperties.cleanInterval())
+                .setTask(this::execute)
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .schedule();
     }
 
-    public static void waitForArchiveSuccessful() throws Exception {
-        try {
-            gate.await(5, TimeUnit.SECONDS);
-        } finally {
-            gate = new CountDownLatch(1);
-        }
-    }
-
-    @Override
-    protected void onArchivingDone() {
-        gate.countDown();
+    public void execute(ScheduledExecution execution) {
+        logArchiver.execute();
     }
 }

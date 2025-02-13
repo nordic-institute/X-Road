@@ -23,34 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package org.niis.xroad.messagelog.archiver.application;
 
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.messagelog.archiver.application.LogArchiver;
-import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
+import java.util.Optional;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+@ConfigMapping(prefix = "xroad.message-log-archiver")
+public interface LogArchiverProperties {
 
-class TestLogArchiver extends LogArchiver {
+    @WithName("archive-interval")
+    @WithDefault("0 0 0/6 1/1 * ? *")
+    String archiveInterval();
 
-    private static CountDownLatch gate = new CountDownLatch(1);
+    @WithName("clean-interval")
+    @WithDefault("0 0 0/12 1/1 * ? *")
+    String cleanInterval();
 
-    TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider) {
-        super(logArchiverProperties, globalConfProvider);
-    }
+    @WithName("clean-transaction-batch")
+    @WithDefault("10000")
+    int cleanTransactionBatchSize();
 
-    public static void waitForArchiveSuccessful() throws Exception {
-        try {
-            gate.await(5, TimeUnit.SECONDS);
-        } finally {
-            gate = new CountDownLatch(1);
-        }
-    }
+    @WithName("keep-records-for")
+    @WithDefault("30")
+    int cleanKeepRecordsFor();
 
-    @Override
-    protected void onArchivingDone() {
-        gate.countDown();
-    }
+    @WithName("archive-transaction-batch")
+    @WithDefault("10000")
+    int archiveTransactionBatchSize();
+
+    @WithName("archive-path")
+    @WithDefault("/var/lib/xroad")
+    String archivePath();
+
+    @WithName("archive-transfer-command")
+    Optional<String> archiveTransferCommand();
+
 }

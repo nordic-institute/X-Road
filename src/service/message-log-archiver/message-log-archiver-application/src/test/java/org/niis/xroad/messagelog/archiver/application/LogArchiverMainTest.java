@@ -25,36 +25,14 @@
  */
 package org.niis.xroad.messagelog.archiver.application;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.util.JobManager;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
-import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+@QuarkusTest
+class LogArchiverMainTest {
 
-@Import({SpringGlobalConfConfig.class})
-@Configuration
-public class LogArchiverConfig {
-
-    @Bean
-    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
-
-        jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
-                new JobDataMap());
-
-        jobManager.registerJob(LogCleaner.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
-                new JobDataMap());
-
-        return jobManager;
-    }
-
-    @Bean
-    SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
+    @Test
+    void shouldStart() {
+        //do nothing
     }
 }

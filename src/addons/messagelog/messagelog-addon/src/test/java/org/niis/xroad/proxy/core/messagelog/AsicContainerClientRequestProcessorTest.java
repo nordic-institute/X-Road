@@ -249,12 +249,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf");
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "false");
         System.setProperty(MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1800");
-        System.setProperty(MessageLogProperties.ARCHIVE_INTERVAL, "0 0 0 1 1 ? 2099");
-        System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
-
-        System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesPath.toString());
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
-
         System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
