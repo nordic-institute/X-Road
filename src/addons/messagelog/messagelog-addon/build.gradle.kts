@@ -15,7 +15,6 @@ tasks.jar {
 dependencies {
   implementation(project(":service:proxy:proxy-core"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":lib:globalconf-impl"))

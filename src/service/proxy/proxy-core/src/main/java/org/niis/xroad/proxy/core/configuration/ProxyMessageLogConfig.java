@@ -32,7 +32,6 @@ import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.JobManager;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -52,9 +51,9 @@ public class ProxyMessageLogConfig {
 
     @ApplicationScoped
     @Startup
-    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
+    AbstractLogManager messageLogManager(GlobalConfProvider globalConfProvider,
                                          ServerConfProvider serverConfProvider) {
-        return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
+        return MessageLog.init(globalConfProvider, serverConfProvider);
     }
 
     @ApplicationScoped

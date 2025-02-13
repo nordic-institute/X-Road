@@ -36,7 +36,6 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.annotation.PreDestroy;
@@ -89,8 +88,8 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
-    LogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(jobManager, globalConfProvider, serverConfProvider);
+    LogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(globalConfProvider, serverConfProvider);
 
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;

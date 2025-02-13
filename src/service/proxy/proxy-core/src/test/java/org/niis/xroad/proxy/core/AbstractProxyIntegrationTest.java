@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.smallrye.config.PropertiesConfigSource;
@@ -169,7 +168,7 @@ public abstract class AbstractProxyIntegrationTest {
         serverProxy.init();
 
         OpMonitoring.init(TEST_SERVER_CONF);
-        MessageLog.init(mock(JobManager.class), TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+        MessageLog.init(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
     }
 
     @AfterClass

@@ -37,7 +37,6 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.common.util.JobManager;
 
 import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfigBuilder;
@@ -50,7 +49,6 @@ import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.quartz.impl.StdSchedulerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -73,7 +71,6 @@ abstract class AbstractMessageLogTest {
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
     CommonBeanProxy commonBeanProxy;
-    JobManager jobManager;
     LogManager logManager;
     LogArchiverProperties logArchiverProperties;
 
@@ -90,7 +87,6 @@ abstract class AbstractMessageLogTest {
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
 
-        jobManager = new JobManager(new StdSchedulerFactory().getScheduler());
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
@@ -102,8 +98,8 @@ abstract class AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
         logManager = (LogManager) getLogManagerImpl()
-                .getDeclaredConstructor(JobManager.class, GlobalConfProvider.class, ServerConfProvider.class)
-                .newInstance(jobManager, globalConfProvider, serverConfProvider);
+                .getDeclaredConstructor(GlobalConfProvider.class, ServerConfProvider.class)
+                .newInstance(globalConfProvider, serverConfProvider);
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
@@ -125,7 +121,6 @@ abstract class AbstractMessageLogTest {
 
     void testTearDown() throws Exception {
         logManager.destroy();
-        jobManager.destroy();
         FileUtils.deleteDirectory(archivesPath.toFile());
     }
 

@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.messagelog;
 
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -43,8 +42,8 @@ class TestLogManager extends LogManager {
     // Countdownlatch for waiting for next timestamp record save.
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
-    TestLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(jobManager, globalConfProvider, serverConfProvider);
+    TestLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(globalConfProvider, serverConfProvider);
     }
 
     static void initSetTimestampingStatusLatch() {

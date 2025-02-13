@@ -27,8 +27,6 @@
 
 package org.niis.xroad.proxy.core.test;
 
-import ee.ria.xroad.common.util.JobManager;
-
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
@@ -81,7 +79,7 @@ public class TestContext {
             }
 
             OpMonitoring.init(serverConfProvider);
-            MessageLog.init(mock(JobManager.class), globalConfProvider, serverConfProvider);
+            MessageLog.init(globalConfProvider, serverConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Init failed", e);
         }

@@ -22,7 +22,6 @@ dependencies {
 
   implementation(project(":common:common-jetty"))
 //  implementation(project(":common:common-message"))
-  implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
@@ -48,7 +47,6 @@ dependencies {
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":common:common-messagelog"))
-  testFixturesImplementation(project(":common:common-scheduler"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
   testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
   testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
