@@ -71,8 +71,6 @@ public class ProxyTests {
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
-        System.setProperty("logback.configurationFile", "src/test/logback-proxytest.xml");
-
         Map<String, String> props = new HashMap<>();
         props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         props.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");

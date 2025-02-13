@@ -30,9 +30,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-/**
- * Periodic reload of global configuration
- */
 @Slf4j
 @RequiredArgsConstructor
 public class ServerConfStatsLogger {

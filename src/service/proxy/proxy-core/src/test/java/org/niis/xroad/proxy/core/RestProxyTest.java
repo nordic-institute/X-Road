@@ -34,7 +34,6 @@ import ee.ria.xroad.common.util.MimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.serverconf.model.DescriptionType;
