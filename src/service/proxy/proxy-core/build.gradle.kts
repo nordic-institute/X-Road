@@ -2,7 +2,7 @@ plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
   id("xroad.test-fixtures-conventions")
-//  alias(libs.plugins.jandex)
+  alias(libs.plugins.jandex)
 }
 
 sourceSets {
@@ -13,9 +13,11 @@ sourceSets {
   }
 }
 
-dependencies {
-  api(platform(libs.quarkus.bom))
+configurations.named("intTestImplementation") {
+  exclude(group = "org.jboss.logmanager", module = "jboss-logmanager")
+}
 
+dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
   implementation(project(":common:common-jetty"))
@@ -51,7 +53,6 @@ dependencies {
   testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
   testFixturesImplementation(libs.wsdl4j)
 
-  intTestRuntimeOnly(project(":service:signer:signer-application"))
   intTestImplementation(project(":common:common-test"))
   intTestImplementation(project(":common:common-int-test"))
 }
@@ -89,8 +90,11 @@ tasks.named("check") {
   dependsOn(tasks.named("intTest"))
 }
 
+tasks.named("compileIntTestJava") {
+  dependsOn(tasks.named("jandex"))
+}
+
 tasks.test {
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
 }
-

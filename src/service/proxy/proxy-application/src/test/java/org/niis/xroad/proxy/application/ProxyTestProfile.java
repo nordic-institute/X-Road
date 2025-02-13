@@ -31,13 +31,20 @@ import io.quarkus.test.junit.QuarkusTestProfile;
 
 import java.util.Map;
 
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
+import static java.lang.String.valueOf;
+
 public class ProxyTestProfile implements QuarkusTestProfile {
 
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
                 "quarkus.log.level", "INFO",
-                "xroad.common.global-conf.source", "FILESYSTEM"
+                "xroad.common.global-conf.source", "FILESYSTEM",
+
+                "xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()),
+                "xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()),
+                "xroad.proxy.server.listen-port", valueOf(findRandomPort())
         );
     }
 

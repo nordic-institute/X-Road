@@ -27,9 +27,13 @@
 
 package org.niis.xroad.proxy.application;
 
+import io.quarkus.test.Mock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.test.serverconf.TestServerConf;
 
 @QuarkusTest
 @TestProfile(ProxyTestProfile.class)
@@ -38,6 +42,12 @@ public class ProxyMainTest {
     @Test
     void contextLoads() {
         // ok
+    }
+
+    @ApplicationScoped
+    @Mock
+    ServerConfProvider serverConfProvider() {
+        return new TestServerConf(0);
     }
 
 }
