@@ -37,6 +37,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
     private TestableApplicationContainerProvider containerProvider;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
         var execResult = containerProvider.getContainer()
