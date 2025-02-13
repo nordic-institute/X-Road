@@ -26,10 +26,12 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -48,6 +50,7 @@ import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -73,6 +76,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CertUtils.getCommonName;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CERTIFICATE_NOT_FOUND_WITH_ID;
 
@@ -108,6 +112,8 @@ public class TokenCertificateService {
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
     private final AcmeService acmeService;
+    private final MailNotificationHelper mailNotificationHelper;
+    private final ServerConfService serverConfService;
 
     /**
      * Create a CSR
@@ -226,7 +232,7 @@ public class TokenCertificateService {
         if (chain != null) {
             log.info("Acme order was successful, importing certificate");
             try {
-                importCertificate(chain.get(0).getEncoded(), false);
+                importCertificate(chain.get(0).getEncoded(), false, true);
             } catch (CertificateEncodingException e) {
                 throw new InvalidCertificateException(e);
             }
@@ -291,7 +297,7 @@ public class TokenCertificateService {
     }
 
     /**
-     * Find an existing cert from a token by it's hash
+     * Find an existing cert from a token by its hash
      *
      * @param hash cert hash of an existing cert. Will be transformed to lowercase
      * @return
@@ -348,7 +354,7 @@ public class TokenCertificateService {
                 getPossibleActionsForCertificateInternal(hash, certificateInfo, keyInfo, tokenInfo);
         possibleActionsRuleEngine.requirePossibleAction(
                 PossibleActionEnum.IMPORT_FROM_TOKEN, possibleActions);
-        return importCertificate(certificateInfo.getCertificateBytes(), true);
+        return importCertificate(certificateInfo.getCertificateBytes(), true, false);
     }
 
     /**
@@ -360,7 +366,7 @@ public class TokenCertificateService {
      *
      * @param certificateBytes
      * @param isFromToken      whether the cert was read from a token or not
-     * @return CertificateType
+     * @return CertificateInfo
      * @throws GlobalConfOutdatedException
      * @throws KeyNotFoundException
      * @throws InvalidCertificateException          other general import failure
@@ -368,7 +374,7 @@ public class TokenCertificateService {
      * @throws WrongCertificateUsageException
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      */
-    private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken)
+    private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken, boolean isAcme)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException,
             CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
             AuthCertificateNotSupportedException, ClientNotFoundException {
@@ -403,9 +409,14 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             String hash = CryptoUtils.calculateCertHexHash(certBytes);
             auditDataHelper.putCertificateHash(hash);
-            signerRpcClient.importCert(certBytes, certificateState, clientId, !isAuthCert);
+            boolean activate = !isAuthCert && (!isAcme || SystemProperties.getAutomaticActivateAcmeSignCertificate());
+            signerRpcClient.importCert(certBytes, certificateState, clientId, activate);
             certificateInfo = getCertificateInfo(hash);
-            setNextPlannedAcmeAutomaticRenewalDate(clientId, x509Certificate, keyUsageInfo, certificateInfo);
+            ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();
+            if (isAcme && activate) {
+                notifyAboutCertActivation(certificateInfo, memberId, keyUsageInfo);
+            }
+            setNextPlannedAcmeAutomaticRenewalDate(memberId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (SignerException e) {
             translateCodedExceptions(e);
         } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException | CodedException e) {
@@ -418,11 +429,26 @@ public class TokenCertificateService {
         return certificateInfo;
     }
 
-    private void setNextPlannedAcmeAutomaticRenewalDate(ClientId.Conf clientId,
+    private void notifyAboutCertActivation(CertificateInfo certificateInfo, ClientId memberId, KeyUsageInfo keyUsageInfo) {
+        SecurityServerId.Conf securityServerId = serverConfService.getSecurityServerId();
+        if (isNotBlank(certificateInfo.getOcspVerifyBeforeActivationError())) {
+            mailNotificationHelper.sendCertActivationFailureNotification(memberId.asEncodedId(),
+                    certificateInfo.getCertificateDisplayName(),
+                    securityServerId,
+                    keyUsageInfo,
+                    certificateInfo.getOcspVerifyBeforeActivationError());
+        } else {
+            mailNotificationHelper.sendCertActivatedNotification(memberId.asEncodedId(),
+                    securityServerId,
+                    certificateInfo,
+                    keyUsageInfo);
+        }
+    }
+
+    private void setNextPlannedAcmeAutomaticRenewalDate(ClientId memberId,
                                                         X509Certificate x509Certificate,
                                                         KeyUsageInfo keyUsageInfo,
                                                         CertificateInfo certificateInfo) throws Exception {
-        ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();
         X509Certificate caX509Certificate = globalConfProvider.getCaCert(memberId.getXRoadInstance(), x509Certificate);
         ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {
@@ -568,7 +594,7 @@ public class TokenCertificateService {
             KeyNotFoundException, CertificateAlreadyExistsException,
             WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
             AuthCertificateNotSupportedException {
-        return importCertificate(certificateBytes, false);
+        return importCertificate(certificateBytes, false, false);
     }
 
     /**
@@ -1107,7 +1133,7 @@ public class TokenCertificateService {
                     generatedCertRequestInfo.certRequest());
             if (chain != null) {
                 try {
-                    importCertificate(chain.get(0).getEncoded(), false);
+                    importCertificate(chain.get(0).getEncoded(), false, true);
                 } catch (CertificateEncodingException e) {
                     throw new InvalidCertificateException(e);
                 }

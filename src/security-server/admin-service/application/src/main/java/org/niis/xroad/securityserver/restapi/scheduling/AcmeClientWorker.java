@@ -290,6 +290,7 @@ public class AcmeClientWorker {
         KeyInfo newKeyInfo = signerRpcClient.generateKey(tokenId, tokenAndOldKeyId.getKeyInfo().getLabel(), keyAlgorithm);
 
         X509Certificate newX509Certificate;
+        boolean activate;
         try {
             String subjectAltName = getSubjectAltName(oldX509Certificate, keyUsage);
             SignerRpcClient.GeneratedCertRequestInfo generatedCertRequestInfo = signerRpcClient.generateCertRequest(newKeyInfo.getId(),
@@ -312,14 +313,29 @@ public class AcmeClientWorker {
             }
             newX509Certificate = newCert.getFirst();
             String certStatus = keyUsage == KeyUsageInfo.AUTHENTICATION ? CertificateInfo.STATUS_SAVED : CertificateInfo.STATUS_REGISTERED;
-            signerRpcClient.importCert(newX509Certificate.getEncoded(), certStatus, oldCertInfo.getMemberId(), false);
+            activate = keyUsage == KeyUsageInfo.SIGNING && SystemProperties.getAutomaticActivateAcmeSignCertificate();
+            signerRpcClient.importCert(newX509Certificate.getEncoded(), certStatus, oldCertInfo.getMemberId(), activate);
             signerRpcClient.setRenewedCertHash(oldCertInfo.getId(), calculateCertHexHash(newX509Certificate));
         } catch (Exception ex) {
             rollback(newKeyInfo.getId());
             throw ex;
         }
 
-        finishRenewingCertificate(memberId, oldX509Certificate, keyUsage, newX509Certificate, newKeyInfo);
+        CertificateInfo newCertInfo = signerRpcClient.getCertForHash(calculateCertHexHash(newX509Certificate));
+        if (activate) {
+            SecurityServerId.Conf securityServerId = getSecurityServerId();
+            if (isNotBlank(newCertInfo.getOcspVerifyBeforeActivationError())) {
+                mailNotificationHelper.sendCertActivationFailureNotification(memberId.asEncodedId(),
+                        newCertInfo.getCertificateDisplayName(),
+                        securityServerId,
+                        keyUsage,
+                        newCertInfo.getOcspVerifyBeforeActivationError());
+            } else {
+                mailNotificationHelper.sendCertActivatedNotification(memberId.asEncodedId(), securityServerId, newCertInfo, keyUsage);
+            }
+        }
+
+        finishRenewingCertificate(memberId, oldX509Certificate, keyUsage, newX509Certificate, newCertInfo, newKeyInfo);
 
         return newX509Certificate;
     }
@@ -328,11 +344,10 @@ public class AcmeClientWorker {
                                            X509Certificate oldX509Certificate,
                                            KeyUsageInfo keyUsage,
                                            X509Certificate newX509Certificate,
+                                           CertificateInfo newCertInfo,
                                            KeyInfo newKeyInfo) throws Exception {
-        CertificateInfo newCertInfo;
         SecurityServerId.Conf securityServerId = getSecurityServerId();
         try {
-            newCertInfo = signerRpcClient.getCertForHash(calculateCertHexHash(newX509Certificate));
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 String securityServerAddress =
                         globalConfProvider.getSecurityServerAddress(globalConfProvider.getServerId(oldX509Certificate));

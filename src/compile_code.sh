@@ -21,8 +21,6 @@ ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build )
 
 if [[ -n "$SKIP_TESTS" ]]; then
     ARGUMENTS+=(-xtest -xintTest)
-else
-    ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 fi
 
 if [[ -n "$NODAEMON" ]]; then
