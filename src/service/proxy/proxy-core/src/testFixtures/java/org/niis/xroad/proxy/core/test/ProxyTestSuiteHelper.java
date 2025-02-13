@@ -30,6 +30,7 @@ package org.niis.xroad.proxy.core.test;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.proxy.core.ProxyProperties;
 
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +47,7 @@ public class ProxyTestSuiteHelper {
     public static final int DUMMY_SERVER_PROXY_PORT = findRandomPort();
 
     public static volatile MessageTestCase currentTestCase;
+    public static ProxyProperties proxyProperties;
 
     private static DummyService dummyService;
     private static DummyServerProxy dummyServerProxy;
@@ -70,11 +72,9 @@ public class ProxyTestSuiteHelper {
 
         int clientHttpPort = findRandomPort();
         properties.putIfAbsent("xroad.proxy.client-proxy.client-http-port", valueOf(clientHttpPort));
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(clientHttpPort));
 
         int clientHttpsPort = findRandomPort();
         properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(clientHttpsPort));
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(clientHttpsPort));
 
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
         solver.setIfNotSet(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());

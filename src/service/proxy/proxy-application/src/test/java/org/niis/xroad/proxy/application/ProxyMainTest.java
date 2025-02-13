@@ -40,6 +40,7 @@ import org.niis.xroad.test.serverconf.TestServerConf;
 public class ProxyMainTest {
 
     @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     void contextLoads() {
         // ok
     }

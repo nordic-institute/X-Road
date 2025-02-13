@@ -187,14 +187,6 @@ public final class SystemProperties {
     public static final String DATABASE_PROPERTIES =
             PROXY_PREFIX + "database-properties";
 
-    /** Property name of the Proxy's connector host name. */
-    public static final String PROXY_CONNECTOR_HOST =
-            PROXY_PREFIX + "connector-host";
-
-    /** Property name of the Client Proxy's port number. */
-    public static final String PROXY_CLIENT_HTTP_PORT =
-            PROXY_PREFIX + "client-http-port";
-
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTPS_PORT =
             PROXY_PREFIX + "client-https-port";
@@ -810,21 +802,6 @@ public final class SystemProperties {
      */
     public static String getConfBackupPath() {
         return getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
-    }
-
-    /**
-     * @return the host address on which the client proxy is listening, '0.0.0.0' by default.
-     */
-    public static String getConnectorHost() {
-        return getProperty(PROXY_CONNECTOR_HOST, DEFAULT_CONNECTOR_HOST);
-    }
-
-    /**
-     * @return the HTTP port on which the client proxy is listening, '8080' by default.
-     */
-    public static int getClientProxyHttpPort() {
-        return Integer.parseInt(getProperty(PROXY_CLIENT_HTTP_PORT,
-                Integer.toString(PortNumbers.CLIENT_HTTP_PORT)));
     }
 
     /**

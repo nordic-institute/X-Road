@@ -2,9 +2,15 @@ xroad:
   common:
     global-conf:
       source: "REMOTE"
+    server-conf:
+      cache-period: 0
   configuration-client:
     update-interval: 3
     global-conf-tls-cert-verification: false
     global-conf-hostname-verification: false
   signer:
     enforce-token-pin-policy: true
+  proxy:
+    health-check-port: 5558
+    backup-encryption-enabled: true
+    backup-encryption-keyids: [ "backup.key1@example.org", "backup.key2@example.org", "backup.key3@example.org" ]

@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
@@ -43,6 +42,7 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
+import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.util.MetadataRequests;
 
@@ -92,7 +92,7 @@ public class GetListClientsMessage extends MessageTestCase {
     protected URI getClientUri() throws URISyntaxException {
         return new URIBuilder()
                 .setScheme("http").setHost("localhost")
-                .setPort(SystemProperties.getClientProxyHttpPort())
+                .setPort(ProxyTestSuiteHelper.proxyProperties.clientProxy().clientHttpPort())
                 .setPath(MetadataRequests.LIST_CLIENTS)
                 .setParameter(PARAM_INSTANCE_IDENTIFIER, EXPECTED_XR_INSTANCE)
                 .build();

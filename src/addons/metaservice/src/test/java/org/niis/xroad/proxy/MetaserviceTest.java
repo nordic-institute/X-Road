@@ -83,6 +83,7 @@ public class MetaserviceTest {
 
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
+        ProxyTestSuiteHelper.proxyProperties = proxyProperties;
         ProxyTestSuiteHelper.startTestServices();
     }
 

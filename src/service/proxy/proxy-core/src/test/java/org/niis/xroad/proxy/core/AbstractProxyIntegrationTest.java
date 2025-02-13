@@ -113,7 +113,6 @@ public abstract class AbstractProxyIntegrationTest {
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
 
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
 
         final String serverPort = String.valueOf(getFreePort());
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
@@ -133,6 +132,7 @@ public abstract class AbstractProxyIntegrationTest {
                 "xroad.proxy.server.listen-port", serverPort,
                 "xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml",
                 "xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml",
+                "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
                 "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
                 "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())
 

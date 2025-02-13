@@ -34,8 +34,6 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PortNumbers {
-    /** Client proxy listens for HTTP queries. */
-    public static final int CLIENT_HTTP_PORT = 8080;
 
     /** Client proxy listens for HTTPS queries. */
     public static final int CLIENT_HTTPS_PORT = 8443;
