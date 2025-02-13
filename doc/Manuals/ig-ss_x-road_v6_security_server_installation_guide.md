@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.54  
+Version: 2.55  
 Doc. ID: IG-SS
 
 ---
@@ -74,6 +74,7 @@ Doc. ID: IG-SS
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 24.09.2024 | 2.53    | Add mail server to the network diagram                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 08.11.2024 | 2.54    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
+| 13.02.2025 | 2.55    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
 
 ## License
 
@@ -400,7 +401,7 @@ Upon the first installation of the packages, the system asks for the following i
   
     * `<initialSize>[k|m|g] <maxSize>[k|m|g]` - custom values, which will be transformed to `-Xms<initialSize>[k|m|g] -Xmx<maxSize>[k|m|g]`.
   
-    In all cases `/etc/xroad/services/local.properties` file is updated so that `XROAD_PROXY_PARAMS` property contains new memory configs in the end.
+  Note that in all cases `/etc/xroad/services/local.properties` file is updated so that `XROAD_PROXY_PARAMS` property contains new memory configs in the end of any other already present options there.
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-packages `xroad-securityserver-ee`, `xroad-securityserver-fi`, `xroad-securityserver-is`, and `xroad-securityserver-fo` install operational data monitoring module `xroad-addon-opmonitoring`.
 
