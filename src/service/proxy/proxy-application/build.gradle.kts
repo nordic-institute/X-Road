@@ -38,16 +38,6 @@ dependencies {
 
   implementation(project(":service:proxy:proxy-core"))
 
-  testImplementation(libs.restAssured)
-  testImplementation(libs.apache.httpasyncclient)
-  testImplementation(project(":common:common-jetty"))
-  testImplementation(project(":common:common-test"))
-
-  testImplementation(testFixtures(project(":lib:globalconf-impl")))
-  testImplementation(testFixtures(project(":lib:serverconf-impl")))
-  testImplementation(testFixtures(project(":lib:keyconf-impl")))
-  testImplementation(testFixtures(project(":service:proxy:proxy-core")))
-
   testImplementation(libs.quarkus.junit5)
 }
 

@@ -75,6 +75,16 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.grpc-port", "proxy.rpc.port");
 
         MAPPING.put("proxy-ui-api.wsdl-validator-command", "proxy-ui-api.addon.wsdl-validator.command");
+
+        // message-log-archiver
+        MAPPING.put("message-log.archive-max-filesize", "message-log-archiver.archive-max-filesize");
+        MAPPING.put("message-log.archive-path", "message-log-archiver.archive-path");
+        MAPPING.put("message-log.archive-transfer-command", "message-log-archiver.archive-transfer-command");
+        MAPPING.put("message-log.clean-interval", "message-log-archiver.clean-interval");
+        MAPPING.put("message-log.keep-records-for", "message-log-archiver.keep-records-for");
+        MAPPING.put("message-log.archive-transaction-batch", "message-log-archiver.archive-transaction-batch");
+        MAPPING.put("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
+
     }
 
     String map(String oldPath) {

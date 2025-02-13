@@ -42,11 +42,10 @@ import java.util.Optional;
 /**
  * Contains constants for messagelog properties.
  */
+@Deprecated
 public final class MessageLogProperties {
 
     private static final int DEFAULT_ARCHIVE_MAX_FILESIZE = 33554432;
-
-    private static final int DEFAULT_KEEP_RECORDS_FOR = 30;
 
     private static final int DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = 14400;
 
@@ -57,9 +56,6 @@ public final class MessageLogProperties {
     private static final int DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT = 60000;
 
     private static final int DEFAULT_TIMESTAMP_RETRY_DELAY = 60;
-
-    private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
-    private static final int DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE = 10000;
 
     private static final long DEFAULT_MAX_LOGGABLE_MESSAGE_BODY_SIZE = 10 * 1024 * 1024;
     private static final long MAX_LOGGABLE_MESSAGE_BODY_SIZE_LIMIT = 1024 * 1024 * 1024;
@@ -87,23 +83,9 @@ public final class MessageLogProperties {
 
     public static final String ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = PREFIX + "acceptable-timestamp-failure-period";
 
-    public static final String KEEP_RECORDS_FOR = PREFIX + "keep-records-for";
-
     public static final String ARCHIVE_MAX_FILESIZE = PREFIX + "archive-max-filesize";
 
-    public static final String ARCHIVE_INTERVAL = PREFIX + "archive-interval";
-
-    public static final String ARCHIVE_PATH = PREFIX + "archive-path";
-
-    public static final String ARCHIVE_TRANSACTION_BATCH = PREFIX + "archive-transaction-batch";
-
-    public static final String CLEAN_INTERVAL = PREFIX + "clean-interval";
-
-    private static final String CLEAN_TRANSACTION_BATCH = "clean-transaction-batch";
-
     public static final String HASH_ALGO_ID = PREFIX + "hash-algo-id";
-
-    public static final String ARCHIVE_TRANSFER_COMMAND = PREFIX + "archive-transfer-command";
 
     /**
      * log archive grouping strategy, one of
@@ -232,45 +214,10 @@ public final class MessageLogProperties {
     }
 
     /**
-     * @return the time interval as Cron expression for archiving time-stamped records.
-     */
-    public static String getArchiveInterval() {
-        return System.getProperty(ARCHIVE_INTERVAL, "0 0 0/6 1/1 * ? *");
-    }
-
-    /**
-     * @return number of archived item in one transaction.
-     */
-    public static int getArchiveTransactionBatchSize() {
-        return getInt(System.getProperty(ARCHIVE_TRANSACTION_BATCH), DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE);
-    }
-
-    /**
-     * @return the time interval as Cron expression for cleaning archived records from online database.
-     */
-    public static String getCleanInterval() {
-        return System.getProperty(CLEAN_INTERVAL, "0 0 0/12 1/1 * ? *");
-    }
-
-    /**
-     * @return the time in days to keep time-stamped and archived records in the database.
-     */
-    public static int getKeepRecordsForDays() {
-        return getInt(System.getProperty(KEEP_RECORDS_FOR), DEFAULT_KEEP_RECORDS_FOR);
-    }
-
-    /**
      * @return the maximum size for archived files in bytes. Defaults to 32 MB.
      */
     public static long getArchiveMaxFilesize() {
         return getInt(System.getProperty(ARCHIVE_MAX_FILESIZE), DEFAULT_ARCHIVE_MAX_FILESIZE);
-    }
-
-    /**
-     * @return the path where timestamped log records are archived.
-     */
-    public static String getArchivePath() {
-        return System.getProperty(ARCHIVE_PATH, "/var/lib/xroad");
     }
 
     /**
@@ -280,13 +227,6 @@ public final class MessageLogProperties {
         return Optional.ofNullable(System.getProperty(HASH_ALGO_ID))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
-    }
-
-    /**
-     * @return the archive files transfer command. Defaults to null.
-     */
-    public static String getArchiveTransferCommand() {
-        return System.getProperty(ARCHIVE_TRANSFER_COMMAND, null);
     }
 
     public static GroupingStrategy getArchiveGrouping() {
@@ -350,10 +290,6 @@ public final class MessageLogProperties {
         return Boolean.getBoolean(REST_TRUNCATED_BODY_ALLOWED);
     }
 
-    public static int getCleanTransactionBatchSize() {
-        return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
-    }
-
     public static boolean isArchiveEncryptionEnabled() {
         return Boolean.getBoolean(ARCHIVE_ENCRYPTION_ENABLED);
     }
@@ -371,7 +307,9 @@ public final class MessageLogProperties {
         return System.getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
     }
 
-    /** @return keystore path for messagelog encryption keys or null if one is not defined */
+    /**
+     * @return keystore path for messagelog encryption keys or null if one is not defined
+     */
     public static Path getMessageLogKeyStore() {
         final String property = System.getProperty(MESSAGELOG_KEYSTORE);
         return property == null ? null : Paths.get(property);

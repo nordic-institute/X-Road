@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.test;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.io.Content;
@@ -101,12 +99,10 @@ public class TestService {
         server.addConnector(connector);
     }
 
-    @PostConstruct
-    public synchronized void afterPropertiesSet() throws Exception {
+    public synchronized void start() throws Exception {
         server.start();
     }
 
-    @PreDestroy
     public synchronized void destroy() throws Exception {
         server.stop();
     }
