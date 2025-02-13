@@ -37,26 +37,32 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
 
+@Component
 @Slf4j
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
 @SuppressWarnings("checkstyle:MagicNumber")
 public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaAuxiliaryContainer.TestCaContainer> {
     private static final String NETWORK_ALIAS = "testca";
 
     private final ContainerProperties testableContainerProperties;
-    private final Path a2cPath;
+
+    @Value("${test-automation.containers.context-containers.ca-server.relative-a2c-path}")
+    private final String a2cPath;
 
     public static class TestCaContainer extends GenericContainer<TestCaContainer> {
         public TestCaContainer(@NonNull Future<String> image) {
@@ -89,10 +95,12 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     private ImageFromDockerfile imageDefinition() {
         log.info("Initializing test-ca..");
 
+        var a2cAbsolutePath = Paths.get(".", this.a2cPath);
+
         var reuse = testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns();
         return new ReusableImageFromDockerfile("xrd-test-ca", !reuse, reuse)
                 .withFileFromClasspath(".", "META-INF/ca-container/")
-                .withFileFromPath("files/acme2certifier", a2cPath);
+                .withFileFromPath("files/acme2certifier", a2cAbsolutePath);
     }
 
     @NotNull
