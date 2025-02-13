@@ -61,8 +61,6 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ProxyMonitorMetaserviceTest {
 
-    static ProxyProperties proxyProperties;
-
     @BeforeAll
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
@@ -76,7 +74,7 @@ public class ProxyMonitorMetaserviceTest {
 
         ProxyTestSuiteHelper.setPropsIfNotSet(proxyProps);
 
-        proxyProperties = new SmallRyeConfigBuilder()
+        ProxyTestSuiteHelper.proxyProperties = new SmallRyeConfigBuilder()
                 .withMapping(ProxyProperties.class)
                 .withSources(new PropertiesConfigSource(proxyProps, "testProperties"))
                 .build()
@@ -100,7 +98,7 @@ public class ProxyMonitorMetaserviceTest {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        ctx = new TestContext(proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),
