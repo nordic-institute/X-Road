@@ -76,7 +76,7 @@ testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide",
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
 
-jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.0" }
+jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
 jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
@@ -103,15 +103,15 @@ apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configurat
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
-apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.0.0" }
+apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.1.0" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.3" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.1" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.2" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.17.2" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.18.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
@@ -129,7 +129,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
-wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.10.0" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.12.0" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.31.0" }
@@ -149,10 +149,10 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
-semver4j = { module = "org.semver4j:semver4j", version = "5.5.0" }
+semver4j = { module = "org.semver4j:semver4j", version = "5.6.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
-acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
+acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
 
@@ -168,9 +168,9 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.11.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
-shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.6" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
