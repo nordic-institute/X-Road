@@ -22,7 +22,7 @@
     "vue-i18n": "^11.1.1",
     "vue-router": "^4.5.0",
     "vee-validate": "^4.15.0",
-    "pinia": "^2.3.1",
+    "pinia": "^3.0.1",
     "pinia-plugin-persistedstate": "^4.2.0",
     "dayjs": "^1.11.12"
   },
