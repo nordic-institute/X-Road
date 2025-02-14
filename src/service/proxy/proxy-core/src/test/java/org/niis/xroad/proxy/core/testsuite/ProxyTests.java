@@ -210,7 +210,9 @@ public class ProxyTests {
 
     @AfterEach
     void afterEach() {
-        ctx.destroy();
+        if (ctx != null) {
+            ctx.destroy();
+        }
         ctx = null;
     }
 

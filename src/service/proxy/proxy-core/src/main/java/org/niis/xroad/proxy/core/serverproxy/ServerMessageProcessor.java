@@ -46,7 +46,6 @@ import ee.ria.xroad.common.util.TimeUtils;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -127,14 +126,15 @@ class ServerMessageProcessor extends MessageProcessorBase {
     ServerMessageProcessor(CommonBeanProxy commonBeanProxy,
                            RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, X509Certificate[] clientSslCerts,
-                           HttpClient opMonitorHttpClient, OpMonitoringData opMonitoringData) {
+                           HttpClient opMonitorHttpClient, OpMonitoringData opMonitoringData,
+                           ServiceHandlerLoader serviceHandlerLoader) {
         super(commonBeanProxy, request, response, httpClient);
 
         this.clientSslCerts = clientSslCerts;
         this.opMonitorHttpClient = opMonitorHttpClient;
         this.opMonitoringData = opMonitoringData;
 
-        loadServiceHandlers();
+        loadServiceHandlers(serviceHandlerLoader);
     }
 
     @Override
@@ -206,22 +206,15 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void postprocess() throws Exception {
+    protected void postprocess() {
         opMonitoringData.setSucceeded(true);
     }
 
-    private void loadServiceHandlers() {
-        String serviceHandlerNames = System.getProperty(SERVERPROXY_SERVICE_HANDLERS);
-
-        if (!StringUtils.isBlank(serviceHandlerNames)) {
-            for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(ServiceHandlerLoader.load(serviceHandlerName,
-                        commonBeanProxy.getServerConfProvider(),
-                        commonBeanProxy.getGlobalConfProvider()));
-
-                log.debug("Loaded service handler: {}", serviceHandlerName);
-            }
-        }
+    private void loadServiceHandlers(ServiceHandlerLoader serviceHandlerLoader) {
+        serviceHandlerLoader.loadSoapServiceHandlers().forEach(handler -> {
+            handlers.add(handler);
+            log.debug("Loaded service handler: {}", handler.getClass().getName());
+        });
 
         handlers.add(new DefaultServiceHandlerImpl(
                 commonBeanProxy.getServerConfProvider(),

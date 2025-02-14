@@ -22,11 +22,6 @@ ss_modules:
     lib: messagelog-archiver.jar
     target: /usr/share/xroad/jlib/addon/proxy
     service: xroad-addon-messagelog
-  addon-metaservice:
-    dir: addons/metaservice
-    build: build
-    lib: metaservice-1.0.jar
-    target: /usr/share/xroad/jlib/addon/proxy
   configuration-client:
     dir: service/configuration-client/configuration-client-application
     build: build

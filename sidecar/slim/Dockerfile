@@ -33,7 +33,6 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
     xroad-proxy \
     xroad-proxy-ui-api \
-    xroad-addon-metaservices \
     xroad-addon-wsdlvalidator \
     xroad-addon-messagelog \
     xroad-addon-opmonitoring \

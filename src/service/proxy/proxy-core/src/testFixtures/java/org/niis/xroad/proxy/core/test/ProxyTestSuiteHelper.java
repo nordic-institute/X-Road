@@ -70,11 +70,8 @@ public class ProxyTestSuiteHelper {
     public static void setPropsIfNotSet(Map<String, String> properties) {
         PropsSolver solver = new PropsSolver();
 
-        int clientHttpPort = findRandomPort();
-        properties.putIfAbsent("xroad.proxy.client-proxy.client-http-port", valueOf(clientHttpPort));
-
-        int clientHttpsPort = findRandomPort();
-        properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(clientHttpsPort));
+        properties.putIfAbsent("xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()));
+        properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()));
 
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
         solver.setIfNotSet(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());

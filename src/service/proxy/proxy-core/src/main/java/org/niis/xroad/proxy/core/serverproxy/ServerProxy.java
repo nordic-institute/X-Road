@@ -83,6 +83,7 @@ public class ServerProxy {
     private final ProxyProperties.ServerProperties serverProperties;
     private final AntiDosConfiguration antiDosConfiguration;
     private final CommonBeanProxy commonBeanProxy;
+    private final ServiceHandlerLoader serviceHandlerLoader;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -156,7 +157,8 @@ public class ServerProxy {
         log.trace("createHandlers()");
 
         ServerProxyHandler proxyHandler = new ServerProxyHandler(commonBeanProxy, serverProperties, client,
-                opMonitorClient, new ClientProxyVersionVerifier(SystemProperties.getServerProxyMinSupportedClientVersion()));
+                opMonitorClient, new ClientProxyVersionVerifier(SystemProperties.getServerProxyMinSupportedClientVersion()),
+                serviceHandlerLoader);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);

@@ -57,7 +57,7 @@ public class ServerProxyHandlerTest {
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
                 mock(HttpClient.class), mock(HttpClient.class),
-                checkMock);
+                checkMock, mock(ServiceHandlerLoader.class));
 
         serverProxyHandler.handle(request, getMockedResponse(), callback);
 

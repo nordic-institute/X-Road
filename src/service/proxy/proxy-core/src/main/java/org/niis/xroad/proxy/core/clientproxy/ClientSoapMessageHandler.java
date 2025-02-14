@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,60 +27,58 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.util.JettyUtils.getTarget;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
- * AsicContainerHandler
+ * Handles client messages. This handler must be the last handler in the
+ * handler collection, since it will not pass handling of the request to
+ * the next handler (i.e. throws exception instead), if it cannot process
+ * the request itself.
  */
-@Slf4j
-public class AsicContainerHandler extends AbstractClientProxyHandler {
+public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
-    /**
-     * Constructor
-     */
-    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
-        super(commonBeanProxy, client, false);
+    public ClientSoapMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+        super(commonBeanProxy, client, true);
     }
 
     @Override
-    protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) throws Exception {
-        var target = getTarget(request);
-        log.trace("createRequestProcessor({})", target);
+    protected MessageProcessorBase createRequestProcessor(
+            RequestWrapper request, ResponseWrapper response,
+            OpMonitoringData opMonitoringData) throws Exception {
+        verifyCanProcess(request);
 
-        // opMonitoringData is null, do not use it.
+        return new ClientMessageProcessor(commonBeanProxy,
+                request, response, client, getIsAuthenticationData(request), opMonitoringData);
+    }
 
-        if (!isGetRequest(request)) {
-            return null;
+    private void verifyCanProcess(RequestWrapper request) {
+        if (!isPostRequest(request)) {
+            throw new ClientException(X_INVALID_HTTP_METHOD,
+                    "Must use POST request method instead of %s",
+                    request.getMethod());
         }
 
-        if (target == null) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Target must not be null");
+        commonBeanProxy.getGlobalConfProvider().verifyValidity();
+
+        if (!SystemProperties.isSslEnabled()) {
+            return;
         }
 
-        AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
-                commonBeanProxy,
-                target,
-                request,
-                response);
-
-        if (processor.canProcess()) {
-            log.trace("Processing with AsicContainerRequestProcessor");
-
-            return processor;
+        AuthKey authKey = commonBeanProxy.getKeyConfProvider().getAuthKey();
+        if (authKey.certChain() == null) {
+            throw new CodedException(X_SSL_AUTH_FAILED,
+                    "Security server has no valid authentication certificate");
         }
-
-        return null;
     }
 }

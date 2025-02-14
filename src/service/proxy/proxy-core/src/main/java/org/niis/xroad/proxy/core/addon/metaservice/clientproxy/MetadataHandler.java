@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.clientproxy;
+package org.niis.xroad.proxy.core.addon.metaservice.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -32,6 +33,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
@@ -39,21 +41,22 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
 /**
- * AsicContainerHandler
+ * MetadataHandler
  */
 @Slf4j
-public class AsicContainerHandler extends AbstractClientProxyHandler {
+public class MetadataHandler extends AbstractClientProxyHandler {
 
     /**
      * Constructor
      */
-    public AsicContainerHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+    public MetadataHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
         super(commonBeanProxy, client, false);
     }
 
     @Override
-    protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
-                                                OpMonitoringData opMonitoringData) throws Exception {
+    protected MessageProcessorBase createRequestProcessor(RequestWrapper request,
+                                                ResponseWrapper response,
+                                                OpMonitoringData opMonitoringData) {
         var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
@@ -68,18 +71,12 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
                     "Target must not be null");
         }
 
-        AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
-                commonBeanProxy,
-                target,
-                request,
-                response);
-
+        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(commonBeanProxy, target, request, response);
         if (processor.canProcess()) {
-            log.trace("Processing with AsicContainerRequestProcessor");
-
+            log.trace("Processing with MetadataClientRequestProcessor");
             return processor;
         }
-
         return null;
     }
+
 }

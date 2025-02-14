@@ -37,7 +37,7 @@ import org.niis.xroad.test.serverconf.TestServerConf;
 
 @QuarkusTest
 @TestProfile(ProxyTestProfile.class)
-public class ProxyMainTest {
+class ProxyMainTest {
 
     @Test
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case

@@ -40,6 +40,7 @@ public interface ProxyProperties {
     ServerProperties server();
     ClientProxyProperties clientProxy();
     OcspResponderProperties ocspResponder();
+    AddonProperties addOn();
 
     @WithName("health-check-port")
     @WithDefault("0")
@@ -160,5 +161,17 @@ public interface ProxyProperties {
         @WithName("jetty-configuration-file")
         @WithDefault("classpath:jetty/ocsp-responder.xml")
         String jettyConfigurationFile();
+    }
+
+    @ConfigMapping(prefix = "xroad.proxy.addon")
+    interface AddonProperties {
+        @WithName("meta-services")
+        ProxyAddonMetaservicesProperties metaservices();
+
+        interface ProxyAddonMetaservicesProperties {
+            @WithName("enabled")
+            @WithDefault("true")
+            boolean enabled();
+        }
     }
 }

@@ -20,10 +20,6 @@ deploy_module() {
     target_path="/usr/share/xroad/jlib/addon/proxy/"
     service_name="xroad-proxy"
     ;;
-  "metaservice-addon")
-    jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
-    service_name="xroad-proxy"
-    ;;
   "proxy-ui-api")
     jar_path="$XROAD_HOME/src/security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar"
     service_name="xroad-proxy-ui-api"

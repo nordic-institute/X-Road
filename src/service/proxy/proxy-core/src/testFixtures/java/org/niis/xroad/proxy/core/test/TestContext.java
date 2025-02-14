@@ -27,20 +27,28 @@
 
 package org.niis.xroad.proxy.core.test;
 
+import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
+import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
+import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
+
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
@@ -68,13 +76,20 @@ public class TestContext {
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
                     keyConfProvider, signingCtxProvider, certHelper);
 
-            clientProxy = new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier,
-                    proxyProperties.clientProxy());
+            HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
+                    .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, globalConfProvider, keyConfProvider);
+            MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient);
+            ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient);
+
+            clientProxy = new ClientProxy(serverConfProvider, proxyProperties.clientProxy(),
+                    new ListInstanceWrapper<>(List.of(metadataHandler, soapMessageHandler)));
             clientProxy.init();
 
             if (startServerProxy) {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
-                serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy);
+                ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
+                        proxyProperties.addOn());
+                serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader);
                 serverProxy.init();
             }
 
@@ -98,4 +113,5 @@ public class TestContext {
         } catch (Exception e) {
         }
     }
+
 }

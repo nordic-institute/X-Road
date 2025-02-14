@@ -33,21 +33,11 @@ import ee.ria.xroad.common.util.JettyUtils;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
@@ -58,12 +48,8 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.proxy.core.util.SSLContextUtil;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.KeyManager;
@@ -74,8 +60,6 @@ import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -84,6 +68,7 @@ import java.util.Optional;
 @Slf4j
 @Startup
 @Singleton
+@RequiredArgsConstructor
 public class ClientProxy {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -92,42 +77,24 @@ public class ClientProxy {
 
     private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
-    private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
+//    private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
 
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
-    private final CommonBeanProxy commonBeanProxy;
-    private final GlobalConfProvider globalConfProvider;
-    private final KeyConfProvider keyConfProvider;
+//    private final CommonBeanProxy commonBeanProxy;
+//    private final GlobalConfProvider globalConfProvider;
+//    private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
+//    private final AuthTrustVerifier authTrustVerifier;
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
+    private final Instance<AbstractClientProxyHandler> clientHandlers;
 
-    private final AuthTrustVerifier authTrustVerifier;
 
     private final Server server = new Server();
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connectionMonitor;
-
-    /**
-     * Constructs and configures a new client proxy.
-     *
-     * @throws Exception in case of any errors
-     */
-    public ClientProxy(CommonBeanProxy commonBeanProxy,
-                       GlobalConfProvider globalConfProvider,
-                       KeyConfProvider keyConfProvider,
-                       ServerConfProvider serverConfProvider,
-                       AuthTrustVerifier authTrustVerifier,
-                       ProxyProperties.ClientProxyProperties clientProxyProperties) {
-        this.commonBeanProxy = commonBeanProxy;
-        this.globalConfProvider = globalConfProvider;
-        this.keyConfProvider = keyConfProvider;
-        this.serverConfProvider = serverConfProvider;
-        this.authTrustVerifier = authTrustVerifier;
-        this.clientProxyProperties = clientProxyProperties;
-    }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
@@ -142,65 +109,6 @@ public class ClientProxy {
         final var reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT
                 + " \"%{X-Forwarded-For}i\"");
         server.setRequestLog(reqLog);
-    }
-
-    private void createClient() throws Exception {
-        log.trace("createClient()");
-
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
-        RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(timeout);
-        rb.setConnectionRequestTimeout(timeout);
-        rb.setSocketTimeout(socketTimeout);
-
-        HttpClientBuilder cb = HttpClients.custom();
-
-        HttpClientConnectionManager connectionManager = getClientConnectionManager();
-        cb.setConnectionManager(connectionManager);
-
-        if (clientProxyProperties.clientUseIdleConnectionMonitor()) {
-            connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
-            connectionMonitor.setIntervalMilliseconds(clientProxyProperties.clientIdleConnectionMonitorInterval());
-            connectionMonitor.setConnectionIdleTimeMilliseconds(
-                    clientProxyProperties.clientIdleConnectionMonitorTimeout());
-        }
-
-        cb.setDefaultRequestConfig(rb.build());
-
-        // Disable request retry
-        cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
-
-        client = cb.build();
-    }
-
-    private HttpClientConnectionManager getClientConnectionManager() throws Exception {
-        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
-
-        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
-
-        if (SystemProperties.isSslEnabled()) {
-            sfr.register("https", createSSLSocketFactory());
-        }
-
-        SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
-        sockBuilder.setSoLinger(clientProxyProperties.clientHttpclientSoLinger());
-        sockBuilder.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
-        SocketConfig socketConfig = sockBuilder.build();
-
-        PoolingHttpClientConnectionManager poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
-        poolingManager.setMaxTotal(clientProxyProperties.poolTotalMaxConnections());
-        poolingManager.setDefaultMaxPerRoute(clientProxyProperties.poolTotalDefaultMaxConnectionsPerRoute());
-        poolingManager.setDefaultSocketConfig(socketConfig);
-        poolingManager.setValidateAfterInactivity(
-                clientProxyProperties.poolValidateConnectionsAfterInactivityOfMillis());
-
-        return poolingManager;
-    }
-
-    private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier,
-                SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
     }
 
     private void createConnectors() throws Exception {
@@ -271,47 +179,50 @@ public class ClientProxy {
                 });
     }
 
-    private void createHandlers() throws Exception {
+    private void createHandlers() {
         log.trace("createHandlers()");
 
         var handlers = new Handler.Sequence();
 
-        getClientHandlers().forEach(handlers::addHandler);
+        //getClientHandlers().forEach(handlers::addHandler);
+        clientHandlers.forEach(handler -> {
+            log.debug("Loading client handler: {}", handler.getClass().getName());
+            handlers.addHandler(handler);
+        });
 
         server.setHandler(handlers);
     }
 
-    private List<Handler> getClientHandlers() {
-        List<Handler> handlers = new ArrayList<>();
-        String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
-
-        handlers.add(new ClientRestMessageHandler(commonBeanProxy, client));
-
-        if (!StringUtils.isBlank(handlerClassNames)) {
-            var handlerLoader = new HandlerLoader(commonBeanProxy);
-            for (String handlerClassName : handlerClassNames.split(",")) {
-                try {
-                    log.trace("Loading client handler {}", handlerClassName);
-
-                    handlers.add(handlerLoader.loadHandler(handlerClassName, client));
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
-                }
-            }
-        }
-
-        log.trace("Loading default client handler");
-        handlers.add(new ClientMessageHandler(commonBeanProxy, client)); // default handler
-
-        return handlers;
-    }
+//    private List<Handler> getClientHandlers() {
+//        List<Handler> handlers = new ArrayList<>();
+//        String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
+//
+//        handlers.add(new ClientRestMessageHandler(commonBeanProxy, client));
+//
+//        if (!StringUtils.isBlank(handlerClassNames)) {
+//            var handlerLoader = new HandlerLoader(commonBeanProxy);
+//            for (String handlerClassName : handlerClassNames.split(",")) {
+//                try {
+//                    log.trace("Loading client handler {}", handlerClassName);
+//
+//                    handlers.add(handlerLoader.loadHandler(handlerClassName, client));
+//                } catch (Exception e) {
+//                    throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
+//                }
+//            }
+//        }
+//
+//        log.trace("Loading default client handler");
+//        handlers.add(new ClientSoapMessageHandler(commonBeanProxy, client)); // default handler
+//
+//        return handlers;
+//    }
 
     @PostConstruct
     public void init() throws Exception {
         log.trace("start()");
 
         configureServer();
-        createClient();
         createConnectors();
         createHandlers();
 
@@ -330,7 +241,7 @@ public class ClientProxy {
             connectionMonitor.shutdown();
         }
 
-        client.close();
+//        client.close();
         server.stop();
 
         HibernateUtil.closeSessionFactories();

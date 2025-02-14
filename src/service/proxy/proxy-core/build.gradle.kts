@@ -32,7 +32,7 @@ dependencies {
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:keyconf-impl"))
 
-//  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)
 //  implementation(libs.xerces.impl)
   implementation(libs.semver4j)
@@ -43,6 +43,10 @@ dependencies {
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
   testImplementation(libs.wsdl4j)
   testImplementation(libs.restAssured)
+  testImplementation(libs.hsqldb)
+  testImplementation(libs.jsonUnit.assertj)
+  testImplementation(libs.wiremock.standalone)
+  testImplementation(libs.xmlunit.matchers)
 
   testFixturesImplementation(project(":common:common-test"))
   testFixturesImplementation(project(":common:common-jetty"))
@@ -96,4 +100,11 @@ tasks.named("compileIntTestJava") {
 tasks.test {
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
+}
+
+val runMetaserviceTest by tasks.registering(JavaExec::class) {
+  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+  group = "verification"
+  logger.warn("WARNING: The 'runMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
+  enabled = false
 }

@@ -65,6 +65,7 @@ class ServerProxyHandler extends HandlerBase {
     private final HttpClient client;
     private final HttpClient opMonitorClient;
     private final ClientProxyVersionVerifier clientProxyVersionVerifier;
+    private final ServiceHandlerLoader serviceHandlerLoader;
 
     private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
@@ -119,12 +120,12 @@ class ServerProxyHandler extends HandlerBase {
             return new ServerRestMessageProcessor(commonBeanProxy,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitoringData);
+                    opMonitoringData, serviceHandlerLoader);
         } else {
             return new ServerMessageProcessor(commonBeanProxy,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitorClient, opMonitoringData);
+                    opMonitorClient, opMonitoringData, serviceHandlerLoader);
         }
     }
 

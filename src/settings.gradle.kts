@@ -124,7 +124,6 @@ include("common:common-test")
 include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")
-include("addons:metaservice")
 
 include("addons:proxymonitor-common")
 project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")

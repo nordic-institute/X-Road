@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfigBuilder;
+import org.apache.http.client.HttpClient;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -42,12 +43,16 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
+import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
+import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
+import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
+import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
 import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
@@ -61,6 +66,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -160,11 +166,17 @@ public abstract class AbstractProxyIntegrationTest {
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 keyConfProvider, signingCtxProvider, certHelper);
 
-        clientProxy = new ClientProxy(commonBeanProxy, TEST_GLOBAL_CONF, keyConfProvider, TEST_SERVER_CONF,
-                authTrustVerifier, proxyProperties.clientProxy());
+        HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
+                .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, TEST_GLOBAL_CONF, keyConfProvider);
+
+        ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(commonBeanProxy, httpClient);
+        clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(),
+                new ListInstanceWrapper<>(List.of(restMessageHandler)));
         clientProxy.init();
 
-        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy);
+        ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
+                proxyProperties.addOn());
+        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader);
         serverProxy.init();
 
         OpMonitoring.init(TEST_SERVER_CONF);

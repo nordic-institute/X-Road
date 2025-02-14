@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.metaservice.common;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.message.SoapHeader;
 
-import org.apache.http.client.HttpClient;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.io.InputStream;
+/**
+ * WSDL request data that is marshalled to and from the message body.
+ */
+@Getter
+@Setter
+@ToString
+@XmlRootElement(name = "getWsdl", namespace = SoapHeader.NS_XROAD)
+@XmlAccessorType(XmlAccessType.FIELD)
+public class WsdlRequestData {
 
-public interface ServiceHandler {
+    @XmlElement(name = "serviceCode", required = true,
+            namespace = SoapHeader.NS_XROAD)
+    private String serviceCode;
 
-    boolean shouldVerifyAccess();
+    @XmlElement(name = "serviceVersion", required = false,
+            namespace = SoapHeader.NS_XROAD)
+    private String serviceVersion;
 
-    boolean shouldVerifySignature();
-
-    boolean shouldLogSignature();
-
-    boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
-
-    void startHandling(RequestWrapper request, ProxyMessage requestMessage,
-                       HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception;
-
-    void finishHandling() throws Exception;
-
-    String getResponseContentType();
-
-    InputStream getResponseContent() throws Exception;
+    /**
+     * @param client the client
+     * @return the service identifier for a specified client
+     */
+    public ServiceId.Conf toServiceId(ClientId client) {
+        return ServiceId.Conf.create(client, serviceCode, serviceVersion);
+    }
 }

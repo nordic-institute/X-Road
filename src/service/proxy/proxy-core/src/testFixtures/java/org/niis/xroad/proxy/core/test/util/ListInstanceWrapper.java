@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,69 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
 
-import jakarta.enterprise.context.ApplicationScoped;
+package org.niis.xroad.proxy.core.test.util;
+
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.util.TypeLiteral;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
-import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.lang.annotation.Annotation;
+import java.util.Iterator;
+import java.util.List;
 
-@ApplicationScoped
 @RequiredArgsConstructor
-public class ServiceHandlerLoader {
-    private final ServerConfProvider serverConfProvider;
-    private final GlobalConfProvider globalConfProvider;
-    private final ProxyProperties.AddonProperties addonProperties;
+public class ListInstanceWrapper<T> implements Instance<T> {
 
+    private final List<T> list;
 
-    public Collection<ServiceHandler> loadSoapServiceHandlers() {
-        Collection<ServiceHandler> handlers = new ArrayList<>();
-        if (addonProperties.metaservices().enabled()) {
-            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider));
-        }
-        return handlers;
+    @Override
+    public Instance<T> select(Annotation... qualifiers) {
+        throw new UnsupportedOperationException();
     }
 
-    public Collection<RestServiceHandler> loadRestServiceHandlers() {
-        Collection<RestServiceHandler> handlers = new ArrayList<>();
-        if (addonProperties.metaservices().enabled()) {
-            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider));
-        }
-        return handlers;
+    @Override
+    public <U extends T> Instance<U> select(Class<U> subtype, Annotation... qualifiers) {
+        throw new UnsupportedOperationException();
     }
 
+    @Override
+    public <U extends T> Instance<U> select(TypeLiteral<U> subtype, Annotation... qualifiers) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isUnsatisfied() {
+        return list.isEmpty();
+    }
+
+    @Override
+    public boolean isAmbiguous() {
+        return list.size() > 1;
+    }
+
+    @Override
+    public void destroy(T instance) {
+
+    }
+
+    @Override
+    public Handle<T> getHandle() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterable<? extends Handle<T>> handles() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public T get() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return list.iterator();
+    }
 }
