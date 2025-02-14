@@ -8,11 +8,11 @@
 metrics = "4.2.30"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.4.Final"
+hibernate = "6.6.7.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
 mockito = "5.15.2"
-springBoot = "3.3.7"
+springBoot = "3.4.2"
 junitJupiter = "5.11.4"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
@@ -43,7 +43,7 @@ springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies",
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.3" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.0" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
@@ -154,7 +154,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.12.0" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
