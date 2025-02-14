@@ -39,6 +39,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
@@ -93,7 +94,7 @@ public class TestContext {
                 serverProxy.init();
             }
 
-            OpMonitoring.init(serverConfProvider);
+            OpMonitoring.init(new NullOpMonitoringBuffer(null));
             MessageLog.init(globalConfProvider, serverConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Init failed", e);

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -38,6 +39,8 @@ import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
+import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
+import org.niis.xroad.proxy.core.serverproxy.ProxyMessageSoapEntity;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.InputStream;
@@ -67,7 +70,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private HttpSender sender;
 
-    protected OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
         super(serverConfProvider, globalConfProvider);
     }
 

@@ -31,6 +31,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -41,13 +42,16 @@ import java.util.Collection;
 public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
-    private final ProxyProperties.AddonProperties addonProperties;
+    private final ProxyProperties.ProxyAddonProperties addonProperties;
 
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
         if (addonProperties.metaservices().enabled()) {
             handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider));
+        }
+        if (addonProperties.opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider));
         }
         return handlers;
     }

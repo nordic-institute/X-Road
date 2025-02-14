@@ -36,7 +36,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-opmonitor \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
@@ -53,7 +53,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-opmonitor \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up

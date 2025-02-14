@@ -27,17 +27,22 @@ package org.niis.xroad.proxy.core.configuration;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+@Slf4j
 public class ProxyConfig {
 
     @ApplicationScoped
@@ -47,8 +52,18 @@ public class ProxyConfig {
 
     @ApplicationScoped
     @Startup
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
-        return OpMonitoring.init(serverConfProvider);
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
+                                                  ServerConfProvider serverConfProvider) throws Exception {
+        AbstractOpMonitoringBuffer opMonitorBuffer;
+        if (addonProperties.opMonitor().enabled()) {
+            log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
+            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider);
+        } else {
+            log.debug("Initializing NullOpMonitoringBuffer");
+            opMonitorBuffer = new NullOpMonitoringBuffer(serverConfProvider);
+        }
+
+        return OpMonitoring.init(opMonitorBuffer);
     }
 
     @ApplicationScoped

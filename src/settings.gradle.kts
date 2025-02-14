@@ -131,5 +131,4 @@ project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/co
 include("addons:proxymonitor-metaservice")
 project(":addons:proxymonitor-metaservice").projectDir = file("addons/proxymonitor/metaservice")
 
-include("addons:op-monitoring")
 include("addons:wsdlvalidator")

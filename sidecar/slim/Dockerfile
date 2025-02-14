@@ -35,7 +35,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     xroad-proxy-ui-api \
     xroad-addon-wsdlvalidator \
     xroad-addon-messagelog \
-    xroad-addon-opmonitoring \
+    xroad-opmonitor \
     xroad-addon-proxymonitor \
     xroad-autologin \
     xroad-database-remote \

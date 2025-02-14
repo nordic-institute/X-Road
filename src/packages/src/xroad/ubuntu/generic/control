@@ -118,37 +118,31 @@ Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Description: X-Road AddOn: wsdlvalidator
  AddOn for WSDL validator for the X-Road services
 
-Package: xroad-addon-opmonitoring
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${binary:Version})
-Description: X-Road AddOn: operations monitoring service
- AddOn for operations monitoring.
-
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
 Package: xroad-securityserver-is
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Icelandic settings
  This is meta-package of X-Road security server with Icelandic settings.
 
 Package: xroad-securityserver-ee
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Estonian settings
  This is meta-package of X-Road security server with Estonian settings.
 
 Package: xroad-securityserver-fo
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with the Faroe Islands' settings
  This is meta-package of X-Road security server with the Faroe Islands' settings.
 

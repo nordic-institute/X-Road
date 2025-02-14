@@ -49,7 +49,7 @@
 
 - name: install opmonitoring
   yum:
-    name: xroad-addon-opmonitoring
+    name: xroad-opmonitor
     state: latest
   when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:

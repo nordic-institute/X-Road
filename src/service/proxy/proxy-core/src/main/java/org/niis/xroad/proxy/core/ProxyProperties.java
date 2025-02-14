@@ -40,7 +40,7 @@ public interface ProxyProperties {
     ServerProperties server();
     ClientProxyProperties clientProxy();
     OcspResponderProperties ocspResponder();
-    AddonProperties addOn();
+    ProxyAddonProperties addOn();
 
     @WithName("health-check-port")
     @WithDefault("0")
@@ -164,13 +164,22 @@ public interface ProxyProperties {
     }
 
     @ConfigMapping(prefix = "xroad.proxy.addon")
-    interface AddonProperties {
+    interface ProxyAddonProperties {
         @WithName("meta-services")
         ProxyAddonMetaservicesProperties metaservices();
+
+        @WithName("op-monitor")
+        ProxyAddonOpMonitorProperties opMonitor();
 
         interface ProxyAddonMetaservicesProperties {
             @WithName("enabled")
             @WithDefault("true")
+            boolean enabled();
+        }
+
+        interface ProxyAddonOpMonitorProperties {
+            @WithName("enabled")
+            @WithDefault("false")
             boolean enabled();
         }
     }
