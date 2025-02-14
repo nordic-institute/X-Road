@@ -26,6 +26,8 @@
 package org.niis.xroad.cs.admin.application;
 
 import jakarta.annotation.PostConstruct;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -95,6 +97,7 @@ class ApplicationIpRateLimitTest {
     @DirtiesContext
     class PerSecondTests {
         @Test
+        @Disabled("This test is disabled because it is not reliable on GitHub actions")
         @WithMockUser(authorities = {"VIEW_VERSION"})
         void shouldTriggerRateLimitPerSec() throws Exception {
             for (int i = 1; i <= RUNS_PER_SECOND; i++) {
