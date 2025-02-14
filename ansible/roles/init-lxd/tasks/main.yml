@@ -1,6 +1,6 @@
 ---
 - name: Ready all Ubuntu {{ubuntu_releasever}} containers
-  with_inventory_hostnames: all:!lxd_servers:!centos_ss:!localhost
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
   become: "{{ onMacOs | default(true) }}"
   community.general.lxd_container:
     name: "{{item}}"
@@ -19,8 +19,9 @@
   tags:
     - ubuntu-container-init
 
-- name: Ready all CentOS {{centos_releasever}} containers
-  with_inventory_hostnames: centos_ss
+- name: Ready all Rocky Linux {{rhel_releasever}} containers
+  become: "{{ onMacOs | default(true) }}"
+  with_inventory_hostnames: rhel_ss
   community.general.lxd_container:
     name: "{{item}}"
     url: "{{ lxd_url | default(omit) }}"
@@ -30,12 +31,13 @@
       mode: pull
       server: https://images.lxd.canonical.com
       protocol: simplestreams
-      alias: centos/{{centos_releasever}}{{ (centos_releasever|int > 7) | ternary('-Stream', '') }}/{{ arch[ansible_architecture] }}
+      alias: "rockylinux/{{ rhel_releasever }}"
     profiles: [ "default" ]
     wait_for_ipv4_addresses: true
+    devices: "{{ hostvars[item].container_ports | default({}) }}"
     timeout: 600
   tags:
-    - centos-container-init
+    - rhel-container-init
   vars:
     arch:
       aarch64: arm64

@@ -17,10 +17,10 @@ xroad-lxd-ss1 ansible_connection=lxd
 #xroad-lxd-ss2 ansible_connection=lxd
 
 [ss_servers:children]
-centos_ss
+rhel_ss
 
 #security servers (centos lxd containers, not supported in variant ee)
-[centos_ss]
+[rhel_ss]
 #xroad-lxd-rh-ss1 ansible_connection=lxd
 
 #container host
