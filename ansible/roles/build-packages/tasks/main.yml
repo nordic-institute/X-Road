@@ -26,19 +26,19 @@
           - /etc/group:/etc/group:ro
         command: "/workspace/src/packages/build-deb.sh {{ ubuntu_releasever }}"
 
-- name: "build RHEL {{ centos_releasever }} packages"
+- name: "build RHEL {{ rhel_releasever }} packages"
   tags: rpm
   vars:
-    rpm_version_suffix: "{{ (centos_releasever|int > 7) | ternary('-el' + centos_releasever|string, '') }}"
+    rpm_version_suffix: "-el{{ rhel_releasever }}"
   block:
-    - name: "build docker image for building RHEL {{ centos_releasever }} packages"
+    - name: "build docker image for building RHEL {{ rhel_releasever }} packages"
       docker_image:
         name: xroad-rpm{{ rpm_version_suffix }}
         source: build
         build:
           path: ../src/packages/docker/rpm{{ rpm_version_suffix }}
 
-    - name: "build RHEL {{ centos_releasever }} packages in docker"
+    - name: "build RHEL {{ rhel_releasever }} packages in docker"
       docker_container:
         name: xroad-rpm{{ rpm_version_suffix }}
         image: xroad-rpm{{ rpm_version_suffix }}
