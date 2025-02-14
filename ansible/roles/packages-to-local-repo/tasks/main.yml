@@ -5,7 +5,7 @@
       - "Connection type: {{ ansible_connection }}"
       - "LXD URL: {{ lxd_url | default('not set') }}"
   delegate_to: "{{ item }}"
-  with_inventory_hostnames: all:!lxd_servers:!centos_ss:!localhost
+  with_inventory_hostnames: all:!lxd_servers:!rhel_ss:!localhost
 - include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
