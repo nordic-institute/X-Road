@@ -5,6 +5,7 @@ Maintainer: NIIS <info@niis.org>
 Build-Depends: debhelper (>= ${debhelper-version})
 Standards-Version: 3.8.3
 
+# TODO: review the package. It used to install proxymonitor-metaservice addon on CS.
 Package: xroad-centralserver-monitoring
 Conflicts: xroad-securityserver
 Architecture: all
@@ -64,7 +65,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -99,12 +100,6 @@ Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
-
-Package: xroad-addon-proxymonitor
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version})
-Description: X-Road AddOn: proxy monitoring metaservice
- Addon for proxy monitoring
 
 Package: xroad-monitor
 Architecture: all

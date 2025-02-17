@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -50,15 +51,15 @@ import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.addon.proxymonitor.RestoreMonitorClientAfterTest;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
-import org.niis.xroad.proxymonitor.RestoreMonitorClientAfterTest;
 import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import org.niis.xroad.proxymonitor.message.MetricSetType;
 import org.niis.xroad.proxymonitor.message.MetricType;
 import org.niis.xroad.proxymonitor.message.StringMetricType;
-import org.niis.xroad.proxymonitor.util.MonitorClient;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.ByteArrayInputStream;

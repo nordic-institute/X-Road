@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,45 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxymonitor;
+package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.proxymonitor.util.MonitorClient;
-import org.niis.xroad.proxymonitor.util.ProxyMonitorService;
+import org.apache.commons.io.IOUtils;
+import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
- * ProxyMonitor initialization
+ * Monitoring configuration file validator, which reads the configuration
+ * from stdin
  */
-@Slf4j
-public class ProxyMonitor implements AddOn {
+// todo: class should be used from validate-monitoring-params.sh to be used on CS.
+//  Needs more investigation if really needed.
+public final class StdinValidator {
 
-    private static MonitorClient monitorClient;
-
-    @Override
-    public void init(final BindableServiceRegistry bindableServiceRegistry) {
-        try {
-            bindableServiceRegistry.register(new ProxyMonitorService());
-
-            setMonitorClient(new MonitorClient());
-        } catch (Exception e) {
-            log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
-        }
+    /**
+     * Program entry point
+     */
+    public static void main(String[] args) throws Exception {
+        String string = IOUtils.toString(System.in, UTF_8);
+        System.out.println(string);
+        MonitoringParametersSchemaValidator.validate(string);
     }
 
-    @Override
-    public void shutdown() {
-        if (monitorClient != null) {
-            monitorClient.shutdown();
-        }
+    private StdinValidator() {
     }
-
-    public static MonitorClient getClient() {
-        return monitorClient;
-    }
-
-    static void setMonitorClient(MonitorClient monitorClient) {
-        ProxyMonitor.monitorClient = monitorClient;
-    }
-
 }

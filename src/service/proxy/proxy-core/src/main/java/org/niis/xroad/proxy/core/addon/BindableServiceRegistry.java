@@ -23,44 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon;
 
-import ee.ria.xroad.common.message.SoapBuilder;
+import com.google.common.collect.ImmutableList;
+import io.grpc.BindableService;
 
-import jakarta.xml.soap.SOAPBody;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Utility for building getSecurityServerMetrics node with listed content.
- */
-public class MetricsQueryBuilder implements SoapBuilder.SoapBodyCallback {
+public class BindableServiceRegistry {
 
-    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
+    private final List<BindableService> bindableServices = new ArrayList<>();
 
-    List<String> metricNames;
-
-    public MetricsQueryBuilder(List<String> metricNames) {
-        this.metricNames = metricNames;
+    /**
+     * Register gRPC bindable service to already present server.
+     *
+     * @param bindableService
+     */
+    public void register(BindableService bindableService) {
+        bindableServices.add(bindableService);
     }
 
-    @Override
-    public void create(SOAPBody soapBody) throws Exception {
-
-        Document doc = soapBody.getOwnerDocument();
-        Element metricsNode = doc.createElementNS(NS_MONITORING, "getSecurityServerMetrics");
-        soapBody.appendChild(metricsNode);
-
-        Element outputSpecNode = doc.createElementNS(NS_MONITORING, "outputSpec");
-        metricsNode.appendChild(outputSpecNode);
-
-        for (String metricName : metricNames) {
-            Element outputFieldNode1 = doc.createElementNS(NS_MONITORING, "outputField");
-            outputFieldNode1.setTextContent(metricName);
-            outputSpecNode.appendChild(outputFieldNode1);
-        }
+    public List<BindableService> getRegisteredServices() {
+        return ImmutableList.copyOf(bindableServices);
     }
-
 }

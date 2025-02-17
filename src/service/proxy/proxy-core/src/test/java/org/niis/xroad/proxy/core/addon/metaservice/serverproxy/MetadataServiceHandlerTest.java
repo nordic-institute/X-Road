@@ -36,7 +36,6 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -104,6 +103,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -142,7 +142,7 @@ public class MetadataServiceHandlerTest {
 
     private static final String EXPECTED_WSDL_QUERY_PATH = "/wsdlMock";
 
-    private static final int WSDL_SERVER_PORT = 9858;
+    private static final int WSDL_SERVER_PORT = findRandomPort();
     // the uri from which the WSDL can be found by the meta service
     private static final String MOCK_SERVER_WSDL_URL =
             "http://localhost:" + WSDL_SERVER_PORT + EXPECTED_WSDL_QUERY_PATH;
@@ -162,8 +162,6 @@ public class MetadataServiceHandlerTest {
 
     private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
-    private ResponseWrapper mockResponse;
-    private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
     private TestServerConfWrapper serverConfProvider;
@@ -192,10 +190,6 @@ public class MetadataServiceHandlerTest {
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
-        mockResponse = mock(ResponseWrapper.class);
-
-        mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
-
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockProxyMessage.getSoapContentType()).thenReturn(MimeTypes.TEXT_XML_UTF8);
@@ -208,7 +202,6 @@ public class MetadataServiceHandlerTest {
         this.mockServer.stop();
         MetaserviceTestUtil.cleanDB();
     }
-
 
     @Test
     public void shouldBeAbleToHandleListMethods() throws Exception {
@@ -256,7 +249,6 @@ public class MetadataServiceHandlerTest {
         assertTrue("Wasn't able to handle allowed methods",
                 handlerToTest.canHandle(serviceId, mockProxyMessage));
     }
-
 
     @Test
     public void shouldBeAbleToHandleGetWsdl() throws Exception {
@@ -402,7 +394,6 @@ public class MetadataServiceHandlerTest {
 
         assertThat("Wrong services", resultServices, containsInAnyOrder(expectedServices.toArray()));
     }
-
 
     @Test
     public void shouldThrowWhenMissingServiceCodeInWsdlRequestBody() throws Exception {

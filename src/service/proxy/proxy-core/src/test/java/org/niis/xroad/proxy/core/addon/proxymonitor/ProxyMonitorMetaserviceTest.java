@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.proxymonitor;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -38,12 +38,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.addon.AddOn;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
 import org.niis.xroad.proxy.core.test.TestcaseLoader;
-import org.niis.xroad.proxymonitor.ProxyMonitor;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -65,12 +64,11 @@ public class ProxyMonitorMetaserviceTest {
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
-        System.setProperty("xroad.proxy.serverServiceHandlers", "org.niis.xroad.proxy.core.serverproxy.ProxyMonitorServiceHandlerImpl");
         System.setProperty("test.queries.dir", "src/test/queries");
 
         Map<String, String> proxyProps = new HashMap<>();
-        proxyProps.put("xroad.proxy.server.jetty-configuration-file", "src/test/resources/serverproxy.xml");
-        proxyProps.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/resources/clientproxy.xml");
+        proxyProps.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
+        proxyProps.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
 
         ProxyTestSuiteHelper.setPropsIfNotSet(proxyProps);
 
@@ -82,7 +80,7 @@ public class ProxyMonitorMetaserviceTest {
 
         ProxyTestSuiteHelper.startTestServices();
 
-        new ProxyMonitor().init(new AddOn.BindableServiceRegistry());
+        new ProxyMonitor().init(new BindableServiceRegistry());
     }
 
     @AfterAll
@@ -93,8 +91,8 @@ public class ProxyMonitorMetaserviceTest {
     TestContext ctx;
 
     @TestFactory
-    Stream<DynamicTest> proxyMonitorTests() {
-        List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(new String[]{});
+    Stream<DynamicTest> proxyMonitorTests() throws Exception {
+        List<MessageTestCase> testCasesToRun = TestcaseLoader.getAllTestCases(getClass().getPackageName() + ".testcases.");
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");

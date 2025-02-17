@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,28 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.proxymonitor;
 
-import org.apache.commons.io.IOUtils;
-import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
+import org.junit.rules.ExternalResource;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+/** A JUnit rule to restore the {@link ProxyMonitor} MonitorClient after the test has run. */
+public class RestoreMonitorClientAfterTest extends ExternalResource {
 
-/**
- * Monitoring configuration file validator, which reads the configuration
- * from stdin
- */
-public final class StdinValidator {
+    private MonitorClient monitorClient;
 
-    /**
-     * Program entry point
-     */
-    public static void main(String[] args) throws Exception {
-        String string = IOUtils.toString(System.in, UTF_8);
-        System.out.println(string);
-        MonitoringParametersSchemaValidator.validate(string);
+    @Override
+    protected void before() {
+        monitorClient = ProxyMonitor.getClient();
     }
 
-    private StdinValidator() {
+    @Override
+    protected void after() {
+        setMonitorClient(monitorClient);
+    }
+
+    /** Set the monitor client for test purposes
+     * @param monitorClient
+     */
+    public static void setMonitorClient(MonitorClient monitorClient) {
+        ProxyMonitor.setMonitorClient(monitorClient);
     }
 }

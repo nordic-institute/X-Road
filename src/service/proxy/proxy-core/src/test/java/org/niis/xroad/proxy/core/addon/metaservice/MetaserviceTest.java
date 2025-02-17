@@ -66,16 +66,13 @@ public class MetaserviceTest {
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
-        System.setProperty("xroad.proxy.serverServiceHandlers",
-                "org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl");
         System.setProperty("test.queries.dir", "src/test/queries");
 
         Map<String, String> props = new HashMap<>();
-        props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         props.put("xroad.proxy.client-proxy.jetty-configuration-file", "src/test/clientproxy.xml");
-
         props.put("xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()));
         props.put("xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()));
+        props.put("xroad.proxy.server.jetty-configuration-file", "src/test/serverproxy.xml");
         props.put("xroad.proxy.server.listen-address", "127.0.0.1");
 
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");

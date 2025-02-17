@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon;
+package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
-import com.google.common.collect.ImmutableList;
-import io.grpc.BindableService;
+import ee.ria.xroad.common.message.SoapBuilder;
 
-import java.util.ArrayList;
+import jakarta.xml.soap.SOAPBody;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import java.util.List;
 
 /**
- * Interface for proxy addons
+ * Utility for building getSecurityServerMetrics node with listed content.
  */
-public interface AddOn {
+public class MetricsQueryBuilder implements SoapBuilder.SoapBodyCallback {
 
-    /**
-     * Initialization hook called during proxy startup
-     *
-     * @param bindableServiceRegistry proxy gRPC service registry
-     */
-    void init(BindableServiceRegistry bindableServiceRegistry);
+    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
 
-    void shutdown();
+    List<String> metricNames;
 
-    class BindableServiceRegistry {
-        private final List<BindableService> bindableServices = new ArrayList<>();
+    public MetricsQueryBuilder(List<String> metricNames) {
+        this.metricNames = metricNames;
+    }
 
-        /**
-         * Register gRPC bindable service to already present server.
-         *
-         * @param bindableService
-         */
-        public void register(BindableService bindableService) {
-            bindableServices.add(bindableService);
-        }
+    @Override
+    public void create(SOAPBody soapBody) throws Exception {
 
-        public List<BindableService> getRegisteredServices() {
-            return ImmutableList.copyOf(bindableServices);
+        Document doc = soapBody.getOwnerDocument();
+        Element metricsNode = doc.createElementNS(NS_MONITORING, "getSecurityServerMetrics");
+        soapBody.appendChild(metricsNode);
+
+        Element outputSpecNode = doc.createElementNS(NS_MONITORING, "outputSpec");
+        metricsNode.appendChild(outputSpecNode);
+
+        for (String metricName : metricNames) {
+            Element outputFieldNode1 = doc.createElementNS(NS_MONITORING, "outputField");
+            outputFieldNode1.setTextContent(metricName);
+            outputSpecNode.appendChild(outputFieldNode1);
         }
     }
+
 }

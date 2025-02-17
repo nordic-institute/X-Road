@@ -31,7 +31,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.AddOn;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
 import org.niis.xroad.proxy.core.admin.AdminService;
 
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class ProxyRpcConfig {
 
     @ApplicationScoped
     @Startup
-    RpcServer proxyRpcServer(AddOn.BindableServiceRegistry bindableServiceRegistry,
+    RpcServer proxyRpcServer(BindableServiceRegistry bindableServiceRegistry,
                              AdminService adminService,
                              ProxyRpcServerProperties rpcServerProperties,
                              RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
@@ -44,13 +45,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.addon.proxymonitor.ProxyMonitor;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxymonitor.ProxyMonitor;
+import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import org.niis.xroad.proxymonitor.message.MetricSetType;
 import org.niis.xroad.proxymonitor.message.ObjectFactory;
 import org.niis.xroad.proxymonitor.message.StringMetricType;
-import org.niis.xroad.proxymonitor.util.MonitorClient;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -81,7 +83,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     private SoapMessageEncoder responseEncoder;
 
-    protected ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
         super(serverConfProvider, globalConfProvider);
     }
 

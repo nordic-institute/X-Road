@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.serverproxy;
+package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
@@ -68,7 +69,6 @@ import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.CodedExceptionM
  * Unit tests for {@link ProxyMonitorServiceHandlerImpl}
  */
 public class ProxyMonitorServiceHandlerTest {
-
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final ClientId.Conf DEFAULT_OWNER_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",

@@ -26,18 +26,34 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.proxy.core.addon.AddOn;
-
-import java.util.ServiceLoader;
+import jakarta.enterprise.inject.Disposes;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
+import org.niis.xroad.proxy.core.addon.proxymonitor.ProxyMonitor;
 
 public class ProxyAddonConfig {
 
     @ApplicationScoped
-    public AddOn.BindableServiceRegistry bindableServiceRegistry() {
-        AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
-        ServiceLoader.load(AddOn.class)
-                .forEach(addOn -> addOn.init(bindableServiceRegistry));
+    static class ProxyMonitorInitializer {
+        private ProxyMonitor proxyMonitor;
 
-        return bindableServiceRegistry;
+        @ApplicationScoped
+        public BindableServiceRegistry bindableServiceRegistry(ProxyProperties.ProxyAddonProperties addonProperties) {
+            BindableServiceRegistry bindableServiceRegistry = new BindableServiceRegistry();
+
+            if (addonProperties.proxyMonitor().enabled()) {
+                proxyMonitor = new ProxyMonitor();
+                proxyMonitor.init(bindableServiceRegistry);
+            }
+
+            return bindableServiceRegistry;
+        }
+
+        public void dispose(@Disposes BindableServiceRegistry bindableServiceRegistry) {
+            if (proxyMonitor != null) {
+                proxyMonitor.shutdown();
+            }
+        }
+
     }
 }

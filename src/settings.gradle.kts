@@ -128,7 +128,4 @@ include("addons:messagelog:messagelog-db")
 include("addons:proxymonitor-common")
 project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
 
-include("addons:proxymonitor-metaservice")
-project(":addons:proxymonitor-metaservice").projectDir = file("addons/proxymonitor/metaservice")
-
 include("addons:wsdlvalidator")

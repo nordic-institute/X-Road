@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxymonitor.util;
+package org.niis.xroad.proxy.core.addon.proxymonitor.util;
 
 import com.google.protobuf.util.Timestamps;
 import org.apache.commons.lang3.math.NumberUtils;

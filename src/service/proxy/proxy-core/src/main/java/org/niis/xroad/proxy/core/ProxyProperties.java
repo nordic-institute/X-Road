@@ -165,11 +165,20 @@ public interface ProxyProperties {
 
     @ConfigMapping(prefix = "xroad.proxy.addon")
     interface ProxyAddonProperties {
+        @WithName("proxy-monitor")
+        ProxyAddonProxyMonitorProperties proxyMonitor();
+
         @WithName("meta-services")
         ProxyAddonMetaservicesProperties metaservices();
 
         @WithName("op-monitor")
         ProxyAddonOpMonitorProperties opMonitor();
+
+        interface ProxyAddonProxyMonitorProperties {
+            @WithName("enabled")
+            @WithDefault("true")
+            boolean enabled();
+        }
 
         interface ProxyAddonMetaservicesProperties {
             @WithName("enabled")

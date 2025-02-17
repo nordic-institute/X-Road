@@ -36,7 +36,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     xroad-addon-wsdlvalidator \
     xroad-addon-messagelog \
     xroad-opmonitor \
-    xroad-addon-proxymonitor \
+    xroad-monitor \
     xroad-autologin \
     xroad-database-remote \
   && apt-get -qq clean
@@ -72,8 +72,7 @@ RUN rm -f \
   && cp /usr/share/xroad/config/VERSION /etc/xroad/VERSION \
   && sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh \
   && mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled \
-  && mv /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf.disabled \
-  && mv /usr/share/xroad/jlib/addon/proxy/proxymonitor-service.conf /usr/share/xroad/jlib/addon/proxy/proxymonitor-service.conf.disabled
+  && mv /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf.disabled
 
 COPY --chown=root:root files/_entrypoint_common.sh /root/
 COPY --chown=root:root files/slim-ss-entrypoint.sh /root/entrypoint.sh

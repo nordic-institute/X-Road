@@ -20,6 +20,9 @@ configurations.named("intTestImplementation") {
 dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
+  implementation(project(":addons:proxymonitor-common"))
+  implementation(project(":service:monitor:monitor-api"))
+
   implementation(project(":common:common-jetty"))
 //  implementation(project(":common:common-message"))
   implementation(project(":common:common-messagelog"))
@@ -107,5 +110,12 @@ val runMetaserviceTest by tasks.registering(JavaExec::class) {
   // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
   group = "verification"
   logger.warn("WARNING: The 'runMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
+  enabled = false
+}
+
+tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
+  // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
+  group = "verification"
+  logger.warn("WARNING: The 'runProxymonitorMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
   enabled = false
 }

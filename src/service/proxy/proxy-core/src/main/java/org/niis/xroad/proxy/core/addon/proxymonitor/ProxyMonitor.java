@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,30 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxymonitor;
+package org.niis.xroad.proxy.core.addon.proxymonitor;
 
-import org.junit.rules.ExternalResource;
-import org.niis.xroad.proxymonitor.util.MonitorClient;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 
-/** A JUnit rule to restore the {@link ProxyMonitor} MonitorClient after the test has run. */
-public class RestoreMonitorClientAfterTest extends ExternalResource {
+/**
+ * ProxyMonitor initialization
+ */
+@Slf4j
+public class ProxyMonitor {
 
-    private MonitorClient monitorClient;
+    private static MonitorClient monitorClient;
 
-    @Override
-    protected void before() {
-        monitorClient = ProxyMonitor.getClient();
+    public void init(final BindableServiceRegistry bindableServiceRegistry) {
+        try {
+            bindableServiceRegistry.register(new ProxyMonitorService());
+
+            setMonitorClient(new MonitorClient());
+        } catch (Exception e) {
+            log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
+        }
     }
 
-    @Override
-    protected void after() {
-        setMonitorClient(monitorClient);
+    public void shutdown() {
+        if (monitorClient != null) {
+            monitorClient.shutdown();
+        }
     }
 
-    /** Set the monitor client for test purposes
-     * @param monitorClient
-     */
-    public static void setMonitorClient(MonitorClient monitorClient) {
-        ProxyMonitor.setMonitorClient(monitorClient);
+    public static MonitorClient getClient() {
+        return monitorClient;
     }
+
+    static void setMonitorClient(MonitorClient monitorClient) {
+        ProxyMonitor.monitorClient = monitorClient;
+    }
+
 }

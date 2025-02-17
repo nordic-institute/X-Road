@@ -68,6 +68,7 @@ import java.util.stream.Collectors;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -95,7 +96,7 @@ public class RestMetadataServiceHandlerTest {
     private static final ClientId.Conf CLIENT_WITH_UNSUPPORTED_OPENAPI = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE);
     private static final byte[] REQUEST_HASH = "foobar1234".getBytes();
-    private static final int MOCK_SERVER_PORT = 9858;
+    private static final int MOCK_SERVER_PORT = findRandomPort();
 
     static final ObjectMapper MAPPER;
 
@@ -131,11 +132,11 @@ public class RestMetadataServiceHandlerTest {
             @Override
             public String getServiceDescriptionURL(ServiceId service) {
                 if (SUBSYSTEM_FOR_JSON_FILE.equals(service.getSubsystemCode())) {
-                    return "http://localhost:9858/petstore.json";
+                    return "http://localhost:%d/petstore.json".formatted(MOCK_SERVER_PORT);
                 } else if (SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE.equals(service.getSubsystemCode())) {
-                    return "http://localhost:9858/openapi_incompatible_version.yaml";
+                    return "http://localhost:%d/openapi_incompatible_version.yaml".formatted(MOCK_SERVER_PORT);
                 } else {
-                    return "http://localhost:9858/petstore.yaml";
+                    return "http://localhost:%d/petstore.yaml".formatted(MOCK_SERVER_PORT);
                 }
             }
         };

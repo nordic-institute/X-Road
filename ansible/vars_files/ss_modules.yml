@@ -11,11 +11,6 @@ ss_modules:
     lib: proxy-1.0.jar
     target: /usr/share/xroad/jlib
     service: xroad-proxy
-  addon-proxy:
-    dir: addons/proxymonitor/metaservice
-    build: build
-    lib: proxymonitor-metaservice-1.0.jar
-    target: /usr/share/xroad/jlib/addon/proxy
   addon-message-log-archiver:
     dir: service/message-log-archiver/message-log-archiver-application
     build: build
