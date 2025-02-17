@@ -53,14 +53,15 @@ public class TestGenericClientRequestBuilder {
 
     private SecurityServerId.Conf serverId;
     private ClientId.Conf clientId;
-    private String clientName;
     private CertificateStatus clientOcspStatus;
+
+    private SoapMessageBuilder soapMessageBuilder;
 
     private TestBaseManagementRequestBuilder requestBuilder = (_keyPairGenerator, _clientCert, _clientCertOcsp, _clientKey, _request) ->
             new TestGenericClientRequest(_clientCert, _clientCertOcsp, _clientKey, _request);
 
     private RequestAssembler requestAssembler = (_keyPairGenerator, _clientRegTypeBuilder, _soapMessageBuilder, _senderClientId,
-                                                 _receiverClientId, _serverId, _clientId, _clientName, _clientOcspStatus) -> {
+                                                 _receiverClientId, _serverId, _clientId, _clientOcspStatus) -> {
         var builder = new TestManagementRequestBuilder(_senderClientId, _receiverClientId);
 
         var clientKeyPair = _keyPairGenerator.generateKeyPair();
@@ -77,10 +78,9 @@ public class TestGenericClientRequestBuilder {
                 clientCert.getEncoded(),
                 clientOcsp.getEncoded(),
                 clientKeyPair.getPrivate(),
-                _soapMessageBuilder.build(builder, _serverId, _clientId, _clientName));
+                _soapMessageBuilder.build(builder, _serverId, _clientId));
     };
 
-    private SoapMessageBuilder soapMessageBuilder = TestManagementRequestBuilder::buildClientRegRequest;
 
     public TestGenericClientRequestBuilder withServerId(SecurityServerId.Conf serverId) {
         this.serverId = serverId;
@@ -99,11 +99,6 @@ public class TestGenericClientRequestBuilder {
 
     public TestGenericClientRequestBuilder withClientId(ClientId.Conf clientId) {
         this.clientId = clientId;
-        return this;
-    }
-
-    public TestGenericClientRequestBuilder withClientName(String clientName) {
-        this.clientName = clientName;
         return this;
     }
 
@@ -130,12 +125,7 @@ public class TestGenericClientRequestBuilder {
     @SneakyThrows
     public TestGenericClientRequest build() {
         return requestAssembler.assemble(KEY_PAIR_GENERATOR, requestBuilder, soapMessageBuilder,
-                senderClientId, receiverClientId, serverId, clientId, clientName, clientOcspStatus);
-    }
-
-    public static SoapMessageBuilder likeWithName(NamelessSoapMessageBuilder builder) {
-        return (_builder, _serverId, _clientId, _clientName) ->
-                builder.build(_builder, _serverId, _clientId);
+                senderClientId, receiverClientId, serverId, clientId, clientOcspStatus);
     }
 
     public interface RequestAssembler {
@@ -144,7 +134,7 @@ public class TestGenericClientRequestBuilder {
                                           SoapMessageBuilder soapMessageBuilder,
                                           ClientId.Conf senderClientId, ClientId.Conf receiverClientId,
                                           SecurityServerId.Conf serverId, ClientId.Conf clientId,
-                                          String clientName, CertificateStatus clientOcspStatus)
+                                          CertificateStatus clientOcspStatus)
                 throws IOException, CertificateEncodingException;
     }
 
@@ -154,13 +144,7 @@ public class TestGenericClientRequestBuilder {
     }
 
     public interface SoapMessageBuilder {
-        SoapMessageImpl build(TestManagementRequestBuilder builder, SecurityServerId.Conf serverId,
-                              ClientId.Conf clientId, String clientName);
-    }
-
-    public interface NamelessSoapMessageBuilder {
-        SoapMessageImpl build(TestManagementRequestBuilder builder, SecurityServerId.Conf serverId,
-                              ClientId.Conf clientId);
+        SoapMessageImpl build(TestManagementRequestBuilder builder, SecurityServerId.Conf serverId, ClientId.Conf clientId);
     }
 
     public static TestGenericClientRequestBuilder newBuilder() {

@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.function.Supplier;
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_CLIENT_NAME;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_SUBSYSTEM_NAME;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_ONLY_SUBSYSTEM_RENAME_ALLOWED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_CLIENT_NOT_FOUND;
 
@@ -82,12 +82,12 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
                 request.getOrigin(),
                 serverId,
                 subsystem.getIdentifier(),
-                request.getClientName(),
+                request.getSubsystemName(),
                 formatComment(subsystem.getName(), request.getComments())
         );
 
         final var persistedRequest = renameRequests.save(requestEntity);
-        subsystem.setName(request.getClientName());
+        subsystem.setName(request.getSubsystemName());
 
         return requestMapper.toDto(persistedRequest);
     }
@@ -101,8 +101,8 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
     }
 
     private void validate(ClientRenameRequest request) {
-        if (StringUtils.isBlank(request.getClientName())) {
-            throw new ValidationFailureException(MR_INVALID_CLIENT_NAME);
+        if (StringUtils.isBlank(request.getSubsystemName())) {
+            throw new ValidationFailureException(MR_INVALID_SUBSYSTEM_NAME);
         }
 
         if (request.getClientId().getSubsystemCode() == null) {

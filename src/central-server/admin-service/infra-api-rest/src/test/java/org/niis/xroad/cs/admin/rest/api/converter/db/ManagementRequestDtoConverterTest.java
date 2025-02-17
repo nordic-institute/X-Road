@@ -354,7 +354,7 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
                 verifyCommon(inOrder, requestDto);
                 inOrder.verify(requestDto).getClientId();
                 inOrder.verify(clientIdConverter).convertId(encodedClientId);
-                inOrder.verify(requestDto).getClientName();
+                inOrder.verify(requestDto).getSubsystemName();
             });
         }
 

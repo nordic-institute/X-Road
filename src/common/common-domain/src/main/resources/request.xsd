@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
-    targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
-    elementFormDefault="qualified">
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
+        elementFormDefault="qualified">
     <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
 
     <element name="authCertReg" type="tns:AuthCertRegRequestType"/>
     <element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
-    <element name="clientReg" type="tns:ClientRequestType"/>
+    <element name="clientReg" type="tns:ClientRegRequestType"/>
     <element name="clientDeletion" type="tns:ClientRequestType"/>
     <element name="clientDisable" type="tns:ClientRequestType"/>
     <element name="clientEnable" type="tns:ClientRequestType"/>
-    <element name="clientRename" type="tns:ClientRequestType"/>
+    <element name="clientRename" type="tns:ClientRenameRequestType"/>
     <element name="ownerChange" type="tns:ClientRequestType"/>
     <element name="addressChange" type="tns:AddressChangeRequestType"/>
 
@@ -33,15 +33,15 @@
             </element>
             <element name="authCert" type="base64Binary">
                 <annotation>
-                  <documentation>
-                      Contents (in DER encoding) of
-                      the authentication certificate that will
-                      be added to the list of certificates
-                      authenticating the security server.
-                  </documentation>
+                    <documentation>
+                        Contents (in DER encoding) of
+                        the authentication certificate that will
+                        be added to the list of certificates
+                        authenticating the security server.
+                    </documentation>
                 </annotation>
             </element>
-            <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
         </sequence>
     </complexType>
     <complexType name="AuthCertDeletionRequestType">
@@ -62,7 +62,7 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
         </sequence>
     </complexType>
     <complexType name="ClientRequestType">
@@ -86,26 +86,83 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
-            <element name="clientName" type="string" minOccurs="0" />
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="ClientRegRequestType">
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security
+                        server where the client is added to or removed
+                        from (depending on the request type).
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="client" type="id:XRoadClientIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the client
+                        associated with the security server. When the
+                        request is for registering client, the client is
+                        added to the security server. When the request
+                        is for deleting client, the client is removed
+                        from the clients' list of the security server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystemName" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Optional name of subsystem when registering it as a client.</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="ClientRenameRequestType">
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security
+                        server where the client is added to or removed
+                        from (depending on the request type).
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="client" type="id:XRoadClientIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the client
+                        associated with the Security Server. When the
+                        request is for registering client, the client is
+                        added to the Security Server. When the request
+                        is for deleting client, the client is removed
+                        from the clients' list of the Security Server.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="subsystemName" type="string">
+                <annotation>
+                    <documentation>New name of client subsystem.</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
         </sequence>
     </complexType>
     <complexType name="AddressChangeRequestType">
-      <sequence>
-        <element name="server" type="id:XRoadSecurityServerIdentifierType">
-          <annotation>
-            <documentation>Identifier of the security server the
-              authentication certificate will be associated with.
-            </documentation>
-          </annotation>
-        </element>
-        <element name="address" type="string">
-          <annotation>
-            <documentation>New address of the security server</documentation>
-          </annotation>
-        </element>
-        <element name="requestId" type="tns:RequestIdType" minOccurs="0" />
-      </sequence>
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security server the
+                        authentication certificate will be associated with.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="address" type="string">
+                <annotation>
+                    <documentation>New address of the security server</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
     </complexType>
     <simpleType name="RequestIdType">
         <annotation>
@@ -113,6 +170,6 @@
                 central server database. Exists if message is response.
             </documentation>
         </annotation>
-        <restriction base="integer" />
+        <restriction base="integer"/>
     </simpleType>
 </schema>

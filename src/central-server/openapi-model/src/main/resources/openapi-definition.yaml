@@ -4980,7 +4980,7 @@ components:
         client_id:
           type: string
           description: Encoded Client ID
-        client_name:
+        subsystem_name:
           type: string
       required:
         - client_id
@@ -5022,7 +5022,7 @@ components:
         client_id:
           type: string
           description: Encoded Client ID
-        client_name:
+        subsystem_name:
           type: string
       required:
         - client_id

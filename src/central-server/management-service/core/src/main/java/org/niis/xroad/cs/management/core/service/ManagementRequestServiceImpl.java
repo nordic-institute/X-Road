@@ -30,6 +30,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
+import ee.ria.xroad.common.request.ClientRegRequestType;
+import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.RequiredArgsConstructor;
@@ -92,6 +94,32 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         return addManagementRequestInternal(managementRequest);
     }
 
+    @Override
+    public Integer addManagementRequest(ClientRenameRequestType request) {
+
+        var managementRequest = new ClientRenameRequestDto()
+                .origin(ManagementRequestOriginDto.SECURITY_SERVER)
+                .securityServerId(securityServerIdConverter.convertId(request.getServer()))
+                .clientId(clientIdConverter.convertId(request.getClient()))
+                .subsystemName(request.getSubsystemName())
+                .type(ManagementRequestTypeDto.CLIENT_RENAME_REQUEST);
+
+        return addManagementRequestInternal(managementRequest);
+    }
+
+    @Override
+    public Integer addManagementRequest(ClientRegRequestType request) {
+
+        var managementRequest = new ClientRegistrationRequestDto()
+                .origin(ManagementRequestOriginDto.SECURITY_SERVER)
+                .securityServerId(securityServerIdConverter.convertId(request.getServer()))
+                .clientId(clientIdConverter.convertId(request.getClient()))
+                .subsystemName(request.getSubsystemName())
+                .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
+
+        return addManagementRequestInternal(managementRequest);
+    }
+
     private Integer addManagementRequestInternal(ManagementRequestDto managementRequest) {
         var result = managementRequestsApi.addManagementRequest(managementRequest);
         if (!result.hasBody()) {
@@ -105,10 +133,6 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
 
     private ManagementRequestDto createRequestDto(ClientRequestType request, ManagementRequestType requestType) {
         ManagementRequestDto managementRequest = switch (requestType) {
-            case CLIENT_REGISTRATION_REQUEST -> new ClientRegistrationRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .clientName(request.getClientName())
-                    .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
             case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestDto()
                     .clientId(clientIdConverter.convertId(request.getClient()))
                     .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
@@ -121,10 +145,6 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestDto()
                     .clientId(clientIdConverter.convertId(request.getClient()))
                     .type(ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST);
-            case CLIENT_RENAME_REQUEST -> new ClientRenameRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .clientName(request.getClientName())
-                    .type(ManagementRequestTypeDto.CLIENT_RENAME_REQUEST);
             default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
         };
 

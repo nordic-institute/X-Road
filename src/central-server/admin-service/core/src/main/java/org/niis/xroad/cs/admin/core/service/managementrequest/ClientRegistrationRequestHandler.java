@@ -129,7 +129,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         ClientRegistrationRequestEntity req;
         switch (pending.size()) {
             case 0:
-                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getClientName(), request.getComments());
+                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getSubsystemName(), request.getComments());
                 break;
             case 1:
                 ClientRegistrationRequestEntity anotherReq = pending.getFirst();
@@ -187,6 +187,6 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     }
 
     private SecurityServerClientEntity createSubsystem(XRoadMemberEntity clientMember, ClientRegistrationRequestEntity request) {
-        return clients.save(new SubsystemEntity(clientMember, request.getClientId(), request.getClientName()));
+        return clients.save(new SubsystemEntity(clientMember, request.getClientId(), request.getSubsystemName()));
     }
 }

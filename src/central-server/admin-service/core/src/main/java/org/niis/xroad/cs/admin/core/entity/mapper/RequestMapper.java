@@ -100,5 +100,6 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
     ClientDisableRequest toDto(ClientDisableRequestEntity source);
 
     ClientEnableRequest toDto(ClientEnableRequestEntity source);
+
     ClientRenameRequest toDto(ClientRenameRequestEntity source);
 }

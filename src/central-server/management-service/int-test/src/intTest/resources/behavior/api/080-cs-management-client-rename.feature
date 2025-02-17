@@ -1,5 +1,5 @@
 @ManagementRequests
-Feature: Management requests API: Client enabling
+Feature: Management requests API: Client Rename
 
   Scenario: Client rename request is successful
     Given Admin api is mocked with a response with status-code 202, type CLIENT_RENAME_REQUEST and id 1122
@@ -12,7 +12,7 @@ Feature: Management requests API: Client enabling
     "origin" : "SECURITY_SERVER",
     "security_server_id" : "EE:CLASS:MEMBER:SS1",
     "client_id" : "EE:CLASS:MEMBER:SUBSYSTEM",
-    "client_name" : "New Subsystem Name"
+    "subsystem_name" : "New Subsystem Name"
     }
     """
 
@@ -28,5 +28,5 @@ Feature: Management requests API: Client enabling
 
   Scenario: Client rename fails with soap fault when client name is blank
     When Client rename request for "" with clientId "EE:CLASS:MEMBER:SUBSYSTEM" was sent
-    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Invalid client name" is returned
+    Then Response of status code 500 and soap faultCode "InvalidRequest" and soap faultString "Invalid subsystem name" is returned
     And Admin api has not received any request

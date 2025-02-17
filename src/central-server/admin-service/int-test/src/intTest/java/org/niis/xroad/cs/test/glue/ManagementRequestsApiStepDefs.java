@@ -132,13 +132,13 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     }
 
     @Step("client {string} with name {string} is registered as security server {string} client from {string}")
-    public void memberIsRegisteredAsSecurityServerClient(String memberId, String clientName, String securityServerId, String origin) {
+    public void memberIsRegisteredAsSecurityServerClient(String memberId, String subsystemName, String securityServerId, String origin) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(valueOf(origin));
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(memberId);
-        managementRequest.setClientName(clientName);
+        managementRequest.setSubsystemName(subsystemName);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -199,7 +199,7 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(clientId);
-        managementRequest.setClientName(newName);
+        managementRequest.setSubsystemName(newName);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();

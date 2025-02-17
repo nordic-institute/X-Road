@@ -55,10 +55,10 @@ public class ClientRenameRequestEntity extends RequestEntity {
     @Setter
     private ClientIdEntity clientId;
 
-    @Column(name = "client_name")
+    @Column(name = "subsystem_name")
     @Getter
     @Setter
-    private String clientName;
+    private String subsystemName;
 
     @Override
     @Transient
@@ -69,10 +69,10 @@ public class ClientRenameRequestEntity extends RequestEntity {
     public ClientRenameRequestEntity(Origin origin,
                                      SecurityServerId serverId,
                                      ee.ria.xroad.common.identifier.ClientId clientId,
-                                     String clientName,
+                                     String subsystemName,
                                      String comments) {
         super(origin, serverId, comments);
         this.clientId = ClientIdEntity.ensure(clientId);
-        this.clientName = clientName;
+        this.subsystemName = subsystemName;
     }
 }

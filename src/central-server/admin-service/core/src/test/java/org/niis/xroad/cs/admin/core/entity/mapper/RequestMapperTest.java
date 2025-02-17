@@ -123,7 +123,7 @@ class RequestMapperTest {
         assertThat(result.getManagementRequestType()).isEqualTo(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
         assertThat(result.getSecurityServerId().getServerCode()).isEqualTo(source.getSecurityServerId().getServerCode());
         assertThat(((ClientRegistrationRequest) result).getClientId().getMemberCode()).isEqualTo(MEMBER_ID_ENTITY.getMemberCode());
-        assertThat(((ClientRegistrationRequest) result).getClientName()).isEqualTo(name);
+        assertThat(((ClientRegistrationRequest) result).getSubsystemName()).isEqualTo(name);
     }
 
     @Test

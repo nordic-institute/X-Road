@@ -48,7 +48,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Objects;
 
-import static org.niis.xroad.common.managemenetrequest.test.TestGenericClientRequestBuilder.likeWithName;
 import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_RECEIVER;
 import static org.niis.xroad.cs.test.constants.CommonTestData.DEFAULT_SERVER_ID;
 
@@ -131,15 +130,16 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
         executeRequestWithCustomServerId(null, clientIdStr, serverId);
     }
 
-    private void executeRequestWithCustomServerId(String clientName, String clientIdStr, String serverId) throws Exception {
+    private void executeRequestWithCustomServerId(String subsystemName, String clientIdStr, String serverId) throws Exception {
         var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
                 .withSenderClientId(clientId.getMemberId())
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
-                .withClientName(clientName)
                 .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder((_builder, _serverId, _clientId)
+                        -> _builder.buildClientRegRequest(_serverId, _clientId, subsystemName))
                 .build();
         executeRequest(req.createPayload());
     }
@@ -158,7 +158,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(likeWithName(TestManagementRequestBuilder::buildOwnerChangeRegRequest))
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildOwnerChangeRegRequest)
                 .build();
         executeRequest(req.createPayload());
     }
@@ -172,12 +172,12 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(DEFAULT_SERVER_ID)
                 .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
                 .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientRegRequest)
                 .withRequestTypeBuilder((keyPairGenerator, clientCert, clientCertOcsp, clientKey, req) ->
                         new TestGenericClientRequest(
                                 clientCert, clientCertOcsp,
                                 keyPairGenerator.generateKeyPair().getPrivate(), //Pass wrong keypair
                                 req))
-
                 .build();
         executeRequest(request.createPayload());
     }
@@ -191,6 +191,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(DEFAULT_SERVER_ID)
                 .withClientId(resolveClientIdFromEncodedStr(clientIdStr))
                 .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientRegRequest)
                 .withRequestTypeBuilder((keyPairGenerator, clientCert, clientCertOcsp, clientKey, req) ->
                         new TestGenericClientRequest(
                                 new byte[0],  //Pass wrong cert
@@ -208,6 +209,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(DEFAULT_SERVER_ID)
                 .withClientId(clientId)
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientRegRequest)
                 .withClientOcsp(new RevokedStatus(Date.from(TimeUtils.now().minusSeconds(3600)), CRLReason.unspecified))
                 .build();
         executeRequest(request.createPayload());
@@ -232,8 +234,8 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(
-                        (builder, serverId1, clientId1, name) -> builder.buildAddressChangeRequest(serverId1, address))
+                .withSoapMessageBuilder((builder, serverId1, clientId1)
+                        -> builder.buildAddressChangeRequest(serverId1, address))
                 .build();
         executeRequest(req.createPayload());
     }
@@ -252,7 +254,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(likeWithName(TestManagementRequestBuilder::buildClientDisableRequest))
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientDisableRequest)
                 .build();
         executeRequest(req.createPayload());
     }
@@ -271,7 +273,7 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(likeWithName(TestManagementRequestBuilder::buildClientEnableRequest))
+                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientEnableRequest)
                 .build();
         executeRequest(req.createPayload());
     }
@@ -282,16 +284,16 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
     }
 
     @Step("Client rename request for {string} with clientId {string} and serverId {string} was sent")
-    public void executeRequestClientRenameWithCustomServerId(String clientName, String clientIdStr, String serverId) throws Exception {
+    public void executeRequestClientRenameWithCustomServerId(String subsystemName, String clientIdStr, String serverId) throws Exception {
         var clientId = resolveClientIdFromEncodedStr(clientIdStr);
         var req = TestGenericClientRequestBuilder.newBuilder()
                 .withSenderClientId(resolveClientIdFromEncodedStr("EE:CLASS:MEMBER"))
                 .withReceiverClientId(DEFAULT_RECEIVER)
                 .withServerId(resolveServerIdFromEncodedStr(serverId))
                 .withClientId(clientId)
-                .withClientName(clientName)
                 .withClientOcsp(CertificateStatus.GOOD)
-                .withSoapMessageBuilder(TestManagementRequestBuilder::buildClientRenameRequest)
+                .withSoapMessageBuilder((_builder, _serverId, _clientId)
+                        -> _builder.buildClientRenameRequest(_serverId, _clientId, subsystemName))
                 .build();
         executeRequest(req.createPayload());
     }

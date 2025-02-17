@@ -100,7 +100,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             case ClientEnableRequest req -> new ClientEnableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
             case ClientRenameRequest req -> new ClientRenameRequestDto()
                     .clientId(clientIdConverter.convertId(req.getClientId()))
-                    .clientName(req.getClientName());
+                    .subsystemName(req.getSubsystemName());
             case OwnerChangeRequest req -> new OwnerChangeRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
             case AddressChangeRequest req -> new AddressChangeRequestDto().serverAddress(req.getServerAddress());
             case null, default -> throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
@@ -132,7 +132,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             case ClientRegistrationRequestDto req -> new ClientRegistrationRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
-                    fromEncodedId(req.getClientId()), req.getClientName());
+                    fromEncodedId(req.getClientId()), req.getSubsystemName());
             case ClientDeletionRequestDto req -> new ClientDeletionRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
@@ -149,7 +149,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()),
-                    req.getClientName());
+                    req.getSubsystemName());
             case OwnerChangeRequestDto req -> new OwnerChangeRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),

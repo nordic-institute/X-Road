@@ -40,7 +40,7 @@ Feature: Management requests API: Client registration
     "origin" : "SECURITY_SERVER",
     "security_server_id" : "EE:CLASS:MEMBER:SS1",
     "client_id" : "EE:CLASS:MEMBER:sub",
-    "client_name" : "Subsystem Name"
+    "subsystem_name" : "Subsystem Name"
     }
     """
 

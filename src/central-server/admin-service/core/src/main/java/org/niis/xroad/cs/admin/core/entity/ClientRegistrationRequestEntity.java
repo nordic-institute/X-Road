@@ -57,25 +57,25 @@ public class ClientRegistrationRequestEntity extends RequestWithProcessingEntity
     @Getter
     private ClientIdEntity clientId;
 
-    @Column(name = "client_name")
+    @Column(name = "subsystem_name")
     @Getter
     @Setter
-    private String clientName;
+    private String subsystemName;
 
     public ClientRegistrationRequestEntity(Origin origin,
                                            SecurityServerId serverId,
                                            ClientIdEntity clientId,
-                                           String clientName,
+                                           String subsystemName,
                                            String comments) {
         super(origin, serverId, comments, new ClientRegistrationRequestProcessingEntity());
         this.clientId = ClientIdEntity.ensure(clientId);
-        this.clientName = clientName;
+        this.subsystemName = subsystemName;
     }
 
     public ClientRegistrationRequestEntity(Origin origin, String comments, ClientRegistrationRequestEntity other) {
         super(origin, other.getSecurityServerId(), comments, other.getRequestProcessing());
         this.clientId = ClientIdEntity.ensure(other.getClientId());
-        this.clientName = other.getClientName();
+        this.subsystemName = other.getSubsystemName();
     }
 
     @Override

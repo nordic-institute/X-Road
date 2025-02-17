@@ -38,7 +38,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @EqualsAndHashCode(callSuper = true)
 public class ClientRenameRequest extends Request {
     private ClientId clientId;
-    private String clientName;
+    private String subsystemName;
 
 
     @Override
@@ -49,9 +49,9 @@ public class ClientRenameRequest extends Request {
     public ClientRenameRequest(Origin origin,
                                ee.ria.xroad.common.identifier.SecurityServerId serverId,
                                ee.ria.xroad.common.identifier.ClientId clientId,
-                               String clientName) {
+                               String subsystemName) {
         super(origin, serverId);
         this.clientId = ClientId.ensure(clientId);
-        this.clientName = clientName;
+        this.subsystemName = subsystemName;
     }
 }
