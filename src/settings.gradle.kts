@@ -121,7 +121,6 @@ include("security-server:e2e-test")
 include("common:common-test")
 
 // Addons
-include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")
 

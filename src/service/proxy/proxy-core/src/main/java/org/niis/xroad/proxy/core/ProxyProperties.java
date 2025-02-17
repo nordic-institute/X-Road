@@ -171,10 +171,19 @@ public interface ProxyProperties {
         @WithName("meta-services")
         ProxyAddonMetaservicesProperties metaservices();
 
+        @WithName("message-log")
+        ProxyAddonMessageLogProperties messageLog();
+
         @WithName("op-monitor")
         ProxyAddonOpMonitorProperties opMonitor();
 
         interface ProxyAddonProxyMonitorProperties {
+            @WithName("enabled")
+            @WithDefault("true")
+            boolean enabled();
+        }
+
+        interface ProxyAddonMessageLogProperties {
             @WithName("enabled")
             @WithDefault("true")
             boolean enabled();
@@ -191,5 +200,6 @@ public interface ProxyProperties {
             @WithDefault("false")
             boolean enabled();
         }
+
     }
 }

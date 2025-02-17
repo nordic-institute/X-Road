@@ -52,6 +52,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerHandler;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.clientproxy.AbstractClientProxyHandler;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
@@ -67,7 +68,7 @@ public class ProxyClientConfig {
 
     @ApplicationScoped
     @Priority(1)
-    // should be the last handler
+    // must be the last handler
     AbstractClientProxyHandler clientSoapMessageHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
         return new ClientSoapMessageHandler(commonBeanProxy, client);
     }
@@ -77,6 +78,13 @@ public class ProxyClientConfig {
     @LookupIfProperty(name = "xroad.proxy.addon.meta-services.enabled", stringValue = "true")
     AbstractClientProxyHandler metadataHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
         return new MetadataHandler(commonBeanProxy, client);
+    }
+
+    @ApplicationScoped
+    @Priority(200)
+    @LookupIfProperty(name = "xroad.proxy.addon.message-log.enabled", stringValue = "true")
+    AbstractClientProxyHandler asicContainerHandler(CommonBeanProxy commonBeanProxy, @Named("proxyHttpClient") HttpClient client) {
+        return new AsicContainerHandler(commonBeanProxy, client);
     }
 
     @ApplicationScoped

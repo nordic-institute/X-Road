@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
-
-import java.util.Map;
+import lombok.Value;
 
 /**
- * A dummy implementation of message log that does nothing.
- * Actual implementation can be provided by addon.
+ * Result of shell command: exit status, standard output and standard error.
  */
-public class NullLogManager extends AbstractLogManager {
+@Value
+class ShellCommandOutput {
+    private int exitCode;
+    private String standardOutput;
+    private String standardError;
 
-    public NullLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+    boolean isError() {
+        return exitCode != 0;
     }
-
-    @Override
-    public void log(LogMessage message) {
-        // do nothing
-    }
-
-    @Override
-    public TimestampRecord timestamp(Long messageRecordId) {
-        return null;
-    }
-
-    @Override
-    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
-        throw new RuntimeException("Status not available while using NullLogManager");
-    }
-
 }

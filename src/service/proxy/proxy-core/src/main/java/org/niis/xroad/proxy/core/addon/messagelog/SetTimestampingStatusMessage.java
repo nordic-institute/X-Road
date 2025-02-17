@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.util.TimeUtils;
 
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Map;
+import java.time.Instant;
 
-/**
- * A dummy implementation of message log that does nothing.
- * Actual implementation can be provided by addon.
- */
-public class NullLogManager extends AbstractLogManager {
-
-    public NullLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+@Data
+@RequiredArgsConstructor
+class SetTimestampingStatusMessage {
+    /**
+     * Status
+     */
+    public enum Status {
+        SUCCESS,
+        FAILURE
     }
 
-    @Override
-    public void log(LogMessage message) {
-        // do nothing
-    }
+    private final Status status;
+    /**
+     * Time when the status was achieved
+     */
+    private final Instant atTime;
 
-    @Override
-    public TimestampRecord timestamp(Long messageRecordId) {
-        return null;
+    /**
+     * Constructor that sets status change timestamp to current time.
+     *
+     * @param status
+     */
+    SetTimestampingStatusMessage(Status status) {
+        this.status = status;
+        this.atTime = TimeUtils.now();
     }
-
-    @Override
-    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
-        throw new RuntimeException("Status not available while using NullLogManager");
-    }
-
 }
+
+

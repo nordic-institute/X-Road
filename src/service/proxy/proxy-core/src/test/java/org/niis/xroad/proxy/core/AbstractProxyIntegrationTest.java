@@ -47,6 +47,7 @@ import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
@@ -181,7 +182,7 @@ public abstract class AbstractProxyIntegrationTest {
         serverProxy.init();
 
         OpMonitoring.init(new NullOpMonitoringBuffer(null));
-        MessageLog.init(TEST_GLOBAL_CONF, TEST_SERVER_CONF);
+        MessageLog.init(new NullLogManager(TEST_GLOBAL_CONF, TEST_SERVER_CONF));
     }
 
     @AfterClass

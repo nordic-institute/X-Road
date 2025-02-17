@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 
-import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-/**
- * A dummy implementation of message log that does nothing.
- * Actual implementation can be provided by addon.
- */
-public class NullLogManager extends AbstractLogManager {
+class TestLogCleaner extends LogCleaner {
 
-    public NullLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+    private static CountDownLatch gate = new CountDownLatch(1);
+
+    TestLogCleaner(LogArchiverProperties logArchiverProperties) {
+        super(logArchiverProperties);
+    }
+
+    public static void waitForCleanSuccessful() throws Exception {
+        try {
+            gate.await(5, TimeUnit.SECONDS);
+        } finally {
+            gate = new CountDownLatch(1);
+        }
     }
 
     @Override
-    public void log(LogMessage message) {
-        // do nothing
+    protected long handleClean() throws Exception {
+        final long removed = super.handleClean();
+        gate.countDown();
+        return removed;
     }
-
-    @Override
-    public TimestampRecord timestamp(Long messageRecordId) {
-        return null;
-    }
-
-    @Override
-    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
-        throw new RuntimeException("Status not available while using NullLogManager");
-    }
-
 }

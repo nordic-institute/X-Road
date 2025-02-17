@@ -20,9 +20,6 @@ configurations.named("intTestImplementation") {
 dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
-  implementation(project(":addons:proxymonitor-common"))
-  implementation(project(":service:monitor:monitor-api"))
-
   implementation(project(":common:common-jetty"))
 //  implementation(project(":common:common-message"))
   implementation(project(":common:common-messagelog"))
@@ -31,9 +28,16 @@ dependencies {
 
   implementation(libs.quarkus.scheduler)
 
+  implementation(project(":lib:asic-core"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:keyconf-impl"))
+
+
+  implementation(project(":addons:proxymonitor-common"))
+  implementation(project(":service:monitor:monitor-api"))
+
+  implementation(project(":addons:messagelog:messagelog-db"))
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation(libs.jetty.xml)
@@ -41,9 +45,11 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
+  testImplementation(project(":service:message-log-archiver:message-log-archiver-application"))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
+  testImplementation(libs.bouncyCastle.bcpg)
   testImplementation(libs.commons.cli)
   testImplementation(libs.hsqldb)
   testImplementation(libs.jsonUnit.assertj)
@@ -118,4 +124,16 @@ tasks.register<JavaExec>("runProxymonitorMetaserviceTest") {
   group = "verification"
   logger.warn("WARNING: The 'runProxymonitorMetaserviceTest' task is deprecated and does nothing. It will be removed in the future versions.")
   enabled = false
+}
+
+tasks.register<Copy>("copyGpg") {
+  description = "Copy GPG keys to build directory"
+  group = "build"
+
+  from("src/test/gpg")
+  into(layout.buildDirectory.dir("gpg"))
+}
+
+tasks.test {
+  dependsOn("copyGpg")
 }

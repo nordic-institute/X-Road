@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.messagelog;
+package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.LogMessage;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-
-import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProvider;
-
-import java.util.Map;
+import ee.ria.xroad.common.db.DatabaseCtx;
+import ee.ria.xroad.common.db.TransactionCallback;
 
 /**
- * A dummy implementation of message log that does nothing.
- * Actual implementation can be provided by addon.
+ * Message log database context.
  */
-public class NullLogManager extends AbstractLogManager {
+public final class MessageLogDatabaseCtx {
 
-    public NullLogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+    private static final DatabaseCtx CTX = new DatabaseCtx("messagelog");
+
+    private MessageLogDatabaseCtx() {
     }
 
-    @Override
-    public void log(LogMessage message) {
-        // do nothing
+    /**
+     * @return the current context.
+     */
+    public static DatabaseCtx get() {
+        return CTX;
     }
 
-    @Override
-    public TimestampRecord timestamp(Long messageRecordId) {
-        return null;
+    /**
+     * Convenience method for a transaction callback.
+     * @param <T> the type of result.
+     * @param callback the callback.
+     * @return the result.
+     * @throws Exception if an error occurs.
+     */
+    public static <T> T doInTransaction(TransactionCallback<T> callback) throws Exception {
+        return CTX.doInTransaction(callback);
     }
-
-    @Override
-    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
-        throw new RuntimeException("Status not available while using NullLogManager");
-    }
-
 }

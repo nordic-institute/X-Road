@@ -37,7 +37,10 @@ import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.messagelog.LogManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
+import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -51,9 +54,17 @@ public class ProxyMessageLogConfig {
 
     @ApplicationScoped
     @Startup
-    AbstractLogManager messageLogManager(GlobalConfProvider globalConfProvider,
+    AbstractLogManager messageLogManager(ProxyProperties.ProxyAddonProperties addonProperties,
+                                         GlobalConfProvider globalConfProvider,
                                          ServerConfProvider serverConfProvider) {
-        return MessageLog.init(globalConfProvider, serverConfProvider);
+        AbstractLogManager logManager;
+        if (addonProperties.messageLog().enabled()) {
+            logManager = new LogManager(globalConfProvider, serverConfProvider);
+        } else {
+            logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+        }
+
+        return MessageLog.init(logManager);
     }
 
     @ApplicationScoped

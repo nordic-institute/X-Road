@@ -178,7 +178,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
+    public static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
         var cert = request.getPeerCertificates()
                 .filter(ArrayUtils::isNotEmpty)
