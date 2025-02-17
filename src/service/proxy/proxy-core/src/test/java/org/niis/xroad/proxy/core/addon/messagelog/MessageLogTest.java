@@ -61,6 +61,7 @@ import org.hibernate.Hibernate;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,6 +78,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -109,6 +111,11 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TestUtil.initForTest;
 public class MessageLogTest extends AbstractMessageLogTest {
     private static final String LAST_LOG_ARCHIVE_FILE = "mlog-20150520112233-20150520123344-asdlfjlasa.zip";
     private static final String LAST_DIGEST = "123567890abcdef";
+
+    @BeforeClass
+    public static void beforeClass() {
+        TimeUtils.setClock(Clock.systemDefaultZone());
+    }
 
     @Parameterized.Parameters(name = "encrypted = {0}")
     public static Object[] params() {
