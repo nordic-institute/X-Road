@@ -33,7 +33,6 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-ver
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}%{_unitdir}
 
-cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/default-configuration/addons/messagelog-archiver-logback.xml %{buildroot}/etc/xroad/conf.d/addons/
@@ -69,7 +68,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/messagelog-changelog.xml
 /usr/share/xroad/db/messagelog
 /usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
-%config /usr/share/xroad/jlib/addon/proxy/messagelog.conf
 /usr/share/xroad/scripts/archive-http-transporter.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-messagelog-archiver

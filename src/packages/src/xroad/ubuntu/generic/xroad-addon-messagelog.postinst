@@ -9,9 +9,9 @@ if [[ "$1" == configure || "$1" == reconfigure ]]; then
   if [ "$RET" = false ]; then
     rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
   else
-    if [ ! -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-      ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
-    fi
+#    if [ ! -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
+#      ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+#    fi
 
     RET=
     db_get xroad-common/database-host || RET=""
