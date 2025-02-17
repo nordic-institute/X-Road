@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,7 +38,6 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
@@ -49,7 +49,6 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.KeyManager;
@@ -77,24 +76,15 @@ public class ClientProxy {
 
     private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
-//    private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
-
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
-//    private final CommonBeanProxy commonBeanProxy;
-//    private final GlobalConfProvider globalConfProvider;
-//    private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
-//    private final AuthTrustVerifier authTrustVerifier;
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
     private final Instance<AbstractClientProxyHandler> clientHandlers;
 
 
     private final Server server = new Server();
-
-    private CloseableHttpClient client;
-    private IdleConnectionMonitorThread connectionMonitor;
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
@@ -193,31 +183,6 @@ public class ClientProxy {
         server.setHandler(handlers);
     }
 
-//    private List<Handler> getClientHandlers() {
-//        List<Handler> handlers = new ArrayList<>();
-//        String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
-//
-//        handlers.add(new ClientRestMessageHandler(commonBeanProxy, client));
-//
-//        if (!StringUtils.isBlank(handlerClassNames)) {
-//            var handlerLoader = new HandlerLoader(commonBeanProxy);
-//            for (String handlerClassName : handlerClassNames.split(",")) {
-//                try {
-//                    log.trace("Loading client handler {}", handlerClassName);
-//
-//                    handlers.add(handlerLoader.loadHandler(handlerClassName, client));
-//                } catch (Exception e) {
-//                    throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
-//                }
-//            }
-//        }
-//
-//        log.trace("Loading default client handler");
-//        handlers.add(new ClientSoapMessageHandler(commonBeanProxy, client)); // default handler
-//
-//        return handlers;
-//    }
-
     @PostConstruct
     public void init() throws Exception {
         log.trace("start()");
@@ -227,23 +192,13 @@ public class ClientProxy {
         createHandlers();
 
         server.start();
-
-        if (connectionMonitor != null) {
-            connectionMonitor.start();
-        }
     }
 
     @PreDestroy
     public void destroy() throws Exception {
         log.trace("stop()");
 
-        if (connectionMonitor != null) {
-            connectionMonitor.shutdown();
-        }
-
-//        client.close();
         server.stop();
-
         HibernateUtil.closeSessionFactories();
     }
 

@@ -102,8 +102,6 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
 
-    private static final String SERVERPROXY_SERVICE_HANDLERS = SystemProperties.PREFIX + "proxy.serverServiceHandlers";
-
     private final X509Certificate[] clientSslCerts;
 
     private final List<ServiceHandler> handlers = new ArrayList<>();
