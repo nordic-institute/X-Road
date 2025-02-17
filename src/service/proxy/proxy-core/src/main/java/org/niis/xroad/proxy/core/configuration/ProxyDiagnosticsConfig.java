@@ -31,6 +31,7 @@ import ee.ria.xroad.common.messagelog.AbstractLogManager;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
@@ -70,11 +71,11 @@ public class ProxyDiagnosticsConfig {
             }
         }
 
-//        public void dispose(@Disposes HealthCheckPort healthCheckPort) throws Exception {
-//            if (healthCheckPort instanceof HealthCheckPortImpl impl) {
-//                impl.destroy();
-//            }
-//        }
+        public void dispose(@Disposes HealthCheckPort healthCheckPort) throws Exception {
+            if (healthCheckPort instanceof HealthCheckPortImpl impl) {
+                impl.destroy();
+            }
+        }
     }
 
 }
