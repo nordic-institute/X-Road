@@ -111,6 +111,9 @@ tasks.test {
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
 }
+tasks.named<Test>("test") {
+  dependsOn(":service:message-log-archiver:message-log-archiver-application:quarkusBuild")
+}
 
 val runMetaserviceTest by tasks.registering(JavaExec::class) {
   // empty task for pipelines backwards compatibility. can be removed after 7.9 release.
