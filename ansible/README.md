@@ -27,8 +27,7 @@ You determine which servers are initialized by filling in the groups
 you can leave that group empty.
 
 **Note:** Study the structure of the example host files carefully and model the group hierarchies that you wish to implement in your own
-inventory files. For example, the group `[centos_ss]` for CentOS-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for CentOS containers or are using the ee-variant.
-
+inventory files. For example, the group `[rhel_ss]` for RHEL-based security server LXD-containers is a child group to the security server group `[ss_servers]` and can be omitted entirely if you have no use for RHEL containers or are using the ee-variant.
 #### Variant
 
 When installing security servers, the Ansible playbooks use the configuration variable `variant`
@@ -190,8 +189,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modul
 
 #### Controlling the LXD operating system versions
 
-By default `xroad_dev.yml` creates Ubuntu 22.04 and CentOS 8 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `centos_releasever` and `ubuntu_releasever`. Out of the box there is support for CentOS 7 and 8, and Ubuntu 20.04 and 22.04. Other versions may need additional tweaking of the Ansible scripts.
-
+By default `xroad_dev.yml` creates Ubuntu 24.04 and RockyLinux 9 containers. It is also possible to configure it to create other versions of operating systems. To do this, in `groups_vars/all/vars.yml` set variables `rhel_releasever` and `ubuntu_releasever`. Out of the box there is support for RHEL 8 and 9 based distro, and Ubuntu 22.04 and 24.04. Other versions may need additional tweaking of the Ansible scripts.
 ## 5. Test CA, TSA, and OCSP
 
 While not themselves components provided by X-Road, certification and time stamping authorities are crucial to messaging within the system. More information on creating development-use CA, TSA and OCSP services [here.](TESTCA.md)
