@@ -42,6 +42,10 @@ public interface ProxyProperties {
     OcspResponderProperties ocspResponder();
     ProxyAddonProperties addOn();
 
+    @WithName("ssl-enabled")
+    @WithDefault("true")
+    boolean sslEnabled();
+
     @WithName("health-check-port")
     @WithDefault("0")
     int healthCheckPort();
