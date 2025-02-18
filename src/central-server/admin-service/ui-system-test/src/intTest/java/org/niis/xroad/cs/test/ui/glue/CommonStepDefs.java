@@ -30,6 +30,8 @@ import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.glue.mappers.ParameterMappers;
 
+import java.util.concurrent.TimeUnit;
+
 public class CommonStepDefs extends BaseUiStepDefs {
 
     public enum TokenType {
@@ -64,6 +66,11 @@ public class CommonStepDefs extends BaseUiStepDefs {
     public void errorIsShown(final String error) {
         commonPageObj.alerts.alert(error)
                 .shouldBe(Condition.visible);
+    }
+
+    @Step("Wait for {} seconds")
+    public void waitFor(Long second) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(second); // wait for some seconds
     }
 
     @ParameterType("REGISTRATION_OFFICER")
