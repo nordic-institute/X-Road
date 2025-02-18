@@ -3299,8 +3299,14 @@ Usage examples:
     ```  
 
   Value format is the same as for Java's `-Xms` and `-Xmx` options. The script will update the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
- 
-  Note that any other options present in the `XROAD_PROXY_PARAMS` property will be preserved only `-Xms`, `-Xmx`, `-XX:InitialHeapSize` and `-XX:MaxHeapSize` options will be overwritten.
+
+  After running the script, the changes will take effect only after restarting the Security Server.
+
+    ```bash
+    sudo systemctl restart xroad-proxy
+    ```
+
+  Note that only -Xms, -Xmx, -XX:InitialHeapSize and -XX:MaxHeapSize options will be overwritten. Instead, any other options present in the XROAD_PROXY_PARAMS property will be preserved.
 
 ## 22 Additional Security Hardening
 

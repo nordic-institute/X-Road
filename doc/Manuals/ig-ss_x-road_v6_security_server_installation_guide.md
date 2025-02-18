@@ -395,9 +395,9 @@ Upon the first installation of the packages, the system asks for the following i
 
 * The memory allocation configuration for the Java Virtual Machine (JVM) used by the proxy service.
   Allowed values are:
-    * *d* - default, adds `-Xms100m -Xmx512m` config. to the JVM options in `XROAD_PROXY_PARAMS` in `/etc/xroad/services/local.properties` file;
+    * *d* - default, adds `-Xms100m -Xmx512m` config to the JVM options in `XROAD_PROXY_PARAMS` in `/etc/xroad/services/local.properties` file;
   
-    * *r* - recommended, adds recommended Xms and Xmx values based on total memory in current server. to the JVM options in `XROAD_PROXY_PARAMS` in `/etc/xroad/services/local.properties` file;
+    * *r* - recommended, adds recommended Xms and Xmx values based on total memory in current server to the JVM options in `XROAD_PROXY_PARAMS` in `/etc/xroad/services/local.properties` file;
   
     * `<initialSize>[k|m|g] <maxSize>[k|m|g]` - custom values, which will be transformed to `-Xms<initialSize>[k|m|g] -Xmx<maxSize>[k|m|g]`.
   
