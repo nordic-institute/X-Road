@@ -125,7 +125,7 @@ Feature: 0900 - CS: Management Requests
 
   Scenario: User Approves Management Request for adding another client(member) to security server
     Given Members tab is selected
-    And Wait for 2 seconds
+    And Wait for 3 seconds
     When A new member with name: E2E TC4 Test Member, code: e2e-tc4-test-member & member class: E2E-TC1 is added
     Then a member client with code e2e-tc4-test-member is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
     And Management requests tab is selected
