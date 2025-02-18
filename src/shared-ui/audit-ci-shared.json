@@ -5,6 +5,7 @@
   "allowlist": [
     "GHSA-gcx4-mw62-g8wm|* > rollup*",
     "GHSA-96g7-g7g9-jxw8|*",
-    "GHSA-3xgq-45jj-v275|* > cross-spawn*"
+    "GHSA-3xgq-45jj-v275|* > cross-spawn*",
+    "GHSA-9crc-q9x8-hgqq|* > vitest*"
   ]
 }
