@@ -9,8 +9,7 @@ HAS_DOCKER=""
 PACKAGE_ONLY=false
 BUILD_LOCALLY=true
 BUILD_IN_DOCKER=false
-BUILD_ALL_PACKAGES=true
-BUILD_PACKAGES_FOR_RELEASE=""
+BUILD_PACKAGES_FOR_RELEASES=()
 # Global variable to determine if text coloring is enabled
 isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
 
@@ -32,17 +31,20 @@ warn() {
 }
 
 usage() {
-  echo "Usage: $0 [option for $0...] [other options]"
-  echo "Options for $0:"
-  echo " -p, --package-only    Skip compilation, just build packages"
-  echo " -d, --docker-compile  Compile in docker container instead of native gradle build"
-  echo " -h, --help            This help text."
-  echo " -r release-name       Builds packages of given release only. Supported values are:"
-  echo "                          noble, jammy for debian packages"
-  echo "                          rpm-el9, rpm-el8, or rpm for redhat packages"
-  echo "                       For example, -r jammy"
-  echo "The option for $0, if present, must come fist, before other options."
-  echo "Other options are passed on to compile_code.sh"
+  echo "Usage: [options] [additional arguments]"
+  echo ""
+  echo "Options:"
+  echo " -p, --package-only     Skip compilation and build only the packages."
+  echo " -d, --docker-compile   Compile inside a Docker container instead of native Gradle build."
+  echo " -h, --help             Display this help message and exit."
+  echo " -r release-name        Specify one or more releases to build packages for. Supported values:"
+  echo "                          - noble, jammy   (Debian packages)"
+  echo "                          - rpm-el9, rpm-el8 (Red Hat packages)"
+  echo "                        Example: -r noble -r rpm-el9"
+  echo ""
+  echo "Options can be used individually or in combination."
+  echo "If provided, options must precede any additional arguments."
+  echo "Additional arguments are passed on to compile_code.sh"
   test -z "$1" || exit "$1"
 }
 
@@ -61,11 +63,11 @@ currentBuildPlan() {
     if $BUILD_IN_DOCKER; then
       echo "-- Compile/build in Docker"
     fi
-    if [ -n "$BUILD_PACKAGES_FOR_RELEASE" ]; then
-      echo "-- Building $BUILD_PACKAGES_FOR_RELEASE packages only"
-    else
-      echo "-- Building all supported packages"
+    if [ ${#BUILD_PACKAGES_FOR_RELEASES[@]} -eq 0 ]; then
+      echo "-- No specific release(s) provided -> Building all supported packages"
+      BUILD_PACKAGES_FOR_RELEASES+=("noble" "jammy" "rpm-el9" "rpm-el8")
     fi
+    echo "-- Building following packages: ${BUILD_PACKAGES_FOR_RELEASES[*]}"
   fi
   echo ""
   if $isTextColoringEnabled; then
@@ -99,7 +101,7 @@ buildBuilderImage() {
 
 runInBuilderImage() {
   local release="$1"
-  shift;
+  shift
   test -n "$release" || errorExit "Error, release not specified."
   local image="xroad-$release"
 
@@ -112,62 +114,49 @@ runInBuilderImage() {
 }
 
 prepareDebianPackagesBuilderImages() {
-  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "noble" ]; then
-    buildBuilderImage deb-noble
-  fi
-  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "jammy" ]; then
-    buildBuilderImage deb-jammy
-  fi
+  for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
+    if [[ "$release" == "noble" || "$release" == "jammy" ]]; then
+      buildBuilderImage "deb-$release"
+    fi
+  done
 }
 
 prepareRedhatPackagesBuilderImages() {
-  if [ "$(uname)" != "Darwin" ]; then
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el9" ]; then
-      buildBuilderImage rpm-el9
+  for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
+    if [[ "$release" == "rpm-el9" || "$release" == "rpm-el8" ]]; then
+      buildBuilderImage "$release"
     fi
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el8" ]; then
-      buildBuilderImage rpm-el8
-    fi
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm" ]; then
-      buildBuilderImage rpm
-    fi
-  fi
+  done
 }
 
 buildDebianPackages() {
-  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "noble" ]; then
-    runInBuilderImage deb-noble /workspace/src/packages/build-deb.sh noble "$PACKAGE_VERSION" || errorExit "Error building deb-noble packages."
-  fi
-  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "jammy" ]; then
-    runInBuilderImage deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
-  fi
+  for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
+    if [[ "$release" == "noble" || "$release" == "jammy" ]]; then
+      runInBuilderImage "deb-$release" /workspace/src/packages/build-deb.sh "$release" "$PACKAGE_VERSION" || errorExit "Error building deb-$release packages."
+    fi
+  done
 }
 
 buildRedhatPackages() {
-  if [ "$(uname)" != "Darwin" ]; then
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el9" ]; then
-      runInBuilderImage rpm-el9 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el9 packages."
+  for release in "${BUILD_PACKAGES_FOR_RELEASES[@]}"; do
+    if [[ "$release" == "rpm-el9" || "$release" == "rpm-el8" ]]; then
+      runInBuilderImage "$release" /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building $release packages."
     fi
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el8" ]; then
-      runInBuilderImage rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
-    fi
-  else
-    warn "rhel8, and rhel9 packages cannot be built under MacOS. Skipping.."
-  fi
+  done
 }
 
 if command -v docker &>/dev/null; then
   HAS_DOCKER=true
 fi
 
-for i in "$@"; do
-  case "$i" in
+while [[ $# -gt 0 ]]; do
+  case $1 in
       --package-only|-p) shift; PACKAGE_ONLY=true; BUILD_LOCALLY=false; BUILD_IN_DOCKER=false;;
       --docker-compile|-d) shift; PACKAGE_ONLY=false; BUILD_LOCALLY=false; BUILD_IN_DOCKER=true;;
       --help|-h) usage 0;;
-      -r) case "$2" in
-        noble|jammy) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
-        rpm-el9|rpm-el8|rpm) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
+      -r) case $2 in
+        noble|jammy) BUILD_PACKAGES_FOR_RELEASES+=("$2");;
+        rpm-el9|rpm-el8) BUILD_PACKAGES_FOR_RELEASES+=("$2");;
         *) errorExit "Unknown/unsupported release $2. Exiting..."
         esac;
         shift 2;;

@@ -14,7 +14,7 @@
     "@intlify/eslint-plugin-vue-i18n": "^3.2.0",
     "@rushstack/eslint-patch": "^1.10.5",
     "@tsconfig/node18": "^18.2.4",
-    "@types/node": "^22.13.2",
+    "@types/node": "^22.13.4",
     "@vitejs/plugin-basic-ssl": "^1.2.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.2.0",
@@ -30,16 +30,16 @@
     "mkdirp": "^3.0.1",
     "openapi-typescript-codegen": "^0.29.0",
     "path": "^0.12.7",
-    "prettier": "^3.5.0",
+    "prettier": "^3.5.1",
     "resize-observer-polyfill": "^1.5.1",
-    "sass": "^1.84.0",
+    "sass": "^1.85.0",
     "typescript": "~5.7.3",
     "vite": "^6.1.0",
     "vite-plugin-vuetify": "^2.1.0",
     "vitest": "^3.0.5",
     "vue-eslint-parser": "^9.4.3",
     "vue-i18n": "^11.1.1",
-    "vue-tsc": "^2.2.0"
+    "vue-tsc": "^2.2.2"
   },
   "pnpm": {
     "overrides": {
