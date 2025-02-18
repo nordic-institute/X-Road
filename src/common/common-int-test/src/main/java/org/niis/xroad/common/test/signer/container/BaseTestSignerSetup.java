@@ -89,7 +89,7 @@ public abstract class BaseTestSignerSetup {
 
             private Path getPkcsWrapperPath() {
                 String archDir = switch (SystemUtils.OS_ARCH) {
-                    case "x86_64", "amd64" -> SystemUtils.OS_ARCH;
+                    case "x86_64", "amd64" -> "amd64";
                     case "aarch64", "arm64" -> "arm64";
                     default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
                 };

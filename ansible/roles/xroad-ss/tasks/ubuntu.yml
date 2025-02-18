@@ -28,6 +28,7 @@
   with_items:
     - { question: "xroad-common/username",           value: "{{ xroad_ui_user }}" }
     - { question: "xroad-common/database-host",      value: "{{ database_host }}" }
+    - { question: "xroad-common/proxy-memory",       value: "d" }
     - { question: "xroad-common/admin-subject",      value: "/CN={{ inventory_hostname }}" }
     - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
@@ -44,7 +45,7 @@
     - install-xroad-ss-packages
 
 - name: install op-monitoring
-  package: name=xroad-addon-opmonitoring state=latest
+  package: name=xroad-opmonitor state=latest
   when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
 
 - name: install hwtokens

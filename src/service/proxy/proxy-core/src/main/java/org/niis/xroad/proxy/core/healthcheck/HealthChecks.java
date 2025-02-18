@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -53,6 +54,7 @@ import static org.niis.xroad.proxy.core.healthcheck.HealthCheckResult.failure;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class HealthChecks {
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;

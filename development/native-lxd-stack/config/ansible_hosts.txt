@@ -10,6 +10,12 @@ xrd-ca ansible_connection=lxd
 
 [ss_servers]
 xrd-ss0 ansible_connection=lxd
+#xrd-ss1 ansible_connection=lxd
+
+[ss_servers:children]
+rhel_ss
+
+[rhel_ss]
 xrd-ss1 ansible_connection=lxd
 
 [is_servers]

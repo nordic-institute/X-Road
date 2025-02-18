@@ -32,6 +32,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class BatchSigner implements MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();

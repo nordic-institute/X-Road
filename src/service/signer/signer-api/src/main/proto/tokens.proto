@@ -76,6 +76,7 @@ message CertificateInfoProto {
   optional string renewed_cert_hash = 8;
   optional string renewal_error = 9;
   optional google.protobuf.Timestamp next_automatic_renewal_time = 10;
+  optional string ocsp_verify_before_activation_error = 11;
   // Add other fields as needed
 }
 

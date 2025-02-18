@@ -1,7 +1,5 @@
-../../../../src/xroad/common/addon/proxy/messagelog.conf.default usr/share/xroad/jlib/addon/proxy/
 ../../../../src/xroad/common/addon/proxy/messagelog-archiver.conf etc/xroad/services/
 ../../../../src/xroad/common/addon/proxy/xroad-messagelog-archiver usr/share/xroad/bin/
-../../../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar usr/share/xroad/jlib/addon/proxy/
 ../../../../../service/message-log-archiver/message-log-archiver-application/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
 ../../../../../service/message-log-archiver/message-log-archiver-application/build/libs/messagelog-archiver.jar usr/share/xroad/jlib/addon/proxy/
 

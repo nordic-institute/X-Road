@@ -25,92 +25,41 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import io.grpc.BindableService;
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
-import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
-import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcChannelProperties;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
+import org.niis.xroad.proxy.core.admin.AdminService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
-@Import({SpringRpcConfig.class})
-@Configuration
 public class ProxyRpcConfig {
 
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
+    @ApplicationScoped
+    @Startup
+    RpcServer proxyRpcServer(BindableServiceRegistry bindableServiceRegistry,
+                             AdminService adminService,
+                             ProxyRpcServerProperties rpcServerProperties,
                              RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        return new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
+        List<BindableService> rpcServices = new ArrayList<>(bindableServiceRegistry.getRegisteredServices());
+        rpcServices.add(adminService);
+        var rpcServer = new RpcServer(
+                rpcServerProperties.listenAddress(),
+                rpcServerProperties.port(),
                 rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
+                builder -> rpcServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+        if (rpcServerProperties.enabled()) {
+            rpcServer.afterPropertiesSet();
+        }
+        return rpcServer;
     }
 
-    @Bean
-    @Deprecated
-    @SuppressWarnings("checkstyle:magicnumber")
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()), new SignerRpcChannelProperties() {
-            @Override
-            public String host() {
-                return DEFAULT_HOST;
-            }
-
-            @Override
-            public int port() {
-                return Integer.parseInt(DEFAULT_PORT);
-            }
-
-            @Override
-            public int deadlineAfter() {
-                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-            }
-        });
-    }
-
-    @Bean
-    ConfClientRpcClient confClientRpcClient(RpcChannelFactory rpcChannelFactory, ConfClientRpcChannelProperties channelProperties) {
-        return new ConfClientRpcClient(rpcChannelFactory, channelProperties);
-    }
-
-    @Bean
-    @Deprecated
-    ConfClientRpcChannelProperties confClientRpcChannelProperties() {
-        return new ConfClientRpcChannelProperties() {
-            @Override
-            public String host() {
-                return DEFAULT_HOST;
-            }
-
-            @Override
-            public int port() {
-                return Integer.parseInt(DEFAULT_PORT);
-            }
-
-            @Override
-            public int deadlineAfter() {
-                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
-            }
-        };
-    }
-
-//    @Bean
-//    @Deprecated
-//    GlobalConfProperties springCommonGlobalConfProperties() {
-//        return new SpringGlobalConfConfig.SpringCommonGlobalConfProperties();
-//    }
 }

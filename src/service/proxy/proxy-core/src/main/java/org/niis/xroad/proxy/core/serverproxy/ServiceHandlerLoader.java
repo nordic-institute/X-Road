@@ -25,26 +25,46 @@
  */
 package org.niis.xroad.proxy.core.serverproxy;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.opmonitoring.serverproxy.OpMonitoringServiceHandlerImpl;
+import org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy.ProxyMonitorServiceHandlerImpl;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
-final class ServiceHandlerLoader {
+import java.util.ArrayList;
+import java.util.Collection;
 
-    private ServiceHandlerLoader() {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class ServiceHandlerLoader {
+    private final ServerConfProvider serverConfProvider;
+    private final GlobalConfProvider globalConfProvider;
+    private final ProxyProperties.ProxyAddonProperties addonProperties;
+
+    public Collection<ServiceHandler> loadSoapServiceHandlers() {
+        Collection<ServiceHandler> handlers = new ArrayList<>();
+        if (addonProperties.metaservices().enabled()) {
+            handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider));
+        }
+        if (addonProperties.opMonitor().enabled()) {
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider));
+        }
+        if (addonProperties.proxyMonitor().enabled()) {
+            handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider));
+        }
+        return handlers;
     }
 
-    static ServiceHandler load(String className, ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            if (!AbstractServiceHandler.class.isAssignableFrom(clazz)) {
-                throw new RuntimeException("Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
-            }
-
-            return (ServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class, GlobalConfProvider.class)
-                    .newInstance(serverConfProvider, globalConfProvider);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load service handler: " + className, e);
+    public Collection<RestServiceHandler> loadRestServiceHandlers() {
+        Collection<RestServiceHandler> handlers = new ArrayList<>();
+        if (addonProperties.metaservices().enabled()) {
+            handlers.add(new RestMetadataServiceHandlerImpl(serverConfProvider));
         }
+        return handlers;
     }
 
 }

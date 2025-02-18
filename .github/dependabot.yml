@@ -26,6 +26,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+        exclude-patterns:
+          - "io.grpc*"
+          - "com.google.protobuf*"
+          - "org.springframework.boot*"
+          - "org.springframework.cloud*"
+          - "io.opentelemetry.instrumentation*"
+          - "org.hibernate*"
+          - "com.zaxxer:HikariCP"
     reviewers:
       - "nordic-institute/xrd-developers"
   - package-ecosystem: "npm"

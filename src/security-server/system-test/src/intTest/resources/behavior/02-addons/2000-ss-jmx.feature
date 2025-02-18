@@ -6,6 +6,6 @@ Feature: 2000 - SS: JMX monitor
     When JMX request for object "TotalPhysicalMemory" attribute "Value"
     Then JMX returned valid numeric value
 
-  Scenario: Proxymonitor responds with correct response for TotalPhysicalMemory
+  Scenario: Proxymonitor responds with correct response for XroadProcessDump
     When JMX request for object "XroadProcessDump" attribute "Value"
     Then JMX returned valid string value

@@ -25,10 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.model.MemberInfo;
@@ -38,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
@@ -49,6 +52,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
@@ -67,6 +71,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -86,6 +91,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private ClientService clientService;
     @Autowired
     private GlobalConfService globalConfService;
+    @MockBean
+    private MailNotificationHelper mailNotificationHelper;
 
     private static final ClientId.Conf OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -125,6 +132,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(globalConfProvider.getServerId(any())).thenReturn(SS_ID);
 
         KeyInfo ownerSignKey = new TokenTestUtils.KeyInfoBuilder()
                 .id(KEY_OWNER_ID)
@@ -164,6 +172,11 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
         when(signerRpcClient.getAuthKey(any())).thenReturn(new AuthKeyInfo(
                 KEY_AUTH_ID, null, certificateInfo));
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        System.clearProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE);
     }
 
     @Test
@@ -222,6 +235,71 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // Update serverconf => owner is changed
         globalConfChecker.checkGlobalConf();
         assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+    }
+
+    @Test
+    public void updateCertStatuses() {
+        CertificateInfo regInProgCertificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
+                .id("regInProgCert")
+                .certificateStatus(CertificateInfo.STATUS_REGINPROG)
+                .build();
+        KeyInfo regInProgAuthKey = new TokenTestUtils.KeyInfoBuilder()
+                .id("regInProgKey")
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .cert(regInProgCertificateInfo)
+                .build();
+        CertificateInfo savedCertificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
+                .id("savedCert")
+                .certificateStatus(CertificateInfo.STATUS_SAVED)
+                .build();
+        KeyInfo savedAuthKey = new TokenTestUtils.KeyInfoBuilder()
+                .id("savedKey")
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .cert(savedCertificateInfo)
+                .build();
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .friendlyName("token")
+                .key(regInProgAuthKey)
+                .key(savedAuthKey)
+                .build();
+        Map<String, TokenInfo> tokens = new HashMap<>();
+        tokens.put(tokenInfo.getId(), tokenInfo);
+        when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
+
+        globalConfChecker.checkGlobalConf();
+
+        verify(signerRpcClient, times(2)).setCertStatus(any(), any());
+        verify(mailNotificationHelper).sendAuthCertRegisteredNotification(any(), any());
+        verify(signerRpcClient, times(0)).activateCert(any());
+        verify(mailNotificationHelper, times(0)).sendCertActivatedNotification(any(), any(), any(), any());
+    }
+
+    @Test
+    public void updateCertStatusesActivateCert() {
+        CertificateInfo regInProgCertificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
+                .id("regInProgCert")
+                .certificateStatus(CertificateInfo.STATUS_REGINPROG)
+                .build();
+        KeyInfo regInProgAuthKey = new TokenTestUtils.KeyInfoBuilder()
+                .id("regInProgKey")
+                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
+                .cert(regInProgCertificateInfo)
+                .build();
+        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+                .friendlyName("token")
+                .key(regInProgAuthKey)
+                .build();
+        Map<String, TokenInfo> tokens = new HashMap<>();
+        tokens.put(tokenInfo.getId(), tokenInfo);
+        when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
+
+        System.setProperty(SystemProperties.PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE, "true");
+        globalConfChecker.checkGlobalConf();
+
+        verify(signerRpcClient).setCertStatus(any(), any());
+        verify(mailNotificationHelper).sendAuthCertRegisteredNotification(any(), any());
+        verify(signerRpcClient).activateCert(any());
+        verify(mailNotificationHelper).sendCertActivatedNotification(any(), any(), any(), any());
     }
 
     @Test

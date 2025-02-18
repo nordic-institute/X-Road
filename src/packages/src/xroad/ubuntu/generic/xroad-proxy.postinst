@@ -24,16 +24,19 @@ function migrate_conf_value {
     fi
 }
 
+function handle_error() {
+   ERR=$(</tmp/memory.err)
+   db_subst xroad-common/proxy-memory-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+   db_input critical xroad-common/proxy-memory-error
+   db_go
+   rm -f /tmp/memory.err
+}
+
 case "$1" in
  configure|reconfigure)
   chmod 0440 /etc/sudoers.d/xroad-proxy
   chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
   chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
-  chown -R xroad:xroad /etc/xroad/jetty
-  chmod 0751 /etc/xroad/jetty
-  chmod 0640 /etc/xroad/jetty/clientproxy.xml
-  chmod 0640 /etc/xroad/jetty/ocsp-responder.xml
-  chmod 0640 /etc/xroad/jetty/serverproxy.xml
 
   mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
   mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
@@ -123,8 +126,40 @@ case "$1" in
 
   RET=""
   db_get xroad-common/database-host || RET=""
-  db_stop
   /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
+
+  DEFAULT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-default')"
+  RECOMMENDED_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-recommended')"
+
+  db_subst xroad-common/proxy-memory DEFAULT_XM "$DEFAULT_XM"
+  db_subst xroad-common/proxy-memory RECOMMENDED_XM "$RECOMMENDED_XM"
+
+  db_set xroad-common/proxy-memory "$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-current')"
+
+  while :; do
+    # Get memory config string from the user
+    db_input high xroad-common/proxy-memory || true
+    db_go
+
+    RET=""
+    db_get xroad-common/proxy-memory || RET=""
+
+    if [[ -z "$RET" || "$RET" == "d" ]];then
+      /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
+      break
+    elif [ "$RET" == "r" ];then
+      /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-recommended'
+      break
+    else
+      if ! /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply' $RET 2>/tmp/memory.err; then
+        handle_error
+        continue
+      else
+        break
+      fi
+    fi
+  done
+  db_stop
 
   invoke-rc.d --quiet rsyslog try-restart || true
   invoke-rc.d --quiet xroad-confclient try-restart || true

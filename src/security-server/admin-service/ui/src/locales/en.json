@@ -596,6 +596,7 @@
     "id": "ID",
     "importCert": "Import cert.",
     "importCertSuccess": "Uploading certificate succeeded",
+    "importCertOcspVerifyWarning": "Could not activate certificate, because OCSP Responses could not be verified. Error message: {errorMessage}",
     "incorrectPin": "Incorrect PIN. Please try again.",
     "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Key deleted",

@@ -292,6 +292,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         cert.setStatus(type.getStatus());
         cert.setSavedToConfiguration(true);
         cert.setCertificate(type.getContents());
+        cert.setOcspVerifyBeforeActivationError(type.getOcspVerifyBeforeActivationError());
         cert.setRenewedCertHash(type.getRenewedCertHash());
         cert.setRenewalError(type.getRenewalError());
         if (type.getNextRenewalTime() != null) {
@@ -308,6 +309,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         type.setId(cert.getId());
         type.setStatus(cert.getStatus());
         type.setContents(cert.getBytes());
+        type.setOcspVerifyBeforeActivationError(cert.getOcspVerifyBeforeActivationError());
         type.setRenewedCertHash(cert.getRenewedCertHash());
         type.setRenewalError(cert.getRenewalError());
         type.setNextRenewalTime(getNextRenewalTimeXmlGregorianCalendar(cert));

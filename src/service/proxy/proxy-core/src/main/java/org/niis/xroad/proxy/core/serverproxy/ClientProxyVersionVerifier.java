@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -44,25 +43,22 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
 @Slf4j
 public final class ClientProxyVersionVerifier {
     private static final String UNKNOWN_VERSION = "unknown";
-    private static final Semver MIN_SUPPORTED_CLIENT_VERSION;
 
-    static {
-        MIN_SUPPORTED_CLIENT_VERSION = Optional.ofNullable(SystemProperties.getServerProxyMinSupportedClientVersion())
+    private final Semver minSupportedClientVersion;
+
+    public ClientProxyVersionVerifier(String minSupportedClientVersion) {
+        this.minSupportedClientVersion = Optional.ofNullable(minSupportedClientVersion)
                 .map(Semver::new)
                 .orElse(null);
     }
 
-    private ClientProxyVersionVerifier() {
-    }
-
-    public static void check(Request request) {
+    public void check(Request request) {
         String clientVersion = getVersion(request.getHeaders().get(MimeUtils.HEADER_PROXY_VERSION));
 
         log.info("Received request from {} (security server version: {})", getRemoteAddr(request), clientVersion);
-
-        if (MIN_SUPPORTED_CLIENT_VERSION != null && MIN_SUPPORTED_CLIENT_VERSION.isGreaterThan(new Semver(clientVersion))) {
+        if (minSupportedClientVersion != null && minSupportedClientVersion.isGreaterThan(new Semver(clientVersion))) {
             throw new CodedException(X_CLIENT_PROXY_VERSION_NOT_SUPPORTED,
-                    "The minimum supported version for client security server is: %s ", MIN_SUPPORTED_CLIENT_VERSION.toString());
+                    "The minimum supported version for client security server is: %s ", minSupportedClientVersion.toString());
         }
 
         String thisVersion = getVersion(Version.XROAD_VERSION);
@@ -71,7 +67,7 @@ public final class ClientProxyVersionVerifier {
         }
     }
 
-    private static String getVersion(String value) {
+    private String getVersion(String value) {
         return !StringUtils.isBlank(value) ? value : UNKNOWN_VERSION;
     }
 }

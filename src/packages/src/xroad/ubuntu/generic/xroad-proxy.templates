@@ -4,6 +4,20 @@ Default: 127.0.0.1:5432
 Description: Insert database server connection string
  This will be used by the Security Server to connect to the database host.
 
+Template: xroad-common/proxy-memory
+Type: string
+Default: d
+Description: Insert proxy server memory config string
+ This will be used to setup initial and maximum heap size for the proxy service.
+ .
+ Allowed values:
+ .
+ d - default config: ${DEFAULT_XM}
+ .
+ r - recommended config: ${RECOMMENDED_XM}
+ .
+ <initialSize> <maxSize> - custom heap size constrains, for example '128m 2g'
+
 Template: xroad-common/admin-subject
 Type: string
 Description: Insert admin interface TLS certificate subject name
@@ -47,6 +61,12 @@ Description: Insert TLS certificate subject name alternatives
 Template: xroad-common/cert-generation-error
 Type: error
 Description: Error during certificate generation, please fix issues
+  output was:
+  ${ERR}
+
+Template: xroad-common/proxy-memory-error
+Type: error
+Description: Error applying selected memory config, please fix issues
   output was:
   ${ERR}
 

@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-message"))
-  implementation(project(":common:common-scheduler"))
   implementation(project(":lib:globalconf-core"))
   implementation(project(":lib:serverconf-core"))
   implementation(project(":lib:asic-core"))
