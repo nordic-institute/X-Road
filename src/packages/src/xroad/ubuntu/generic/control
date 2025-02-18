@@ -5,7 +5,6 @@ Maintainer: NIIS <info@niis.org>
 Build-Depends: debhelper (>= ${debhelper-version})
 Standards-Version: 3.8.3
 
-# TODO: review the package. It used to install proxymonitor-metaservice addon on CS.
 Package: xroad-centralserver-monitoring
 Conflicts: xroad-securityserver
 Architecture: all
