@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -67,7 +68,7 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
  * the request itself.
  */
 @Slf4j
-class ClientRestMessageHandler extends AbstractClientProxyHandler {
+public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     private static final String TEXT_XML = "text/xml";
     private static final String APPLICATION_XML = "application/xml";
@@ -75,12 +76,12 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
+    public ClientRestMessageHandler(CommonBeanProxy commonBeanProxy, HttpClient client) {
         super(commonBeanProxy, client, true);
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+    protected MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                 OpMonitoringData opMonitoringData) throws Exception {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
@@ -92,13 +93,13 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     private void verifyCanProcess() {
-        commonBeanProxy.globalConfProvider.verifyValidity();
+        commonBeanProxy.getGlobalConfProvider().verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = commonBeanProxy.keyConfProvider.getAuthKey();
+        AuthKey authKey = commonBeanProxy.getKeyConfProvider().getAuthKey();
         if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

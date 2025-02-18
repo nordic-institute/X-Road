@@ -1,33 +1,52 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.java-exec-conventions")
-  alias(libs.plugins.shadow)
+  alias(libs.plugins.quarkus)
+}
+
+val buildType: String = project.findProperty("buildType")?.toString() ?: "native"
+
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      // Common properties
+      put("quarkus.package.output-directory", "libs")
+      put("quarkus.package.output-name", "proxy-1.0")
+
+      when (buildType) {
+        "native" -> {
+          put("quarkus.package.jar.type", "uber-jar")
+          put("quarkus.package.jar.add-runner-suffix", "false")
+        }
+
+        "containerized" -> {
+          put("quarkus.container-image.build", "true")
+          put("quarkus.container-image.group", "niis")
+          put("quarkus.container-image.name", "xroad-proxy")
+          put("quarkus.container-image.tag", "latest")
+        }
+
+        else -> error("Unsupported buildType: $buildType. Use 'native' or 'containerized'")
+      }
+    }
+  )
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
+  implementation(platform(libs.quarkus.bom))
+  implementation(project(":lib:bootstrap-quarkus"))
+
   implementation(project(":service:proxy:proxy-core"))
-  implementation(libs.logback.classic)
+
+  testImplementation(libs.quarkus.junit5)
+  testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:serverconf-impl")))
 }
 
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.proxy.application.ProxyMain")
+tasks {
+  named<JavaCompile>("compileJava") {
+    dependsOn("compileQuarkusGeneratedSourcesJava")
   }
-  archiveClassifier.set("plain")
-}
-
-tasks.shadowJar {
-  archiveClassifier.set("")
-  archiveBaseName.set("proxy")
-  exclude("**/module-info.class")
-  from(rootProject.file("LICENSE.txt"))
-  mergeServiceFiles()
-  setProperty("zip64", true)
-}
-
-tasks.assemble {
-  finalizedBy(tasks.shadowJar)
 }
 
 val runProxyTest by tasks.registering(JavaExec::class) {

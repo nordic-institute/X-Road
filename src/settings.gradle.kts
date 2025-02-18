@@ -121,16 +121,10 @@ include("security-server:e2e-test")
 include("common:common-test")
 
 // Addons
-include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")
-include("addons:metaservice")
 
 include("addons:proxymonitor-common")
 project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
 
-include("addons:proxymonitor-metaservice")
-project(":addons:proxymonitor-metaservice").projectDir = file("addons/proxymonitor/metaservice")
-
-include("addons:op-monitoring")
 include("addons:wsdlvalidator")

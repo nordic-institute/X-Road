@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -39,6 +40,7 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -52,7 +54,6 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
 
 /**
  * This class is responsible for verifying the server proxy SSL certificate.
@@ -69,10 +70,12 @@ import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.ge
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";
 
+    private final CertHashBasedOcspResponderClient certHashBasedOcspResponderClient;
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final CertHelper certHelper;
@@ -170,7 +173,7 @@ public class AuthTrustVerifier {
         List<OCSPResp> receivedResponses;
         try {
             log.trace("get ocsp responses from server {}", address);
-            receivedResponses = getOcspResponsesFromServer(address, certs);
+            receivedResponses = certHashBasedOcspResponderClient.getOcspResponsesFromServer(address, certs);
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }

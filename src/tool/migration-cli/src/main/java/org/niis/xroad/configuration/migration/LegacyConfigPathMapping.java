@@ -72,6 +72,7 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.server-conf-client-cache-size", "common.server-conf.client-cache-size");
         MAPPING.put("proxy.server-conf-service-cache-size", "common.server-conf.service-cache-size");
         MAPPING.put("proxy.server-conf-acl-cache-size", "common.server-conf.acl-cache-size");
+        MAPPING.put("proxy.grpc-port", "proxy.rpc.port");
 
         MAPPING.put("proxy-ui-api.wsdl-validator-command", "proxy-ui-api.addon.wsdl-validator.command");
 

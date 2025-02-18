@@ -64,7 +64,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -100,18 +100,6 @@ Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
-Package: xroad-addon-metaservices
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
-Description: X-Road AddOn: metaservices
- AddOn for metaservice reponders
-
-Package: xroad-addon-proxymonitor
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version})
-Description: X-Road AddOn: proxy monitoring metaservice
- Addon for proxy monitoring
-
 Package: xroad-monitor
 Architecture: all
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
@@ -124,37 +112,31 @@ Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Description: X-Road AddOn: wsdlvalidator
  AddOn for WSDL validator for the X-Road services
 
-Package: xroad-addon-opmonitoring
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${binary:Version})
-Description: X-Road AddOn: operations monitoring service
- AddOn for operations monitoring.
-
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
 Package: xroad-securityserver-is
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Icelandic settings
  This is meta-package of X-Road security server with Icelandic settings.
 
 Package: xroad-securityserver-ee
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with Estonian settings
  This is meta-package of X-Road security server with Estonian settings.
 
 Package: xroad-securityserver-fo
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver (=${binary:Version}), xroad-addon-opmonitoring (=${binary:Version})
+Depends: xroad-securityserver (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road security server with the Faroe Islands' settings
  This is meta-package of X-Road security server with the Faroe Islands' settings.
 

@@ -40,7 +40,6 @@ tasks {
 dependencies {
   implementation(platform(libs.quarkus.bom))
 
-  implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-db"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":addons:messagelog:messagelog-db"))

@@ -62,9 +62,9 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
 
     @Step("^property \"(.*)\" is set to \"(.*)\"$")
     public void setProperty(String property, String value) throws IOException, InterruptedException {
-        var group = "proxy";
-        var result = containerProvider.getContainer().execInContainer("crudini", "--set", "/etc/xroad/conf.d/local.ini",
-                group, property, value);
+        var result = containerProvider.getContainer().execInContainer("yq", "-Yi",
+                ".xroad.proxy.\"%s\" = \"%s\"".formatted(property, value), "/etc/xroad/conf.d/local.yaml");
+
         testReportService.attachText("crudini output", result.toString());
     }
 

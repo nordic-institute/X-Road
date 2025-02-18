@@ -15,15 +15,6 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/service/proxy/proxy-application/build/libs/proxy-1.0.jar"
     service_name="xroad-proxy"
     ;;
-  "messagelog-addon")
-    jar_path="$XROAD_HOME/src/addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar"
-    target_path="/usr/share/xroad/jlib/addon/proxy/"
-    service_name="xroad-proxy"
-    ;;
-  "metaservice-addon")
-    jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
-    service_name="xroad-proxy"
-    ;;
   "proxy-ui-api")
     jar_path="$XROAD_HOME/src/security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar"
     service_name="xroad-proxy-ui-api"
@@ -67,7 +58,7 @@ deploy_module() {
 set -o xtrace -o errexit
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
+"proxy" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
   hosts=("ss0" "ss1")
   if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
     deploy_module "$1" "${hosts[@]}"

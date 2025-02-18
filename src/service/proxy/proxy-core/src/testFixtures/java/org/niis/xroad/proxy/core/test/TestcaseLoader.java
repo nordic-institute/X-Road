@@ -78,7 +78,7 @@ public final class TestcaseLoader {
         return testsToRun;
     }
 
-    private static List<MessageTestCase> getAllTestCases(String packageName)
+    public static List<MessageTestCase> getAllTestCases(String packageName)
             throws ClassNotFoundException, IOException {
         List<MessageTestCase> classes = new ArrayList<>();
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();

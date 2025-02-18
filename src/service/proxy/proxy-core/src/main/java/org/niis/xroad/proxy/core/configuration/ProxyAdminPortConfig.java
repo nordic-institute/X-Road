@@ -37,15 +37,14 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import lombok.RequiredArgsConstructor;
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -53,40 +52,39 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
-@Configuration
-@RequiredArgsConstructor
 public class ProxyAdminPortConfig {
     private static final int DIAGNOSTICS_CONNECTION_TIMEOUT_MS = 1200;
     private static final int DIAGNOSTICS_READ_TIMEOUT_MS = 15000; // 15 seconds
 
-    private final AddOnStatusDiagnostics addOnStatus;
-    private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
-    private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
-    private final Optional<HealthCheckPort> healthCheckPort;
-
-    @Bean
-    AdminPort createAdminPort(ServerConfProvider serverConfProvider) {
+    @ApplicationScoped
+    @Startup
+    AdminPort createAdminPort(ServerConfProvider serverConfProvider,
+                              AddOnStatusDiagnostics addOnStatus,
+                              BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics,
+                              MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics,
+                              HealthCheckPort healthCheckPort) throws Exception {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 
         addTimestampStatusHandler(adminPort, serverConfProvider);
 
-        addMaintenanceHandler(adminPort);
+        addMaintenanceHandler(adminPort, healthCheckPort);
 
         addClearCacheHandler(adminPort, serverConfProvider);
 
-        addAddOnStatusHandler(adminPort);
+        addAddOnStatusHandler(adminPort, addOnStatus);
 
-        addBackupEncryptionStatus(adminPort);
+        addBackupEncryptionStatus(adminPort, backupEncryptionStatusDiagnostics);
 
-        addMessageLogEncryptionStatus(adminPort);
+        addMessageLogEncryptionStatus(adminPort, messageLogEncryptionStatusDiagnostics);
+
+        adminPort.afterPropertiesSet();
 
         return adminPort;
     }
 
-    private void addAddOnStatusHandler(AdminPort adminPort) {
+    private void addAddOnStatusHandler(AdminPort adminPort, AddOnStatusDiagnostics addOnStatus) {
         adminPort.addHandler("/addonstatus", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
@@ -95,7 +93,7 @@ public class ProxyAdminPortConfig {
         });
     }
 
-    private void addBackupEncryptionStatus(AdminPort adminPort) {
+    private void addBackupEncryptionStatus(AdminPort adminPort, BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics) {
         adminPort.addHandler("/backup-encryption-status", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
@@ -104,7 +102,8 @@ public class ProxyAdminPortConfig {
         });
     }
 
-    private void addMessageLogEncryptionStatus(AdminPort adminPort) {
+    private void addMessageLogEncryptionStatus(AdminPort adminPort,
+                                               MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics) {
         adminPort.addHandler("/message-log-encryption-status", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
@@ -126,7 +125,7 @@ public class ProxyAdminPortConfig {
         });
     }
 
-    private void addMaintenanceHandler(AdminPort adminPort) {
+    private void addMaintenanceHandler(AdminPort adminPort, HealthCheckPort healthCheckPort) {
         adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
@@ -135,7 +134,7 @@ public class ProxyAdminPortConfig {
                 String param = request.getParameter("targetState");
 
                 if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
-                    result = setHealthCheckMaintenanceMode(Boolean.parseBoolean(param));
+                    result = setHealthCheckMaintenanceMode(Boolean.parseBoolean(param), healthCheckPort);
                 }
                 try (var pw = new PrintWriter(response.getOutputStream())) {
                     response.setContentType(MimeTypes.Type.APPLICATION_JSON_UTF_8);
@@ -196,9 +195,12 @@ public class ProxyAdminPortConfig {
         }
     }
 
-    private String setHealthCheckMaintenanceMode(boolean targetState) {
-        return healthCheckPort.map(port -> port.setMaintenanceMode(targetState))
-                .orElse("No HealthCheckPort found, maintenance mode not set");
+    private String setHealthCheckMaintenanceMode(boolean targetState, HealthCheckPort healthCheckPort) {
+        if (healthCheckPort.isEnabled()) {
+            return healthCheckPort.setMaintenanceMode(targetState);
+        } else {
+            return "No HealthCheckPort found, maintenance mode not set";
+        }
     }
 
     private void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {
