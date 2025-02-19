@@ -11,6 +11,7 @@ TEST_PROGRAMS = test_passwordstore_write test_passwordstore_read \
 
 AUTOMATIC_TESTS =
 
+LIBRARY_NAME = passwordstore
 LIBRARY = libpasswordstore.so
 
 PROGRAMS =
