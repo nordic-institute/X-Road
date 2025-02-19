@@ -21,3 +21,4 @@ Feature: 0970 - CS: Settings -> System Settings -> Management Services
     Then success snackbar should be visible
     And security server field should have SERVER:CS-E2E:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS3
     And management service security server Edit button is not visible
+    And Wait for 3 seconds
