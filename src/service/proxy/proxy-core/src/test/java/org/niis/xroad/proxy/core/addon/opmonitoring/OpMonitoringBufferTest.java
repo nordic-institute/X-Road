@@ -37,16 +37,18 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
+import org.niis.xroad.proxy.core.test.util.ConfigUtils;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,13 +77,14 @@ class OpMonitoringBufferTest {
 
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBuffer extends OpMonitoringBuffer {
-        TestOpMonitoringBuffer() throws Exception {
-            super(mock(ServerConfProvider.class));
+        TestOpMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
+            super(mock(ServerConfProvider.class), opMonitorCommonProperties);
         }
 
         @Override
-        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
-            return new OpMonitoringDaemonSender(serverConfProvider, this) {
+        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
+                                              OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
+            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties) {
                 @Override
                 CloseableHttpClient createHttpClient() {
                     return httpClient;
@@ -102,11 +105,6 @@ class OpMonitoringBufferTest {
         }
     }
 
-    @AfterEach
-    void cleanUp() {
-        System.clearProperty("xroad.op-monitor-buffer.size");
-    }
-
     @Test
     void bufferSaturatesUnderLoad() throws Exception {
         final ExecutorService executorService = Executors.newFixedThreadPool(80);
@@ -122,31 +120,31 @@ class OpMonitoringBufferTest {
                     .thenReturn(IOUtils.toInputStream(objectMapper.writeValueAsString(new StoreOpMonitoringDataResponse()), UTF_8));
             return response;
         });
-        System.setProperty("xroad.op-monitor-buffer.size", "10000");
 
-        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer();
+        OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
+                "xroad.op-monitor-buffer.size", "10000"
+        ));
+
+        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties);
         int requestCount = 30_000;
         AtomicInteger processedCounter = new AtomicInteger();
         try {
-            IntStream.range(0, requestCount).forEach(index -> {
-                executorService.execute(() -> {
-                    doSleep(0, 50);
-                    OpMonitoringData opMonitoringData = new OpMonitoringData(
-                            OpMonitoringData.SecurityServerType.CLIENT, RandomUtils.nextLong());
+            IntStream.range(0, requestCount).forEach(index -> executorService.execute(() -> {
+                doSleep(0, 50);
+                OpMonitoringData opMonitoringData = new OpMonitoringData(
+                        OpMonitoringData.SecurityServerType.CLIENT, RandomUtils.nextLong());
 
-                    try {
-                        opMonitoringBuffer.store(opMonitoringData);
-                        processedCounter.incrementAndGet();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+                try {
+                    opMonitoringBuffer.store(opMonitoringData);
+                    processedCounter.incrementAndGet();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
-                    if (index % 10000 == 0) {
-                        log.info("Current execution {}+", index);
-                    }
-                });
-
-            });
+                if (index % 10000 == 0) {
+                    log.info("Current execution {}+", index);
+                }
+            }));
 
             Awaitility.await()
                     .atMost(Duration.ofSeconds(120))
@@ -162,12 +160,14 @@ class OpMonitoringBufferTest {
 
     @Test
     void bufferOverflow() throws Exception {
+        OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
+                "xroad.op-monitor-buffer.size", "2"
+        ));
 
-        System.setProperty("xroad.op-monitor-buffer.size", "2");
-
-        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer() {
+        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties) {
             @Override
-            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
+                                                  OpMonitorCommonProperties opMonitorCommonProperties) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;
@@ -193,15 +193,15 @@ class OpMonitoringBufferTest {
                     assertTrue(opMonitoringBuffer.buffer.contains(opMonitoringData2));
                     assertTrue(opMonitoringBuffer.buffer.contains(opMonitoringData3));
                 });
-
-//
     }
 
     @Test
     void noOpMonitoringDataIsStored() throws Exception {
-        System.setProperty("xroad.op-monitor-buffer.size", "0");
         var serverConfProvider = mock(ServerConfProvider.class);
-        new OpMonitoringBuffer(serverConfProvider);
+        new OpMonitoringBuffer(serverConfProvider,
+                ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
+                        "xroad.op-monitor-buffer.size", "0"
+                )));
         verifyNoInteractions(serverConfProvider);
     }
 

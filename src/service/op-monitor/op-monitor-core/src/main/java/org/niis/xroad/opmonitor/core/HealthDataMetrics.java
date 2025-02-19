@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -69,10 +69,10 @@ final class HealthDataMetrics {
     // The timestamps of last successful and unsuccessful requests are stored
     // for each service that is handled for, and are provided when the
     // respective gauge is queried.
-    private static Map<String, Long> requestTimestamps = new HashMap<>();
+    private final Map<String, Long> requestTimestamps = new HashMap<>();
 
     // Stores the service types of the services
-    private static Map<String, String> serviceTypes = new HashMap<>();
+    private final Map<String, String> serviceTypes = new HashMap<>();
 
 
     /**
@@ -125,7 +125,7 @@ final class HealthDataMetrics {
         }
     }
 
-    private static void registerOrUpdateGauges(MetricRegistry registry,
+    private void registerOrUpdateGauges(MetricRegistry registry,
                                                ServiceId serviceId, OperationalDataRecord rec) {
         // last request timestamp
         String expectedGaugeName = getLastRequestTimestampGaugeName(serviceId,
@@ -196,7 +196,7 @@ final class HealthDataMetrics {
      * @return the duration of the request (the difference between the
      * response out timestamp and the request in timestamp of the request.
      */
-    private static Long getRequestDuration(OperationalDataRecord record) {
+    private Long getRequestDuration(OperationalDataRecord record) {
         return record.getResponseOutTs() - record.getRequestInTs();
     }
 
@@ -209,7 +209,7 @@ final class HealthDataMetrics {
     private void registerHealthStatisticsPeriodSecondsGauge(
             MetricRegistry registry) {
         registry.register(STATISTICS_PERIOD_SECONDS,
-                (Gauge<Integer>) () -> opMonitorProperties.healthStatisticsPeriodSeconds());
+                (Gauge<Integer>) opMonitorProperties::healthStatisticsPeriodSeconds);
     }
 
     /**
@@ -219,7 +219,7 @@ final class HealthDataMetrics {
      * @param registry                 metric registry
      * @param startupTimestampProvider startup timestamp provider
      */
-    private static void registerMonitoringStartupTimestampGauge(
+    private void registerMonitoringStartupTimestampGauge(
             MetricRegistry registry, Supplier<Long> startupTimestampProvider) {
         registry.register(MONITORING_STARTUP_TIMESTAMP,
                 (Gauge<Long>) startupTimestampProvider::get);

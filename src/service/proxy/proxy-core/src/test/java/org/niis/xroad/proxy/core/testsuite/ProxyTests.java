@@ -30,8 +30,6 @@ package org.niis.xroad.proxy.core.testsuite;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import io.smallrye.config.PropertiesConfigSource;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +42,7 @@ import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
 import org.niis.xroad.proxy.core.test.TestcaseLoader;
+import org.niis.xroad.proxy.core.test.util.ConfigUtils;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -65,8 +64,6 @@ import static org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper.PROXY_PORT;
 
 public class ProxyTests {
 
-    static ProxyProperties proxyProperties;
-
     @BeforeAll
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
@@ -77,15 +74,9 @@ public class ProxyTests {
 
         ProxyTestSuiteHelper.setPropsIfNotSet(props);
 
-        proxyProperties = new SmallRyeConfigBuilder()
-                .withMapping(ProxyProperties.class)
-                .withSources(new PropertiesConfigSource(props, "testProperties"))
-                .build()
-                .getConfigMapping(ProxyProperties.class);
-
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
-        ProxyTestSuiteHelper.proxyProperties = proxyProperties;
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
         ProxyTestSuiteHelper.startTestServices();
         ProxyTestSuiteHelper.startDummyProxy();
     }
@@ -109,7 +100,7 @@ public class ProxyTests {
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
-        ctx = new TestContext(proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
 
         return createDynamicTests(testCasesToRun);
     }
@@ -124,7 +115,7 @@ public class ProxyTests {
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(ProxyTestSuiteHelper.DUMMY_SERVER_PROXY_PORT));
-        ctx = new TestContext(proxyProperties, false);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
 
         return createDynamicTests(testCasesToRun);
     }
@@ -139,7 +130,7 @@ public class ProxyTests {
 
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        ctx = new TestContext(proxyProperties, false);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
 
         return createDynamicTests(testCasesToRun);
     }
@@ -160,7 +151,7 @@ public class ProxyTests {
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
 
-        ctx = new TestContext(proxyProperties, false);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, false);
 
         assertTrue(testCase.execute(ctx));
     }
@@ -176,7 +167,7 @@ public class ProxyTests {
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
 
-        ctx = new TestContext(proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
         return createDynamicTests(testCasesToRun);
     }
 
@@ -190,7 +181,7 @@ public class ProxyTests {
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
 
-        ctx = new TestContext(proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
         return createDynamicTests(testCasesToRun);
     }
 

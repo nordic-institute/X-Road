@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,15 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
+package org.niis.xroad.proxy.core.test.util;
 
-public class OpMonitorDaemonRootConfig {
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import lombok.experimental.UtilityClass;
 
-    @ApplicationScoped
-    OperationalDataRecordManager operationalDataRecordManager(OpMonitorProperties opMonitorProperties) {
-        return new OperationalDataRecordManager(opMonitorProperties.getMaxRecordsInPayload());
+import java.util.Map;
+
+@UtilityClass
+public class ConfigUtils {
+
+    public static <T> T defaultConfiguration(Class<T> clazz) {
+        return new SmallRyeConfigBuilder()
+                .withMapping(clazz)
+                .build()
+                .getConfigMapping(clazz);
     }
+
+    public static <T> T initConfiguration(Class<T> clazz, Map<String, String> properties) {
+        return new SmallRyeConfigBuilder()
+                .withMapping(clazz)
+                .withSources(new PropertiesConfigSource(properties, "testProperties"))
+                .build()
+                .getConfigMapping(clazz);
+    }
+
 }

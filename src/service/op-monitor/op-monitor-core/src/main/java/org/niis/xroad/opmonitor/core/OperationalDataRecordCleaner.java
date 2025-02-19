@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.runtime.Startup;
@@ -42,6 +41,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
+import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
+
 /**
  * Deletes outdated operational data records from the database.
  */
@@ -52,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 public final class OperationalDataRecordCleaner {
     private final OpMonitorProperties opMonitorProperties;
     private final Scheduler scheduler;
-    private final DatabaseCtxV2 databaseCtx;
 
     @PostConstruct
     public void init() {
@@ -66,23 +66,22 @@ public final class OperationalDataRecordCleaner {
 
     void doClean(ScheduledExecution execution) {
         try {
-            handleCleanup(databaseCtx);
+            handleCleanup();
         } catch (Exception e) {
             log.error("Failed to clean outdated operational data records"
                     + " from the database", e);
         }
     }
 
-    private void handleCleanup(DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
+    private void handleCleanup() throws Exception {
         cleanRecords(
-                TimeUtils.now().minus(opMonitorProperties.keepRecordsForDays(), ChronoUnit.DAYS),
-                opMonitorDatabaseCtx);
+                TimeUtils.now().minus(opMonitorProperties.keepRecordsForDays(), ChronoUnit.DAYS));
     }
 
-    int cleanRecords(Instant before, DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
+    int cleanRecords(Instant before) throws Exception {
         log.trace("cleanRecords({})", before);
 
-        return opMonitorDatabaseCtx.doInTransaction(session -> {
+        return doInTransaction(session -> {
             String hql =
                     "delete OperationalDataRecordEntity r where r.monitoringDataTs < "
                             + TimeUnit.MILLISECONDS.toSeconds(before.toEpochMilli());

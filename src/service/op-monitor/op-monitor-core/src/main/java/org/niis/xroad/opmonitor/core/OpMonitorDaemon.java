@@ -44,6 +44,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import javax.net.ssl.KeyManager;
@@ -77,6 +78,7 @@ public final class OpMonitorDaemon {
     private final Server server = new Server();
 
     private final OpMonitorProperties opMonitorProperties;
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
@@ -104,12 +106,12 @@ public final class OpMonitorDaemon {
     }
 
     private void createConnector() {
-        String listenAddress = opMonitorProperties.host();
-        int port = opMonitorProperties.port();
+        String listenAddress = opMonitorProperties.listenAddress();
+        int port = opMonitorCommonProperties.connection().port();
 
-        String scheme = opMonitorProperties.scheme();
+        String scheme = opMonitorCommonProperties.connection().scheme();
         ServerConnector connector = "https".equalsIgnoreCase(scheme)
-                ? createDaemonSslConnector(server) : createDaemonConnector(server);
+                ? createDaemonSslConnector() : createDaemonConnector();
 
         connector.setName(CLIENT_CONNECTOR_NAME);
         connector.setHost(listenAddress);
@@ -123,12 +125,12 @@ public final class OpMonitorDaemon {
         log.info("OpMonitorDaemon {} created ({}:{})", connector.getClass().getSimpleName(), listenAddress, port);
     }
 
-    private static ServerConnector createDaemonConnector(Server server) {
+    private ServerConnector createDaemonConnector() {
         return new ServerConnector(server);
     }
 
     @SneakyThrows
-    private ServerConnector createDaemonSslConnector(Server server) {
+    private ServerConnector createDaemonSslConnector() {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
@@ -137,7 +139,8 @@ public final class OpMonitorDaemon {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()}, new TrustManager[]{new OpMonitorSslTrustManager(opMonitorProperties)},
+        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()},
+                new TrustManager[]{new OpMonitorSslTrustManager(opMonitorCommonProperties)},
                 new SecureRandom());
 
         cf.setSslContext(ctx);

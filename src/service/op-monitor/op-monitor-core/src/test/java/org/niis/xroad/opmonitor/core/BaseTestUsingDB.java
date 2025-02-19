@@ -25,11 +25,8 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
-
 import org.junit.BeforeClass;
-
-import java.util.Map;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatabase;
 
@@ -38,17 +35,8 @@ import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatab
  */
 public class BaseTestUsingDB {
 
-    protected static final Map<String, String> HIBERNATE_PROPERTIES = Map.of(
-            "jdbc.batch_size", "100",
-            "dialect", "org.hibernate.dialect.HSQLDialect",
-            "connection.driver_class", "org.hsqldb.jdbcDriver",
-            "connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
-            "connection.username", "opmonitor",
-            "connection.password", "opmonitor",
-            "hbm2ddl.auto", "create-drop"
-    );
-    protected static final DatabaseCtxV2 DATABASE_CTX = OpMonitorDaemonDatabaseCtx.create(HIBERNATE_PROPERTIES);
-    protected final OperationalDataRecordManager operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX);
+    protected OperationalDataRecordManager operationalDataRecordManager =
+            new OperationalDataRecordManager(Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
 
     protected BaseTestUsingDB() {
     }
@@ -60,6 +48,6 @@ public class BaseTestUsingDB {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDatabase(DATABASE_CTX);
+        prepareDatabase();
     }
 }

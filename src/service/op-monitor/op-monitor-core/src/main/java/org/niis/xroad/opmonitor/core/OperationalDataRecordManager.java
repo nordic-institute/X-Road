@@ -25,17 +25,13 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
@@ -44,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONITORING_DATA_TS;
 
 /**
@@ -52,24 +49,19 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  */
 @Slf4j
 @RequiredArgsConstructor
-@ApplicationScoped
 public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
-
-    private final DatabaseCtxV2 databaseCtx;
-
-    @Setter
-    private int maxRecordsInPayload = OpMonitoringSystemProperties.getOpMonitorMaxRecordsInPayload();
-
     private static int configuredBatchSize = 0;
 
+    private final int maxRecordsInPayload;
+
     void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
-        databaseCtx.doInTransaction(session -> storeInTransaction(session, records, timestamp));
+        doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
     OperationalDataRecords queryAllRecords() throws Exception {
-        return databaseCtx.doInTransaction(this::queryAllOperationalDataInTransaction);
+        return doInTransaction(this::queryAllOperationalDataInTransaction);
     }
 
     OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
@@ -84,7 +76,7 @@ public final class OperationalDataRecordManager {
     OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
                                         ClientId serviceProviderFilter,
                                         Set<String> outputFields) throws Exception {
-        OperationalDataRecords records = databaseCtx.doInTransaction(session -> queryOperationalDataInTransaction(session,
+        OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
         removeMonitoringDataTsIfNotSpecified(records, outputFields);
@@ -126,6 +118,7 @@ public final class OperationalDataRecordManager {
      * Queries operational data records from the database using search criteria parameters. The number of returned
      * records is limited by the configured value maxRecordsInPayload plus overflow records with the same
      * monitorindDataTs timestamp as the last included record.
+     *
      * @param session               database session
      * @param recordsFrom           records from timestamp seconds
      * @param recordsTo             records to timestamp seconds
@@ -134,7 +127,6 @@ public final class OperationalDataRecordManager {
      * @param outputFields          list of the requested operational data field
      * @return operational data records.
      */
-    @SuppressWarnings("unchecked")
     private OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
                                                                      long recordsTo, ClientId clientFilter,
                                                                      ClientId serviceProviderFilter,

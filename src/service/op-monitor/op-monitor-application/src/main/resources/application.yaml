@@ -16,20 +16,3 @@ quarkus:
       file:
         enable: true
         path: /var/log/xroad/op-monitor.log
-
-xroad:
-  op-monitor:
-    host: localhost
-    port: 2080
-    scheme: http
-    keep-records-for-days: 7
-    max-records-in-payload: 10000
-    records-available-timestamp-offset-seconds: 60
-    health-statistics-period-seconds: 600
-    hibernate:
-      jdbc.use_streams_for_binary: true
-      connection.driver_class: org.postgresql.Driver
-      connection.url: jdbc:postgresql://127.0.0.1:5432/op-monitor
-      hikari.dataSource.currentSchema: opmonitor,public
-      connection.username: opmonitor
-

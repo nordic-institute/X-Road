@@ -39,8 +39,6 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 
-import io.smallrye.config.PropertiesConfigSource;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -48,6 +46,7 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.application.LogArchiver;
 import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
+import org.niis.xroad.proxy.core.test.util.ConfigUtils;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -106,15 +105,9 @@ abstract class AbstractMessageLogTest {
             Files.createDirectory(archivesPath);
         }
 
-
-        logArchiverProperties = new SmallRyeConfigBuilder()
-                .withMapping(LogArchiverProperties.class)
-                .withSources(new PropertiesConfigSource(
-                        Map.of("xroad.message-log-archiver.archive-path", archivesDir,
-                                "xroad.message-log-archiver.keep-records-for", "0"),
-                        "testProperties"))
-                .build()
-                .getConfigMapping(LogArchiverProperties.class);
+        logArchiverProperties = ConfigUtils.initConfiguration(LogArchiverProperties.class, Map.of(
+                "xroad.message-log-archiver.archive-path", archivesDir,
+                "xroad.message-log-archiver.keep-records-for", "0"));
 
         logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider);
         logCleanerRef = new TestLogCleaner(logArchiverProperties);

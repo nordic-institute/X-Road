@@ -35,18 +35,11 @@ import java.util.Map;
 
 @ConfigMapping(prefix = "xroad.op-monitor")
 public interface OpMonitorProperties {
+    String DEFAULT_MAX_RECORDS_IN_PAYLOAD = "10000";
 
-
-
-
-
-    /**
-     * @return the path to the location of the operational monitoring daemon TLS certificate,
-     * '/etc/xroad/ssl/opmonitor.crt' by default.
-     */
-    @WithName("tls-certificate")
-    @WithDefault("/etc/xroad/ssl/opmonitor.crt")
-    String tlsTrustManagerCertificate();
+    @WithName("listen-address")
+    @WithDefault("localhost")
+    String listenAddress();
 
     /**
      * The period in days for keeping operational data records in the database.
@@ -72,8 +65,16 @@ public interface OpMonitorProperties {
      * @return max records count
      */
     @WithName("max-records-in-payload")
-    @WithDefault("10000")
+    @WithDefault(DEFAULT_MAX_RECORDS_IN_PAYLOAD)
     int maxRecordsInPayload();
+
+    default int getMaxRecordsInPayload() {
+        int maxRecords = maxRecordsInPayload();
+        if (maxRecords < 1) {
+            return Integer.parseInt(DEFAULT_MAX_RECORDS_IN_PAYLOAD);
+        }
+        return maxRecords;
+    }
 
     /**
      * The offset seconds used to calculate timestamp to which the operational data records are available.

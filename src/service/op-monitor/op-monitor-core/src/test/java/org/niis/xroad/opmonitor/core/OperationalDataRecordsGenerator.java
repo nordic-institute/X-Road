@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
-
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
@@ -36,6 +34,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -121,7 +120,7 @@ public final class OperationalDataRecordsGenerator {
         log.info("{} records generated", batchCount * batchSize);
     }
 
-    private static OperationalDataRecordManager getOperationalDataRecordManager(String dbPropertiesFilePath) throws Exception {
+    private static OperationalDataRecordManager getOperationalDataRecordManager(String dbPropertiesFilePath) {
         final Properties dbProperties = new Properties() {
             @Override
             public synchronized Object put(Object key, Object value) {
@@ -144,8 +143,7 @@ public final class OperationalDataRecordsGenerator {
         Map<String, String> hibernateProperties = dbProperties.stringPropertyNames()
                 .stream()
                 .collect(Collectors.toMap(k -> k, dbProperties::getProperty));
-        DatabaseCtxV2 databaseCtx = OpMonitorDaemonDatabaseCtx.create(hibernateProperties);
-        return new OperationalDataRecordManager(databaseCtx);
+        return new OperationalDataRecordManager(Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
     }
 
     private static CommandLine parseCommandLine(String[] args) {

@@ -44,7 +44,6 @@ dependencies {
   implementation(project(":service:op-monitor:op-monitor-core"))
 
   testImplementation(libs.quarkus.junit5)
-  testImplementation(testFixtures(project(":common:common-rpc")))
 }
 
 tasks.jar {
