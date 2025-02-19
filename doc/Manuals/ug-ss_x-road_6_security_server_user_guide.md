@@ -3300,7 +3300,7 @@ Usage examples:
 
   Value format is the same as for Java's `-Xms` and `-Xmx` options. The script will update the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
 
-  After running the script, the changes will take effect only after restarting the Security Server.
+  After running the script, the changes will take effect only after restarting the `xroad-proxy` service.
 
     ```bash
     sudo systemctl restart xroad-proxy
