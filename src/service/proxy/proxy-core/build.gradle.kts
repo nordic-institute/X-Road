@@ -108,11 +108,11 @@ tasks.named("compileIntTestJava") {
 }
 
 tasks.test {
+  dependsOn("copyGpg")
+  dependsOn(":service:message-log-archiver:message-log-archiver-application:quarkusBuild")
+
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
-}
-tasks.named<Test>("test") {
-  dependsOn(":service:message-log-archiver:message-log-archiver-application:quarkusBuild")
 }
 
 val runMetaserviceTest by tasks.registering(JavaExec::class) {
@@ -135,8 +135,4 @@ tasks.register<Copy>("copyGpg") {
 
   from("src/test/gpg")
   into(layout.buildDirectory.dir("gpg"))
-}
-
-tasks.test {
-  dependsOn("copyGpg")
 }
