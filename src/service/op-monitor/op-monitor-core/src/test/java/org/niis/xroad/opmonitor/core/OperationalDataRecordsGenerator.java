@@ -36,14 +36,9 @@ import org.apache.commons.cli.ParseException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Generates operational data records into the database.
@@ -107,12 +102,12 @@ public final class OperationalDataRecordsGenerator {
                 ? getDummyStr(Integer.parseInt(cmd.getOptionValue(
                 "short-string-length")))
                 : getDummyStr(DEFAULT_SHORT_LONG_STRING_LENGTH);
-        String dbPropertiesFile = cmd.getOptionValue("db-properties", "db.properties");
 
         log.info("first timestamp: {}, batch-size: {}, batch-count: {}",
                 startTimestamp, batchSize, batchCount);
 
-        OperationalDataRecordManager operationalDataRecordManager = getOperationalDataRecordManager(dbPropertiesFile);
+        OperationalDataRecordManager operationalDataRecordManager =
+                new OperationalDataRecordManager(Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
         for (int i = 0; i < batchCount; ++i) {
             storeRecords(batchSize, startTimestamp++, longString, shortString, operationalDataRecordManager);
         }
@@ -120,33 +115,7 @@ public final class OperationalDataRecordsGenerator {
         log.info("{} records generated", batchCount * batchSize);
     }
 
-    private static OperationalDataRecordManager getOperationalDataRecordManager(String dbPropertiesFilePath) {
-        final Properties dbProperties = new Properties() {
-            @Override
-            public synchronized Object put(Object key, Object value) {
-                String keyString = key.toString();
-                if (keyString.startsWith("op-monitor.")) {
-                    keyString = keyString.substring("op-monitor.".length());
-                }
-                if (keyString.startsWith("hibernate.")) {
-                    keyString = keyString.substring("hibernate.".length());
-                }
-                return super.put(keyString, value);
-            }
-        };
-        try (InputStream in = new FileInputStream(dbPropertiesFilePath)) {
-            dbProperties.load(in);
-        } catch (Exception e) {
-            log.error("Failed to load database properties from file '{}': {}", dbPropertiesFilePath, e.getMessage());
-            System.exit(1);
-        }
-        Map<String, String> hibernateProperties = dbProperties.stringPropertyNames()
-                .stream()
-                .collect(Collectors.toMap(k -> k, dbProperties::getProperty));
-        return new OperationalDataRecordManager(Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
-    }
-
-    private static CommandLine parseCommandLine(String[] args) {
+    private static CommandLine parseCommandLine(String args[]) {
         try {
             return new BasicParser().parse(OPTIONS, args);
         } catch (ParseException e) {
@@ -191,11 +160,6 @@ public final class OperationalDataRecordsGenerator {
                 + DEFAULT_SHORT_LONG_STRING_LENGTH + ")");
         shortStringLength.setRequired(false);
         options.addOption(shortStringLength);
-
-        Option dbProperties = new Option("db", "db-properties", true,
-                "database properties file");
-        dbProperties.setRequired(false);
-        options.addOption(dbProperties);
 
         Option usage = new Option("h", "help", false, "help");
         usage.setRequired(false);
