@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.93  
+Version: 2.94  
 Doc. ID: UG-SS
 
 ---
@@ -122,6 +122,7 @@ Doc. ID: UG-SS
 | 15.01.2025 | 2.91    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki     |
 | 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
 | 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
+| 13.02.2025 | 2.94    | Add helper script for allocating memory for proxy service                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -267,6 +268,7 @@ Doc. ID: UG-SS
   - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
+    - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
@@ -3251,6 +3253,60 @@ XROAD_PROXY_PARAMS
 XROAD_PROXY_UI_API_PARAMS
 XROAD_SIGNER_CONSOLE_PARAMS
 ```
+
+### 21.1 Updating Proxy Service's memory allocation command line arguments
+
+In case of proxy service, the memory allocation command line arguments can be updated by using  helper script `proxy_memory_helper.sh` located in `/usr/share/xroad/scripts/` directory. The script updates the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+Usage examples:
+
+* Get information about total memory, used memory, current configuration and suggested configuration for proxy service:
+
+    ```bash
+    proxy_memory_helper.sh
+    #alternatively
+    #proxy_memory_helper.sh status
+    ```
+
+* Get/Apply recommended memory allocation config based on total memory:
+
+    ```bash
+    #Prints the recommended memory allocation configuration
+    proxy_memory_helper.sh get-recommended
+    #Applies the recommended memory allocation configuration
+    proxy_memory_helper.sh apply-recommended
+    ```
+  
+* Get/Apply default memory allocation config based on total memory:
+
+    ```bash
+    #Prints the default memory allocation configuration
+    proxy_memory_helper.sh get-default
+    #Applies the default memory allocation configuration
+    proxy_memory_helper.sh apply-default
+    ```
+    
+* Apply custom memory allocation config based on total memory, first value is for initial heap size and second value is for maximum heap size:
+
+    ```bash
+    proxy_memory_helper.sh apply 256m 4g
+    ```
+
+* All available commands can be listed with:
+
+    ```bash
+    proxy_memory_helper.sh help
+    ```  
+
+  Value format is the same as for Java's `-Xms` and `-Xmx` options. The script will update the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+  After running the script, the changes will take effect only after restarting the `xroad-proxy` service.
+
+    ```bash
+    sudo systemctl restart xroad-proxy
+    ```
+
+  Note that only -Xms, -Xmx, -XX:InitialHeapSize and -XX:MaxHeapSize options will be overwritten. Instead, any other options present in the XROAD_PROXY_PARAMS property will be preserved.
 
 ## 22 Additional Security Hardening
 
