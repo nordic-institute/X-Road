@@ -9,7 +9,7 @@ dependencies {
   implementation(platform(libs.findLibrary("quarkus-bom").get()))
 }
 
-val buildType: String = project.findProperty("buildType")?.toString() ?: "native"
+val buildType: String = project.findProperty("buildType")?.toString() ?: "containerized"
 val buildEnv: String = project.findProperty("buildEnv")?.toString() ?: "dev" //TODO default to prod later
 
 quarkus {
@@ -74,10 +74,19 @@ jib {
 }
 
 tasks {
-  named<JavaCompile>("compileJava") {
+  named("compileJava") {
     dependsOn("compileQuarkusGeneratedSourcesJava")
   }
   test {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+  }
+  named("jib") {
+    dependsOn("quarkusBuild")
+  }
+  assemble {
+    dependsOn(tasks.named("jib"))
+  }
+  jar {
+    enabled = false
   }
 }

@@ -21,8 +21,8 @@ jib {
 }
 
 dependencies {
-  implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))
+  implementation(libs.bundles.quarkus.containerized)
 
   implementation(project(":service:monitor:monitor-core"))
 

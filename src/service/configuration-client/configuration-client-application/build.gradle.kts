@@ -55,6 +55,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-core"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.quartz)
 
   testImplementation(libs.quarkus.junit5)

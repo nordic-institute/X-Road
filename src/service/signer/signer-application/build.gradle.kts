@@ -26,6 +26,7 @@ dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.bundles.quarkus.containerized)
 
   testImplementation(libs.quarkus.junit5)
 }

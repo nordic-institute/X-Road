@@ -114,6 +114,11 @@ tasks.register<Copy>("copyDeps") {
 
 tasks.assemble {
   dependsOn(tasks.named("copyDeps"))
+  dependsOn(tasks.named("jib"))
+}
+
+tasks.named("jib") {
+  dependsOn("bootJar")
 }
 
 jib {

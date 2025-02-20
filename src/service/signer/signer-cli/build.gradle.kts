@@ -6,7 +6,6 @@ plugins {
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      // Common properties
       put("quarkus.package.output-directory", "libs")
       put("quarkus.package.output-name", "signer-console-1.0")
       put("quarkus.package.jar.type", "uber-jar")
