@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 class OpMonitorDaemonMainTest {
 
     @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     void contextLoads() {
         // ok
     }
