@@ -1,42 +1,24 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.quarkus)
+  id("xroad.quarkus-application-conventions")
   id("maven-publish")
 }
-
-val buildType: String = project.findProperty("buildType")?.toString() ?: "native"
 
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      // Common properties
-      put("quarkus.package.output-directory", "libs")
       put("quarkus.package.output-name", "configuration-client-1.0")
-
-      when (buildType) {
-        "native" -> {
-          put("quarkus.package.jar.type", "uber-jar")
-          put("quarkus.package.jar.add-runner-suffix", "false")
-        }
-
-        "containerized" -> {
-          put("quarkus.container-image.build", "true")
-          put("quarkus.container-image.group", "niis")
-          put("quarkus.container-image.name", "xroad-configuration-client")
-          put("quarkus.container-image.tag", "latest")
-        }
-
-        else -> error("Unsupported buildType: $buildType. Use 'native' or 'containerized'")
-      }
     }
   )
 }
 
-tasks {
-  named<JavaCompile>("compileJava") {
-    dependsOn("compileQuarkusGeneratedSourcesJava")
+jib {
+  to {
+    image = "${project.property("xroadImageRegistry")}/ss-configuration-client"
+    tags = setOf("latest")
   }
 }
+
 
 publishing {
   publications {
@@ -68,7 +50,6 @@ publishing {
 }
 
 dependencies {
-  implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))
   implementation(project(":common:common-core"))
   implementation(project(":service:configuration-client:configuration-client-core"))
@@ -81,8 +62,4 @@ dependencies {
 
 tasks.jar {
   enabled = false
-}
-
-tasks.test {
-  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

@@ -36,5 +36,4 @@ dependencies {
 
   api(libs.bundles.quarkus.core)
   api(libs.quarkus.scheduler)
-  api(libs.quarkus.springBoot.di)
 }

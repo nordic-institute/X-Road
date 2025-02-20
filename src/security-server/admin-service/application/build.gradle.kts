@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  id("xroad.jib-conventions")
   alias(libs.plugins.springBoot)
 }
 
@@ -113,6 +114,30 @@ tasks.register<Copy>("copyDeps") {
 
 tasks.assemble {
   dependsOn(tasks.named("copyDeps"))
+}
+
+jib {
+  from {
+    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime"
+  }
+  to {
+    image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"
+    tags = setOf("latest")
+  }
+  container {
+    entrypoint = listOf("/bin/bash", "/opt/app/entrypoint.sh")
+    workingDirectory = "/opt/app"
+    user = "xroad"
+  }
+  extraDirectories {
+    paths {
+      path {
+        setFrom(project.file("src/main/jib/opt/app").toPath())
+        into = "/opt/app"
+        permissions = mapOf("/opt/app/scripts/generate_certificate.sh" to "755")
+      }
+    }
+  }
 }
 
 tasks.test {
