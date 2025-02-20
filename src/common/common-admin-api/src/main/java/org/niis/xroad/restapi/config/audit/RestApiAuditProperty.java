@@ -127,6 +127,7 @@ public enum RestApiAuditProperty {
     MEMBER_CODE,
 
     MEMBER_SUBSYSTEM_CODE,
+    MEMBER_SUBSYSTEM_NAME,
 
     CODE,
     DESCRIPTION,

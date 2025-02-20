@@ -45,16 +45,14 @@ import java.util.Objects;
 public class XRoadMember extends SecurityServerClient {
     private MemberClass memberClass;
     private String memberCode;
-    private String name;
     private String administrativeContact;
 
     public XRoadMember(String name, ClientId identifier, MemberClass memberClass) {
-        super(MemberId.ensure(identifier));
+        super(MemberId.ensure(identifier), name);
         boolean isMemberClassInconsistent = !Objects.equals(identifier.getMemberClass(), memberClass.getCode());
         if (isMemberClassInconsistent) {
             throw new IllegalArgumentException("identifier and memberClass are not consistent");
         }
-        this.name = name;
         this.memberCode = identifier.getMemberCode();
         this.memberClass = memberClass;
     }

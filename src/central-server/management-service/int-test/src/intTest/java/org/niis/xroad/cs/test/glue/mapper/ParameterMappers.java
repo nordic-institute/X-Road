@@ -31,8 +31,11 @@ import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 
 public class ParameterMappers {
 
-    @ParameterType("AUTH_CERT_REGISTRATION_REQUEST|CLIENT_REGISTRATION_REQUEST|OWNER_CHANGE_REQUEST"
-            + "|CLIENT_DELETION_REQUEST|CLIENT_DISABLE_REQUEST|CLIENT_ENABLE_REQUEST|AUTH_CERT_DELETION_REQUEST|ADDRESS_CHANGE_REQUEST")
+    @ParameterType("AUTH_CERT_REGISTRATION_REQUEST|CLIENT_REGISTRATION_REQUEST"
+            + "|OWNER_CHANGE_REQUEST|CLIENT_DELETION_REQUEST"
+            + "|CLIENT_DISABLE_REQUEST|CLIENT_ENABLE_REQUEST"
+            + "|CLIENT_RENAME_REQUEST|AUTH_CERT_DELETION_REQUEST"
+            + "|ADDRESS_CHANGE_REQUEST")
     public ManagementRequestTypeDto managementRequestTypeDto(String name) {
         return ManagementRequestTypeDto.fromValue(name.toUpperCase());
     }

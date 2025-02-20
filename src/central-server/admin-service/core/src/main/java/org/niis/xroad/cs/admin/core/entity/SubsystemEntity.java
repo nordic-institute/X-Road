@@ -39,6 +39,8 @@ import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.niis.xroad.cs.admin.core.entity.validation.OptionalEntityIdentifier;
 
 import static org.niis.xroad.cs.admin.core.entity.SubsystemEntity.DISCRIMINATOR_VALUE;
 
@@ -60,13 +62,24 @@ public class SubsystemEntity extends SecurityServerClientEntity {
     @Getter
     private String subsystemCode;
 
+    @OptionalEntityIdentifier
+    @Column(name = "name")
+    @Getter
+    @Setter
+    private String name;
+
     public SubsystemEntity(XRoadMemberEntity member, ClientId identifier) {
+        this(member, identifier, null);
+    }
+
+    public SubsystemEntity(XRoadMemberEntity member, ClientId identifier, String name) {
         super(SubsystemIdEntity.ensure(identifier));
         if (!identifier.subsystemContainsMember(member.getIdentifier())) {
             throw new IllegalArgumentException("Subsystem identifier does not match member");
         }
         this.xroadMember = member;
         this.subsystemCode = identifier.getSubsystemCode();
+        this.name = name;
     }
 
 }

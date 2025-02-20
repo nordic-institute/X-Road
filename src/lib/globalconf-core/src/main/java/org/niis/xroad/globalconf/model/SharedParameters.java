@@ -90,6 +90,7 @@ public class SharedParameters {
     @AllArgsConstructor
     public static class Subsystem {
         private String subsystemCode;
+        private String subsystemName;
         private ClientId id;
     }
 

@@ -263,7 +263,7 @@ class ConfigurationDownloaderTest {
 
 
     private ConfigurationDownloader getDownloader() {
-        return getDownloader(4, LOCATION_HTTPS_URL_SUCCESS + "?version=4");
+        return getDownloader(5, LOCATION_HTTPS_URL_SUCCESS + "?version=5");
     }
 
     private ConfigurationDownloader getDownloader(int confVersion, String... successfulLocationUrls) {

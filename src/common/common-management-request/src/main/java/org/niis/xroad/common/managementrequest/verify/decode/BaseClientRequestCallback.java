@@ -30,7 +30,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.request.ClientRequestType;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,17 +44,22 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 
 @Slf4j
-public class BaseClientRequestCallback extends BaseSignedRequestCallback<ClientRequestType> {
+public abstract class BaseClientRequestCallback<T> extends BaseSignedRequestCallback<T> {
     private static final String DUMMY_CLIENT_ID = "dummy";
 
-    public BaseClientRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback,
+    public BaseClientRequestCallback(GlobalConfProvider globalConfProvider,
+                                     ManagementRequestVerifier.DecoderCallback rootCallback,
                                      ManagementRequestType requestType) {
         super(globalConfProvider, rootCallback, requestType);
     }
 
+    protected abstract SecurityServerId getServer();
+
+    protected abstract ClientId getClient();
+
     @Override
     protected void verifyMessage() throws Exception {
-        final SecurityServerId serverId = getRequest().getServer();
+        final SecurityServerId serverId = getServer();
         validateServerId(serverId);
         if (!Objects.equals(rootCallback.getSoapMessage().getClient(), serverId.getOwner())) {
             throw new CodedException(X_INVALID_REQUEST, "Sender does not match server owner.");
@@ -67,7 +71,7 @@ public class BaseClientRequestCallback extends BaseSignedRequestCallback<ClientR
         X509Certificate x509ClientCert = CryptoUtils.readCertificate(clientCertBytes);
         ClientId idFromCert = getClientIdFromCert(x509ClientCert);
 
-        ClientId idFromReq = getRequest().getClient();
+        ClientId idFromReq = getClient();
 
         // Separate conditions are needed when the client is 1) subsystem and 2) member:
         //

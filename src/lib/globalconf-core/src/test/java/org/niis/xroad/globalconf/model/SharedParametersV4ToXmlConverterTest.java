@@ -35,12 +35,10 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.schema.sharedparameters.v4.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v4.SharedParametersTypeV4;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.List;
@@ -74,7 +72,7 @@ class SharedParametersV4ToXmlConverterTest {
     );
 
     @Test
-    void shouldConvertAllFields() throws IOException, OperatorCreationException {
+    void shouldConvertAllFields() {
         var sharedParameters = getSharedParameters();
         var xmlType = SharedParametersV4ToXmlConverter.INSTANCE.convert(sharedParameters);
 
@@ -103,8 +101,8 @@ class SharedParametersV4ToXmlConverterTest {
                 .allFieldsSatisfy(Objects::nonNull);
 
         assertIdReferences(xmlType);
-        assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA256));
+        assertThat(xmlType.getSecurityServer().getFirst().getAuthCertHash().getFirst())
+                .isEqualTo(sharedParameters.getSecurityServers().getFirst().getAuthCertHashes().getFirst().getHash(SHA256));
     }
 
     @Test
@@ -128,8 +126,8 @@ class SharedParametersV4ToXmlConverterTest {
     }
 
     private static void assertIdReferences(SharedParametersTypeV4 xmlType) {
-        var ownerMember = xmlType.getMember().get(0);
-        var client = ownerMember.getSubsystem().get(0);
+        var ownerMember = xmlType.getMember().getFirst();
+        var client = ownerMember.getSubsystem().getFirst();
 
         assertThat(ownerMember).isNotNull();
         assertThat(client).isNotNull();
@@ -214,7 +212,7 @@ class SharedParametersV4ToXmlConverterTest {
     }
 
     private static SharedParameters.Subsystem subsystem(ClientId.Conf clientId, String subsystemCode) {
-        return new SharedParameters.Subsystem(subsystemCode, subsystemId(clientId, subsystemCode));
+        return new SharedParameters.Subsystem(subsystemCode, null, subsystemId(clientId, subsystemCode));
     }
 
     private static ClientId.Conf subsystemId(ClientId.Conf clientId, String subsystemCode) {

@@ -38,6 +38,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientRenameRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
@@ -54,6 +55,7 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestsFilterDto;
@@ -96,6 +98,9 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             case ClientDeletionRequest req -> new ClientDeletionRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
             case ClientDisableRequest req -> new ClientDisableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
             case ClientEnableRequest req -> new ClientEnableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
+            case ClientRenameRequest req -> new ClientRenameRequestDto()
+                    .clientId(clientIdConverter.convertId(req.getClientId()))
+                    .subsystemName(req.getSubsystemName());
             case OwnerChangeRequest req -> new OwnerChangeRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
             case AddressChangeRequest req -> new AddressChangeRequestDto().serverAddress(req.getServerAddress());
             case null, default -> throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
@@ -127,7 +132,7 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
             case ClientRegistrationRequestDto req -> new ClientRegistrationRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
-                    fromEncodedId(req.getClientId()));
+                    fromEncodedId(req.getClientId()), req.getSubsystemName());
             case ClientDeletionRequestDto req -> new ClientDeletionRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
@@ -140,6 +145,11 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
+            case ClientRenameRequestDto req -> new ClientRenameRequest(
+                    originMapper.convert(req.getOrigin()),
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
+                    fromEncodedId(req.getClientId()),
+                    req.getSubsystemName());
             case OwnerChangeRequestDto req -> new OwnerChangeRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),

@@ -55,6 +55,8 @@ public class TestGenericClientRequestBuilder {
     private ClientId.Conf clientId;
     private CertificateStatus clientOcspStatus;
 
+    private SoapMessageBuilder soapMessageBuilder;
+
     private TestBaseManagementRequestBuilder requestBuilder = (_keyPairGenerator, _clientCert, _clientCertOcsp, _clientKey, _request) ->
             new TestGenericClientRequest(_clientCert, _clientCertOcsp, _clientKey, _request);
 
@@ -79,7 +81,6 @@ public class TestGenericClientRequestBuilder {
                 _soapMessageBuilder.build(builder, _serverId, _clientId));
     };
 
-    private SoapMessageBuilder soapMessageBuilder = TestManagementRequestBuilder::buildClientRegRequest;
 
     public TestGenericClientRequestBuilder withServerId(SecurityServerId.Conf serverId) {
         this.serverId = serverId;
@@ -133,7 +134,8 @@ public class TestGenericClientRequestBuilder {
                                           SoapMessageBuilder soapMessageBuilder,
                                           ClientId.Conf senderClientId, ClientId.Conf receiverClientId,
                                           SecurityServerId.Conf serverId, ClientId.Conf clientId,
-                                          CertificateStatus clientOcspStatus) throws IOException, CertificateEncodingException;
+                                          CertificateStatus clientOcspStatus)
+                throws IOException, CertificateEncodingException;
     }
 
     public interface TestBaseManagementRequestBuilder {

@@ -210,7 +210,7 @@ public class SharedParametersV3Converter {
     }
 
     private SharedParameters.Subsystem toSubsystem(String instanceIdentifier, MemberType memberType, SubsystemType source) {
-        return new SharedParameters.Subsystem(source.getSubsystemCode(), toClientId(instanceIdentifier, memberType, source));
+        return new SharedParameters.Subsystem(source.getSubsystemCode(), null, toClientId(instanceIdentifier, memberType, source));
     }
 
     private SharedParameters.SecurityServer toSecurityServer(

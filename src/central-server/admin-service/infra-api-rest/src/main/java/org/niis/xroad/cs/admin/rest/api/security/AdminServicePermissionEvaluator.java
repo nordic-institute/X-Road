@@ -34,6 +34,7 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -60,6 +61,7 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
                 ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST,
                 ClientDisableRequestDto.class, ManagementRequestType.CLIENT_DISABLE_REQUEST,
                 ClientEnableRequestDto.class, ManagementRequestType.CLIENT_ENABLE_REQUEST,
+                ClientRenameRequestDto.class, ManagementRequestType.CLIENT_RENAME_REQUEST,
                 OwnerChangeRequestDto.class, ManagementRequestType.OWNER_CHANGE_REQUEST,
                 AddressChangeRequestDto.class, ManagementRequestType.ADDRESS_CHANGE_REQUEST
         ));

@@ -47,3 +47,7 @@ tasks.register<Test>("systemTest") {
     showStandardStreams = true
   }
 }
+
+archUnit {
+  setSkip(true)
+}
