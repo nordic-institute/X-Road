@@ -85,6 +85,16 @@ public class LegacyConfigPathMapping {
         MAPPING.put("message-log.archive-transaction-batch", "message-log-archiver.archive-transaction-batch");
         MAPPING.put("message-log.archive-transfer-command-parameters", "message-log-archiver.archive-transfer-command-parameters");
 
+        // op-monitor
+        MAPPING.put("op-monitor-service.socket-timeout-seconds", "op-monitor.service.socket-timeout-seconds");
+        MAPPING.put("op-monitor-service.connection-timeout-seconds", "op-monitor.service.connection-timeout-seconds");
+
+        MAPPING.put("op-monitor-buffer.size", "op-monitor.buffer.size");
+        MAPPING.put("op-monitor-buffer.max-records-in-message", "op-monitor.buffer.max-records-in-message");
+        MAPPING.put("op-monitor-buffer.sending-interval-seconds", "op-monitor.buffer.sending-interval-seconds");
+        MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
+        MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
+
     }
 
     String map(String oldPath) {

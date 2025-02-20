@@ -29,17 +29,18 @@ package org.niis.xroad.opmonitor.api;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
+import io.smallrye.config.WithParentName;
 
-@ConfigMapping(prefix = "xroad")
+@ConfigMapping(prefix = "xroad.op-monitor")
 public interface OpMonitorCommonProperties {
 
-    @WithName("op-monitor")
+    @WithParentName
     OpMonitorConnectionProperties connection();
 
-    @WithName("op-monitor-service")
+    @WithName("service")
     OpMonitorServiceProperties service();
 
-    @WithName("op-monitor-buffer")
+    @WithName("buffer")
     OpMonitorBufferProperties buffer();
 
     interface OpMonitorConnectionProperties {

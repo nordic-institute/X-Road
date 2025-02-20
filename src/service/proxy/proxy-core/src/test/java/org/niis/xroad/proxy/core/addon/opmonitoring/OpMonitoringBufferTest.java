@@ -122,7 +122,7 @@ class OpMonitoringBufferTest {
         });
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
-                "xroad.op-monitor-buffer.size", "10000"
+                "xroad.op-monitor.buffer.size", "10000"
         ));
 
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties);
@@ -161,7 +161,7 @@ class OpMonitoringBufferTest {
     @Test
     void bufferOverflow() throws Exception {
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
-                "xroad.op-monitor-buffer.size", "2"
+                "xroad.op-monitor.buffer.size", "2"
         ));
 
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties) {
@@ -200,7 +200,7 @@ class OpMonitoringBufferTest {
         var serverConfProvider = mock(ServerConfProvider.class);
         new OpMonitoringBuffer(serverConfProvider,
                 ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
-                        "xroad.op-monitor-buffer.size", "0"
+                        "xroad.op-monitor.buffer.size", "0"
                 )));
         verifyNoInteractions(serverConfProvider);
     }
