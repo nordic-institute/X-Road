@@ -28,6 +28,7 @@ test-automation:
     context-containers:
       ca-server:
         enabled: true
+        relative-a2c-path: "../../../../development/acme2certifier"
         reuse-between-runs: ${reuse-between-runs}
   custom:
     signer-container-enabled: true
