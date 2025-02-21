@@ -194,9 +194,8 @@ Description: X-Road Central Server Management Service
 Package: xroad-secret-store-local
 Architecture: amd64 arm64
 Conflicts: xroad-secret-store-remote
-Pre-Depends: jq, wget, gpg, bao (>= 2.0.0)
+Pre-Depends: jq, gpg, bao (>= 2.0.0)
 Depends: xroad-base (=${binary:Version})
-Replaces: bao
 Description: Meta-package for X-Road local secret store dependencies
 
 Package: xroad-secret-store-remote

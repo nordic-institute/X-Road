@@ -19,6 +19,7 @@ Requires(postun):   systemd
 Requires:           net-tools, tar
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, rsyslog
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
+Requires:           (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 
 %define src %{_topdir}/..
 
