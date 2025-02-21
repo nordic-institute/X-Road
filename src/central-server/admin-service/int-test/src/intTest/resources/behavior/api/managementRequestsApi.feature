@@ -189,6 +189,19 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
   @Modifying
+  Scenario: Register a new subsystem with name as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And member 'CS:E2E:member-1' subsystems does not contain 'subsystem-1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-1:subsystem-1' with name 'Subsystem 1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-1:subsystem-1'
+    And member 'CS:E2E:member-1' subsystems contains 'subsystem-1' with name 'Subsystem 1'
+
+  @Modifying
   Scenario: Register a new subsystem of non existing member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
@@ -328,6 +341,27 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is enabled
     And Authentication header is set to REGISTRATION_OFFICER
     Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'APPROVED'
+
+  @Modifying
+  Scenario: Renaming subsystem
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And member 'CS:E2E:member-1' subsystems does not contain 'subsystem-1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-1:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-1:subsystem-1'
+    And member 'CS:E2E:member-1' subsystems contains 'subsystem-1' without name
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is renamed to 'Subsystem 1'
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then member 'CS:E2E:member-1' subsystems contains 'subsystem-1' with name 'Subsystem 1'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is renamed to 'Just Subsystem'
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then member 'CS:E2E:member-1' subsystems contains 'subsystem-1' with name 'Just Subsystem'
 
   @Modifying
   Scenario: Management requests list

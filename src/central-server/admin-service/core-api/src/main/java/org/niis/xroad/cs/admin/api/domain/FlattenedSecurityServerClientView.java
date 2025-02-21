@@ -45,6 +45,7 @@ public class FlattenedSecurityServerClientView extends Auditable {
     private MemberClass memberClass;
     private String memberCode;
     private String subsystemCode;
+    private String subsystemName;
     private String memberName;
     private XRoadObjectType type;
 }

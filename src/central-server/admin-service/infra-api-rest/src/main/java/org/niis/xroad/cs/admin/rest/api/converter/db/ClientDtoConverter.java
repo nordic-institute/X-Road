@@ -86,7 +86,6 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         ClientId clientId = clientIdDtoConverter.fromDto(clientIdDto);
         XRoadIdDto.TypeEnum clientType = clientIdDto.getType();
 
-
         switch (clientType) {
             case MEMBER:
                 String memberClassCode = clientIdDto.getMemberClass();
@@ -110,10 +109,7 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                                 "code",
                                 clientIdDto.getMemberCode()
                         ));
-                return new Subsystem(
-                        xRoadMember,
-                        clientId
-                );
+                return new Subsystem(xRoadMember, clientId, null);
             case null:
             default:
                 throw new IllegalArgumentException("Invalid client type: " + clientType);

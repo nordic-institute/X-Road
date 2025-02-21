@@ -109,6 +109,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
     @DisplayName("add(Client clientDto)")
     class AddMethod {
         private final String memberName = "member name";
+        private final String subsystemName = "subsystem name";
         private final MemberId memberId = MemberId.create("TEST", "CLASS", "MEMBER");
         private final SubsystemId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
         private final SubsystemIdEntity subsystemIdEntity = SubsystemIdEntity.ensure(subsystemId);
@@ -126,7 +127,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
             when(xRoadMemberRepository.findMember(memberId)).thenReturn(Optional.of(xRoadMember));
 
-            SecurityServerClient result = subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
+            SecurityServerClient result = subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId, subsystemName));
 
             assertEquals("MEMBER", result.getIdentifier().getMemberCode());
 
@@ -144,7 +145,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
             SubsystemEntity presentSecurityServerClient = mock(SubsystemEntity.class);
             when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Optional.of(presentSecurityServerClient));
 
-            Executable testable = () -> subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId));
+            Executable testable = () -> subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId, subsystemName));
 
             DataIntegrityException exception = assertThrows(DataIntegrityException.class, testable);
             assertEquals(SUBSYSTEM_EXISTS.getDescription(), exception.getMessage());

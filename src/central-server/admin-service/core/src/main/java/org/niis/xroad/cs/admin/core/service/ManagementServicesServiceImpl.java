@@ -115,7 +115,7 @@ public class ManagementServicesServiceImpl implements ManagementServicesService 
             throw new ValidationFailureException(SUBSYSTEM_ALREADY_REGISTERED_TO_SECURITY_SERVER);
         }
 
-        ClientRegistrationRequest clientRegistrationRequest = new ClientRegistrationRequest(CENTER, securityServerId, clientId);
+        ClientRegistrationRequest clientRegistrationRequest = new ClientRegistrationRequest(CENTER, securityServerId, clientId, null);
         final ClientRegistrationRequest request = managementRequestService.add(clientRegistrationRequest);
         if (request.getProcessingStatus() != APPROVED) {
             managementRequestService.approve(request.getId());

@@ -29,7 +29,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.SubsystemCreationRequestMapper;
@@ -37,6 +39,7 @@ import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
 import org.niis.xroad.cs.openapi.SubsystemsApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
+import org.niis.xroad.cs.openapi.model.SubsystemNameDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
@@ -51,6 +54,7 @@ import java.util.Optional;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SUBSYSTEM_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SUBSYSTEM;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_SUBSYSTEM;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.ResponseEntity.noContent;
@@ -90,6 +94,19 @@ public class SubsystemsApiController implements SubsystemsApi {
 
         securityServerService.deleteClient(securityServerId, clientId);
         return noContent().build();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('EDIT_MEMBER_SUBSYSTEM')")
+    @AuditEventMethod(event = EDIT_SUBSYSTEM)
+    public ResponseEntity<ClientDto> updateSubsystemName(String subsystemId, SubsystemNameDto subsystemNameDto) {
+        verifySubsystemId(subsystemId);
+        return Optional.of(subsystemId)
+                .map(clientIdConverter::convertId)
+                .flatMap(clientId -> subsystemService.updateSubsystemName(clientId, subsystemNameDto.getSubsystemName()))
+                .map(clientDtoConverter::toDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
     }
 
     @Override

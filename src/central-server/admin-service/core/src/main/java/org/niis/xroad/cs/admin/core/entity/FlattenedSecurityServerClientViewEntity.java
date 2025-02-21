@@ -79,6 +79,9 @@ public class FlattenedSecurityServerClientViewEntity extends AuditableEntity {
     @Column(name = "subsystem_code")
     private String subsystemCode;
 
+    @Column(name = "subsystem_name")
+    private String subsystemName;
+
     @Column(name = "member_name")
     private String memberName;
 

@@ -87,6 +87,7 @@ tasks.register<Test>("intTest") {
   classpath = sourceSets["intTest"].runtimeClasspath
 
   val intTestArgs = mutableListOf<String>()
+
   if (project.hasProperty("intTestProfilesInclude")) {
     intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
   }

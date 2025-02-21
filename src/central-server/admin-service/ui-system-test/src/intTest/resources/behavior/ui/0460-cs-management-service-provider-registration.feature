@@ -22,7 +22,7 @@ Feature: 0460 - CS: management service provider registration
     And A new member with name: E2E Management Member, code: e2e-member-management & member class: E2E-TC1 is added
     And Member E2E Management Member is selected
     And Subsystems tab is selected
-    And A new subsystem with code: e2e-sub-management is added
+    And A new subsystem with code: 'e2e-sub-management' is added
     And CentralServer Settings tab is selected
     And System settings sub-tab is selected
     And service provider identifier field should be empty
