@@ -1,6 +1,6 @@
 ../../../../src/xroad/common/signer/etc/*  etc/
 ../../../../src/xroad/common/signer/usr/*  usr/
 ../../../../src/xroad/default-configuration/devices.ini usr/share/xroad/doc/
-../../../../../service/signer/signer-application/build/libs/signer-1.0.jar usr/share/xroad/jlib/
-../../../../../service/signer/signer-cli/build/libs/signer-console-1.0.jar usr/share/xroad/jlib/
+../../../../../service/signer/signer-application/build/quarkus-app/* usr/share/xroad/jlib/signer/
+../../../../../service/signer/signer-cli/build/quarkus-app/* usr/share/xroad/jlib/signer-console/
 ../../../../../libs/passwordstore/${DEB_HOST_ARCH}/libpasswordstore.so usr/share/xroad/lib/
