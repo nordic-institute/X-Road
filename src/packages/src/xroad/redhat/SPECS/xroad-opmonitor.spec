@@ -47,8 +47,6 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/../../../service/op-monitor/op-monitor-application/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/default-configuration/op-monitor.ini %{buildroot}/etc/xroad/conf.d/
-cp -p %{srcdir}/default-configuration/op-monitor-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/common/op-monitor/etc/xroad/services/opmonitor.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/db/op-monitor/*.xml %{buildroot}/usr/share/xroad/db/op-monitor/
 cp -p %{srcdir}/common/op-monitor/usr/share/xroad/db/op-monitor-changelog.xml %{buildroot}/usr/share/xroad/db/
@@ -69,8 +67,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,xroad,xroad,-)
-%config /etc/xroad/conf.d/op-monitor.ini
-%config /etc/xroad/conf.d/op-monitor-logback.xml
 %config /etc/xroad/services/opmonitor.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-opmonitor
 

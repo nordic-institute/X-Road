@@ -28,8 +28,6 @@ package org.niis.xroad.proxy.core;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import io.smallrye.config.PropertiesConfigSource;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import org.apache.http.client.HttpClient;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,8 +36,10 @@ import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
@@ -143,15 +143,9 @@ public abstract class AbstractProxyIntegrationTest {
                 "xroad.proxy.client-proxy.connector-host", "127.0.0.1",
                 "xroad.proxy.client-proxy.client-http-port", valueOf(proxyClientPort),
                 "xroad.proxy.client-proxy.client-https-port", valueOf(getFreePort())
-
         );
 
-        ProxyProperties proxyProperties = new SmallRyeConfigBuilder()
-                .withMapping(ProxyProperties.class)
-                .withSources(new PropertiesConfigSource(properties, "testProperties"))
-                .build()
-                .getConfigMapping(ProxyProperties.class);
-
+        ProxyProperties proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, properties);
         startServices(proxyProperties);
     }
 
@@ -176,9 +170,11 @@ public abstract class AbstractProxyIntegrationTest {
                 new ListInstanceWrapper<>(List.of(restMessageHandler)));
         clientProxy.init();
 
+        OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                proxyProperties.addOn());
-        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader);
+                proxyProperties.addOn(), opMonitorCommonProperties);
+        serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
+                opMonitorCommonProperties);
         serverProxy.init();
 
         OpMonitoring.init(new NullOpMonitoringBuffer(null));

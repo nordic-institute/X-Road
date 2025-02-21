@@ -30,13 +30,12 @@ package org.niis.xroad.proxy.core.addon.metaservice;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import io.smallrye.config.PropertiesConfigSource;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
@@ -83,11 +82,7 @@ public class MetaserviceTest {
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
-        ProxyTestSuiteHelper.proxyProperties = new SmallRyeConfigBuilder()
-                .withMapping(ProxyProperties.class)
-                .withSources(new PropertiesConfigSource(props, "testProperties"))
-                .build()
-                .getConfigMapping(ProxyProperties.class);
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
 
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 

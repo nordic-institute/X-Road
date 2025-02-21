@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,15 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.opmonitor.application;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
-public class OpMonitorDaemonRootConfig {
+@QuarkusTest
+class OpMonitorDaemonMainTest {
 
-    @ApplicationScoped
-    OperationalDataRecordManager operationalDataRecordManager(OpMonitorProperties opMonitorProperties) {
-        return new OperationalDataRecordManager(opMonitorProperties.getMaxRecordsInPayload());
+    @Test
+    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
+    void contextLoads() {
+        // ok
     }
 }

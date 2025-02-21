@@ -26,6 +26,7 @@
 package org.niis.xroad.opmonitor.core;
 
 import org.junit.BeforeClass;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatabase;
 
@@ -34,11 +35,15 @@ import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatab
  */
 public class BaseTestUsingDB {
 
+    protected OperationalDataRecordManager operationalDataRecordManager =
+            new OperationalDataRecordManager(Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
+
     protected BaseTestUsingDB() {
     }
 
     /**
      * Prepares the testing database.
+     *
      * @throws Exception if an error occurs.
      */
     @BeforeClass

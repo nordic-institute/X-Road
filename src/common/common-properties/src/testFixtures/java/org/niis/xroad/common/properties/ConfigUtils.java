@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
 
-import ee.ria.xroad.common.util.JobManager;
+package org.niis.xroad.common.properties;
 
-import org.niis.xroad.opmonitor.core.OperationalDataRecordCleaner;
-import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.smallrye.config.PropertiesConfigSource;
+import io.smallrye.config.SmallRyeConfigBuilder;
+import lombok.experimental.UtilityClass;
 
-@Configuration
-public class OpMonitorDaemonJobConfig {
+import java.util.Map;
 
-    @Bean
-    JobManager jobManager() throws SchedulerException {
-        final var jobManager = new JobManager(new StdSchedulerFactory().getScheduler());
+@UtilityClass
+public class ConfigUtils {
 
-        OperationalDataRecordCleaner.init(jobManager);
+    public static <T> T defaultConfiguration(Class<T> clazz) {
+        return new SmallRyeConfigBuilder()
+                .withMapping(clazz)
+                .build()
+                .getConfigMapping(clazz);
+    }
 
-        return jobManager;
+    public static <T> T initConfiguration(Class<T> clazz, Map<String, String> properties) {
+        return new SmallRyeConfigBuilder()
+                .withMapping(clazz)
+                .withSources(new PropertiesConfigSource(properties, "testProperties"))
+                .build()
+                .getConfigMapping(clazz);
     }
 
 }

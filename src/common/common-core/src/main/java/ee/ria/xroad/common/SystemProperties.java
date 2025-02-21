@@ -582,12 +582,6 @@ public final class SystemProperties {
     public static final String CONF_FILE_CONFPROXY =
             getConfPath() + "conf.d/confproxy.ini";
 
-    public static final String CONF_FILE_OP_MONITOR =
-            getConfPath() + "conf.d/op-monitor.ini";
-
-    public static final String CONF_FILE_ENV_MONITOR =
-            getConfPath() + "conf.d/addons/monitor.ini";
-
     public static final String CONF_FILE_USER_LOCAL =
             getConfPath() + "conf.d/local.ini";
 

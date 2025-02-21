@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
-import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
@@ -47,8 +46,8 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.antidos.AntiDosConnector;
@@ -84,6 +83,7 @@ public class ServerProxy {
     private final AntiDosConfiguration antiDosConfiguration;
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -119,8 +119,7 @@ public class ServerProxy {
 
     private void createOpMonitorClient() throws Exception {
         opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(commonBeanProxy.getServerConfProvider().getSSLKey(),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
+                opMonitorCommonProperties);
     }
 
     private void createConnectors() throws Exception {
@@ -143,9 +142,7 @@ public class ServerProxy {
                 .forEach(httpCf -> {
                     httpCf.getHttpConfiguration().setSendServerVersion(false);
                     Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))
-                            .ifPresent(customizer -> {
-                                customizer.setSniHostCheck(false);
-                            });
+                            .ifPresent(customizer -> customizer.setSniHostCheck(false));
                 });
 
         server.addConnector(connector);

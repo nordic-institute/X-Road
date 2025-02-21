@@ -28,8 +28,10 @@
 package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
@@ -89,9 +91,11 @@ public class TestContext {
 
             if (startServerProxy) {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
+                OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                        proxyProperties.addOn());
-                serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader);
+                        proxyProperties.addOn(), opMonitorCommonProperties);
+                serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
+                        opMonitorCommonProperties);
                 serverProxy.init();
             }
 

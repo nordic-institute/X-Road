@@ -30,8 +30,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;
@@ -50,14 +50,14 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
-    private final int maxBufferSize = OpMonitoringSystemProperties.getOpMonitorBufferSize();
-    private final int maxRecordsInMessage = OpMonitoringSystemProperties.getOpMonitorBufferMaxRecordsInMessage();
 
     private final ExecutorService executorService;
     private final ScheduledExecutorService taskScheduler;
     private final OpMonitoringDataProcessor opMonitoringDataProcessor;
     private final OpMonitoringDaemonSender sender;
     private final SavedServiceEndpoint savedServiceEndpoint;
+
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     final BlockingDeque<OpMonitoringData> buffer = new LinkedBlockingDeque<>();
 
@@ -66,8 +66,11 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      *
      * @throws Exception if an error occurs
      */
-    public OpMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+    public OpMonitoringBuffer(ServerConfProvider serverConfProvider,
+                              OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
         super(serverConfProvider);
+        this.opMonitorCommonProperties = opMonitorCommonProperties;
+
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
@@ -77,7 +80,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             opMonitoringDataProcessor = null;
             savedServiceEndpoint = null;
         } else {
-            sender = createSender(serverConfProvider);
+            sender = createSender(serverConfProvider, opMonitorCommonProperties);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -89,8 +92,9 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
-        return new OpMonitoringDaemonSender(serverConfProvider, this);
+    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
+                                          OpMonitorCommonProperties opMonCommonProperties) throws Exception {
+        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties);
     }
 
     @Override
@@ -104,12 +108,12 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
                 data.setRestPath(savedServiceEndpoint.getPathIfExists(data));
 
                 buffer.addLast(data);
-                if (buffer.size() > maxBufferSize) {
+                if (buffer.size() > opMonitorCommonProperties.buffer().size()) {
                     synchronized (buffer) {
-                        if (buffer.size() > maxBufferSize) {
+                        if (buffer.size() > opMonitorCommonProperties.buffer().size()) {
                             buffer.removeFirst();
                             log.warn("Operational monitoring buffer overflow (limit: {}), removing oldest record. Current size: {}",
-                                    maxBufferSize, buffer.size());
+                                    opMonitorCommonProperties.buffer().size(), buffer.size());
                         }
                     }
                 }
@@ -137,7 +141,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
         final List<OpMonitoringData> dataToProcess = new ArrayList<>();
 
-        buffer.drainTo(dataToProcess, maxRecordsInMessage);
+        buffer.drainTo(dataToProcess, opMonitorCommonProperties.buffer().maxRecordsInMessage());
         if (log.isDebugEnabled()) {
             log.debug("Op monitoring remaining buffer records count {}", buffer.size());
         }
@@ -168,7 +172,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             return;
         }
 
-        var sendingIntervalSeconds = OpMonitoringSystemProperties.getOpMonitorBufferSendingIntervalSeconds();
+        var sendingIntervalSeconds = opMonitorCommonProperties.buffer().sendingIntervalSeconds();
         taskScheduler.scheduleWithFixedDelay(this::send, sendingIntervalSeconds, sendingIntervalSeconds, TimeUnit.SECONDS);
 
     }
@@ -188,7 +192,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     private boolean ignoreOpMonitoringData() {
-        return maxBufferSize < 1;
+        return opMonitorCommonProperties.buffer().size() < 1;
     }
 
     int getCurrentBufferSize() {
