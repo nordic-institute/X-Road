@@ -1,6 +1,7 @@
 #!/bin/bash -e
 set -e
 
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 origin="$(pwd)"
 
 gradleModule=""
@@ -26,7 +27,7 @@ case $1 in
   ;;
 esac
 
-cd ../../src/
+cd "$SCRIPT_DIR"/../../src/
 set -o xtrace
 ./gradlew $gradleArgs -p $gradleModule
 set +o xtrace
