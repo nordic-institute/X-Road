@@ -3,8 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-val buildType: String = project.findProperty("buildType")?.toString() ?: "native"
-
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
