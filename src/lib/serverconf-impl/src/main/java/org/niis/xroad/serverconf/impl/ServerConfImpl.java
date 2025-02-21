@@ -27,6 +27,7 @@ package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -82,7 +83,6 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Server conf implementation.
@@ -94,6 +94,7 @@ public class ServerConfImpl implements ServerConfProvider {
     // default service connection timeout in seconds
     protected static final int DEFAULT_SERVICE_TIMEOUT = 30;
 
+    protected final DatabaseCtx serverConfDatabaseCtx;
     protected final GlobalConfProvider globalConfProvider;
 
     private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
@@ -376,7 +377,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isAvailable() {
         try {
-            return doInTransaction(SharedSessionContract::isConnected);
+            return serverConfDatabaseCtx.doInTransaction(SharedSessionContract::isConnected);
         } catch (Exception e) {
             log.warn("Unable to check Serverconf availability", e);
             return false;
@@ -498,7 +499,7 @@ public class ServerConfImpl implements ServerConfProvider {
      */
     protected <T> T tx(TransactionCallback<T> t) {
         try {
-            return doInTransaction(t);
+            return serverConfDatabaseCtx.doInTransaction(t);
         } catch (Exception e) {
             throw translateException(e);
         }

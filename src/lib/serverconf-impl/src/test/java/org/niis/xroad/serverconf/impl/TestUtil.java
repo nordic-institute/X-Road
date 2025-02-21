@@ -25,13 +25,14 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.model.AccessRightType;
 import org.niis.xroad.serverconf.model.CertificateType;
 import org.niis.xroad.serverconf.model.ClientType;
@@ -45,9 +46,10 @@ import org.niis.xroad.serverconf.model.ServiceType;
 import org.niis.xroad.serverconf.model.TspType;
 
 import java.util.Date;
+import java.util.Map;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
+import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
 /**
  * Contains server conf test utility methods.
@@ -98,40 +100,52 @@ public final class TestUtil {
                     + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
                     + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
 
+
+    static Map<String, String> serverConfHibernateProperties = Map.of(
+            "xroad.server-conf.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
+            "xroad.server-conf.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+            "xroad.server-conf.hibernate.connection.url", "jdbc:hsqldb:mem:serverconf",
+            "xroad.server-conf.hibernate.connection.username", "serverconf",
+            "xroad.server-conf.hibernate.connection.password", "serverconf",
+            "xroad.server-conf.hibernate.hbm2ddl.auto", "create-drop"
+    );
+    static ServerConfProperties serverConfProperties = initConfiguration(ServerConfProperties.class, serverConfHibernateProperties);
+
+
+    static DatabaseCtx databaseCtx = new DatabaseCtx("serverconf", serverConfProperties.hibernate());
+
     private TestUtil() {
     }
 
     /**
      * Creates in-memory test database and fills it with test data.
+     *
      * @throws Exception if an error occurs
      */
-    public static void prepareDB() throws Exception {
-        System.setProperty(
-                SystemProperties.DATABASE_PROPERTIES,
-                "src/test/resources/hibernate.properties");
-
-        prepareDB(true);
+    public static void prepareDB(DatabaseCtx ctx) throws Exception {
+        prepareDB(ctx, true);
     }
 
     /**
      * Creates in-memory test database and fills it with test data.
+     *
      * @param clean if true, database is cleaned
      * @throws Exception if an error occurs
      */
-    public static void prepareDB(boolean clean) throws Exception {
+    public static void prepareDB(DatabaseCtx ctx, boolean clean) throws Exception {
         if (clean) {
-            cleanDB();
+            cleanDB(ctx);
         }
 
-        doInTransaction(session -> {
+        ctx.doInTransaction(session -> {
             ServerConfType conf = createTestData(session);
             session.persist(conf);
             return null;
         });
     }
 
-    static void cleanDB() throws Exception {
-        doInTransaction(session -> {
+    static void cleanDB(DatabaseCtx ctx) throws Exception {
+        ctx.doInTransaction(session -> {
             var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database

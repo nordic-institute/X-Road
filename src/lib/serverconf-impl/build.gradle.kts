@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.test-fixtures-conventions")
+  alias(libs.plugins.jandex)
 }
 
 dependencies {
@@ -12,6 +13,7 @@ dependencies {
   testImplementation(project(":common:common-test"))
   testImplementation(libs.hsqldb)
   testImplementation(libs.hibernate.hikaricp)
+  testImplementation(testFixtures(project(":common:common-properties")))
 
   testFixturesImplementation(project(":common:common-test"))
 }

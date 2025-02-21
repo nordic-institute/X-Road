@@ -160,7 +160,7 @@ public abstract class AbstractProxyIntegrationTest {
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, keyConfProvider);
 
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                keyConfProvider, signingCtxProvider, certHelper);
+                keyConfProvider, signingCtxProvider, certHelper, null);
 
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                 .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, TEST_GLOBAL_CONF, keyConfProvider);

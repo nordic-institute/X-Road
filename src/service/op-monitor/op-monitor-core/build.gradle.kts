@@ -32,6 +32,7 @@ dependencies {
   testImplementation(libs.hsqldb)
   testImplementation(libs.mockito.core)
   testImplementation(libs.commons.cli)
+  testImplementation(testFixtures(project(":common:common-properties")))
 
   xjc(libs.bundles.jaxb)
 }

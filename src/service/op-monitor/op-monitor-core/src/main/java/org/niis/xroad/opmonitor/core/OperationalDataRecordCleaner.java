@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.runtime.Startup;
@@ -33,7 +34,7 @@ import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
@@ -41,7 +42,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
-import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
+import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
 
 /**
  * Deletes outdated operational data records from the database.
@@ -49,10 +50,18 @@ import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTrans
 @Slf4j
 @Startup
 @ApplicationScoped
-@RequiredArgsConstructor
 public final class OperationalDataRecordCleaner {
     private final OpMonitorProperties opMonitorProperties;
+    private final DatabaseCtx databaseCtx;
     private final Scheduler scheduler;
+
+    public OperationalDataRecordCleaner(OpMonitorProperties opMonitorProperties,
+                                        @Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
+                                        Scheduler scheduler) {
+        this.opMonitorProperties = opMonitorProperties;
+        this.databaseCtx = databaseCtx;
+        this.scheduler = scheduler;
+    }
 
     @PostConstruct
     public void init() {
@@ -81,7 +90,7 @@ public final class OperationalDataRecordCleaner {
     int cleanRecords(Instant before) throws Exception {
         log.trace("cleanRecords({})", before);
 
-        return doInTransaction(session -> {
+        return databaseCtx.doInTransaction(session -> {
             String hql =
                     "delete OperationalDataRecordEntity r where r.monitoringDataTs < "
                             + TimeUnit.MILLISECONDS.toSeconds(before.toEpochMilli());

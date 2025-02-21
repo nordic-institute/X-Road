@@ -33,6 +33,7 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
@@ -76,9 +77,9 @@ public class TestContext {
             CertHelper certHelper = new CertHelper(globalConfProvider);
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
-
+            LogRecordManager logRecordManager = mock(LogRecordManager.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper);
+                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager);
 
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                     .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, globalConfProvider, keyConfProvider);

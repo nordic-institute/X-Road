@@ -45,7 +45,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.OBJECT_READER;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.storeFullOperationalDataRecord;
@@ -71,7 +70,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
      */
     @Before
     public void beforeTest() throws Exception {
-        int cleaned = doInTransaction(
+        int cleaned = DATABASE_CTX.doInTransaction(
                 session -> session.createMutationQuery("delete OperationalDataRecordEntity")
                         .executeUpdate());
 
@@ -132,20 +131,20 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         storeFullOperationalDataRecords(17, 1474968981L, operationalDataRecordManager);
 
         // Less than max records.
-        operationalDataRecordManager = new OperationalDataRecordManager(10);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
         OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968980L, 1474968980L);
         assertEquals(8, result.size());
         assertNull(result.getNextRecordsFrom());
 
         // Max records, no overflow indication since there are no records left.
-        operationalDataRecordManager = new OperationalDataRecordManager(8);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 8);
         result = operationalDataRecordManager.queryRecords(1474968980L, 1474968980L);
         assertEquals(8, result.size());
         assertNull(result.getNextRecordsFrom());
 
         // Additional records, no overflow indication since the last record
         // timestamp equals to the timestamp recordsTo.
-        operationalDataRecordManager = new OperationalDataRecordManager(5);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 5);
         result = operationalDataRecordManager.queryRecords(1474968980L, 1474968980L);
         assertEquals(8, result.size());
         assertNull(result.getNextRecordsFrom());
@@ -153,7 +152,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         // Additional records, no overflow indication since the overflowing
         // records are from the same second than the last ones that fit
         // in the limit.
-        operationalDataRecordManager = new OperationalDataRecordManager(10);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
         result = operationalDataRecordManager.queryRecords(1474968980L, 1474968990L);
         assertEquals(25, result.size());
         assertNull(result.getNextRecordsFrom());
@@ -162,7 +161,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // Max records, overflow indication since there are records left
         // than were stored later than the records that fit into the limit.
-        operationalDataRecordManager = new OperationalDataRecordManager(8);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 8);
         result = operationalDataRecordManager.queryRecords(1474968960L, 1474968990L);
         assertEquals(8, result.size());
         assertNotNull(result.getNextRecordsFrom());
@@ -170,7 +169,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // Additional records, overflow indication since there is 1 record left
         // that was stored later than the last record that fits into the limit.
-        operationalDataRecordManager = new OperationalDataRecordManager(10);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
         result = operationalDataRecordManager.queryRecords(1474968960L, 1474968990L);
         assertEquals(25, result.size());
         assertNotNull(result.getNextRecordsFrom());
@@ -178,7 +177,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // Additional records, overflow indication since there is 1 record left
         // that was stored later than the last record that fits into the limit.
-        operationalDataRecordManager = new OperationalDataRecordManager(10);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
         result = operationalDataRecordManager.queryRecords(1474968981L, 1474968990L);
         assertEquals(17, result.size());
         assertNotNull(result.getNextRecordsFrom());
@@ -343,7 +342,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         storeFullOperationalDataRecord(1474968964L, serviceProvider, client, operationalDataRecordManager);
 
         // Less than max records.
-        operationalDataRecordManager = new OperationalDataRecordManager(10);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 10);
         OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);
         assertEquals(10, result.size());
         assertNull(result.getNextRecordsFrom());
@@ -365,7 +364,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         // Result has more records than max
         // Filter by client and service provider
-        operationalDataRecordManager = new OperationalDataRecordManager(4);
+        operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX, 4);
         result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L, client, serviceProvider,
                 new HashSet<>());
         assertEquals(4, result.size());
@@ -381,6 +380,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         storeFullOperationalDataRecords(1, 1474968980L, operationalDataRecordManager);
 
         OperationalDataRecordCleaner operationalDataRecordCleanerJob = new OperationalDataRecordCleaner(mock(OpMonitorProperties.class),
+                DATABASE_CTX,
                 mock(Scheduler.class));
         operationalDataRecordCleanerJob.cleanRecords(Instant.ofEpochMilli(1474968975000L));
 
@@ -413,7 +413,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         // test truncate on update
         resultRecord.setMessageIssue("2" + LONG_STRING);
 
-        doInTransaction(session -> {
+        DATABASE_CTX.doInTransaction(session -> {
             var entity = OperationalDataRecordMapper.get().toEntity(resultRecord);
 
             session.merge(entity);

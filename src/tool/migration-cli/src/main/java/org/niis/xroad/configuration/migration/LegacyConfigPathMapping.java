@@ -95,6 +95,9 @@ public class LegacyConfigPathMapping {
         MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
         MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
 
+        MAPPING.put("serverconf.hibernate.connection.url", "common.server-conf.hibernate.connection.url");
+        MAPPING.put("serverconf.hibernate.connection.username", "common.server-conf.hibernate.connection.username");
+        MAPPING.put("serverconf.hibernate.connection.password", "common.server-conf.hibernate.connection.password");
     }
 
     String map(String oldPath) {

@@ -30,18 +30,14 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 class TestTimestamper extends Timestamper {
-    private final GlobalConfProvider globalConfProvider;
-    private final ServerConfProvider serverConfProvider;
 
-    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
-        this.globalConfProvider = globalConfProvider;
-        this.serverConfProvider = serverConfProvider;
+    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager) {
+        super(globalConfProvider, serverConfProvider, logRecordManager);
     }
 
     @Override
     protected TimestamperWorker getWorkerImpl() {
-        return new TestTimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
+        return new TestTimestamperWorker(globalConfProvider, logRecordManager, serverConfProvider.getTspUrl());
     }
 
 }

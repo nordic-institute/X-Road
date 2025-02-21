@@ -26,6 +26,7 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -86,6 +87,8 @@ public class ServerConfTest {
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
+    private static DatabaseCtx databaseCtx;
+
     /**
      * Creates test database.
      *
@@ -93,10 +96,11 @@ public class ServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
-
+        databaseCtx = TestUtil.databaseCtx;
+        serverConfProvider = new ServerConfImpl(databaseCtx, globalConfProvider);
         globalConfProvider = TestGlobalConfFactory.create();
-        serverConfProvider = new ServerConfImpl(globalConfProvider);
+
+        prepareDB(databaseCtx);
     }
 
     /**
@@ -104,7 +108,7 @@ public class ServerConfTest {
      */
     @Before
     public void beforeTest() {
-        ServerConfDatabaseCtx.get().beginTransaction();
+        databaseCtx.beginTransaction();
     }
 
     /**
@@ -112,7 +116,7 @@ public class ServerConfTest {
      */
     @After
     public void afterTest() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        databaseCtx.commitTransaction();
     }
 
     /**
@@ -345,7 +349,7 @@ public class ServerConfTest {
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
         return new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(),
+                databaseCtx.getSession(),
                 serviceProvider);
     }
 }

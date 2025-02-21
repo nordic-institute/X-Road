@@ -23,47 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl;
+package ee.ria.xroad.messagelog.database;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
 
-import org.hibernate.Session;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import org.niis.xroad.common.messagelog.MessageLogProperties;
 
 /**
- * Server conf database context.
+ * Message log database context.
  */
-public final class ServerConfDatabaseCtx {
+public class MessageLogDatabaseConfig {
+    public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("serverconf");
-
-    private ServerConfDatabaseCtx() {
+    @Named(MESSAGE_LOG_DB_CTX)
+    @ApplicationScoped
+    DatabaseCtx serverConfCtx(MessageLogProperties messageLogProperties) {
+        return create(messageLogProperties);
     }
 
-    /**
-     * @return the database context instance
-     */
-    public static DatabaseCtx get() {
-        return CTX;
+    public static DatabaseCtx create(MessageLogProperties messageLogProperties) {
+        return new DatabaseCtx("messagelog", messageLogProperties.hibernate());
     }
-
-    /**
-     * @return shortcut for a session
-     */
-    public static Session getSession() {
-        return get().getSession();
-    }
-
-    /**
-     * Executes the unit of work transactionally.
-     * @param callback the unit of work callback
-     * @param <T> the type of the result
-     * @return the result of the callback
-     * @throws Exception if an error occurs
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
-        return CTX.doInTransaction(callback);
-    }
-
 }

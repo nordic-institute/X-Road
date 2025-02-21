@@ -23,36 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.messagelog.database;
+package org.niis.xroad.common.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-/**
- * Message log database context.
- */
-public final class MessageLogDatabaseCtx {
+import java.util.Map;
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("messagelog");
-
-    private MessageLogDatabaseCtx() {
-    }
-
-    /**
-     * @return the current context.
-     */
-    public static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * Convenience method for a transaction callback.
-     * @param <T> the type of result.
-     * @param callback the callback.
-     * @return the result.
-     * @throws Exception if an error occurs.
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback) throws Exception {
-        return CTX.doInTransaction(callback);
-    }
+@ConfigMapping(prefix = "xroad.message-log")
+public interface MessageLogProperties {
+    @WithName("hibernate")
+    Map<String, String> hibernate();
 }

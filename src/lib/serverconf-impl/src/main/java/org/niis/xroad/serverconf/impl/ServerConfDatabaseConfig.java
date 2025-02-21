@@ -23,31 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.dao;
+package org.niis.xroad.serverconf.impl;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
-import org.hibernate.Session;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.model.UiUserType;
+import ee.ria.xroad.common.db.DatabaseCtx;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import org.niis.xroad.serverconf.ServerConfProperties;
 
 /**
- * UiUser data access object implementation.
+ * Server conf database context.
  */
-public class UiUserDAOImpl extends AbstractDAOImpl<UiUserType> {
+public class ServerConfDatabaseConfig {
+    public static final String SERVER_CONF_DB_CTX = "serverConfCtx";
 
-    /**
-     * Returns the UiUser object for the given user name or null.
-     * @param username the user name
-     * @return the UiUser object for the given user name or null
-     */
-    public static UiUserType getUiUser(String username) {
-        Session session = ServerConfDatabaseCtx.getSession();
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<UiUserType> q = cb.createQuery(UiUserType.class);
-        final Root<UiUserType> root = q.from(UiUserType.class);
-        q.select(root).where(cb.equal(root.get("username"), username));
-        return session.createQuery(q).uniqueResult();
+    @Named(SERVER_CONF_DB_CTX)
+    @ApplicationScoped
+    DatabaseCtx serverConfCtx(ServerConfProperties serverConfProperties) {
+        return createServerConfDbCtx(serverConfProperties);
+    }
+
+    public static DatabaseCtx createServerConfDbCtx(ServerConfProperties serverConfProperties) {
+        return new DatabaseCtx("serverconf", serverConfProperties.hibernate());
     }
 }

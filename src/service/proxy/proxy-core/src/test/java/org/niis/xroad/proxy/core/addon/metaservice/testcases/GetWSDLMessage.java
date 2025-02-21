@@ -27,6 +27,7 @@
 package org.niis.xroad.proxy.core.addon.metaservice.testcases;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -36,11 +37,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 import org.xml.sax.InputSource;
 
 import javax.wsdl.Definition;
@@ -59,9 +56,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.startsWith;
-import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.cleanDB;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.parseOperationNamesFromWSDLDefinition;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Test WSDL retrieval.
@@ -78,11 +73,7 @@ public class GetWSDLMessage extends MessageTestCase {
     // file that the mock server serves as the WSDL, found under resources/__files
     private static final String MOCK_SERVER_WSDL_FILE = "wsdl.wsdl";
 
-
     private final WireMockServer mockServer;
-
-    private final ClientId.Conf expectedProviderQuery =
-            ClientId.Conf.create("EE", "BUSINESS", "producer");
 
     private final String expectedServiceNameForWSDLQuery = "getRandom";
     private final List<String> expectedWSDLServiceNames =
@@ -131,51 +122,34 @@ public class GetWSDLMessage extends MessageTestCase {
             public IsAuthentication getIsAuthentication(ClientId client) {
                 return IsAuthentication.NOSSL;
             }
+
+            @Override
+            public DescriptionType getDescriptionType(ServiceId service) {
+                if (service.getServiceCode().equals(expectedServiceNameForWSDLQuery)) {
+                    return DescriptionType.WSDL;
+                }
+                return super.getDescriptionType(service);
+            }
+
+            @Override
+            public String getServiceDescriptionURL(ServiceId service) {
+                if (service.getServiceCode().equals(expectedServiceNameForWSDLQuery)) {
+                    return MOCK_SERVER_WSDL_URL;
+                }
+                return super.getServiceDescriptionURL(service);
+            }
         });
-        setUpDatabase();
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withBodyFile(MOCK_SERVER_WSDL_FILE)));
         mockServer.start();
     }
 
-    private void setUpDatabase() throws Exception {
-        ServerConfType conf = new ServerConfType();
-        conf.setServerCode("TestServer");
-
-        ClientType client = new ClientType();
-        client.setConf(conf);
-
-        conf.getClient().add(client);
-
-        client.setIdentifier(expectedProviderQuery);
-
-        ServiceDescriptionType wsdl = new ServiceDescriptionType();
-        wsdl.setClient(client);
-        wsdl.setUrl(MOCK_SERVER_WSDL_URL);
-        wsdl.setType(DescriptionType.WSDL);
-
-        ServiceType service = new ServiceType();
-        service.setServiceDescription(wsdl);
-        service.setTitle("getRandomTitle");
-        service.setServiceCode(expectedServiceNameForWSDLQuery);
-
-        wsdl.getService().add(service);
-
-        client.getServiceDescription().add(wsdl);
-
-        doInTransaction(session -> {
-            session.persist(conf);
-            return null;
-        });
-
-    }
 
     @Override
     protected void closeDown() throws Exception {
         super.closeDown();
         mockServer.stop();
-        cleanDB();
     }
 
     private static class WSDLMessage extends Message {

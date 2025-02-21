@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
@@ -53,6 +55,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -76,6 +79,9 @@ class ApplicationIpRateLimitTest {
     MonitorRpcClient monitorClient;
     @MockBean
     ConfClientRpcClient confClientRpcClient;
+
+    @MockBean(name = SERVER_CONF_DB_CTX)
+    DatabaseCtx databaseCtx;
 
     @PostConstruct
     void setGlobalSecurityContext() {

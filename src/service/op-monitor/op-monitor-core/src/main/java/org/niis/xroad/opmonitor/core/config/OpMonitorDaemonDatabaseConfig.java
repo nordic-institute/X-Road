@@ -23,11 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core;
+package org.niis.xroad.opmonitor.core.config;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
@@ -36,31 +37,13 @@ import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
 /**
  * Database context for the operational monitoring daemon
  */
-final class OpMonitorDaemonDatabaseCtx {
+public class OpMonitorDaemonDatabaseConfig {
+    public static final String OP_MONITOR_DB_CTX = "opMonitorDbCtx";
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("op-monitor",
-            new StringValueTruncator());
-
-    private OpMonitorDaemonDatabaseCtx() {
-    }
-
-    /**
-     * @return the database context instance
-     */
-    static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * Convenience method for executing a database operation in a transaction.
-     * @param <T> the type of result
-     * @param callback the callback
-     * @return the result
-     * @throws Exception if an error occurs
-     */
-    static <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
-        return CTX.doInTransaction(callback);
+    @Named(OP_MONITOR_DB_CTX)
+    @ApplicationScoped
+    public DatabaseCtx serverConfCtx(OpMonitorProperties opMonitorProperties) {
+        return new DatabaseCtx("op-monitor", opMonitorProperties.hibernate(), new StringValueTruncator());
     }
 
     private static final class StringValueTruncator implements Interceptor {

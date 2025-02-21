@@ -26,18 +26,78 @@
 package org.niis.xroad.serverconf.spring;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
+import lombok.Setter;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Map;
+
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
+
 @Configuration
+@EnableConfigurationProperties(ServerConfBeanConfig.SpringServerConfProperties.class)
 public class ServerConfBeanConfig {
 
+    @Bean(SERVER_CONF_DB_CTX)
+    DatabaseCtx serverConfCtx(ServerConfProperties serverConfProperties) {
+        return ServerConfDatabaseConfig.createServerConfDbCtx(serverConfProperties);
+    }
+
     @Bean
-    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
+    public ServerConfProvider serverConfProvider(@Qualifier(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
+                                                 GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, SystemProperties.getServerConfCachePeriod());
+    }
+
+
+    @Setter
+    @ConfigurationProperties(prefix = "xroad.server-conf")
+    public static class SpringServerConfProperties implements ServerConfProperties {
+        private int cachePeriod = Integer.parseInt(DEFAULT_CACHE_PERIOD);
+        private long clientCacheSize = Long.parseLong(DEFAULT_CLIENT_CACHE_SIZE);
+        private long serviceCacheSize = Long.parseLong(DEFAULT_SERVICE_CACHE_SIZE);
+        private long serviceEndpointsCacheSize = Long.parseLong(DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE);
+        private long aclCacheSize = Long.parseLong(DEFAULT_ACL_CACHE_SIZE);
+        private Map<String, String> hibernate = Map.of();
+
+        @Override
+        public int cachePeriod() {
+            return cachePeriod;
+        }
+
+        @Override
+        public long clientCacheSize() {
+            return clientCacheSize;
+        }
+
+        @Override
+        public long serviceCacheSize() {
+            return serviceCacheSize;
+        }
+
+        @Override
+        public long serviceEndpointsCacheSize() {
+            return serviceEndpointsCacheSize;
+        }
+
+        @Override
+        public long aclCacheSize() {
+            return aclCacheSize;
+        }
+
+        @Override
+        public Map<String, String> hibernate() {
+            return hibernate;
+        }
     }
 }
