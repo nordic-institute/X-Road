@@ -1,20 +1,12 @@
 ---
 common_modules:
-  configuration-service:
-    dir: security-server/configuration-service/application
-    build: build
-    lib: configuration-service-1.0.jar
-    target: /usr/share/xroad/jlib
-    service: xroad-configuration-service
   signer:
     dir: service/signer/signer-application
     build: build
-    lib: signer-1.0.jar
-    target: /usr/share/xroad/jlib
+    target: /usr/share/xroad/jlib/signer
     service: xroad-signer
   signer-console:
     dir: service/signer/signer-cli
     build: build
-    lib: signer-console-1.0.jar
-    target: /usr/share/xroad/jlib
+    target: /usr/share/xroad/jlib/signer-console
     service: xroad-signer

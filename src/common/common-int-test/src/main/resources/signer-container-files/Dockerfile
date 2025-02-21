@@ -10,7 +10,7 @@ RUN apt-get -qq update \
 RUN mkdir -p /var/lib/softhsm/tokens/ && \
     softhsm2-util --init-token --slot 0 --label 'x-road-softhsm2' --so-pin 1234 --pin 1234
 
-COPY --chown=root:root files/app.jar /root/app.jar
+COPY --chown=root:root files/app /root/app
 COPY --chown=root:root files/lib /root/lib
 
 COPY --chown=root:root etc /etc

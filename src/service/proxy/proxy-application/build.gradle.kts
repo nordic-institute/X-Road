@@ -4,19 +4,15 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.package.output-name", "proxy-1.0")
-    }
-  )
-}
-
 jib {
   to {
     image = "${project.property("xroadImageRegistry")}/ss-proxy"
     tags = setOf("latest")
   }
+}
+
+configurations.configureEach {
+  exclude(group = "xml-apis", module = "xml-apis") // This library interferes with Jetty
 }
 
 dependencies {

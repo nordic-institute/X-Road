@@ -3,16 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-val buildType: String = project.findProperty("buildType")?.toString() ?: "containerized"
-
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.package.output-name", "monitor-1.0")
-    }
-  )
-}
-
 jib {
   to {
     image = "${project.property("xroadImageRegistry")}/ss-monitor"
