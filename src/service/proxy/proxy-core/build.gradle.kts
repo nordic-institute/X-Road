@@ -46,6 +46,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(project(":service:message-log-archiver:message-log-archiver-application"))
+  testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
@@ -62,6 +63,7 @@ dependencies {
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":common:common-messagelog"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
+  testFixturesImplementation(testFixtures(project(":common:common-properties")))
   testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
   testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
   testFixturesImplementation(libs.wsdl4j)
