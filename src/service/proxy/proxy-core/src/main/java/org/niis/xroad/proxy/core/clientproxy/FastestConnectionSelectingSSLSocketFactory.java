@@ -35,12 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.clientproxy.FastestSocketSelector.SocketInfo;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -83,15 +85,20 @@ class FastestConnectionSelectingSSLSocketFactory
     public static final int CACHE_MAXIMUM_SIZE = 10000;
 
     private final AuthTrustVerifier authTrustVerifier;
-    private final javax.net.ssl.SSLSocketFactory socketfactory;
+    private final AuthKeyChangeDetector authKeyChangeDetector;
+    private final SSLSocketFactory socketfactory;
+    private final SSLContext sslContext;
 
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
 
-    FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLContext sslContext) {
+    FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, KeyConfProvider keyConfProvider,
+                                               SSLContext sslContext) {
         super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
         this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = sslContext.getSocketFactory();
+        this.sslContext = sslContext;
+        this.authKeyChangeDetector = new AuthKeyChangeDetector(keyConfProvider);
         this.selectedHosts = CacheBuilder.newBuilder()
                 .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
                 .maximumSize(CACHE_MAXIMUM_SIZE)
@@ -110,6 +117,10 @@ class FastestConnectionSelectingSSLSocketFactory
                                 InetSocketAddress localAddress, HttpContext context) {
         // Discard dummy socket.
         closeQuietly(socket);
+
+        // XRDDEV-2760 when active authentication certificate changes, existing SSL sessions must be invalidated.
+        // Otherwise, existing session with old certificate is reused and certificate doesn't match OCSP sent in request.
+        checkAuthKeyChange();
 
         // Read target addresses from the context.
         final URI[] addressesFromContext = getAddressesFromContext(context);
@@ -271,6 +282,24 @@ class FastestConnectionSelectingSSLSocketFactory
         }
 
         throw new CodedException(X_INTERNAL_ERROR, "Failed to create SSL socket");
+    }
+
+    private void checkAuthKeyChange() {
+        if (authKeyChangeDetector.hasAuthKeyChanged()) {
+            log.info("Authentication key has changed, invalidating existing SSL sessions");
+            clearSslSessions();
+        }
+    }
+
+    private void clearSslSessions() {
+        var ids = sslContext.getClientSessionContext().getIds();
+        while (ids.hasMoreElements()) {
+            var id = ids.nextElement();
+            var session = sslContext.getClientSessionContext().getSession(id);
+            if (session != null && session.isValid()) {
+                session.invalidate();
+            }
+        }
     }
 
     private static URI[] getAddressesFromContext(HttpContext context) {

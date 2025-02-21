@@ -199,7 +199,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     }
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier,
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, keyConfProvider,
                 SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
     }
 

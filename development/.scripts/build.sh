@@ -4,11 +4,10 @@ set -e
 origin="$(pwd)"
 
 gradleModule=""
-gradleArgs="clean build -xtest -xcheckstyleMain -xcheckstyleTest "
+gradleArgs="clean build -x check "
 case $1 in
 "proxy")
   gradleModule="service/proxy"
-  gradleArgs+="-xintTest"
   ;;
 "configuration-client")
   gradleModule="service/configuration-client"
@@ -21,11 +20,9 @@ case $1 in
   ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"
-  gradleArgs+="-xintTest"
   ;;
 "cs-management-service")
   gradleModule="central-server/management-service"
-  gradleArgs+="-xintTest"
   ;;
 esac
 
