@@ -6,15 +6,15 @@ Name:               xroad-secret-store-local
 Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:            %{rel}%{?snapshot}%{?dist}
-Summary:            Meta-package for X-Road remote secret store dependencies
+Summary:            Meta-package for local secret store dependencies
 Group:              Applications/Internet
 License:            MIT
 Requires:           jq, bao >= 2.0.0
 Requires:           xroad-base = %version-%release
-Conflicts:          xroad-secret-store-local-remote
+Conflicts:          xroad-secret-store-remote
 
 %description
-X-Road OpenBao Auto Init Service
+Installs OpenBao locally and automatically provisions it to align with X-Road
 
 %clean
 rm -rf %{buildroot}
