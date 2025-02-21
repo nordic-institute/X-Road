@@ -72,7 +72,7 @@ public abstract class BaseTestSignerSetup {
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
                         .withFileFromPath("files/lib/%s".formatted(PKCS11_WRAPPER_FILENAME), getPkcsWrapperPath())
-                        .withFileFromPath("files/app.jar", appJarPath);
+                        .withFileFromPath("files/app/", appJarPath);
             }
 
             @NotNull
@@ -114,7 +114,7 @@ public abstract class BaseTestSignerSetup {
                                 "-Djava.library.path=/root/lib/",
                                 enableHwModule ? "-Dxroad.signer.addon.hwtoken.enabled=true" : "",
                                 "-jar",
-                                "/root/app.jar");
+                                "/root/app/quarkus-run.jar");
 
                 prepareSignerDirs();
             }
