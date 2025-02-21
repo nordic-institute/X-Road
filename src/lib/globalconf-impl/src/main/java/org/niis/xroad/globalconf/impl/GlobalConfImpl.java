@@ -157,10 +157,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
         for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
             for (SharedParameters.Member member : p.getMembers()) {
-                clients.add(new MemberInfo(createMemberId(p, member), member.getName()));
+                clients.add(new MemberInfo(createMemberId(p.getInstanceIdentifier(), member), member.getName()));
 
                 for (SharedParameters.Subsystem subsystem : member.getSubsystems()) {
-                    clients.add(new MemberInfo(createSubsystemId(p, member, subsystem), member.getName()));
+                    clients.add(new MemberInfo(createSubsystemId(p.getInstanceIdentifier(), member, subsystem), member.getName()));
                 }
             }
         }
@@ -168,32 +168,42 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return clients;
     }
 
-    ClientId.Conf createMemberId(SharedParameters p, SharedParameters.Member member) {
-        return ClientId.Conf.create(p.getInstanceIdentifier(), member.getMemberClass().getCode(), member.getMemberCode());
+    ClientId.Conf createMemberId(String instanceIdentifier, SharedParameters.Member member) {
+        return ClientId.Conf.create(instanceIdentifier, member.getMemberClass().getCode(), member.getMemberCode());
     }
 
-    ClientId.Conf createSubsystemId(SharedParameters p, SharedParameters.Member member, SharedParameters.Subsystem subsystem) {
+    ClientId.Conf createSubsystemId(String instanceIdentifier, SharedParameters.Member member, SharedParameters.Subsystem subsystem) {
         return ClientId.Conf.create(
-                p.getInstanceIdentifier(), member.getMemberClass().getCode(),
+                instanceIdentifier, member.getMemberClass().getCode(),
                 member.getMemberCode(), subsystem.getSubsystemCode()
         );
     }
 
     @Override
     public String getMemberName(ClientId clientId) {
-        Optional<SharedParameters> p;
-        try {
-            p = globalConfSource.findShared(clientId.getXRoadInstance());
-        } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
-        }
-
-        return p.flatMap(params -> params.getMembers().stream()
-                .filter(m -> createMemberId(p.get(), m).memberEquals(clientId))
-                .map(SharedParameters.Member::getName)
+        return findShared(clientId.getXRoadInstance()).stream()
+                .map(SharedParameters::getMembers)
+                .flatMap(List::stream)
+                .filter(m -> createMemberId(clientId.getXRoadInstance(), m).memberEquals(clientId))
                 .findFirst()
-        ).orElse(null);
+                .map(SharedParameters.Member::getName)
+                .orElse(null);
     }
+
+    @Override
+    public String getSubsystemName(ClientId clientId) {
+        return findShared(clientId.getXRoadInstance()).stream()
+                .map(SharedParameters::getMembers)
+                .flatMap(List::stream)
+                .filter(m -> createMemberId(clientId.getXRoadInstance(), m).memberEquals(clientId))
+                .map(SharedParameters.Member::getSubsystems)
+                .flatMap(List::stream)
+                .filter(s -> s.getSubsystemCode().equals(clientId.getSubsystemCode()))
+                .findFirst()
+                .map(SharedParameters.Subsystem::getSubsystemName)
+                .orElse(null);
+    }
+
 
     @Override
     public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
@@ -214,18 +224,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getGlobalGroupDescription(GlobalGroupId globalGroupId) {
-        Optional<SharedParameters> p;
-        try {
-            p = globalConfSource.findShared(globalGroupId.getXRoadInstance());
-        } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
-        }
-
-        return p.flatMap(params -> params.getGlobalGroups().stream()
-                .filter(g -> g.getGroupCode().equals(globalGroupId.getGroupCode()))
-                .map(SharedParameters.GlobalGroup::getDescription)
-                .findFirst()
-        ).orElse(null);
+        return findShared(globalGroupId.getXRoadInstance())
+                .flatMap(params -> params.getGlobalGroups().stream()
+                        .filter(g -> g.getGroupCode().equals(globalGroupId.getGroupCode()))
+                        .map(SharedParameters.GlobalGroup::getDescription)
+                        .findFirst()
+                ).orElse(null);
     }
 
     @Override
@@ -575,10 +579,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
-        Optional<SharedParameters> sharedParameters = globalConfSource.findShared(groupId.getXRoadInstance());
-        return sharedParameters.flatMap(params -> params.getGlobalGroups().stream()
-                .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
-                .findFirst());
+        return globalConfSource.findShared(groupId.getXRoadInstance())
+                .flatMap(params -> params.getGlobalGroups().stream()
+                        .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
+                        .findFirst());
     }
 
     @Override
@@ -635,6 +639,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return getPrivateParameters().getTimeStampingIntervalSeconds();
     }
 
+    private Optional<SharedParameters> findShared(String xroadInstance) {
+        try {
+            return globalConfSource.findShared(xroadInstance);
+        } catch (Exception e) {
+            throw new CodedException(X_INTERNAL_ERROR, e);
+        }
+    }
+
     // ------------------------------------------------------------------------
 
     protected PrivateParameters getPrivateParameters() {
@@ -650,15 +662,9 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     protected SharedParameters getSharedParameters(String instanceIdentifier) {
-        Optional<SharedParameters> p;
-        try {
-            p = globalConfSource.findShared(instanceIdentifier);
-        } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
-        }
-
-        return p.orElseThrow(() ->
-                new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
+        return findShared(instanceIdentifier)
+                .orElseThrow(() ->
+                        new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
     }
 
     protected List<SharedParameters> getSharedParameters(
@@ -726,5 +732,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public GlobalConfExtensions getGlobalConfExtensions() {
         return globalConfExtensions;
+    }
+
+    @Override
+    public Integer getVersion() {
+        return globalConfSource.getVersion();
     }
 }

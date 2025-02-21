@@ -50,13 +50,20 @@ public interface XRoadId extends Serializable {
 
     String getXRoadInstance();
 
+    default boolean isSubsystem() {
+        return getObjectType() == XRoadObjectType.SUBSYSTEM;
+    }
+
+    default boolean isMember() {
+        return getObjectType() == XRoadObjectType.MEMBER;
+    }
+
     // FIXME: this class is used for JSON response in metaservices, but separate DTO should be used instead.
     @JsonIgnore
     String[] getFieldsForStringFormat();
 
     /**
      * Returns as encoded identifier.
-     *
      * @return identifier
      */
     default String asEncodedId() {
@@ -65,7 +72,6 @@ public interface XRoadId extends Serializable {
 
     /**
      * Returns as encoded identifier.
-     *
      * @param includeType if true XRoadObjectType is added before identifier itself.
      * @return identifier
      */
@@ -93,7 +99,6 @@ public interface XRoadId extends Serializable {
      * Returns short string representation of the identifier that is
      * more suitable for user interface usage than output
      * of the toString() method.
-     *
      * @return String
      */
     default String toShortString(char delimiter) {
@@ -134,7 +139,6 @@ public interface XRoadId extends Serializable {
 
         /**
          * Returns type of the object for this identifier.
-         *
          * @return XRoadObjectType
          */
         public XRoadObjectType getObjectType() {
@@ -143,7 +147,6 @@ public interface XRoadId extends Serializable {
 
         /**
          * Returns code of the X-Road instance.
-         *
          * @return String
          */
         public String getXRoadInstance() {

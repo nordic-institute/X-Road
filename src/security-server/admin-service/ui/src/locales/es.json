@@ -664,7 +664,7 @@
     "id": "ID",
     "localGroup": "Grupo local",
     "localGroupAdded": "Grupo local agregado",
-    "name": "Nombre de miembro",
+    "memberName": "Nombre de miembro",
     "noResults": "La búsqueda no obtuvo resultados.",
     "removeAllText": "¿Estás seguro de que quieres eliminar a todos los miembros de este grupo?",
     "removeAllTitle": "¿Remover todos los miembros?",

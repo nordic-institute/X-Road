@@ -81,6 +81,7 @@ export interface AddClientState {
   memberClass: string;
   memberCode: string;
   subsystemCode: string | undefined;
+  subsystemName: string | undefined;
   memberWizardMode: AddMemberWizardModes;
   reservedMemberData: ReservedMemberData | undefined;
 }
@@ -97,6 +98,7 @@ export const useAddClient = defineStore('addClient', {
       memberClass: '',
       memberCode: '',
       subsystemCode: undefined,
+      subsystemName: undefined,
       tokenId: undefined,
       memberWizardMode: AddMemberWizardModes.FULL,
       reservedMemberData: undefined,
@@ -135,6 +137,7 @@ export const useAddClient = defineStore('addClient', {
           member_class: this.memberClass,
           member_code: this.memberCode,
           subsystem_code: this.subsystemCode,
+          subsystem_name: this.subsystemName,
         },
         ignore_warnings: ignoreWarnings,
       };

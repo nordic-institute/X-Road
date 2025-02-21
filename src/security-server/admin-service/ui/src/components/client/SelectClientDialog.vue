@@ -71,7 +71,7 @@
                   </div>
                 </td>
 
-                <td>{{ member.member_name }}</td>
+                <td>{{ member.subsystem_name || member.member_name }}</td>
                 <td>{{ member.id }}</td>
               </tr>
             </tbody>

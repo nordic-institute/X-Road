@@ -24,7 +24,6 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
     <XrdTitledView title-key="tab.main.diagnostics" data-test="diagnostics-view">
       <template #header-buttons>
         <DiagnosticsDownloadSystemInfoBtn />
@@ -53,7 +52,6 @@
         :message-log-encryption-loading="messageLogEncryptionLoading"
       />
     </XrdTitledView>
-  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">

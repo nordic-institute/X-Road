@@ -1,0 +1,129 @@
+<!--
+   The MIT License
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
+<template>
+  <div class="d-inline-block">
+    <xrd-button
+      data-test="rename-client-button"
+      outlined
+      @click="showDialog = true"
+    >{{ $t('action.edit') }}
+    </xrd-button>
+
+    <xrd-simple-dialog
+      v-if="showDialog"
+      :disable-save="!canSave"
+      :loading="loading"
+      cancel-button-text="action.cancel"
+      save-button-text="action.save"
+      title="client.action.renameSubsystem.title"
+      submittable
+      @cancel="showDialog = false"
+      @save="rename"
+    >
+      <template #content>
+        <div class="dlg-input-width">
+          <v-text-field
+            class="mt-2"
+            v-model="name"
+            v-bind="nameAttrs"
+            :label="$t('client.subsystemName')"
+            variant="outlined"
+            autofocus
+            data-test="subsystem-name-input" />
+        </div>
+      </template>
+    </xrd-simple-dialog>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue';
+import { useNotifications } from '@/store/modules/notifications';
+import { useForm } from 'vee-validate';
+import { i18n } from '@/plugins/i18n';
+import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
+
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
+  },
+  subsystemName: {
+    type: String,
+  },
+});
+
+const emits = defineEmits(['done']);
+
+const { defineField, meta, handleSubmit, resetForm } = useForm({
+  validationSchema: { subsystemName: 'required' },
+  initialValues: { subsystemName: props.subsystemName },
+});
+
+watch(props, () => {
+  resetForm()
+});
+
+const { showError, showSuccess } = useNotifications();
+
+const [name, nameAttrs] = defineField('subsystemName', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const loading = ref(false);
+const showDialog = ref(false);
+
+const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
+
+const { t } = i18n.global;
+
+const rename = handleSubmit((values) => {
+  loading.value = true;
+  api
+    .put(`/clients/${encodePathParameter(props.id)}/rename`, { client_name: values.subsystemName })
+    .then(
+      () => {
+        showSuccess(t('client.action.renameSubsystem.success'));
+      },
+      (error) => showError(error)
+      ,
+    )
+    .then(() => {
+      showSuccess(t('client.action.renameSubsystem.success'));
+      resetForm();
+      emits('done', props.id);
+    })
+    .catch((error) => {
+      showError(error);
+    })
+    .finally(() => {
+      loading.value = false;
+      showDialog.value = false;
+    });
+});
+</script>
+

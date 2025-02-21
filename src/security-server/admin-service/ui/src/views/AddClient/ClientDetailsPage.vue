@@ -37,7 +37,7 @@
           outlined
           data-test="select-client-button"
           @click="showSelectClient = true"
-          >{{ $t('wizard.selectClient') }}
+        >{{ $t('wizard.selectClient') }}
         </xrd-button>
       </div>
     </div>
@@ -95,19 +95,33 @@
           data-test="subsystem-code-input"
         ></v-text-field>
       </div>
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.subsystemName')"
+          :help-text="$t('wizard.client.subsystemNameTooltip')"
+        />
+        <v-text-field
+          v-bind="subsystemNameRef"
+          class="wizard-form-input"
+          type="text"
+          variant="outlined"
+          :placeholder="$t('wizard.subsystemName')"
+          data-test="subsystem-name-input"
+        ></v-text-field>
+      </div>
       <div v-if="duplicateClient" class="wizard-duplicate-warning">
         {{ $t('wizard.client.clientExists') }}
       </div>
     </div>
     <div class="button-footer">
       <xrd-button outlined data-test="cancel-button" @click="cancel"
-        >{{ $t('action.cancel') }}
+      >{{ $t('action.cancel') }}
       </xrd-button>
       <xrd-button
         :disabled="!meta.valid || duplicateClient"
         data-test="next-button"
         @click="done"
-        >{{ $t('action.next') }}
+      >{{ $t('action.next') }}
       </xrd-button>
     </div>
 
@@ -125,7 +139,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
-import { debounce, isEmpty, containsClient } from '@/util/helpers';
+import { containsClient, debounce, isEmpty } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import { AddMemberWizardModes } from '@/global';
 import { PublicPathState, useForm } from 'vee-validate';
@@ -151,12 +165,14 @@ export default defineComponent({
           'addClient.memberClass': 'required',
           'addClient.memberCode': 'required|max:255|xrdIdentifier',
           'addClient.subsystemCode': 'required|max:255|xrdIdentifier',
+          'addClient.subsystemName': 'max:255|xrdIdentifier',
         },
         initialValues: {
           addClient: {
             memberClass: '',
             memberCode: '',
             subsystemCode: '',
+            subsystemName: '',
           },
         },
       });
@@ -177,6 +193,10 @@ export default defineComponent({
       'addClient.subsystemCode',
       componentConfig,
     );
+    const subsystemNameRef = defineComponentBinds(
+      'addClient.subsystemName',
+      componentConfig,
+    );
     return {
       meta,
       values,
@@ -185,6 +205,7 @@ export default defineComponent({
       memberClassRef,
       memberCodeRef,
       subsystemCodeRef,
+      subsystemNameRef,
     };
   },
   data() {
@@ -204,6 +225,7 @@ export default defineComponent({
       'memberClass',
       'memberCode',
       'subsystemCode',
+      'subsystemName',
     ]),
     ...mapState(useGeneral, ['memberClassesCurrentInstance']),
     ...mapState(useUser, ['currentSecurityServer']),
@@ -282,19 +304,16 @@ export default defineComponent({
       this.memberClass = this.values.addClient.memberClass;
       this.memberCode = this.values.addClient.memberCode;
       this.subsystemCode = this.values.addClient.subsystemCode;
+      this.subsystemName = this.values.addClient.subsystemName;
       this.$emit('done');
     },
     saveSelectedClient(selectedMember: Client): void {
       this.setSelectedMember(selectedMember);
       this.setFieldValue('addClient.memberClass', selectedMember.member_class);
       this.setFieldValue('addClient.memberCode', selectedMember.member_code);
-      this.setFieldValue(
-        'addClient.subsystemCode',
-        selectedMember.subsystem_code ?? '',
-      );
-      this.fetchReservedClients(selectedMember).catch((error) => {
-        this.showError(error);
-      });
+      this.setFieldValue('addClient.subsystemCode', selectedMember.subsystem_code ?? '');
+      this.setFieldValue('addClient.subsystemName', selectedMember.subsystem_name ?? '');
+      this.fetchReservedClients(selectedMember).catch((error) => this.showError(error));
 
       this.showSelectClient = false;
     },

@@ -238,6 +238,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public String getSubsystemName(ClientId clientId) {
+        return null;
+    }
+
+    @Override
     public List<String> getApprovedTspUrls(String instanceIdentifier) {
         return null;
     }

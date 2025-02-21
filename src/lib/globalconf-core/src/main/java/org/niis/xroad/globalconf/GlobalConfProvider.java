@@ -58,7 +58,7 @@ public interface GlobalConfProvider {
     /**
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
-     * Configuration is considered valid if main/home instance parameteres are valid
+     * Configuration is considered valid if main/home instance parameters are valid
      *
      * @return true if the global configuration is valid
      */
@@ -88,6 +88,12 @@ public interface GlobalConfProvider {
      * @return member name for the given client identifier
      */
     String getMemberName(ClientId clientId);
+
+    /**
+     * @param clientId the client identifier
+     * @return subsystem name for the given client identifier
+     */
+    String getSubsystemName(ClientId clientId);
 
     /**
      * @param instanceIdentifiers the optional instance identifiers
@@ -371,4 +377,9 @@ public interface GlobalConfProvider {
      * @return the global configuration extensions
      */
     GlobalConfExtensions getGlobalConfExtensions();
+
+    /**
+     * @return the version of the global configuration
+     */
+    Integer getVersion();
 }

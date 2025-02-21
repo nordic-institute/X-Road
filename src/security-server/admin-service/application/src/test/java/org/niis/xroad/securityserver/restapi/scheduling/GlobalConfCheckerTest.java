@@ -70,6 +70,7 @@ import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -131,7 +132,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         });
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         when(globalConfProvider.getServerId(any())).thenReturn(SS_ID);
 
         KeyInfo ownerSignKey = new TokenTestUtils.KeyInfoBuilder()

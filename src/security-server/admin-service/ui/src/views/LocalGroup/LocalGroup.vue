@@ -85,7 +85,8 @@
       <table class="xrd-table group-members-table">
         <thead>
           <tr>
-            <th>{{ $t('localGroup.name') }}</th>
+            <th>{{ $t('localGroup.memberName') }}</th>
+            <th>{{ $t('localGroup.subsystemName') }}</th>
             <th>{{ $t('localGroup.id') }}</th>
             <th>{{ $t('localGroup.accessDate') }}</th>
             <th></th>
@@ -94,7 +95,8 @@
         <tbody>
           <template v-if="group && group.members && group.members.length > 0">
             <tr v-for="groupMember in group.members" :key="groupMember.id">
-              <td>{{ groupMember.name }}</td>
+              <td>{{ groupMember.member_name }}</td>
+              <td>{{ groupMember.subsystem_name }}</td>
               <td>{{ groupMember.id }}</td>
               <td>{{ groupMember.created_at }}</td>
 

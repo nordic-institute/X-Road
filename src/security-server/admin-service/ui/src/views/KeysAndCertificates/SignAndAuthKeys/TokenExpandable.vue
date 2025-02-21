@@ -39,17 +39,15 @@
         <span
           class="token-status-indicator token-name"
           :class="tokenStatusClass"
-          >{{ $t('keys.token.label') }} {{ token.name }}</span
-        >
+        >{{ $t('keys.token.label') }} {{ token.name }}</span>
 
         <v-btn
           icon
           variant="text"
           color="primary"
           data-test="token-icon-button"
-          @click="tokenClick(token)"
-        >
-          <xrd-icon-base class="button-icon">
+          @click="tokenClick(token)">
+          <xrd-icon-base>
             <xrd-icon-edit />
           </xrd-icon-base>
         </v-btn>
@@ -200,22 +198,13 @@ import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
-import {
-  getTokenUIStatus,
-  TokenUIStatus,
-} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
+import { getTokenUIStatus, TokenUIStatus } from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import { FileUploadResult } from '@/ui-types';
-import {
-  XrdIconCancel,
-  XrdIconEdit,
-  XrdIconError,
-  XrdIconImport,
-  XrdExpandable,
-} from '@niis/shared-ui';
+import { XrdExpandable, XrdIconCancel, XrdIconEdit, XrdIconError, XrdIconImport } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -505,7 +494,4 @@ export default defineComponent({
   transition: transform 0.4s ease-in-out;
 }
 
-.button-icon {
-  margin-top: 12px; // fix for icon position
-}
 </style>

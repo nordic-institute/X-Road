@@ -26,7 +26,7 @@
  -->
 <template>
   <main>
-    <v-card class="mt-8" flat>
+    <v-card class="mt-5" flat>
       <!-- Table -->
       <v-table
         :loading="loading"

@@ -67,6 +67,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.INSTANCE_FI;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.MEMBER_CLASS_GOV;
@@ -128,7 +129,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                     .map(MemberInfo::name)
                     .orElse(null);
         });
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
         when(globalConfProvider.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
@@ -141,7 +142,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
             return match.isPresent();
         });
 
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         pemBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
                 getResourceAsStream("google-cert.pem"));
         derBytes = IOUtils.toByteArray(this.getClass().getClassLoader().
@@ -1292,13 +1293,13 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test(expected = CodedException.class)
     public void registerClientCodedException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenThrow(CodedException.class);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenThrow(CodedException.class);
         clientService.registerClient(existingSavedClientId);
     }
 
     @Test(expected = DeviationAwareRuntimeException.class)
     public void registerClientRuntimeException() throws Exception {
-        when(managementRequestSenderService.sendClientRegisterRequest(any()))
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString()))
                 .thenThrow(new ManagementRequestSendingFailedException(new Exception()));
         clientService.registerClient(existingSavedClientId);
     }

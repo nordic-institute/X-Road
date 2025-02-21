@@ -127,7 +127,8 @@ public class SystemApiController implements SystemApi {
     public ResponseEntity<VersionInfo> systemVersion() {
         VersionInfoDto versionInfoDto = versionService.getVersionInfo();
         VersionInfo result = versionConverter.convert(versionInfoDto);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        result.setGlobalConfigurationVersion(globalConfService.getGlobalConfigurationVersion());
+        return ResponseEntity.ok(result);
     }
 
     @Override

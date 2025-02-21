@@ -169,7 +169,8 @@
     "password": "Password",
     "securityServerCode": "Security Server Code",
     "shared": "sharedlib",
-    "username": "LIB-Username"
+    "username": "LIB-Username",
+    "subsystemName": "Subsystem Name"
   },
   "footer": {
     "copyright": {

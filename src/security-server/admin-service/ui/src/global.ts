@@ -98,6 +98,7 @@ export enum Permissions {
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
   DISABLE_CLIENT = 'DISABLE_CLIENT',
+  RENAME_SUBSYSTEM = 'RENAME_SUBSYSTEM',
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
   EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES', // client > service clients

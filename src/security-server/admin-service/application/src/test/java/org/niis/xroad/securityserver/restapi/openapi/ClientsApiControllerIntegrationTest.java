@@ -91,6 +91,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -152,7 +153,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         when(globalConfProvider.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         // mock for URL validator - FormatUtils is tested independently
         when(urlValidator.isValidUrl(any())).thenReturn(true);
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(0);
         when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenReturn(0);
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);

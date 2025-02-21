@@ -27,9 +27,11 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.DataIntegrityException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
@@ -55,6 +57,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
@@ -126,17 +129,27 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 serverId, clientId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)
         );
 
+        var oldName = Optional.of(clientId)
+                .filter(XRoadId::isSubsystem)
+                .flatMap(clients::findOneBy)
+                .map(SecurityServerClientEntity::getName)
+                .orElse(null);
+
+        var comments = clientId.isSubsystem()
+                ? ClientRenameRequestHandler.formatRenameComment(oldName, request.getSubsystemName(), request.getComments())
+                : request.getComments();
+
         ClientRegistrationRequestEntity req;
         switch (pending.size()) {
             case 0:
-                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getSubsystemName(), request.getComments());
+                req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getSubsystemName(), comments);
                 break;
             case 1:
                 ClientRegistrationRequestEntity anotherReq = pending.getFirst();
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
                     throw new DataIntegrityException(MR_EXISTS, valueOf(anotherReq.getId()));
                 }
-                req = new ClientRegistrationRequestEntity(origin, request.getComments(), anotherReq);
+                req = new ClientRegistrationRequestEntity(origin, comments, anotherReq);
                 req.setProcessingStatus(SUBMITTED_FOR_APPROVAL);
                 break;
             default:
@@ -167,7 +180,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
             case MEMBER -> clientMember;
             case SUBSYSTEM -> clients
                     .findOneBy(clientRegistrationRequest.getClientId())
-                    // create new subsystem if necessary
+                    .map(entity -> updateSubsystemNameIfNeeded(entity, clientRegistrationRequest.getSubsystemName()))
                     .orElseGet(() -> createSubsystem(clientMember, clientRegistrationRequest));
             default -> throw new IllegalArgumentException("Invalid client type");
         };
@@ -179,6 +192,15 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
         var persistedRequest = clientRegRequests.save(clientRegistrationRequest);
 
         return requestMapper.toDto(persistedRequest);
+    }
+
+    private SecurityServerClientEntity updateSubsystemNameIfNeeded(SecurityServerClientEntity subsystem, String subsystemName) {
+        if (StringUtils.equals(subsystemName, subsystem.getName())) {
+            return subsystem;
+        } else {
+            subsystem.setName(subsystemName);
+            return clients.save(subsystem);
+        }
     }
 
     @Override

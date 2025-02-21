@@ -43,7 +43,8 @@
             outlined
             data-test="select-subsystem-button"
             @click="showSelectClient = true"
-            >{{ $t('wizard.subsystem.selectSubsystem') }}</xrd-button
+          >{{ $t('wizard.subsystem.selectSubsystem') }}
+          </xrd-button
           >
         </div>
       </div>
@@ -84,15 +85,32 @@
         />
         <v-text-field
           v-model="subsystemCode"
+          v-bind="subsystemCodeAttrs"
           class="wizard-form-input"
           type="text"
-          :error-messages="errorMessage"
           autofocus
           :placeholder="$t('wizard.subsystemCode')"
           variant="outlined"
           data-test="subsystem-code-input"
         ></v-text-field>
       </div>
+
+      <div class="wizard-row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.subsystemName')"
+          :help-text="$t('wizard.client.subsystemNameTooltip')"
+        />
+        <v-text-field
+          v-model="subsystemName"
+          v-bind="subsystemNameAttrs"
+          class="wizard-form-input"
+          type="text"
+          :placeholder="$t('wizard.subsystemName')"
+          variant="outlined"
+          data-test="subsystem-name-input"
+        ></v-text-field>
+      </div>
+
       <div v-if="duplicateClient" class="wizard-duplicate-warning">
         {{ $t('wizard.subsystem.subsystemExists') }}
       </div>
@@ -112,15 +130,17 @@
     <div class="button-footer">
       <div class="button-group">
         <xrd-button outlined data-test="cancel-button" @click="exitView">{{
-          $t('action.cancel')
-        }}</xrd-button>
+            $t('action.cancel')
+          }}
+        </xrd-button>
       </div>
       <xrd-button
         :disabled="!meta.valid || duplicateClient"
         data-test="submit-add-subsystem-button"
         :loading="submitLoading"
         @click="done"
-        >{{ $t('action.addSubsystem') }}</xrd-button
+      >{{ $t('action.addSubsystem') }}
+      </xrd-button
       >
     </div>
 
@@ -144,170 +164,165 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed, ref } from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from 'vee-validate';
+import { useForm } from 'vee-validate';
+import { i18n } from '@/plugins/i18n';
+import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  components: {
-    SelectClientDialog,
+const props = defineProps({
+  instanceId: {
+    type: String,
+    required: true,
   },
-  props: {
-    instanceId: {
-      type: String,
-      required: true,
-    },
-    memberClass: {
-      type: String,
-      required: true,
-    },
-    memberCode: {
-      type: String,
-      required: true,
-    },
-    memberName: {
-      type: String,
-      required: true,
-    },
+  memberClass: {
+    type: String,
+    required: true,
   },
-  setup() {
-    const { value, meta, errorMessage, setValue } = useField(
-      'addClient.subsystemCode',
-      {
-        required: true,
-        xrdIdentifier: true,
-        max: 255,
-      },
-      { initialValue: '' },
-    );
-    return { subsystemCode: value, meta, errorMessage, setValue };
+  memberCode: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-      showSelectClient: false,
-      registerChecked: true,
-      existingSubsystems: [] as Client[],
-      selectableSubsystems: [] as Client[],
-      submitLoading: false,
-      confirmRegisterClient: false,
-      registerClientLoading: false,
-    };
-  },
-  computed: {
-    duplicateClient(): boolean {
-      if (!this.subsystemCode) {
-        return false;
-      }
-
-      return containsClient(
-        this.existingSubsystems,
-        this.memberClass,
-        this.memberCode,
-        this.subsystemCode,
-      );
-    },
-  },
-
-  created() {
-    this.fetchData();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    done(): void {
-      this.submitLoading = true;
-      const body = {
-        client: {
-          member_name: this.memberName,
-          member_class: this.memberClass,
-          member_code: this.memberCode,
-          subsystem_code: this.subsystemCode,
-        },
-        ignore_warnings: false,
-      };
-
-      api.post('/clients', body).then(
-        () => {
-          this.submitLoading = false;
-          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
-          if (this.registerChecked) {
-            this.confirmRegisterClient = true;
-          } else {
-            this.exitView();
-          }
-        },
-        (error) => {
-          this.submitLoading = false;
-          this.showError(error);
-        },
-      );
-    },
-
-    registerSubsystem(): void {
-      this.registerClientLoading = true;
-
-      const clientId = createClientId(
-        this.instanceId,
-        this.memberClass,
-        this.memberCode,
-        this.subsystemCode,
-      );
-      api.put(`/clients/${encodePathParameter(clientId)}/register`, {}).then(
-        () => {
-          this.exitView();
-          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
-        },
-        (error) => {
-          this.exitView();
-          this.showError(error);
-        },
-      );
-    },
-
-    exitView(): void {
-      this.registerClientLoading = false;
-      this.confirmRegisterClient = false;
-      this.submitLoading = false;
-      this.$router.replace({ name: RouteName.Clients });
-    },
-    saveSelectedClient(selectedMember: Client): void {
-      this.setValue(selectedMember.subsystem_code ?? '');
-      this.showSelectClient = false;
-    },
-    fetchData(): void {
-      // Fetch selectable subsystems
-      api
-        .get<Client[]>(
-          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
-        )
-        .then((res) => {
-          this.selectableSubsystems = res.data;
-        })
-        .catch((error) => {
-          this.showError(error);
-        });
-
-      // Fetch existing subsystems
-      api
-        .get<Client[]>(
-          `/clients?instance=${this.instanceId}&member_class=${this.memberClass}&member_code=${this.memberCode}&internal_search=true`,
-        )
-        .then((res) => {
-          this.existingSubsystems = res.data;
-        })
-        .catch((error) => {
-          this.showError(error);
-        });
-    },
+  memberName: {
+    type: String,
+    required: true,
   },
 });
+
+const { meta, handleSubmit, defineField, setFieldValue } = useForm({
+  validationSchema: {
+    'addClient.subsystemCode': 'required|xrdIdentifier|max:255',
+    'addClient.subsystemName': 'max:255',
+  },
+  initialValues: {
+    'addClient.subsystemCode': '',
+    'addClient.subsystemName': '',
+  },
+});
+
+const [subsystemCode, subsystemCodeAttrs] = defineField('addClient.subsystemCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const [subsystemName, subsystemNameAttrs] = defineField('addClient.subsystemName', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const showSelectClient = ref(false);
+const registerChecked = ref(true);
+const existingSubsystems = ref([] as Client[]);
+const selectableSubsystems = ref([] as Client[]);
+const submitLoading = ref(false);
+const confirmRegisterClient = ref(false);
+const registerClientLoading = ref(false);
+
+const duplicateClient = computed(() => {
+  if (!subsystemCode.value) {
+    return false;
+  }
+
+  return containsClient(
+    existingSubsystems.value,
+    props.memberClass,
+    props.memberCode,
+    subsystemCode.value,
+  );
+});
+
+const { showError, showSuccess } = useNotifications();
+const { t } = i18n.global;
+const router = useRouter();
+
+fetchData();
+
+const done = handleSubmit(values => {
+  submitLoading.value = true;
+
+  const body = {
+    client: {
+      member_name: props.memberName,
+      member_class: props.memberClass,
+      member_code: props.memberCode,
+      subsystem_code: values.addClient.subsystemCode,
+      subsystem_name: values.addClient.subsystemName,
+    },
+    ignore_warnings: false,
+  };
+
+  api.post('/clients', body)
+    .then(() => {
+      submitLoading.value = false;
+      showSuccess(t('wizard.subsystem.subsystemAdded'));
+      if (registerChecked.value) {
+        confirmRegisterClient.value = true;
+      } else {
+        exitView();
+      }
+    })
+    .catch((error) => {
+        submitLoading.value = false;
+        showError(error);
+      },
+    );
+});
+
+function registerSubsystem(): void {
+  registerClientLoading.value = true;
+
+  const clientId = createClientId(
+    props.instanceId,
+    props.memberClass,
+    props.memberCode,
+    subsystemCode.value,
+  );
+  api.put(`/clients/${encodePathParameter(clientId)}/register`, {})
+    .then(() => {
+      exitView();
+      showSuccess(t('wizard.subsystem.subsystemAdded'));
+    })
+    .catch((error) => {
+        exitView();
+        showError(error);
+      },
+    );
+}
+
+function exitView(): void {
+  registerClientLoading.value = false;
+  confirmRegisterClient.value = false;
+  submitLoading.value = false;
+  router.replace({ name: RouteName.Clients });
+}
+
+function saveSelectedClient(selectedMember: Client): void {
+  setFieldValue('addClient.subsystemCode', selectedMember.subsystem_code || '');
+  setFieldValue('addClient.subsystemName', selectedMember.subsystem_name || '');
+
+  showSelectClient.value = false;
+}
+
+function fetchData(): void {
+  // Fetch selectable subsystems
+  api.get<Client[]>(
+    `/clients?instance=${props.instanceId}&member_class=${props.memberClass}&member_code=${props.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
+  )
+    .then((res) => (selectableSubsystems.value = res.data))
+    .catch((error) => showError(error));
+
+  // Fetch existing subsystems
+  api.get<Client[]>(
+    `/clients?instance=${props.instanceId}&member_class=${props.memberClass}&member_code=${props.memberCode}&internal_search=true`,
+  )
+    .then((res) => (existingSubsystems.value = res.data))
+    .catch((error) => showError(error));
+}
 </script>
 
 <style lang="scss" scoped>

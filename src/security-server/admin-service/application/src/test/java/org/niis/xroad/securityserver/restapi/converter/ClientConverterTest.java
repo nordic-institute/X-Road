@@ -34,6 +34,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemRenameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
@@ -63,8 +64,10 @@ public class ClientConverterTest {
         ClientId.Conf ownerId = ClientId.Conf.create("XRD2", "GOV", "M4");
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "CS");
 
+        SubsystemRenameStatus subsystemRenameStatus = new SubsystemRenameStatus();
+
         clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
-                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator, subsystemRenameStatus);
     }
 
     @Test

@@ -63,6 +63,12 @@
       icon="icon-Cancel"
     />
     <v-icon
+      v-else-if="status === 'progress-rename'"
+      size="small"
+      color="#211E1E"
+      icon="mdi-rename"
+    />
+    <v-icon
       v-else-if="status === 'error'"
       size="small"
       color="#EC4040"
@@ -114,6 +120,7 @@ export default defineComponent({
           'error-disabled',
           'pending',
           'pending-disabled',
+          'progress-rename'
         ].includes(val),
     },
   },

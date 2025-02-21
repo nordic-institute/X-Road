@@ -1,6 +1,5 @@
 /*
  * The MIT License
- * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,38 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
-import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
-import java.time.Instant;
+public class ClientRenameRequest extends GenericClientRequest {
 
-@Data
-@NoArgsConstructor
-@EqualsAndHashCode
-public class ManagementRequestView {
+    public ClientRenameRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) {
+        super(signerRpcClient, client, request);
+    }
 
-    private int id;
-    private Origin origin;
-    private String comments;
-    private ManagementRequestType type;
-    private Long securityServerIdentifierId;
-    private Long requestProcessingId;
-    private ManagementRequestStatus status;
-    private String securityServerOwnerName;
-    private SecurityServerId securityServerId;
-    private String clientOwnerName;
-    private String clientSubsystemName;
-    private ClientId clientId;
-    private byte[] authCert;
-    private CertificateDetails certificateDetails;
-    private String address;
-    private Instant createdAt;
 }

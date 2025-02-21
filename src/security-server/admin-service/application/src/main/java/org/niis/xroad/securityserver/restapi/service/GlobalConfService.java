@@ -242,4 +242,9 @@ public class GlobalConfService {
         ClientId clientId = ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
         return globalConfProvider.getMemberName(clientId);
     }
+
+
+    public Integer getGlobalConfigurationVersion() {
+        return globalConfProvider.getVersion();
+    }
 }

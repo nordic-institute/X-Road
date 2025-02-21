@@ -75,6 +75,7 @@ public enum RestApiAuditEvent {
     DELETE_LOCAL_GROUP("Delete group"),
     DISABLE_CLIENT("Disable client"),
     ENABLE_CLIENT("Enable client"),
+    RENAME_SUBSYSTEM("Rename subsystem"),
 
     // system parameters
     GENERATE_INTERNAL_TLS_CSR("Generate certificate request for TLS"),

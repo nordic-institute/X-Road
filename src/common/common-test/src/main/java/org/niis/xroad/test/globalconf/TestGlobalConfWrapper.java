@@ -93,6 +93,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
+    public String getSubsystemName(ClientId clientId) {
+        return globalConfProvider.getSubsystemName(clientId);
+    }
+
+    @Override
     public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
         return globalConfProvider.getGlobalGroups(instanceIdentifiers);
     }

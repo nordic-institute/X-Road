@@ -141,7 +141,8 @@ public class LocalGroupConverter {
         GroupMember groupMember = new GroupMember();
         groupMember.setId(clientIdConverter.convertId(groupMemberType.getGroupMemberId()));
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-        groupMember.setName(globalConfProvider.getMemberName(groupMemberType.getGroupMemberId()));
+        groupMember.setMemberName(globalConfProvider.getMemberName(groupMemberType.getGroupMemberId()));
+        groupMember.setSubsystemName(globalConfProvider.getSubsystemName(groupMemberType.getGroupMemberId()));
         return groupMember;
     }
 

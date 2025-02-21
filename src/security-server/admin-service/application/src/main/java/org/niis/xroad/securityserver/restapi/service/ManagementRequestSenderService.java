@@ -60,7 +60,6 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param address  the IP address of the security server
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
@@ -86,14 +85,13 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param authCert the authentication certificate bytes
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
     public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
-            GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+                                                                GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendAuthCertDeletionRequest(currentSecurityServerId.getServerId(), authCert);
@@ -108,7 +106,6 @@ public class ManagementRequestSenderService {
      * <p>
      * Request is sent for this securityserver (ManagementRequestSender
      * call's SecurityServerId = this security server's id)
-     *
      * @param newAddress the new Security Server address
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
@@ -126,17 +123,17 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client register request as a normal X-Road message
-     *
      * @param clientId the client id that will be registered
+     * @param subsystemName subsystem name (in case of a subsystem)
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    public Integer sendClientRegisterRequest(ClientId.Conf clientId)
+    public Integer sendClientRegisterRequest(ClientId.Conf clientId, String subsystemName)
             throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
-            return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId);
+            return sender.sendClientRegRequest(currentSecurityServerId.getServerId(), clientId, subsystemName);
         } catch (CodedException ce) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, ce);
             throw ce;
@@ -148,7 +145,6 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client unregister request as a normal X-Road message
-     *
      * @param clientId the client id that will be unregistered
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -170,7 +166,6 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends an owner change request as a normal X-Road message
-     *
      * @param clientId the client id that will be set as a new  owner
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -206,6 +201,17 @@ public class ManagementRequestSenderService {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
             return sender.sendClientEnableRequest(currentSecurityServerId.getServerId(), clientId);
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    public Integer sendClientRenameRequest(ClientId.Conf clientId, String subsystemName)
+            throws GlobalConfOutdatedException, ManagementRequestSendingFailedException {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendClientRenameRequest(currentSecurityServerId.getServerId(), clientId, subsystemName);
         } catch (Exception e) {
             log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
             throw new ManagementRequestSendingFailedException(e);

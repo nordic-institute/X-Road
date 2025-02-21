@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="xrd-table-toolbar pt-4">
+    <div class="xrd-table-toolbar">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -60,7 +60,7 @@
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table mt-10"
+      class="elevation-0 data-table mt-5"
       item-key="id"
       :loader-height="2"
       hide-default-footer
