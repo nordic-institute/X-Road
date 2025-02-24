@@ -53,10 +53,8 @@ class RpcClientsConfig {
 
     @Bean
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
-                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
-        MonitorRpcClient monitorRpcClient = new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
-        monitorRpcClient.init();
-        return monitorRpcClient;
+                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) {
+        return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
     }
 
     @ConfigurationProperties(prefix = EnvMonitorRpcChannelProperties.PREFIX)
