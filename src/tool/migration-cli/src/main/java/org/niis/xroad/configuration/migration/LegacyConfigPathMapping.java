@@ -100,7 +100,7 @@ public class LegacyConfigPathMapping {
 
         MAPPING.putAll(addDatabaseMapping("serverconf"));
         MAPPING.putAll(addDatabaseMapping("messagelog"));
-        MAPPING.putAll(addDatabaseMapping("opmonitor"));
+        MAPPING.putAll(addDatabaseMapping("op-monitor"));
     }
 
     private static Map<String, String> addDatabaseMapping(String dbName) {
