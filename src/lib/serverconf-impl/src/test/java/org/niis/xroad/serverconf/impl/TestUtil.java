@@ -111,9 +111,6 @@ public final class TestUtil {
     );
     static ServerConfDbProperties serverConfProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
 
-
-    static DatabaseCtx databaseCtx = new DatabaseCtx("serverconf", serverConfProperties.hibernate());
-
     private TestUtil() {
     }
 

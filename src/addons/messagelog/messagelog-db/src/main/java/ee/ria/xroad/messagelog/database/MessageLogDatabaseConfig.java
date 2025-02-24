@@ -28,6 +28,8 @@ package ee.ria.xroad.messagelog.database;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 
@@ -37,6 +39,7 @@ import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 public class MessageLogDatabaseConfig {
     public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
 
+    @Produces
     @Named(MESSAGE_LOG_DB_CTX)
     @ApplicationScoped
     DatabaseCtx serverConfCtx(MessageLogDbProperties messageLogDbProperties) {
@@ -45,5 +48,9 @@ public class MessageLogDatabaseConfig {
 
     public static DatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
         return new DatabaseCtx("messagelog", messageLogDbProperties.hibernate());
+    }
+
+    public void cleanup(@Named(MESSAGE_LOG_DB_CTX) @Disposes DatabaseCtx databaseCtx)  {
+        databaseCtx.destroy();
     }
 }

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,6 +60,11 @@ public class IdentifierDAOImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         TestUtil.prepareDB(DATABASE_CTX);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        DATABASE_CTX.destroy();
     }
 
     /**

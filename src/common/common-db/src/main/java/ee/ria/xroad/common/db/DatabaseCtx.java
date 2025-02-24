@@ -166,4 +166,18 @@ public class DatabaseCtx {
 
         return e;
     }
+
+    public void destroy() {
+        try {
+            sessionFactory.getCurrentSession().close();
+        } catch (HibernateException e) {
+            log.error("Error closing session", e);
+        }
+
+        try {
+            sessionFactory.close();
+        } catch (HibernateException e) {
+            log.error("Error closing session factory", e);
+        }
+    }
 }

@@ -28,6 +28,8 @@ package org.niis.xroad.serverconf.impl;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 
@@ -37,6 +39,7 @@ import org.niis.xroad.serverconf.ServerConfDbProperties;
 public class ServerConfDatabaseConfig {
     public static final String SERVER_CONF_DB_CTX = "serverConfCtx";
 
+    @Produces
     @Named(SERVER_CONF_DB_CTX)
     @ApplicationScoped
     DatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
@@ -45,5 +48,9 @@ public class ServerConfDatabaseConfig {
 
     public static DatabaseCtx createServerConfDbCtx(ServerConfDbProperties dbProperties) {
         return new DatabaseCtx("serverconf", dbProperties.hibernate());
+    }
+
+    public void cleanup(@Named(SERVER_CONF_DB_CTX) @Disposes DatabaseCtx databaseCtx) {
+        databaseCtx.destroy();
     }
 }

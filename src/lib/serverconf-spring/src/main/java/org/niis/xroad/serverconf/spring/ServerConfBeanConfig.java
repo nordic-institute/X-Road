@@ -51,7 +51,7 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
         ServerConfBeanConfig.SpringServerConfDbProperties.class})
 public class ServerConfBeanConfig {
 
-    @Bean(SERVER_CONF_DB_CTX)
+    @Bean(name = SERVER_CONF_DB_CTX, destroyMethod = "destroy")
     DatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
         return ServerConfDatabaseConfig.createServerConfDbCtx(dbProperties);
     }

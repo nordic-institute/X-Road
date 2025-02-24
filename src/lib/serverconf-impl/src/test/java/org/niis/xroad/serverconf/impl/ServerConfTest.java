@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -74,6 +75,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
+import static org.niis.xroad.serverconf.impl.TestUtil.serverConfProperties;
 import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
 /**
@@ -87,7 +89,7 @@ public class ServerConfTest {
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
-    private static DatabaseCtx databaseCtx;
+    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfProperties.hibernate());
 
     /**
      * Creates test database.
@@ -96,11 +98,15 @@ public class ServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        databaseCtx = TestUtil.databaseCtx;
-        serverConfProvider = new ServerConfImpl(databaseCtx, globalConfProvider);
+        serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider);
         globalConfProvider = TestGlobalConfFactory.create();
 
-        prepareDB(databaseCtx);
+        prepareDB(DATABASE_CTX);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        DATABASE_CTX.destroy();
     }
 
     /**
@@ -108,7 +114,7 @@ public class ServerConfTest {
      */
     @Before
     public void beforeTest() {
-        databaseCtx.beginTransaction();
+        DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -116,7 +122,7 @@ public class ServerConfTest {
      */
     @After
     public void afterTest() {
-        databaseCtx.commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**
@@ -349,7 +355,7 @@ public class ServerConfTest {
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
         return new ServiceDAOImpl().getServices(
-                databaseCtx.getSession(),
+                DATABASE_CTX.getSession(),
                 serviceProvider);
     }
 }

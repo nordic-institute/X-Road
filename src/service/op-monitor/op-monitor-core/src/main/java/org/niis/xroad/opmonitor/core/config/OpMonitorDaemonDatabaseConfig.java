@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core.config;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Interceptor;
@@ -44,6 +45,10 @@ public class OpMonitorDaemonDatabaseConfig {
     @ApplicationScoped
     public DatabaseCtx serverConfCtx(OpMonitorDbProperties opMonitorProperties) {
         return new DatabaseCtx("op-monitor", opMonitorProperties.hibernate(), new StringValueTruncator());
+    }
+
+    public void cleanup(@Named(OP_MONITOR_DB_CTX) @Disposes DatabaseCtx databaseCtx) {
+        databaseCtx.destroy();
     }
 
     private static final class StringValueTruncator implements Interceptor {
