@@ -27,12 +27,12 @@
 package org.niis.xroad.proxy.core.addon.proxymonitor;
 
 import org.junit.rules.ExternalResource;
-import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 
 /** A JUnit rule to restore the {@link ProxyMonitor} MonitorClient after the test has run. */
 public class RestoreMonitorClientAfterTest extends ExternalResource {
 
-    private MonitorClient monitorClient;
+    private MonitorRpcClient monitorClient;
 
     @Override
     protected void before() {
@@ -47,7 +47,7 @@ public class RestoreMonitorClientAfterTest extends ExternalResource {
     /** Set the monitor client for test purposes
      * @param monitorClient
      */
-    public static void setMonitorClient(MonitorClient monitorClient) {
+    public static void setMonitorClient(MonitorRpcClient monitorClient) {
         ProxyMonitor.setMonitorClient(monitorClient);
     }
 }

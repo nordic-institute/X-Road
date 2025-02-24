@@ -132,8 +132,6 @@ public abstract class AbstractProxyIntegrationTest {
 
         System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
 
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
-
         org.apache.xml.security.Init.init();
         Map<String, String> properties = Map.of(
                 "xroad.proxy.server.listen-address", "127.0.0.1",

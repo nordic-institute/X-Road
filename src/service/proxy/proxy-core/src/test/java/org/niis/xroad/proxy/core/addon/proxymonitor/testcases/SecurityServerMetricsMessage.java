@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.proxymonitor.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -45,6 +44,7 @@ import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
 import org.niis.xroad.monitor.common.SystemMetricsResp;
+import org.niis.xroad.proxy.core.addon.proxymonitor.ProxyMonitorMetaserviceTest;
 import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
@@ -138,8 +138,8 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         super.startUp();
 
         monitorRpcServer = new RpcServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(),
+                ProxyMonitorMetaserviceTest.envMonitorRpcChannelProperties.host(),
+                ProxyMonitorMetaserviceTest.envMonitorRpcChannelProperties.port(),
                 InsecureServerCredentials.create(),
                 builder -> builder.addService(new MockMetricsProvider()));
         monitorRpcServer.afterPropertiesSet();

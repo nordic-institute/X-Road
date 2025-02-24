@@ -50,9 +50,13 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.monitor.common.Metrics;
+import org.niis.xroad.monitor.common.MetricsGroup;
+import org.niis.xroad.monitor.common.SingleMetrics;
+import org.niis.xroad.monitor.common.SystemMetricsResp;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.proxymonitor.RestoreMonitorClientAfterTest;
-import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
@@ -167,22 +171,20 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
         final String expectedMetricsSetName = "someName";
-
-        MetricSetType metricSetType = new MetricSetType();
-        metricSetType.setName(expectedMetricsSetName);
-
-        final List<MetricType> metrics = metricSetType.getMetrics();
-
-        StringMetricType type = new StringMetricType();
         final String expectedMetricName = "metricName123-23";
-        type.setName(expectedMetricName);
-
         final String expectedMetricValue = "123SomeValue";
-        type.setValue(expectedMetricValue);
-        metrics.add(type);
 
-        MonitorClient mockMonitorClient = mock(MonitorClient.class);
-        when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(metricSetType);
+        SystemMetricsResp resp = SystemMetricsResp.newBuilder().setMetrics(
+                MetricsGroup.newBuilder()
+                        .setName(expectedMetricsSetName)
+                        .addMetrics(Metrics.newBuilder().setSingleMetrics(SingleMetrics.newBuilder()
+                                .setName(expectedMetricName)
+                                .setValue(expectedMetricValue)
+                                .build()).build())
+                        .build()).build();
+
+        MonitorRpcClient mockMonitorClient = mock(MonitorRpcClient.class);
+        when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(resp.getMetrics());
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
@@ -252,23 +254,21 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
         final String expectedMetricsSetName = "someName";
-
-        MetricSetType metricSetType = new MetricSetType();
-        metricSetType.setName(expectedMetricsSetName);
-
-        final List<MetricType> metrics = metricSetType.getMetrics();
-
-        StringMetricType type = new StringMetricType();
         final String expectedMetricName = "metricName123-23";
-        type.setName(expectedMetricName);
-
         final String expectedMetricValue = "123SomeValue";
-        type.setValue(expectedMetricValue);
-        metrics.add(type);
 
-        MonitorClient mockMonitorClient = mock(MonitorClient.class);
+        SystemMetricsResp resp = SystemMetricsResp.newBuilder().setMetrics(
+                MetricsGroup.newBuilder()
+                        .setName(expectedMetricsSetName)
+                        .addMetrics(Metrics.newBuilder().setSingleMetrics(SingleMetrics.newBuilder()
+                                .setName(expectedMetricName)
+                                .setValue(expectedMetricValue)
+                                .build()).build())
+                        .build()).build();
+
+        MonitorRpcClient mockMonitorClient = mock(MonitorRpcClient.class);
         when(mockMonitorClient.getMetrics(anyList(),
-                anyBoolean())).thenReturn(metricSetType);
+                anyBoolean())).thenReturn(resp.getMetrics());
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 

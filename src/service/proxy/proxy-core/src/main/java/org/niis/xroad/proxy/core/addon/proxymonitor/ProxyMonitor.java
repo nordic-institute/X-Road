@@ -27,8 +27,8 @@
 package org.niis.xroad.proxy.core.addon.proxymonitor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
-import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
 import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 
 /**
@@ -37,30 +37,30 @@ import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 @Slf4j
 public class ProxyMonitor {
 
-    private static MonitorClient monitorClient;
+    private static MonitorRpcClient monitorRpcClient;
 
-    public void init(final BindableServiceRegistry bindableServiceRegistry) {
+    public void init(final BindableServiceRegistry bindableServiceRegistry, MonitorRpcClient monitorClient) {
         try {
             bindableServiceRegistry.register(new ProxyMonitorService());
 
-            setMonitorClient(new MonitorClient());
+            setMonitorClient(monitorClient);
         } catch (Exception e) {
             log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
         }
     }
 
-    public void shutdown() {
-        if (monitorClient != null) {
-            monitorClient.shutdown();
+    public void shutdown() throws Exception {
+        if (monitorRpcClient != null) {
+            monitorRpcClient.close();
         }
     }
 
-    public static MonitorClient getClient() {
-        return monitorClient;
+    public static MonitorRpcClient getClient() {
+        return monitorRpcClient;
     }
 
-    static void setMonitorClient(MonitorClient monitorClient) {
-        ProxyMonitor.monitorClient = monitorClient;
+    static void setMonitorClient(MonitorRpcClient monitorClient) {
+        ProxyMonitor.monitorRpcClient = monitorClient;
     }
 
 }

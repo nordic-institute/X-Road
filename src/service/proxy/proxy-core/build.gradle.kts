@@ -21,10 +21,10 @@ dependencies {
   implementation(project(":service:proxy:proxy-rpc-client"))
 
   implementation(project(":common:common-jetty"))
-//  implementation(project(":common:common-message"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":service:signer:signer-client"))
+  implementation(project(":service:monitor:monitor-rpc-client"))
 
   implementation(libs.quarkus.scheduler)
 
