@@ -41,7 +41,6 @@ import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
@@ -68,6 +67,8 @@ public class ProxyMonitorMetaserviceTest {
             EnvMonitorRpcChannelProperties.class,
             Map.of(EnvMonitorRpcChannelProperties.PREFIX + ".port", String.valueOf(findRandomPort())));
 
+    private static MonitorRpcClient monitorRpcClient;
+
     @BeforeAll
     static void beforeAll() throws Exception {
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
@@ -83,10 +84,9 @@ public class ProxyMonitorMetaserviceTest {
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
 
         ProxyTestSuiteHelper.startTestServices();
-        MonitorRpcClient monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),
+        monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),
                 envMonitorRpcChannelProperties);
         monitorRpcClient.init();
-        new ProxyMonitor().init(new BindableServiceRegistry(), monitorRpcClient);
     }
 
     @AfterAll
@@ -102,7 +102,7 @@ public class ProxyMonitorMetaserviceTest {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, true, monitorRpcClient);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

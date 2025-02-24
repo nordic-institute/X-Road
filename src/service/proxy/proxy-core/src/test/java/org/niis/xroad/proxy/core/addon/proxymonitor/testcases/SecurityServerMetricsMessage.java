@@ -115,7 +115,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         assertThat("Wrong root name", rootSet.getName(), is(DEFAULT_OWNER_SERVER.toString()));
         assertThat("Wrong amount of received metrics", rootSet.getMetrics().size(), is(2));
 
-        final MetricType proxyVersionMetric = rootSet.getMetrics().get(0);
+        final MetricType proxyVersionMetric = rootSet.getMetrics().getFirst();
 
         assertThat("Missing proxy version from response", proxyVersionMetric.getName(),
                 equalTo("proxyVersion"));

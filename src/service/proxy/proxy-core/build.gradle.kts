@@ -63,6 +63,7 @@ dependencies {
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":common:common-messagelog"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
+  testFixturesImplementation(project(":service:monitor:monitor-rpc-client"))
   testFixturesImplementation(testFixtures(project(":common:common-properties")))
   testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
   testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))

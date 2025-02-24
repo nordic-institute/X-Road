@@ -48,7 +48,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
@@ -56,7 +55,6 @@ import org.niis.xroad.monitor.common.SingleMetrics;
 import org.niis.xroad.monitor.common.SystemMetricsResp;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.addon.proxymonitor.RestoreMonitorClientAfterTest;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
@@ -90,7 +88,6 @@ import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.verifyAndGetSin
  */
 public class ProxyMonitorServiceHandlerMetricsTest {
 
-
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final ClientId.Conf DEFAULT_OWNER_CLIENT = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT");
@@ -105,9 +102,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     private static MessageFactory messageFactory;
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Rule
     public final ProvideSystemProperty hibernatePropertiesProperty
             = new ProvideSystemProperty(SystemProperties.DATABASE_PROPERTIES,
             "src/test/resources/hibernate.properties");
@@ -117,13 +111,12 @@ public class ProxyMonitorServiceHandlerMetricsTest {
             = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
             "src/test/resources/");
 
-    @Rule
-    public final RestoreMonitorClientAfterTest monitorClientRestoreRule = new RestoreMonitorClientAfterTest();
-
     private ServerConfProvider serverConfProvider;
     private GlobalConfProvider globalConfProvider;
     private RequestWrapper mockRequest;
     private ProxyMessage mockProxyMessage;
+
+    private final MonitorRpcClient mockMonitorClient = mock(MonitorRpcClient.class);
 
     /**
      * Init class-wide test instances
@@ -158,7 +151,8 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     public void startHandingShouldProduceAllMetrics() throws Exception {
 
         // setup
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                mockMonitorClient);
 
         final SoapMessageImpl soapMessage = build(DEFAULT_OWNER_CLIENT, MONITOR_SERVICE_ID,
                 "testUser", randomUUID().toString());
@@ -183,10 +177,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                                 .build()).build())
                         .build()).build();
 
-        MonitorRpcClient mockMonitorClient = mock(MonitorRpcClient.class);
         when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(resp.getMetrics());
-
-        RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
         // execution
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(HttpClient.class),
@@ -234,8 +225,8 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     public void startHandingShouldProduceRequestedMetrics() throws Exception {
 
         // setup
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
-
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider,
+                mockMonitorClient);
 
         final SoapMessageImpl soapMessage = build(
                 false,
@@ -266,11 +257,8 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                                 .build()).build())
                         .build()).build();
 
-        MonitorRpcClient mockMonitorClient = mock(MonitorRpcClient.class);
         when(mockMonitorClient.getMetrics(anyList(),
                 anyBoolean())).thenReturn(resp.getMetrics());
-
-        RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
         // execution
         handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(HttpClient.class),
