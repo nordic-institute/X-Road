@@ -32,7 +32,7 @@ import io.smallrye.config.WithName;
 
 import java.util.Map;
 
-@ConfigMapping(prefix = "xroad.db.opmonitor")
+@ConfigMapping(prefix = "xroad.db.op-monitor")
 public interface OpMonitorDbProperties {
 
     @WithName("hibernate")

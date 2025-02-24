@@ -42,13 +42,13 @@ import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatab
  */
 public class BaseTestUsingDB {
     protected static final Map<String, String> HIBERNATE_PROPERTIES = Map.of(
-            "xroad.db.opmonitor.hibernate.jdbc.batch_size", "100",
-            "xroad.db.opmonitor.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
-            "xroad.db.opmonitor.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
-            "xroad.db.opmonitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
-            "xroad.db.opmonitor.hibernate.connection.username", "opmonitor",
-            "xroad.db.opmonitor.hibernate.connection.password", "opmonitor",
-            "xroad.db.opmonitor.hibernate.hbm2ddl.auto", "create-drop"
+            "xroad.db.op-monitor.hibernate.jdbc.batch_size", "100",
+            "xroad.db.op-monitor.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
+            "xroad.db.op-monitor.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+            "xroad.db.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
+            "xroad.db.op-monitor.hibernate.connection.username", "opmonitor",
+            "xroad.db.op-monitor.hibernate.connection.password", "opmonitor",
+            "xroad.db.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
     );
 
     private static final OpMonitorDbProperties OP_MONITOR_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorDbProperties.class,
