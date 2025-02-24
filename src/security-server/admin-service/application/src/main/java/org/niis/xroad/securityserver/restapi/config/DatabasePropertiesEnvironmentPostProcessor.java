@@ -40,10 +40,10 @@ import java.util.Map;
 public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
     private static final Map<String, String> DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES = Map.of(
-            "xroad.server-conf.hibernate.connection.username", "spring.datasource.username",
-            "xroad.server-conf.hibernate.connection.password", "spring.datasource.password",
-            "xroad.server-conf.hibernate.connection.url", "spring.datasource.url",
-            "xroad.server-conf.hibernate.hikari.dataSource.currentSchema", "spring.datasource.hikari.data-source-properties.currentSchema"
+            "xroad.db.serverconf.hibernate.connection.username", "spring.datasource.username",
+            "xroad.db.serverconf.hibernate.connection.password", "spring.datasource.password",
+            "xroad.db.serverconf.hibernate.connection.url", "spring.datasource.url",
+            "xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema", "spring.datasource.hikari.data-source-properties.currentSchema"
     );
 
     @Override

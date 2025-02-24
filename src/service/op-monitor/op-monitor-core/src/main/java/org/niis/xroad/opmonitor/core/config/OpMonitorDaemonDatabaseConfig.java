@@ -42,7 +42,7 @@ public class OpMonitorDaemonDatabaseConfig {
 
     @Named(OP_MONITOR_DB_CTX)
     @ApplicationScoped
-    public DatabaseCtx serverConfCtx(OpMonitorProperties opMonitorProperties) {
+    public DatabaseCtx serverConfCtx(OpMonitorDbProperties opMonitorProperties) {
         return new DatabaseCtx("op-monitor", opMonitorProperties.hibernate(), new StringValueTruncator());
     }
 

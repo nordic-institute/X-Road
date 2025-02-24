@@ -29,7 +29,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
-import org.niis.xroad.serverconf.ServerConfProperties;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 
 /**
  * Server conf database context.
@@ -39,11 +39,11 @@ public class ServerConfDatabaseConfig {
 
     @Named(SERVER_CONF_DB_CTX)
     @ApplicationScoped
-    DatabaseCtx serverConfCtx(ServerConfProperties serverConfProperties) {
-        return createServerConfDbCtx(serverConfProperties);
+    DatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
+        return createServerConfDbCtx(dbProperties);
     }
 
-    public static DatabaseCtx createServerConfDbCtx(ServerConfProperties serverConfProperties) {
-        return new DatabaseCtx("serverconf", serverConfProperties.hibernate());
+    public static DatabaseCtx createServerConfDbCtx(ServerConfDbProperties dbProperties) {
+        return new DatabaseCtx("serverconf", dbProperties.hibernate());
     }
 }

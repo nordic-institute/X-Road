@@ -95,9 +95,37 @@ public class LegacyConfigPathMapping {
         MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
         MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
 
-        MAPPING.put("serverconf.hibernate.connection.url", "common.server-conf.hibernate.connection.url");
-        MAPPING.put("serverconf.hibernate.connection.username", "common.server-conf.hibernate.connection.username");
-        MAPPING.put("serverconf.hibernate.connection.password", "common.server-conf.hibernate.connection.password");
+        MAPPING.putAll(addDatabaseMapping("serverconf"));
+        MAPPING.putAll(addDatabaseMapping("messagelog"));
+        MAPPING.putAll(addDatabaseMapping("opmonitor"));
+    }
+
+    private static Map<String, String> addDatabaseMapping(String dbName) {
+        Map<String, String> dbPropMapping = new HashMap<>();
+        dbPropMapping.put(
+                "%s.hibernate.connection.url".formatted(dbName),
+                "db.%s.hibernate.connection.url".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.connection.username".formatted(dbName),
+                "db.%s.hibernate.connection.username".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.connection.password".formatted(dbName),
+                "db.%s.hibernate.connection.password".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName),
+                "db.%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.connection.driver_class".formatted(dbName),
+                "db.%s.hibernate.connection.driver_class".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName),
+                "db.%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName));
+        return dbPropMapping;
     }
 
     String map(String oldPath) {

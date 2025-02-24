@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.ServerConfProperties;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.model.AccessRightType;
 import org.niis.xroad.serverconf.model.CertificateType;
 import org.niis.xroad.serverconf.model.ClientType;
@@ -102,14 +102,14 @@ public final class TestUtil {
 
 
     static Map<String, String> serverConfHibernateProperties = Map.of(
-            "xroad.server-conf.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
-            "xroad.server-conf.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
-            "xroad.server-conf.hibernate.connection.url", "jdbc:hsqldb:mem:serverconf",
-            "xroad.server-conf.hibernate.connection.username", "serverconf",
-            "xroad.server-conf.hibernate.connection.password", "serverconf",
-            "xroad.server-conf.hibernate.hbm2ddl.auto", "create-drop"
+            "xroad.db.serverconf.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
+            "xroad.db.serverconf.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+            "xroad.db.serverconf.hibernate.connection.url", "jdbc:hsqldb:mem:serverconf",
+            "xroad.db.serverconf.hibernate.connection.username", "serverconf",
+            "xroad.db.serverconf.hibernate.connection.password", "serverconf",
+            "xroad.db.serverconf.hibernate.hbm2ddl.auto", "create-drop"
     );
-    static ServerConfProperties serverConfProperties = initConfiguration(ServerConfProperties.class, serverConfHibernateProperties);
+    static ServerConfDbProperties serverConfProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
 
 
     static DatabaseCtx databaseCtx = new DatabaseCtx("serverconf", serverConfProperties.hibernate());

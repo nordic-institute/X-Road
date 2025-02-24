@@ -30,6 +30,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import org.junit.BeforeClass;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig;
+import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.Map;
@@ -41,16 +42,16 @@ import static org.niis.xroad.opmonitor.core.OperationalDataTestUtil.prepareDatab
  */
 public class BaseTestUsingDB {
     protected static final Map<String, String> HIBERNATE_PROPERTIES = Map.of(
-            "xroad.op-monitor.hibernate.jdbc.batch_size", "100",
-            "xroad.op-monitor.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
-            "xroad.op-monitor.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
-            "xroad.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
-            "xroad.op-monitor.hibernate.connection.username", "opmonitor",
-            "xroad.op-monitor.hibernate.connection.password", "opmonitor",
-            "xroad.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
+            "xroad.db.opmonitor.hibernate.jdbc.batch_size", "100",
+            "xroad.db.opmonitor.hibernate.dialect", "org.hibernate.dialect.HSQLDialect",
+            "xroad.db.opmonitor.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+            "xroad.db.opmonitor.hibernate.connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
+            "xroad.db.opmonitor.hibernate.connection.username", "opmonitor",
+            "xroad.db.opmonitor.hibernate.connection.password", "opmonitor",
+            "xroad.db.opmonitor.hibernate.hbm2ddl.auto", "create-drop"
     );
 
-    private static final OpMonitorProperties OP_MONITOR_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorProperties.class,
+    private static final OpMonitorDbProperties OP_MONITOR_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorDbProperties.class,
             HIBERNATE_PROPERTIES);
     protected static final DatabaseCtx DATABASE_CTX = new OpMonitorDaemonDatabaseConfig().serverConfCtx(OP_MONITOR_PROPERTIES);
 

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,27 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.messagelog.database;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
+package org.niis.xroad.opmonitor.core.config;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
-import org.niis.xroad.common.messagelog.MessageLogDbProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-/**
- * Message log database context.
- */
-public class MessageLogDatabaseConfig {
-    public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
+import java.util.Map;
 
-    @Named(MESSAGE_LOG_DB_CTX)
-    @ApplicationScoped
-    DatabaseCtx serverConfCtx(MessageLogDbProperties messageLogDbProperties) {
-        return create(messageLogDbProperties);
-    }
+@ConfigMapping(prefix = "xroad.db.opmonitor")
+public interface OpMonitorDbProperties {
 
-    public static DatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
-        return new DatabaseCtx("messagelog", messageLogDbProperties.hibernate());
-    }
+    @WithName("hibernate")
+    Map<String, String> hibernate();
 }

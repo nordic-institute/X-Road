@@ -30,6 +30,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import lombok.Setter;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig;
@@ -45,12 +46,14 @@ import java.util.Map;
 import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 @Configuration
-@EnableConfigurationProperties(ServerConfBeanConfig.SpringServerConfProperties.class)
+@EnableConfigurationProperties({
+        ServerConfBeanConfig.SpringServerConfProperties.class,
+        ServerConfBeanConfig.SpringServerConfDbProperties.class})
 public class ServerConfBeanConfig {
 
     @Bean(SERVER_CONF_DB_CTX)
-    DatabaseCtx serverConfCtx(ServerConfProperties serverConfProperties) {
-        return ServerConfDatabaseConfig.createServerConfDbCtx(serverConfProperties);
+    DatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
+        return ServerConfDatabaseConfig.createServerConfDbCtx(dbProperties);
     }
 
     @Bean
@@ -94,6 +97,13 @@ public class ServerConfBeanConfig {
         public long aclCacheSize() {
             return aclCacheSize;
         }
+
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = "xroad.db.serverconf")
+    public static class SpringServerConfDbProperties implements ServerConfDbProperties {
+        private Map<String, String> hibernate = Map.of();
 
         @Override
         public Map<String, String> hibernate() {

@@ -31,8 +31,6 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
-import java.util.Map;
-
 @ConfigMapping(prefix = "xroad.server-conf")
 public interface ServerConfProperties {
     String DEFAULT_CACHE_PERIOD = "60";
@@ -61,6 +59,4 @@ public interface ServerConfProperties {
     @WithDefault(DEFAULT_ACL_CACHE_SIZE)
     long aclCacheSize();
 
-    @WithName("hibernate")
-    Map<String, String> hibernate();
 }

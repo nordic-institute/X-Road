@@ -30,8 +30,8 @@ import io.smallrye.config.WithName;
 
 import java.util.Map;
 
-@ConfigMapping(prefix = "xroad.message-log")
-public interface MessageLogProperties {
+@ConfigMapping(prefix = "xroad.db.messagelog")
+public interface MessageLogDbProperties {
     @WithName("hibernate")
     Map<String, String> hibernate();
 }

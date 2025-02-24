@@ -42,6 +42,7 @@ import ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -95,16 +96,16 @@ abstract class AbstractMessageLogTest {
         serverConfProvider = new TestServerConfWrapper(getServerConf());
 
         Map<String, String> hibernateProperties = Map.of(
-                "xroad.message-log.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
-                "xroad.message-log.hibernate.connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
-                "xroad.message-log.hibernate.connection.username", "securelog",
-                "xroad.message-log.hibernate.connection.password", "securelog",
-                "xroad.message-log.hibernate.hbm2ddl.auto", "create-drop",
-                "xroad.message-log.hibernate.hbm2ddl.import_files", "schema.sql",
-                "xroad.message-log.hibernate.jdbc.batch_size", "20",
-                "xroad.message-log.hibernate.show_sql", "false"
+                "xroad.db.messagelog.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+                "xroad.db.messagelog.hibernate.connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
+                "xroad.db.messagelog.hibernate.connection.username", "securelog",
+                "xroad.db.messagelog.hibernate.connection.password", "securelog",
+                "xroad.db.messagelog.hibernate.hbm2ddl.auto", "create-drop",
+                "xroad.db.messagelog.hibernate.hbm2ddl.import_files", "schema.sql",
+                "xroad.db.messagelog.hibernate.jdbc.batch_size", "20",
+                "xroad.db.messagelog.hibernate.show_sql", "false"
         );
-        var props = ConfigUtils.initConfiguration(org.niis.xroad.common.messagelog.MessageLogProperties.class, hibernateProperties);
+        var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
         databaseCtx = MessageLogDatabaseConfig.create(props);
         logRecordManager = new LogRecordManager(databaseCtx);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
