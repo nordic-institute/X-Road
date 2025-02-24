@@ -27,6 +27,8 @@
 
 package org.niis.xroad.configuration.migration;
 
+import lombok.NoArgsConstructor;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +36,7 @@ import java.util.Map;
  * Some properties have their paths changed. This class is used to map old paths to new paths.
  */
 @SuppressWarnings("checkstyle:LineLength")
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class LegacyConfigPathMapping {
     private static final Map<String, String> MAPPING = new HashMap<>();
 
@@ -128,7 +131,7 @@ public class LegacyConfigPathMapping {
         return dbPropMapping;
     }
 
-    String map(String oldPath) {
+    static String map(String oldPath) {
         return MAPPING.getOrDefault(oldPath, oldPath);
     }
 }
