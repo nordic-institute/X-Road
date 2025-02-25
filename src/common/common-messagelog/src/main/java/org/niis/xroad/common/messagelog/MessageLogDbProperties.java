@@ -23,47 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl;
+package org.niis.xroad.common.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-import org.hibernate.Session;
+import java.util.Map;
 
-/**
- * Server conf database context.
- */
-public final class ServerConfDatabaseCtx {
-
-    private static final DatabaseCtx CTX = new DatabaseCtx("serverconf");
-
-    private ServerConfDatabaseCtx() {
-    }
-
-    /**
-     * @return the database context instance
-     */
-    public static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * @return shortcut for a session
-     */
-    public static Session getSession() {
-        return get().getSession();
-    }
-
-    /**
-     * Executes the unit of work transactionally.
-     * @param callback the unit of work callback
-     * @param <T> the type of the result
-     * @return the result of the callback
-     * @throws Exception if an error occurs
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback)
-            throws Exception {
-        return CTX.doInTransaction(callback);
-    }
-
+@ConfigMapping(prefix = "xroad.db.messagelog")
+public interface MessageLogDbProperties {
+    @WithName("hibernate")
+    Map<String, String> hibernate();
 }

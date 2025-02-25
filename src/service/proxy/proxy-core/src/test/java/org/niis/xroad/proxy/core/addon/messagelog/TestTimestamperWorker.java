@@ -39,12 +39,10 @@ import static org.niis.xroad.proxy.core.addon.messagelog.TimestamperUtil.getTime
 class TestTimestamperWorker extends TimestamperWorker {
     private static final Lock FALSE = new Lock(false);
     private static final Lock TRUE = new Lock(true);
-    private final GlobalConfProvider globalConfProvider;
     private static volatile boolean shouldFail;
 
-    TestTimestamperWorker(GlobalConfProvider globalConfProvider, List<String> tspUrls) {
-        super(globalConfProvider, tspUrls);
-        this.globalConfProvider = globalConfProvider;
+    TestTimestamperWorker(GlobalConfProvider globalConfProvider, LogRecordManager logRecordManager, List<String> tspUrls) {
+        super(globalConfProvider, logRecordManager, tspUrls);
     }
 
     public static void failNextTimestamping(boolean failureExpected) {
@@ -57,7 +55,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     @Override
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(globalConfProvider, logRecord) {
+        return new SingleTimestampRequest(logRecordManager, globalConfProvider, logRecord) {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {

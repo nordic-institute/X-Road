@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.opmonitor.core;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -40,7 +41,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONITORING_DATA_TS;
 
 /**
@@ -48,20 +48,25 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  * operational_data table, mapped by the OperationalDataRecord class.
  */
 @Slf4j
-@RequiredArgsConstructor
 public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
     private static int configuredBatchSize = 0;
 
+    private final DatabaseCtx databaseCtx;
     private final int maxRecordsInPayload;
 
+    public OperationalDataRecordManager(DatabaseCtx databaseCtx, int maxRecordsInPayload) {
+        this.databaseCtx = databaseCtx;
+        this.maxRecordsInPayload = maxRecordsInPayload;
+    }
+
     void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
-        doInTransaction(session -> storeInTransaction(session, records, timestamp));
+        databaseCtx.doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
     OperationalDataRecords queryAllRecords() throws Exception {
-        return doInTransaction(this::queryAllOperationalDataInTransaction);
+        return databaseCtx.doInTransaction(this::queryAllOperationalDataInTransaction);
     }
 
     OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
@@ -76,7 +81,7 @@ public final class OperationalDataRecordManager {
     OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
                                         ClientId serviceProviderFilter,
                                         Set<String> outputFields) throws Exception {
-        OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
+        OperationalDataRecords records = databaseCtx.doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
         removeMonitoringDataTsIfNotSpecified(records, outputFields);

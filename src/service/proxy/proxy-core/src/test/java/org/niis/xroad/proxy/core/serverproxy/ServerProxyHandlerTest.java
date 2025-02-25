@@ -53,7 +53,7 @@ public class ServerProxyHandlerTest {
         var keyConfProvider = mock(KeyConfProvider.class);
         var serverConfProvider = mock(ServerConfProvider.class);
         var checkMock = mock(ClientProxyVersionVerifier.class);
-        var commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null);
+        var commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null, null);
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
                 mock(HttpClient.class), mock(HttpClient.class),

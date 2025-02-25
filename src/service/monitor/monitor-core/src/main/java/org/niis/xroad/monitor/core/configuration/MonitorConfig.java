@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import io.grpc.BindableService;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
@@ -32,6 +34,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
@@ -43,6 +46,8 @@ import org.niis.xroad.serverconf.impl.ServerConfFactory;
 
 import java.io.IOException;
 import java.util.List;
+
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 @Slf4j
 public class MonitorConfig {
@@ -64,8 +69,10 @@ public class MonitorConfig {
     }
 
     @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(globalConfProvider, serverConfProperties.cachePeriod()); //, databaseCtx);
+    ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
+                                          ServerConfProperties serverConfProperties,
+                                          GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties.cachePeriod());
     }
 
     @ConfigMapping(prefix = "xroad.env-monitor.rpc")

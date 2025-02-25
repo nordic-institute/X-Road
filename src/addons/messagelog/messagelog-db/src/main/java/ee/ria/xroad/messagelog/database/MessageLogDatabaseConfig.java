@@ -23,29 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.messagelog.database;
 
-import lombok.RequiredArgsConstructor;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
-import java.util.Properties;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
+import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 
 /**
- * This class loads only those properties, that start with specified properties.
+ * Message log database context.
  */
-@RequiredArgsConstructor
-public class PrefixedProperties extends Properties {
+public class MessageLogDatabaseConfig {
+    public static final String MESSAGE_LOG_DB_CTX = "messageLogCtx";
 
-    private final String prefix;
-
-    @Override
-    public synchronized Object put(Object key, Object value) {
-        String keyString = key.toString();
-        int idx = keyString.indexOf(prefix);
-        if (idx > -1) {
-            return super.put(keyString.substring(prefix.length()), value);
-        }
-
-        return null;
+    @Produces
+    @Named(MESSAGE_LOG_DB_CTX)
+    @ApplicationScoped
+    DatabaseCtx serverConfCtx(MessageLogDbProperties messageLogDbProperties) {
+        return create(messageLogDbProperties);
     }
 
+    public static DatabaseCtx create(MessageLogDbProperties messageLogDbProperties) {
+        return new DatabaseCtx("messagelog", messageLogDbProperties.hibernate());
+    }
+
+    public void cleanup(@Named(MESSAGE_LOG_DB_CTX) @Disposes DatabaseCtx databaseCtx)  {
+        databaseCtx.destroy();
+    }
 }

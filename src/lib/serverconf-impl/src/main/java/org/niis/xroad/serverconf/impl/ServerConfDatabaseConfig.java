@@ -23,35 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.serverconf.impl;
 
-import org.junit.Test;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
-import java.io.StringReader;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 
 /**
- * Tests to verify prefixed property parser behavior.
+ * Server conf database context.
  */
-public class PrefixedPropertiesTest {
+public class ServerConfDatabaseConfig {
+    public static final String SERVER_CONF_DB_CTX = "serverConfCtx";
 
-    /**
-     * Test to ensure prefixed properties are parsed correctly.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readPrefixedProperties() throws Exception {
-        String properties = "foo.bar.a1 = bar1\nfoo.bar.a2 = bar2\n"
-                + "bar.xxx = ignoreme";
-
-        PrefixedProperties p = new PrefixedProperties("foo.");
-        p.load(new StringReader(properties));
-
-        assertEquals("bar1", p.get("bar.a1"));
-        assertEquals("bar2", p.get("bar.a2"));
-        assertNull(p.get("bar.xxx"));
+    @Produces
+    @Named(SERVER_CONF_DB_CTX)
+    @ApplicationScoped
+    DatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
+        return createServerConfDbCtx(dbProperties);
     }
 
+    public static DatabaseCtx createServerConfDbCtx(ServerConfDbProperties dbProperties) {
+        return new DatabaseCtx("serverconf", dbProperties.hibernate());
+    }
+
+    public void cleanup(@Named(SERVER_CONF_DB_CTX) @Disposes DatabaseCtx databaseCtx) {
+        databaseCtx.destroy();
+    }
 }

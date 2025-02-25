@@ -35,7 +35,6 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.message.SoapUtils.SOAPCallback;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -47,7 +46,6 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
-import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,10 +63,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxy.core.serverproxy.HttpClientCreator;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -278,14 +273,13 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     // ------------------------------------------------------------------------
 
-    private String getWsdlUrl(ServiceId service) throws Exception {
-        ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
-                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
-        if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
+    private String getWsdlUrl(ServiceId service) {
+        DescriptionType type = serverConfProvider.getDescriptionType(service);
+        if (type != null && type != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
         }
-        return wsdl != null ? wsdl.getUrl() : null;
+        return type != null ? serverConfProvider.getServiceDescriptionURL(service) : null;
     }
 
     private static SoapMessageImpl createMethodListResponse(
@@ -293,12 +287,9 @@ public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
             final JAXBElement<MethodListType> methodList) throws Exception {
 
         return SoapUtils.toResponse(requestMessage,
-                new SOAPCallback() {
-                    @Override
-                    public void call(SOAPMessage soap) throws Exception {
-                        soap.getSOAPBody().removeContents();
-                        marshal(methodList, soap.getSOAPBody());
-                    }
+                soap -> {
+                    soap.getSOAPBody().removeContents();
+                    marshal(methodList, soap.getSOAPBody());
                 });
     }
 

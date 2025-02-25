@@ -109,12 +109,12 @@ setup_database() {
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
     log "Database and user exists, skipping database creation."
   else
-    if [[ $(get_prop ${root_properties} "$db_name.database.admin_user" "") == "" ]]; then
+    if [[ $(get_prop ${root_properties} "xroad.db.$db_name.database.admin_user" "") == "" ]]; then
       db_admin_user="${db_user}_admin"
       db_admin_conn_user="${db_admin_user}${suffix}"
     fi
 
-    if [[ $(get_prop ${root_properties} "$db_name.database.admin_password" "") == "" ]]; then
+    if [[ $(get_prop ${root_properties} "xroad.db.$db_name.database.admin_password" "") == "" ]]; then
       db_admin_password="$(gen_pw)"
     fi
 
@@ -173,13 +173,13 @@ EOF
   fi
 
   if [ -w "$db_properties" ]; then
-    crudini --set ${db_properties} '' ${db_name}.hibernate.jdbc.use_streams_for_binary true
-    crudini --set ${db_properties} '' ${db_name}.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.driver_class org.postgresql.Driver
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
-    crudini --set ${db_properties} '' ${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.username "${db_conn_user}"
-    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.password "${db_password}"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.jdbc.use_streams_for_binary true
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.driver_class org.postgresql.Driver
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.username "${db_conn_user}"
+    crudini --set ${db_properties} '' xroad.db.${db_name}.hibernate.connection.password "${db_password}"
   else
     log "$db_properties is not writable, not updating database properties"
   fi

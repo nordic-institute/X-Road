@@ -115,7 +115,7 @@ public class MetadataClientRequestProcessorTest {
         serverConfProvider = mock(ServerConfProvider.class);
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null);
+                null, null, null);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -168,7 +168,7 @@ public class MetadataClientRequestProcessorTest {
 
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null);
+                null, null, null);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -216,7 +216,7 @@ public class MetadataClientRequestProcessorTest {
             }
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null);
+                null, null, null);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,

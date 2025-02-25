@@ -28,6 +28,7 @@ package org.niis.xroad.serverconf.impl;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -75,8 +76,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
      * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    public CachingServerConfImpl(GlobalConfProvider globalConfProvider, int expireSeconds) {
-        super(globalConfProvider);
+    public CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider, int expireSeconds) {
+        super(serverConfDatabaseCtx, globalConfProvider);
 
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)

@@ -27,6 +27,8 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 
@@ -37,8 +39,8 @@ class TestLogCleaner extends LogCleaner {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogCleaner(LogArchiverProperties logArchiverProperties) {
-        super(logArchiverProperties);
+    TestLogCleaner(LogArchiverProperties logArchiverProperties, DatabaseCtx databaseCtx) {
+        super(logArchiverProperties, databaseCtx);
     }
 
     public static void waitForCleanSuccessful() throws Exception {

@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -49,4 +50,5 @@ public class CommonBeanProxy {
     private final KeyConfProvider keyConfProvider;
     private final SigningCtxProvider signingCtxProvider;
     private final CertHelper certHelper;
+    private final LogRecordManager logRecordManager;
 }

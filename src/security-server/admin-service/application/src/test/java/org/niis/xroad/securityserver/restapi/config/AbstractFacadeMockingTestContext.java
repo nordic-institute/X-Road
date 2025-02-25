@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
@@ -39,6 +41,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 /**
  * Base for all tests that mock GlobalConfProvider, ManagementRequestSenderService, and SignerProxyFacade.
@@ -68,4 +72,6 @@ public abstract class AbstractFacadeMockingTestContext {
     MonitorRpcClient monitorClient;
     @MockBean
     protected ConfClientRpcClient confClientRpcClient;
+    @MockBean(name = SERVER_CONF_DB_CTX)
+    DatabaseCtx databaseCtx;
 }

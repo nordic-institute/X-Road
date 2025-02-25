@@ -32,12 +32,23 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Properties;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LegacyConfigMigrationCLITest {
-    private static final String INPUT_INI = "src/test/resources/local.ini";
+    private static final String INPUT_INI = "src/test/resources/local-test.ini";
+    private static final String INPUT_DB_PROPERTIES_SRC = "src/test/resources/db-test.properties";
+    private static final String INPUT_DB_PROPERTIES = "build/db-test.properties";
+
     private static final String OUTPUT_YAML = "build/local.yml";
+    private static final String OUTPUT_PROPERTIES = "build/db-test.properties";
+
     private final YamlPropertySourceLoader yamlLoader = new YamlPropertySourceLoader();
 
     @Test
@@ -76,10 +87,52 @@ class LegacyConfigMigrationCLITest {
                 "."}));
     }
 
+    @Test
+    void shouldMigratePropertiesFile() throws IOException {
+        Files.copy(Paths.get(INPUT_DB_PROPERTIES_SRC), Paths.get(INPUT_DB_PROPERTIES), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        LegacyConfigMigrationCLI.main(new String[]{
+                INPUT_DB_PROPERTIES
+        });
+
+        var result = new Properties();
+        result.load(Files.newInputStream(Paths.get(OUTPUT_PROPERTIES)));
+
+        // Verify mapped properties
+        assertEquals("jdbc:postgresql://xrd-db:5432/xrd_ss",
+                result.getProperty("xroad.db.serverconf.hibernate.connection.url"));
+        assertEquals("xrd",
+                result.getProperty("xroad.db.serverconf.hibernate.connection.username"));
+        assertEquals("secret",
+                result.getProperty("xroad.db.serverconf.hibernate.connection.password"));
+
+        // Verify original file was backed up
+        assertTrue(Files.exists(Paths.get(INPUT_DB_PROPERTIES + ".original")));
+    }
+
+    @Test
+    void shouldPreserveOriginalPropertiesAsComments() throws IOException {
+        Files.copy(Paths.get(INPUT_DB_PROPERTIES_SRC), Paths.get(INPUT_DB_PROPERTIES), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        LegacyConfigMigrationCLI.main(new String[]{
+                INPUT_DB_PROPERTIES
+        });
+
+        var lines = Files.readAllLines(Paths.get(OUTPUT_PROPERTIES));
+
+        // Check original content is preserved in comments
+        assertTrue(lines.stream()
+                .anyMatch(l -> l.contains("# serverconf.hibernate.connection.url")));
+        assertTrue(lines.stream()
+                .anyMatch(l -> l.contains("# serverconf.hibernate.connection.username")));
+        assertTrue(lines.stream()
+                .anyMatch(l -> l.contains("# serverconf.hibernate.connection.password")));
+    }
+
+
     @SneakyThrows
     private PropertySource<?> loadYaml(String path) {
         Resource resourcePath = new PathResource(path);
         return yamlLoader.load("test", resourcePath).getFirst();
-
     }
+
 }
