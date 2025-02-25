@@ -32,6 +32,10 @@ spring:
     http:
       port: 4099
       host-enabled: true
+  xroad:
+    common:
+      global-conf:
+        source: REMOTE
 
 logging:
   level:

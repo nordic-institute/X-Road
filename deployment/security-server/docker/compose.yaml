@@ -93,8 +93,7 @@ services:
     image: ${SIGNER_IMG}
     pull_policy: always
     environment:
-      - XROAD_CONFIG_SERVER_URI=http://config:5580
-      - XROAD_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT=configuration-client
 #    volumes:
 #      - ./temp-mount-xroad:/etc/xroad
     healthcheck:

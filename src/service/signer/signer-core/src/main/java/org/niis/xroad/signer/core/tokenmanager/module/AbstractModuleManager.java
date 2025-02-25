@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
 import lombok.RequiredArgsConstructor;
@@ -40,9 +41,13 @@ import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +57,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -76,6 +86,8 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     public void start() {
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {
+            initializeDirs();
+
             TokenManager.init();
 
             if (SLAVE.equals(SystemProperties.getServerNodeType())) {
@@ -90,6 +102,16 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             refresh();
         } catch (Exception e) {
             log.error("Failed to initialize token worker!", e);
+        }
+    }
+
+    private void initializeDirs() throws IOException {
+        var keyConfDir = Paths.get(ResourceUtils.getFullPathFromFileName(SystemProperties.getKeyConfFile()));
+
+        if (!Files.exists(keyConfDir)) {
+            log.info("Creating keyConf directory: {}", keyConfDir);
+            Files.createDirectories(keyConfDir,
+                    PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ, GROUP_EXECUTE)));
         }
     }
 
