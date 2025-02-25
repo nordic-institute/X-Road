@@ -10,7 +10,7 @@ A2C_VER="{{ a2c_ver }}"
 set -e
 
 echo "Setting up ACME"
-apt -y install /tmp/acme2certifier_$A2C_VER-1_all.deb
+apt -y install /tmp/acme2certifier_${A2C_VER}-1_all.deb
 sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf
 sed -i "s/80/8887/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf
 cp /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf /etc/nginx/sites-available/acme_srv.conf
