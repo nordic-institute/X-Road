@@ -49,20 +49,14 @@ services:
         limits:
           memory: 512M
   db-messagelog-init:
-    image: liquibase:4.31 #TODO probably release standalone image with embedded changelog
-    volumes:
-      - ./../../src/packages/src/xroad/common/addon/proxy/:/liquibase/changelog
+    image: ${MESSAGELOG_INIT_IMG}
+    pull_policy: always
     environment:
+      - LIQUIBASE_COMMAND_USERNAME=messagelog
+      - LIQUIBASE_COMMAND_PASSWORD=secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - db_user=messagelog
       - db_schema=public
-    command:
-      - --changeLogFile=changelog/messagelog-changelog.xml
-      - --driver=org.postgresql.Driver
-      - --url=jdbc:postgresql://db-messagelog:5432/messagelog
-      - --username=messagelog
-      - --password=secret
-      - --log-level=debug
-      - update
     depends_on:
       - db-messagelog
     networks:

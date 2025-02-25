@@ -52,3 +52,9 @@ jib {
     }
   }
 }
+
+tasks {
+  named("assemble") {
+    dependsOn("jib")
+  }
+}
