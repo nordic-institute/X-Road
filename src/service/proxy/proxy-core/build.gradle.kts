@@ -46,6 +46,7 @@ dependencies {
 
   testImplementation(project(":common:common-test"))
   testImplementation(project(":service:message-log-archiver:message-log-archiver-application"))
+  testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
   testImplementation(testFixtures(project(":lib:keyconf-impl")))
@@ -62,6 +63,7 @@ dependencies {
   testFixturesImplementation(project(":common:common-jetty"))
   testFixturesImplementation(project(":common:common-messagelog"))
   testFixturesImplementation(project(":service:op-monitor:op-monitor-api"))
+  testFixturesImplementation(testFixtures(project(":common:common-properties")))
   testFixturesImplementation(testFixtures(project(":lib:keyconf-impl")))
   testFixturesImplementation(testFixtures(project(":lib:serverconf-impl")))
   testFixturesImplementation(libs.wsdl4j)
@@ -81,6 +83,7 @@ tasks.register<Test>("intTest") {
   classpath = sourceSets["intTest"].runtimeClasspath
 
   val intTestArgs = mutableListOf<String>()
+
   if (project.hasProperty("intTestProfilesInclude")) {
     intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
   }
@@ -108,11 +111,11 @@ tasks.named("compileIntTestJava") {
 }
 
 tasks.test {
+  dependsOn("copyGpg")
+  dependsOn(":service:message-log-archiver:message-log-archiver-application:quarkusBuild")
+
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
-}
-tasks.named<Test>("test") {
-  dependsOn(":service:message-log-archiver:message-log-archiver-application:quarkusBuild")
 }
 
 val runMetaserviceTest by tasks.registering(JavaExec::class) {
@@ -135,8 +138,4 @@ tasks.register<Copy>("copyGpg") {
 
   from("src/test/gpg")
   into(layout.buildDirectory.dir("gpg"))
-}
-
-tasks.test {
-  dependsOn("copyGpg")
 }

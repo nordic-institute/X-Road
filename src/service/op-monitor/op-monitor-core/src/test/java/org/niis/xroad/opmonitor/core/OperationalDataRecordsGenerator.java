@@ -34,6 +34,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +67,7 @@ public final class OperationalDataRecordsGenerator {
 
     /**
      * Main function.
+     *
      * @param args args
      * @throws Exception if something goes wrong.
      */
@@ -104,8 +106,10 @@ public final class OperationalDataRecordsGenerator {
         log.info("first timestamp: {}, batch-size: {}, batch-count: {}",
                 startTimestamp, batchSize, batchCount);
 
+        OperationalDataRecordManager operationalDataRecordManager =
+                new OperationalDataRecordManager(Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
         for (int i = 0; i < batchCount; ++i) {
-            storeRecords(batchSize, startTimestamp++, longString, shortString);
+            storeRecords(batchSize, startTimestamp++, longString, shortString, operationalDataRecordManager);
         }
 
         log.info("{} records generated", batchCount * batchSize);
@@ -170,11 +174,11 @@ public final class OperationalDataRecordsGenerator {
     }
 
     private static void storeRecords(int count, long timestamp,
-                                     String longString, String shortString) throws Exception {
+                                     String longString, String shortString,
+                                     OperationalDataRecordManager operationalDataRecordManager) throws Exception {
         List<OperationalDataRecord> records = generateRecords(count, timestamp,
                 longString, shortString);
-
-        OperationalDataRecordManager.storeRecords(records, timestamp);
+        operationalDataRecordManager.storeRecords(records, timestamp);
     }
 
     private static List<OperationalDataRecord> generateRecords(int count,

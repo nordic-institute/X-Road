@@ -45,4 +45,5 @@ public interface SubsystemService {
     void deleteSubsystem(ClientId subsystemClientId);
 
 
+    Optional<Subsystem> updateSubsystemName(ClientId clientId, String newName);
 }

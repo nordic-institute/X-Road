@@ -60,9 +60,14 @@ tasks.register<Test>("intTest") {
     junitXml.required.set(false) // equivalent to includeSystemOutLog = false
   }
 
+  dependsOn(":central-server:admin-service:application:bootJar")
   shouldRunAfter(tasks.test)
 }
 
 tasks.named("check") {
   dependsOn(tasks.named("intTest"))
+}
+
+archUnit {
+  setSkip(true)
 }

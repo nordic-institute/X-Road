@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.serverproxy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.RestMetadataServiceHandlerImpl;
@@ -44,6 +45,7 @@ public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
     private final ProxyProperties.ProxyAddonProperties addonProperties;
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
 
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
         Collection<ServiceHandler> handlers = new ArrayList<>();
@@ -51,7 +53,7 @@ public class ServiceHandlerLoader {
             handlers.add(new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider));
         }
         if (addonProperties.opMonitor().enabled()) {
-            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider));
+            handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties));
         }
         if (addonProperties.proxyMonitor().enabled()) {
             handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider));

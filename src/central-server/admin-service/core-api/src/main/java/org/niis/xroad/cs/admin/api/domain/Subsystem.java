@@ -40,9 +40,10 @@ import lombok.Setter;
 public class Subsystem extends SecurityServerClient {
     private XRoadMember xroadMember;
     private String subsystemCode;
+    private String name;
 
-    public Subsystem(XRoadMember member, ClientId identifier) {
-        super(SubsystemId.create(identifier));
+    public Subsystem(XRoadMember member, ClientId identifier, String name) {
+        super(SubsystemId.create(identifier), name);
         if (!identifier.subsystemContainsMember(member.getIdentifier())) {
             throw new IllegalArgumentException("Subsystem identifier does not match member");
         }

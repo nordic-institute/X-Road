@@ -1,14 +1,16 @@
-
 plugins {
   id("xroad.java-conventions")
   id("xroad.java-exec-conventions")
-//  id("xroad.quarkus-application-conventions")
-//  alias(libs.plugins.quarkus)
-  id("io.quarkus")
+  id("xroad.quarkus-application-conventions")
 }
-val buildType: String = project.findProperty("buildType")?.toString() ?: "containerized"
-val buildEnv: String = project.findProperty("buildEnv")?.toString() ?: "dev" //TODO default to prod later
-//TODO this is temporary until plugin is chosen
+
+jib {
+  to {
+    image = "${project.property("xroadImageRegistry")}/ss-proxy"
+    tags = setOf("latest")
+  }
+}
+
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
@@ -45,28 +47,8 @@ quarkus {
   )
 }
 
-//jib {
-//  to {
-//    image = "${project.property("xroadImageRegistry")}/ss-proxy"
-//    tags = setOf("latest")
-//  }
-//}
-tasks {
-  named("compileJava") {
-    dependsOn("compileQuarkusGeneratedSourcesJava")
-  }
-  test {
-    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
-  }
-  jar {
-    enabled = false
-  }
-}
-
-configurations {
-  configureEach {
-    exclude(group = "xml-apis", module = "xml-apis") // This library interferes with Jetty
-  }
+configurations.configureEach {
+  exclude(group = "xml-apis", module = "xml-apis") // This library interferes with Jetty
 }
 
 dependencies {
@@ -87,4 +69,3 @@ val runProxyTest by tasks.registering(JavaExec::class) {
   logger.warn("WARNING: The 'runProxyTest' task is deprecated and does nothing. It will be removed in the future versions.")
   enabled = false
 }
-

@@ -37,10 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -63,13 +63,8 @@ public class OpMonitoringDaemonSender {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
-    private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
-            OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds());
-
-    private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
-            OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
-
     private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
+    private final OpMonitorCommonProperties opMonitorCommonProperties;
     private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final CloseableHttpClient httpClient;
@@ -77,10 +72,13 @@ public class OpMonitoringDaemonSender {
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer,
+                             OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
         this.serverConfProvider = serverConfProvider;
-        this.httpClient = createHttpClient();
         this.opMonitoringBuffer = opMonitoringBuffer;
+        this.opMonitorCommonProperties = opMonitorCommonProperties;
+
+        this.httpClient = createHttpClient();
     }
 
     void sendMessage(final List<OpMonitoringData> dataToProcess) {
@@ -108,8 +106,8 @@ public class OpMonitoringDaemonSender {
 
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
-            sender.setConnectionTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
-            sender.setSocketTimeout(SOCKET_TIMEOUT_MILLISECONDS);
+            sender.setConnectionTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()));
+            sender.setSocketTimeout(TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));
 
             sender.doPost(getAddress(), json, MimeTypes.JSON);
 
@@ -138,16 +136,17 @@ public class OpMonitoringDaemonSender {
     }
 
     private URI getAddress() throws URISyntaxException {
-        return new URI(OpMonitoringSystemProperties.getOpMonitorDaemonScheme(), null,
-                OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
+        return new URI(opMonitorCommonProperties.connection().scheme(), null,
+                opMonitorCommonProperties.connection().host(), opMonitorCommonProperties.connection().port(),
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 
     CloseableHttpClient createHttpClient() throws Exception {
         return OpMonitoringDaemonHttpClient.createHttpClient(serverConfProvider.getSSLKey(),
+                opMonitorCommonProperties,
                 1, 1,
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds()),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds()));
+                TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()),
+                TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));
     }
 
     public void destroy() {

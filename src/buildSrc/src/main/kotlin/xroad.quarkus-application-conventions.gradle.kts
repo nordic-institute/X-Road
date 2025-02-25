@@ -19,9 +19,7 @@ quarkus {
 
       when (buildType) {
         "native" -> {
-          put("quarkus.package.output-directory", "libs")
-          put("quarkus.package.jar.type", "uber-jar")
-          put("quarkus.package.jar.add-runner-suffix", "false")
+          put("quarkus.package.jar.type", "fast-jar")
         }
 
         "containerized" -> {

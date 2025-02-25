@@ -3,14 +3,6 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.package.output-name", "messagelog-archiver")
-    }
-  )
-}
-
 jib {
   to {
     image = "${project.property("xroadImageRegistry")}/ss-message-log-archiver"

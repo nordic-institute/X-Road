@@ -37,6 +37,7 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
+mkdir -p %{buildroot}/usr/share/xroad/jlib/configuration-client
 mkdir -p %{buildroot}/usr/share/xroad/lib
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
@@ -46,10 +47,10 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 mkdir -p %{buildroot}/usr/share/xroad/bin
 
-ln -s /usr/share/xroad/jlib/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/configuration-client.jar
+ln -s /usr/share/xroad/jlib/configuration-client/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/configuration-client.jar
 
 cp -p %{_sourcedir}/confclient/xroad-confclient.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../service/configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p -r %{srcdir}/../../../service/configuration-client/configuration-client-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/configuration-client/
 cp -p %{srcdir}/common/confclient/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/
 
 %clean
@@ -68,7 +69,7 @@ rm -rf %{buildroot}
 
 %defattr(-,root,root,-)
 /usr/share/xroad/jlib/configuration-client.jar
-/usr/share/xroad/jlib/configuration-client-*.jar
+/usr/share/xroad/jlib/configuration-client/
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(644,root,root) %{_unitdir}/xroad-confclient.service
 

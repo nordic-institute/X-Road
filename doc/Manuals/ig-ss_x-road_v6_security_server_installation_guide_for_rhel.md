@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.32  
+Version: 1.33  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -45,6 +45,7 @@ Doc. ID: IG-SS-RHEL
 | 17.07.2024 | 1.30    | Java 21 installation instructions for RHEL 7                                                                                                                                                                         | Ovidijus Narkevičius |
 | 16.12.2024 | 1.31    | Instructions to install PostgreSQL packages                                                                                                                                                                          | Justas Samuolis      |
 | 14.01.2025 | 1.32    | Adding extra check for remote database setup                                                                                                                                                                         | Eneli Reimets        |
+| 18.02.2025 | 1.33    | Configuring memory allocation fo proxy service                                                                                                                                                                       | Ovidijus Narkevičius |
 
 ## License
 
@@ -86,6 +87,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.3 Configuration](#33-configuration)
   - [3.4 Configuring Configuration Backup Encryption](#34-configuring-configuration-backup-encryption)
   - [3.5 Enabling ACME Support](#35-enabling-acme-support)
+  - [3.6 Configuring the memory allocation for the Proxy Service](#36-configuring-the-memory-allocation-for-the-proxy-service)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
@@ -472,14 +474,13 @@ ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the S
 
 The Security Server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
 
- Ref  |                                                   | Explanation
- ---- | ------------------------------------------------- | --------------------------------------------------
- 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file
- 2.2  | E.g.<br>GOV - government<br> COM - commercial     | Member class of the Security Server's owner
- 2.3  | &lt;Security Server owner register code&gt;       | Member code of the Security Server's owner
- 2.4  | &lt;choose Security Server identificator name&gt; | Security server's code
- 2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN
-
+| Ref |                                                         | Explanation                                 |
+|-----|---------------------------------------------------------|---------------------------------------------|
+| 2.1 | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file            |
+| 2.2 | E.g.<br>GOV - government<br> COM - commercial           | Member class of the Security Server's owner |
+| 2.3 | &lt;Security Server owner register code&gt;             | Member code of the Security Server's owner  |
+| 2.4 | &lt;choose Security Server identificator name&gt;       | Security server's code                      |
+| 2.5 | &lt;choose PIN for software token&gt;                   | Software token’s PIN                        |
 
 ### 3.3 Configuration
 
@@ -541,6 +542,10 @@ The key can then be moved to an external host and imported to GPG keyring with t
 
 Automated Certificate Management Environment (ACME) protocol enables automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
+
+### 3.6 Configuring the memory allocation for the Proxy Service
+
+The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
 ## 4 Installation Error handling
 
@@ -637,7 +642,7 @@ op-monitor.hibernate.connection.password = <randomly generated password>
 ## Annex B Database Users
 
 | User             | Database   | Privileges               | Description                                                                              |
-| ---------------- | ---------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+|------------------|------------|--------------------------|------------------------------------------------------------------------------------------|
 | serverconf       | serverconf | TEMPORARY,CONNECT        | The database user used to read/write the serverconf database during application runtime. |
 | serverconf_admin | serverconf | CREATE,TEMPORARY,CONNECT | The database user used to create/update the serverconf schema.                           |
 | messagelog       | messagelog | TEMPORARY,CONNECT        | The database user used to read/write the messagelog database during application runtime. |

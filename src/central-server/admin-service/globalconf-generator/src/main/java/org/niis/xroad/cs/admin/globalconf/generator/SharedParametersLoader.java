@@ -244,7 +244,8 @@ class SharedParametersLoader {
 
         private void addSubSystem(FlattenedSecurityServerClientView client) {
             var clientId = toClientId(client);
-            getSubsystemList(toMemberId(clientId)).add(new SharedParameters.Subsystem(client.getSubsystemCode(), clientId));
+            getSubsystemList(toMemberId(clientId))
+                    .add(new SharedParameters.Subsystem(client.getSubsystemCode(), client.getSubsystemName(), clientId));
         }
 
         private SharedParameters.Member toMember(FlattenedSecurityServerClientView client) {

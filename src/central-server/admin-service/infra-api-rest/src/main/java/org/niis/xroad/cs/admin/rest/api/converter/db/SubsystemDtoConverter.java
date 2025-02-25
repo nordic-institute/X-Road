@@ -50,6 +50,7 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
     @Override
     public SubsystemDto toDto(Subsystem source) {
         return new SubsystemDto()
+                .subsystemName(source.getName())
                 .subsystemId(clientIdDtoConverter.toDto(source.getIdentifier()))
                 .usedSecurityServers(source.getServerClients().stream().map(serverClient -> {
                     UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();

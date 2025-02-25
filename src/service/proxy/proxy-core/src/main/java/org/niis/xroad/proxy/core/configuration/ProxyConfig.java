@@ -33,6 +33,7 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
@@ -53,11 +54,12 @@ public class ProxyConfig {
     @ApplicationScoped
     @Startup
     AbstractOpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
+                                                  OpMonitorCommonProperties opMonitorCommonProperties,
                                                   ServerConfProvider serverConfProvider) throws Exception {
         AbstractOpMonitoringBuffer opMonitorBuffer;
         if (addonProperties.opMonitor().enabled()) {
             log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
-            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider);
+            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider, opMonitorCommonProperties);
         } else {
             log.debug("Initializing NullOpMonitoringBuffer");
             opMonitorBuffer = new NullOpMonitoringBuffer(serverConfProvider);

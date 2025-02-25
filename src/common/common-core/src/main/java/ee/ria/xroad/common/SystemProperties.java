@@ -58,7 +58,7 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 4;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 5;
 
     /** Minimum supported version number of the global configuration **/
     public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
@@ -581,12 +581,6 @@ public final class SystemProperties {
 
     public static final String CONF_FILE_CONFPROXY =
             getConfPath() + "conf.d/confproxy.ini";
-
-    public static final String CONF_FILE_OP_MONITOR =
-            getConfPath() + "conf.d/op-monitor.ini";
-
-    public static final String CONF_FILE_ENV_MONITOR =
-            getConfPath() + "conf.d/addons/monitor.ini";
 
     public static final String CONF_FILE_USER_LOCAL =
             getConfPath() + "conf.d/local.ini";

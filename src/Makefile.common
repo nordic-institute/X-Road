@@ -1,3 +1,15 @@
+ifndef ARCH_DIR
+  ARCH := $(shell uname -m)
+
+  ifeq ($(ARCH),x86_64)
+      ARCH_DIR := amd64
+  else ifeq ($(ARCH),aarch64)
+      ARCH_DIR := arm64
+  else
+      $(error Unsupported architecture: $(ARCH))
+  endif
+endif
+
 ifndef COMMON_CFLAGS
 
 COMMON_CFLAGS += -W -Wall -Wundef -Wcast-align -fno-strict-aliasing
@@ -14,8 +26,7 @@ COMMON_CFLAGS += -Werror
 
 endif
 
-# Position Independent Code - kõik kood, mida kuhugi
-# dünaamiliselt lingitakse.
+# Position Independent Code - all code being dynamically linked.
 ifdef USE_PIC
 COMMON_CFLAGS += -fPIC -DPIC
 endif
@@ -40,7 +51,7 @@ check: tests
 	@for i in $(AUTOMATIC_TESTS); \
 	do \
 		echo "Running $$i"; \
-		if LD_LIBRARY_PATH=$(XROADTOP)/lib "./$$i"; \
+		if LD_LIBRARY_PATH=$(XROADTOP)/libs "./$$i"; \
 		then \
 			echo; echo; echo "Test was OK"; echo; \
 		else \
@@ -50,11 +61,11 @@ check: tests
 	done
 
 install: all $(INSTALL_EXTRA)
-	(mkdir -p $(XROADTOP)/lib && \
-		install -m 644  $(LIBRARY) $(XROADTOP)/lib) || exit 1
+	(mkdir -p $(XROADTOP)/libs/$(LIBRARY_NAME)/$(ARCH_DIR) && \
+		install -m 644  $(LIBRARY) $(XROADTOP)/libs/$(LIBRARY_NAME)/$(ARCH_DIR)) || exit 1
 
 
-# Eriti automaatsed sõltuvused, mis tekivad vastavalt võimalusele:
+# Automatic dependencies, which are created according to availability:
 
 MAKEFILE_COMMON_DEP_SOURCES = $(wildcard *.c *.cc *.cpp)
 
@@ -87,7 +98,7 @@ MAKEFILE_COMMON_DEP_SOURCES = $(wildcard *.c *.cc *.cpp)
 	fi ; \
 	$(RM) $@.tmp
 
-# Väldime sõltuvuste uuendamist make clean korral:
+# Avoid updating dependencies for clean target:
 ifneq ($(MAKECMDGOALS), clean)
 ifneq ($(strip $(MAKEFILE_COMMON_DEP_SOURCES)),)
 -include $(MAKEFILE_COMMON_DEP_SOURCES:%=.deps/%.dep)
@@ -99,8 +110,8 @@ clean: clean-deps
 clean-deps:
 	rm -rf .deps
 
-# Kui käesolev Makefile teeb teeki, siis keelame paralleelse makemise, et
-# mitu protsessi korraga .a-faili uuendama ei satuks.
+# Forbid parallel make if we are building a library, to avoid multiple processes updating the same .a file
+# simultaneously.
 ifneq ($(strip $(LIBRARY)),)
 .NOTPARALLEL:
 endif

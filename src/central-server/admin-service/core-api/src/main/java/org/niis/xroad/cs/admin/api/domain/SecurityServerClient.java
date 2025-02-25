@@ -47,9 +47,11 @@ public abstract class SecurityServerClient extends Auditable {
     private int id;
     private ClientId identifier;
     private Set<ServerClient> serverClients = new HashSet<>();
+    private String name;
 
-    public SecurityServerClient(ClientId identifier) {
+    public SecurityServerClient(ClientId identifier, String name) {
         this.identifier = identifier;
+        this.name = name;
     }
 
 }

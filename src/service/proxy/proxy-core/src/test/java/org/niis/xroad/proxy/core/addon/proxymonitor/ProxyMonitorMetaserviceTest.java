@@ -30,13 +30,12 @@ package org.niis.xroad.proxy.core.addon.proxymonitor;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import io.smallrye.config.PropertiesConfigSource;
-import io.smallrye.config.SmallRyeConfigBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
@@ -72,11 +71,7 @@ public class ProxyMonitorMetaserviceTest {
 
         ProxyTestSuiteHelper.setPropsIfNotSet(proxyProps);
 
-        ProxyTestSuiteHelper.proxyProperties = new SmallRyeConfigBuilder()
-                .withMapping(ProxyProperties.class)
-                .withSources(new PropertiesConfigSource(proxyProps, "testProperties"))
-                .build()
-                .getConfigMapping(ProxyProperties.class);
+        ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
 
         ProxyTestSuiteHelper.startTestServices();
 

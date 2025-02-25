@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.niis.xroad.opmonitor.core.OpMonitorDaemonDatabaseCtx.doInTransaction;
-import static org.niis.xroad.opmonitor.core.OperationalDataRecordManager.storeRecords;
 
 // Utilities for the various levels of tests against
 // OperationalMonitoringRecord that use the HSQLDB in-memory database.
@@ -119,7 +118,8 @@ final class OperationalDataTestUtil {
     }
 
     static void storeFullOperationalDataRecords(int count,
-                                                long monitoringDataTs) throws Exception {
+                                                long monitoringDataTs,
+                                                OperationalDataRecordManager operationalDataRecordManager) throws Exception {
         List<OperationalDataRecord> records = new ArrayList<>();
         OperationalDataRecord record;
 
@@ -131,11 +131,12 @@ final class OperationalDataTestUtil {
             records.add(record);
         }
 
-        storeRecords(records, monitoringDataTs);
+        operationalDataRecordManager.storeRecords(records, monitoringDataTs);
     }
 
     static void storeFullOperationalDataRecord(long monitoringDataTs,
-                                               ClientId client, ClientId serviceProvider) throws Exception {
+                                               ClientId client, ClientId serviceProvider,
+                                               OperationalDataRecordManager operationalDataRecordManager) throws Exception {
         OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 
@@ -151,6 +152,6 @@ final class OperationalDataTestUtil {
         record.setServiceMemberCode(serviceProvider.getMemberCode());
         record.setServiceSubsystemCode(serviceProvider.getSubsystemCode());
 
-        storeRecords(Collections.singletonList(record), monitoringDataTs);
+        operationalDataRecordManager.storeRecords(Collections.singletonList(record), monitoringDataTs);
     }
 }

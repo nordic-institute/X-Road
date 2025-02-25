@@ -34,8 +34,9 @@ lost.
 
 ### Prerequisites:
 
-* Add `XROAD_HOME` environment variable to your shell profile. This variable should point to the root directory of the X-Road
-  source code. This is needed for the scripts to find the correct files.
+* Optionally set the `XROAD_HOME` environment variable in your shell profile. This variable should point to the root
+  directory of the X-Road source code. This is needed for the scripts to find the correct files if the shell script is
+  executed from a different working directory.
 
 ### Creating the environment
 

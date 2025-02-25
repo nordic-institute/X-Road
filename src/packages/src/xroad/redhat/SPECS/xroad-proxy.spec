@@ -38,6 +38,7 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
+mkdir -p %{buildroot}/usr/share/xroad/jlib/proxy
 mkdir -p %{buildroot}/usr/share/xroad/scripts
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/conf.d
@@ -55,7 +56,7 @@ cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/b
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -a %{srcdir}/../../../security-server/admin-service/infra-jpa/src/main/resources/liquibase/* %{buildroot}/usr/share/xroad/db/
-cp -p %{srcdir}/../../../service/proxy/proxy-application/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p -r %{srcdir}/../../../service/proxy/proxy-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/proxy
 cp -p %{srcdir}/default-configuration/proxy.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{srcdir}/ubuntu/generic/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
@@ -65,7 +66,7 @@ cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHAN
 cp -p %{srcdir}/common/proxy/etc/xroad/backup.d/??_xroad-proxy %{buildroot}/etc/xroad/backup.d/
 cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/etc/cron.d/
 
-ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
+ln -s /usr/share/xroad/jlib/proxy/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /usr/share/xroad/bin/xroad-add-admin-user.sh %{buildroot}/usr/bin/xroad-add-admin-user
 
 %clean
@@ -97,7 +98,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
-/usr/share/xroad/jlib/proxy*.jar
+/usr/share/xroad/jlib/proxy.jar
+/usr/share/xroad/jlib/proxy/
 /usr/share/xroad/scripts/backup_db.sh
 /usr/share/xroad/scripts/restore_db.sh
 /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh

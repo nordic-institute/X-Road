@@ -32,12 +32,13 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxy.core.serverproxy.ProxyMessageSoapEntity;
@@ -58,20 +59,21 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringRequests.GET_SECURITY_SER
  * Service handler for operational monitoring.
  */
 @Slf4j
+
+@ApplicationScoped
 public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
-    private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
-            OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds());
+    private final OpMonitorCommonProperties commonProperties;
 
-    private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
-            OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds());
-
-    private static final String OP_MONITOR_ADDRESS = getOpMonitorAddress();
+    private final String opMonitorAddress;
 
     private HttpSender sender;
 
-    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
+                                          OpMonitorCommonProperties opMonitorCommonProperties) {
         super(serverConfProvider, globalConfProvider);
+        this.commonProperties = opMonitorCommonProperties;
+        this.opMonitorAddress = getOpMonitorAddress();
     }
 
     @Override
@@ -105,15 +107,15 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
         sender = createHttpSender(opMonitorClient);
-        sender.setConnectionTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
-        sender.setSocketTimeout(SOCKET_TIMEOUT_MILLISECONDS);
+        sender.setConnectionTimeout(TimeUtils.secondsToMillis(commonProperties.service().socketTimeoutSeconds()));
+        sender.setSocketTimeout(TimeUtils.secondsToMillis(commonProperties.service().socketTimeoutSeconds()));
         sender.addHeader("accept-encoding", "");
 
-        sendRequest(servletRequest, proxyRequestMessage, opMonitoringData);
+        sendRequest(proxyRequestMessage, opMonitoringData);
     }
 
     @Override
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         sender.close();
         sender = null;
     }
@@ -132,16 +134,15 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         return new HttpSender(opMonitorClient);
     }
 
-    private void sendRequest(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
-                             OpMonitoringData opMonitoringData) throws Exception {
-        log.trace("sendRequest {}", OP_MONITOR_ADDRESS);
+    private void sendRequest(ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData) {
+        log.trace("sendRequest {}", opMonitorAddress);
 
         URI opMonitorUri;
 
         try {
             opMonitorUri = getOpMonitorUri();
         } catch (URISyntaxException e) {
-            log.error("Malformed operational monitoring daemon address '{}'", OP_MONITOR_ADDRESS, e);
+            log.error("Malformed operational monitoring daemon address '{}'", opMonitorAddress, e);
 
             throw new CodedException(X_INTERNAL_ERROR, "Malformed operational monitoring daemon address");
         }
@@ -163,13 +164,15 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-    private static String getOpMonitorAddress() {
-        return String.format("%s://%s:%s%s", OpMonitoringSystemProperties.getOpMonitorDaemonScheme(),
-                OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
+    private String getOpMonitorAddress() {
+        return String.format("%s://%s:%s%s",
+                commonProperties.connection().scheme(),
+                commonProperties.connection().host(),
+                commonProperties.connection().port(),
                 OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
     }
 
-    private static URI getOpMonitorUri() throws URISyntaxException {
-        return new URI(OP_MONITOR_ADDRESS);
+    private URI getOpMonitorUri() throws URISyntaxException {
+        return new URI(opMonitorAddress);
     }
 }

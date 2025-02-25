@@ -1,23 +1,6 @@
 plugins {
   id("xroad.java-conventions")
-  id("io.quarkus")
-}
-
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.package.output-directory", "libs")
-      put("quarkus.package.output-name", "signer-console-1.0")
-      put("quarkus.package.jar.type", "uber-jar")
-      put("quarkus.package.jar.add-runner-suffix", "false")
-    }
-  )
-}
-
-tasks {
-  named<JavaCompile>("compileJava") {
-    dependsOn("compileQuarkusGeneratedSourcesJava")
-  }
+  id("xroad.quarkus-application-conventions")
 }
 
 dependencies {
@@ -38,8 +21,4 @@ dependencies {
 
 tasks.jar {
   enabled = false
-}
-
-tasks.test {
-  systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
 }

@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.registrationservice.controller;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.request.AuthCertRegRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,7 @@ public class RegistrationRequestController {
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
         return managementRequestSoapExecutor.process(contentType, body,
                 result -> {
-                    var authRequest = result.getAuthCertRegRequest()
+                    var authRequest = result.getRequest(AuthCertRegRequestType.class)
                             .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertRegRequest is missing"));
 
                     log.debug("Making a registration request for {}", authRequest.getServer());

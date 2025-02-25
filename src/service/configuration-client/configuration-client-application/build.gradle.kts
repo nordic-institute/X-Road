@@ -4,14 +4,6 @@ plugins {
   id("maven-publish")
 }
 
-quarkus {
-  quarkusBuildProperties.putAll(
-    buildMap {
-      put("quarkus.package.output-name", "configuration-client-1.0")
-    }
-  )
-}
-
 jib {
   to {
     image = "${project.property("xroadImageRegistry")}/ss-configuration-client"
