@@ -102,11 +102,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     private static MessageFactory messageFactory;
 
     @Rule
-    public final ProvideSystemProperty hibernatePropertiesProperty
-            = new ProvideSystemProperty(SystemProperties.DATABASE_PROPERTIES,
-            "src/test/resources/hibernate.properties");
-
-    @Rule
     public final ProvideSystemProperty configurationPathProperty
             = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
             "src/test/resources/");

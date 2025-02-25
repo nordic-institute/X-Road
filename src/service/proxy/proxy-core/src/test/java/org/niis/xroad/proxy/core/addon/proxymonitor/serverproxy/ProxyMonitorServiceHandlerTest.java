@@ -75,11 +75,6 @@ public class ProxyMonitorServiceHandlerTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Rule
-    public final ProvideSystemProperty hibernatePropertiesProperty
-            = new ProvideSystemProperty(SystemProperties.DATABASE_PROPERTIES,
-            "src/test/resources/hibernate.properties");
-
-    @Rule
     public final ProvideSystemProperty configurationPathProperty
             = new ProvideSystemProperty(SystemProperties.CONFIGURATION_PATH,
             "src/test/resources/");

@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.core.addon.metaservice.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -62,7 +61,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -148,12 +146,6 @@ public class MetadataServiceHandlerTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Rule
-    public final ProvideSystemProperty hibernatePropertiesProperty
-            = new ProvideSystemProperty(SystemProperties.DATABASE_PROPERTIES,
-            "src/test/resources/hibernate.properties");
-
 
     private HttpClient httpClientMock;
     private RequestWrapper mockRequest;

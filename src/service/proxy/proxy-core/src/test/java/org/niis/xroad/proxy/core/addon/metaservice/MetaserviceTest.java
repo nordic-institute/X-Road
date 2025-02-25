@@ -83,8 +83,6 @@ public class MetaserviceTest {
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
 
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
-
         ProxyTestSuiteHelper.startTestServices();
     }
 
