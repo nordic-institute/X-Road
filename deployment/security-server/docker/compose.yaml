@@ -82,7 +82,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
       - xroad-network
@@ -106,7 +106,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xroad-network
       - xrd-ss-network
@@ -127,14 +127,21 @@ services:
     image: ${PROXY_IMG}
     pull_policy: always
     environment:
-      - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - XROAD_HOST=proxy
 #    volumes:
 #      - ./temp-mount-xroad:/etc/xroad
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
       - xroad-network

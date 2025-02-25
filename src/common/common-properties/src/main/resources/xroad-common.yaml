@@ -30,7 +30,7 @@ spring:
 "%containerized":
   quarkus:
     http:
-      port: 8080
+      port: 4099
       host-enabled: true
 
 logging:

@@ -205,6 +205,7 @@ quarkus-core = [
 quarkus-containerized = [
   "quarkus-kubernetes",
   "quarkus-health",
+  "quarkus-containerImage-jib"
 ]
 
 [plugins]
