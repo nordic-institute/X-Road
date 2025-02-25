@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.auth;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import jakarta.servlet.http.Cookie;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -98,6 +100,9 @@ public class CsrfWebMvcTest {
 
     @MockBean
     private ConfClientRpcClient confClientRpcClient;
+
+    @MockBean(name = SERVER_CONF_DB_CTX)
+    DatabaseCtx databaseCtx;
 
     @Before
     // setup mock auth in the SecurityContext and mock both auth providers (form login and api-key)

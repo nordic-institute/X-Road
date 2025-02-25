@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -199,7 +198,6 @@ public class ClientProxy {
         log.trace("stop()");
 
         server.stop();
-        HibernateUtil.closeSessionFactories();
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {

@@ -40,7 +40,9 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class TimestamperWorker {
-    private final GlobalConfProvider globalConfProvider;
+    final GlobalConfProvider globalConfProvider;
+    final LogRecordManager logRecordManager;
+
     private final List<String> tspUrls;
 
     public Timestamper.TimestampResult timestamp(TimestampTask message) {
@@ -104,7 +106,7 @@ public class TimestamperWorker {
     }
 
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(globalConfProvider, logRecord);
+        return new SingleTimestampRequest(logRecordManager, globalConfProvider, logRecord);
     }
 
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {

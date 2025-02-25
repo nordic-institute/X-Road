@@ -53,7 +53,6 @@ import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.FileConsumer;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
-import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
@@ -213,7 +212,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void ensureTimestamped(ClientId id, String queryId, Boolean response, boolean force) throws Exception {
-        final List<MessageRecord> records = LogRecordManager.getByQueryId(queryId, id, response, Function.identity());
+        final List<MessageRecord> records = commonBeanProxy.getLogRecordManager().getByQueryId(queryId, id, response, Function.identity());
 
         if (records.isEmpty()) {
             throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
@@ -296,7 +295,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
                                  Boolean response, CheckedSupplier<OutputStream> outputSupplier) throws Exception {
 
-        LogRecordManager.getByQueryId(queryId, clientId, response, records -> {
+        commonBeanProxy.getLogRecordManager().getByQueryId(queryId, clientId, response, records -> {
             if (records.isEmpty()) {
                 throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                         DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
@@ -358,7 +357,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
         final boolean encryptionEnabled = encryptionConfig.isEnabled();
 
-        LogRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
+        commonBeanProxy.getLogRecordManager().getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
                 if (record == null) {
                     throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,

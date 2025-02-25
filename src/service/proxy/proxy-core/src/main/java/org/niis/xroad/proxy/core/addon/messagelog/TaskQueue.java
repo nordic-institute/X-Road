@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import lombok.AccessLevel;
@@ -39,7 +40,6 @@ import org.niis.xroad.proxy.core.addon.messagelog.Timestamper.TimestampTask;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.niis.xroad.proxy.core.addon.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
 /**
  * Handles the TaskQueues -- adds tasks to the queue and sends the active queue for time-stamping.
@@ -53,6 +53,7 @@ public class TaskQueue {
 
     private final Timestamper timestamper;
     private final LogManager logManager;
+    private final DatabaseCtx messageLogDatabaseCtx;
 
     protected void handleTimestampSucceeded(TimestampSucceeded message) {
         log.trace("handleTimestampSucceeded");
@@ -87,7 +88,7 @@ public class TaskQueue {
     }
 
     protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
-        LogManager.saveTimestampRecord(message);
+        logManager.saveTimestampRecord(message);
     }
 
     private void indicateSuccess() {
@@ -139,7 +140,7 @@ public class TaskQueue {
         List<Task> timestampTasks;
 
         try {
-            timestampTasks = doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
+            timestampTasks = messageLogDatabaseCtx.doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
         } catch (Exception e) {
             log.error("Error getting time-stamp tasks", e);
 
@@ -183,9 +184,9 @@ public class TaskQueue {
         return new TimestampTask(messageRecords, signatureHashes);
     }
 
-    private static boolean isTaskQueueEmpty() {
+    private boolean isTaskQueueEmpty() {
         try {
-            return doInTransaction(TaskQueue::getTasksQueueSize) == 0L;
+            return messageLogDatabaseCtx.doInTransaction(TaskQueue::getTasksQueueSize) == 0L;
         } catch (Exception e) {
             log.error("Could not read timestamp task queue status", e);
 

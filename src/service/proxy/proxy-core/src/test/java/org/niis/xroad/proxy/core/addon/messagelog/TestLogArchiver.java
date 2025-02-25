@@ -27,6 +27,8 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.messagelog.archiver.application.LogArchiver;
 import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
@@ -38,8 +40,8 @@ class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider) {
-        super(logArchiverProperties, globalConfProvider);
+    TestLogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider, DatabaseCtx messageLogDatabaseCtx) {
+        super(logArchiverProperties, globalConfProvider, messageLogDatabaseCtx);
     }
 
     public static void waitForArchiveSuccessful() throws Exception {

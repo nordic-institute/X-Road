@@ -25,13 +25,20 @@
  */
 package org.niis.xroad.opmonitor.core.config;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
+
+import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
 
 public class OpMonitorDaemonRootConfig {
 
+
     @ApplicationScoped
-    OperationalDataRecordManager operationalDataRecordManager(OpMonitorProperties opMonitorProperties) {
-        return new OperationalDataRecordManager(opMonitorProperties.getMaxRecordsInPayload());
+    OperationalDataRecordManager operationalDataRecordManager(@Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
+                                                              OpMonitorProperties opMonitorProperties) {
+        return new OperationalDataRecordManager(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
     }
 }

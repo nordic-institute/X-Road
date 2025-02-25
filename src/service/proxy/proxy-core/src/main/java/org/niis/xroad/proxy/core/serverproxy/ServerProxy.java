@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
@@ -186,8 +185,6 @@ public class ServerProxy {
         client.close();
         opMonitorClient.close();
         server.stop();
-
-        HibernateUtil.closeSessionFactories();
     }
 
     /**

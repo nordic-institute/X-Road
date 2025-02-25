@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,31 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.dao;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
-import org.hibernate.Session;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.model.UiUserType;
+package org.niis.xroad.opmonitor.core.config;
 
-/**
- * UiUser data access object implementation.
- */
-public class UiUserDAOImpl extends AbstractDAOImpl<UiUserType> {
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-    /**
-     * Returns the UiUser object for the given user name or null.
-     * @param username the user name
-     * @return the UiUser object for the given user name or null
-     */
-    public static UiUserType getUiUser(String username) {
-        Session session = ServerConfDatabaseCtx.getSession();
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<UiUserType> q = cb.createQuery(UiUserType.class);
-        final Root<UiUserType> root = q.from(UiUserType.class);
-        q.select(root).where(cb.equal(root.get("username"), username));
-        return session.createQuery(q).uniqueResult();
-    }
+import java.util.Map;
+
+@ConfigMapping(prefix = "xroad.db.op-monitor")
+public interface OpMonitorDbProperties {
+
+    @WithName("hibernate")
+    Map<String, String> hibernate();
 }
