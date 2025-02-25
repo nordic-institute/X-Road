@@ -25,11 +25,12 @@
  */
 package org.niis.xroad.messagelog.archiver.application;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.MutationQuery;
 
@@ -40,9 +41,15 @@ import java.time.temporal.ChronoUnit;
  */
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor
 public class LogCleaner {
     private final LogArchiverProperties logArchiverProperties;
+    private final DatabaseCtx databaseCtx;
+
+    public LogCleaner(LogArchiverProperties logArchiverProperties,
+                      @Named(MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
+        this.logArchiverProperties = logArchiverProperties;
+        this.databaseCtx = databaseCtx;
+    }
 
     public void execute() {
         try {
@@ -65,7 +72,7 @@ public class LogCleaner {
         long count = 0;
         int removed;
         do {
-            removed = MessageLogDatabaseCtx.doInTransaction(session -> {
+            removed = databaseCtx.doInTransaction(session -> {
                 final MutationQuery query = session.createNamedMutationQuery("delete-logrecords");
                 query.setParameter("time", time);
                 query.setParameter("limit", logArchiverProperties.cleanTransactionBatchSize());

@@ -42,7 +42,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
-import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
@@ -208,16 +207,9 @@ public class ProxyStepDefs extends BaseStepDefs {
     }
 
     @SneakyThrows
-    private KeyConfProvider createKeyConf() {
-        var globalConf = TestGlobalConfFactory.create();
-        var serverConf = new ServerConfImpl(globalConf);
-        return new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
-    }
-
-    @SneakyThrows
     private SigningCtxProvider createSigningCtxProvider() {
         var globalConf = TestGlobalConfFactory.create();
-        var serverConf = new ServerConfImpl(globalConf);
+        var serverConf = new ServerConfImpl(null, globalConf);
         var keyconf = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
         return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient));

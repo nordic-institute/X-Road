@@ -82,7 +82,7 @@ public class MetadataHandlerTest {
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null);
+                null, null, null);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);

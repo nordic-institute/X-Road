@@ -27,6 +27,8 @@
 
 package org.niis.xroad.configuration.migration;
 
+import lombok.NoArgsConstructor;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +36,7 @@ import java.util.Map;
  * Some properties have their paths changed. This class is used to map old paths to new paths.
  */
 @SuppressWarnings("checkstyle:LineLength")
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class LegacyConfigPathMapping {
     private static final Map<String, String> MAPPING = new HashMap<>();
 
@@ -95,9 +98,40 @@ public class LegacyConfigPathMapping {
         MAPPING.put("op-monitor-buffer.socket-timeout-seconds", "op-monitor.buffer.socket-timeout-seconds");
         MAPPING.put("op-monitor-buffer.connection-timeout-seconds", "op-monitor.buffer.connection-timeout-seconds");
 
+        MAPPING.putAll(addDatabaseMapping("serverconf"));
+        MAPPING.putAll(addDatabaseMapping("messagelog"));
+        MAPPING.putAll(addDatabaseMapping("op-monitor"));
     }
 
-    String map(String oldPath) {
+    private static Map<String, String> addDatabaseMapping(String dbName) {
+        Map<String, String> dbPropMapping = new HashMap<>();
+        dbPropMapping.put(
+                "%s.hibernate.connection.url".formatted(dbName),
+                "db.%s.hibernate.connection.url".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.connection.username".formatted(dbName),
+                "db.%s.hibernate.connection.username".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.connection.password".formatted(dbName),
+                "db.%s.hibernate.connection.password".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName),
+                "db.%s.hibernate.jdbc.use_streams_for_binary".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.connection.driver_class".formatted(dbName),
+                "db.%s.hibernate.connection.driver_class".formatted(dbName));
+
+        dbPropMapping.put(
+                "%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName),
+                "db.%s.hibernate.hikari.dataSource.currentSchema".formatted(dbName));
+        return dbPropMapping;
+    }
+
+    static String map(String oldPath) {
         return MAPPING.getOrDefault(oldPath, oldPath);
     }
 }

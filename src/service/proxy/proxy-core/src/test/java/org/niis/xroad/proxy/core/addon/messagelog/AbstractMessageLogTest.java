@@ -27,10 +27,10 @@
 package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
@@ -38,9 +38,11 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -48,7 +50,6 @@ import org.niis.xroad.messagelog.archiver.application.LogArchiver;
 import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -71,6 +72,9 @@ abstract class AbstractMessageLogTest {
     KeyConfProvider keyConfProvider;
     TestServerConfWrapper serverConfProvider;
     CommonBeanProxy commonBeanProxy;
+    LogRecordManager logRecordManager;
+    DatabaseCtx databaseCtx;
+
     LogManager logManager;
     LogArchiverProperties logArchiverProperties;
 
@@ -90,16 +94,32 @@ abstract class AbstractMessageLogTest {
         globalConfProvider = getGlobalConf();
         keyConfProvider = mock(KeyConfProvider.class);
         serverConfProvider = new TestServerConfWrapper(getServerConf());
+
+        Map<String, String> hibernateProperties = Map.of(
+                "xroad.db.messagelog.hibernate.connection.driver_class", "org.hsqldb.jdbcDriver",
+                "xroad.db.messagelog.hibernate.connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
+                "xroad.db.messagelog.hibernate.connection.username", "securelog",
+                "xroad.db.messagelog.hibernate.connection.password", "securelog",
+                "xroad.db.messagelog.hibernate.hbm2ddl.auto", "create-drop",
+                "xroad.db.messagelog.hibernate.hbm2ddl.import_files", "schema.sql",
+                "xroad.db.messagelog.hibernate.jdbc.batch_size", "20",
+                "xroad.db.messagelog.hibernate.show_sql", "false"
+        );
+        var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
+        databaseCtx = MessageLogDatabaseConfig.create(props);
+        logRecordManager = new LogRecordManager(databaseCtx);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null);
+                null, null, logRecordManager);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
-        logManager = (LogManager) getLogManagerImpl()
-                .getDeclaredConstructor(GlobalConfProvider.class, ServerConfProvider.class)
-                .newInstance(globalConfProvider, serverConfProvider);
+        if (useTestLogManager()) {
+            logManager = new TestLogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx);
+        } else {
+            logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, databaseCtx);
+        }
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
@@ -109,8 +129,8 @@ abstract class AbstractMessageLogTest {
                 "xroad.message-log-archiver.archive-path", archivesDir,
                 "xroad.message-log-archiver.keep-records-for", "0"));
 
-        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider);
-        logCleanerRef = new TestLogCleaner(logArchiverProperties);
+        logArchiverRef = new TestLogArchiver(logArchiverProperties, globalConfProvider, databaseCtx);
+        logCleanerRef = new TestLogCleaner(logArchiverProperties, databaseCtx);
     }
 
     void testTearDown() throws Exception {
@@ -118,8 +138,8 @@ abstract class AbstractMessageLogTest {
         FileUtils.deleteDirectory(archivesPath.toFile());
     }
 
-    protected Class<? extends AbstractLogManager> getLogManagerImpl() {
-        return LogManager.class;
+    protected boolean useTestLogManager() {
+        return false;
     }
 
     void initLogManager() {

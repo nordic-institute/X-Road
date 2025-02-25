@@ -27,11 +27,13 @@ package org.niis.xroad.messagelog.archiver.application;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
+import ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
 import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
@@ -39,11 +41,11 @@ import ee.ria.xroad.messagelog.database.mapper.ArchiveDigestMapper;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Root;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
@@ -61,15 +63,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
-
 /**
  * Reads all non-archived time-stamped records from the database, writes them
  * to archive file and marks the records as archived.
  */
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor
 public class LogArchiver {
 
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
@@ -78,10 +77,18 @@ public class LogArchiver {
 
     private final LogArchiverProperties logArchiverProperties;
     private final GlobalConfProvider globalConfProvider;
+    private final DatabaseCtx databaseCtx;
+
+    public LogArchiver(LogArchiverProperties logArchiverProperties, GlobalConfProvider globalConfProvider,
+                       @Named(MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
+        this.logArchiverProperties = logArchiverProperties;
+        this.globalConfProvider = globalConfProvider;
+        this.databaseCtx = databaseCtx;
+    }
 
     public void execute() {
         try {
-            Long maxRecordId = doInTransaction(this::getMaxRecordId);
+            Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
                 while (handleArchive(maxRecordId)) {
                     // body intentionally empty
@@ -100,7 +107,7 @@ public class LogArchiver {
     }
 
     private boolean handleArchive(long maxRecordId) throws Exception {
-        return doInTransaction(session -> {
+        return databaseCtx.doInTransaction(session -> {
             final int limit = logArchiverProperties.archiveTransactionBatchSize();
             final long start = System.currentTimeMillis();
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();

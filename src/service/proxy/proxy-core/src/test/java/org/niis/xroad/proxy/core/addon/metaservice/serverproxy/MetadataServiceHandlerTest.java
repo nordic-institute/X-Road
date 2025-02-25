@@ -68,15 +68,10 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.addon.metaservice.common.WsdlRequestData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
-import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
@@ -127,7 +122,6 @@ import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.verifyAndGetSin
 import static org.niis.xroad.proxy.core.util.MetadataRequests.ALLOWED_METHODS;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.GET_WSDL;
 import static org.niis.xroad.proxy.core.util.MetadataRequests.LIST_METHODS;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 
 /**
@@ -146,6 +140,7 @@ public class MetadataServiceHandlerTest {
     // the uri from which the WSDL can be found by the meta service
     private static final String MOCK_SERVER_WSDL_URL =
             "http://localhost:" + WSDL_SERVER_PORT + EXPECTED_WSDL_QUERY_PATH;
+
 
     private static Unmarshaller unmarshaller;
     private static MessageFactory messageFactory;
@@ -166,6 +161,7 @@ public class MetadataServiceHandlerTest {
     private WireMockServer mockServer;
     private TestServerConfWrapper serverConfProvider;
     private GlobalConfProvider globalConfProvider;
+    private DescriptionType serverConfReturnDescriptionType;
 
     /**
      * Init class-wide test instances
@@ -185,7 +181,25 @@ public class MetadataServiceHandlerTest {
     @Before
     public void init() {
 
-        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
+        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf() {
+            @Override
+            public DescriptionType getDescriptionType(ServiceId service) {
+                if (service.toString().equals("SERVICE:EE/GOV/1234TEST_CLIENT/SUBCODE5/someServiceWithWsdl122")) {
+                    return serverConfReturnDescriptionType;
+                } else {
+                    return super.getDescriptionType(service);
+                }
+            }
+
+            @Override
+            public String getServiceDescriptionURL(ServiceId service) {
+                if (service.toString().equals("SERVICE:EE/GOV/1234TEST_CLIENT/SUBCODE5/someServiceWithWsdl122")) {
+                    return MOCK_SERVER_WSDL_URL;
+                } else {
+                    return super.getServiceDescriptionURL(service);
+                }
+            }
+        });
         globalConfProvider = new TestSuiteGlobalConf();
 
         httpClientMock = mock(HttpClient.class);
@@ -200,7 +214,6 @@ public class MetadataServiceHandlerTest {
     @After
     public void tearDown() throws Exception {
         this.mockServer.stop();
-        MetaserviceTestUtil.cleanDB();
     }
 
     @Test
@@ -475,8 +488,7 @@ public class MetadataServiceHandlerTest {
 
         when(mockProxyMessage.getSoapContent()).thenReturn(soapContentInputStream);
 
-        setUpDatabase(requestingWsdlForService);
-
+        serverConfReturnDescriptionType = DescriptionType.WSDL;
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withStatus(HttpStatus.FORBIDDEN_403)));
@@ -634,8 +646,7 @@ public class MetadataServiceHandlerTest {
 
         when(mockProxyMessage.getSoapContent()).thenReturn(soapContentInputStream);
 
-        setUpDatabase(requestingWsdlForService, isRest);
-
+        serverConfReturnDescriptionType = isRest ? DescriptionType.REST : DescriptionType.WSDL;
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withBodyFile("wsdl.wsdl")));
@@ -655,46 +666,6 @@ public class MetadataServiceHandlerTest {
                 Paths.get(ClassLoader.getSystemResource(filename).toURI()),
                 UTF_8
         );
-    }
-
-    private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
-        ServerConfType conf = new ServerConfType();
-        conf.setServerCode("TestServer");
-
-        ClientType client = new ClientType();
-        client.setConf(conf);
-
-        conf.getClient().add(client);
-
-        client.setIdentifier(serviceId.getClientId());
-
-        ServiceDescriptionType wsdl = new ServiceDescriptionType();
-        wsdl.setClient(client);
-        wsdl.setUrl(MOCK_SERVER_WSDL_URL);
-        if (isRest) {
-            wsdl.setType(DescriptionType.REST);
-        } else {
-            wsdl.setType(DescriptionType.WSDL);
-        }
-
-        ServiceType service = new ServiceType();
-        service.setServiceDescription(wsdl);
-        service.setTitle("someTitle");
-        service.setServiceCode(serviceId.getServiceCode());
-
-        wsdl.getService().add(service);
-
-        client.getServiceDescription().add(wsdl);
-
-        doInTransaction(session -> {
-            session.persist(conf);
-            return null;
-        });
-
-    }
-
-    private void setUpDatabase(ServiceId.Conf serviceId) throws Exception {
-        setUpDatabase(serviceId, false);
     }
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)

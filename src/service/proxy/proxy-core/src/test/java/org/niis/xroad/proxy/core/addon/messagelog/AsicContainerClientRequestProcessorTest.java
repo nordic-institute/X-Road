@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.RestRequest;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -81,7 +80,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         return new Object[]{Boolean.FALSE, Boolean.TRUE};
     }
 
-    @Parameterized.Parameter(0)
+    @Parameterized.Parameter()
     public boolean encrypted;
 
     @Test
@@ -284,12 +283,11 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
 
         testTearDown();
-        cleanUpDatabase();
+        cleanUpDatabase(databaseCtx);
     }
 
     @Override
-    protected Class<? extends AbstractLogManager> getLogManagerImpl() {
-        return TestLogManager.class;
+    protected boolean useTestLogManager() {
+        return true;
     }
-
 }

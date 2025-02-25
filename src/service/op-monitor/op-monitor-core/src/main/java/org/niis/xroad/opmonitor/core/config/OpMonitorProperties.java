@@ -31,8 +31,6 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
-import java.util.Map;
-
 @ConfigMapping(prefix = "xroad.op-monitor")
 public interface OpMonitorProperties {
     String DEFAULT_MAX_RECORDS_IN_PAYLOAD = "10000";
@@ -94,6 +92,4 @@ public interface OpMonitorProperties {
     @WithDefault("600")
     int healthStatisticsPeriodSeconds();
 
-    @WithName("hibernate")
-    Map<String, String> hibernate();
 }

@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.core.addon.messagelog;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
@@ -82,6 +83,8 @@ public class LogManager extends AbstractLogManager {
 
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
+    protected final LogRecordManager logRecordManager;
+    protected final DatabaseCtx messageLogDatabaseCtx;
 
     private final Timestamper timestamper;
     private final TimestamperJob timestamperJob;
@@ -89,11 +92,14 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
-    public LogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    public LogManager(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager,
+                      DatabaseCtx messageLogDatabaseCtx) {
         super(globalConfProvider, serverConfProvider);
 
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
+        this.logRecordManager = logRecordManager;
+        this.messageLogDatabaseCtx = messageLogDatabaseCtx;
         this.timestamper = getTimestamperImpl();
         this.taskQueue = getTaskQueueImpl(timestamper);
         this.timestamperJob = createTimestamperJob(taskQueue);
@@ -141,7 +147,7 @@ public class LogManager extends AbstractLogManager {
     public TimestampRecord timestamp(Long messageRecordId) throws Exception {
         log.trace("timestamp({})", messageRecordId);
 
-        MessageRecord record = (MessageRecord) LogRecordManager.get(messageRecordId);
+        MessageRecord record = (MessageRecord) logRecordManager.get(messageRecordId);
 
         if (record.getTimestampRecord() != null) {
             return record.getTimestampRecord();
@@ -164,11 +170,11 @@ public class LogManager extends AbstractLogManager {
     // ------------------------------------------------------------------------
 
     protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam) {
-        return new TaskQueue(timestamperParam, this);
+        return new TaskQueue(timestamperParam, this, messageLogDatabaseCtx);
     }
 
     protected Timestamper getTimestamperImpl() {
-        return new Timestamper(globalConfProvider, serverConfProvider);
+        return new Timestamper(globalConfProvider, serverConfProvider, logRecordManager);
     }
 
     private TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
@@ -278,17 +284,17 @@ public class LogManager extends AbstractLogManager {
     }
 
     protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
-        LogRecordManager.saveMessageRecord(messageRecord);
+        logRecordManager.saveMessageRecord(messageRecord);
         return messageRecord;
     }
 
-    static TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
+    TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
         log.trace("saveTimestampRecord()");
 
         putStatusMapSuccess(message.getUrl());
 
         TimestampRecord timestampRecord = createTimestampRecord(message);
-        LogRecordManager.saveTimestampRecord(timestampRecord, message.getMessageRecords(), message.getHashChains());
+        logRecordManager.saveTimestampRecord(timestampRecord, message.getMessageRecords(), message.getHashChains());
 
         return timestampRecord;
     }

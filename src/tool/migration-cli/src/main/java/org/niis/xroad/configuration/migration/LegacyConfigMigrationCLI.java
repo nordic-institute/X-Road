@@ -28,11 +28,8 @@ package org.niis.xroad.configuration.migration;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 
 @Slf4j
@@ -40,49 +37,77 @@ import java.nio.file.Paths;
 public class LegacyConfigMigrationCLI {
 
     public static void main(String[] args) {
+        validateArgs(args);
         try {
-            validateArgs(args);
             var input = args[0];
-            var output = args[1];
 
-            log.info("Migrating configuration from {} to {}..", input, output);
-            var migrator = new ConfigurationMigrator();
 
-            if (migrator.migrate(input, output)) {
-                log.info("Migration successful");
+            if (input.endsWith(".properties")) {
+                var migrator = new LegacyPropertiesMigrator();
+                log.info("Migrating properties from {}..", input);
+                if (migrator.migrateProperties(input)) {
+                    log.info("Properties migration successful");
+                }
             } else {
-                throw new MigrationException("INI to YAML migration has failed. See logs for more details.");
+                var output = args[1];
+                var migrator = new ConfigurationYamlMigrator();
+                log.info("Migrating INI from {} to {}..", input, output);
+                if (migrator.migrate(input, output)) {
+                    log.info("INI migration successful");
+                }
             }
-        } catch (NoSuchFileException e) {
-            throw new MigrationException("Configuration file does not exist", e);
-        } catch (ConfigurationException | IOException e) {
-            throw new MigrationException("Error while loading configuration", e);
+        } catch (Exception e) {
+            throw new MigrationException("Migration failed", e);
         }
     }
 
 
     private static void validateArgs(String[] args) {
-        if (args.length != 2) {
-            log.error("Usage: <input file> <output file>");
-            throw new IllegalArgumentException("Invalid number of arguments. Usage: <input file> <output file>");
+        // Check if no arguments provided
+        if (args.length == 0) {
+            logUsageAndThrow("No arguments provided");
         }
-        if (!isValidPath(args[0])) {
-            throw new IllegalArgumentException("Invalid input file path");
+
+        // Get input file
+        String inputFile = args[0];
+        boolean isPropertiesFile = inputFile.endsWith(".properties");
+
+        // Validate number of arguments based on file type
+        if (isPropertiesFile && args.length != 1) {
+            logUsageAndThrow("Properties file migration requires only input file");
         }
-        if (!isValidPath(args[1])) {
-            throw new IllegalArgumentException("Invalid output file path");
+        if (!isPropertiesFile && args.length != 2) {
+            logUsageAndThrow("INI file migration requires both input and output files");
         }
-        if (!new File(args[0]).exists()) {
-            throw new IllegalArgumentException("Input file does not exist");
+
+        // Validate input file
+        validateFilePath(inputFile, "input");
+        if (!new File(inputFile).exists()) {
+            throw new IllegalArgumentException("Input file does not exist: " + inputFile);
+        }
+
+        // Validate output file if provided
+        if (args.length == 2) {
+            validateFilePath(args[1], "output");
         }
     }
 
-    private static boolean isValidPath(String path) {
+    private static void validateFilePath(String path, String fileType) {
         try {
             var resolvedPath = Paths.get(path);
-            return !resolvedPath.toFile().isDirectory();
+            if (resolvedPath.toFile().isDirectory()) {
+                throw new IllegalArgumentException(
+                        String.format("Invalid %s file path: %s is a directory", fileType, path));
+            }
         } catch (Exception e) {
-            return false;
+            throw new IllegalArgumentException(
+                    String.format("Invalid %s file path: %s", fileType, path), e);
         }
     }
+
+    private static void logUsageAndThrow(String message) {
+        log.error("Usage: <input file> [output file]");
+        throw new IllegalArgumentException(message);
+    }
+
 }

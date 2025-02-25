@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.configuration.migration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -45,10 +46,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class ConfigurationMigrator {
-    private static final String PREFIX = "xroad";
-
-    private final LegacyConfigPathMapping legacyConfigPathMapping = new LegacyConfigPathMapping();
+@Slf4j
+class ConfigurationYamlMigrator {
+    static final String PREFIX = "xroad";
 
     boolean migrate(String inputFilePath, String outputFilePath) throws IOException, ConfigurationException {
         var ini = load(inputFilePath);
@@ -58,7 +58,7 @@ class ConfigurationMigrator {
             for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
                 var sectionKey = it.next();
                 var key = section + "." + sectionKey;
-                var mappedKey = legacyConfigPathMapping.map(key);
+                var mappedKey = LegacyConfigPathMapping.map(key);
                 var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
 
                 insertNestedProperty(properties, mappedKey.split("\\."), valueStr);
@@ -127,6 +127,7 @@ class ConfigurationMigrator {
             yaml.dump(properties, writer);
         }
     }
+
 
     record LoadedIniFile(Path path,
                          List<String> rawContentLines,
