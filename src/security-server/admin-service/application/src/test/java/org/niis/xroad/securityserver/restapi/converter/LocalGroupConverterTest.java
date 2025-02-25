@@ -46,6 +46,7 @@ import static org.junit.Assert.assertEquals;
 public class LocalGroupConverterTest extends AbstractConverterTestContext {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
+    public static final String SUBSYSTEM_NAME_PREFIX = "subsystem-name-for-";
 
     private LocalGroupConverter localGroupConverter;
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
@@ -56,6 +57,11 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
+            }
+
+            @Override
+            public String getSubsystemName(ClientId identifier) {
+                return SUBSYSTEM_NAME_PREFIX + identifier.getSubsystemCode();
             }
         };
         localGroupConverter = new LocalGroupConverter(globalConfFacade);

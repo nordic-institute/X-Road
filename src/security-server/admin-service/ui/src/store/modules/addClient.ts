@@ -180,25 +180,6 @@ export const useAddClient = defineStore('addClient', {
         });
     },
 
-    fetchReservedMembers(client: Client) {
-      // Fetch clients from backend that match the selected client without subsystem code
-      return api
-        .get<Client[]>('/clients', {
-          params: {
-            instance: client.instance_id,
-            member_class: client.member_class,
-            member_code: client.member_code,
-            internal_search: true,
-          },
-        })
-        .then((res) => {
-          this.reservedClients = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
     fetchSelectableClients(instanceId: string) {
       const globalClientsPromise = api.get<Client[]>(
         `/clients?exclude_local=true&internal_search=false&show_members=false&instance=${encodePathParameter(

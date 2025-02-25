@@ -103,12 +103,14 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
         list.getMember().addAll(
-                commonBeanProxy.globalConfProvider.getMembers(instanceIdentifier).stream().map(m -> {
-                    ClientType client = OBJECT_FACTORY.createClientType();
-                    client.setId(m.id());
-                    client.setName(m.name());
-                    return client;
-                }).toList());
+                commonBeanProxy.globalConfProvider.getMembers(instanceIdentifier).stream()
+                        .map(m -> {
+                            ClientType client = OBJECT_FACTORY.createClientType();
+                            client.setId(m.id());
+                            client.setName(m.name());
+                            return client;
+                        })
+                        .toList());
 
         if (acceptsJson()) {
             writeResponseJson(list);

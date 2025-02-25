@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-    <XrdTitledView :title-key="title">
+    <XrdTitledView :title="title">
       <template #header-buttons>
         <MakeOwnerButton
           v-if="showMakeOwner"

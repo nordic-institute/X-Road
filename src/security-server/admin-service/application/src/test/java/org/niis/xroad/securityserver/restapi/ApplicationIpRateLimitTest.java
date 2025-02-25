@@ -31,6 +31,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -73,6 +74,9 @@ class ApplicationIpRateLimitTest {
 
     @MockitoBean
     MonitorClient monitorClient;
+
+    @MockBean
+    GlobalConfProvider globalConfProvider;
 
     @PostConstruct
     void setGlobalSecurityContext() {

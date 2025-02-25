@@ -283,4 +283,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     public GlobalConfExtensions getGlobalConfExtensions() {
         return globalConfProvider.getGlobalConfExtensions();
     }
+
+    @Override
+    public Integer getVersion() {
+        return globalConfProvider.getVersion();
+    }
 }

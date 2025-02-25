@@ -44,45 +44,29 @@
             data-test="select-subsystem-button"
             @click="showSelectClient = true"
           >{{ $t('wizard.subsystem.selectSubsystem') }}
-          </xrd-button
-          >
+          </xrd-button>
         </div>
       </div>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberName')"
-          :help-text="$t('wizard.client.memberNameTooltip')"
-        />
+      <wizard-row-wrap-t label="wizard.memberName" tooltip="wizard.client.memberNameTooltip">
         <div data-test="selected-member-name" class="identifier-wrap">
           {{ memberName }}
         </div>
-      </div>
+      </wizard-row-wrap-t>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberClass')"
-          :help-text="$t('wizard.client.memberClassTooltip')"
-        />
+      <wizard-row-wrap-t label="wizard.memberClass" tooltip="wizard.client.memberClassTooltip">
         <div data-test="selected-member-class" class="identifier-wrap">
           {{ memberClass }}
         </div>
-      </div>
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.memberCode')"
-          :help-text="$t('wizard.client.memberCodeTooltip')"
-        />
+      </wizard-row-wrap-t>
+
+      <wizard-row-wrap-t label="wizard.memberCode" tooltip="wizard.client.memberCodeTooltip">
         <div data-test="selected-member-code" class="identifier-wrap">
           {{ memberCode }}
         </div>
-      </div>
+      </wizard-row-wrap-t>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.subsystemCode')"
-          :help-text="$t('wizard.client.subsystemCodeTooltip')"
-        />
+      <wizard-row-wrap-t label="wizard.subsystemCode" tooltip="wizard.client.subsystemCodeTooltip">
         <v-text-field
           v-model="subsystemCode"
           v-bind="subsystemCodeAttrs"
@@ -93,13 +77,9 @@
           variant="outlined"
           data-test="subsystem-code-input"
         ></v-text-field>
-      </div>
+      </wizard-row-wrap-t>
 
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.subsystemName')"
-          :help-text="$t('wizard.client.subsystemNameTooltip')"
-        />
+      <wizard-row-wrap-t v-if="doesSupportSubsystemNames" label="wizard.subsystemName" tooltip="wizard.client.subsystemNameTooltip">
         <v-text-field
           v-model="subsystemName"
           v-bind="subsystemNameAttrs"
@@ -109,22 +89,16 @@
           variant="outlined"
           data-test="subsystem-name-input"
         ></v-text-field>
-      </div>
+      </wizard-row-wrap-t>
 
-      <div v-if="duplicateClient" class="wizard-duplicate-warning">
-        {{ $t('wizard.subsystem.subsystemExists') }}
-      </div>
-
-      <div class="wizard-row-wrap">
-        <xrd-form-label
-          :label-text="$t('wizard.subsystem.registerSubsystem')"
-        />
+      <wizard-row-wrap-t label="wizard.subsystem.registerSubsystem">
         <v-checkbox
           v-model="registerChecked"
           class="register-checkbox"
           data-test="register-subsystem-checkbox"
+          density="compact"
         ></v-checkbox>
-      </div>
+      </wizard-row-wrap-t>
     </div>
 
     <div class="button-footer">
@@ -135,13 +109,12 @@
         </xrd-button>
       </div>
       <xrd-button
-        :disabled="!meta.valid || duplicateClient"
+        :disabled="!meta.valid"
         data-test="submit-add-subsystem-button"
         :loading="submitLoading"
         @click="done"
       >{{ $t('action.addSubsystem') }}
-      </xrd-button
-      >
+      </xrd-button>
     </div>
 
     <SelectClientDialog
@@ -165,7 +138,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
@@ -173,9 +146,11 @@ import { Client } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { useNotifications } from '@/store/modules/notifications';
-import { useForm } from 'vee-validate';
+import { defineRule, useForm } from 'vee-validate';
 import { i18n } from '@/plugins/i18n';
 import { useRouter } from 'vue-router';
+import { useSystem } from '@/store/modules/system';
+import WizardRowWrapT from '@/components/ui/WizardRowWrapT.vue';
 
 const props = defineProps({
   instanceId: {
@@ -196,9 +171,31 @@ const props = defineProps({
   },
 });
 
+const { t } = i18n.global;
+
+function uniqueClient(subsystemCode: string) {
+  if (!subsystemCode) {
+    return true;
+  }
+
+  if (containsClient(
+    existingSubsystems.value,
+    props.memberClass,
+    props.memberCode,
+    subsystemCode,
+  )) {
+    console.error('Subsystem already exists');
+    return t('wizard.subsystem.subsystemExists');
+  }
+
+  return true;
+}
+
+defineRule('uniqueClient', uniqueClient)
+
 const { meta, handleSubmit, defineField, setFieldValue } = useForm({
   validationSchema: {
-    'addClient.subsystemCode': 'required|xrdIdentifier|max:255',
+    'addClient.subsystemCode': 'required|xrdIdentifier|max:255|uniqueClient',
     'addClient.subsystemName': 'max:255',
   },
   initialValues: {
@@ -223,21 +220,8 @@ const submitLoading = ref(false);
 const confirmRegisterClient = ref(false);
 const registerClientLoading = ref(false);
 
-const duplicateClient = computed(() => {
-  if (!subsystemCode.value) {
-    return false;
-  }
-
-  return containsClient(
-    existingSubsystems.value,
-    props.memberClass,
-    props.memberCode,
-    subsystemCode.value,
-  );
-});
-
 const { showError, showSuccess } = useNotifications();
-const { t } = i18n.global;
+const { doesSupportSubsystemNames } = useSystem();
 const router = useRouter();
 
 fetchData();

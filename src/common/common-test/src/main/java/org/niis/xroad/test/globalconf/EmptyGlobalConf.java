@@ -313,4 +313,9 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public GlobalConfExtensions getGlobalConfExtensions() {
         return globalConfExtensions;
     }
+
+    @Override
+    public Integer getVersion() {
+        return null;
+    }
 }

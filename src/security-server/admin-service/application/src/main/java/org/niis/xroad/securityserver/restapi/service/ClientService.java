@@ -84,6 +84,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_ALRE
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
+import static org.niis.xroad.securityserver.restapi.util.ClientUtils.doesSupportSubsystemNames;
 import static org.niis.xroad.serverconf.model.ClientType.STATUS_DELINPROG;
 import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLED;
 import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
@@ -454,10 +455,13 @@ public class ClientService {
                                                               CannotRegisterOwnerException, ActionNotPossibleException,
                                                               InvalidMemberClassException, InvalidInstanceIdentifierException {
 
-        var subsystemName = subsystemRenameStatus.getNewName(clientId).orElse(null);
+        String subsystemName = null;
+        if (doesSupportSubsystemNames(globalConfProvider.getVersion())) {
+            subsystemName = subsystemRenameStatus.getNewName(clientId).orElse(null);
+            auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, subsystemName);
+        }
 
         auditDataHelper.put(clientId);
-        auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, subsystemName);
 
         ClientType client = getLocalClientOrThrowNotFound(clientId);
 
@@ -768,15 +772,6 @@ public class ClientService {
         return persisted;
     }
 
-    public ClientType addLocalClient(String memberClass,
-                                     String memberCode,
-                                     String subsystemCode,
-                                     IsAuthentication isAuthentication,
-                                     boolean ignoreWarnings) throws ClientAlreadyExistsException, AdditionalMemberAlreadyExistsException,
-                                                                    UnhandledWarningsException, InvalidMemberClassException {
-        return addLocalClient(memberClass, memberCode, subsystemCode, null, isAuthentication, ignoreWarnings);
-    }
-
     /**
      * Checks that the given member class is present in the list of this instance's member classes.
      * @param memberClass
@@ -841,6 +836,11 @@ public class ClientService {
 
     public void renameClient(ClientId.Conf clientId, String subsystemName)
             throws ClientNotFoundException, ActionNotPossibleException, GlobalConfOutdatedException {
+
+        if (!doesSupportSubsystemNames(globalConfProvider.getVersion())) {
+            throw new ActionNotPossibleException("Rename operation only supported since Global configuration version 5");
+        }
+
         auditDataHelper.put(clientId);
 
         ClientType client = getLocalClientOrThrowNotFound(clientId);

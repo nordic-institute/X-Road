@@ -43,7 +43,7 @@
         <td>{{ $t('client.subsystemCode') }}</td>
         <td colspan="2" class="identifier-wrap">{{ client.subsystem_code }}</td>
       </tr>
-      <tr v-if="client.subsystem_code">
+      <tr v-if="client.subsystem_code && doesSupportSubsystemNames">
         <td>{{ $t('client.subsystemName') }}</td>
 
         <td class="identifier-wrap">
@@ -117,6 +117,7 @@ import { useClient } from '@/store/modules/client';
 import { useUser } from '@/store/modules/user';
 import { XrdIconEdit } from '@niis/shared-ui';
 import ClientStatus from '@/views/Clients/ClientStatus.vue';
+import { useSystem } from '@/store/modules/system';
 
 export default defineComponent({
   components: { ClientStatus, XrdIconEdit },
@@ -135,11 +136,9 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     ...mapState(useClient, ['client', 'signCertificates', 'clientLoading']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
     renameInProgress(): boolean {
-      return this.client?.rename_in_progress;
-    },
-    renameAllowed(): boolean {
-      return this.hasPermission(Permissions.RENAME_SUBSYSTEM) && !this.renameInProgress;
+      return !!this.client?.rename_in_progress;
     },
   },
   created() {

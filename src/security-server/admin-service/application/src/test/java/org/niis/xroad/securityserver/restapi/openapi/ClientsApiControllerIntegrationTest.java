@@ -169,7 +169,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Set<Client>> response =
                 clientsApiController.findClients(null, null, null, null, null, true, false, null, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(11, response.getBody().size());
+        assertEquals(12, response.getBody().size());
         // Test sorting order
         assertEquals(true, TestUtils.isSortOrderCorrect(response.getBody(), clientSortingComparator));
     }
@@ -179,7 +179,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     public void ownerMemberFlag() {
         ResponseEntity<Set<Client>> response =
                 clientsApiController.findClients(null, null, null, null, null, true, false, null, false);
-        assertEquals(11, response.getBody().size());
+        assertEquals(12, response.getBody().size());
         List<Client> owners = response.getBody().stream()
                 .filter(Client::getOwner)
                 .collect(Collectors.toList());
@@ -193,7 +193,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Set<Client>> response = clientsApiController.findClients(null, null, null, null, null, true,
                 true, null, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(7, response.getBody().size());
+        assertEquals(8, response.getBody().size());
         Client client = response
                 .getBody()
                 .stream()
@@ -473,7 +473,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Set<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
                 true, false, null, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(11, clientsResponse.getBody().size());
+        assertEquals(12, clientsResponse.getBody().size());
     }
 
     @Test
@@ -481,7 +481,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     public void findAllClientsByLocalValidSignCert() {
         when(currentSecurityServerSignCertificates.getSignCertificateInfos())
                 .thenReturn(createSimpleSignCertList());
-        int clientsTotal = 11;
+        int clientsTotal = 12;
         // FI:GOV:M1, FI:GOV:M1:SS1, FI:GOV:M1:SS3
         int clientsWithValidSignCert = 3;
         // search all

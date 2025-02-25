@@ -51,6 +51,7 @@ import { useClient } from '@/store/modules/client';
 import { ClientStatus } from '@/openapi-types';
 import { XrdTitledView } from '@niis/shared-ui';
 import RenameClientButton from '@/components/client/RenameClientButton.vue';
+import { useSystem } from '@/store/modules/system';
 
 export default defineComponent({
   components: {
@@ -76,6 +77,7 @@ export default defineComponent({
   computed: {
     ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
     title(): string {
       if (this.clientLoading) {
         return this.$t('noData.loading');
@@ -101,6 +103,7 @@ export default defineComponent({
     showRename(): boolean {
       if (!this.client) return false;
       return (
+        this.doesSupportSubsystemNames &&
         this.client && this.client.subsystem_code &&
         (ClientStatus.SAVED == this.client.status ? true : !this.client.rename_in_progress) &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM)

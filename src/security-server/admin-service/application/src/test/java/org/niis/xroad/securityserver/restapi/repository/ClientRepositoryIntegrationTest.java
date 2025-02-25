@@ -45,7 +45,7 @@ public class ClientRepositoryIntegrationTest extends AbstractFacadeMockingTestCo
     @Test
     public void getAllLocalClients() {
         List<ClientType> clients = clientRepository.getAllLocalClients();
-        assertEquals(7, clients.size());
+        assertEquals(8, clients.size());
     }
 
 }

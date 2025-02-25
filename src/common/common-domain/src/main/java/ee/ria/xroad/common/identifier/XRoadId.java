@@ -50,10 +50,12 @@ public interface XRoadId extends Serializable {
 
     String getXRoadInstance();
 
+    @JsonIgnore
     default boolean isSubsystem() {
         return getObjectType() == XRoadObjectType.SUBSYSTEM;
     }
 
+    @JsonIgnore
     default boolean isMember() {
         return getObjectType() == XRoadObjectType.MEMBER;
     }
