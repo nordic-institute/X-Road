@@ -18,8 +18,8 @@ db_password="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connecti
 db_url="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
 db_database=serverconf
 pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
-db_admin_user=$(get_prop ${root_properties} 'xroad.db.serverconf.database.admin_user' "$db_conn_user")
-db_admin_password=$(get_prop ${root_properties} 'xroad.db.serverconf.database.admin_password' "$db_password")
+db_admin_user=$(get_prop ${root_properties} 'serverconf.database.admin_user' "$db_conn_user")
+db_admin_password=$(get_prop ${root_properties} 'serverconf.database.admin_password' "$db_password")
 
 pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
 if [[ "$db_url" =~ $pat ]]; then

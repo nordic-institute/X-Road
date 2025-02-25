@@ -55,7 +55,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
+import static ee.ria.xroad.messagelog.database.MessageLogDatabaseConfig.MESSAGE_LOG_DB_CTX;
 
 /**
  * Log record manager handles saving of log records to database.
@@ -78,7 +78,7 @@ public final class LogRecordManager {
 
     private final DatabaseCtx databaseCtx;
 
-    public LogRecordManager(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx) {
+    public LogRecordManager(@Named(MESSAGE_LOG_DB_CTX) DatabaseCtx databaseCtx) {
         this.databaseCtx = databaseCtx;
     }
 
