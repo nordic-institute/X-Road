@@ -240,16 +240,6 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PROXY_PREFIX + "client-httpclient-timeout";
 
-    /** Property name for the so_linger value that should be set for client proxy apache HttpClient */
-    private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
-            PROXY_PREFIX + "client-httpclient-so-linger";
-
-    private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
-            PROXY_PREFIX + "client-use-fastest-connecting-ssl-socket-autoclose";
-
-    public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
-            PROXY_PREFIX + "client-fastest-connecting-ssl-uri-cache-period";
-
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PROXY_PREFIX + "pool-enable-connection-reuse";
 
@@ -281,13 +271,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
-    private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER = "-1";
-
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
-
-    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = TRUE;
-
-    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
     private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
 
@@ -1171,14 +1155,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value in seconds that should be set for client proxy apache HttpClient, -1 by default
-     */
-    public static int getClientProxyHttpClientSoLinger() {
-        return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_SO_LINGER,
-                DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER));
-    }
-
-    /**
      * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
      */
     public static int getClientProxyConnectorSoLinger() {
@@ -1189,22 +1165,6 @@ public final class SystemProperties {
     public static boolean isEnableClientProxyPooledConnectionReuse() {
         return Boolean.parseBoolean(getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
-    }
-
-    /**
-     * @return true if SSL sockets should close the underlying socket layer when the SSL socket is closed
-     */
-    public static boolean isUseSslSocketAutoClose() {
-        return Boolean.parseBoolean(getProperty(CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE,
-                DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE));
-    }
-
-    /**
-     * @return period in seconds the fastest provider uri should be cached, or 0 to disable
-     */
-    public static int getClientProxyFastestConnectingSslUriCachePeriod() {
-        return Integer.parseInt(getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
-                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
     }
 
     /**

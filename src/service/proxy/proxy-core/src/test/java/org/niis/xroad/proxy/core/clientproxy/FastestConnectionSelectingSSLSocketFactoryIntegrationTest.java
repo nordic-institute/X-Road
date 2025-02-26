@@ -68,6 +68,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -211,7 +212,8 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx);
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx,
+                defaultConfiguration(ProxyProperties.ClientProxyProperties.class));
     }
 
     static class NoopTrustManager implements X509TrustManager {
