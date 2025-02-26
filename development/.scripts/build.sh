@@ -7,11 +7,11 @@ gradleModule=""
 gradleArgs="clean build -xtest -xcheckstyleMain -xcheckstyleTest "
 case $1 in
 "proxy")
-  gradleModule="proxy"
+  gradleModule="service/proxy"
   gradleArgs+="-xintTest"
   ;;
 "configuration-client")
-  gradleModule="configuration-client"
+  gradleModule="service/configuration-client"
   ;;
 "signer")
   gradleModule="signer"
