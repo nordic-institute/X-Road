@@ -32,6 +32,7 @@ dependencies {
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(libs.mockito.core)
 
   "intTestImplementation"(project(":common:common-test"))

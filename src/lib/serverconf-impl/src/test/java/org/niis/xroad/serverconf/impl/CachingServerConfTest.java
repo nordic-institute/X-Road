@@ -26,7 +26,6 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -76,6 +75,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
+import static org.niis.xroad.serverconf.impl.TestUtil.serverConfDbProperties;
 import static org.niis.xroad.serverconf.impl.TestUtil.serverConfProperties;
 import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
@@ -87,7 +87,7 @@ public class CachingServerConfTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
-    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfProperties.hibernate());
+    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfDbProperties.hibernate());
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
@@ -104,7 +104,7 @@ public class CachingServerConfTest {
                 return true;
             }
         };
-        serverConfProvider = new CachingServerConfImpl(DATABASE_CTX, globalConfProvider, SystemProperties.getServerConfCachePeriod());
+        serverConfProvider = new CachingServerConfImpl(DATABASE_CTX, globalConfProvider, serverConfProperties);
 
         prepareDB(DATABASE_CTX);
     }

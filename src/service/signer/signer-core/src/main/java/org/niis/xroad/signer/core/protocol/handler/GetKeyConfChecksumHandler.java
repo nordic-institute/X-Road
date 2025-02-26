@@ -27,7 +27,6 @@
 
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
@@ -54,7 +53,7 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
     public void init() throws Exception {
         // the change watcher can not be created in the constructor, because that would publish the
         // instance reference to another thread before the constructor finishes.
-        final FileContentChangeChecker changeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
+        final FileContentChangeChecker changeChecker = new FileContentChangeChecker(signerProperties.keyConfigurationFile());
         this.checkSum = changeChecker.getChecksum();
         this.fileWatcherRunner = createChangeWatcher(new WeakReference<>(this), changeChecker);
     }

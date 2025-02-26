@@ -83,7 +83,7 @@ public class ProxyConfig {
     ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
                                           ServerConfProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties.cachePeriod());
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
     }
 
 }

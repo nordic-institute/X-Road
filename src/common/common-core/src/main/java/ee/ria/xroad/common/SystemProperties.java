@@ -26,7 +26,6 @@
 package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -199,9 +198,6 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_PORT =
             PROXY_PREFIX + "server-port";
 
-    /** Property name of the cached OCSP response path for signer operation. */
-    public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
-
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT = PROXY_PREFIX + "verify-client-cert";
 
@@ -220,17 +216,6 @@ public final class SystemProperties {
     private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
-
-    public static final String SERVER_CONF_CACHE_PERIOD =
-            PROXY_PREFIX + "server-conf-cache-period";
-
-    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PROXY_PREFIX + "server-conf-client-cache-size";
-
-    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-cache-size";
-
-    public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
-
-    public static final String SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-endpoints-cache-size";
 
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
@@ -324,13 +309,8 @@ public final class SystemProperties {
     /** Property name of the key configuration file. */
     public static final String KEY_CONFIGURATION_FILE = SIGNER_PREFIX + "key-configuration-file";
 
-    /** Property name of the device configuration file. */
-    public static final String DEVICE_CONFIGURATION_FILE = SIGNER_PREFIX + "device-configuration-file";
-
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
-
-    public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
 
     public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
     public static final String SIGNER_KEY_NAMED_CURVE = SIGNER_PREFIX + "key-named-curve";
@@ -342,13 +322,7 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
 
-    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM = SIGNER_PREFIX + "csr-signature-digest-algorithm";
-
-    public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
-    public static final String SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM = SIGNER_PREFIX + "selfsigned-cert-digest-algorithm";
-
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
-    public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
     // Configuration client ---------------------------------------------------
 
@@ -705,14 +679,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the signing key device configuration file, '/etc/xroad/signer/devices.ini' by default.
-     */
-    public static String getDeviceConfFile() {
-        return getProperty(DEVICE_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.DEVICE_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return WSDL validator command string. Defaults to null.
      */
     public static String getWsdlValidatorCommand() {
@@ -785,13 +751,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where OCSP responses are stored, '/var/cache/xroad/' by default.
-     */
-    public static String getOcspCachePath() {
-        return getProperty(OCSP_CACHE_PATH, DefaultFilepaths.OCSP_CACHE_PATH);
-    }
-
-    /**
      * @return path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default.
      */
     public static String getConfBackupPath() {
@@ -848,35 +807,6 @@ public final class SystemProperties {
      */
     public static String getSignerPasswordStoreIPCKeyPathname() {
         return getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
-    }
-
-    /**
-     * Get CSR signature digest algorithm, SHA-256 by default.
-     *
-     * @return algorithm
-     */
-    public static DigestAlgorithm getSignerCsrSignatureDigestAlgorithm() {
-        return Optional.ofNullable(getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA256);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static KeyAlgorithm getSofTokenPinKeystoreAlgorithm() {
-        return Optional.ofNullable(getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
-                .map(KeyAlgorithm::valueOf)
-                .orElse(DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static DigestAlgorithm getSelfSignedCertDigestAlgorithm() {
-        return Optional.ofNullable(getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1198,13 +1128,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the update interval in seconds at which server conf in cached, '60' by default
-     */
-    public static int getServerConfCachePeriod() {
-        return Integer.parseInt(getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
-    }
-
-    /**
      * @return the interval in seconds at which verifier caches results.
      * Max value is 180 seconds and cannot be exceeded in configuration.
      * Default is 60 s.
@@ -1324,34 +1247,6 @@ public final class SystemProperties {
             minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
         return minVersion;
-    }
-
-    /**
-     * @return Serverconf client cache size
-     */
-    public static long getServerConfClientCacheSize() {
-        return Long.getLong(SERVER_CONF_CLIENT_CACHE_SIZE, 100);
-    }
-
-    /**
-     * @return Serverconf service cache size
-     */
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfServiceCacheSize() {
-        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, 1000);
-    }
-
-    /**
-     * @return Serverconf access right cache size
-     */
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfAclCacheSize() {
-        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfServiceEndpointsCacheSize() {
-        return Long.getLong(SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE, 100_000);
     }
 
     private static void checkVersionValidity(int min, int current, String defaultVersion) {

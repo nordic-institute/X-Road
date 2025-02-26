@@ -49,6 +49,7 @@ import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
+import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -70,6 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 
 /**
  * Tests the OCSP client.
@@ -88,7 +90,8 @@ class OcspClientTest {
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
     private final OcspClient ocspClient = new OcspClient(globalConfProvider);
     private final OcspClientWorker ocspClientWorker = new TestOcspClient(globalConfProvider,
-            new OcspResponseManager(globalConfProvider, ocspClient, new FileBasedOcspCache(globalConfProvider)),
+            new OcspResponseManager(globalConfProvider, ocspClient,
+                    new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class))),
             ocspClient);
 
     OcspClientTest() throws Exception {
