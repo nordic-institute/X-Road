@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.globalconf.spring.SpringGlobalConfConfig;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
@@ -42,7 +43,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
 @Import({SpringGlobalConfConfig.class,
-        SpringSignerClientConfiguration.class})
+        SpringSignerClientConfiguration.class,
+        SpringRpcConfig.class})
 @Configuration
 public class BootstrapConfiguration {
 

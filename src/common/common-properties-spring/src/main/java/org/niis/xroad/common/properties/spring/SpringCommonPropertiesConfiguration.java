@@ -26,20 +26,13 @@
  */
 package org.niis.xroad.common.properties.spring;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-//@EnableConfigurationProperties({
-//        SpringCommonGlobalConfProperties.class,
-//        SpringCommonRpcProperties.class
-//})
+@EnableConfigurationProperties({
+        SpringCommonRpcProperties.class
+})
 public class SpringCommonPropertiesConfiguration {
-
-    @Bean
-    SpringCommonRpcProperties springCommonRpcProperties() {
-        //TODO hardcoded as spring boot is not present in most modules
-        return new SpringCommonRpcProperties(false, null);
-    }
 
 }
