@@ -30,14 +30,14 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import lombok.NoArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProperties;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {
 
     public static ServerConfProvider create(DatabaseCtx databaseCtx, GlobalConfProvider globalConfProvider,
-                                            ServerConfProperties serverConfProperties) {
+                                            ServerConfCommonProperties serverConfProperties) {
         if (serverConfProperties.cachePeriod() > 0) {
             return new CachingServerConfImpl(databaseCtx, globalConfProvider, serverConfProperties);
         }

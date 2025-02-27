@@ -40,7 +40,7 @@ import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfProperties;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 
@@ -70,7 +70,7 @@ public class MonitorConfig {
 
     @ApplicationScoped
     ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
-                                          ServerConfProperties serverConfProperties,
+                                          ServerConfCommonProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
     }

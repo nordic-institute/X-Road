@@ -40,7 +40,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.ServerConfProperties;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.EndpointType;
@@ -77,7 +77,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider,
-                                 ServerConfProperties serverConfProperties) {
+                                 ServerConfCommonProperties serverConfProperties) {
         super(serverConfDatabaseCtx, globalConfProvider);
 
         int expireSeconds = serverConfProperties.cachePeriod();

@@ -41,7 +41,7 @@ import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
-import org.niis.xroad.serverconf.ServerConfProperties;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -81,7 +81,7 @@ public class ProxyConfig {
 
     @ApplicationScoped
     ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
-                                          ServerConfProperties serverConfProperties,
+                                          ServerConfCommonProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
     }
