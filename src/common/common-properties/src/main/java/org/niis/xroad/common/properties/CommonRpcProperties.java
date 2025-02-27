@@ -33,8 +33,9 @@ import io.smallrye.config.WithName;
 
 import java.util.List;
 
-@ConfigMapping(prefix = "xroad.common.rpc")
+@ConfigMapping(prefix = CommonRpcProperties.PREFIX)
 public interface CommonRpcProperties {
+    String PREFIX = "xroad.common.rpc";
     String DEFAULT_USE_TLS = "false";
 
     @WithName("use-tls")

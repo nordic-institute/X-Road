@@ -73,7 +73,7 @@ public class DAOImplTest {
 
     private Session session;
     private IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
-    private static final DatabaseCtx DATABASE_CTX = ServerConfDatabaseConfig.createServerConfDbCtx(TestUtil.serverConfProperties);
+    private static final DatabaseCtx DATABASE_CTX = ServerConfDatabaseConfig.createServerConfDbCtx(TestUtil.serverConfDbProperties);
 
     /**
      * Prepares test database.

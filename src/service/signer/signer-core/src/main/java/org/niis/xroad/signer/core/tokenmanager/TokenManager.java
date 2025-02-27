@@ -36,6 +36,7 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
@@ -89,9 +90,9 @@ public final class TokenManager {
      *
      * @throws Exception if an error occurs
      */
-    public static void init() {
+    public static void init(SignerProperties signerProperties) {
         try {
-            TokenConf.getInstance().load();
+            TokenConf.getInstance().load(signerProperties);
         } catch (Exception e) {
             log.error("Failed to load token conf", e);
         }

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
@@ -34,6 +33,7 @@ import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
@@ -145,8 +145,8 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
      *
      * @throws Exception if an error occurs
      */
-    public synchronized void load() throws Exception {
-        load(getConfFileName());
+    public synchronized void load(SignerProperties signerProperties) throws Exception {
+        load(signerProperties.keyConfigurationFile());
     }
 
     /**
@@ -363,10 +363,6 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
 
     private static String getCertReqId(CertRequestType type) {
         return ObjectUtils.defaultIfNull(type.getId(), SignerUtil.randomId());
-    }
-
-    private static String getConfFileName() {
-        return SystemProperties.getKeyConfFile();
     }
 
     @Override

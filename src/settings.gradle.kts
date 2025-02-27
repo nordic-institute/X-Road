@@ -28,7 +28,6 @@ include("common:common-core")
 include("common:common-jetty")
 include("common:common-message")
 include("common:common-properties")
-include("common:common-properties-spring")
 include("common:common-scheduler")
 
 // Lib projects

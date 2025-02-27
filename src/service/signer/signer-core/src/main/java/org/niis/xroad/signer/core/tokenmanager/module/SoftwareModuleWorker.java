@@ -65,7 +65,7 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         initTokenInfo(tokenInfo);
 
-        return new SoftwareTokenWorker(tokenInfo, tokenType);
+        return new SoftwareTokenWorker(tokenInfo, tokenType, signerProperties);
     }
 
     private void initTokenInfo(TokenInfo tokenInfo) {

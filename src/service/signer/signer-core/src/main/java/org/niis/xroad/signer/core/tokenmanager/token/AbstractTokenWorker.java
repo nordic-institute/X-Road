@@ -40,6 +40,7 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.util.SignerUtil;
@@ -68,10 +69,12 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     private final String workerId;
 
     protected final String tokenId;
+    protected final SignerProperties signerProperties;
 
-    AbstractTokenWorker(TokenInfo tokenInfo) {
+    AbstractTokenWorker(TokenInfo tokenInfo, SignerProperties signerProperties) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
+        this.signerProperties = signerProperties;
     }
 
     @Override

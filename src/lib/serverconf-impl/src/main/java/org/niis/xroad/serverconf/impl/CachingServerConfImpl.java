@@ -26,7 +26,6 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -41,6 +40,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.EndpointType;
@@ -76,9 +76,11 @@ public class CachingServerConfImpl extends ServerConfImpl {
      * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    public CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider, int expireSeconds) {
+    public CachingServerConfImpl(DatabaseCtx serverConfDatabaseCtx, GlobalConfProvider globalConfProvider,
+                                 ServerConfCommonProperties serverConfProperties) {
         super(serverConfDatabaseCtx, globalConfProvider);
 
+        int expireSeconds = serverConfProperties.cachePeriod();
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
@@ -90,27 +92,27 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         clientCache = CacheBuilder.newBuilder()
-                .maximumSize(SystemProperties.getServerConfClientCacheSize())
+                .maximumSize(serverConfProperties.clientCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
 
         serviceCache = CacheBuilder.newBuilder()
-                .maximumSize(SystemProperties.getServerConfServiceCacheSize())
+                .maximumSize(serverConfProperties.serviceCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
 
         aclCache = CacheBuilder.newBuilder()
                 .weigher((AclCacheKey k, List<EndpointType> v) -> v.size() + 1)
-                .maximumWeight(SystemProperties.getServerConfAclCacheSize())
+                .maximumWeight(serverConfProperties.aclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
 
         serviceEndpointsCache = CacheBuilder.newBuilder()
                 .weigher((ServiceId k, List<Endpoint> v) -> v.size() + 1)
-                .maximumWeight(SystemProperties.getServerConfServiceEndpointsCacheSize())
+                .maximumWeight(serverConfProperties.serviceEndpointsCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();

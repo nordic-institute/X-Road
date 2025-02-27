@@ -26,8 +26,8 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -95,7 +95,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
         PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
         SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
-                SystemProperties.getSelfSignedCertDigestAlgorithm(),
+                DigestAlgorithm.ofName(signerProperties.selfsignedCertDigestAlgorithm()),
                 tokenAndKey.getSignMechanism()
         );
 

@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.serverconf.spring;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import lombok.Setter;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
-import org.niis.xroad.serverconf.ServerConfProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
@@ -58,14 +57,14 @@ public class ServerConfBeanConfig {
 
     @Bean
     public ServerConfProvider serverConfProvider(@Qualifier(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
-                                                 GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, SystemProperties.getServerConfCachePeriod());
+                                                 GlobalConfProvider globalConfProvider,
+                                                 SpringServerConfProperties serverConfProperties) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
     }
 
-
     @Setter
-    @ConfigurationProperties(prefix = "xroad.server-conf")
-    public static class SpringServerConfProperties implements ServerConfProperties {
+    @ConfigurationProperties(prefix = ServerConfCommonProperties.PREFIX)
+    public static class SpringServerConfProperties implements ServerConfCommonProperties {
         private int cachePeriod = Integer.parseInt(DEFAULT_CACHE_PERIOD);
         private long clientCacheSize = Long.parseLong(DEFAULT_CLIENT_CACHE_SIZE);
         private long serviceCacheSize = Long.parseLong(DEFAULT_SERVICE_CACHE_SIZE);
