@@ -30,16 +30,19 @@ package org.niis.xroad.common.rpc.quarkus;
 import io.quarkus.scheduler.Scheduler;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 
 public class QuarkusRpcConfig {
 
     @ApplicationScoped
     VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties, VaultPKISecretEngineFactory pkiSecretEngineFactory,
-                                      Scheduler scheduler)
-            throws Exception {
+                                      Scheduler scheduler) throws Exception {
         if (rpcProperties.useTls()) {
             QuarkusReloadableVaultKeyManager manager = new QuarkusReloadableVaultKeyManager(rpcProperties,
                     pkiSecretEngineFactory, scheduler);
@@ -49,4 +52,15 @@ public class QuarkusRpcConfig {
             return new NoopVaultKeyProvider();
         }
     }
+
+    @ApplicationScoped
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
+                                                             CommonRpcProperties rpcCommonProperties) {
+        if (rpcCommonProperties.useTls()) {
+            return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
+        } else {
+            return new InsecureRpcCredentialsConfigurer();
+        }
+    }
+
 }

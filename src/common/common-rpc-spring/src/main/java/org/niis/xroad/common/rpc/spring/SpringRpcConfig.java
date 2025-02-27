@@ -60,7 +60,7 @@ public class SpringRpcConfig {
     }
 
     @Bean
-    public RpcCredentialsConfigurer rpcCredentialsConfigurerInternal(Optional<VaultKeyProvider> vaultKeyProvider,
+    RpcCredentialsConfigurer rpcCredentialsConfigurerInternal(Optional<VaultKeyProvider> vaultKeyProvider,
                                                                      CommonRpcProperties rpcCommonProperties) {
         if (rpcCommonProperties.useTls()) {
             return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
