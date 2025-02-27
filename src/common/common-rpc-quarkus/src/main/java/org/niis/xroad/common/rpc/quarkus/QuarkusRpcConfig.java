@@ -24,26 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.proto;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+package org.niis.xroad.common.rpc.quarkus;
 
-@ConfigMapping(prefix = "xroad.common.rpc.channel.proxy")
-public interface QuarkusProxyRpcChannelProperties extends ProxyRpcChannelProperties {
+import io.quarkus.scheduler.Scheduler;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 
-    @Override
-    @WithDefault("127.0.0.1")
-    String host();
+public class QuarkusRpcConfig {
 
-    @Override
-    @WithDefault("5567")
-    int port();
-
-    @Override
-    @WithName("deadline-after")
-    @WithDefault("60000")
-    int deadlineAfter();
-
+    @ApplicationScoped
+    VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties, VaultPKISecretEngineFactory pkiSecretEngineFactory,
+                                      Scheduler scheduler)
+            throws Exception {
+        if (rpcProperties.useTls()) {
+            QuarkusReloadableVaultKeyManager manager = new QuarkusReloadableVaultKeyManager(rpcProperties,
+                    pkiSecretEngineFactory, scheduler);
+            manager.init();
+            return manager;
+        } else {
+            return new NoopVaultKeyProvider();
+        }
+    }
 }

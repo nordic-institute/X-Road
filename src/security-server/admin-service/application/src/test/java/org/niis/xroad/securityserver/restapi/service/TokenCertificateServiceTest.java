@@ -45,6 +45,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -184,6 +185,9 @@ public class TokenCertificateServiceTest {
     MonitorRpcClient monitorClient;
 
     @MockBean
+    ProxyRpcClient proxyRpcClient;
+
+    @MockBean
     ConfClientRpcClient confClientRpcClient;
 
     @MockBean(name = SERVER_CONF_DB_CTX)
@@ -313,7 +317,7 @@ public class TokenCertificateServiceTest {
         }).when(tokenService).getTokenForKeyId(any());
     }
 
-    private void mockDeleteCertRequest() throws Exception {
+    private void mockDeleteCertRequest() {
         // signerProxyFacade.deleteCertRequest(id)
         doAnswer(invocation -> {
             String csrId = (String) invocation.getArguments()[0];
@@ -330,7 +334,7 @@ public class TokenCertificateServiceTest {
         }).when(signerRpcClient).deleteCertRequest(any());
     }
 
-    private void mockDeleteCert() throws Exception {
+    private void mockDeleteCert() {
         // attempts to delete either succeed or throw specific exceptions
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
@@ -345,7 +349,7 @@ public class TokenCertificateServiceTest {
         }).when(signerRpcClient).deleteCert(any());
     }
 
-    private void mockGetCertForHash() throws Exception {
+    private void mockGetCertForHash() {
         // signerProxyFacade.getCertForHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
@@ -363,7 +367,7 @@ public class TokenCertificateServiceTest {
         }).when(signerRpcClient).getCertForHash(any());
     }
 
-    private void mockGetKeyIdForCertHash() throws Exception {
+    private void mockGetKeyIdForCertHash() {
         // signerProxyFacade.getKeyIdForCertHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
@@ -548,7 +552,7 @@ public class TokenCertificateServiceTest {
             ErrorDeviation errorDeviation = expected.getErrorDeviation();
             Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, errorDeviation.getCode());
             assertEquals(1, errorDeviation.getMetadata().size());
-            assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.getMetadata().iterator().next());
+            assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.getMetadata().getFirst());
         }
     }
 
@@ -727,7 +731,7 @@ public class TokenCertificateServiceTest {
     }
 
     @Test
-    public void registerAuthCertificate() throws Exception {
+    public void registerAuthCertificate() {
         doAnswer(answer -> authCert).when(signerRpcClient).getCertForHash(any());
         try {
             tokenCertificateService.registerAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);
@@ -753,7 +757,7 @@ public class TokenCertificateServiceTest {
     }
 
     @Test
-    public void unregisterAuthCertificate() throws Exception {
+    public void unregisterAuthCertificate() {
         doAnswer(answer -> authCert).when(signerRpcClient).getCertForHash(any());
         try {
             tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH);
@@ -773,7 +777,7 @@ public class TokenCertificateServiceTest {
             tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH);
             fail("Should have thrown ManagementRequestSendingFailedException");
         } catch (ManagementRequestSendingFailedException e) {
-            assertTrue(e.getErrorDeviation().getMetadata().get(0).contains(SSL_AUTH_ERROR_MESSAGE));
+            assertTrue(e.getErrorDeviation().getMetadata().getFirst().contains(SSL_AUTH_ERROR_MESSAGE));
         }
     }
 
@@ -820,7 +824,7 @@ public class TokenCertificateServiceTest {
     }
 
     @Test
-    public void markAuthCertForDeletion() throws Exception {
+    public void markAuthCertForDeletion() {
         doAnswer(answer -> authCert).when(signerRpcClient).getCertForHash(any());
         try {
             tokenCertificateService.markAuthCertForDeletion(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH);

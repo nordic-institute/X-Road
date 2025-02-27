@@ -61,7 +61,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void init() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
                 rpcChannelProperties.port());
         channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
