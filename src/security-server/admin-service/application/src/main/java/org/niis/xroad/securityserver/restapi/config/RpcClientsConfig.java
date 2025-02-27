@@ -53,16 +53,16 @@ class RpcClientsConfig {
 
     @Bean
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
-                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
+                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) {
         return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
     }
 
-    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
+    @ConfigurationProperties(prefix = EnvMonitorRpcChannelProperties.PREFIX)
     @Setter
     static class SpringEnvMonitorRpcChannelProperties implements EnvMonitorRpcChannelProperties {
         private String host = DEFAULT_HOST;
-        private int port = DEFAULT_PORT;
-        private int deadlineAfter = DEFAULT_DEADLINE_AFTER;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
 
         @Override
         public String host() {

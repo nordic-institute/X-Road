@@ -39,6 +39,7 @@ import org.junit.runners.model.Statement;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
@@ -128,11 +129,8 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
-
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         org.apache.xml.security.Init.init();
         Map<String, String> properties = Map.of(
@@ -172,7 +170,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
-                proxyProperties.addOn(), opMonitorCommonProperties);
+                mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
         serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
                 opMonitorCommonProperties);
         serverProxy.init();

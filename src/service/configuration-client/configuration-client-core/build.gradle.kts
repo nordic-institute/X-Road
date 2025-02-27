@@ -6,7 +6,7 @@ plugins {
 dependencies {
   implementation(project(":lib:globalconf-core"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-rpc"))
+  implementation(project(":common:common-rpc-quarkus"))
   api(project(":common:common-scheduler"))
 
   implementation(project(":service:configuration-client:configuration-client-model"))

@@ -19,14 +19,14 @@
 
     - name: Copy the archive to the target
       copy:
-        src: "/tmp/{{ item }}.tar.gz"
-        dest: "/tmp/{{ item }}.tar.gz"
+        src: "/tmp/{{ item }}.tar"
+        dest: "/tmp/{{ item }}.tar"
       when: item in modules and modules[item].lib is not defined
       with_items: "{{ selected_modules.split(',') }}"
 
     - name: Extract the archive on the target
       unarchive:
-        src: "/tmp/{{ item }}.tar.gz"
+        src: "/tmp/{{ item }}.tar"
         dest: "{{ modules[item].target }}/"
         remote_src: yes  # Archive is already on the target
       when: item in modules and modules[item].lib is not defined

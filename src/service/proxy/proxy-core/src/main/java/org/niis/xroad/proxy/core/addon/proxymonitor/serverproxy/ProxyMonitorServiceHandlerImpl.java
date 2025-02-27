@@ -44,9 +44,9 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.addon.proxymonitor.ProxyMonitor;
-import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.MetricTypes;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.serverproxy.AbstractServiceHandler;
 import org.niis.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -82,9 +82,12 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
             new ByteArrayOutputStream();
 
     private SoapMessageEncoder responseEncoder;
+    private final MonitorRpcClient monitorRpcClient;
 
-    public ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider,
+                                          MonitorRpcClient monitorClient) {
         super(serverConfProvider, globalConfProvider);
+        this.monitorRpcClient = monitorClient;
     }
 
     @Override
@@ -130,8 +133,6 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
         //mock implementation
         responseEncoder = new SimpleSoapEncoder(responseOut);
 
-        final MonitorClient client = ProxyMonitor.getClient();
-
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();
         final MetricSetType root = new MetricSetType();
         root.setName(serverConfProvider.getIdentifier().toString());
@@ -142,9 +143,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
         version.setValue(Version.XROAD_VERSION);
         root.getMetrics().add(version);
 
-        if (client != null) {
-            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage), isOwner()));
-        }
+        root.getMetrics().add(MetricTypes.of(monitorRpcClient.getMetrics(getMetricNames(proxyRequestMessage), isOwner())));
 
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
         responseEncoder.soap(result, Collections.emptyMap());
@@ -181,7 +180,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
     }
 
     @Override
-    public void finishHandling() throws Exception {
+    public void finishHandling() {
         // nothing to do
     }
 

@@ -74,8 +74,6 @@ public class ProxyTests {
 
         ProxyTestSuiteHelper.setPropsIfNotSet(props);
 
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
-
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
         ProxyTestSuiteHelper.startTestServices();
         ProxyTestSuiteHelper.startDummyProxy();
