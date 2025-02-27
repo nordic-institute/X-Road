@@ -53,6 +53,7 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.helper.KeyPairHelper;
@@ -125,8 +126,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
      * @param tokenInfo the token info
      * @param tokenType the token type
      */
-    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType) {
-        super(tokenInfo);
+    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties) {
+        super(tokenInfo, signerProperties);
 
         this.tokenType = tokenType;
 

@@ -41,6 +41,7 @@ import org.mockito.Captor;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.model.Token;
 import org.niis.xroad.signer.core.tokenmanager.merge.TokenMergeAddedCertificatesListener;
@@ -52,6 +53,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertArrayEquals;
@@ -64,6 +66,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
 /**
  * Class for testing {@link TokenManager} merging of configuration files
@@ -102,11 +105,14 @@ public class TokenManagerMergeTest {
     public void setUp() throws Exception {
 
         testingFile = temporaryFolder.newFile("keyconf-testing.xml");
-        System.setProperty(SystemProperties.KEY_CONFIGURATION_FILE, testingFile.getPath());
+
+        SignerProperties signerProperties = initConfiguration(SignerProperties.class, Map.of(
+                "xroad.signer.key-configuration-file", testingFile.getPath()
+        ));
 
         Files.copy(ORIGINAL_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        TokenManager.init();
+        TokenManager.init(signerProperties);
     }
 
     @Test

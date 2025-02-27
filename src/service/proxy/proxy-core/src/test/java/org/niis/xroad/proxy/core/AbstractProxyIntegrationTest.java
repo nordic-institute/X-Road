@@ -130,8 +130,6 @@ public abstract class AbstractProxyIntegrationTest {
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
-        System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
-
         org.apache.xml.security.Init.init();
         Map<String, String> properties = Map.of(
                 "xroad.proxy.server.listen-address", "127.0.0.1",

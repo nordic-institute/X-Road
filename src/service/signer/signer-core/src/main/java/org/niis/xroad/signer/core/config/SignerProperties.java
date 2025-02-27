@@ -31,8 +31,13 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.util.Optional;
+
+import static java.lang.Math.max;
+
 @ConfigMapping(prefix = "xroad.signer")
 public interface SignerProperties {
+    int MIN_SIGNER_KEY_LENGTH = 2048;
 
     @WithName("device-configuration-file")
     @WithDefault("/etc/xroad/devices.ini")
@@ -78,17 +83,24 @@ public interface SignerProperties {
     @WithDefault("CKM_ECDSA")
     String softTokenEcSignMechanism();
 
-    @WithName("key-length")
+    @WithName("soft-token-pin-keystore-algorithm")
     @WithDefault("RSA")
     String softTokenPinKeystoreAlgorithm();
 
-    @WithName("soft-token-pin-keystore-provider")
+    @WithName("key-length")
     @WithDefault("2048")
     int keyLength();
+
+    default int getKeyLength() {
+        return max(MIN_SIGNER_KEY_LENGTH, keyLength());
+    }
 
     @WithName("key-named-curve")
     @WithDefault("secp256r1")
     String keyNamedCurve();
+
+    @WithName("module-instance-provider")
+    Optional<String> moduleInstanceProvider();
 
     @WithName("addon")
     SignerAddonProperties addon();

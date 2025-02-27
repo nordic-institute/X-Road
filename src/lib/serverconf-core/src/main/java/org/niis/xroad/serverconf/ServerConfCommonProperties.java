@@ -24,15 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.properties.spring;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+package org.niis.xroad.serverconf;
 
-@Configuration
-@EnableConfigurationProperties({
-        SpringCommonRpcProperties.class
-})
-public class SpringCommonPropertiesConfiguration {
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+
+
+@ConfigMapping(prefix = ServerConfCommonProperties.PREFIX)
+public interface ServerConfCommonProperties {
+    String PREFIX = "xroad.common.server-conf";
+    String DEFAULT_CACHE_PERIOD = "60";
+    String DEFAULT_CLIENT_CACHE_SIZE = "100";
+    String DEFAULT_SERVICE_CACHE_SIZE = "1000";
+    String DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE = "100000";
+    String DEFAULT_ACL_CACHE_SIZE = "100000";
+
+    @WithName("cache-period")
+    @WithDefault(DEFAULT_CACHE_PERIOD)
+    int cachePeriod();
+
+    @WithName("client-cache-size")
+    @WithDefault(DEFAULT_CLIENT_CACHE_SIZE)
+    long clientCacheSize();
+
+    @WithName("service-cache-size")
+    @WithDefault(DEFAULT_SERVICE_CACHE_SIZE)
+    long serviceCacheSize();
+
+    @WithName("service-endpoints-cache-size")
+    @WithDefault(DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE)
+    long serviceEndpointsCacheSize();
+
+    @WithName("acl-cache-size")
+    @WithDefault(DEFAULT_ACL_CACHE_SIZE)
+    long aclCacheSize();
 
 }

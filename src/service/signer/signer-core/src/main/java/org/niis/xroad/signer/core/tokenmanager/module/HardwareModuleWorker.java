@@ -75,7 +75,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         log.info("Initializing module '{}' (library: {})", module.getType(), module.getPkcs11LibraryPath());
 
         try {
-            pkcs11Module = HardwareTokenUtil.moduleGetInstance(module.getPkcs11LibraryPath());
+            pkcs11Module = HardwareTokenUtil.moduleGetInstance(module.getPkcs11LibraryPath(),
+                    signerProperties.moduleInstanceProvider().orElse(null));
 
             pkcs11Module.initialize(getInitializeArgs(module.getLibraryCantCreateOsThreads(), module.getOsLockingOk()));
         } catch (Throwable t) {
@@ -198,6 +199,6 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
     @Override
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
-        return new HardwareTokenWorker(tokenInfo, tokenType);
+        return new HardwareTokenWorker(tokenInfo, tokenType, signerProperties);
     }
 }

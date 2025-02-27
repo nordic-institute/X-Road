@@ -25,38 +25,25 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.serverconf;
+package org.niis.xroad.common.rpc;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
+import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 
-@ConfigMapping(prefix = "xroad.server-conf")
-public interface ServerConfProperties {
-    String DEFAULT_CACHE_PERIOD = "60";
-    String DEFAULT_CLIENT_CACHE_SIZE = "100";
-    String DEFAULT_SERVICE_CACHE_SIZE = "1000";
-    String DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE = "100000";
-    String DEFAULT_ACL_CACHE_SIZE = "100000";
+public class RpcConfig {
 
-    @WithName("cache-period")
-    @WithDefault(DEFAULT_CACHE_PERIOD)
-    int cachePeriod();
-
-    @WithName("client-cache-size")
-    @WithDefault(DEFAULT_CLIENT_CACHE_SIZE)
-    long clientCacheSize();
-
-    @WithName("service-cache-size")
-    @WithDefault(DEFAULT_SERVICE_CACHE_SIZE)
-    long serviceCacheSize();
-
-    @WithName("service-endpoints-cache-size")
-    @WithDefault(DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE)
-    long serviceEndpointsCacheSize();
-
-    @WithName("acl-cache-size")
-    @WithDefault(DEFAULT_ACL_CACHE_SIZE)
-    long aclCacheSize();
+    @ApplicationScoped
+    public RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
+                                                             CommonRpcProperties rpcCommonProperties) {
+        if (rpcCommonProperties.useTls()) {
+            return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
+        } else {
+            return new InsecureRpcCredentialsConfigurer();
+        }
+    }
 
 }
