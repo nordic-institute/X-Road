@@ -28,7 +28,7 @@ package org.niis.xroad.common.rpc.quarkus;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import io.grpc.util.CertificateUtils;
-import io.quarkus.arc.profile.UnlessBuildProfile;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.vault.VaultPKISecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
@@ -51,7 +51,7 @@ import java.security.cert.X509Certificate;
 
 @Slf4j
 @ApplicationScoped
-@UnlessBuildProfile("test")
+@LookupIfProperty(name = "xroad.common.rpc.use-tls", stringValue = "true")
 public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
     private final CommonRpcProperties rpcProperties;
     private final AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,48 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.messagelog.archiver.application;
 
-package org.niis.xroad.common.properties;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import java.util.Map;
 
-import java.util.List;
+import static java.lang.String.join;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
 
-@ConfigMapping(prefix = "xroad.common.rpc")
-public interface CommonRpcProperties {
-    String DEFAULT_USE_TLS = "true";
-
-    @WithName("use-tls")
-    @WithDefault(DEFAULT_USE_TLS)
-    boolean useTls();
-
-    @WithName("certificate-provisioning")
-    CertificateProvisionProperties certificateProvisioning();
-
-    interface CertificateProvisionProperties {
-        @WithName("issuance-role-name")
-        String issuanceRoleName();
-
-        @WithName("common-name")
-        String commonName();
-
-        @WithName("alt-names")
-        @WithDefault("[]")
-        List<String> altNames();
-
-        @WithName("ip-subject-alt-names")
-        @WithDefault("[]")
-        List<String> ipSubjectAltNames();
-
-        @WithName("ttl-minutes")
-        int ttlMinutes();
-
-        @WithName("refresh-interval-minutes")
-        int refreshIntervalMinutes();
-
-        @WithName("secret-store-pki-path")
-        String secretStorePkiPath();
+public class LogArchiverTestProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+        return join(",", CLI, NATIVE, TEST);
     }
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
+        );
+    }
+
 }

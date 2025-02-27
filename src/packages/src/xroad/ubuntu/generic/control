@@ -38,6 +38,7 @@ Description: X-Road base components
 
 Package: xroad-confclient
 Architecture: amd64 arm64
+Pre-Depends: xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
@@ -55,6 +56,7 @@ Description: X-Road nginx component
 
 Package: xroad-signer
 Architecture: amd64 arm64
+Pre-Depends: xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
@@ -102,6 +104,7 @@ Description: X-Road AddOn: messagelog
 
 Package: xroad-monitor
 Architecture: all
+Pre-Depends: xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Description: X-Road monitoring service
  Monitoring service

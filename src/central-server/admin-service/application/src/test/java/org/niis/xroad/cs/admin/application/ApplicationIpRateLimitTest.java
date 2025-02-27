@@ -56,7 +56,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest(
         classes = {ApplicationIpRateLimitTest.TestIpRateLimitController.class},
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {"xroad.admin-service.rate-limit-requests-per-minute=10", "xroad.admin-service.rate-limit-requests-per-second=5"}
+        properties = {"xroad.admin-service.rate-limit-requests-per-minute=10",
+                      "xroad.admin-service.rate-limit-requests-per-second=5",
+                      "xroad.common.rpc.use-tls=false"}
 )
 @ComponentScan({"org.niis.xroad.cs.admin.core.config"})
 @ActiveProfiles({"test"})

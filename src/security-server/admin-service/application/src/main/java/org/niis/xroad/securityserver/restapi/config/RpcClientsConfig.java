@@ -29,7 +29,6 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Setter;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
@@ -44,8 +43,7 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("!test")
 @Configuration
-@Import({SpringRpcConfig.class,
-        SpringSignerClientConfiguration.class})
+@Import({SpringSignerClientConfiguration.class})
 @EnableConfigurationProperties({
         RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
         RpcClientsConfig.SpringConfClientRpcChannelProperties.class})

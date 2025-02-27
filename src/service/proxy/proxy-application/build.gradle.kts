@@ -17,7 +17,7 @@ configurations.configureEach {
 
 dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
-
+  implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))
 
   testImplementation(libs.quarkus.junit5)

@@ -14,6 +14,7 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":service:signer:signer-client"))
   implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
 
   testImplementation(libs.quarkus.junit5)
   testImplementation(libs.mockito.jupiter)

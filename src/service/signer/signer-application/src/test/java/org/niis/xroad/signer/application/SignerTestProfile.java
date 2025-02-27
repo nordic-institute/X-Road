@@ -24,26 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.signer.application;
 
-package org.niis.xroad.common.rpc;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Provider;
-import org.niis.xroad.common.properties.CommonRpcProperties;
-import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
+import java.util.Map;
 
-public class RpcConfig {
+import static java.lang.String.join;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
 
-    @ApplicationScoped
-    public RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
-                                                             CommonRpcProperties rpcCommonProperties) {
-        if (rpcCommonProperties.useTls()) {
-            return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
-        } else {
-            return new InsecureRpcCredentialsConfigurer();
-        }
+public class SignerTestProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+        return join(",", CLI, NATIVE, TEST);
+    }
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
+        );
     }
 
 }

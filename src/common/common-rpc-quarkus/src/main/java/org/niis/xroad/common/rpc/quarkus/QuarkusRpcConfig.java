@@ -24,48 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.rpc.quarkus;
 
-package org.niis.xroad.common.properties;
+import io.quarkus.arc.lookup.LookupUnlessProperty;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
+import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+public class QuarkusRpcConfig {
 
-import java.util.List;
-
-@ConfigMapping(prefix = "xroad.common.rpc")
-public interface CommonRpcProperties {
-    String DEFAULT_USE_TLS = "true";
-
-    @WithName("use-tls")
-    @WithDefault(DEFAULT_USE_TLS)
-    boolean useTls();
-
-    @WithName("certificate-provisioning")
-    CertificateProvisionProperties certificateProvisioning();
-
-    interface CertificateProvisionProperties {
-        @WithName("issuance-role-name")
-        String issuanceRoleName();
-
-        @WithName("common-name")
-        String commonName();
-
-        @WithName("alt-names")
-        @WithDefault("[]")
-        List<String> altNames();
-
-        @WithName("ip-subject-alt-names")
-        @WithDefault("[]")
-        List<String> ipSubjectAltNames();
-
-        @WithName("ttl-minutes")
-        int ttlMinutes();
-
-        @WithName("refresh-interval-minutes")
-        int refreshIntervalMinutes();
-
-        @WithName("secret-store-pki-path")
-        String secretStorePkiPath();
+    @ApplicationScoped
+    @LookupUnlessProperty(name = "xroad.common.rpc.use-tls", stringValue = "true")
+    VaultKeyProvider reloadableVaultKeyManager() {
+        return new NoopVaultKeyProvider();
     }
+
+    @ApplicationScoped
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
+                                                             CommonRpcProperties rpcCommonProperties) {
+        if (rpcCommonProperties.useTls()) {
+            return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
+        } else {
+            return new InsecureRpcCredentialsConfigurer();
+        }
+    }
+
 }
