@@ -25,11 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.Test;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
@@ -49,7 +53,6 @@ import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,13 +64,10 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -79,7 +79,6 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"spring.main.lazy-initialization=true"})
 @WithMockUser(authorities = {"DIAGNOSTICS"})
-@AutoConfigureWireMock(port = PortNumbers.ADMIN_PORT)
 public class DiagnosticsApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final OffsetDateTime PREVIOUS_UPDATE = TimeUtils.offsetDateTimeNow().with(LocalTime.of(10, 42));
@@ -100,29 +99,29 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private DiagnosticReportService diagnosticReportService;
 
     @Test
-    public void getAddOnDiagnostics() {
-        stubForDiagnosticsRequest("/addonstatus", "{\"messageLogEnabled\":true}");
+    public void getAddOnDiagnostics() throws Exception {
+        when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(true));
         ResponseEntity<AddOnStatus> response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getMessagelogEnabled());
 
-        stubForDiagnosticsRequest("/addonstatus", "{\"messageLogEnabled\":false}");
+        when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(false));
         response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(false, response.getBody().getMessagelogEnabled());
     }
 
     @Test
-    public void getBackupEncryptionDiagnostics() {
-        stubForDiagnosticsRequest("/backup-encryption-status",
-                "{\"backupEncryptionStatus\":true,\"backupEncryptionKeys\":[\"keyid\"]}");
+    public void getBackupEncryptionDiagnostics() throws Exception {
+        when(proxyRpcClient.getBackupEncryptionStatus()).thenReturn(
+                new BackupEncryptionStatusDiagnostics(true, List.of("keyid")));
         ResponseEntity<BackupEncryptionStatus> response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getBackupEncryptionStatus());
         assertEquals(1, response.getBody().getBackupEncryptionKeys().size());
 
-        stubForDiagnosticsRequest("/backup-encryption-status",
-                "{\"backupEncryptionStatus\":false,\"backupEncryptionKeys\":[]}");
+        when(proxyRpcClient.getBackupEncryptionStatus()).thenReturn(
+                new BackupEncryptionStatusDiagnostics(false, List.of()));
         response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(false, response.getBody().getBackupEncryptionStatus());
@@ -130,11 +129,11 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getMessageLogEncryptionDiagnostics() {
-        stubForDiagnosticsRequest("/message-log-encryption-status",
-                "{\"messageLogArchiveEncryptionStatus\":true,\"messageLogDatabaseEncryptionStatus\":true,"
-                        + "\"messageLogGroupingRule\":\"none\",\"members\":[{\"memberId\":\"memberId\","
-                        + "\"keys\":[\"key\"], \"defaultKeyUsed\":false}]}");
+    public void getMessageLogEncryptionDiagnostics() throws Exception {
+        when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
+                new MessageLogEncryptionStatusDiagnostics(true, true, "none",
+                        List.of(new MessageLogArchiveEncryptionMember("memberId", Set.of("key"), false)))
+        );
         ResponseEntity<MessageLogEncryptionStatus> response = diagnosticsApiController
                 .getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -143,9 +142,10 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(GROUPING_RULE, response.getBody().getMessageLogGroupingRule());
         assertEquals(1, response.getBody().getMembers().size());
 
-        stubForDiagnosticsRequest("/message-log-encryption-status",
-                "{\"messageLogArchiveEncryptionStatus\":false,\"messageLogDatabaseEncryptionStatus\":false, "
-                        + "\"messageLogGroupingRule\":\"none\",\"members\":[]}");
+        when(proxyRpcClient.getMessageLogEncryptionStatus()).thenReturn(
+                new MessageLogEncryptionStatusDiagnostics(false, false, "none",
+                        List.of())
+        );
         response = diagnosticsApiController.getMessageLogEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(false, response.getBody().getMessageLogArchiveEncryptionStatus());
@@ -226,20 +226,18 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getGlobalConfDiagnosticsException() {
-        stubFor(get(urlEqualTo("/status"))
-                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
-        DeviationAwareRuntimeException exception =
+    public void getGlobalConfDiagnosticsException() throws Exception {
+        when(confClientRpcClient.getStatus()).thenThrow(new RuntimeException());        DeviationAwareRuntimeException exception =
                 assertThrows(DeviationAwareRuntimeException.class, diagnosticsApiController::getGlobalConfDiagnostics);
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsSuccess() {
-        stubForDiagnosticsRequest("/timestampstatus",
-                "{\"" + TSA_URL_1 + "\":{\"returnCode\":" + DiagnosticsErrorCodes.RETURN_SUCCESS
-                        + ",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
-
+    public void getTimestampingServiceDiagnosticsSuccess() throws Exception {
+        when(proxyRpcClient.getTimestampingStatus()).thenReturn(
+                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS,
+                        PREVIOUS_UPDATE, TSA_URL_1))
+        );
         ResponseEntity<Set<TimestampingServiceDiagnostics>> response =
                 diagnosticsApiController.getTimestampingServicesDiagnostics();
 
@@ -257,10 +255,11 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsWaiting() {
-        stubForDiagnosticsRequest("/timestampstatus",
-                "{\"" + TSA_URL_1 + "\":{\"returnCode\":" + DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED
-                        + ",\"prevUpdate\":\"" + PREVIOUS_UPDATE + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
+    public void getTimestampingServiceDiagnosticsWaiting() throws Exception {
+        when(proxyRpcClient.getTimestampingStatus()).thenReturn(
+                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
+                        PREVIOUS_UPDATE, TSA_URL_1))
+        );
 
         ResponseEntity<Set<TimestampingServiceDiagnostics>> response =
                 diagnosticsApiController.getTimestampingServicesDiagnostics();
@@ -280,11 +279,11 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
-        stubForDiagnosticsRequest("/timestampstatus",
-                "{\"" + TSA_URL_1 + "\":{\"returnCode\":"
-                        + DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL + ",\"prevUpdate\":\""
-                        + PREVIOUS_UPDATE_MIDNIGHT + "\",\"description\":\"" + TSA_URL_1 + "\"}}");
+    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() throws Exception {
+        when(proxyRpcClient.getTimestampingStatus()).thenReturn(
+                Map.of(TSA_URL_1, new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
+                        PREVIOUS_UPDATE_MIDNIGHT, TSA_URL_1))
+        );
 
         ResponseEntity<Set<TimestampingServiceDiagnostics>> response =
                 diagnosticsApiController.getTimestampingServicesDiagnostics();
@@ -304,9 +303,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getTimestampingServiceDiagnosticsException() {
-        stubFor(get(urlEqualTo("/timestampstatus"))
-                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
+    public void getTimestampingServiceDiagnosticsException() throws Exception {
+        when(proxyRpcClient.getTimestampingStatus()).thenThrow(new Exception());
         DeviationAwareRuntimeException exception = assertThrows(DeviationAwareRuntimeException.class,
                 diagnosticsApiController::getTimestampingServicesDiagnostics);
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
@@ -419,8 +417,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getOcspResponderDiagnosticsException() {
-        stubFor(get(urlEqualTo("/status"))
-                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenThrow(new RuntimeException());
         DeviationAwareRuntimeException exception = assertThrows(DeviationAwareRuntimeException.class,
                 diagnosticsApiController::getOcspRespondersDiagnostics);
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
@@ -449,11 +446,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().contentLength()).isEqualTo(bytes.length);
-    }
-
-    private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
-        stubFor(get(urlEqualTo(requestPath))
-                .willReturn(aResponse().withBody(responseBody)));
     }
 
     private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(int statusCode,

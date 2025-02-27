@@ -22,20 +22,21 @@ sourceSets {
 dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-rpc-quarkus"))
 
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:signer:signer-api"))
 
   implementation(libs.quarkus.arc)
+  implementation(libs.quarkus.scheduler)
 
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.mockito.core)
 
-  "intTestImplementation"(project(":common:common-test"))
-  "intTestImplementation"(project(":common:common-int-test"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":common:common-int-test"))
+  intTestImplementation(libs.logback.classic)
 
   xjc(libs.bundles.jaxb)
 }

@@ -24,34 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.rpc.quarkus;
 
-import io.quarkus.arc.lookup.LookupUnlessProperty;
+import io.quarkus.scheduler.Scheduler;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Provider;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.credentials.TlsRpcCredentialsConfigurer;
 
 public class QuarkusRpcConfig {
 
     @ApplicationScoped
-    @LookupUnlessProperty(name = "xroad.common.rpc.use-tls", stringValue = "true")
-    VaultKeyProvider reloadableVaultKeyManager() {
-        return new NoopVaultKeyProvider();
-    }
-
-    @ApplicationScoped
-    RpcCredentialsConfigurer rpcCredentialsConfigurer(Provider<VaultKeyProvider> vaultKeyProvider,
-                                                             CommonRpcProperties rpcCommonProperties) {
-        if (rpcCommonProperties.useTls()) {
-            return new TlsRpcCredentialsConfigurer(vaultKeyProvider.get());
+    VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties, VaultPKISecretEngineFactory pkiSecretEngineFactory,
+                                      Scheduler scheduler)
+            throws Exception {
+        if (rpcProperties.useTls()) {
+            QuarkusReloadableVaultKeyManager manager = new QuarkusReloadableVaultKeyManager(rpcProperties,
+                    pkiSecretEngineFactory, scheduler);
+            manager.init();
+            return manager;
         } else {
-            return new InsecureRpcCredentialsConfigurer();
+            return new NoopVaultKeyProvider();
         }
     }
-
 }
