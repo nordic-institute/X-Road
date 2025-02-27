@@ -30,8 +30,7 @@
       outlined
       @click="confirmUnregisterClient = true"
     >{{ $t('action.unregister') }}
-    </xrd-button
-    >
+    </xrd-button>
 
     <!-- Confirm dialog for unregister client -->
     <xrd-confirm-dialog

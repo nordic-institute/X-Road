@@ -43,7 +43,7 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.securityserver.restapi.cache.SubsystemRenameStatus;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.repository.AccessRightRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
@@ -115,7 +115,7 @@ public class ClientService {
     private final AccessRightRepository accessRightRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final CurrentSecurityServerId currentSecurityServerId;
-    private final SubsystemRenameStatus subsystemRenameStatus;
+    private final SubsystemNameStatus subsystemNameStatus;
     private final AuditDataHelper auditDataHelper;
 
     // request scoped contains all certificates of type sign
@@ -457,7 +457,7 @@ public class ClientService {
 
         String subsystemName = null;
         if (doesSupportSubsystemNames(globalConfProvider.getVersion())) {
-            subsystemName = subsystemRenameStatus.getNewName(clientId).orElse(null);
+            subsystemName = subsystemNameStatus.getRename(clientId).orElse(null);
             auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, subsystemName);
         }
 
@@ -484,6 +484,7 @@ public class ClientService {
         }
         try {
             Integer requestId = managementRequestSenderService.sendClientRegisterRequest(clientId, subsystemName);
+            subsystemNameStatus.submit(clientId);
             client.setClientStatus(ClientType.STATUS_REGINPROG);
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
@@ -767,7 +768,7 @@ public class ClientService {
 
         ClientType persisted = clientRepository.persist(client);
         if (clientId.isSubsystem() && StringUtils.isNotEmpty(subsystemName)) {
-            subsystemRenameStatus.putNewName(clientId, subsystemName);
+            subsystemNameStatus.set(clientId, globalConfProvider.getSubsystemName(clientId), subsystemName);
         }
         return persisted;
     }
@@ -823,7 +824,7 @@ public class ClientService {
         localGroupRepository.deleteGroupMembersByMemberId(clientType.getIdentifier());
         accessRightRepository.deleteBySubjectId(clientType.getIdentifier());
         removeLocalClient(clientType);
-        subsystemRenameStatus.clear(clientId);
+        subsystemNameStatus.clear(clientId);
     }
 
     private void removeLocalClient(ClientType clientType) {
@@ -842,31 +843,36 @@ public class ClientService {
         }
 
         auditDataHelper.put(clientId);
+        auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, subsystemName);
 
         ClientType client = getLocalClientOrThrowNotFound(clientId);
+
         if (!client.getIdentifier().isSubsystem()) {
             throw new ActionNotPossibleException("Only subsystem can be renamed.");
         }
-        if (subsystemName.equals(globalConfProvider.getSubsystemName(client.getIdentifier()))) {
+
+        var currentName = globalConfProvider.getSubsystemName(client.getIdentifier());
+        if (StringUtils.equals(subsystemName, currentName)) {
             throw new ConflictException("Can not change to the same name.");
         }
 
-        var inStatusSaved = STATUS_SAVED.equals(client.getClientStatus());
-        if (!inStatusSaved) {
-            try {
-                if (subsystemRenameStatus.getNewName(client.getIdentifier()).isPresent()) {
-                    throw new ConflictException("Subsystem rename change request already submitted.");
+        switch (client.getClientStatus()) {
+            case STATUS_SAVED -> subsystemNameStatus.set(client.getIdentifier(), currentName, subsystemName);
+            case STATUS_REGISTERED -> {
+                try {
+                    if (subsystemNameStatus.isSubmitted(client.getIdentifier())) {
+                        throw new ConflictException("Subsystem rename change request already submitted.");
+                    }
+
+                    Integer requestId = managementRequestSenderService.sendClientRenameRequest(clientId, subsystemName);
+                    subsystemNameStatus.submit(client.getIdentifier(), currentName, subsystemName);
+                    auditDataHelper.putManagementRequestId(requestId);
+                } catch (ManagementRequestSendingFailedException e) {
+                    throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
                 }
-
-                Integer requestId = managementRequestSenderService.sendClientRenameRequest(clientId, subsystemName);
-                auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, subsystemName);
-                auditDataHelper.putManagementRequestId(requestId);
-            } catch (ManagementRequestSendingFailedException e) {
-                throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
             }
+            case null, default -> throw new ActionNotPossibleException("Only clients in status save or registered can be renamed.");
         }
-
-        subsystemRenameStatus.putNewName(client.getIdentifier(), subsystemName);
     }
 
     /**

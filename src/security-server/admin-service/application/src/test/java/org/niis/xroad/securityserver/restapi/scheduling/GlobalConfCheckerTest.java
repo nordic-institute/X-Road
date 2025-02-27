@@ -212,12 +212,12 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         var originalName = "originalName";
         var newName = "newName";
         when(globalConfProvider.getSubsystemName(SUBSYSTEM)).thenReturn(originalName);
-        subsystemRenameStatus.putNewName(SUBSYSTEM, newName);
+        subsystemNameStatus.submit(SUBSYSTEM, null, newName);
 
         when(globalConfProvider.getSubsystemName(SUBSYSTEM)).thenReturn(newName);
         globalConfChecker.checkGlobalConf();
 
-        assertFalse(subsystemRenameStatus.getNewName(SUBSYSTEM).isPresent());
+        assertFalse(subsystemNameStatus.getRename(SUBSYSTEM).isPresent());
     }
 
     @Test

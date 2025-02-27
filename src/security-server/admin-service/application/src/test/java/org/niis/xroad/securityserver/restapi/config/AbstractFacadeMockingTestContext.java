@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.securityserver.restapi.cache.SubsystemRenameStatus;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -66,7 +66,7 @@ public abstract class AbstractFacadeMockingTestContext {
     @MockitoBean
     protected AcmeService acmeService;
     @MockitoSpyBean
-    protected SubsystemRenameStatus subsystemRenameStatus;
+    protected SubsystemNameStatus subsystemNameStatus;
     @MockitoBean
     MonitorClient monitorClient;
 }

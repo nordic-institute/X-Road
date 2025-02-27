@@ -512,7 +512,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(startIdentifiers + 1, countIdentifiers());
         assertEquals(INSTANCE_FI, added.getIdentifier().getXRoadInstance());
         assertEquals(STATUS_SAVED, added.getClientStatus());
-        assertTrue("Should not register new name for null", subsystemRenameStatus.getNewName(id).isEmpty());
+        assertTrue("Should not register new name for null", subsystemNameStatus.getRename(id).isEmpty());
 
         // add global subsystem: add FI:GOV:M3:SS1, which exists in global conf but not serverconf
         id = TestUtils.getClientId("FI:GOV:M3:SS1");
@@ -523,7 +523,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(startSubsystems + 2, countSubsystems());
         assertEquals(startIdentifiers + 2, countIdentifiers());
         assertEquals(STATUS_SAVED, added.getClientStatus());
-        assertTrue("Should have new name registered", subsystemRenameStatus.getNewName(id).isPresent());
+        assertTrue("Should have new name registered", subsystemNameStatus.isSet(id));
     }
 
     @Test
@@ -649,7 +649,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         ClientId id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MX");
         clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), "Name",
                 IsAuthentication.SSLAUTH, true);
-        assertTrue("Should not register new name for member", subsystemRenameStatus.getNewName(id).isEmpty());
+        assertTrue("Should not register new name for member", subsystemNameStatus.getRename(id).isEmpty());
 
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems, countSubsystems());
@@ -657,13 +657,13 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // unregistered members subsystem with skip warnings
         id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MX:SS1");
-        assertTrue(subsystemRenameStatus.getNewName(id).isEmpty());
+        assertTrue(subsystemNameStatus.getRename(id).isEmpty());
         clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), "SS1 Name",
                 IsAuthentication.SSLAUTH, true);
         assertEquals(startMembers + 1, countMembers());
         assertEquals(startSubsystems + 1, countSubsystems());
         assertEquals(startIdentifiers + 2, countIdentifiers());
-        assertTrue(subsystemRenameStatus.getNewName(id).isPresent());
+        assertTrue(subsystemNameStatus.isSet(id));
 
         // subsystem for a different unregistered member
         id = TestUtils.getClientId("FI:GOV:UNREGISTERED-MY:SS1");
@@ -1296,9 +1296,11 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var id = TestUtils.getClientId("FI:GOV:M2:SS7");
         ClientType clientType = clientService.getLocalClient(id);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
-        subsystemRenameStatus.putNewName(id, name);
+        subsystemNameStatus.set(id, null, name);
+        assertTrue(subsystemNameStatus.isSet(id));
         clientService.registerClient(id);
         verify(managementRequestSenderService).sendClientRegisterRequest(eq(id), eq(name));
+        assertTrue(subsystemNameStatus.isSubmitted(id));
         clientType = clientService.getLocalClient(id);
         assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
     }

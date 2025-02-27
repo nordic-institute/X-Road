@@ -57,8 +57,10 @@ export default defineComponent({
         case 'deletion_in_progress':
         case 'disabling_in_progress':
           return 'progress-delete';
-        case 'renaming_in_progress':
-          return 'progress-rename'
+        case 'name_set':
+          return 'name-set'
+        case 'name_submitted':
+          return 'name-submitted'
         case 'disabled':
           return 'error-disabled';
         case 'global_error':
@@ -89,8 +91,10 @@ export default defineComponent({
           return this.$t('client.statusText.disabled');
         case 'enabling_in_progress':
           return this.$t('client.statusText.enablingInProgress');
-        case 'renaming_in_progress':
-          return this.$t('client.statusText.renamingInProgress');
+        case 'name_set':
+          return this.$t('client.statusText.nameSet');
+        case 'name_submitted':
+          return this.$t('client.statusText.nameSubmitted');
         case 'global_error':
           return this.$t('client.statusText.globalError');
         default:

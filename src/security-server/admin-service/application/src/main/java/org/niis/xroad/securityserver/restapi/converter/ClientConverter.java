@@ -34,9 +34,10 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
-import org.niis.xroad.securityserver.restapi.cache.SubsystemRenameStatus;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
+import org.niis.xroad.securityserver.restapi.openapi.model.RenameStatus;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.stereotype.Component;
@@ -58,7 +59,7 @@ public class ClientConverter {
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     private final ClientSortingComparator clientSortingComparator;
-    private final SubsystemRenameStatus subsystemRenameStatus;
+    private final SubsystemNameStatus subsystemNameStatus;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
@@ -81,8 +82,19 @@ public class ClientConverter {
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));
         client.setStatus(ClientStatusMapping.map(clientType.getClientStatus()).orElse(null));
         client.setConnectionType(ConnectionTypeMapping.map(clientType.getIsAuthentication()).orElse(null));
-        client.setRenameInProgress(subsystemRenameStatus.getNewName(clientId).isPresent());
+        client.setRenameStatus(mapRenameStatus(clientId));
         return client;
+    }
+
+    private RenameStatus mapRenameStatus(ClientId clientId) {
+        if (clientId.isSubsystem()) {
+            if (subsystemNameStatus.isSubmitted(clientId)) {
+                return RenameStatus.NAME_SUBMITTED;
+            } else if (subsystemNameStatus.isSet(clientId)) {
+                return RenameStatus.NAME_SET;
+            }
+        }
+        return null;
     }
 
     /**
@@ -96,7 +108,6 @@ public class ClientConverter {
                 .sorted(clientSortingComparator)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
-
 
     /**
      * Convert MemberInfo into Client

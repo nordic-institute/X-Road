@@ -27,52 +27,73 @@
 
 package org.niis.xroad.securityserver.restapi.cache;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 @Component
 @RequiredArgsConstructor
-public class SubsystemRenameStatus {
+public class SubsystemNameStatus {
 
-    private static final long WAIT_MULTIPLIER = 3;
-
-    private final Cache<ClientId, Rename> cache = CacheBuilder.newBuilder()
-            .expireAfterAccess(WAIT_MULTIPLIER * SystemProperties.getConfigurationClientUpdateIntervalSeconds(), SECONDS)
+    private final Cache<ClientId, Change> nameCache = CacheBuilder.newBuilder()
             .build();
 
-    private final GlobalConfProvider globalConfProvider;
 
-    public Optional<String> getNewName(ClientId clientId) {
-        return Optional.ofNullable(cache.getIfPresent(clientId))
-                .map(Rename::newName);
+    public Optional<String> getRename(ClientId clientId) {
+        return Optional.ofNullable(nameCache.getIfPresent(clientId))
+                .map(Change::newName);
     }
 
-    public void putNewName(ClientId clientId, String clientName) {
-        cache.put(clientId, new Rename(globalConfProvider.getSubsystemName(clientId), clientName));
+    public void set(ClientId clientId, String oldName, String newName) {
+        if (!StringUtils.equals(oldName, newName)) {
+            nameCache.put(clientId, new Change(oldName, newName, false));
+        }
+    }
+
+    public void submit(ClientId clientId, String oldName, String newName) {
+        if (!StringUtils.equals(oldName, newName)) {
+            nameCache.put(clientId, new Change(oldName, newName, true));
+        }
+    }
+
+    public void submit(ClientId clientId) {
+        Optional.ofNullable(nameCache.getIfPresent(clientId))
+                .ifPresent(change -> {
+                    nameCache.put(clientId, change.submit());
+                });
+    }
+
+    public boolean isSubmitted(ClientId clientId) {
+        Change change = nameCache.getIfPresent(clientId);
+        return change != null && change.submitted();
+    }
+
+    public boolean isSet(ClientId clientId) {
+        Change change = nameCache.getIfPresent(clientId);
+        return change != null && !change.submitted();
     }
 
     public void clear(ClientId clientId) {
-        cache.invalidate(clientId);
+        nameCache.invalidate(clientId);
     }
 
     public void clearIf(ClientId clientId, Predicate predicate) {
         Optional.of(clientId)
-                .map(cache::getIfPresent)
+                .map(nameCache::getIfPresent)
                 .filter(rename -> predicate.test(rename.oldName, rename.newName))
                 .ifPresent(rename -> clear(clientId));
     }
 
-    public record Rename(String oldName, String newName) {
+    public record Change(String oldName, String newName, boolean submitted) {
+        public Change submit() {
+            return new Change(oldName, newName, true);
+        }
     }
 
     public interface Predicate {

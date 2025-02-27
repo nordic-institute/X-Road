@@ -29,7 +29,11 @@
       data-test="rename-client-button"
       outlined
       @click="showDialog = true"
-    >{{ $t('action.edit') }}
+    >
+      <xrd-icon-base class="xrd-large-button-icon">
+        <xrd-icon-edit />
+      </xrd-icon-base>
+      {{ $t('action.edit') }}
     </xrd-button>
 
     <xrd-simple-dialog
@@ -60,12 +64,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, PropType, ref } from 'vue';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { i18n } from '@/plugins/i18n';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { ClientStatus } from '@/openapi-types';
 
 const props = defineProps({
   id: {
@@ -74,6 +79,9 @@ const props = defineProps({
   },
   subsystemName: {
     type: String,
+  },
+  clientStatus: {
+    type: String as PropType<ClientStatus>,
   },
 });
 
@@ -84,15 +92,13 @@ const { defineField, meta, handleSubmit, resetForm } = useForm({
   initialValues: { subsystemName: props.subsystemName },
 });
 
-watch(props, () => {
-  resetForm()
-});
-
 const { showError, showSuccess } = useNotifications();
 
 const [name, nameAttrs] = defineField('subsystemName', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
+
+resetForm();
 
 const loading = ref(false);
 const showDialog = ref(false);
@@ -105,16 +111,12 @@ const rename = handleSubmit((values) => {
   loading.value = true;
   api
     .put(`/clients/${encodePathParameter(props.id)}/rename`, { client_name: values.subsystemName })
-    .then(
-      () => {
-        showSuccess(t('client.action.renameSubsystem.success'));
-      },
-      (error) => showError(error)
-      ,
-    )
     .then(() => {
-      showSuccess(t('client.action.renameSubsystem.success'));
-      resetForm();
+      if(props.clientStatus === ClientStatus.REGISTERED) {
+        showSuccess(t('client.action.renameSubsystem.changeSubmitted'));
+      } else {
+        showSuccess(t('client.action.renameSubsystem.changeAdded'));
+      }
       emits('done', props.id);
     })
     .catch((error) => {

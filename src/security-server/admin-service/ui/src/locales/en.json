@@ -117,7 +117,8 @@
       },
       "renameSubsystem": {
         "title": "Edit subsystem name",
-        "success": "Subsystem renaming is in progress"
+        "changeSubmitted": "Subsystem name change successfully submitted",
+        "changeAdded": "Subsystem name change successfully added and will be applied on client registration"
       },
       "unregister": {
         "confirmText": "Do you want to unregister this client?",
@@ -125,6 +126,8 @@
         "success": "Client unregistered"
       }
     },
+    "defaultSubsystemName": "Undefined",
+    "defaultSubsystemNameTooltip": "Subsystem name is not defined",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -138,8 +141,9 @@
       "disabled": "DISABLED",
       "disablingInProgress": "DISABLING IN PROGRESS",
       "enablingInProgress": "ENABLING IN PROGRESS",
-      "renamingInProgress": "RENAMING IN PROGRESS",
       "globalError": "GLOBAL ERROR",
+      "nameSet": "Name change will be applied on client registration",
+      "nameSubmitted": "Name change is submitted",
       "registered": "REGISTERED",
       "registrationInProgress": "REGISTRATION IN PROGRESS",
       "saved": "SAVED"

@@ -24,13 +24,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView :title="title">
+  <XrdTitledView>
+    <template #title>
+      <subsystem-name :subsystem-name="title" />
+      <template v-if="!clientLoading">
+        &nbsp;({{ $t('general.subsystem') }})
+      </template>
+    </template>
     <template #header-buttons>
       <DisableClientButton v-if="showDisable" class="ml-5" :id="id" @done="fetchData" />
       <EnableClientButton v-if="showEnable" class="ml-5" :id="id" @done="fetchData" />
       <DeleteClientButton v-if="showDelete" class="ml-5" :id="id" />
       <UnregisterClientButton v-if="showUnregister" class="ml-5" :id="id" @done="fetchData" />
-      <RenameClientButton v-if="showRename" class="pl-5" :id="id" :subsystem-name="subSystemName" @done="fetchData" />
+      <RenameClientButton v-if="showRename" class="pl-5" :id="id" :subsystem-name="subsystemName" :client-status="client?.status" @done="fetchData" />
     </template>
 
     <router-view />
@@ -48,13 +54,15 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { ClientStatus } from '@/openapi-types';
+import { ClientStatus, RenameStatus } from '@/openapi-types';
 import { XrdTitledView } from '@niis/shared-ui';
 import RenameClientButton from '@/components/client/RenameClientButton.vue';
 import { useSystem } from '@/store/modules/system';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
     RenameClientButton,
     XrdTitledView,
     EnableClientButton,
@@ -78,16 +86,16 @@ export default defineComponent({
     ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
     ...mapState(useSystem, ['doesSupportSubsystemNames']),
-    title(): string {
+    title(): string | undefined {
       if (this.clientLoading) {
         return this.$t('noData.loading');
       } else if (this.client) {
-        return `${this.client.subsystem_name || this.client.subsystem_code} (${this.$t('general.subsystem')})`;
+        return this.client.subsystem_name;
       }
       return '';
     },
-    subSystemName(): string {
-      return this.client ? this.client.subsystem_name : '';
+    subsystemName(): string {
+      return this.client?.subsystem_name || '';
     },
     showUnregister(): boolean {
       if (!this.client) return false;
@@ -101,13 +109,11 @@ export default defineComponent({
       );
     },
     showRename(): boolean {
-      if (!this.client) return false;
-      return (
+      return this.client &&
         this.doesSupportSubsystemNames &&
-        this.client && this.client.subsystem_code &&
-        (ClientStatus.SAVED == this.client.status ? true : !this.client.rename_in_progress) &&
-        this.hasPermission(Permissions.RENAME_SUBSYSTEM)
-      );
+        this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
+        RenameStatus.NAME_SUBMITTED !== this.client.rename_status;
+        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status);
     },
 
     showDelete(): boolean {

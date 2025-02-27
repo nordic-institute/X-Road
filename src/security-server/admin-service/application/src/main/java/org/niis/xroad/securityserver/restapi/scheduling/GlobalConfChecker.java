@@ -33,12 +33,13 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
-import org.niis.xroad.securityserver.restapi.cache.SubsystemRenameStatus;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.ServerConfType;
@@ -76,7 +77,7 @@ public class GlobalConfChecker {
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
-    private final SubsystemRenameStatus subsystemRenameStatus;
+    private final SubsystemNameStatus subsystemNameStatus;
     private final MailNotificationHelper mailNotificationHelper;
 
     /**
@@ -270,7 +271,10 @@ public class GlobalConfChecker {
                 updateClientStatus(client, ClientType.STATUS_DISABLED);
             }
 
-            subsystemRenameStatus.clearIf(clientId, (oldName, newName) -> !oldName.equals(globalConfProvider.getSubsystemName(clientId)));
+            if (clientId.isSubsystem()) {
+                subsystemNameStatus.clearIf(clientId,
+                        (oldName, newName) -> !StringUtils.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
+            }
         }
     }
 

@@ -50,7 +50,7 @@
           {{ client.subsystem_name }}
         </td>
         <td class="pr-5">
-          <client-status class="float-right" v-if="client.rename_in_progress" style="float: right" status="renaming_in_progress" />
+          <client-status class="float-right" v-if="client.rename_status" style="float: right" :status="client.rename_status" />
         </td>
       </tr>
       </tbody>

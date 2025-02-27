@@ -63,10 +63,16 @@
       icon="icon-Cancel"
     />
     <v-icon
-      v-else-if="status === 'progress-rename'"
+      v-else-if="status === 'name-set'"
       size="small"
       color="#211E1E"
-      icon="mdi-rename"
+      icon="icon-Edit"
+    />
+    <v-icon
+      v-else-if="status === 'name-submitted'"
+      size="small"
+      color="#0CC177"
+      icon="icon-Edit"
     />
     <v-icon
       v-else-if="status === 'error'"
@@ -120,7 +126,8 @@ export default defineComponent({
           'error-disabled',
           'pending',
           'pending-disabled',
-          'progress-rename'
+          'name-set',
+          'name-submitted'
         ].includes(val),
     },
   },

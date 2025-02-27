@@ -155,7 +155,9 @@
                   ></v-checkbox-btn>
                 </div>
               </td>
-              <td>{{ sc.name }}</td>
+              <td>
+                <client-name :service-client="sc" />
+              </td>
               <td
                 v-if="sc.service_client_type === serviceClientTypes.LOCALGROUP"
               >
@@ -206,6 +208,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 import { ServiceClient, ServiceClientType } from '@/openapi-types';
 import { XrdExpandable } from '@niis/shared-ui';
+import ClientName from '@/components/client/ClientName.vue';
 
 const initialState = () => {
   return {
@@ -225,7 +228,7 @@ const initialState = () => {
 };
 
 export default defineComponent({
-  components: { XrdExpandable },
+  components: { ClientName, XrdExpandable },
   props: {
     dialog: {
       type: Boolean,
