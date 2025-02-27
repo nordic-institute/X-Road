@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -98,7 +99,7 @@ public class InternalTlsCertificateServiceTest {
                     throw new RuntimeException("TEST command not supported");
                 }
             },
-            new ClearCacheService() {
+            new ClearCacheService(mock(ProxyRpcClient.class)) {
                 @Override
                 public boolean executeClearConfigurationCache() {
                     return true;

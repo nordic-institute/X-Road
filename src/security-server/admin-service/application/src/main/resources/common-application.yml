@@ -72,13 +72,6 @@ script:
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 
-url:
-  diagnostics-timestamping-services: http://localhost:%s/timestampstatus
-  clear-configuration-cache: http://localhost:%s/clearconfcache
-  diagnostics-addon-status: http://localhost:%s/addonstatus
-  diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status
-  diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
-
 common-module-endpoints:
   base-path: /api/v1
 

@@ -42,6 +42,10 @@ public interface ProxyProperties {
     OcspResponderProperties ocspResponder();
     ProxyAddonProperties addOn();
 
+    @WithName("admin-port")
+    @WithDefault("5566")
+    int adminPort();
+
     @WithName("ssl-enabled")
     @WithDefault("true")
     boolean sslEnabled();

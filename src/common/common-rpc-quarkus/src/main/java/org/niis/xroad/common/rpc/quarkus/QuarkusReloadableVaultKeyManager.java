@@ -28,15 +28,15 @@ package org.niis.xroad.common.rpc.quarkus;
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import io.grpc.util.CertificateUtils;
-import io.quarkus.arc.profile.UnlessBuildProfile;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.ScheduledExecution;
+import io.quarkus.scheduler.Scheduler;
 import io.quarkus.vault.VaultPKISecretEngine;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import io.quarkus.vault.pki.DataFormat;
 import io.quarkus.vault.pki.GenerateCertificateOptions;
 import io.quarkus.vault.pki.PrivateKeyEncoding;
 import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -50,18 +50,19 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 @Slf4j
-@ApplicationScoped
-@UnlessBuildProfile("test")
 public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
     private final CommonRpcProperties rpcProperties;
     private final AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
 
     private final AdvancedTlsX509TrustManager trustManager;
     private final VaultPKISecretEngine pkiSecretEngine;
+    private final Scheduler scheduler;
 
     public QuarkusReloadableVaultKeyManager(CommonRpcProperties rpcProperties,
-                                            VaultPKISecretEngineFactory pkiSecretEngineFactory) throws CertificateException {
+                                            VaultPKISecretEngineFactory pkiSecretEngineFactory,
+                                            Scheduler scheduler) throws CertificateException {
         this.rpcProperties = rpcProperties;
+        this.scheduler = scheduler;
         this.pkiSecretEngine = pkiSecretEngineFactory.engine(rpcProperties.certificateProvisioning().secretStorePkiPath());
 
         this.trustManager = AdvancedTlsX509TrustManager.newBuilder()
@@ -70,8 +71,14 @@ public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
-        reload();
+    public void init() throws Exception {
+        log.info("Scheduling certificate reload job");
+        scheduler.newJob(getClass().getSimpleName())
+                .setInterval("%sm".formatted(rpcProperties.certificateProvisioning().refreshIntervalMinutes()))
+                .setDelayed("0s")
+                .setTask(this::reload)
+                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .schedule();
     }
 
     @Override
@@ -84,30 +91,33 @@ public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
         return trustManager;
     }
 
-    @Scheduled(every = "${xroad.common.rpc.certificate-provisioning.refresh-interval-minutes}m")
-    public void reload() throws Exception {
-        var request = buildVaultCertificateRequest();
-        if (log.isDebugEnabled()) {
-            log.debug("Requesting new certificate from Vault secret-store [{}] with request cn: {}, altNames: {}, ipSubjectAltNames: {}",
-                    rpcProperties.certificateProvisioning().secretStorePkiPath(), "CN", "altNames", "ipSubjectAltNames");
-        }
-
-        var vaultResponse = pkiSecretEngine.generateCertificate(rpcProperties.certificateProvisioning().issuanceRoleName(), request);
-
-
-        if (vaultResponse != null) {
-            log.info("Received new certificate from Vault. [{}]", vaultResponse);
-            var cert = vaultResponse.certificate.getCertificate();
-            if (vaultResponse.privateKey.getData() instanceof String data) {
-                var privateKey = CertificateUtils.getPrivateKey(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)));
-                var certTrustChain = vaultResponse.issuingCA.getCertificate();
-
-                log.info("Received new certificate from Vault.");
-                keyManager.updateIdentityCredentials(new X509Certificate[]{cert}, privateKey);
-                trustManager.updateTrustCredentials(new X509Certificate[]{certTrustChain});
+    public void reload(ScheduledExecution execution) {
+        try {
+            var request = buildVaultCertificateRequest();
+            if (log.isDebugEnabled()) {
+                log.debug("Requesting new certificate from Vault secret-store [{}] with request cn: {}, "
+                                + "altNames: {}, ipSubjectAltNames: {}",
+                        rpcProperties.certificateProvisioning().secretStorePkiPath(), "CN", "altNames", "ipSubjectAltNames");
             }
-        } else {
-            log.error("Failed to get certificate from Vault. Data is null.");
+
+            var vaultResponse = pkiSecretEngine.generateCertificate(rpcProperties.certificateProvisioning().issuanceRoleName(), request);
+
+            if (vaultResponse != null) {
+                log.info("Received new certificate from Vault. [{}]", vaultResponse);
+                var cert = vaultResponse.certificate.getCertificate();
+                if (vaultResponse.privateKey.getData() instanceof String data) {
+                    var privateKey = CertificateUtils.getPrivateKey(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)));
+                    var certTrustChain = vaultResponse.issuingCA.getCertificate();
+
+                    log.info("Received new certificate from Vault.");
+                    keyManager.updateIdentityCredentials(new X509Certificate[]{cert}, privateKey);
+                    trustManager.updateTrustCredentials(new X509Certificate[]{certTrustChain});
+                }
+            } else {
+                log.error("Failed to get certificate from Vault. Data is null.");
+            }
+        } catch (Exception e) {
+            log.error("Failed to reload certificate from Vault", e);
         }
     }
 
