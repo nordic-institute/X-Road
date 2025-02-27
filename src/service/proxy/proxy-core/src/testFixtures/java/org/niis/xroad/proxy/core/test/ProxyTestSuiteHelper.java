@@ -74,7 +74,6 @@ public class ProxyTestSuiteHelper {
         properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()));
 
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
-        solver.setIfNotSet(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         properties.putIfAbsent("xroad.proxy.server.listen-address", "127.0.0.1");
 

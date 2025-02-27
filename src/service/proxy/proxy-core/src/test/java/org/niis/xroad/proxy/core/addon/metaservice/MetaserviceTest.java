@@ -75,7 +75,6 @@ public class MetaserviceTest {
         props.put("xroad.proxy.server.listen-address", "127.0.0.1");
 
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         props.put("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
@@ -83,8 +82,6 @@ public class MetaserviceTest {
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, props);
-
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         ProxyTestSuiteHelper.startTestServices();
     }

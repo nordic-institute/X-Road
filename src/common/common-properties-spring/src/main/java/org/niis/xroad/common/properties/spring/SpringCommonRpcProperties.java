@@ -27,8 +27,6 @@
 
 package org.niis.xroad.common.properties.spring;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -36,12 +34,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.util.List;
 
 
-@NoArgsConstructor
-@AllArgsConstructor
+@Setter
 @ConfigurationProperties(prefix = "xroad.common.rpc")
 public class SpringCommonRpcProperties implements CommonRpcProperties {
 
-    private boolean useTls;
+    private boolean useTls = Boolean.parseBoolean(DEFAULT_USE_TLS);
     private SpringCertificateProvisionProperties certificateProvisioning;
 
     @Override
@@ -55,9 +52,7 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
     }
 
     @Setter
-    @ConfigurationProperties(prefix = "xroad.common.rpc.certificate-provisioning")
-    public class SpringCertificateProvisionProperties
-            implements CertificateProvisionProperties {
+    static class SpringCertificateProvisionProperties implements CertificateProvisionProperties {
 
         private String issuanceRoleName;
         private String commonName;

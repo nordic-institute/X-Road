@@ -36,8 +36,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.ProxyTestSuiteHelper;
 import org.niis.xroad.proxy.core.test.TestContext;
@@ -52,12 +55,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 public class ProxyMonitorMetaserviceTest {
+
+    public static EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties = ConfigUtils.initConfiguration(
+            EnvMonitorRpcChannelProperties.class,
+            Map.of(EnvMonitorRpcChannelProperties.PREFIX + ".port", String.valueOf(findRandomPort())));
+
+    private static MonitorRpcClient monitorRpcClient;
 
     @BeforeAll
     static void beforeAll() throws Exception {
@@ -74,8 +84,9 @@ public class ProxyMonitorMetaserviceTest {
         ProxyTestSuiteHelper.proxyProperties = ConfigUtils.initConfiguration(ProxyProperties.class, proxyProps);
 
         ProxyTestSuiteHelper.startTestServices();
-
-        new ProxyMonitor().init(new BindableServiceRegistry());
+        monitorRpcClient = new MonitorRpcClient(new RpcChannelFactory(new InsecureRpcCredentialsConfigurer()),
+                envMonitorRpcChannelProperties);
+        monitorRpcClient.init();
     }
 
     @AfterAll
@@ -91,7 +102,7 @@ public class ProxyMonitorMetaserviceTest {
         assertThat(testCasesToRun.size()).isGreaterThan(0);
 
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "false");
-        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties);
+        ctx = new TestContext(ProxyTestSuiteHelper.proxyProperties, true, monitorRpcClient);
 
         return testCasesToRun.stream()
                 .map(testCase -> dynamicTest(testCase.getId(),

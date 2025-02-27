@@ -28,7 +28,10 @@
 package org.niis.xroad.monitor.rpc;
 
 import io.grpc.ManagedChannel;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -40,15 +43,21 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
 public class MonitorRpcClient extends AbstractRpcClient {
-    private final ManagedChannel channel;
-    private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
-    public MonitorRpcClient(RpcChannelFactory proxyRpcChannelFactory, EnvMonitorRpcChannelProperties rpcChannelProperties)
-            throws Exception {
-        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
-                rpcChannelProperties.port());
-        channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+    private final RpcChannelFactory rpcChannelFactory;
+    private final EnvMonitorRpcChannelProperties envMonitorRpcChannelProperties;
+
+    private ManagedChannel channel;
+    private MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
+
+    @PostConstruct
+    public void init() throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), envMonitorRpcChannelProperties.host(),
+                envMonitorRpcChannelProperties.port());
+        channel = rpcChannelFactory.createChannel(envMonitorRpcChannelProperties);
 
         metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
@@ -71,6 +80,19 @@ public class MonitorRpcClient extends AbstractRpcClient {
             return response.getMetrics();
         } catch (Exception e) {
             throw new RuntimeException("Failed to get metrics for: " + Arrays.toString(metricNames), e);
+        }
+    }
+
+    public MetricsGroup getMetrics(List<String> metricNames, boolean isOwner) {
+        try {
+            var response = exec(() -> metricsServiceBlockingStub.getMetrics(SystemMetricsReq.newBuilder()
+                    .setIsClientOwner(isOwner)
+                    .addAllMetricNames(metricNames)
+                    .build()));
+
+            return response.getMetrics();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get metrics for: " + String.join(",", metricNames), e);
         }
     }
 
