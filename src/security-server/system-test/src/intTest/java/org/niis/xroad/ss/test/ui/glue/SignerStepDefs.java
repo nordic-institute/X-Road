@@ -49,6 +49,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
 
     @SneakyThrows
     @Step("predefined signer softtoken is uploaded")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void updateSignerSoftToken() {
         execInContainer("supervisorctl", "stop", "xroad-signer");
         execInContainer("rm", "-rf", "/etc/xroad/signer/");
@@ -60,6 +61,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
 
     @SneakyThrows
     @Step("Predefined inactive signer token is uploaded")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void addInactiveSignerToken() {
         execInContainer("supervisorctl", "stop", "xroad-signer");
         execInContainer("sed", "-i", "/<\\/device>/a\\\n"

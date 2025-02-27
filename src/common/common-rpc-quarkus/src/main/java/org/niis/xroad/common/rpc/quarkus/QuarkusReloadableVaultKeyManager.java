@@ -95,7 +95,8 @@ public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
         try {
             var request = buildVaultCertificateRequest();
             if (log.isDebugEnabled()) {
-                log.debug("Requesting new certificate from Vault secret-store [{}] with request cn: {}, altNames: {}, ipSubjectAltNames: {}",
+                log.debug("Requesting new certificate from Vault secret-store [{}] with request cn: {}, "
+                                + "altNames: {}, ipSubjectAltNames: {}",
                         rpcProperties.certificateProvisioning().secretStorePkiPath(), "CN", "altNames", "ipSubjectAltNames");
             }
 
