@@ -76,6 +76,7 @@ public class GlobalConfChecker {
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final MailNotificationHelper mailNotificationHelper;
+    private final FirewallUpdater firewallUpdater;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -100,6 +101,7 @@ public class GlobalConfChecker {
             log.debug("Check globalconf for updates");
             reloadGlobalConf();
             updateServerConf();
+            firewallUpdater.updateSecurityServers();
         } catch (Exception e) {
             log.error("Checking globalconf for updates failed", e);
         }

@@ -97,6 +97,9 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
             PREFIX + "proxy-ui-api.regular-api-whitelist";
 
+    public static final String PROXY_UI_API_FIREWALL = PREFIX + "proxy-ui-api.firewall";
+    public static final String PROXY_UI_API_FIREWALL_SS_GROUP_NAME = PREFIX + "proxy-ui-api.firewall-ss-group-name";
+
     /** Property name of the flag for enabling automatic time-stamping service URL updates */
     public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
             PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
@@ -538,6 +541,8 @@ public final class SystemProperties {
      */
     public enum AllowedFederationMode { ALL, NONE, CUSTOM }
 
+    public enum Firewall { NFTABLES, AWS_EC2, NONE }
+
     // Center -----------------------------------------------------------------
 
     public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
@@ -866,6 +871,14 @@ public final class SystemProperties {
     public static String getRegularApiWhitelist() {
         return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
                 DEFAULT_REGULAR_API_WHITELIST);
+    }
+
+    public static String getFirewall() {
+        return System.getProperty(PROXY_UI_API_FIREWALL, Firewall.NONE.name());
+    }
+
+    public static String getFirewallSecurityServerGroupName() {
+        return System.getProperty(PROXY_UI_API_FIREWALL_SS_GROUP_NAME, "security-server-group");
     }
 
     /**

@@ -42,6 +42,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
   implementation("io.micrometer:micrometer-tracing-bridge-brave")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  implementation(libs.awssdk.ec2)
+  implementation("software.amazon.awssdk:netty-nio-client:2.30.26")
   implementation(libs.libpam4j)
   implementation(libs.apache.commonsCompress)
   implementation(libs.wsdl4j)

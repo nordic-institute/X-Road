@@ -365,6 +365,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         verify(globalConfProvider).reload();
         verify(globalConfProvider).verifyValidity();
+        //verify(globalConfProvider).getKnownAddresses();
         verifyNoMoreInteractions(globalConfProvider);
 
         System.setProperty(NODE_TYPE, MASTER.toString());

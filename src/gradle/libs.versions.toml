@@ -155,6 +155,8 @@ cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
+awssdk-ec2 = { module = "software.amazon.awssdk:ec2", version="2.30.27" }
+awssdk-netty = { module = "software.amazon.awssdk:netty-nio-client", version="2.30.26" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
