@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.properties.spring;
+package org.niis.xroad.common.rpc.spring;
 
 import lombok.Setter;
 import org.niis.xroad.common.properties.CommonRpcProperties;
@@ -35,7 +35,7 @@ import java.util.List;
 
 
 @Setter
-@ConfigurationProperties(prefix = "xroad.common.rpc")
+@ConfigurationProperties(prefix = CommonRpcProperties.PREFIX)
 public class SpringCommonRpcProperties implements CommonRpcProperties {
 
     private boolean useTls = Boolean.parseBoolean(DEFAULT_USE_TLS);

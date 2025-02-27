@@ -27,24 +27,25 @@ package org.niis.xroad.common.rpc.spring;
 
 
 import org.niis.xroad.common.properties.CommonRpcProperties;
-import org.niis.xroad.common.properties.spring.SpringCommonPropertiesConfiguration;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.vault.core.VaultTemplate;
 
 import java.util.Optional;
 
-@Import({SpringCommonPropertiesConfiguration.class})
 @Configuration(proxyBeanMethods = false)
 @EnableScheduling
+@EnableConfigurationProperties({
+        SpringCommonRpcProperties.class
+})
 public class SpringRpcConfig extends RpcConfig {
     public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
 
@@ -59,7 +60,7 @@ public class SpringRpcConfig extends RpcConfig {
     }
 
     @Bean
-    public RpcCredentialsConfigurer rpcCredentialsConfigurerInternal(Optional<VaultKeyProvider> vaultKeyProvider,
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(Optional<VaultKeyProvider> vaultKeyProvider,
                                                                      CommonRpcProperties rpcCommonProperties) {
         return super.rpcCredentialsConfigurer(vaultKeyProvider::get, rpcCommonProperties);
     }
