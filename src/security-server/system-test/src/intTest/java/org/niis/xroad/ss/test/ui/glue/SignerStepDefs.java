@@ -55,6 +55,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
         execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
         execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
         execInContainer("supervisorctl", "start", "xroad-signer");
+        Selenide.sleep(3000L);
     }
 
     @SneakyThrows
@@ -69,6 +70,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 + "        <pinIndex>1</pinIndex>\\\n"
                 + "    </device>", "/etc/xroad/signer/keyconf.xml");
         execInContainer("supervisorctl", "start", "xroad-signer");
+        Selenide.sleep(3000L);
     }
 
     @SneakyThrows
