@@ -31,8 +31,10 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
+@ConfigMapping(prefix = ConfClientRpcChannelProperties.PREFIX)
 public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
+    String PREFIX = "xroad.common.rpc.channel.configuration-client";
+
     String DEFAULT_HOST = "127.0.0.1";
     String DEFAULT_PORT = "5665";
     String DEFAULT_DEADLINE_AFTER = "60000";

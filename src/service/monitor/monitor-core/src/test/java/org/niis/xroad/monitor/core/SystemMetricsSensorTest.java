@@ -44,7 +44,7 @@ import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
-import org.niis.xroad.proxy.proto.QuarkusProxyRpcChannelProperties;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 
 import java.time.Duration;
 import java.util.Map;
@@ -126,7 +126,7 @@ class SystemMetricsSensorTest {
     void testSystemMetricsSensor() throws Exception {
         MetricRegistryHolder.getInstance().setMetrics(metricRegistry);
 
-        QuarkusProxyRpcChannelProperties proxyRpcClientProperties = new QuarkusProxyRpcChannelProperties() {
+        ProxyRpcChannelProperties proxyRpcClientProperties = new ProxyRpcChannelProperties() {
             @Override
             public String host() {
                 return "localhost";

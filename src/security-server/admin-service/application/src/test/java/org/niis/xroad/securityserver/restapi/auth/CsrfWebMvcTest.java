@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
@@ -100,6 +101,9 @@ public class CsrfWebMvcTest {
 
     @MockBean
     private ConfClientRpcClient confClientRpcClient;
+
+    @MockBean
+    private ProxyRpcClient proxyRpcClient;
 
     @MockBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;

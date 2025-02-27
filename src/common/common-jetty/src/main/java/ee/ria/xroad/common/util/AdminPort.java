@@ -82,7 +82,7 @@ public class AdminPort {
     }
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void init() throws Exception {
         LOG.info("Started AdminPort on port {}", portNumber);
 
         server.start();
