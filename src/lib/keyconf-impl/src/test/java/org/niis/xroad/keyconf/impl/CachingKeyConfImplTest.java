@@ -47,7 +47,6 @@ import org.niis.xroad.test.serverconf.EmptyServerConf;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
