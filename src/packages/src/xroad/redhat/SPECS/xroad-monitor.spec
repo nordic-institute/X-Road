@@ -11,7 +11,6 @@ Summary:            X-Road Monitoring
 Group:              Applications/Internet
 License:            MIT
 Requires:           systemd, xroad-base = %version-%release
-Requires:           (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd

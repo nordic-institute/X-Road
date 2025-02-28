@@ -17,7 +17,6 @@ Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
 Requires: xroad-base = %version-%release
-Requires: (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 
 %define src %{_topdir}/..
 
