@@ -471,14 +471,8 @@ public final class SystemProperties {
     public static final String CONF_FILE_COMMON =
             getConfPath() + "conf.d/common.ini";
 
-    public static final String CONF_FILE_PROXY =
-            getConfPath() + "conf.d/proxy.ini";
-
     public static final String CONF_FILE_NODE =
             getConfPath() + "conf.d/node.ini";
-
-    public static final String CONF_FILE_PROXY_UI_API =
-            getConfPath() + "conf.d/proxy-ui-api.ini";
 
     public static final String CONF_FILE_CENTER =
             getConfPath() + "conf.d/center.ini";
@@ -491,8 +485,6 @@ public final class SystemProperties {
 
     public static final String CONF_FILE_ADDON_PATH =
             getConfPath() + "conf.d/addons/";
-
-    public static final String CONF_FILE_MESSAGE_LOG = CONF_FILE_ADDON_PATH + "message-log.ini";
 
     // --------------------------------------------------------------------- //
 
