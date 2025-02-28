@@ -74,7 +74,6 @@ rm -rf %{buildroot}
 %files
 %defattr(0640,xroad,xroad,0751)
 %config /etc/xroad/services/proxy.conf
-%config /etc/xroad/conf.d/proxy.ini
 
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
