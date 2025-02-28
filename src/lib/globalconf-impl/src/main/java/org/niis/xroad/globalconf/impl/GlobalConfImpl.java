@@ -49,6 +49,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.PrivateParameters;
@@ -65,6 +66,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -735,7 +737,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Integer getVersion() {
-        return globalConfSource.getVersion();
+    public OptionalInt getVersion() {
+        try {
+            return Optional.ofNullable(globalConfSource.getVersion()).stream()
+                    .mapToInt(Integer::intValue)
+                    .findFirst();
+        } catch (GlobalConfInitException e) {
+            log.warn("Error getting global configuration version", e);
+            return OptionalInt.empty();
+        }
     }
 }

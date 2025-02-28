@@ -456,7 +456,8 @@ public class ClientService {
                                                               InvalidMemberClassException, InvalidInstanceIdentifierException {
 
         String subsystemName = null;
-        if (doesSupportSubsystemNames(globalConfProvider.getVersion())) {
+        var gcVersion = globalConfProvider.getVersion();
+        if (gcVersion.isPresent() && doesSupportSubsystemNames(gcVersion.getAsInt())) {
             subsystemName = subsystemNameStatus.getRename(clientId).orElse(null);
             auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, subsystemName);
         }
@@ -838,7 +839,8 @@ public class ClientService {
     public void renameClient(ClientId.Conf clientId, String subsystemName)
             throws ClientNotFoundException, ActionNotPossibleException, GlobalConfOutdatedException {
 
-        if (!doesSupportSubsystemNames(globalConfProvider.getVersion())) {
+        var gcVersion = globalConfProvider.getVersion();
+        if (gcVersion.isEmpty() || !doesSupportSubsystemNames(gcVersion.getAsInt())) {
             throw new ActionNotPossibleException("Rename operation only supported since Global configuration version 5");
         }
 

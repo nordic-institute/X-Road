@@ -56,6 +56,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -123,7 +124,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
-        when(globalConfProvider.getVersion()).thenReturn(5);
+        when(globalConfProvider.getVersion()).thenReturn(OptionalInt.of(5));
         when(globalConfProvider.getMembers()).thenReturn(globalMemberInfos);
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];

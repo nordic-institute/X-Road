@@ -127,7 +127,7 @@ public class SystemApiController implements SystemApi {
     public ResponseEntity<VersionInfo> systemVersion() {
         VersionInfoDto versionInfoDto = versionService.getVersionInfo();
         VersionInfo result = versionConverter.convert(versionInfoDto);
-        result.setGlobalConfigurationVersion(globalConfService.getGlobalConfigurationVersion());
+        globalConfService.getGlobalConfigurationVersion().ifPresent(result::setGlobalConfigurationVersion);
         return ResponseEntity.ok(result);
     }
 
@@ -297,7 +297,6 @@ public class SystemApiController implements SystemApi {
     /**
      * For uploading an initial configuration anchor. The difference between this and {@link #replaceAnchor(Resource)}}
      * is that the anchor's instance does not get verified
-     *
      * @param anchorResource
      * @return
      */

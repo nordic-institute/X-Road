@@ -68,7 +68,7 @@ public final class ClientUtils {
         return false;
     }
 
-    public static boolean doesSupportSubsystemNames(Integer globalConfVersion) {
-        return globalConfVersion != null && globalConfVersion >= GLOBAL_CONF_VERSION_WITH_SUBSYSTEM_NAMES;
+    public static boolean doesSupportSubsystemNames(int globalConfVersion) {
+        return globalConfVersion >= GLOBAL_CONF_VERSION_WITH_SUBSYSTEM_NAMES;
     }
 }
