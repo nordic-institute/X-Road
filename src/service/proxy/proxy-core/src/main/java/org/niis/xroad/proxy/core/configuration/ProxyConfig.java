@@ -33,6 +33,7 @@ import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
@@ -46,7 +47,6 @@ import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -132,17 +132,8 @@ public class ProxyConfig {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
-    @Autowired
-    void setupAuthKeyChangeWatcher(KeyConfProvider keyConfProvider, ClientProxy clientProxy) {
-        // TODO: shutdown
-        CachingKeyConfImpl.createChangeWatcher(() -> {
-            if (keyConfProvider instanceof CachingKeyConfImpl cachingKeyConf) {
-                cachingKeyConf.invalidateCaches();
-            }
-            clientProxy.reloadAuthKey();
-        });
+    @Bean
+    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
+        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
     }
-
-
-
 }
