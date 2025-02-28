@@ -18,24 +18,24 @@ Feature: 0500 - SS: Client Subsystems
     Then Client "TestService" is missing in the list
 
 
-  Scenario Outline: Already existing Subsystem <$subsystem> is added
+  Scenario Outline: Already existing Subsystem <$subsystemIdentifier> is added
     When Subsystem add page is opened for Client "<$member>"
     And Subsystem selection window is opened
     And Subsystem with ID "<$subsystemIdentifier>" is selected from the window
     And Register subsystem is unchecked
     Then Add subsystem form is set to MemberName: "<$member>", MemberClass: "<$memberClass>", MemberCode: "<$memberCode>", SubsystemCode: "<$subsystem>"
     When Add subsystem form is submitted
-    Then Client "<$subsystem>" with status "<$status>" is present in the list
+    Then Client "<$subsystemIdentifier>" with name "<$clientName>" and status "<$status>" is present in the list
     Examples:
-      | $member     | $memberClass | $memberCode | $subsystem    | $subsystemIdentifier       | $status    |
-      | Test member | COM          | 1234        | TestService   | DEV:COM:1234:TestService   | REGISTERED |
-      | Test member | COM          | 1234        | TestSaved     | DEV:COM:1234:TestSaved     | REGISTERED |
-      | Test member | COM          | 1234        | test-consumer | DEV:COM:1234:test-consumer | SAVED      |
+      | $member     | $memberClass | $memberCode | $subsystem    | $subsystemIdentifier       | $status    | $clientName |
+      | Test member | COM          | 1234        | TestService   | DEV:COM:1234:TestService   | REGISTERED | undefined   |
+      | Test member | COM          | 1234        | TestSaved     | DEV:COM:1234:TestSaved     | REGISTERED | undefined   |
+      | Test member | COM          | 1234        | test-consumer | DEV:COM:1234:test-consumer | SAVED      | undefined   |
 
   Scenario: New Subsystem is added, but management registration fails
     When Subsystem add page is opened for Client "Test member"
     And Subsystem code is set to "random-sub-1"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
-    Then Client "random-sub-1" with status "SAVED" is present in the list
+    Then Client "DEV:COM:1234:random-sub-1" with name "undefined" and status "SAVED" is present in the list
     #And error: "Security server has no valid authentication certificate" was displayed

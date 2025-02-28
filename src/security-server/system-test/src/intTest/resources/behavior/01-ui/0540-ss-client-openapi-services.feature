@@ -9,33 +9,33 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Clients tab is selected
 
   Scenario: Client service with invalid openApi spec is not added
-    Given Client "TestService" is opened
+    Given Client "DEV:COM:1234:TestService" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and OpenApi spec is set to "https://www.niis.org/nosuchopenapi.yaml" and service code "s4c1"
     Then Dialog data is saved and error message "Parsing OpenApi3 description failed" is shown
 
   Scenario: Client service with invalid openApi spec is not added
-    Given Client "TestService" is opened
+    Given Client "DEV:COM:1234:TestService" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and OpenApi spec is set to "https://www.niis.org/nosuchopenapi.yaml" and service code "s4c1"
     Then Dialog data is saved and error message "Parsing OpenApi3 description failed" is shown
 
   Scenario: Client service with openApi yaml spec is added
-    Given Client "TestService" is opened
+    Given Client "DEV:COM:1234:TestService" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi1.yaml" and service code "s4c1"
     Then Dialog data is saved and success message "OpenApi3 service added" is shown
     And  Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi1.yaml)" is present in the list
 
   Scenario: Client service with openApi json spec is added
-    Given Client "TestService" is opened
+    Given Client "DEV:COM:1234:TestService" is opened
     And Services sub-tab is selected
     When Rest service dialog is opened and OpenApi spec is set to "http://mock-server:1080/test-services/testopenapi2.json" and service code "s4c2"
     Then Dialog data is saved and success message "OpenApi3 service added" is shown
     And  Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is present in the list
 
   Scenario: Client service is edited
-    Given Client "TestService" is opened
+    Given Client "DEV:COM:1234:TestService" is opened
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
@@ -45,7 +45,7 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Service URL is "https://petstore.swagger.io/v3", timeout is 30 and tls certificate verification is unchecked
 
   Scenario: Client service has access rights added to it
-    Given Client "TestService" is opened
+    Given Client "DEV:COM:1234:TestService" is opened
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened

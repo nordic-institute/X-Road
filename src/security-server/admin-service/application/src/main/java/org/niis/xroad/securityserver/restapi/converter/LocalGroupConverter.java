@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
+import static org.niis.xroad.securityserver.restapi.util.ClientUtils.DEFAULT_SUBSYSTEM_NAME;
 
 /**
  * Helper to convert LocalGroups
@@ -142,7 +143,7 @@ public class LocalGroupConverter {
         groupMember.setId(clientIdConverter.convertId(groupMemberType.getGroupMemberId()));
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
         groupMember.setMemberName(globalConfProvider.getMemberName(groupMemberType.getGroupMemberId()));
-        groupMember.setSubsystemName(globalConfProvider.getSubsystemName(groupMemberType.getGroupMemberId()));
+        groupMember.setSubsystemName(globalConfProvider.getSubsystemName(groupMemberType.getGroupMemberId(), DEFAULT_SUBSYSTEM_NAME));
         return groupMember;
     }
 

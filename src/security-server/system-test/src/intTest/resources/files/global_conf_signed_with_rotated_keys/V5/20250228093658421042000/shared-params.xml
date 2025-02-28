@@ -58,6 +58,14 @@
         </subsystem>
     </member>
     <securityServer>
+        <owner>id5</owner>
+        <serverCode>SS1</serverCode>
+        <address>ss1</address>
+        <authCertHash>3HxwE/+PUFC7dPdJCOB+eOouVh8z0kJ4SeMSasi7Z6k=</authCertHash>
+        <client>id6</client>
+        <client>id4</client>
+    </securityServer>
+    <securityServer>
         <owner>id0</owner>
         <serverCode>SS0</serverCode>
         <address>ss0</address>
@@ -65,14 +73,7 @@
         <client>id1</client>
         <client>id2</client>
         <client>id3</client>
-    </securityServer>
-    <securityServer>
-        <owner>id5</owner>
-        <serverCode>SS1</serverCode>
-        <address>ss1</address>
-        <authCertHash>3HxwE/+PUFC7dPdJCOB+eOouVh8z0kJ4SeMSasi7Z6k=</authCertHash>
         <client>id6</client>
-        <client>id4</client>
     </securityServer>
     <globalGroup>
         <groupCode>security-server-owners</groupCode>

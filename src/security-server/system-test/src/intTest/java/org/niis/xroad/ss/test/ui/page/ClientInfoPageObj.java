@@ -177,7 +177,7 @@ public class ClientInfoPageObj {
             }
 
             public SelenideElement memberByCode(String code) {
-                return $x(format("//table[contains(@class, 'group-members-table')]/tbody/tr[td[2][text()='%s']]",
+                return $x(format("//table[@data-test='group-members-table']/tbody/tr[td[@data-test='client-id' and text()='%s']]",
                         code));
             }
 

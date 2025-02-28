@@ -81,6 +81,7 @@
           <span
             v-if="canOpenClient"
             class="member-name identifier-wrap clickable"
+            data-test="btn-client-details"
             @click="openClient(item)">
             {{ item.visibleName }}
             <span class="owner-box">{{ $t('client.owner') }}</span>
@@ -99,6 +100,7 @@
           <span
             v-if="canOpenClient"
             class="member-name identifier-wrap clickable"
+            data-test="btn-client-details"
             @click="openClient(item)">
             {{ item.visibleName }}
           </span>
@@ -126,6 +128,7 @@
           <span
             v-if="canOpenClient"
             class="name identifier-wrap clickable"
+            data-test="btn-client-details"
             @click="openSubsystem(item)">
             <subsystem-name :name="item.visibleName" />
           </span>
@@ -261,21 +264,25 @@ export default defineComponent({
           title: this.$t('client.name') as string,
           align: 'start',
           key: 'visibleName',
+          cellProps: { 'data-test': 'client-name' },
         },
         {
           title: this.$t('client.id') as string,
           align: 'start',
           key: 'id',
+          cellProps: { 'data-test': 'client-id' },
         },
         {
           title: this.$t('client.status') as string,
           align: 'start',
           key: 'status',
+          cellProps: { 'data-test': 'client-status' },
         },
         {
           title: '',
           key: 'button',
           sortable: false,
+          cellProps: { 'data-test': 'client-actions' },
         },
       ];
     },

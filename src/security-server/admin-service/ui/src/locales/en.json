@@ -126,7 +126,6 @@
         "success": "Client unregistered"
       }
     },
-    "defaultSubsystemName": "Undefined",
     "defaultSubsystemNameTooltip": "Subsystem name is not defined",
     "id": "ID",
     "member": "Member",

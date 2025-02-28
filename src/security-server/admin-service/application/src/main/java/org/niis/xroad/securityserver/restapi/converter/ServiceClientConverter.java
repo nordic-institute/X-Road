@@ -41,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientS
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
+import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
@@ -75,7 +76,7 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setName(globalConfProvider.getSubsystemName(serviceClientId));
+                serviceClient.setName(globalConfProvider.getSubsystemName(serviceClientId, ClientUtils.DEFAULT_SUBSYSTEM_NAME));
                 serviceClient.setId(clientIdConverter.convertId(serviceClientId));
                 serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
                 break;

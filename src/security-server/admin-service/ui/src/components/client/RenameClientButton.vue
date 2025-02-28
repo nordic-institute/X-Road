@@ -89,7 +89,7 @@ const emits = defineEmits(['done']);
 
 const { defineField, meta, handleSubmit, resetForm } = useForm({
   validationSchema: { subsystemName: 'required' },
-  initialValues: { subsystemName: props.subsystemName },
+  initialValues: { subsystemName: (props.subsystemName || props.subsystemName === 'undefined') ? '' : props.subsystemName },
 });
 
 const { showError, showSuccess } = useNotifications();
@@ -112,7 +112,7 @@ const rename = handleSubmit((values) => {
   api
     .put(`/clients/${encodePathParameter(props.id)}/rename`, { client_name: values.subsystemName })
     .then(() => {
-      if(props.clientStatus === ClientStatus.REGISTERED) {
+      if (props.clientStatus === ClientStatus.REGISTERED) {
         showSuccess(t('client.action.renameSubsystem.changeSubmitted'));
       } else {
         showSuccess(t('client.action.renameSubsystem.changeAdded'));

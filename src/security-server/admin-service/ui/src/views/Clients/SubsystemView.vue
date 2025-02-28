@@ -26,7 +26,7 @@
 <template>
   <XrdTitledView>
     <template #title>
-      <subsystem-name :subsystem-name="title" />
+      <subsystem-name :name="title" />
       <template v-if="!clientLoading">
         &nbsp;({{ $t('general.subsystem') }})
       </template>
@@ -112,7 +112,7 @@ export default defineComponent({
       return this.client &&
         this.doesSupportSubsystemNames &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
-        RenameStatus.NAME_SUBMITTED !== this.client.rename_status;
+        RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
         [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status);
     },
 

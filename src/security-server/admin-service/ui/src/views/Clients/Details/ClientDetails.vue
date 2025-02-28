@@ -47,7 +47,7 @@
         <td>{{ $t('client.subsystemName') }}</td>
 
         <td class="identifier-wrap">
-          {{ client.subsystem_name }}
+          <subsystem-name :name="client.subsystem_name" />
         </td>
         <td class="pr-5">
           <client-status class="float-right" v-if="client.rename_status" style="float: right" :status="client.rename_status" />
@@ -118,9 +118,10 @@ import { useUser } from '@/store/modules/user';
 import { XrdIconEdit } from '@niis/shared-ui';
 import ClientStatus from '@/views/Clients/ClientStatus.vue';
 import { useSystem } from '@/store/modules/system';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
-  components: { ClientStatus, XrdIconEdit },
+  components: { SubsystemName, ClientStatus, XrdIconEdit },
   props: {
     id: {
       type: String,

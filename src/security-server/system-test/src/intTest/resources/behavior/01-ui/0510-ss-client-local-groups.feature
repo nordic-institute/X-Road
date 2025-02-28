@@ -10,7 +10,7 @@ Feature: 0510 - SS: Client Local groups
 
 
   Scenario Outline: Local group <$groupCode> is added to TestService
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group "<$groupCode>" with description "<$groupDesc>" is added
     Then Local group "<$groupCode>" is present in the list
@@ -24,13 +24,13 @@ Feature: 0510 - SS: Client Local groups
       | yyy-1      | none       |
 
   Scenario: Local group is not added as it already exists
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group "group-1" with description "desc" is added
     Then error: "Local group code already exists" was displayed
 
   Scenario: Local groups are sorted by default
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     Then Local group table is ordered as follows:
       | aaa-1   |
@@ -41,7 +41,7 @@ Feature: 0510 - SS: Client Local groups
       | yyy-1   |
 
   Scenario: Local groups are sorted by Description
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group table sorting change to "Description" column
     Then Local group table is ordered as follows:
@@ -53,7 +53,7 @@ Feature: 0510 - SS: Client Local groups
       | yyy-1   |
 
   Scenario: Local groups are filtered to "group"
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group filter is set to "group"
     Then Local group table is ordered as follows:
@@ -62,14 +62,14 @@ Feature: 0510 - SS: Client Local groups
       | group-3 |
 
   Scenario: Local groups are filtered to "aaa-1"
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group filter is set to "aaa-1"
     Then Local group table is ordered as follows:
       | aaa-1 |
 
   Scenario: Local group aaa-1 is deleted
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group "aaa-1" is selected
     Then Local group is deleted
@@ -81,7 +81,7 @@ Feature: 0510 - SS: Client Local groups
       | yyy-1   |
 
   Scenario: Local group group-1 is edited
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group "group-1" is selected
     And Local group description is set to ""
@@ -96,7 +96,7 @@ Feature: 0510 - SS: Client Local groups
       | DEV:COM:1234:test-consumer |
 
   Scenario: Local group group-1 member is removed
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Local groups sub-tab is selected
     And Local group "group-1" is selected
     And Local group member "DEV:COM:1234:test-consumer" is removed

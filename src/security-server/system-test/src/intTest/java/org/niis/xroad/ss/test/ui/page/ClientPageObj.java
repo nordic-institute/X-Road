@@ -29,6 +29,9 @@ package org.niis.xroad.ss.test.ui.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import java.util.LinkedList;
+import java.util.Optional;
+
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
@@ -54,12 +57,24 @@ public class ClientPageObj {
         return $x("//button[@data-test='add-client-button']");
     }
 
-    public SelenideElement linkClientDetailsOfName(String name) {
-        return $x(format("//tbody//span[contains(text(),'%s')]", name));
+    public SelenideElement linkClientDetailsOfId(String clientId) {
+        return $x("//tr[td[@data-test='client-id']/span[contains(text(),'%s')]]//span[@data-test='btn-client-details']"
+                .formatted(clientId));
     }
 
-    public SelenideElement tableRowWithNameAndStatus(String name, String status) {
-        return $x(format("//tbody/tr[ td[1]/span[text()='%s'] and td[3]//*[text()='%s'] ]", name, status));
+    public SelenideElement tableRowWith(String name, String id, String status) {
+        var matchers = new LinkedList<String>();
+        Optional.ofNullable(name)
+                .map("td[@data-test='client-name']//span[text()='%s']"::formatted)
+                .ifPresent(matchers::add);
+        Optional.ofNullable(id)
+                .map("td[@data-test='client-id']/span[text()='%s']"::formatted)
+                .ifPresent(matchers::add);
+        Optional.ofNullable(status)
+                .map("td[@data-test='client-status']//*[text()='%s']"::formatted)
+                .ifPresent(matchers::add);
+
+        return $x(format("//tbody/tr[ %s ]", String.join(" and ", matchers)));
     }
 
     public SelenideElement groupByPos(int pos) {

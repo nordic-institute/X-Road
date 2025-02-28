@@ -60,7 +60,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
             }
 
             @Override
-            public String getSubsystemName(ClientId identifier) {
+            public String getSubsystemName(ClientId identifier, String dName) {
                 return SUBSYSTEM_NAME_PREFIX + identifier.getSubsystemCode();
             }
         };

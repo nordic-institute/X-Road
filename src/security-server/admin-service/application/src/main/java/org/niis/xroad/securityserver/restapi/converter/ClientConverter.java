@@ -76,7 +76,7 @@ public class ClientConverter {
         client.setMemberCode(clientId.getMemberCode());
         client.setSubsystemCode(clientId.getSubsystemCode());
         client.setMemberName(globalConfProvider.getMemberName(clientId));
-        client.setSubsystemName(globalConfProvider.getSubsystemName(clientId));
+        client.setSubsystemName(globalConfProvider.getSubsystemName(clientId, ClientUtils.DEFAULT_SUBSYSTEM_NAME));
         client.setOwner(clientId.equals(securityServerOwner.getServerId().getOwner()));
         client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientId,
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));

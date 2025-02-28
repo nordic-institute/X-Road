@@ -194,6 +194,15 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getSubsystemName(ClientId clientId) {
+        return internalGetSubsystemName(clientId).orElse(null);
+    }
+
+    @Override
+    public String getSubsystemName(ClientId clientId, String defaultName) {
+        return internalGetSubsystemName(clientId).orElse(defaultName);
+    }
+
+    private Optional<String> internalGetSubsystemName(ClientId clientId) {
         return findShared(clientId.getXRoadInstance()).stream()
                 .map(SharedParameters::getMembers)
                 .flatMap(List::stream)
@@ -202,8 +211,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .flatMap(List::stream)
                 .filter(s -> s.getSubsystemCode().equals(clientId.getSubsystemCode()))
                 .findFirst()
-                .map(SharedParameters.Subsystem::getSubsystemName)
-                .orElse(null);
+                .map(SharedParameters.Subsystem::getSubsystemName);
     }
 
 

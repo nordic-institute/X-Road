@@ -43,31 +43,37 @@ public class ClientListStepDefs extends BaseUiStepDefs {
     private final ClientPageObj clientPageObj = new ClientPageObj();
 
     @Step("Client {string} is opened")
-    public void openClient(String client) {
-        clientPageObj.linkClientDetailsOfName(client)
+    public void openClient(String clientId) {
+        clientPageObj.linkClientDetailsOfId(clientId)
                 .shouldBe(visible)
                 .click();
     }
 
     @Step("Client {string} is {selenideValidation} in the list")
-    public void validateClient(String client, ParameterMappers.SelenideValidation selenideValidation) {
-        clientPageObj.linkClientDetailsOfName(client)
+    public void validateClient(String clientId, ParameterMappers.SelenideValidation selenideValidation) {
+        clientPageObj.linkClientDetailsOfId(clientId)
                 .shouldBe(selenideValidation.getSelenideCondition());
     }
 
     @Step("Client {string} with status {string} is {selenideValidation} in the list")
-    public void validateClient(String client, String status, ParameterMappers.SelenideValidation selenideValidation) {
-        clientPageObj.tableRowWithNameAndStatus(client, status)
+    public void validateClient(String clientId, String status, ParameterMappers.SelenideValidation selenideValidation) {
+        clientPageObj.tableRowWith(null, clientId, status)
+                .shouldBe(selenideValidation.getSelenideCondition());
+    }
+
+    @Step("Client {string} with name {string} and status {string} is {selenideValidation} in the list")
+    public void validateClient(String clientId, String name, String status, ParameterMappers.SelenideValidation selenideValidation) {
+        clientPageObj.tableRowWith(name, clientId, status)
                 .shouldBe(selenideValidation.getSelenideCondition());
     }
 
     @Step("Client {string} details are not available")
-    public void validateOpenClient(String client) {
-        clientPageObj.linkClientDetailsOfName(client)
+    public void validateOpenClient(String clientId) {
+        clientPageObj.linkClientDetailsOfId(clientId)
                 .shouldBe(visible)
                 .click();
 
-        clientPageObj.linkClientDetailsOfName(client)
+        clientPageObj.linkClientDetailsOfId(clientId)
                 .shouldBe(visible);
     }
 

@@ -82,7 +82,7 @@
     </div>
 
     <v-card flat>
-      <table class="xrd-table group-members-table">
+      <table data-test="group-members-table" class="xrd-table group-members-table">
         <thead>
           <tr>
             <th>{{ $t('localGroup.memberName') }}</th>
@@ -96,8 +96,10 @@
           <template v-if="group && group.members && group.members.length > 0">
             <tr v-for="groupMember in group.members" :key="groupMember.id">
               <td>{{ groupMember.member_name }}</td>
-              <td>{{ groupMember.subsystem_name }}</td>
-              <td>{{ groupMember.id }}</td>
+              <td>
+                <subsystem-name :name="groupMember.subsystem_name" />
+              </td>
+              <td data-test="client-id">{{ groupMember.id }}</td>
               <td>{{ groupMember.created_at }}</td>
 
               <td>
@@ -172,9 +174,11 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useField } from "vee-validate";
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
     AddMembersDialog,
   },
   setup() {

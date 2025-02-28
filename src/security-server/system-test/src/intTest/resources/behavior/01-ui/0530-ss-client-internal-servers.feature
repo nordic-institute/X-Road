@@ -9,7 +9,7 @@ Feature: 0530 - SS: Client internal servers
     And Clients tab is selected
 
   Scenario: Client Internal servers are configured
-    When Client "TestService" is opened
+    When Client "DEV:COM:1234:TestService" is opened
     And Internal servers sub-tab is selected
     And Internal server connection type is "HTTPS"
     Then Internal server connection type is set to "HTTP"
