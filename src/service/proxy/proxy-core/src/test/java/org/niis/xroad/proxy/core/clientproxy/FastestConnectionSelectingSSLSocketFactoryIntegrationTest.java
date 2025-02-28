@@ -182,7 +182,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, keyConfProvider, ctx);
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory());
     }
 
     static class NoopTrustManager implements X509TrustManager {

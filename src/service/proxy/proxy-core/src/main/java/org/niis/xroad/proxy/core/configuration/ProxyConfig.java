@@ -46,6 +46,7 @@ import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -128,7 +129,20 @@ public class ProxyConfig {
     @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
+
+    @Autowired
+    void setupAuthKeyChangeWatcher(KeyConfProvider keyConfProvider, ClientProxy clientProxy) {
+        // TODO: shutdown
+        CachingKeyConfImpl.createChangeWatcher(() -> {
+            if (keyConfProvider instanceof CachingKeyConfImpl cachingKeyConf) {
+                cachingKeyConf.invalidateCaches();
+            }
+            clientProxy.reloadAuthKey();
+        });
+    }
+
+
 
 }
