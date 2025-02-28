@@ -32,14 +32,14 @@ import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 
-public class QuarkusRpcConfig {
+public class QuarkusRpcConfig extends RpcConfig {
 
     @ApplicationScoped
     VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties, VaultPKISecretEngineFactory pkiSecretEngineFactory,
-                                      Scheduler scheduler)
-            throws Exception {
+                                      Scheduler scheduler) throws Exception {
         if (rpcProperties.useTls()) {
             QuarkusReloadableVaultKeyManager manager = new QuarkusReloadableVaultKeyManager(rpcProperties,
                     pkiSecretEngineFactory, scheduler);

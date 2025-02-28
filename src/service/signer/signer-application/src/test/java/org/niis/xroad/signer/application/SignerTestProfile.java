@@ -26,16 +26,27 @@
  */
 package org.niis.xroad.signer.application;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
-import org.junit.jupiter.api.Test;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-@QuarkusTest
-@TestProfile(SignerTestProfile.class)
-class SignerMainTest {
+import java.util.Map;
 
-    @Test
-    void testMain() {
+import static java.lang.String.join;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
 
+public class SignerTestProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+        return join(",", CLI, NATIVE, TEST);
     }
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
+        );
+    }
+
 }

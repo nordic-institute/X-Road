@@ -75,7 +75,8 @@ public class ContainerSetup {
                         "-Xmx600m",
                         "-XX:MaxMetaspaceSize=200m",
                         "-Dlogging.config=/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
-                        "-Dxroad.signer.enforce-token-pin-policy=true");
+                        "-Dxroad.signer.enforce-token-pin-policy=true",
+                        "-Dxroad.common.rpc.use-tls=false");
             }
 
             @NotNull

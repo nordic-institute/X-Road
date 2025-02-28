@@ -14,6 +14,7 @@ dependencies {
   implementation(platform(libs.quarkus.bom))
 
   implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:op-monitor:op-monitor-core"))
 
   testImplementation(libs.quarkus.junit5)

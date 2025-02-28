@@ -44,7 +44,8 @@ public class ProxyTestProfile implements QuarkusTestProfile {
 
                 "xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()),
                 "xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()),
-                "xroad.proxy.server.listen-port", valueOf(findRandomPort())
+                "xroad.proxy.server.listen-port", valueOf(findRandomPort()),
+                "xroad.common.rpc.use-tls", "false"
         );
     }
 

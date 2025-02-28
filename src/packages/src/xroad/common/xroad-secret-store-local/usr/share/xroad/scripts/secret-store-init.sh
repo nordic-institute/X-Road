@@ -6,38 +6,30 @@ set -e
 
 INITIALIZED=$(jq -r '.initialized' <<< $STATUS)
 SEALED=$(jq -r '.sealed' <<< $STATUS)
-KEYS_FILE="/etc/openbao/secret-store-keys.json"
+ROOT_TOKEN_FILE="/etc/openbao/root-token"
+UNSEAL_KEYS_FILE="/etc/openbao/unseal-keys"
 
 if [ "$INITIALIZED" = "true" ]; then
   echo "OpenBao already initialized"
 else
   echo "Initializing OpenBao..."
-  bao operator init -key-shares=3 -key-threshold=2 -format=json > $KEYS_FILE
-  chmod 600 $KEYS_FILE
+  INIT_OUTPUT=$(bao operator init -key-shares=3 -key-threshold=2 -format=json)
+  jq -r '.unseal_keys_b64[]' <<< $INIT_OUTPUT >$UNSEAL_KEYS_FILE
+  jq -r '.root_token' <<< $INIT_OUTPUT >$ROOT_TOKEN_FILE
+  chmod 600 $ROOT_TOKEN_FILE $UNSEAL_KEYS_FILE
 fi
-
-
-if [ ! -f "$KEYS_FILE" ]; then
-  echo "Keys file not found"
-  exit 1
-fi
-
 
 if [ "$SEALED" = "false" ]; then
   echo "OpenBao already unsealed"
 else
   echo "Unsealing OpenBao..."
-  # Read first two keys for unsealing
-  KEY1=$(jq -r '.unseal_keys_b64[0]' "$KEYS_FILE")
-  KEY2=$(jq -r '.unseal_keys_b64[1]' "$KEYS_FILE")
-
-  # Unseal with two keys
-  bao operator unseal "$KEY1"
-  bao operator unseal "$KEY2"
+  head -n 2 $UNSEAL_KEYS_FILE | while IFS= read -r key; do
+    bao operator unseal "$key"
+  done
 fi
 
 
-export BAO_TOKEN=$(cat $KEYS_FILE | jq -r '.root_token')
+export BAO_TOKEN=$(cat $ROOT_TOKEN_FILE)
 
 XRD_PKI_CONFIGURED=$(bao secrets list -format=json | jq 'has("xrd-pki/")')
 if [ "$XRD_PKI_CONFIGURED" = "true" ]; then
@@ -91,6 +83,7 @@ path "sys/internal/ui/mounts/*" {
 }
 EOF
 fi
+
 
 CLIENT_TOKEN_FILE="/etc/xroad/secret-store-client-token"
 if [ -f $CLIENT_TOKEN_FILE ]; then

@@ -18,6 +18,7 @@ dependencies {
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:asic-core"))
   implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
 
   implementation(libs.bundles.quarkus.core)
   implementation(libs.quarkus.scheduler)

@@ -61,7 +61,7 @@ public class SpringRpcConfig extends RpcConfig {
 
     @Bean
     RpcCredentialsConfigurer rpcCredentialsConfigurer(Optional<VaultKeyProvider> vaultKeyProvider,
-                                                                     CommonRpcProperties rpcCommonProperties) {
+                                                      CommonRpcProperties rpcCommonProperties) {
         return super.rpcCredentialsConfigurer(vaultKeyProvider::get, rpcCommonProperties);
     }
 
