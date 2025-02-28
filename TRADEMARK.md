@@ -92,7 +92,7 @@ is permitted only by a license agreement between X-ROAD and the aforementioned l
 - Incorrect: \<NIIS\> or \<NIIS Trademarks and Logos\> – \<your product name\>
 - Incorrect: \<your product/company name\> – \<NIIS\> or \<NIIS Trademarks and Logos\>
 
-<NIIS> - NIIS as an organization, not a trademark; specify the exact NIIS trademark being referenced, such as NIIS®,
+\<NIIS\> - NIIS as an organization, not a trademark; specify the exact NIIS trademark being referenced, such as NIIS®,
 X-Road® or Harmony eDelivery Access®.
 
 ### 2 Here are examples of correct logos (noting that any actual use must also comply with the other requirements described in CVI’s). For proper usage and how to determine clear space (logo safe area), ask for the logo’s CVI from NIIS (info@niis.org):
