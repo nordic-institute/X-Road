@@ -17,6 +17,8 @@ dependencies {
   implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:op-monitor:op-monitor-core"))
 
+  implementation(libs.quarkus.extension.systemd.notify)
+
   testImplementation(libs.quarkus.junit5)
 }
 

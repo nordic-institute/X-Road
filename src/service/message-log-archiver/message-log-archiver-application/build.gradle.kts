@@ -21,6 +21,7 @@ dependencies {
   implementation(project(":common:common-rpc-quarkus"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.quarkus.extension.systemd.notify)
   implementation(libs.quarkus.scheduler)
 
   testImplementation(libs.quarkus.junit5)

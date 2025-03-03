@@ -48,6 +48,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-core"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.quarkus.extension.systemd.notify)
   implementation(libs.quarkus.quartz)
 
   testImplementation(libs.quarkus.junit5)
