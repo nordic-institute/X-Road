@@ -68,7 +68,7 @@ public class ContainerSetup {
             @NotNull
             @Override
             public List<String> customizeCommandParts() {
-                return List.of();
+                return List.of("-XX:UseSVE=0");
             }
 
             @NotNull

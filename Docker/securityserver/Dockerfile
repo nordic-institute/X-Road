@@ -5,6 +5,8 @@ ARG PACKAGE_SOURCE
 
 FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
+ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
+ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
 
 RUN apt-get -qq update \
     && apt-get -qq -y install --no-install-recommends \

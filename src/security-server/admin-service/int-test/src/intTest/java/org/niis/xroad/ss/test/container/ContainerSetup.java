@@ -68,6 +68,7 @@ public class ContainerSetup {
             @Override
             public List<String> customizeCommandParts() {
                 return List.of(
+                        "-XX:UseSVE=0",
                         "-Dxroad.signer.enforce-token-pin-policy=true",
                         "-Dspring.cloud.vault.enabled=false",
                         "-Dxroad.common.rpc.use-tls=false");

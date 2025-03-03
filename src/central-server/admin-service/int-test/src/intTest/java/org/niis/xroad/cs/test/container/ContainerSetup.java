@@ -72,6 +72,7 @@ public class ContainerSetup {
             @Override
             public List<String> customizeCommandParts() {
                 return List.of(
+                        "-XX:UseSVE=0",
                         "-Xmx600m",
                         "-XX:MaxMetaspaceSize=200m",
                         "-Dlogging.config=/etc/xroad/conf.d/centralserver-admin-service-logback.xml",

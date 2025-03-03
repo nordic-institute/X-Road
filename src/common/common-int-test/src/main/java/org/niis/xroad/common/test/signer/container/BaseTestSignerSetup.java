@@ -109,6 +109,7 @@ public abstract class BaseTestSignerSetup {
                         .waitingFor(Wait.forLogMessage(".*signer .* started in.*", 1));
                 genericContainer
                         .withCommand("java",
+                                "-XX:UseSVE=0",
                                 "-Xmx50m",
                                 "-XX:MaxMetaspaceSize=70m",
                                 "-Djava.library.path=/root/lib/",
