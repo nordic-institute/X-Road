@@ -23,37 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.messagelog.archiver.application;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.boot.env.YamlPropertySourceLoader;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-import java.io.IOException;
+import java.util.Map;
 
-public class CommonPropertyEnvironmentPostProcessor implements EnvironmentPostProcessor {
+import static java.lang.String.join;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
 
-    private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
+public class LogArchiverTestProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+        return join(",", CLI, NATIVE, TEST);
+    }
 
     @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        Resource path = new ClassPathResource("common-application.yml");
-        PropertySource<?> propertySource = loadYaml(path);
-        environment.getPropertySources().addLast(propertySource);
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
+        );
     }
 
-    private PropertySource<?> loadYaml(Resource path) {
-        if (!path.exists()) {
-            throw new IllegalArgumentException("Resource " + path + " does not exist");
-        }
-        try {
-            return this.loader.load("common-application-resources", path).get(0);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to load yaml configuration from " + path, ex);
-        }
-    }
 }

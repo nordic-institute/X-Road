@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+package org.niis.xroad.common.rpc.quarkus;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import io.quarkus.scheduler.Scheduler;
+import io.quarkus.vault.VaultPKISecretEngineFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.RpcConfig;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI_API;
+public class QuarkusRpcConfig extends RpcConfig {
 
-/**
- * Helper wrapper which makes sure correct system properties are initialized
- */
-public final class SecurityServerSystemPropertiesInitializer {
-    private SecurityServerSystemPropertiesInitializer() {
-    }
-
-    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
-
-    /**
-     * initialize, if not yet initialized
-     */
-    public static synchronized void initialize() {
-        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
-            SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_PROXY_UI_API)
-                    .with(CONF_FILE_NODE)
-                    .load();
-            XROAD_PROPERTIES_INITIALIZED.set(true);
+    @ApplicationScoped
+    VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties, VaultPKISecretEngineFactory pkiSecretEngineFactory,
+                                      Scheduler scheduler) throws Exception {
+        if (rpcProperties.useTls()) {
+            QuarkusReloadableVaultKeyManager manager = new QuarkusReloadableVaultKeyManager(rpcProperties,
+                    pkiSecretEngineFactory, scheduler);
+            manager.init();
+            return manager;
+        } else {
+            return new NoopVaultKeyProvider();
         }
     }
 }

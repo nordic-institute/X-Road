@@ -26,7 +26,6 @@
 package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -199,9 +198,6 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_PORT =
             PROXY_PREFIX + "server-port";
 
-    /** Property name of the cached OCSP response path for signer operation. */
-    public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
-
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT = PROXY_PREFIX + "verify-client-cert";
 
@@ -220,17 +216,6 @@ public final class SystemProperties {
     private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
-
-    public static final String SERVER_CONF_CACHE_PERIOD =
-            PROXY_PREFIX + "server-conf-cache-period";
-
-    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PROXY_PREFIX + "server-conf-client-cache-size";
-
-    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-cache-size";
-
-    public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
-
-    public static final String SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-endpoints-cache-size";
 
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
@@ -254,16 +239,6 @@ public final class SystemProperties {
      */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PROXY_PREFIX + "client-httpclient-timeout";
-
-    /** Property name for the so_linger value that should be set for client proxy apache HttpClient */
-    private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
-            PROXY_PREFIX + "client-httpclient-so-linger";
-
-    private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
-            PROXY_PREFIX + "client-use-fastest-connecting-ssl-socket-autoclose";
-
-    public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
-            PROXY_PREFIX + "client-fastest-connecting-ssl-uri-cache-period";
 
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PROXY_PREFIX + "pool-enable-connection-reuse";
@@ -296,13 +271,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
-    private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER = "-1";
-
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
-
-    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = TRUE;
-
-    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
     private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
 
@@ -324,13 +293,8 @@ public final class SystemProperties {
     /** Property name of the key configuration file. */
     public static final String KEY_CONFIGURATION_FILE = SIGNER_PREFIX + "key-configuration-file";
 
-    /** Property name of the device configuration file. */
-    public static final String DEVICE_CONFIGURATION_FILE = SIGNER_PREFIX + "device-configuration-file";
-
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
-
-    public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
 
     public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
     public static final String SIGNER_KEY_NAMED_CURVE = SIGNER_PREFIX + "key-named-curve";
@@ -342,13 +306,7 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
 
-    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM = SIGNER_PREFIX + "csr-signature-digest-algorithm";
-
-    public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
-    public static final String SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM = SIGNER_PREFIX + "selfsigned-cert-digest-algorithm";
-
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
-    public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
     // Configuration client ---------------------------------------------------
 
@@ -482,60 +440,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
 
-    // Environmental Monitoring  -------------------------- //
-
-    /** Property name of environmental monitor port. */
-    public static final String ENV_MONITOR_PORT =
-            PREFIX + "env-monitor.port";
-
-    // gRPC internal cross-component transport configuration  -------------------------- //
-
-    /**
-     * Property name for gRPC host.
-     */
-    public static final String GRPC_INTERNAL_HOST =
-            PREFIX + "common.grpc-internal-host";
-
-    /**
-     * Property name for gRPC host.
-     */
-    public static final String GRPC_INTERNAL_TLS_ENABLED =
-            PREFIX + "common.grpc-internal-tls-enabled";
-
-    /**
-     * Property name for gRPC signer port.
-     */
-    public static final String GRPC_SIGNER_PORT = SIGNER_PREFIX + "grpc-port";
-
-    /**
-     * Property name for gRPC internal keystore location.
-     */
-    public static final String GRPC_INTERNAL_KEYSTORE =
-            PREFIX + "common.grpc-internal-keystore";
-
-    /**
-     * Property name for gRPC internal keystore password.
-     */
-    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
-            PREFIX + "common.grpc-internal-keystore-password";
-    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD);
-
-    /**
-     * Property name for gRPC internal truststore location.
-     */
-    public static final String GRPC_INTERNAL_TRUSTSTORE =
-            PREFIX + "common.grpc-internal-truststore";
-
-    /**
-     * Property name for gRPC internal truststore password.
-     */
-    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
-            PREFIX + "common.grpc-internal-truststore-password";
-    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
-
-
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -567,14 +471,8 @@ public final class SystemProperties {
     public static final String CONF_FILE_COMMON =
             getConfPath() + "conf.d/common.ini";
 
-    public static final String CONF_FILE_PROXY =
-            getConfPath() + "conf.d/proxy.ini";
-
     public static final String CONF_FILE_NODE =
             getConfPath() + "conf.d/node.ini";
-
-    public static final String CONF_FILE_PROXY_UI_API =
-            getConfPath() + "conf.d/proxy-ui-api.ini";
 
     public static final String CONF_FILE_CENTER =
             getConfPath() + "conf.d/center.ini";
@@ -587,8 +485,6 @@ public final class SystemProperties {
 
     public static final String CONF_FILE_ADDON_PATH =
             getConfPath() + "conf.d/addons/";
-
-    public static final String CONF_FILE_MESSAGE_LOG = CONF_FILE_ADDON_PATH + "message-log.ini";
 
     // --------------------------------------------------------------------- //
 
@@ -705,14 +601,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the signing key device configuration file, '/etc/xroad/signer/devices.ini' by default.
-     */
-    public static String getDeviceConfFile() {
-        return getProperty(DEVICE_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.DEVICE_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return WSDL validator command string. Defaults to null.
      */
     public static String getWsdlValidatorCommand() {
@@ -785,13 +673,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where OCSP responses are stored, '/var/cache/xroad/' by default.
-     */
-    public static String getOcspCachePath() {
-        return getProperty(OCSP_CACHE_PATH, DefaultFilepaths.OCSP_CACHE_PATH);
-    }
-
-    /**
      * @return path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default.
      */
     public static String getConfBackupPath() {
@@ -851,35 +732,6 @@ public final class SystemProperties {
     }
 
     /**
-     * Get CSR signature digest algorithm, SHA-256 by default.
-     *
-     * @return algorithm
-     */
-    public static DigestAlgorithm getSignerCsrSignatureDigestAlgorithm() {
-        return Optional.ofNullable(getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA256);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static KeyAlgorithm getSofTokenPinKeystoreAlgorithm() {
-        return Optional.ofNullable(getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
-                .map(KeyAlgorithm::valueOf)
-                .orElse(DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static DigestAlgorithm getSelfSignedCertDigestAlgorithm() {
-        return Optional.ofNullable(getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA512);
-    }
-
-    /**
      * @return the ACME certificate renewal toggle
      */
     public static boolean isAcmeCertificateRenewalActive() {
@@ -919,14 +771,14 @@ public final class SystemProperties {
      * @return whether to automatically activate new authentication certificates after they have been registered on the Central Server.
      */
     public static boolean getAutomaticActivateAuthCertificate() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE, FALSE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_AUTH_CERTIFICATE, FALSE));
     }
 
     /**
      * @return whether to automatically activate new signing certificates after they are ordered with ACME.
      */
     public static boolean getAutomaticActivateAcmeSignCertificate() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, FALSE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_AUTOMATIC_ACTIVATE_ACME_SIGN_CERTIFICATE, FALSE));
     }
 
     /**
@@ -954,14 +806,14 @@ public final class SystemProperties {
      * @return true if certificate automatic activation success notifications are enabled
      */
     public static boolean getAcmeCertAutomaticallyActivatedNotificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**
      * @return true if certificate automatic activation failure notifications are enabled
      */
     public static boolean getAcmeCertAutomaticActivationFailureNotificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED, TRUE));
+        return Boolean.parseBoolean(getProperty(PROXY_UI_API_CERT_AUTO_ACTIVATION_FAILURE_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**
@@ -1111,13 +963,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return environmental monitoring port, '2552' by default.
-     */
-    public static int getEnvMonitorPort() {
-        return Integer.parseInt(getProperty(ENV_MONITOR_PORT, "2552"));
-    }
-
-    /**
      * @return path to the file containing network statistics,
      * '/proc/net/dev' by default.
      */
@@ -1198,13 +1043,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the update interval in seconds at which server conf in cached, '60' by default
-     */
-    public static int getServerConfCachePeriod() {
-        return Integer.parseInt(getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
-    }
-
-    /**
      * @return the interval in seconds at which verifier caches results.
      * Max value is 180 seconds and cannot be exceeded in configuration.
      * Default is 60 s.
@@ -1248,14 +1086,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value in seconds that should be set for client proxy apache HttpClient, -1 by default
-     */
-    public static int getClientProxyHttpClientSoLinger() {
-        return Integer.parseInt(getProperty(CLIENTPROXY_HTTPCLIENT_SO_LINGER,
-                DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER));
-    }
-
-    /**
      * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
      */
     public static int getClientProxyConnectorSoLinger() {
@@ -1266,22 +1096,6 @@ public final class SystemProperties {
     public static boolean isEnableClientProxyPooledConnectionReuse() {
         return Boolean.parseBoolean(getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
-    }
-
-    /**
-     * @return true if SSL sockets should close the underlying socket layer when the SSL socket is closed
-     */
-    public static boolean isUseSslSocketAutoClose() {
-        return Boolean.parseBoolean(getProperty(CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE,
-                DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE));
-    }
-
-    /**
-     * @return period in seconds the fastest provider uri should be cached, or 0 to disable
-     */
-    public static int getClientProxyFastestConnectingSslUriCachePeriod() {
-        return Integer.parseInt(getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
-                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
     }
 
     /**
@@ -1326,34 +1140,6 @@ public final class SystemProperties {
         return minVersion;
     }
 
-    /**
-     * @return Serverconf client cache size
-     */
-    public static long getServerConfClientCacheSize() {
-        return Long.getLong(SERVER_CONF_CLIENT_CACHE_SIZE, 100);
-    }
-
-    /**
-     * @return Serverconf service cache size
-     */
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfServiceCacheSize() {
-        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, 1000);
-    }
-
-    /**
-     * @return Serverconf access right cache size
-     */
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfAclCacheSize() {
-        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfServiceEndpointsCacheSize() {
-        return Long.getLong(SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE, 100_000);
-    }
-
     private static void checkVersionValidity(int min, int current, String defaultVersion) {
         if (min > current || min < 1) {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
@@ -1376,55 +1162,6 @@ public final class SystemProperties {
         return Optional.ofNullable(getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
-    }
-
-    /**
-     * @return gRPC signer host.
-     */
-    public static String getGrpcInternalHost() {
-        return getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
-    }
-
-    /**
-     * @return gRPC signer host.
-     */
-    public static boolean isGrpcInternalTlsEnabled() {
-        return Boolean.parseBoolean(getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
-    }
-
-    /**
-     * @return gRPC signer host.
-     */
-    public static int getGrpcSignerPort() {
-        return Integer.parseInt(getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
-    }
-
-    /**
-     * @return gRPC internal key store path. Uses JKS format.
-     */
-    public static String getGrpcInternalKeyStore() {
-        return getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
-    }
-
-    /**
-     * @return gRPC internal key store password.
-     */
-    public static String getGrpcInternalKeyStorePassword() {
-        return getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
-    }
-
-    /**
-     * @return gRPC internal trust store path. Uses JKS format.
-     */
-    public static String getGrpcInternalTrustStore() {
-        return getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
-    }
-
-    /**
-     * @return gRPC internal trust store path password.
-     */
-    public static String getGrpcInternalTruststorePassword() {
-        return getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
     }
 
     private static String propertyNameToEnvVariable(String propName) {

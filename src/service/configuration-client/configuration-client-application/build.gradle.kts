@@ -43,6 +43,7 @@ publishing {
 
 dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":common:common-core"))
   implementation(project(":service:configuration-client:configuration-client-core"))
 

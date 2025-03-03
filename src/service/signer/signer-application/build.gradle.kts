@@ -15,6 +15,7 @@ dependencies {
   implementation(platform(libs.quarkus.bom))
 
   implementation(project(":common:common-core"))
+  implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:signer:signer-core"))
   implementation(project(":lib:bootstrap-quarkus"))
 

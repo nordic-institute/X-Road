@@ -70,7 +70,7 @@ public class ContainerSetup {
                 return List.of(
                         "-Dxroad.signer.enforce-token-pin-policy=true",
                         "-Dspring.cloud.vault.enabled=false",
-                        "-Dxroad.common.grpc-internal-tls-enabled=false");
+                        "-Dxroad.common.rpc.use-tls=false");
             }
 
             @NotNull

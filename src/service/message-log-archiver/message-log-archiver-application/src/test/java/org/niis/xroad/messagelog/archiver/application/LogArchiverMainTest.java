@@ -26,9 +26,11 @@
 package org.niis.xroad.messagelog.archiver.application;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
+@TestProfile(LogArchiverTestProfile.class)
 class LogArchiverMainTest {
 
     @Test

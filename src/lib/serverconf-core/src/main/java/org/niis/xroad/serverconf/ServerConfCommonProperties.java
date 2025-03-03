@@ -24,30 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon.proxymonitor;
 
-import org.junit.rules.ExternalResource;
-import org.niis.xroad.proxy.core.addon.proxymonitor.util.MonitorClient;
+package org.niis.xroad.serverconf;
 
-/** A JUnit rule to restore the {@link ProxyMonitor} MonitorClient after the test has run. */
-public class RestoreMonitorClientAfterTest extends ExternalResource {
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-    private MonitorClient monitorClient;
 
-    @Override
-    protected void before() {
-        monitorClient = ProxyMonitor.getClient();
-    }
+@ConfigMapping(prefix = ServerConfCommonProperties.PREFIX)
+public interface ServerConfCommonProperties {
+    String PREFIX = "xroad.common.server-conf";
+    String DEFAULT_CACHE_PERIOD = "60";
+    String DEFAULT_CLIENT_CACHE_SIZE = "100";
+    String DEFAULT_SERVICE_CACHE_SIZE = "1000";
+    String DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE = "100000";
+    String DEFAULT_ACL_CACHE_SIZE = "100000";
 
-    @Override
-    protected void after() {
-        setMonitorClient(monitorClient);
-    }
+    @WithName("cache-period")
+    @WithDefault(DEFAULT_CACHE_PERIOD)
+    int cachePeriod();
 
-    /** Set the monitor client for test purposes
-     * @param monitorClient
-     */
-    public static void setMonitorClient(MonitorClient monitorClient) {
-        ProxyMonitor.setMonitorClient(monitorClient);
-    }
+    @WithName("client-cache-size")
+    @WithDefault(DEFAULT_CLIENT_CACHE_SIZE)
+    long clientCacheSize();
+
+    @WithName("service-cache-size")
+    @WithDefault(DEFAULT_SERVICE_CACHE_SIZE)
+    long serviceCacheSize();
+
+    @WithName("service-endpoints-cache-size")
+    @WithDefault(DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE)
+    long serviceEndpointsCacheSize();
+
+    @WithName("acl-cache-size")
+    @WithDefault(DEFAULT_ACL_CACHE_SIZE)
+    long aclCacheSize();
+
 }

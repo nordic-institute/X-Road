@@ -23,13 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.db;
+package org.niis.xroad.securityserver.restapi.config;
 
-import org.hibernate.dialect.PostgreSQLDialect;
+import ee.ria.xroad.common.SystemPropertySource;
 
-/**
- * @deprecated To be removed
- */
-@Deprecated
-public class CustomPostgreSQLDialect extends PostgreSQLDialect {
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.core.env.ConfigurableEnvironment;
+
+@Deprecated(forRemoval = true)
+public class LegacySystemPropertyEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        SystemPropertySource.setPropertyResolver(new SystemPropertySource.PropertyResolver() {
+            @Override
+            public String getProperty(String key) {
+                return environment.getProperty(key);
+            }
+
+            @Override
+            public String getProperty(String key, String defaultValue) {
+                return environment.getProperty(key, defaultValue);
+            }
+
+            @Override
+            public <T> T getProperty(String key, Class<T> targetType) {
+                return environment.getProperty(key, targetType);
+            }
+        });
+    }
 }

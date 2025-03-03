@@ -26,7 +26,6 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
@@ -48,6 +47,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.util.TokenAndKey;
@@ -108,7 +108,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             certRequestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
         }
 
-        ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey);
+        ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey, signerProperties);
 
         return certRequestBuilder.build(signer);
     }
@@ -141,10 +141,11 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         private final DigestAlgorithm digestAlgoId;
         private final SignAlgorithm signAlgoId;
 
-        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) {
+        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey,
+                           SignerProperties signerProperties) {
             this.tokenAndKey = tokenAndKey;
             this.tokenWorkerProvider = tokenWorkerProvider;
-            digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
+            digestAlgoId = DigestAlgorithm.ofName(signerProperties.csrSignatureDigestAlgorithm());
             signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, tokenAndKey.getSignMechanism());
         }
 

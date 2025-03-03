@@ -29,6 +29,11 @@ ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
 
+# Add X-Road dependencies repo
+ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
+RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
+  && apt-key add '/tmp/deps-repokey.gpg'
+
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
@@ -45,6 +50,11 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 # Xroad SS from internal packages
 FROM base AS securityserver-internal
+
+# Add X-Road dependencies repo
+ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
+RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
+  && apt-key add '/tmp/deps-repokey.gpg'
 
 RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
        cp -r /tmp/packages /tmp/repo \
@@ -86,7 +96,6 @@ COPY --chown=xroad:xroad files/etc /etc/
 COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
-COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 

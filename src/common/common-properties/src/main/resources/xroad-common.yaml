@@ -45,7 +45,6 @@ logging:
 xroad:
   common:
     rpc:
-      use-tls: false #TODO disabled until all components are ready
       certificate-provisioning:
         secret-store-pki-path: xrd-pki
         issuance-role-name: xrd-rpc-internal

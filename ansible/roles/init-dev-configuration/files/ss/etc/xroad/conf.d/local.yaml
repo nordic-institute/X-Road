@@ -2,3 +2,5 @@ xroad:
   common:
     global-conf:
       source: REMOTE
+  proxy-ui-api:
+    acme-challenge-port-enabled: true

@@ -75,7 +75,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
-import static org.niis.xroad.serverconf.impl.TestUtil.serverConfProperties;
+import static org.niis.xroad.serverconf.impl.TestUtil.serverConfDbProperties;
 import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
 /**
@@ -89,7 +89,7 @@ public class ServerConfTest {
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
-    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfProperties.hibernate());
+    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfDbProperties.hibernate());
 
     /**
      * Creates test database.

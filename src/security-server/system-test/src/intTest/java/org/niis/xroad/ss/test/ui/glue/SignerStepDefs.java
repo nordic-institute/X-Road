@@ -49,16 +49,19 @@ public class SignerStepDefs extends BaseUiStepDefs {
 
     @SneakyThrows
     @Step("predefined signer softtoken is uploaded")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void updateSignerSoftToken() {
         execInContainer("supervisorctl", "stop", "xroad-signer");
         execInContainer("rm", "-rf", "/etc/xroad/signer/");
         execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
         execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
         execInContainer("supervisorctl", "start", "xroad-signer");
+        Selenide.sleep(3000L);
     }
 
     @SneakyThrows
     @Step("Predefined inactive signer token is uploaded")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void addInactiveSignerToken() {
         execInContainer("supervisorctl", "stop", "xroad-signer");
         execInContainer("sed", "-i", "/<\\/device>/a\\\n"
@@ -69,6 +72,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 + "        <pinIndex>1</pinIndex>\\\n"
                 + "    </device>", "/etc/xroad/signer/keyconf.xml");
         execInContainer("supervisorctl", "start", "xroad-signer");
+        Selenide.sleep(3000L);
     }
 
     @SneakyThrows

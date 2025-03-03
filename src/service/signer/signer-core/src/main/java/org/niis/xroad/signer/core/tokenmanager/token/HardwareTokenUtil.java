@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -71,11 +70,11 @@ public final class HardwareTokenUtil {
      * by system parameter 'xroad.signer.module-instance-provider'.
      *
      * @param libraryPath the pkcs11 library path
+     * @param providerClass provider class
      * @return the module instance
      * @throws Exception if an error occurs
      */
-    public static Module moduleGetInstance(String libraryPath) throws Exception {
-        String providerClass = System.getProperty(SystemProperties.SIGNER_MODULE_INSTANCE_PROVIDER);
+    public static Module moduleGetInstance(String libraryPath, String providerClass) throws Exception {
         if (providerClass != null) {
             Class<?> cl = Class.forName(providerClass);
 

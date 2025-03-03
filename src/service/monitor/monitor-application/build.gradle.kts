@@ -14,6 +14,7 @@ quarkus {
 dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
   implementation(libs.bundles.quarkus.containerized)
+  implementation(project(":common:common-rpc-quarkus"))
 
   implementation(project(":service:monitor:monitor-core"))
 

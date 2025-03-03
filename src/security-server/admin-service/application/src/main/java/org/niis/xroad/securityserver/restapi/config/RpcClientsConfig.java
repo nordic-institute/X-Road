@@ -29,11 +29,12 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Setter;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -44,25 +45,25 @@ import org.springframework.context.annotation.Profile;
 
 @Profile("!test")
 @Configuration
-@Import({SpringRpcConfig.class,
-        SpringSignerClientConfiguration.class})
+@Import({SpringSignerClientConfiguration.class})
 @EnableConfigurationProperties({
         RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
-        RpcClientsConfig.SpringConfClientRpcChannelProperties.class})
+        RpcClientsConfig.SpringConfClientRpcChannelProperties.class,
+        RpcClientsConfig.SpringProxyRpcChannelProperties.class})
 class RpcClientsConfig {
 
     @Bean
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
-                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
+                                   SpringEnvMonitorRpcChannelProperties rpcChannelProperties) {
         return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
     }
 
-    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
+    @ConfigurationProperties(prefix = EnvMonitorRpcChannelProperties.PREFIX)
     @Setter
     static class SpringEnvMonitorRpcChannelProperties implements EnvMonitorRpcChannelProperties {
         private String host = DEFAULT_HOST;
-        private int port = DEFAULT_PORT;
-        private int deadlineAfter = DEFAULT_DEADLINE_AFTER;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
 
         @Override
         public String host() {
@@ -86,8 +87,36 @@ class RpcClientsConfig {
     }
 
     @Setter
-    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.configuration-client")
+    @ConfigurationProperties(prefix = ConfClientRpcChannelProperties.PREFIX)
     public static class SpringConfClientRpcChannelProperties implements ConfClientRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
+    }
+
+    @Bean
+    ProxyRpcClient proxyRpcClient(RpcChannelFactory rpcChannelFactory, SpringProxyRpcChannelProperties proxyRpcChannelProperties) {
+        return new ProxyRpcClient(rpcChannelFactory, proxyRpcChannelProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = ProxyRpcChannelProperties.PREFIX)
+    static class SpringProxyRpcChannelProperties implements ProxyRpcChannelProperties {
         private String host = DEFAULT_HOST;
         private int port = Integer.parseInt(DEFAULT_PORT);
         private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);

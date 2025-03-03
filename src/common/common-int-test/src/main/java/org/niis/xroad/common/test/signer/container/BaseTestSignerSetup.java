@@ -113,6 +113,7 @@ public abstract class BaseTestSignerSetup {
                                 "-XX:MaxMetaspaceSize=70m",
                                 "-Djava.library.path=/root/lib/",
                                 enableHwModule ? "-Dxroad.signer.addon.hwtoken.enabled=true" : "",
+                                "-Dxroad.common.rpc.use-tls=false",
                                 "-jar",
                                 "/root/app/quarkus-run.jar");
 

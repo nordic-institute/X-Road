@@ -35,7 +35,8 @@ public class ConfClientTestProfile implements QuarkusTestProfile {
     @Override
     public Map<String, String> getConfigOverrides() {
         return Map.of(
-                "quarkus.log.level", "INFO"
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
         );
     }
 

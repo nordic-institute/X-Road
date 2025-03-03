@@ -42,6 +42,10 @@ public interface ProxyProperties {
     OcspResponderProperties ocspResponder();
     ProxyAddonProperties addOn();
 
+    @WithName("admin-port")
+    @WithDefault("5566")
+    int adminPort();
+
     @WithName("ssl-enabled")
     @WithDefault("true")
     boolean sslEnabled();
@@ -118,6 +122,14 @@ public interface ProxyProperties {
         @WithName("client-use-idle-connection-monitor")
         @WithDefault("true")
         boolean clientUseIdleConnectionMonitor();
+
+        @WithName("fastest-connecting-ssl-uri-cache-period")
+        @WithDefault("3600")
+        int clientProxyFastestConnectingSslUriCachePeriod();
+
+        @WithName("use-fastest-connecting-ssl-socket-autoclose")
+        @WithDefault("true")
+        boolean useSslSocketAutoClose();
     }
 
     @ConfigMapping(prefix = "xroad.proxy.server")

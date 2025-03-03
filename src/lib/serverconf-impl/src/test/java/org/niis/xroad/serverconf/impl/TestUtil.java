@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.model.AccessRightType;
 import org.niis.xroad.serverconf.model.CertificateType;
@@ -49,6 +50,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
 /**
@@ -109,7 +111,8 @@ public final class TestUtil {
             "xroad.db.serverconf.hibernate.connection.password", "serverconf",
             "xroad.db.serverconf.hibernate.hbm2ddl.auto", "create-drop"
     );
-    static ServerConfDbProperties serverConfProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
+    static ServerConfDbProperties serverConfDbProperties = initConfiguration(ServerConfDbProperties.class, serverConfHibernateProperties);
+    static ServerConfCommonProperties serverConfProperties = defaultConfiguration(ServerConfCommonProperties.class);
 
     private TestUtil() {
     }

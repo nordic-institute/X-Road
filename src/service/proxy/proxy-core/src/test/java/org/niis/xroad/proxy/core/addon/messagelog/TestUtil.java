@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.proxy.core.addon.messagelog;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
@@ -113,10 +112,6 @@ final class TestUtil {
     }
 
     static void initForTest() {
-        System.setProperty(
-                SystemProperties.DATABASE_PROPERTIES,
-                "src/test/resources/hibernate.properties");
-
         MessageRecordEncryption.reload();
     }
 

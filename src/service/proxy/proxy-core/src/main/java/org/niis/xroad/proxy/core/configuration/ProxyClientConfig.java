@@ -107,7 +107,7 @@ public class ProxyClientConfig {
             log.trace("createClient()");
 
             int timeout = SystemProperties.getClientProxyTimeout();
-            int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
+            int socketTimeout = clientProxyProperties.clientHttpclientTimeout();
             RequestConfig.Builder rb = RequestConfig.custom();
             rb.setConnectTimeout(timeout);
             rb.setConnectionRequestTimeout(timeout);
@@ -150,7 +150,8 @@ public class ProxyClientConfig {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
             if (SystemProperties.isSslEnabled()) {
-                sfr.register("https", createSSLSocketFactory(authTrustVerifier, globalConfProvider, keyConfProvider));
+                sfr.register("https", createSSLSocketFactory(authTrustVerifier, globalConfProvider,
+                        keyConfProvider, clientProxyProperties));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
@@ -170,9 +171,11 @@ public class ProxyClientConfig {
 
         private SSLConnectionSocketFactory createSSLSocketFactory(AuthTrustVerifier authTrustVerifier,
                                                                   GlobalConfProvider globalConfProvider,
-                                                                  KeyConfProvider keyConfProvider) throws Exception {
+                                                                  KeyConfProvider keyConfProvider,
+                                                                  ProxyProperties.ClientProxyProperties clientProxyProperties)
+                throws Exception {
             return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier,
-                    SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
+                    SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider), clientProxyProperties);
         }
     }
 

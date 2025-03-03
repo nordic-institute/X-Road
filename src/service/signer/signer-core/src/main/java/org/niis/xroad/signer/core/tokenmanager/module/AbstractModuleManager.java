@@ -88,13 +88,13 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
         try {
             initializeDirs();
 
-            TokenManager.init();
+            TokenManager.init(signerProperties);
 
             if (SLAVE.equals(SystemProperties.getServerNodeType())) {
                 // when the key conf file is changed from outside this system (i.e. a new copy from master),
                 // send an update event to the module manager so it knows to load the new config
                 this.keyConfFileWatcherRunner = FileWatcherRunner.create()
-                        .watchForChangesIn(Paths.get(SystemProperties.getKeyConfFile()))
+                        .watchForChangesIn(Paths.get(signerProperties.keyConfigurationFile()))
                         .listenToCreate().listenToModify()
                         .andOnChangeNotify(this::refresh)
                         .buildAndStartWatcher();

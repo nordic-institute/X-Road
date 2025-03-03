@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
@@ -42,6 +43,7 @@ import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.openapi.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -54,6 +56,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -74,7 +77,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 @Slf4j
+@ActiveProfiles("test")
 public class CsrfWebMvcTest {
     public static final String XSRF_HEADER = "X-XSRF-TOKEN";
     public static final String XSRF_COOKIE = "XSRF-TOKEN";
@@ -100,6 +105,9 @@ public class CsrfWebMvcTest {
 
     @MockBean
     private ConfClientRpcClient confClientRpcClient;
+
+    @MockBean
+    private ProxyRpcClient proxyRpcClient;
 
     @MockBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;

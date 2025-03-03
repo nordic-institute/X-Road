@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.serverproxy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.metaservice.serverproxy.MetadataServiceHandlerImpl;
@@ -44,6 +45,7 @@ import java.util.Collection;
 public class ServiceHandlerLoader {
     private final ServerConfProvider serverConfProvider;
     private final GlobalConfProvider globalConfProvider;
+    private final MonitorRpcClient monitorRpcClient;
     private final ProxyProperties.ProxyAddonProperties addonProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
 
@@ -56,7 +58,7 @@ public class ServiceHandlerLoader {
             handlers.add(new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider, opMonitorCommonProperties));
         }
         if (addonProperties.proxyMonitor().enabled()) {
-            handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider));
+            handlers.add(new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider, monitorRpcClient));
         }
         return handlers;
     }

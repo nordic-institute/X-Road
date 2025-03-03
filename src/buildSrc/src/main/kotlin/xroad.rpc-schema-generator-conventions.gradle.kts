@@ -16,14 +16,14 @@ sourceSets {
 }
 
 protobuf {
-protoc {
-    artifact = "com.google.protobuf:protoc:${libs.findVersion("protoc").get()}"
-}
-plugins {
-    create("grpc") {
-        artifact = "io.grpc:protoc-gen-grpc-java:${libs.findVersion("grpc").get()}"
-    }
-}
+  protoc {
+      artifact = "com.google.protobuf:protoc:${libs.findVersion("protoc").get()}"
+  }
+  plugins {
+      create("grpc") {
+          artifact = "io.grpc:protoc-gen-grpc-java:${libs.findVersion("grpc").get()}"
+      }
+  }
   generateProtoTasks {
     all().forEach {
       it.plugins {

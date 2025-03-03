@@ -32,6 +32,7 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -39,6 +40,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +59,7 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser
+@ActiveProfiles("test")
 public abstract class AbstractFacadeMockingTestContext {
     @MockBean
     protected GlobalConfProvider globalConfProvider;
@@ -70,6 +73,8 @@ public abstract class AbstractFacadeMockingTestContext {
     protected AcmeService acmeService;
     @MockBean
     MonitorRpcClient monitorClient;
+    @MockBean
+    protected ProxyRpcClient proxyRpcClient;
     @MockBean
     protected ConfClientRpcClient confClientRpcClient;
     @MockBean(name = SERVER_CONF_DB_CTX)

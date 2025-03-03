@@ -24,39 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.signer.application;
 
-package org.niis.xroad.serverconf;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import java.util.Map;
 
-@ConfigMapping(prefix = "xroad.server-conf")
-public interface ServerConfProperties {
-    String DEFAULT_CACHE_PERIOD = "60";
-    String DEFAULT_CLIENT_CACHE_SIZE = "100";
-    String DEFAULT_SERVICE_CACHE_SIZE = "1000";
-    String DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE = "100000";
-    String DEFAULT_ACL_CACHE_SIZE = "100000";
+import static java.lang.String.join;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.CLI;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.NATIVE;
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
 
-    @WithName("cache-period")
-    @WithDefault(DEFAULT_CACHE_PERIOD)
-    int cachePeriod();
+public class SignerTestProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+        return join(",", CLI, NATIVE, TEST);
+    }
 
-    @WithName("client-cache-size")
-    @WithDefault(DEFAULT_CLIENT_CACHE_SIZE)
-    long clientCacheSize();
-
-    @WithName("service-cache-size")
-    @WithDefault(DEFAULT_SERVICE_CACHE_SIZE)
-    long serviceCacheSize();
-
-    @WithName("service-endpoints-cache-size")
-    @WithDefault(DEFAULT_SERVICE_ENDPOINTS_CACHE_SIZE)
-    long serviceEndpointsCacheSize();
-
-    @WithName("acl-cache-size")
-    @WithDefault(DEFAULT_ACL_CACHE_SIZE)
-    long aclCacheSize();
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
+        );
+    }
 
 }

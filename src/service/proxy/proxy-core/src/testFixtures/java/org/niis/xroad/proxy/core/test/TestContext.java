@@ -31,6 +31,7 @@ import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
@@ -70,6 +71,10 @@ public class TestContext {
     }
 
     public TestContext(ProxyProperties proxyProperties, boolean startServerProxy) {
+        this(proxyProperties, startServerProxy, mock(MonitorRpcClient.class));
+    }
+
+    public TestContext(ProxyProperties proxyProperties, boolean startServerProxy, MonitorRpcClient monitorRpcClient) {
         try {
             org.apache.xml.security.Init.init();
             SigningCtxProvider signingCtxProvider = new TestSuiteSigningCtxProvider(globalConfProvider, keyConfProvider);
@@ -94,7 +99,7 @@ public class TestContext {
                 AntiDosConfiguration antiDosConfiguration = mock(AntiDosConfiguration.class);
                 OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
-                        proxyProperties.addOn(), opMonitorCommonProperties);
+                        monitorRpcClient, proxyProperties.addOn(), opMonitorCommonProperties);
                 serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
                         opMonitorCommonProperties);
                 serverProxy.init();
