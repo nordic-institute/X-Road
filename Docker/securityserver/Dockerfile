@@ -96,7 +96,6 @@ COPY --chown=xroad:xroad files/etc /etc/
 COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
-COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 

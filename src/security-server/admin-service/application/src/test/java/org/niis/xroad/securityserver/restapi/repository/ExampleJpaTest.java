@@ -39,6 +39,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +55,7 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
 @Slf4j
 @EntityScan("org.niis.xroad.restapi.entity")
 @Transactional
+@ActiveProfiles("test")
 public class ExampleJpaTest {
 
     // TestEntityManager only works with DataJpaTests (?)

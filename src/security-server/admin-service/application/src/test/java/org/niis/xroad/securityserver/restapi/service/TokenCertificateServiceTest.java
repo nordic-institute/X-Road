@@ -69,6 +69,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,6 +112,7 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
 @Slf4j
 @Transactional
 @WithMockUser
+@ActiveProfiles("test")
 public class TokenCertificateServiceTest {
     public static final String GOOD_ADDRESS = "0.0.0.0";
     public static final String BAD_ADDRESS = "1.1.1.1";

@@ -57,7 +57,6 @@ cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -a %{srcdir}/../../../security-server/admin-service/infra-jpa/src/main/resources/liquibase/* %{buildroot}/usr/share/xroad/db/
 cp -p -r %{srcdir}/../../../service/proxy/proxy-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/proxy
-cp -p %{srcdir}/default-configuration/proxy.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{srcdir}/ubuntu/generic/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
@@ -75,7 +74,6 @@ rm -rf %{buildroot}
 %files
 %defattr(0640,xroad,xroad,0751)
 %config /etc/xroad/services/proxy.conf
-%config /etc/xroad/conf.d/proxy.ini
 
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
