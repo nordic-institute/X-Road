@@ -20,6 +20,8 @@ dependencies {
   implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))
 
+  implementation(libs.quarkus.extension.systemd.notify)
+
   testImplementation(libs.quarkus.junit5)
   testImplementation(project(":common:common-test"))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))

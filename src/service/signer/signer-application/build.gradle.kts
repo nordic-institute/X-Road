@@ -19,6 +19,7 @@ dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.quarkus.extension.systemd.notify)
 
   testImplementation(libs.quarkus.junit5)
 }

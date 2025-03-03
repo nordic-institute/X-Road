@@ -8,6 +8,8 @@ ConditionPathExists=/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 [Service]
 User=xroad
 Group=xroad
+Type=notify
+NotifyAccess=all
 Nice=1
 ExecStart=/usr/share/xroad/bin/xroad-messagelog-archiver
 Restart=on-failure
