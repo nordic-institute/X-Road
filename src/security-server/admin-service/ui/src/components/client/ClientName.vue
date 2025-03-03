@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <subsystem-name v-if="isSubsystem" :name="displayName" />
-  <span v-else class="non-subsystem-name">{{ displayName }}</span>
+  <subsystem-name class="client-name" v-if="isSubsystem" :name="displayName" />
+  <span v-else class="client-name non-subsystem-name">{{ displayName }}</span>
 </template>
 
 <script lang="ts" setup>

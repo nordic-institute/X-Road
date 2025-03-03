@@ -21,8 +21,8 @@ Feature: 0500 - SS: Client Add
     And Add Client Sign key label set to "<$label>"
     And Add Client CSR details Certification Service to "Test CA" and CSR format "PEM"
     And Add Client Generate CSR is set to organization "test-org" SAN is set to "ss0" and csr is created
-    Then Client "<$clientIdentifier>" with name "undefined" and status "<$status>" is present in the list
+    Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
       | $label           | $client    | $clientIdentifier       | $status    |
-      | label-TestClient | TestClient | DEV:COM:4321:TestClient | REGISTERED |
+      | label-TestClient | Test client | DEV:COM:4321:TestClient | REGISTERED |
     #  | label-Management | Management | DEV:COM:1234:MANAGEMENT | REGISTERED |

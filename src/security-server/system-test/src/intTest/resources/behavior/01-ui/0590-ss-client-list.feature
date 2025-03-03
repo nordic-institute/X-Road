@@ -9,39 +9,43 @@ Feature: 0590 - SS: Client list
     And Clients tab is selected
 
   Scenario: Client List search
-    When Client filter is set to "TestService"
+    When Client filter is set to "Test Service"
     Then Client table is ordered as follows:
-      | Test member |
-      | TestService |
+      | $memberName  |
+      | Test member  |
+      | Test service |
 
   Scenario: Client List default sorting by name
     Then Client table is ordered as follows:
-      | Test member   |
-      | random-sub-1  |
-      | test-consumer |
-      | TestSaved     |
-      | TestService   |
-      | Test Client   |
-      | TestClient    |
+      | $memberName   | $id                        |
+      | Test member   | DEV:COM:1234               |
+      | Test consumer | DEV:COM:1234:test-consumer |
+      | Test saved    | DEV:COM:1234:TestSaved     |
+      | Test service  | DEV:COM:1234:TestService   |
+      | undefined     | DEV:COM:1234:random-sub-1  |
+      | Test client   | DEV:COM:4321               |
+      | Test client   | DEV:COM:4321:TestClient    |
 
   Scenario: Client List sorting by ID desc
     When Client table sorting change to "ID" column desc
     Then Client table is ordered as follows:
+      | $memberName   |
       | Test member   |
-      | TestService   |
-      | TestSaved     |
-      | test-consumer |
-      | random-sub-1  |
+      | Test service  |
+      | Test saved    |
+      | Test consumer |
+      | undefined     |
       | Test Client   |
-      | TestClient    |
+      | Test client   |
 
   Scenario: Client List sorting by Status asc
     When Client table sorting change to "Status" column
     Then Client table is ordered as follows:
+      | $memberName   |
       | Test member   |
-      | TestSaved     |
-      | TestService   |
-      | random-sub-1  |
-      | test-consumer |
+      | Test saved    |
+      | Test service  |
+      | Test consumer |
+      | undefined     |
       | Test Client   |
-      | TestClient    |
+      | Test client   |

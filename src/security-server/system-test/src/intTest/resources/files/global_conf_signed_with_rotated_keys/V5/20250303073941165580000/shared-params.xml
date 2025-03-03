@@ -35,15 +35,19 @@
         <name>Test member</name>
         <subsystem id="id1">
             <subsystemCode>MANAGEMENT</subsystemCode>
+            <subsystemName>Management services</subsystemName>
         </subsystem>
         <subsystem id="id2">
             <subsystemCode>TestService</subsystemCode>
+            <subsystemName>Test service</subsystemName>
         </subsystem>
         <subsystem id="id3">
             <subsystemCode>TestSaved</subsystemCode>
+            <subsystemName>Test saved</subsystemName>
         </subsystem>
         <subsystem id="id4">
             <subsystemCode>test-consumer</subsystemCode>
+            <subsystemName>Test consumer</subsystemName>
         </subsystem>
     </member>
     <member id="id5">
@@ -55,6 +59,7 @@
         <name>Test client</name>
         <subsystem id="id6">
             <subsystemCode>TestClient</subsystemCode>
+            <subsystemName>Test client</subsystemName>
         </subsystem>
     </member>
     <securityServer>

@@ -9,14 +9,14 @@ Feature: 0570 - SS: Client Service clients
     And Clients tab is selected
 
   Scenario: Multiple Service clients are added
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     And Service clients add subject wizard is opened
-    When Service clients wizard is filtered to "DEV:COM:1234" with 4 results and subject "DEV:COM:1234:test-consumer" is selected
+    When Service clients wizard is filtered to "Test" with 4 results and subject "DEV:COM:1234:test-consumer" is selected
     And Service clients wizard services step is filtered to "c2" with 2 results and service "s4c2" is selected
     Then Service clients list is as follows
-      | $memberName | $id                        |
-      | undefined   | DEV:COM:1234:test-consumer |
+      | $memberName   | $id                        |
+      | Test consumer | DEV:COM:1234:test-consumer |
     When Service clients add subject wizard is opened
     And Service clients wizard is filtered to "Test" with 4 results and subject "DEV:COM:4321:TestClient" is selected
     And Service clients subject "DEV:COM:1234:test-consumer" is not selectable
@@ -28,40 +28,40 @@ Feature: 0570 - SS: Client Service clients
     Then Service clients list is as follows
       | $memberName            | $id                        |
       | Security Server owners | DEV:security-server-owners |
-      | undefined              | DEV:COM:1234:test-consumer |
-      | undefined              | DEV:COM:4321:TestClient    |
+      | Test client            | DEV:COM:4321:TestClient    |
+      | Test consumer          | DEV:COM:1234:test-consumer |
 
   Scenario: Service client list can be filtered and sorted
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     And Service clients list is as follows
       | $memberName            | $id                        |
       | Security Server owners | DEV:security-server-owners |
-      | undefined              | DEV:COM:1234:test-consumer |
-      | undefined              | DEV:COM:4321:TestClient    |
+      | Test client            | DEV:COM:4321:TestClient    |
+      | Test consumer          | DEV:COM:1234:test-consumer |
     When Service clients list is filtered with "consumer"
     Then Service clients list is as follows
-      | $memberName | $id                        |
-      | undefined   | DEV:COM:1234:test-consumer |
+      | $memberName   | $id                        |
+      | Test consumer | DEV:COM:1234:test-consumer |
     When Service clients list is filtered with ""
     And Service clients list sorted by col no 2 asc
     Then Service clients list is as follows
       | $memberName            | $id                        |
-      | undefined              | DEV:COM:1234:test-consumer |
-      | undefined              | DEV:COM:4321:TestClient    |
+      | Test consumer          | DEV:COM:1234:test-consumer |
+      | Test client            | DEV:COM:4321:TestClient    |
       | Security Server owners | DEV:security-server-owners |
     When Service clients list sorted by col no 1 desc
     Then Service clients list is as follows
       | $memberName            | $id                        |
-      | undefined              | DEV:COM:1234:test-consumer |
-      | undefined              | DEV:COM:4321:TestClient    |
+      | Test consumer          | DEV:COM:1234:test-consumer |
+      | Test client            | DEV:COM:4321:TestClient    |
       | Security Server owners | DEV:security-server-owners |
 
   Scenario: Service client can be edited with additional access rights
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     When Service client "DEV:COM:1234:test-consumer" is opened
-    Then Service client view shows id "DEV:COM:1234:test-consumer" and member name "Test member"
+    Then Service client view shows id "DEV:COM:1234:test-consumer" and member name "Test consumer"
     And Service client view access right list is as follows
       | $serviceCode |
       | s4c2         |
@@ -76,10 +76,10 @@ Feature: 0570 - SS: Client Service clients
       | testOpA      |
 
   Scenario: Service client can be can have all of its service codes removed and re-added
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     When Service client "DEV:COM:1234:test-consumer" is opened
-    Then Service client view shows id "DEV:COM:1234:test-consumer" and member name "Test member"
+    Then Service client view shows id "DEV:COM:1234:test-consumer" and member name "Test consumer"
     And Service client view access right list is as follows
       | $serviceCode |
       | s4c2         |
@@ -97,10 +97,10 @@ Feature: 0570 - SS: Client Service clients
       | testOpA      |
 
   Scenario: Service client can be can have single service code removed
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     When Service client "DEV:COM:1234:test-consumer" is opened
-    Then Service client view shows id "DEV:COM:1234:test-consumer" and member name "Test member"
+    Then Service client view shows id "DEV:COM:1234:test-consumer" and member name "Test consumer"
     And Service client view access right list is as follows
       | $serviceCode |
       | testOp1      |
@@ -111,7 +111,7 @@ Feature: 0570 - SS: Client Service clients
       | testOpA      |
 
   Scenario: Service client can have all of its service codes removed and member is not present anymore
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     When Service client "DEV:COM:4321:TestClient" is opened
     When Service clients access rights are removed in full
@@ -119,7 +119,7 @@ Feature: 0570 - SS: Client Service clients
     And Service clients list entry with id "DEV:COM:4321:TestClient" is missing
 
   Scenario: Service client is removed if its service is deleted
-    Given Client "DEV:COM:1234:TestService" is opened
+    Given Client "Test service" is opened
     And Service clients sub-tab is selected
     And Service clients list entry with id "DEV:COM:1234:test-consumer" is present
 

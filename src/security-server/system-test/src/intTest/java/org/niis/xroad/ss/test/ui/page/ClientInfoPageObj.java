@@ -458,7 +458,7 @@ public class ClientInfoPageObj {
 
         public SelenideElement tableMemberNameOfId(int rowNo, String id) {
             return $x(format("//div[@data-test='service-clients-main-view-table']//tr[%d][td[2]/div[normalize-space(text())='%s'] ]"
-                    + "//td[1]/div[@data-test='open-access-rights']", rowNo, id));
+                    + "//td[1]/div[@data-test='open-access-rights']/span", rowNo, id));
         }
 
         public SelenideElement tableMemberNameOfId(String id) {

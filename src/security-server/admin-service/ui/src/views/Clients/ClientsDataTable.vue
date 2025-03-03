@@ -80,13 +80,13 @@
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
-            class="member-name identifier-wrap clickable"
+            class="client-name member-name identifier-wrap clickable"
             data-test="btn-client-details"
             @click="openClient(item)">
             {{ item.visibleName }}
             <span class="owner-box">{{ $t('client.owner') }}</span>
           </span>
-          <span v-else class="member-name identifier-wrap owner-box">
+          <span v-else class="client-name member-name identifier-wrap owner-box">
             {{ item.visibleName }} {{ $t('client.owner') }}
           </span>
         </template>
@@ -99,12 +99,12 @@
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
-            class="member-name identifier-wrap clickable"
+            class="client-name member-name identifier-wrap clickable"
             data-test="btn-client-details"
             @click="openClient(item)">
             {{ item.visibleName }}
           </span>
-          <span v-else class="name identifier-wrap">
+          <span v-else class="client-name name identifier-wrap">
             {{ item.visibleName }}
           </span>
         </template>
@@ -119,7 +119,7 @@
             <xrd-icon-folder-outline />
           </xrd-icon-base>
 
-          <span class="identifier-wrap member-name">
+          <span class="client-name identifier-wrap member-name">
             {{ item.visibleName }}
           </span>
         </template>
@@ -130,10 +130,10 @@
             class="name identifier-wrap clickable"
             data-test="btn-client-details"
             @click="openSubsystem(item)">
-            <subsystem-name :name="item.visibleName" />
+            <subsystem-name class="client-name" :name="item.visibleName" />
           </span>
           <span v-else class="name">
-            <subsystem-name :name="item.visibleName" />
+            <subsystem-name class="client-name" :name="item.visibleName" />
           </span>
         </template>
       </template>
