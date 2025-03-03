@@ -132,7 +132,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ] #TODO verify that endpoint returns 200
     networks:
       - xrd-ss-network
       - xroad-network
@@ -170,7 +170,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ] #TODO verify that endpoint returns 200
     networks:
       - xrd-ss-network
       - xroad-network
@@ -191,6 +191,6 @@ volumes:
 networks:
   xroad-network:
     name: xroad-network
-  #    external: true
+    external: true
   xrd-ss-network:
     driver: bridge
