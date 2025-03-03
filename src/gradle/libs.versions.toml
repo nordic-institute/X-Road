@@ -30,8 +30,9 @@ protobufPlugin = "0.9.4"
 checkstyle = "10.21.1"
 jacoco = "0.8.12"
 
-quarkus = "3.18.3"
+quarkus = "3.19.1"
 quarkus-vault = "4.1.0"
+quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.11.2"
 
 [libraries]
@@ -67,6 +68,7 @@ quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "qua
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
+quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify"}
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
 

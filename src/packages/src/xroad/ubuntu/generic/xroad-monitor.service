@@ -7,6 +7,8 @@ Wants=postgresql.service
 [Service]
 User=xroad
 Group=xroad
+Type=notify
+NotifyAccess=all
 ExecStart=/usr/share/xroad/bin/xroad-monitor
 Restart=on-failure
 SuccessExitStatus=143
