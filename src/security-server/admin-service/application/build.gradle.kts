@@ -70,10 +70,17 @@ dependencies {
   testRuntimeOnly(libs.junit.vintageEngine)
 }
 
-tasks.register<ProcessResources>("copyUi") {
+tasks.register<Copy>("copyUi") {
   dependsOn(configurations["dist"])
   from(configurations["dist"])
-  into(layout.buildDirectory.dir("admin-service/ui/public"))
+  into(layout.buildDirectory.dir("resources/main/public"))
+}
+
+tasks.named("resolveMainClassName") {
+  dependsOn(tasks.named("copyUi"))
+}
+tasks.named("compileTestJava") {
+  dependsOn(tasks.named("copyUi"))
 }
 
 tasks.bootRun {
@@ -89,13 +96,6 @@ tasks.jar {
 
 tasks.bootJar {
   enabled = true
-
-  if (!project.hasProperty("skip-frontend-build")) {
-    dependsOn(tasks.named("copyUi"))
-    classpath(layout.buildDirectory.dir("admin-service/ui"))
-  } else {
-    println("Warning: Excluding frontend from boot jar")
-  }
 
   manifest {
     attributes(
