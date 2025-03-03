@@ -93,9 +93,7 @@ services:
     image: ${SIGNER_IMG}
     pull_policy: always
     environment:
-      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT=configuration-client
-#    volumes:
-#      - ./temp-mount-xroad:/etc/xroad
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
     healthcheck:
       interval: 5s
       retries: 40
@@ -120,6 +118,9 @@ services:
     image: ${PROXY_IMG}
     pull_policy: always
     environment:
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
@@ -128,9 +129,6 @@ services:
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_HOST=proxy
-#    volumes:
-#      - ./temp-mount-xroad:/etc/xroad
     healthcheck:
       interval: 5s
       retries: 40
@@ -155,7 +153,14 @@ services:
     image: ${PROXY_UI_IMG}
     pull_policy: always
     environment:
-      - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
+      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=proxy #TODO
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
 #    volumes:
 #      - ./temp-mount-xroad:/etc/xroad
 #      - ./temp-scripts:/usr/share/xroad/scripts

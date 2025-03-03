@@ -75,7 +75,7 @@ public final class SoftwareTokenUtil {
 
     static final String P12 = ".p12";
 
-    static final FileAttribute<Set<PosixFilePermission>> SOFT_TOKEN_KEY_DIR_PERMISSIONS =
+    public static final FileAttribute<Set<PosixFilePermission>> KEY_DIR_PERMISSIONS =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ,
                     GROUP_EXECUTE));
     static final String SOFT_TOKEN_KEY_DIR_NAME = "softtoken";
@@ -127,7 +127,7 @@ public final class SoftwareTokenUtil {
      */
     public static Path createTempKeyDir() throws IOException {
         return Files.createTempDirectory(Paths.get(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)),
-                SOFT_TOKEN_KEY_DIR_NAME + "-", SOFT_TOKEN_KEY_DIR_PERMISSIONS);
+                SOFT_TOKEN_KEY_DIR_NAME + "-", KEY_DIR_PERMISSIONS);
     }
 
     static List<String> listKeysOnDisk() {
@@ -140,7 +140,7 @@ public final class SoftwareTokenUtil {
         return keys;
     }
 
-    static File getKeyDir() {
+    public static File getKeyDir() {
         return new File(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
                 + SOFT_TOKEN_KEY_DIR_NAME + File.separator);
     }

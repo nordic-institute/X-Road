@@ -44,10 +44,8 @@ import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,12 +55,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static java.util.Objects.requireNonNull;
+import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.KEY_DIR_PERMISSIONS;
+import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
 
 /**
  * Module manager base class.
@@ -110,8 +105,12 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
         if (!Files.exists(keyConfDir)) {
             log.info("Creating keyConf directory: {}", keyConfDir);
-            Files.createDirectories(keyConfDir,
-                    PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ, GROUP_EXECUTE)));
+            Files.createDirectories(keyConfDir, KEY_DIR_PERMISSIONS);
+        }
+        var softTokenDir = getKeyDir().toPath();
+        if (!Files.exists(softTokenDir)) {
+            log.info("Creating softToken directory: {}", softTokenDir);
+            Files.createDirectories(softTokenDir, KEY_DIR_PERMISSIONS);
         }
     }
 
