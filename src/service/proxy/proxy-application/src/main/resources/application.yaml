@@ -8,14 +8,6 @@ quarkus:
       - xroad-common.yaml
       - xroad-logging.yaml
 
-xroad:
-  proxy:
-    add-on:
-      meta-services:
-        enabled: true
-      message-log:
-        enabled: true
-
 "%containerized":
   xroad:
     proxy:

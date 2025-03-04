@@ -89,6 +89,32 @@ services:
           memory: 64M
         limits:
           memory: 320M
+  monitor:
+    image: ${MONITOR_IMG}
+    pull_policy: always
+    environment:
+      - XROAD_HOST=monitor
+      - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
+      - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xroad-network
+      - xrd-ss-network
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      configuration-client:
+        condition: service_healthy
+      proxy:
+        condition: service_healthy
   signer:
     image: ${SIGNER_IMG}
     pull_policy: always
@@ -120,13 +146,13 @@ services:
     environment:
       - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
-      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
+#      - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD=secret
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
-      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
     healthcheck:
@@ -156,9 +182,9 @@ services:
       - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
       - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
-      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=proxy #TODO
+      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
-      - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
 #    volumes:
