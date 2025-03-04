@@ -50,7 +50,7 @@
           <subsystem-name :name="client.subsystem_name" />
         </td>
         <td class="pr-5">
-          <client-status class="float-right" v-if="client.rename_status" style="float: right" :status="client.rename_status" />
+          <client-status data-test="rename-status" class="float-right" v-if="client.rename_status" style="float: right" :status="client.rename_status" />
         </td>
       </tr>
       </tbody>
@@ -109,7 +109,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';

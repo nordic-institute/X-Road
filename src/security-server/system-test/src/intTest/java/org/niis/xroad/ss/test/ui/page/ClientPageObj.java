@@ -61,6 +61,10 @@ public class ClientPageObj {
         return $x(format("//tbody//span[contains(@class, 'client-name') and contains(text(),'%s')]", name));
     }
 
+    public SelenideElement linkClientDetailsOfId(String id) {
+        return $x(format("//tbody/tr[td[@data-test='client-id']/span[text()='%s']]//span[contains(@class, 'client-name')]", id));
+    }
+
     public SelenideElement tableRowWithNameAndStatus(String name, String status) {
         return tableRowWithNameAndStatus(name, status, null);
     }
@@ -126,6 +130,10 @@ public class ClientPageObj {
             return $x("//div[@data-test='subsystem-code-input']");
         }
 
+        public SelenideElement inputSubsystemName() {
+            return $x("//div[@data-test='subsystem-name-input']");
+        }
+
         public SelenideElement inputRegisterSubsystem() {
             return $x("//div[@data-test='register-subsystem-checkbox']");
         }
@@ -167,6 +175,10 @@ public class ClientPageObj {
 
         public SelenideElement btnNext() {
             return $x("//button[@data-test='next-button']");
+        }
+
+        public SelenideElement inputSubsystemName() {
+            return $x("//div[@data-test='subsystem-name-input']");
         }
 
     }

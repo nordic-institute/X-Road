@@ -48,6 +48,13 @@ public class ClientListStepDefs extends BaseUiStepDefs {
                 .click();
     }
 
+    @Step("Client with id: {string} is opened")
+    public void openClientById(String client) {
+        clientPageObj.linkClientDetailsOfId(client)
+                .shouldBe(visible)
+                .click();
+    }
+
     @Step("Client {string} is {selenideValidation} in the list")
     public void validateClient(String client, ParameterMappers.SelenideValidation selenideValidation) {
         clientPageObj.linkClientDetailsOfName(client)

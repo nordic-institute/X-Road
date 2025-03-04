@@ -17,35 +17,38 @@ Feature: 0590 - SS: Client list
 
   Scenario: Client List default sorting by name
     Then Client table is ordered as follows:
-      | $memberName   | $id                        |
-      | Test member   | DEV:COM:1234               |
-      | Test consumer | DEV:COM:1234:test-consumer |
-      | Test saved    | DEV:COM:1234:TestSaved     |
-      | Test service  | DEV:COM:1234:TestService   |
-      | undefined     | DEV:COM:1234:random-sub-1  |
-      | Test client   | DEV:COM:4321               |
-      | Test client   | DEV:COM:4321:TestClient    |
+      | $memberName   | $id                             |
+      | Test member   | DEV:COM:1234                    |
+      | Test consumer | DEV:COM:1234:test-consumer      |
+      | Test saved    | DEV:COM:1234:TestSaved          |
+      | Test service  | DEV:COM:1234:TestService        |
+      | undefined     | DEV:COM:1234:named-random-sub-3 |
+      | undefined     | DEV:COM:1234:random-sub-1       |
+      | Test client   | DEV:COM:4321                    |
+      | Test client   | DEV:COM:4321:TestClient         |
 
   Scenario: Client List sorting by ID desc
     When Client table sorting change to "ID" column desc
     Then Client table is ordered as follows:
-      | $memberName   |
-      | Test member   |
-      | Test service  |
-      | Test saved    |
-      | Test consumer |
-      | undefined     |
-      | Test Client   |
-      | Test client   |
+      | $memberName           |
+      | Test member           |
+      | Test service          |
+      | Test saved            |
+      | Test consumer         |
+      | undefined             |
+      | undefined             |
+      | Test client           |
+      | Test client subsystem |
 
   Scenario: Client List sorting by Status asc
     When Client table sorting change to "Status" column
     Then Client table is ordered as follows:
-      | $memberName   |
-      | Test member   |
-      | Test saved    |
-      | Test service  |
-      | Test consumer |
-      | undefined     |
-      | Test Client   |
-      | Test client   |
+      | $memberName           |
+      | Test member           |
+      | Test saved            |
+      | Test service          |
+      | Test consumer         |
+      | undefined             |
+      | undefined             |
+      | Test client           |
+      | Test client subsystem |

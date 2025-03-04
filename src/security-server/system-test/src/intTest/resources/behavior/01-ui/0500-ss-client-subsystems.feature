@@ -24,13 +24,14 @@ Feature: 0500 - SS: Client Subsystems
     And Subsystem with ID "<$subsystemIdentifier>" is selected from the window
     And Register subsystem is unchecked
     Then Add subsystem form is set to MemberName: "<$member>", MemberClass: "<$memberClass>", MemberCode: "<$memberCode>", SubsystemCode: "<$subsystem>"
+    And Subsystem is renamed to '<$newSubsystemName>'
     When Add subsystem form is submitted
     Then Client "<$subsystemName>" with status "<$status>" is present in the list
     Examples:
-      | $member     | $memberClass | $memberCode | $subsystem    | $subsystemName | $subsystemIdentifier       | $status    |
-      | Test member | COM          | 1234        | Testservice   | Test service   | DEV:COM:1234:TestService   | REGISTERED |
-      | Test member | COM          | 1234        | Testsaved     | Test saved     | DEV:COM:1234:TestSaved     | REGISTERED |
-      | Test member | COM          | 1234        | test-consumer | Test consumer  | DEV:COM:1234:test-consumer | SAVED      |
+      | $member     | $memberClass | $memberCode | $subsystem    | $subsystemName | $newSubsystemName | $subsystemIdentifier       | $status    |
+      | Test member | COM          | 1234        | Testservice   | Test service   | Test service      | DEV:COM:1234:TestService   | REGISTERED |
+      | Test member | COM          | 1234        | Testsaved     | Test saved     | Test saved edited | DEV:COM:1234:TestSaved     | REGISTERED |
+      | Test member | COM          | 1234        | test-consumer | Test consumer  | Test consumer     | DEV:COM:1234:test-consumer | SAVED      |
 
   Scenario: New Subsystem is added, but management registration fails
     When Subsystem add page is opened for Client "Test member"
@@ -39,3 +40,12 @@ Feature: 0500 - SS: Client Subsystems
     And Register client send registration request dialog is confirmed
     Then Client "undefined" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
     #And error: "Security server has no valid authentication certificate" was displayed
+
+
+  Scenario: New Subsystem is added with name, but management registration fails
+    When Subsystem add page is opened for Client "Test member"
+    And Subsystem code is set to "named-random-sub-3"
+    And Subsystem name is set to "Named random sub 3"
+    When Add subsystem form is submitted
+    And Register client send registration request dialog is confirmed
+    Then Client "undefined" with id "DEV:COM:1234:named-random-sub-3" and status "SAVED" is present in the list

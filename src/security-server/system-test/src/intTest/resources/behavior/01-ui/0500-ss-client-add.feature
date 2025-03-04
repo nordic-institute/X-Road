@@ -16,13 +16,13 @@ Feature: 0500 - SS: Client Add
 
   Scenario Outline: Already existing client <$client> is added
     When Add client wizard is opened
-    And Add Client details is filled with preselected client "<$clientIdentifier>" is opened
+    And Add Client details is filled with preselected client "<$clientIdentifier>" and with new name: "<$newName>" is opened
     And Add Client Token is set as "Token softToken-0"
     And Add Client Sign key label set to "<$label>"
     And Add Client CSR details Certification Service to "Test CA" and CSR format "PEM"
     And Add Client Generate CSR is set to organization "test-org" SAN is set to "ss0" and csr is created
     Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
-      | $label           | $client    | $clientIdentifier       | $status    |
-      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | REGISTERED |
+      | $label           | $client               | $clientIdentifier       | $status    | $newName                     |
+      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | REGISTERED | Test client subsystem edited |
     #  | label-Management | Management | DEV:COM:1234:MANAGEMENT | REGISTERED |

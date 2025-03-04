@@ -28,7 +28,7 @@
     <xrd-button
       data-test="rename-client-button"
       outlined
-      @click="showDialog = true"
+      @click="openDialog"
     >
       <xrd-icon-base class="xrd-large-button-icon">
         <xrd-icon-edit />
@@ -106,6 +106,11 @@ const showDialog = ref(false);
 const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
 
 const { t } = i18n.global;
+
+function openDialog() {
+  resetForm();
+  showDialog.value = true;
+}
 
 const rename = handleSubmit((values) => {
   loading.value = true;

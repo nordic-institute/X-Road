@@ -42,6 +42,7 @@ public class ClientInfoPageObj {
     public final InternalServers internalServers = new InternalServers();
     public final Services services = new Services();
     public final ServiceWarningDialog warningDialog = new ServiceWarningDialog();
+    public final RenameClientDialog renameClientDialog = new RenameClientDialog();
 
     public static class Details {
         public SelenideElement rowMemberName() {
@@ -66,6 +67,14 @@ public class ClientInfoPageObj {
 
         public SelenideElement btnDisable() {
             return $x("//button[@data-test='disable-client-button']");
+        }
+
+        public SelenideElement btnEdit() {
+            return $x("//button[@data-test='rename-client-button']");
+        }
+
+        public SelenideElement renameStatusText() {
+            return $x("//div[@data-test='rename-status']//div[contains(@class,'status-text')]");
         }
     }
 
@@ -558,6 +567,20 @@ public class ClientInfoPageObj {
 
         public SelenideElement btnContinue() {
             return $x("//button[@data-test='service-url-change-button']");
+        }
+    }
+
+    public static class RenameClientDialog {
+        public SelenideElement inputName() {
+            return $x("//div[@data-test='subsystem-name-input']");
+        }
+
+        public SelenideElement btnSave() {
+            return $x("//button[@data-test='dialog-save-button']");
+        }
+
+        public SelenideElement btnCancel() {
+            return $x("//button[@data-test='dialog-cancel-button']");
         }
     }
 }
