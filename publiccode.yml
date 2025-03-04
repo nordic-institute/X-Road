@@ -2,26 +2,30 @@
 # metadata file that makes public software easily discoverable.
 # More info at https://github.com/italia/publiccode.yml
 
-publiccodeYmlVersion: '0.2'
+publiccodeYmlVersion: "0.4"
+name: X-Road®
+url: https://github.com/nordic-institute/X-Road
+softwareVersion: 7.6.1
+releaseDate: 2025-01-28
+logo: https://raw.githubusercontent.com/nordic-institute/X-Road/master/xroad_logo_small.png
+platforms:
+  - linux
+  - docker
 categories:
   - it-security
+usedBy:
+  - Digital and Population Data Services Agency, Finland
+  - Estonian Information Systems Authority, Estonia
+  - Digital Iceland, Iceland
+roadmap: https://x-road.global/development-roadmap
+developmentStatus: stable
+softwareType: standalone/other
 description:
   en:
-    apiDocumentation: 'https://docs.x-road.global/#protocols'
-    documentation: 'https://docs.x-road.global'
-    features:
-      - secure data exchange
-      - address management
-      - message routing
-      - access rights management
-      - organization-level authentication
-      - machine-level authentication
-      - transport-level encryption
-      - time-stamping
-      - digital signature of messages
-      - logging
-      - error handling
     genericName: X-Road® data exchange layer
+    shortDescription: |-
+      X-Road® is open-source software that provides unified and secure data
+      exchange between organisations in a collaborative ecosystem.
     longDescription: |
       X-Road is a unified, cohesive,  collaborative, interoperable and secure
       data exchange layer that gives  service providers a completely new kind of
@@ -60,7 +64,7 @@ description:
       identity of each organization and technical access point is verified using
       certificates that are issued by a trusted Certification Authority (CA).
       The identities are maintained centrally, but all the data is exchanged
-      directly between a service consumer and a service provider. 
+      directly between a service consumer and a service provider. 
 
       Message routing is based on organization and service level identifiers
       that are mapped to physical network locations of the services by X-Road.
@@ -74,7 +78,7 @@ description:
 
       X-Road implements an authorization framework that is used to manage access
       rights to services. Access rights management is based on the organization
-      and service level identifiers. 
+      and service level identifiers. 
 
       The key idea of X-Road is that each service provider owns its data and is
       responsible for managing access rights of its services. In other words,
@@ -105,41 +109,36 @@ description:
       but transitive federation relationships are not supported. An ecosystem
       does not have a federation relationship with another ecosystem that it's
       not directly federated with.
-
-    shortDescription: |-
-      X-Road® is open-source software that provides unified and secure data
-      exchange between organisations in a collaborative ecosystem.
+    documentation: https://docs.x-road.global
+    apiDocumentation: https://docs.x-road.global/#protocols
+    features:
+      - secure data exchange
+      - address management
+      - message routing
+      - access rights management
+      - organization-level authentication
+      - machine-level authentication
+      - transport-level encryption
+      - time-stamping
+      - digital signature of messages
+      - logging
+      - error handling
     videos:
-      - 'https://youtu.be/EvhssW_Uv8s'
-developmentStatus: stable
+      - https://youtu.be/EvhssW_Uv8s
 legal:
   license: MIT
   mainCopyrightOwner: Nordic Institute for Interoperability Solutions (NIIS)
   repoOwner: Nordic Institute for Interoperability Solutions (NIIS)
+maintenance:
+  type: internal
+  contacts:
+    - name: Petteri Kivimäki
+      email: petteri.kivimaki@niis.org
+      phone: ""
+      affiliation: Nordic Institute for Interoperability Solutions (NIIS)
 localisation:
+  localisationReady: true
   availableLanguages:
     - en
     - et
     - es
-  localisationReady: true
-maintenance:
-  contacts:
-    - affiliation: Nordic Institute for Interoperability Solutions (NIIS)
-      email: petteri.kivimaki@niis.org
-      name: Petteri Kivimäki
-  type: internal
-name: X-Road®
-platforms:
-  - linux
-  - docker
-releaseDate: '2025-01-02'
-roadmap: 'https://x-road.global/development-roadmap'
-softwareType: standalone/other
-softwareVersion: 7.6.0
-url: 'https://github.com/nordic-institute/X-Road'
-usedBy:
-  - 'Digital and Population Data Services Agency, Finland'
-  - 'Estonian Information Systems Authority, Estonia'
-  - 'Digital Iceland, Iceland'
-logo: |-
-  https://raw.githubusercontent.com/nordic-institute/X-Road/master/xroad_logo_small.png
