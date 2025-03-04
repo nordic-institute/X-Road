@@ -24,5 +24,5 @@ Feature: 0500 - SS: Client Add
     Then Client "<$client>" with status "<$status>" is present in the list
     Examples:
       | $label           | $client    | $clientIdentifier       | $status    |
-      | label-TestClient | Test client | DEV:COM:4321:TestClient | REGISTERED |
+      | label-TestClient | Test client subsystem | DEV:COM:4321:TestClient | REGISTERED |
     #  | label-Management | Management | DEV:COM:1234:MANAGEMENT | REGISTERED |

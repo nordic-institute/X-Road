@@ -58,8 +58,7 @@ public class ClientPageObj {
     }
 
     public SelenideElement linkClientDetailsOfName(String name) {
-        return $x("//tr[td[@data-test='client-name']//span[contains(text(),'%s')]]//span[@data-test='btn-client-details']"
-                .formatted(name));
+        return $x(format("//tbody//span[contains(@class, 'client-name') and contains(text(),'%s')]", name));
     }
 
     public SelenideElement tableRowWithNameAndStatus(String name, String status) {

@@ -27,9 +27,9 @@ Feature: 0500 - SS: Client Subsystems
     When Add subsystem form is submitted
     Then Client "<$subsystemName>" with status "<$status>" is present in the list
     Examples:
-      | $member     | $memberClass | $memberCode | $subsystem   | $subsystemName | $subsystemIdentifier       | $status    |
-      | Test member | COM          | 1234        | Testservice  | Test service   | DEV:COM:1234:TestService   | REGISTERED |
-      | Test member | COM          | 1234        | Testsaved    | Test saved     | DEV:COM:1234:TestSaved     | REGISTERED |
+      | $member     | $memberClass | $memberCode | $subsystem    | $subsystemName | $subsystemIdentifier       | $status    |
+      | Test member | COM          | 1234        | Testservice   | Test service   | DEV:COM:1234:TestService   | REGISTERED |
+      | Test member | COM          | 1234        | Testsaved     | Test saved     | DEV:COM:1234:TestSaved     | REGISTERED |
       | Test member | COM          | 1234        | test-consumer | Test consumer  | DEV:COM:1234:test-consumer | SAVED      |
 
   Scenario: New Subsystem is added, but management registration fails

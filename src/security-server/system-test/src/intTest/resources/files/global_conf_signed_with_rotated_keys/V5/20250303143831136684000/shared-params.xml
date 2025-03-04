@@ -59,7 +59,7 @@
         <name>Test client</name>
         <subsystem id="id6">
             <subsystemCode>TestClient</subsystemCode>
-            <subsystemName>Test client</subsystemName>
+            <subsystemName>Test client subsystem</subsystemName>
         </subsystem>
     </member>
     <securityServer>
