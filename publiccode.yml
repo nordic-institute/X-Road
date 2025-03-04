@@ -22,7 +22,6 @@ developmentStatus: stable
 softwareType: standalone/other
 description:
   en:
-    genericName: X-Road® data exchange layer
     shortDescription: |-
       X-Road® is open-source software that provides unified and secure data
       exchange between organisations in a collaborative ecosystem.
