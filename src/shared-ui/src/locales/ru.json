@@ -1,0 +1,72 @@
+{
+  "locals_demo": "Это локализовано в библиотеке",
+  "type": "Тип",
+  "warning": "Предупреждение",
+  "fields": {
+    "password": "Пароль",
+    "username": "LIB-Имя пользователя",
+    "shared": "sharedlib",
+    "code": "Код",
+    "description": "Описание"
+  },
+  "action": {
+    "cancel": "Отмена",
+    "add": "Добавить",
+    "yes": "Да",
+    "delete": "Удалить",
+    "download": "Скачать",
+    "upload": "Загрузить",
+    "restore": "Восстановить"
+  },
+  "noData": {
+    "noMatches": "Нет элементов, соответствующих критериям",
+    "loading": "Загрузка... Пожалуйста, подождите"
+  },
+  "keys": {
+    "gotIt": "Понятно"
+  },
+  "global": {
+    "all": "Все",
+    "name": "Имя"
+  },
+  "backup": {
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Вы уверены, что хотите удалить резервную копию {file}?",
+        "title": "Вы уверены?"
+      },
+      "success": "Резервная копия {file} удалена"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Вы уверены, что хотите восстановить из {file}?",
+        "title": "Вы уверены?"
+      },
+      "success": "Конфигурация восстановлена из {file}"
+    },
+    "createBackup": {
+      "button": "Создать резервную копию",
+      "messages": {
+        "success": "Резервная копия {file} успешно создана",
+        "localConfWarning": "Предупреждение! Файл “/etc/xroad/services/local.conf”, используемый для переопределения конфигураций, устарел и больше не включается в резервные копии. Вместо него следует использовать файл “/etc/xroad/services/local.properties”."
+      }
+    },
+    "uploadBackup": {
+      "button": "Загрузить резервную копию",
+      "confirmationDialog": {
+        "confirmation": "Файл {name} уже существует, вы уверены, что хотите перезаписать его?",
+        "title": "Файл уже существует"
+      },
+      "success": "Резервная копия {file} успешно загружена"
+    }
+  },
+  "validationError": {
+    "ValidHostAddress": "Требуется корректное полностью квалифицированное доменное имя (например, host.example.org) или публичный IP-адрес (например, 192.168.123.123)",
+    "ValidHostAddressField": "Требуется корректный IP-адрес или полностью квалифицированное доменное имя"
+  },
+  "validation": {
+    "messages": {
+      "address" : "Поле {field} содержит недопустимые символы"
+    }
+  }
+}
