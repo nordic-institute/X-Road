@@ -186,10 +186,6 @@ public final class SystemProperties {
     public static final String DATABASE_PROPERTIES =
             PROXY_PREFIX + "database-properties";
 
-    /** Property name of the Client Proxy's port number. */
-    public static final String PROXY_CLIENT_HTTPS_PORT =
-            PROXY_PREFIX + "client-https-port";
-
     /** Property name of the Client Proxy's timeout (milliseconds). */
     public static final String PROXY_CLIENT_TIMEOUT =
             PROXY_PREFIX + "client-timeout";
@@ -374,11 +370,6 @@ public final class SystemProperties {
      */
     private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "proxy-ui-api.auth-cert-reg-signature-digest-algorithm-id";
-
-    /**
-     * Property name of the Security Server url, used to send management requests from Proxy UI.
-     */
-    private static final String PROXYUI_SECURITY_SERVER_URL = PREFIX + "proxy-ui-api.security-server-url";
 
     /**
      * Property name of the management request sender client keystore path, used to send management requests from Proxy UI.
@@ -618,13 +609,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return Security Server url, used to send management requests from Proxy UI. Defaults to 'https://localhost:8443'.
-     */
-    public static String getProxyUiSecurityServerUrl() {
-        return getProperty(PROXYUI_SECURITY_SERVER_URL, "https://localhost:" + getClientProxyHttpsPort());
-    }
-
-    /**
      * @return path to the management request sender client keystore. Uses PKCS#12 format.
      */
     public static String getManagementRequestSenderClientKeystore() {
@@ -677,14 +661,6 @@ public final class SystemProperties {
      */
     public static String getConfBackupPath() {
         return getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
-    }
-
-    /**
-     * @return the HTTPS port on which the client proxy is listening, '8443' by default.
-     */
-    public static int getClientProxyHttpsPort() {
-        return Integer.parseInt(getProperty(PROXY_CLIENT_HTTPS_PORT,
-                Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
     }
 
     /**

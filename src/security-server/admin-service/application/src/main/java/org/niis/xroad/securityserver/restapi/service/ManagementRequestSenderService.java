@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +34,7 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +50,9 @@ public class ManagementRequestSenderService {
     private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
+
+    @Value("${xroad.proxy-ui-api.security-server-url}")
+    private String proxyUrl;
 
     private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
 
@@ -217,8 +220,7 @@ public class ManagementRequestSenderService {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
-                SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver, proxyUrl);
     }
 
 }
