@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.ResourceUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.util.Arrays;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.io.File;
@@ -133,8 +134,11 @@ public final class SoftwareTokenUtil {
     static List<String> listKeysOnDisk() {
         List<String> keys = new ArrayList<>();
 
-        for (String p12File : getKeyDir().list(P12_FILTER)) {
-            keys.add(p12File.substring(0, p12File.indexOf(P12)));
+        String[] filesList = getKeyDir().list(P12_FILTER);
+        if (!Arrays.isNullOrEmpty(filesList)) {
+            for (String p12File : filesList) {
+                keys.add(p12File.substring(0, p12File.indexOf(P12)));
+            }
         }
 
         return keys;
