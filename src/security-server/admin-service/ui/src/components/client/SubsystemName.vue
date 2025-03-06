@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <span class="subsystem-name" :class="{'undefined-name':hasNoName}" v-tooltip="tooltip">{{ name }}</span>
+  <span class="subsystem-name" :class="{'undefined-name':!hasName}" v-tooltip="tooltip">{{ hasName ? name : 'undefined' }}</span>
 </template>
 
 <script lang="ts" setup>
@@ -37,8 +37,8 @@ const props = defineProps({
 
 const { t } = i18n.global;
 
-const hasNoName = computed(() => props.name === 'undefined');
-const tooltip = computed(() => ({ text: t('client.defaultSubsystemNameTooltip'), 'open-delay': 500, 'open-on-hover': hasNoName.value }));
+const hasName = computed(() => props.name && props.name.length > 0);
+const tooltip = computed(() => ({ text: t('client.defaultSubsystemNameTooltip'), 'open-delay': 500, 'open-on-hover': !hasName.value }));
 </script>
 <style lang="scss">
 .undefined-name {

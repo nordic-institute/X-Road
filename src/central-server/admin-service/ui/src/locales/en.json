@@ -10,6 +10,7 @@
     "decline": "Decline",
     "generateCsr": "Generate CSR",
     "rename": "Rename",
+    "addName": "Add subsystem name",
     "select": "Select"
   },
   "apiKey": {

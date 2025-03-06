@@ -467,6 +467,10 @@ export default defineComponent({
         (client) => client.type === ClientTypes.SUBSYSTEM,
       );
 
+      function orUndefinedStr(name?: string): string {
+        return name || 'undefined';
+      }
+
       // First we order and filter the groups (filtering is based on the isFiltered attribute as well as if subsystems are visible)
       const groups = items
         .filter((client) => client.type !== ClientTypes.SUBSYSTEM)
@@ -477,6 +481,7 @@ export default defineComponent({
             subsystems.some((item) => item.id.startsWith(`${client.id}:`)),
         )
         .sort((clientA, clientB) => {
+          console.log('sort')
           if (clientA.owner || clientB.owner) {
             return clientA.owner ? -1 : 1;
           }
@@ -485,7 +490,7 @@ export default defineComponent({
             index !== 'visibleName' ? 1 : sortDirection;
 
           return (
-            clientA.visibleName.localeCompare(clientB.visibleName) *
+            orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
             groupSortDirection
           );
         });
@@ -501,7 +506,7 @@ export default defineComponent({
                 switch (index) {
                   case 'visibleName':
                     return (
-                      clientA.visibleName.localeCompare(clientB.visibleName) *
+                      orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
                       sortDirection
                     );
                   case 'id':

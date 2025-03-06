@@ -89,7 +89,7 @@ const emits = defineEmits(['done']);
 
 const { defineField, meta, handleSubmit, resetForm } = useForm({
   validationSchema: { subsystemName: 'required' },
-  initialValues: { subsystemName: (props.subsystemName || props.subsystemName === 'undefined') ? '' : props.subsystemName },
+  initialValues: { subsystemName: props.subsystemName },
 });
 
 const { showError, showSuccess } = useNotifications();

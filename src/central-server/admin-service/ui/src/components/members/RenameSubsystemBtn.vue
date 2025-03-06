@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,56 +25,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <subsystem-name class="client-name" v-if="isSubsystem" :name="displayName" />
-  <span v-else class="client-name non-subsystem-name">{{ displayName }}</span>
+  <v-btn
+    v-if="subsystemName"
+    v-tooltip="tooltip"
+    data-test="rename-subsystem"
+    variant="plain"
+    color="primary"
+    density="compact"
+    icon="icon-Edit"
+    @click="emits('click')"
+  />
+  <xrd-button
+    v-else
+    class="pl-0"
+    plain
+    :outlined="false"
+    data-test="rename-subsystem"
+    @click="emits('click')"
+  >
+    {{ $t('action.addName') }}
+  </xrd-button>
 </template>
 
 <script lang="ts" setup>
-import { computed, PropType } from 'vue';
-import SubsystemName from '@/components/client/SubsystemName.vue';
-import { Client, ServiceClient, ServiceClientType } from '@/openapi-types';
 
-const props = defineProps({
-  name: String,
-  subsystem: { type: Boolean, default: false },
-  serviceClient: {
-    type: Object as PropType<ServiceClient>,
-  },
-  client: {
-    type: Object as PropType<Client>,
-  },
+import { i18n } from '@/plugins/i18n';
+
+defineProps({
+  subsystemName: String,
 });
-
-const withValue = [props.name, props.serviceClient, props.client]
-  .filter((prop) => prop)
-  .length;
-
-if (withValue > 1) {
-  throw new Error('Multiple sources for client name are provided. Only one of them should be provided.');
-}
-
-const isSubsystem = computed(() => {
-  if (props.serviceClient) {
-    return props.serviceClient.service_client_type === ServiceClientType.SUBSYSTEM;
-  }
-  if (props.client) {
-    return props.client.subsystem_code;
-  }
-  return props.subsystem;
-});
-
-const displayName = computed(() => {
-  if (props.serviceClient) {
-    return props.serviceClient.name;
-  }
-  if (props.client) {
-    return isSubsystem.value ? props.client.subsystem_name : props.client.member_name;
-  }
-  return props.name;
-});
-
+const emits = defineEmits(['click']);
+const tooltip = i18n.global.t('action.rename');
 
 </script>
-<style lang="scss">
 
-</style>
+

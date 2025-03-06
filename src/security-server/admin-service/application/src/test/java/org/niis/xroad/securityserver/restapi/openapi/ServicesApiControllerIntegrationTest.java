@@ -96,7 +96,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
             return TestUtils.NAME_FOR + identifier.toShortString().replace("/", ":");
         });
 
-        when(globalConfProvider.getSubsystemName(any(), any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getSubsystemName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return TestUtils.NAME_FOR + identifier.toShortString().replace("/", ":");

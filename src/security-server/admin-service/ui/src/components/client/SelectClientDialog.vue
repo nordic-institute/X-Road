@@ -71,7 +71,9 @@
                   </div>
                 </td>
 
-                <td>{{ member.subsystem_name || member.member_name }}</td>
+                <td>
+                  <client-name :client="member" />
+                </td>
                 <td>{{ member.id }}</td>
               </tr>
             </tbody>
@@ -107,8 +109,10 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { Client } from '@/openapi-types';
+import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
+  components: { ClientName },
   props: {
     dialog: {
       type: Boolean,

@@ -54,7 +54,7 @@ import {
   XrdIconChecked,
   XrdIconChecker,
   XrdIconClose,
-  XrdIconCopy,
+  XrdIconCopy, XrdIconEdit,
   XrdIconFolderOutline,
   XrdSearch,
   XrdSimpleDialog,
@@ -88,6 +88,7 @@ app.component('XrdIconClose', XrdIconClose);
 app.component('XrdIconChecked', XrdIconChecked);
 app.component('XrdIconAdd', XrdIconAdd);
 app.component('XrdIconCopy', XrdIconCopy);
+app.component('XrdIconEdit', XrdIconEdit);
 //components
 app.component('XrdButton', XrdButton);
 app.component('XrdSearch', XrdSearch);

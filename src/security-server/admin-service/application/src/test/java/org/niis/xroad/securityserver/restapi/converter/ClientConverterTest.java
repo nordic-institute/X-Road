@@ -63,7 +63,7 @@ public class ClientConverterTest {
             }
 
             @Override
-            public String getSubsystemName(ClientId identifier, String dName) {
+            public String getSubsystemName(ClientId identifier) {
                 return SUBSYSTEM_NAME_PREFIX + identifier.getSubsystemCode();
             }
         };

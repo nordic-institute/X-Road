@@ -73,6 +73,10 @@
             </td>
             <td class="unregistered-subsystem">
               {{ item.subsystem_name }}
+              <rename-subsystem-btn
+                v-if="allowMemberSubsystemRename"
+                :subsystem-name="item.subsystem_name"
+                @click="renameClicked(item)" />
             </td>
             <td class="unregistered-subsystem" />
             <td class="unregistered-subsystem" />
@@ -84,16 +88,6 @@
             </td>
             <td class="subsystem-actions unregistered-subsystem">
               <div>
-                <xrd-button
-                  v-if="allowMemberSubsystemRename"
-                  text
-                  :outlined="false"
-                  data-test="rename-subsystem"
-                  @click="renameClicked(item)"
-                >
-                  {{ $t('action.rename') }}
-                </xrd-button>
-
                 <xrd-button
                   v-if="allowMemberSubsystemDelete"
                   text
@@ -114,7 +108,13 @@
             <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
               {{ item.subsystem_id.subsystem_code }}
             </td>
-            <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">{{ item.subsystem_name }}</td>
+            <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
+              {{ item.subsystem_name }}
+              <rename-subsystem-btn
+                v-if="allowMemberSubsystemRename"
+                :subsystem-name="item.subsystem_name"
+                @click="renameClicked(item)" />
+            </td>
             <td>{{ subitem.server_code }}</td>
             <td>{{ subitem.server_owner }}</td>
             <td class="status">
@@ -140,16 +140,6 @@
             </td>
             <td class="subsystem-actions">
               <div>
-                <xrd-button
-                  v-if="allowMemberSubsystemRename"
-                  text
-                  :outlined="false"
-                  data-test="rename-subsystem"
-                  @click="renameClicked(item)"
-                >
-                  {{ $t('action.rename') }}
-                </xrd-button>
-
                 <xrd-button
                   v-if="
                     (subitem.status === 'APPROVED' ||
@@ -248,6 +238,7 @@ import {
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import RenameMemberSubsystemDialog from '@/views/Members/Member/Subsystems/RenameMemberSubsystemDialog.vue';
+import RenameSubsystemBtn from '@/components/members/RenameSubsystemBtn.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -259,6 +250,7 @@ let that: any;
 export default defineComponent({
   name: 'MemberSubsystems',
   components: {
+    RenameSubsystemBtn,
     RenameMemberSubsystemDialog,
     CustomDataTableFooter,
     DataTableToolbar,
