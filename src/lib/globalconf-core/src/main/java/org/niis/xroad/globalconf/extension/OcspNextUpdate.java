@@ -50,7 +50,7 @@ public class OcspNextUpdate extends AbstractXmlConf<OcspNextUpdateType> {
      */
     public static final boolean OCSP_NEXT_UPDATE_DEFAULT = true;
 
-    OcspNextUpdate() {
+    public OcspNextUpdate() {
         super(OcspNextUpdateSchemaValidator.class);
     }
 
