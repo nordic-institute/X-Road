@@ -63,6 +63,15 @@ jobs:
           gradle-home-cache-cleanup: true
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+      - name: Build base docker images
+        working-directory: ./deployment/security-server/docker/base
+        run: |
+          chmod +x build-base-images.sh
+          ./build-base-images.sh localhost:5000
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
