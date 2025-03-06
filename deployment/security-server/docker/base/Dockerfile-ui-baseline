@@ -1,4 +1,5 @@
-FROM localhost:5555/ss-baseline-runtime:latest
+ARG REGISTRY_URL=localhost:5555
+FROM ${REGISTRY_URL}/ss-baseline-runtime:latest
 
 #TODO XRDDEV-2755 temporary users for PAM based auth
 RUN usermod --append -G shadow xroad && \

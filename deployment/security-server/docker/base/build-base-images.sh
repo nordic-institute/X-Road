@@ -17,5 +17,6 @@ docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --tag "$REGISTRY_URL"/ss-baseline-ui-runtime \
   --file Dockerfile-ui-baseline \
+  --build-arg REGISTRY_URL="$REGISTRY_URL" \
   --push \
   .
