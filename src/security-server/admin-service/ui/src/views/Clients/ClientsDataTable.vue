@@ -481,7 +481,6 @@ export default defineComponent({
             subsystems.some((item) => item.id.startsWith(`${client.id}:`)),
         )
         .sort((clientA, clientB) => {
-          console.log('sort')
           if (clientA.owner || clientB.owner) {
             return clientA.owner ? -1 : 1;
           }

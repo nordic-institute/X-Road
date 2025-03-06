@@ -450,7 +450,7 @@ public class ClientsApiController implements ClientsApi {
                                                                           String subsystemCode) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
         XRoadObjectType xRoadObjectType = ServiceClientTypeMapping.map(serviceClientType).orElse(null);
-        List<ServiceClientDto> serviceClientDtos = null;
+        List<ServiceClientDto> serviceClientDtos;
         try {
             serviceClientDtos = accessRightService.findAccessRightHolderCandidates(clientId,
                     memberNameOrGroupDescription, xRoadObjectType, instance, memberClass, memberGroupCode,

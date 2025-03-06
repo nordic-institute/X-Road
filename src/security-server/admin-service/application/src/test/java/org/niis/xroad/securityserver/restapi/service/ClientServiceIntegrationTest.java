@@ -48,20 +48,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -109,7 +111,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Before
     public void setup() throws Exception {
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(List.of(
+        var globalMemberInfos = List.of(
                 // exists in serverconf
                 TestUtils.getMemberInfo(INSTANCE_FI, MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 // exists in serverconf
@@ -123,15 +125,22 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
-                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
+                TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null));
+        Map<ClientId, MemberInfo> globalMemberInfosMap = globalMemberInfos.stream()
+                .collect(Collectors.toMap(MemberInfo::id, Function.identity()));
         when(globalConfProvider.getVersion()).thenReturn(OptionalInt.of(5));
         when(globalConfProvider.getMembers()).thenReturn(globalMemberInfos);
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
-            ClientId clientId = (ClientId) invocation.getArguments()[0];
-            return globalMemberInfos.stream()
-                    .filter(g -> g.id().equals(clientId))
-                    .findFirst()
+            ClientId clientId = invocation.getArgument(0);
+            return Optional.ofNullable(globalMemberInfosMap.get(clientId))
                     .map(MemberInfo::name)
+                    .orElse(null);
+        });
+
+        when(globalConfProvider.getSubsystemName(any())).thenAnswer(invocation -> {
+            ClientId clientId = invocation.getArgument(0);
+            return Optional.ofNullable(globalMemberInfosMap.get(clientId))
+                    .map(MemberInfo::subsystemName)
                     .orElse(null);
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
@@ -807,7 +816,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         clientType = clientService.getLocalClient(id);
         assertEquals(1, clientType.getIsCert().size());
-        assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
+        assertArrayEquals(derBytes, clientType.getIsCert().getFirst().getData());
     }
 
     @Test
@@ -835,7 +844,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         clientType = clientService.getLocalClient(id);
         assertEquals(1, clientType.getIsCert().size());
-        assertTrue(Arrays.equals(derBytes, clientType.getIsCert().get(0).getData()));
+        assertArrayEquals(derBytes, clientType.getIsCert().getFirst().getData());
     }
 
     @Test
@@ -1017,18 +1026,16 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 .hasValidLocalSignCert(true).build();
         List<ClientType> clients = clientService.findLocalClients(searchParams);
         assertEquals(2, clients.size());
-        assertTrue("GOV".equals(clients.get(0).getIdentifier().getMemberClass()));
-        assertTrue("M1".equals(clients.get(0).getIdentifier().getMemberCode()));
-        assertTrue("SS1".equals(clients.get(0).getIdentifier().getSubsystemCode()));
-        assertTrue("GOV".equals(clients.get(1).getIdentifier().getMemberClass()));
-        assertTrue("M1".equals(clients.get(1).getIdentifier().getMemberCode()));
-        assertTrue("SS2".equals(clients.get(1).getIdentifier().getSubsystemCode()));
+        assertEquals("GOV", clients.getFirst().getIdentifier().getMemberClass());
+        assertEquals("M1", clients.getFirst().getIdentifier().getMemberCode());
+        assertEquals("SS1", clients.getFirst().getIdentifier().getSubsystemCode());
+        assertEquals("GOV", clients.get(1).getIdentifier().getMemberClass());
+        assertEquals("M1", clients.get(1).getIdentifier().getMemberCode());
+        assertEquals("SS2", clients.get(1).getIdentifier().getSubsystemCode());
     }
 
     /**
      * Test hasValidLocalSignCert parameter in
-     * {@link ClientService#findClients(ClientService.SearchParameters)}
-     * @throws Exception
      */
     @Test
     public void findClientsByHasValidLocalSignCertComplexScenario() {

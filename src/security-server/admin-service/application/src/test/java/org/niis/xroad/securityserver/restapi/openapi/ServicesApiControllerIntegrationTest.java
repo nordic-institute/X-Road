@@ -372,8 +372,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     private Optional<ServiceClient> getServiceClientByTypeExceptId(
             Set<ServiceClient> serviceClients, String type, String exceptId) {
-        return serviceClients
-                .stream()
+        return serviceClients.stream()
                 .filter(serviceClient -> serviceClient.getServiceClientType().name().equals(type)
                         & !serviceClient.getId().equals(exceptId))
                 .findFirst();

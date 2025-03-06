@@ -96,12 +96,6 @@ public interface GlobalConfProvider {
     String getSubsystemName(ClientId clientId);
 
     /**
-     * @param clientId the client identifier
-     * @return subsystem name for the given client identifier
-     */
-    String getSubsystemName(ClientId clientId, String defaultName);
-
-    /**
      * @param instanceIdentifiers the optional instance identifiers
      * @return global groups of a given instance or all global groups if no
      * instance identifiers are specified

@@ -159,10 +159,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
         for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
             for (SharedParameters.Member member : p.getMembers()) {
-                clients.add(new MemberInfo(createMemberId(p.getInstanceIdentifier(), member), member.getName()));
+                var memberId = createMemberId(p.getInstanceIdentifier(), member);
+                clients.add(new MemberInfo(memberId, member.getName(), null));
 
                 for (SharedParameters.Subsystem subsystem : member.getSubsystems()) {
-                    clients.add(new MemberInfo(createSubsystemId(p.getInstanceIdentifier(), member, subsystem), member.getName()));
+                    var subsystemId = createSubsystemId(p.getInstanceIdentifier(), member, subsystem);
+                    clients.add(new MemberInfo(subsystemId, member.getName(), subsystem.getSubsystemName()));
                 }
             }
         }
@@ -195,11 +197,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public String getSubsystemName(ClientId clientId) {
         return internalGetSubsystemName(clientId).orElse(null);
-    }
-
-    @Override
-    public String getSubsystemName(ClientId clientId, String defaultName) {
-        return internalGetSubsystemName(clientId).orElse(defaultName);
     }
 
     private Optional<String> internalGetSubsystemName(ClientId clientId) {

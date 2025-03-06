@@ -74,6 +74,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_DELETE_OWNER;
@@ -637,30 +638,33 @@ public class ClientService {
     private Predicate<ClientType> buildClientSearchPredicate(ClientService.SearchParameters searchParameters) {
         Predicate<ClientType> clientTypePredicate = clientType -> true;
         if (!StringUtils.isEmpty(searchParameters.name)) {
-            clientTypePredicate = clientTypePredicate.and(ct -> {
-                String memberName = globalConfProvider.getMemberName(ct.getIdentifier());
-                return memberName != null && memberName.toLowerCase().contains(searchParameters.name.toLowerCase());
-            });
+            clientTypePredicate = clientTypePredicate
+                    .and(ct -> {
+                        String memberName = globalConfProvider.getMemberName(ct.getIdentifier());
+                        String subsystemName = globalConfProvider.getSubsystemName(ct.getIdentifier());
+                        return containsIgnoreCase(memberName, searchParameters.name)
+                                || containsIgnoreCase(subsystemName, searchParameters.name);
+                    });
         }
         if (!StringUtils.isEmpty(searchParameters.instance)) {
-            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getXRoadInstance()
-                    .equalsIgnoreCase(searchParameters.instance));
+            clientTypePredicate = clientTypePredicate
+                    .and(ct -> ct.getIdentifier().getXRoadInstance().equalsIgnoreCase(searchParameters.instance));
         }
         if (!StringUtils.isEmpty(searchParameters.memberClass)) {
-            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getMemberClass().toLowerCase()
-                    .contains(searchParameters.memberClass.toLowerCase()));
+            clientTypePredicate = clientTypePredicate
+                    .and(ct -> containsIgnoreCase(ct.getIdentifier().getMemberClass(), searchParameters.memberClass));
         }
         if (!StringUtils.isEmpty(searchParameters.memberCode)) {
-            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getMemberCode().toLowerCase()
-                    .contains(searchParameters.memberCode.toLowerCase()));
+            clientTypePredicate = clientTypePredicate
+                    .and(ct -> containsIgnoreCase(ct.getIdentifier().getMemberCode(), searchParameters.memberCode));
         }
         if (!StringUtils.isEmpty(searchParameters.subsystemCode)) {
-            clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getSubsystemCode() != null
-                    && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(searchParameters.subsystemCode.toLowerCase()));
+            clientTypePredicate = clientTypePredicate
+                    .and(ct -> containsIgnoreCase(ct.getIdentifier().getSubsystemCode(), searchParameters.subsystemCode));
         }
         if (searchParameters.hasValidLocalSignCert != null) {
-            clientTypePredicate = clientTypePredicate.and(
-                    ct -> searchParameters.hasValidLocalSignCert.equals(hasValidLocalSignCertCheck(ct)));
+            clientTypePredicate = clientTypePredicate
+                    .and(ct -> searchParameters.hasValidLocalSignCert.equals(hasValidLocalSignCertCheck(ct)));
         }
         return clientTypePredicate;
     }
