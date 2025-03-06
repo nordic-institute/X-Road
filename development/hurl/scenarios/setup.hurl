@@ -233,6 +233,16 @@ Content-Type: application/json
 
 HTTP 201
 
+# disable https for management requests
+PATCH https://{{ss0_host}}:4000/api/v1/clients/DEV%3ACOM%3A1234
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+Content-Type: application/json
+{
+  "connection_type":"HTTP"
+}
+
+HTTP 200
+
 # Log in to the Security Servers token
 PUT https://{{ss0_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
@@ -263,10 +273,10 @@ Content-Type: application/json
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
     "subject_field_values": {
-      "CN": "{{ss0_host}}",
+      "CN": "{{ss0_proxy}}",
       "C": "FI",
       "O": "Test member",
-      "subjectAltName": "{{ss0_host}}",
+      "subjectAltName": "{{ss0_proxy}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -336,7 +346,7 @@ Content-Type: application/json
       "CN": "1234",
       "C": "FI",
       "O": "Test member",
-      "subjectAltName": "{{ss0_host}}",
+      "subjectAltName": "{{ss0_proxy}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -396,7 +406,7 @@ ss0_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 PUT https://{{ss0_host}}:4000/api/v1/token-certificates/{{ss0_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
-  "address": "{{ss0_host}}"
+  "address": "{{ss0_proxy}}"
 }
 
 # TODO: This should be 200 according to the OpenAPI description but is 204:
@@ -584,6 +594,16 @@ Content-Type: application/json
 
 HTTP 201
 
+# disable https for management requests
+PATCH https://{{ss1_host}}:4000/api/v1/clients/DEV%3ACOM%3A4321
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "connection_type":"HTTP"
+}
+
+HTTP 200
+
 # Log in to the Security Servers token
 PUT https://{{ss1_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
@@ -605,10 +625,10 @@ Content-Type: application/json
     "ca_name": "{{ca_name}}",
     "csr_format": "DER",
     "subject_field_values": {
-      "CN": "{{ss1_host}}",
+      "CN": "{{ss1_proxy}}",
       "C": "FI",
       "O": "Test client",
-      "subjectAltName": "{{ss1_host}}",
+      "subjectAltName": "{{ss1_proxy}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -678,7 +698,7 @@ Content-Type: application/json
       "CN": "4321",
       "C": "FI",
       "O": "Test client",
-      "subjectAltName": "{{ss1_host}}",
+      "subjectAltName": "{{ss1_proxy}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -738,7 +758,7 @@ ss1_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 PUT https://{{ss1_host}}:4000/api/v1/token-certificates/{{ss1_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 {
-  "address": "{{ss1_host}}"
+  "address": "{{ss1_proxy}}"
 }
 
 # TODO: This should be 200 according to the OpenAPI description but is 204:
@@ -922,7 +942,7 @@ Content-Type: application/json
       "CN": "1234",
       "C": "FI",
       "O": "Test Consumer",
-      "subjectAltName": "{{ss1_host}}",
+      "subjectAltName": "{{ss1_proxy}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
