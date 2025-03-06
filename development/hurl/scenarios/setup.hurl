@@ -238,7 +238,7 @@ PATCH https://{{ss0_host}}:4000/api/v1/clients/DEV%3ACOM%3A1234
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/json
 {
-  "connection_type":"HTTP"
+  "connection_type":"HTTPS_NO_AUTH"
 }
 
 HTTP 200
@@ -599,7 +599,7 @@ PATCH https://{{ss1_host}}:4000/api/v1/clients/DEV%3ACOM%3A4321
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
 {
-  "connection_type":"HTTP"
+  "connection_type":"HTTPS_NO_AUTH"
 }
 
 HTTP 200

@@ -181,7 +181,7 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
-      - XROAD_PROXY_UI_API_SECURITY_SERVER_URL=http://proxy:8080 #todo use https?
+      - XROAD_PROXY_UI_API_SECURITY_SERVER_URL=https://proxy:8443
 #    volumes:
 #      - ./temp-mount-xroad:/etc/xroad
 #      - ./temp-scripts:/usr/share/xroad/scripts
