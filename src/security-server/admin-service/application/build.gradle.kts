@@ -137,9 +137,12 @@ jib {
   extraDirectories {
     paths {
       path {
-        setFrom(project.file("src/main/jib/opt/app").toPath())
-        into = "/opt/app"
-        permissions = mapOf("/opt/app/scripts/generate_certificate.sh" to "755")
+        setFrom(project.file("src/main/jib").toPath())
+        into = "/"
+        permissions = mapOf(
+          "/opt/app/scripts/generate_certificate.sh" to "755",
+          "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755"
+        )
       }
     }
   }
