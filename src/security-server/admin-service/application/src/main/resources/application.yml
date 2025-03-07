@@ -27,9 +27,6 @@ spring:
     multipart:
       max-file-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
       max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
-  cloud:
-    vault:
-      enabled: false #TODO disabled until rpc tls is enabled
   config:
     import:
       - classpath:/xroad-common.yaml

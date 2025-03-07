@@ -45,6 +45,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.proxy.core.ProxyProperties;
@@ -83,6 +84,7 @@ public class ServerProxy {
     private final CommonBeanProxy commonBeanProxy;
     private final ServiceHandlerLoader serviceHandlerLoader;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
+    private final VaultKeyProvider vaultKeyProvider;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -117,7 +119,7 @@ public class ServerProxy {
     }
 
     private void createOpMonitorClient() throws Exception {
-        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(commonBeanProxy.getServerConfProvider().getSSLKey(),
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(vaultKeyProvider,
                 opMonitorCommonProperties);
     }
 

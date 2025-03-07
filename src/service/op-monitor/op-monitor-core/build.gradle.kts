@@ -26,8 +26,9 @@ dependencies {
   implementation(project(":common:common-domain"))
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-db"))
-  implementation(project(":lib:globalconf-spring"))
+  implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:op-monitor:op-monitor-api"))
+  implementation(project(":common:common-rpc-quarkus"))
 
   testImplementation(libs.hsqldb)
   testImplementation(libs.mockito.core)

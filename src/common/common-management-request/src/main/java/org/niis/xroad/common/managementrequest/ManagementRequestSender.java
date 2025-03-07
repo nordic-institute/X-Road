@@ -46,6 +46,7 @@ import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.w3c.dom.Node;
@@ -82,13 +83,13 @@ public final class ManagementRequestSender {
      * @param sender   the sender
      * @param receiver the receiver
      */
-    public ManagementRequestSender(GlobalConfProvider globalConfProvider, SignerRpcClient signerRpcClient, ClientId sender,
-                                   ClientId receiver, String securityServerUrl) {
+    public ManagementRequestSender(VaultKeyProvider vaultKeyProvider, GlobalConfProvider globalConfProvider,
+                                   SignerRpcClient signerRpcClient, ClientId sender, ClientId receiver, String securityServerUrl) {
         this.globalConfProvider = globalConfProvider;
         this.signerRpcClient = signerRpcClient;
         this.builder = new ManagementRequestBuilder(sender, receiver);
         this.securityServerUrl = securityServerUrl;
-        this.managementRequestClient = new ManagementRequestClient(globalConfProvider);
+        this.managementRequestClient = new ManagementRequestClient(vaultKeyProvider, globalConfProvider);
     }
 
     private URI getCentralServiceURI() throws Exception {

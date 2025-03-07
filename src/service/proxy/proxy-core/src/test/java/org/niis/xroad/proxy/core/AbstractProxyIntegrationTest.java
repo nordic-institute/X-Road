@@ -37,6 +37,8 @@ import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -155,8 +157,10 @@ public abstract class AbstractProxyIntegrationTest {
                 TEST_GLOBAL_CONF, keyConfProvider, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, keyConfProvider);
 
+        VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
+
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                keyConfProvider, signingCtxProvider, certHelper, null);
+                keyConfProvider, signingCtxProvider, certHelper, null, vaultKeyProvider);
 
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
                 .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, TEST_GLOBAL_CONF, keyConfProvider);
@@ -170,7 +174,7 @@ public abstract class AbstractProxyIntegrationTest {
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
         serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                opMonitorCommonProperties);
+                opMonitorCommonProperties, vaultKeyProvider);
         serverProxy.init();
 
         OpMonitoring.init(new NullOpMonitoringBuffer(null));

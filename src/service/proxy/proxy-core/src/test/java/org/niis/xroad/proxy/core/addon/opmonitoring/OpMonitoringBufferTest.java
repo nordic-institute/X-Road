@@ -42,6 +42,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
@@ -78,13 +80,14 @@ class OpMonitoringBufferTest {
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBuffer extends OpMonitoringBuffer {
         TestOpMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
-            super(mock(ServerConfProvider.class), opMonitorCommonProperties);
+            super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(NoopVaultKeyProvider.class));
         }
 
         @Override
         OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                              OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
-            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties) {
+                                              OpMonitorCommonProperties opMonitorCommonProperties,
+                                              VaultKeyProvider vaultKeyProvider) throws Exception {
+            return new OpMonitoringDaemonSender(serverConfProvider, this, opMonitorCommonProperties, vaultKeyProvider) {
                 @Override
                 CloseableHttpClient createHttpClient() {
                     return httpClient;
@@ -167,7 +170,8 @@ class OpMonitoringBufferTest {
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties) {
             @Override
             OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                                  OpMonitorCommonProperties opMonitorCommonProperties) {
+                                                  OpMonitorCommonProperties opMonitorCommonProperties,
+                                                  VaultKeyProvider vaultKeyProvider) {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;
@@ -198,10 +202,12 @@ class OpMonitoringBufferTest {
     @Test
     void noOpMonitoringDataIsStored() throws Exception {
         var serverConfProvider = mock(ServerConfProvider.class);
+        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         new OpMonitoringBuffer(serverConfProvider,
                 ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
                         "xroad.op-monitor.buffer.size", "0"
-                )));
+                )),
+                vaultKeyProvider);
         verifyNoInteractions(serverConfProvider);
     }
 
