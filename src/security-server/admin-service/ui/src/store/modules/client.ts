@@ -64,6 +64,7 @@ export const useClient = defineStore('client', {
       }
 
       this.clientLoading = true;
+      this.client = null;
       return api
         .get<Client>(`/clients/${encodePathParameter(id)}`)
         .then((res) => {
