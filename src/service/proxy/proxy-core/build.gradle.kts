@@ -45,7 +45,7 @@ dependencies {
   implementation(libs.semver4j)
 
   testImplementation(project(":common:common-test"))
-  testImplementation(project(":service:message-log-archiver:message-log-archiver-application"))
+  testImplementation(project(":service:message-log-archiver:message-log-archiver-core"))
   testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(testFixtures(project(":lib:globalconf-impl")))
   testImplementation(testFixtures(project(":lib:serverconf-impl")))
