@@ -109,6 +109,20 @@ jobs:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
+      - name: Save docker images from registry
+        run: |
+          mkdir -p /tmp/docker-images
+          docker save -o /tmp/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
+          docker save -o /tmp/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
+          docker save -o /tmp/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
+          docker save -o /tmp/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
+          docker save -o /tmp/docker-images/ss-db-serverconf-init localhost:5000/ss-db-serverconf-init:latest
+          docker save -o /tmp/docker-images/ss-db-messagelog-init localhost:5000/ss-db-messagelog-init:latest
+      - name: Store docker images for other jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp/docker-images
   RunCSSystemTests:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
@@ -284,26 +298,37 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       # Build Security Server
-      - name: Initialize SS docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Copy debian packages for SS
-        run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
+#      - name: Initialize SS docker setup
+#        working-directory: ./Docker/securityserver
+#        run: ./init_context.sh
+#      - name: Copy debian packages for SS
+#        run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
+#      - name: Build SS docker image
+#        uses: docker/build-push-action@v6
+#        with:
+#          context: ./Docker/securityserver/
+#          push: true
+#          build-args: |
+#            PACKAGE_SOURCE=internal
+#          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+      - name: Download SS docker images
+        uses: actions/download-artifact@v4
         with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          name: docker-images
+          path: /tmp/docker-images
+      - name: Load SS docker images into registry
+        run: |
+          for tar in /tmp/docker-images/*.tar; do
+            echo "Processing $tar..."
+            docker load -i "$tar"
+          done
       # Execute and report
       - name: Run E2E tests
         working-directory: ./src
         run: >
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
-          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
+#          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
