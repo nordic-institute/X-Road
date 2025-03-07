@@ -46,6 +46,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
@@ -78,6 +79,7 @@ public class AcmeClientWorker {
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfRepository serverConfRepository;
     private final MailNotificationHelper mailNotificationHelper;
@@ -370,7 +372,7 @@ public class AcmeClientWorker {
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfRepository.getServerConf().getOwner().getIdentifier();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
+        return new ManagementRequestSender(globalConfProvider, signerRpcClient, signerSignClient, sender, receiver,
                 SystemProperties.getProxyUiSecurityServerUrl());
     }
 

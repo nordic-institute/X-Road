@@ -35,6 +35,7 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ManagementRequestSenderService {
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
@@ -217,7 +219,7 @@ public class ManagementRequestSenderService {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
+        return new ManagementRequestSender(globalConfProvider, signerRpcClient, signerSignClient, sender, receiver,
                 SystemProperties.getProxyUiSecurityServerUrl());
     }
 

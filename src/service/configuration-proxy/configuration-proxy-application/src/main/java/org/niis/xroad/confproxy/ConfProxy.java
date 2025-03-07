@@ -33,6 +33,7 @@ import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,6 +44,7 @@ import java.nio.file.Paths;
 @Slf4j
 public class ConfProxy {
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     protected ConfProxyProperties conf;
 
     /**
@@ -51,8 +53,9 @@ public class ConfProxy {
      * @param instance name of this proxy instance
      * @throws Exception if loading instance configuration fails
      */
-    ConfProxy(final SignerRpcClient signerRpcClient, final String instance) throws Exception {
+    ConfProxy(final SignerRpcClient signerRpcClient, SignerSignClient signerSignClient, final String instance) throws Exception {
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.conf = new ConfProxyProperties(instance);
         log.debug("Starting configuration-proxy '{}'...", instance);
     }
@@ -77,7 +80,7 @@ public class ConfProxy {
             try {
                 VersionedConfigurationDirectory confDir = download(version);
                 log.debug("Create output builder");
-                try (OutputBuilder output = new OutputBuilder(signerRpcClient, confDir, conf, version)) {
+                try (OutputBuilder output = new OutputBuilder(signerRpcClient, signerSignClient, confDir, conf, version)) {
                     log.debug("Build signed directory");
                     output.buildSignedDirectory();
                     output.move();
