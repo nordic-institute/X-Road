@@ -113,7 +113,6 @@ tasks.named("compileIntTestJava") {
 
 tasks.test {
   dependsOn("copyGpg")
-  dependsOn(":service:message-log-archiver:message-log-archiver-application:quarkusBuild")
 
   systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
   jvmArgs("-Xmx2G")
