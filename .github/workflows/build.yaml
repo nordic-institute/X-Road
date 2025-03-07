@@ -333,6 +333,7 @@ jobs:
       - name: Run E2E tests
         working-directory: ./src
         run: >
+          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
 #          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
