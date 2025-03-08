@@ -236,6 +236,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         return cb.build();
     }
 
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed
     private static final class NoopTrustManager implements X509TrustManager {
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) {
