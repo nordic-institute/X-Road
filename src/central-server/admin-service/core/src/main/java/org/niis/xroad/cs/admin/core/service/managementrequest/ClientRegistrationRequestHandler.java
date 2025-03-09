@@ -195,7 +195,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
     }
 
     private SecurityServerClientEntity updateSubsystemNameIfNeeded(SecurityServerClientEntity subsystem, String subsystemName) {
-        if (StringUtils.equals(subsystemName, subsystem.getName())) {
+        if (StringUtils.isEmpty(subsystemName) || StringUtils.equals(subsystemName, subsystem.getName())) {
             return subsystem;
         } else {
             subsystem.setName(subsystemName);
