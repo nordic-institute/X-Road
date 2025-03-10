@@ -329,7 +329,8 @@ jobs:
         run: |
           for tar in ${{ runner.temp }}/docker-images/*.tar; do
             echo "Processing $tar..."
-            docker load -i "$tar"
+            IMAGE_ID=$(docker load -i "$tar" | awk '/Loaded image:/ {print $NF}')
+            docker push "$IMAGE_ID"
           done
       # Execute and report
       - name: Run E2E tests
