@@ -76,7 +76,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
     - [2.6.2 Remote Database Setup (optional)](#262-remote-database-setup-optional)
   - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
   - [2.8 Security Server Installation](#28-security-server-installation)
-    - [2.8.1 Start Security Server](#282-start-security-server)
+    - [2.8.1 Start Security Server](#281-start-security-server)
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
@@ -134,7 +134,7 @@ There are multiple alternatives how the Security Server can be deployed. The opt
 The Security Server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 8 and 9 on a x86-64 platform.
-* Ubuntu Server 22.04 and 24.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 22.04 LTS and 24.04 LTS on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 

@@ -263,7 +263,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured Ubuntu 22.04 or 24.04 LTS x86-64 operating system;
+* an installed and configured Ubuntu 22.04 LTS or 24.04 LTS x86-64 operating system;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
