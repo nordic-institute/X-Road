@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.41
+Version: 2.42
 Doc. ID: IG-CS
 
 ---
@@ -59,7 +59,7 @@ Doc. ID: IG-CS
 | 25.04.2024 | 2.39    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa        |
 | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki     |
 | 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA Configuration signing keys                                                                   | Ovidijus Narkevicius |
-
+| 10.03.2025 | 2.42    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -146,7 +146,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Prerequisites to Installation
 
-The Central Server software assumes an existing installation of the Ubuntu 20.04 LTS, 22.04 LTS or 24.04 LTS operating system, on an x86-64bit platform. To provide management services, a Security Server is installed alongside the Central Server.
+The Central Server software assumes an existing installation of the Ubuntu 22.04 LTS or 24.04 LTS operating system, on an x86-64bit platform. To provide management services, a Security Server is installed alongside the Central Server.
 
 The Central Server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -162,7 +162,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 
 | **Ref** |                                                                                                                                                                                                                                                                                                  | **Explanation**                                                                                                                                                                                                                                                                            |
 |---------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0     | Ubuntu 20.04, 64-bit, 2 GB RAM, 3 GB free disk space                                                                                                                                                                                                                                             | Minimum requirements                                                                                                                                                                                                                                                                       |
+| 1.0     | Ubuntu 22.04 or 24.04 (x86-64), 2 GB RAM, 3 GB free disk space                                                                                                                                                                                                                                             | Minimum requirements                                                                                                                                                                                                                                                                       |
 | 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                                                                                                                                                                                                   | X-Road package repository                                                                                                                                                                                                                                                                  |
 | 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                                                                                                                                                                                                  | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3     |                                                                                                                                                                                                                                                                                                  | Account name in the user interface                                                                                                                                                                                                                                                         |
@@ -218,7 +218,7 @@ Minimum recommended hardware parameters:
 - 100 Mbps network interface card.
 
 Requirements for software and settings:
-- an installed and configured Ubuntu 20.04 LTS, 22.04 LTS or 24.04 x86-64 operating system;
+- an installed and configured Ubuntu 22.04 LTS or 24.04 x86-64 operating system;
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the Central Server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
@@ -474,7 +474,7 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 
 ### 3.4 Backup Encryption Configuration
 
-It is possible to automatically encrypt Central Server configuration backups. Central server uses The GNU Privacy Guard (https://www.gnupg.org)
+It is possible to automatically encrypt Central Server configuration backups. Central Server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[center]` section (add or edit this section).
 ```bash
@@ -732,31 +732,31 @@ X-Road Central Server can be deployed in multiple ways. The simplest option is t
 
 The simplest deployment option is to use a single Central Server with local database. This is the default choice when setting up a development or testing environment. It's not recommended for production since there is a single point of failure.
 
-![Central server with local database](img/ig-cs_local_db.svg)
+![Central Server with local database](img/ig-cs_local_db.svg)
 
 ### C.3 Remote Database
 
 It is possible to use a remote database with Central Server. This option is sometimes used in development when there's need to externalize the database state.
 
-Central server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
+Central Server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment.
 
-![Central server with remote database](img/ig-cs_remote_db.svg)
+![Central Server with remote database](img/ig-cs_remote_db.svg)
 
-Central server itself can also be clustered. In clustered mode high-availability is built in to the system and the clients (Security Servers and configuration proxies) can continue operation despite a loss of a Central Server node.
+Central Server itself can also be clustered. In clustered mode high-availability is built in to the system and the clients (Security Servers and configuration proxies) can continue operation despite a loss of a Central Server node.
 
-![Central server cluster with remote database](img/ig-cs_cluster_remote_db.svg)
+![Central Server cluster with remote database](img/ig-cs_cluster_remote_db.svg)
 
 ### C.4 Remote Database Cluster
 
 When aiming for production it's recommended to use redundant front-end nodes (clustered Central Server) and a remote database cluster. This way there's no single point of failure and the system can recover from both front-end node and database failures.
 
-![Central server with remote database cluster](img/ig-cs_remote_db_cluster.svg)
+![Central Server with remote database cluster](img/ig-cs_remote_db_cluster.svg)
 
 ### C.5 Cloud Database Cluster
 
 When Central Server is deployed in cloud environment and aimed for production use, it's recommended to use a cloud database cluster. To achieve high availability, there should be redundant front-end nodes (clustered Central Server) in separate availability zones.
 
-![Central server with cloud database cluster](img/ig-cs_cloud_db_cluster.svg)
+![Central Server with cloud database cluster](img/ig-cs_cloud_db_cluster.svg)
 
 ### C.6 Summary
 
