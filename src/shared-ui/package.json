@@ -15,7 +15,7 @@
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.15.0",
     "@vee-validate/rules": "~4.15.0",
-    "axios": "~1.8.1",
+    "axios": "~1.8.2",
     "deepmerge": "^4.3.1",
     "vuetify": "3.7.14",
     "vue": "^3.5.13",
