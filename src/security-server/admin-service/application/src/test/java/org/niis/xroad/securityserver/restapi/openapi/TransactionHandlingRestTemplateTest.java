@@ -36,6 +36,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.Members;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -195,7 +196,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientConverterCannotLazyLoadPropertiesSinceOsivIsNotUsed() {
         doAnswer((Answer<String>) invocation -> {
-            ClientType clientType = (ClientType) invocation.getArguments()[0];
+            ClientTypeEntity clientType = (ClientTypeEntity) invocation.getArguments()[0];
             // cause a lazy loading exception
             clientType.getServiceDescription().size();
             log.info("lazy loaded server code=" + clientType.getConf().getServerCode());

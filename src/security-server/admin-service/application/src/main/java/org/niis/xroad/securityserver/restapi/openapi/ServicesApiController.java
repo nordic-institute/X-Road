@@ -197,15 +197,19 @@ public class ServicesApiController implements ServicesApi {
     @PreAuthorize("hasAuthority('ADD_OPENAPI3_ENDPOINT')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_REST_ENDPOINT)
     public ResponseEntity<Endpoint> addEndpoint(String id, Endpoint endpoint) {
-        ServiceType serviceType = getServiceType(id);
-
         if (endpoint.getId() != null) {
             throw new BadRequestException("Passing id for endpoint while creating it is not allowed");
         }
+
+        ClientId clientId = serviceConverter.parseClientId(id);
+        String fullServiceCode = serviceConverter.parseFullServiceCode(id);
+
         Endpoint ep;
         try {
-            ep = endpointConverter.convert(serviceService.addEndpoint(serviceType,
+            ep = endpointConverter.convert(serviceService.addEndpoint(clientId, fullServiceCode,
                     endpoint.getMethod().toString(), endpoint.getPath()));
+        } catch (ServiceNotFoundException | ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {

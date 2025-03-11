@@ -30,7 +30,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.TspTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -55,21 +56,21 @@ public class ServerConfServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getSecurityServerOwnerId() {
-        ClientId expected = TestUtils.getClientId("FI", "GOV", "M1", null);
-        assertEquals(expected, serverConfService.getSecurityServerOwnerId());
+        ClientId expected = ClientIdConfEntity.createMember("FI", "GOV", "M1");
+        assertEquals(expected, serverConfService.getSecurityServerOwnerIdEntity());
     }
 
     @Test
     public void getConfiguredTimestampingServices() {
-        List<TspType> configuredTimestampingServices = new ArrayList<>();
-        configuredTimestampingServices.add(TestUtils.createTspType("https://tsa3.com", "TSA 3"));
-        configuredTimestampingServices.add(TestUtils.createTspType("https://tsa2.com", "TSA 2"));
-        configuredTimestampingServices.add(TestUtils.createTspType("https://tsa1.com", "TSA 1"));
+        List<TspTypeEntity> configuredTimestampingServices = new ArrayList<>();
+        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa3.com", "TSA 3"));
+        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa2.com", "TSA 2"));
+        configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa1.com", "TSA 1"));
 
         when(serverConfRepository.getServerConf()).thenReturn(serverConfType);
         when(serverConfType.getTsp()).thenReturn(configuredTimestampingServices);
 
-        List<TspType> tsp = serverConfService.getConfiguredTimestampingServices();
+        List<TspTypeEntity> tsp = serverConfService.getConfiguredTimestampingServiceEntities();
 
         assertEquals(configuredTimestampingServices.size(), tsp.size());
         assertEquals("TSA 1", tsp.get(2).getName());

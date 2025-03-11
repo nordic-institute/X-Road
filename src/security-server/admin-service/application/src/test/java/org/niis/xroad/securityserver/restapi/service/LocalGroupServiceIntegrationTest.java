@@ -27,11 +27,12 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -99,8 +100,8 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
     @Test
     public void localGroupsExist() {
-        ClientType ss1 = clientService.getLocalClient(TestUtils.getM1Ss1ClientId());
-        ClientType ss2 = clientService.getLocalClient(
+        ClientTypeEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
+        ClientTypeEntity ss2 = clientService.getLocalClientEntity(
                 ClientId.Conf.create("FI", "GOV", "M1", "SS2"));
         assertTrue(localGroupService.localGroupsExist(ss1,
                 Collections.singletonList(LocalGroupId.Conf.create("group2"))));
@@ -118,9 +119,11 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
     @Test
     public void deleteLocalGroup() throws Exception {
-        ClientType ss1 = clientService.getLocalClient(TestUtils.getM1Ss1ClientId());
+        ClientTypeEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
         Long groupId = Long.valueOf(TestUtils.DB_LOCAL_GROUP_ID_1);
-        XRoadId localGroupXroadId = localGroupService.getLocalGroupIdAsXroadId(groupId);
+        XRoadIdConfEntity localGroupXroadId = XroadIdConfMapper.get().toEntity(
+                localGroupService.getLocalGroupIdAsXroadId(groupId)
+        );
 
         assertTrue(ss1.getAcl().stream()
                 .filter(acl -> acl.getSubjectId().equals(localGroupXroadId))

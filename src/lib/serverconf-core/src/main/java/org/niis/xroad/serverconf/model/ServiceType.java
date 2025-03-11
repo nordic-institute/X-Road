@@ -28,6 +28,9 @@ package org.niis.xroad.serverconf.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Service.
  */
@@ -36,19 +39,12 @@ import lombok.Setter;
 public class ServiceType {
 
     private Long id;
-
-    private ServiceDescriptionType serviceDescription;
-
+    private ServiceDescriptionBaseType serviceDescription;
     private String serviceCode;
-
     private String serviceVersion;
-
     private String title;
-
     private String url;
-
     private Boolean sslAuthentication;
-
     private int timeout;
-
+    private final List<EndpointType> endpoints = new ArrayList<>();
 }

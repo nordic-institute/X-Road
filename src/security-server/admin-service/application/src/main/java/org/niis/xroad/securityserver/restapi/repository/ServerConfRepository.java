@@ -28,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
-import org.niis.xroad.serverconf.model.ServerConfType;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -43,19 +43,19 @@ public class ServerConfRepository {
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return ServerConfType
+     * Return ServerConfTypeEntity
      * @return
      */
-    public ServerConfType getServerConf() {
+    public ServerConfTypeEntity getServerConf() {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
 
     /**
-     * Save or update ServerConf
+     * Save or update ServerConfEntity
      * @return
      */
-    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
+    public ServerConfTypeEntity saveOrUpdate(ServerConfTypeEntity serverConfType) {
         return persistenceUtils.getCurrentSession().merge(serverConfType);
     }
 }

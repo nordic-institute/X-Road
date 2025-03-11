@@ -32,7 +32,7 @@ import org.hibernate.Session;
 public class GroupMemberDAOImpl {
 
     public void deleteByGroupMemberId(Session session, ClientId memberId) {
-        var query = session.createMutationQuery("delete from GroupMemberType where groupMemberId = :memberId");
+        var query = session.createMutationQuery("delete from GroupMemberTypeEntity where groupMemberId = :memberId");
         query.setParameter("memberId", memberId);
         query.executeUpdate();
     }

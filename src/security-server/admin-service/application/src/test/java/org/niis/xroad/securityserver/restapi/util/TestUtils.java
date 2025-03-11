@@ -36,6 +36,9 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.TspTypeEntity;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.serverconf.model.TspType;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -194,6 +197,10 @@ public final class TestUtils {
         return new ClientIdConverter().convertId(encodedId);
     }
 
+    public static ClientIdConfEntity getClientIdEntity(String encodedId) {
+        return XroadIdConfMapper.get().toEntity(new ClientIdConverter().convertId(encodedId));
+    }
+
     /**
      * Returns a new MemberInfo with given parameters
      *
@@ -299,6 +306,13 @@ public final class TestUtils {
      */
     public static TspType createTspType(String url, String name) {
         TspType tsp = new TspType();
+        tsp.setUrl(url);
+        tsp.setName(name);
+        return tsp;
+    }
+
+    public static TspTypeEntity createTspTypeEntity(String url, String name) {
+        TspTypeEntity tsp = new TspTypeEntity();
         tsp.setUrl(url);
         tsp.setName(name);
         return tsp;

@@ -41,11 +41,11 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -84,7 +84,6 @@ public class ServerConfTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
-    private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
     /**
@@ -96,7 +95,7 @@ public class ServerConfTest {
     public static void setUpBeforeClass() throws Exception {
         prepareDB();
 
-        globalConfProvider = new TestGlobalConfImpl();
+        GlobalConfProvider globalConfProvider = new TestGlobalConfImpl();
         serverConfProvider = new ServerConfImpl(globalConfProvider);
     }
 
@@ -181,7 +180,7 @@ public class ServerConfTest {
         ClientId client1 = createTestClientId(client(1));
         ClientId client2 = createTestClientId(client(2));
 
-        List<ServiceId> expectedServices = Arrays.asList(
+        List<ServiceId> expectedServices = List.of(
                 createTestServiceId(serviceProvider,
                         service(1, 1), SERVICE_VERSION));
 
@@ -210,7 +209,7 @@ public class ServerConfTest {
     public void getDisabledNotice() {
         ServiceId existingService = createTestServiceId(client(1),
                 service(NUM_SERVICEDESCRIPTIONS - 1, NUM_SERVICES - 1), SERVICE_VERSION);
-        ServiceId nonExistingService = createTestServiceId("foo", "bar");
+        ServiceId nonExistingService = createTestServiceId("foo", "bar", "sub");
 
         assertNotNull(serverConfProvider.getDisabledNotice(existingService));
         assertNull(serverConfProvider.getDisabledNotice(nonExistingService));
@@ -287,7 +286,7 @@ public class ServerConfTest {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
-        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.get(0));
+        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.getFirst());
     }
 
     /**
@@ -359,8 +358,8 @@ public class ServerConfTest {
     }
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
-        return new ServiceDAOImpl().getServices(
+        return XroadIdConfMapper.get().toServices(new ServiceDAOImpl().getServices(
                 ServerConfDatabaseCtx.get().getSession(),
-                serviceProvider);
+                XroadIdConfMapper.get().toEntity(serviceProvider)));
     }
 }

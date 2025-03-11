@@ -40,12 +40,8 @@ import java.util.List;
 public class LocalGroupType {
 
     private Long id;
-
     private String groupCode;
-
     private String description;
-
     private final List<GroupMemberType> groupMember = new ArrayList<>();
-
     private Date updated;
 }

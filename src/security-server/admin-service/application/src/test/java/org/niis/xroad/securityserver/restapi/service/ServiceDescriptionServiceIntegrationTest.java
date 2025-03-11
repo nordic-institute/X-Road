@@ -39,11 +39,11 @@ import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionReposi
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.serverconf.model.AccessRightType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -128,12 +127,12 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
-        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
+        var vastus = serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
 
         // update wsdl to one with 3 services
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescriptionType = getServiceDescription(url, clientType);
 
         try {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
@@ -161,14 +160,14 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
-        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
+        var vastus = serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                 url,
                 false);
 
         // update wsdl to one with just one service
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescriptionType = getServiceDescription(url, clientType);
 
         try {
             serviceDescriptionService.refreshServiceDescription(serviceDescriptionType.getId(),
@@ -206,8 +205,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         String url = testServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                 url, false);
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescriptionType = getServiceDescription(url, clientType);
 
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
@@ -264,8 +263,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         // can be ignored
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                 url, true);
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescriptionType = getServiceDescription(url, clientType);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescriptionType = getServiceDescription(url, clientType);
         assertServiceCodes(serviceDescriptionType, XROAD_GET_RANDOM_SERVICECODE);
     }
 
@@ -334,8 +333,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         String newUrl = newTestServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                 oldUrl, false);
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescriptionType = getServiceDescription(oldUrl, clientType);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescriptionType = getServiceDescription(oldUrl, clientType);
 
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
@@ -379,8 +378,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         String newUrl = newTestServiceWsdl.toURI().toURL().toString();
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
                 oldUrl, false);
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescriptionType = getServiceDescription(oldUrl, clientType);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescriptionType = getServiceDescription(oldUrl, clientType);
 
         // start mocking validation failures, when ignoreFailures = false
         List<String> mockValidationFailures = Arrays.asList("mock warning", "mock warning 2");
@@ -400,15 +399,15 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
      * Assert service description contains the given codes. Checks codes only, no versions
      * @param serviceDescriptionType service description to check
      */
-    private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType, String... expectedCodes) {
+    private void assertServiceCodes(ServiceDescriptionTypeEntity serviceDescriptionType, String... expectedCodes) {
         List<String> serviceCodes = serviceDescriptionType.getService()
                 .stream()
-                .map(ServiceType::getServiceCode)
+                .map(ServiceTypeEntity::getServiceCode)
                 .collect(Collectors.toList());
         assertEquals(Arrays.asList(expectedCodes), serviceCodes);
     }
 
-    private ServiceDescriptionType getServiceDescription(String url, ClientType clientType) {
+    private ServiceDescriptionTypeEntity getServiceDescription(String url, ClientTypeEntity clientType) {
         return clientType.getServiceDescription()
                 .stream()
                 .filter(sd -> sd.getUrl().equals(url))
@@ -417,13 +416,13 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
     @Test
     public void addWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         // 2 as set in data.sql
         assertEquals(SS1_ENDPOINTS, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
@@ -431,13 +430,13 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, "file:src/test/resources/wsdl/valid.wsdl",
                 true);
 
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         // 3 new endpoints saved: xroadSmallAttachment and xroadBigAttachment and xroadGetRandom
         assertEquals(SS1_ENDPOINTS + 3, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE)));
@@ -445,68 +444,68 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
     @Test
     public void updateWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertEquals(SS1_ENDPOINTS, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
-        ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
+        ServiceDescriptionTypeEntity serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
 
         serviceDescriptionService.updateWsdlUrl(serviceDescription.getId(),
                 "file:src/test/resources/wsdl/valid-additional-services.wsdl", true);
 
-        var serviceDescriptionType = serviceDescriptionService.getServiceDescriptiontype(serviceDescription.getId());
+        var serviceDescriptionType = serviceDescriptionService.getServiceDescriptiontypeEntity(serviceDescription.getId());
         clientType = serviceDescriptionType.getClient();
 
         assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, HELLO_SERVICE)));
     }
 
     @Test
     public void removeWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertEquals(SS1_ENDPOINTS, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
-        ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
+        ServiceDescriptionTypeEntity serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
 
         serviceDescriptionService.deleteServiceDescription(serviceDescription.getId());
 
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertEquals(4, clientType.getEndpoint().size());
     }
 
     @Test
     public void removeWsdlServiceDescriptionRetainsEndointsAndAccessRightsIfDifferentVersionExists() throws Exception {
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
-        ServiceDescriptionType serviceDescription1 = createServiceDescription(clientType, "wsdl1");
-        ServiceType serviceV1 = createServiceType("foo-service", "foo", "v1");
+        ServiceDescriptionTypeEntity serviceDescription1 = createServiceDescription(clientType, "wsdl1");
+        ServiceTypeEntity serviceV1 = createServiceType("foo-service", "foo", "v1");
         serviceV1.setServiceDescription(serviceDescription1);
         serviceDescription1.getService().add(serviceV1);
         serviceDescriptionRepository.persist(serviceDescription1);
 
-        ServiceDescriptionType serviceDescription2 = createServiceDescription(clientType, "wsdl2");
-        ServiceType serviceV2 = createServiceType("foo-service", "foo", "v2");
+        ServiceDescriptionTypeEntity serviceDescription2 = createServiceDescription(clientType, "wsdl2");
+        ServiceTypeEntity serviceV2 = createServiceType("foo-service", "foo", "v2");
         serviceV2.setServiceDescription(serviceDescription2);
         serviceDescription2.getService().add(serviceV2);
         serviceDescriptionRepository.persist(serviceDescription2);
 
-        EndpointType endpointType = new EndpointType("foo", ANY_METHOD, ANY_PATH, true);
+        EndpointTypeEntity endpointType = EndpointTypeEntity.create("foo", ANY_METHOD, ANY_PATH, true);
         clientType.getEndpoint().add(endpointType);
 
         doReturn(true).when(globalConfService).clientsExist(any());
@@ -516,34 +515,34 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
                 CLIENT_ID_SS6);
 
 
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertTrue("Expecting endpoint for service 'foo' to be added",
                 clientType.getEndpoint().stream()
-                        .map(EndpointType::getServiceCode)
+                        .map(EndpointTypeEntity::getServiceCode)
                         .anyMatch(isEqual("foo")));
         assertTrue("Expecting access rights for service 'foo' not to added",
                 clientType.getAcl().stream()
-                        .map(AccessRightType::getEndpoint)
-                        .map(EndpointType::getServiceCode)
+                        .map(AccessRightTypeEntity::getEndpoint)
+                        .map(EndpointTypeEntity::getServiceCode)
                         .anyMatch(isEqual("foo")));
 
         serviceDescriptionService.deleteServiceDescription(serviceDescription1.getId());
 
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertTrue("Expecting endpoint for service 'foo' not to be removed as it's still referenced by v2",
                 clientType.getEndpoint().stream()
-                        .map(EndpointType::getServiceCode)
+                        .map(EndpointTypeEntity::getServiceCode)
                         .anyMatch(isEqual("foo")));
         assertTrue("Expecting access rights for service 'foo' not to be removed as it's still referenced by v2",
                 clientType.getAcl().stream()
-                        .map(AccessRightType::getEndpoint)
-                        .map(EndpointType::getServiceCode)
+                        .map(AccessRightTypeEntity::getEndpoint)
+                        .map(EndpointTypeEntity::getServiceCode)
                         .anyMatch(isEqual("foo")));
     }
 
-    private ServiceDescriptionType createServiceDescription(ClientType clientType, String wsdl) {
-        ServiceDescriptionType serviceDescription1 = new ServiceDescriptionType();
+    private ServiceDescriptionTypeEntity createServiceDescription(ClientTypeEntity clientType, String wsdl) {
+        ServiceDescriptionTypeEntity serviceDescription1 = new ServiceDescriptionTypeEntity();
         serviceDescription1.setClient(clientType);
         serviceDescription1.setUrl(wsdl);
         serviceDescription1.setType(WSDL);
@@ -553,12 +552,12 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = "REFRESH_WSDL")
     public void refreshWsdlServiceDescriptionAndCheckEndpoints() throws Exception {
-        ClientType clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertEquals(SS1_ENDPOINTS, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
@@ -570,17 +569,17 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, true);
 
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescription = getServiceDescription(url, clientType);
+        clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescription = getServiceDescription(url, clientType);
 
         serviceDescriptionService.refreshServiceDescription(serviceDescription.getId(), true);
 
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        clientType = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertEquals(SS1_ENDPOINTS + 2, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()
                 .stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BMI_SERVICE)));
@@ -589,9 +588,9 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = {"REFRESH_OPENAPI3"})
     public void refreshOpenapi3ServiceDescriptionSuccess() throws Exception {
-        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+        ServiceDescriptionTypeEntity serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontypeEntity(6L);
 
-        ClientType client = serviceDescriptiontype.getClient();
+        ClientTypeEntity client = serviceDescriptiontype.getClient();
 
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
@@ -601,7 +600,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptiontype);
         serviceDescriptionService.refreshServiceDescription(6L, false);
 
-        List<EndpointType> endpoints = client.getEndpoint();
+        List<EndpointTypeEntity> endpoints = client.getEndpoint();
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
 
@@ -619,9 +618,9 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = {"REFRESH_OPENAPI3"})
     public void refreshOpenapi3ServiceDescriptionWithWarnings() throws Exception {
-        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
+        ServiceDescriptionTypeEntity serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontypeEntity(6L);
 
-        ClientType client = serviceDescriptiontype.getClient();
+        ClientTypeEntity client = serviceDescriptiontype.getClient();
 
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
@@ -643,7 +642,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             fail("Shouldn't throw warnings exception when ignorewarning is true");
         }
 
-        List<EndpointType> endpoints = client.getEndpoint();
+        List<EndpointTypeEntity> endpoints = client.getEndpoint();
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(3, client.getAcl().size());
         assertFalse(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("POST")));
@@ -670,22 +669,24 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = {"REFRESH_OPENAPI3"})
     public void refreshOpenApi3ServiceDescriptionUpdatesDate() throws Exception {
-        ServiceDescriptionType serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontype(6L);
-        Date originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
+
+        ServiceDescriptionTypeEntity serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontypeEntity(6L);
+        var originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
         serviceDescriptionService.refreshServiceDescription(6L, false);
+        var kuku = serviceDescriptiontype.getRefreshedDate();
         assertTrue(originalRefreshedDate.compareTo(serviceDescriptiontype.getRefreshedDate()) < 0);
     }
 
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpointServiceDescriptionSuccess() throws Exception {
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(7, client.getEndpoint().size());
         serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "http://testurl.com", "testcode");
-        client = clientService.getLocalClient(CLIENT_ID_SS1);
+        client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(8, client.getEndpoint().size());
         assertTrue(client.getEndpoint().stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .toList()
                 .contains("testcode"));
         Boolean sslAuthentication = client.getServiceDescription().stream()
@@ -699,7 +700,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpointServiceDescriptionWithHttpsUrl() throws Exception {
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(7, client.getEndpoint().size());
         serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "https://testurl.com", "testcode");
         Boolean sslAuthentication = client.getServiceDescription().stream()
@@ -713,7 +714,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addRestEndpoinServiceDescriptionWithDuplicateServiceCodes() throws Exception {
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertTrue(client.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
                 .anyMatch(service -> service.getServiceCode().equals("getRandom")
@@ -740,16 +741,16 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addOpenApi3ServiceDescriptionSuccess() throws Exception {
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/valid.yaml");
         String urlString = url.toString();
         serviceDescriptionService.addOpenApi3ServiceDescription(CLIENT_ID_SS1, urlString, "testcode", false);
 
-        client = clientService.getLocalClient(CLIENT_ID_SS1);
+        client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS + 3, client.getEndpoint().size());
         assertEquals(3, client.getEndpoint().stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .filter("testcode"::equals)
                 .count());
 
@@ -760,7 +761,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     @WithMockUser(authorities = "ADD_OPENAPI3")
     public void addOpenApi3ServiceDescriptionWithWarnings() throws Exception {
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS, client.getEndpoint().size());
         URL url = getClass().getResource("/openapiparser/warnings.yml");
         boolean foundWarnings = false;
@@ -777,7 +778,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             fail("Shouldn't throw warnings exception when ignorewarning is true");
         }
 
-        client = clientService.getLocalClient(CLIENT_ID_SS1);
+        client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS + 3, client.getEndpoint().size());
     }
 
@@ -808,8 +809,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         final String serviceCode = "rest-servicecode";
         final String newServiceCode = "new-rest-servicecode";
 
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS1);
-        ServiceDescriptionType serviceDescription = serviceDescriptionService.getServiceDescriptiontype(5L);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS1);
+        ServiceDescriptionTypeEntity serviceDescription = serviceDescriptionService.getServiceDescriptiontypeEntity(5L);
 
         assertEquals(3, getEndpointCountByServiceCode(client, serviceCode));
         assertTrue(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, serviceCode));
@@ -824,17 +825,17 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertFalse(serviceDescriptionContainsServiceWithServiceCode(serviceDescription, serviceCode));
     }
 
-    private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
+    private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionTypeEntity serviceDescription,
                                                                      String serviceCode) {
         return serviceDescription.getService().stream()
-                .map(ServiceType::getServiceCode)
+                .map(ServiceTypeEntity::getServiceCode)
                 .toList()
                 .contains(serviceCode);
     }
 
-    private int getEndpointCountByServiceCode(ClientType client, String serviceCode) {
+    private int getEndpointCountByServiceCode(ClientTypeEntity client, String serviceCode) {
         return client.getEndpoint().stream()
-                .map(EndpointType::getServiceCode)
+                .map(EndpointTypeEntity::getServiceCode)
                 .filter(serviceCode::equals)
                 .toList()
                 .size();
@@ -845,7 +846,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     public void updateOpenApi3ServiceDescriptionSuccess() throws Exception {
         URL url = getClass().getResource("/openapiparser/valid.yaml");
 
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS6);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS6);
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
         assertEquals(1, client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count());
@@ -853,7 +854,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescriptionService.updateOpenApi3ServiceDescription(6L, url.toString(), "openapi3-test",
                 "openapi3-test", false);
 
-        List<EndpointType> endpoints = client.getEndpoint();
+        List<EndpointTypeEntity> endpoints = client.getEndpoint();
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
 
@@ -875,7 +876,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     public void updateOpenApi3ServiceDescriptionWithWarnings() throws Exception {
         URL url = getClass().getResource("/openapiparser/valid_modified.yaml");
 
-        ClientType client = clientService.getLocalClient(CLIENT_ID_SS6);
+        ClientTypeEntity client = clientService.getLocalClientEntity(CLIENT_ID_SS6);
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
         assertEquals(1, client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count());
@@ -897,7 +898,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         }
 
 
-        List<EndpointType> endpoints = client.getEndpoint();
+        List<EndpointTypeEntity> endpoints = client.getEndpoint();
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(3, client.getAcl().size());
         assertFalse(endpoints.stream().anyMatch(ep -> ep.getMethod().equals("POST")));
@@ -925,8 +926,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     @Test
     public void getServiceTitle() throws Exception {
         // create a transient client for testing
-        ClientType testClient = new ClientType();
-        ServiceDescriptionType sd1 = new ServiceDescriptionType();
+        ClientTypeEntity testClient = new ClientTypeEntity();
+        ServiceDescriptionTypeEntity sd1 = new ServiceDescriptionTypeEntity();
         testClient.getServiceDescription().add(sd1);
 
         // backend returns the title of the first matching service (which can be null or empty),
@@ -970,8 +971,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertEquals("XYZ-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
     }
 
-    private ServiceType createServiceType(String title, String serviceCode, String serviceVersion) {
-        ServiceType serviceFooNullTitle = new ServiceType();
+    private ServiceTypeEntity createServiceType(String title, String serviceCode, String serviceVersion) {
+        ServiceTypeEntity serviceFooNullTitle = new ServiceTypeEntity();
         serviceFooNullTitle.setTitle(title);
         serviceFooNullTitle.setServiceCode(serviceCode);
         serviceFooNullTitle.setServiceVersion(serviceVersion);

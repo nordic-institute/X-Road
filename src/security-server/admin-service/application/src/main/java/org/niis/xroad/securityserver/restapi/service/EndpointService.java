@@ -30,9 +30,11 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.EndpointRepository;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
+import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
 import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +67,11 @@ public class EndpointService {
      * @throws EndpointNotFoundException    endpoint not found with given id
      */
     public EndpointType getEndpoint(Long id) throws EndpointNotFoundException {
-        EndpointType endpoint = endpointRepository.getEndpoint(id);
+        return EndpointTypeMapper.get().toTarget(getEndpointEntity(id));
+    }
+
+    EndpointTypeEntity getEndpointEntity(Long id) throws EndpointNotFoundException {
+        EndpointTypeEntity endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
             throw new EndpointNotFoundException(id.toString());
         }
@@ -83,13 +89,13 @@ public class EndpointService {
     public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException,
             IllegalGeneratedEndpointRemoveException {
 
-        EndpointType endpoint = getEndpoint(id);
+        EndpointTypeEntity endpoint = getEndpointEntity(id);
 
         if (endpoint.getId().equals(id) && endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointRemoveException(id.toString());
         }
 
-        ClientType clientType = clientRepository.getClientByEndpointId(id);
+        ClientTypeEntity clientType = clientRepository.getClientByEndpointId(id);
         clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(id));
         clientType.getEndpoint().removeIf(ep -> ep.getId().equals(id));
     }
@@ -121,13 +127,13 @@ public class EndpointService {
                     + id.toString());
         }
 
-        ClientType client = clientRepository.getClientByEndpointId(id);
-        Optional<EndpointType> endpointType = client.getEndpoint().stream().filter(e -> e.getId() == id).findFirst();
+        ClientTypeEntity client = clientRepository.getClientByEndpointId(id);
+        Optional<EndpointTypeEntity> endpointType = client.getEndpoint().stream().filter(e -> e.getId() == id).findFirst();
         if (!endpointType.isPresent()) {
             throw new EndpointNotFoundException(id.toString());
         }
 
-        EndpointType endpoint = endpointType.get();
+        EndpointTypeEntity endpoint = endpointType.get();
 
         if (endpoint.isGenerated()) {
             throw new IllegalGeneratedEndpointUpdateException(id.toString());
@@ -146,7 +152,7 @@ public class EndpointService {
                     + "exists for this client");
         }
 
-        return endpoint;
+        return EndpointTypeMapper.get().toTarget(endpoint);
     }
 
     /**
@@ -155,11 +161,11 @@ public class EndpointService {
      * @param serviceType
      * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
      */
-    public EndpointType getServiceBaseEndpoint(ServiceType serviceType)
+    EndpointTypeEntity getServiceBaseEndpoint(ServiceTypeEntity serviceType)
             throws EndpointNotFoundException {
-        ClientType clientType = serviceType.getServiceDescription().getClient();
+        ClientTypeEntity clientType = serviceType.getServiceDescription().getClient();
         String serviceCode = serviceType.getServiceCode();
-        return getServiceBaseEndpoint(clientType, serviceCode);
+        return getServiceBaseEndpointEntity(clientType, serviceCode);
     }
 
     /**
@@ -168,7 +174,7 @@ public class EndpointService {
      * @param serviceCode
      * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
      */
-    public EndpointType getServiceBaseEndpoint(ClientType clientType, String serviceCode)
+    EndpointTypeEntity getServiceBaseEndpointEntity(ClientTypeEntity clientType, String serviceCode)
             throws EndpointNotFoundException {
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceCode)
@@ -186,11 +192,11 @@ public class EndpointService {
      * @param serviceCodes
      * @throws EndpointNotFoundException if any base endpoint matching given parameters did not exist
      */
-    public List<EndpointType> getServiceBaseEndpoints(ClientType clientType, Set<String> serviceCodes)
+    List<EndpointTypeEntity> getServiceBaseEndpointEntities(ClientTypeEntity clientType, Set<String> serviceCodes)
             throws EndpointNotFoundException {
-        List<EndpointType> baseEndpoints = new ArrayList<>();
+        List<EndpointTypeEntity> baseEndpoints = new ArrayList<>();
         for (String serviceCode : serviceCodes) {
-            baseEndpoints.add(getServiceBaseEndpoint(clientType, serviceCode));
+            baseEndpoints.add(getServiceBaseEndpointEntity(clientType, serviceCode));
         }
         return baseEndpoints;
     }
@@ -199,9 +205,9 @@ public class EndpointService {
      * Get base endpoint for given client and full service code
      * @throws ServiceNotFoundException if no match was found
      */
-    public EndpointType getBaseEndpointType(ClientType clientType, String fullServiceCode)
+    EndpointTypeEntity getBaseEndpointTypeEntity(ClientTypeEntity clientType, String fullServiceCode)
             throws ServiceNotFoundException {
-        ServiceType serviceType = serviceService.getServiceFromClient(clientType, fullServiceCode);
+        ServiceTypeEntity serviceType = serviceService.getServiceEntityFromClient(clientType, fullServiceCode);
         try {
             return getServiceBaseEndpoint(serviceType);
         } catch (EndpointNotFoundException e) {
@@ -215,7 +221,7 @@ public class EndpointService {
      * @param clientType
      * @param serviceCodes
      */
-    public List<EndpointType> getServiceEndpoints(ClientType clientType, Set<String> serviceCodes) {
+    List<EndpointTypeEntity> getServiceEndpointEntities(ClientTypeEntity clientType, Set<String> serviceCodes) {
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> serviceCodes.contains(endpointType.getServiceCode()))
                 .collect(Collectors.toList());

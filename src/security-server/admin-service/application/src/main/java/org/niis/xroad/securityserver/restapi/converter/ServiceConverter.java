@@ -35,7 +35,6 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.model.EndpointType;
 import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.stereotype.Component;
 
@@ -90,7 +89,8 @@ public class ServiceConverter {
 
         service.setId(convertId(serviceType, clientId));
         service.setServiceCode(serviceType.getServiceCode());
-        service.setFullServiceCode(ServiceFormatter.getServiceFullName(serviceType));
+        service.setFullServiceCode(
+                ServiceFormatter.getServiceFullName(serviceType.getServiceCode(), serviceType.getServiceVersion()));
         if (serviceType.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
             service.setSslAuth(false);
         } else {
@@ -99,10 +99,7 @@ public class ServiceConverter {
         service.setTimeout(serviceType.getTimeout());
         service.setUrl(serviceType.getUrl());
         service.setTitle(serviceType.getTitle());
-
-        List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
-                serviceType.getServiceDescription().getClient());
-        service.setEndpoints(this.endpointConverter.convert(endpoints));
+        service.setEndpoints(this.endpointConverter.convert(serviceType.getEndpoints()));
 
         return service;
     }
@@ -118,7 +115,7 @@ public class ServiceConverter {
         StringBuilder builder = new StringBuilder();
         builder.append(clientIdConverter.convertId(clientId));
         builder.append(ENCODED_ID_SEPARATOR);
-        builder.append(ServiceFormatter.getServiceFullName(serviceType));
+        builder.append(ServiceFormatter.getServiceFullName(serviceType.getServiceCode(), serviceType.getServiceVersion()));
         return builder.toString();
     }
 

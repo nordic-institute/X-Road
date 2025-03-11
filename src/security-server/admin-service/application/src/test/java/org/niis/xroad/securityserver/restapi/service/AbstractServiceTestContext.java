@@ -37,8 +37,10 @@ import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.ServerConfType;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -81,23 +83,23 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     @MockBean
     LocalGroupRepository localGroupRepository;
     @MockBean
-    ServerConfType serverConfType;
+    ServerConfTypeEntity serverConfType;
     @MockBean
     TokenPinValidator tokenPinValidator;
 
-    static final ClientId.Conf COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
+    static final ClientIdConfEntity COMMON_OWNER_ID = ClientIdConfEntity.createMember("FI", "GOV", "M1");
 
     @Before
     public void setupCommonMocks() {
-        ServerConfType sct = new ServerConfType();
-        ClientType owner = new ClientType();
+        ServerConfTypeEntity sct = new ServerConfTypeEntity();
+        ClientTypeEntity owner = new ClientTypeEntity();
         owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");
         when(serverConfRepository.getServerConf()).thenReturn(sct);
         when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
-            ClientId.Conf identifier = (ClientId.Conf) args[0];
+            ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });

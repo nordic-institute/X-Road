@@ -26,17 +26,17 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
 
 import java.util.List;
 
 /**
  * Certificate data access object implementation.
  */
-public class CertificateDAOImpl extends AbstractDAOImpl<CertificateType> {
+public class CertificateDAOImpl extends AbstractDAOImpl<CertificateTypeEntity> {
 
-    public List<CertificateType> findAll(Session session) {
-        return findAll(session, CertificateType.class);
+    public List<CertificateTypeEntity> findAll(Session session) {
+        return findAll(session, CertificateTypeEntity.class);
     }
 
 }

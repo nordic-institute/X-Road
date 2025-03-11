@@ -39,9 +39,13 @@ import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.AccessRightType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.GlobalGroupConfEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupConfEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -132,18 +136,18 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     AccessRightService accessRightService;
 
     private long countIdentifiers() {
-        return persistenceTestUtil.countRows(XRoadId.Conf.class);
+        return persistenceTestUtil.countRows(XRoadIdConfEntity.class);
     }
 
     private long countAccessRights() {
-        return persistenceTestUtil.countRows(AccessRightType.class);
+        return persistenceTestUtil.countRows(AccessRightTypeEntity.class);
     }
 
     private int countServiceClients(ClientId serviceOwnerId) {
-        ClientType owner = clientRepository.getClient(serviceOwnerId);
-        return owner.getAcl().stream().map(acl -> acl.getSubjectId())
-                .collect(Collectors.toSet())
-                .size();
+        ClientTypeEntity owner = clientRepository.getClient(serviceOwnerId);
+        var serviceClients = owner.getAcl().stream().map(acl -> acl.getSubjectId())
+                .collect(Collectors.toSet());
+        return serviceClients.size();
     }
 
     @Test
@@ -546,23 +550,23 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
 
-        ClientId.Conf subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
-        LocalGroupId.Conf localGroupId = LocalGroupId.Conf.create("group2");
-        GlobalGroupId.Conf globalGroupId = GlobalGroupId.Conf.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
-        Set<XRoadId.Conf> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
+        ClientIdConfEntity subsystemId = TestUtils.getClientIdEntity(TestUtils.CLIENT_ID_SS5);
+        LocalGroupConfEntity localGroupId = LocalGroupConfEntity.create("group2");
+        GlobalGroupConfEntity globalGroupId = GlobalGroupConfEntity.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        Set<XRoadIdConfEntity> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
 
-        ClientType ownerClient = clientRepository.getClient(serviceOwner);
+        ClientTypeEntity ownerClient = clientRepository.getClient(serviceOwner);
 
-        List<EndpointType> endpoints = serviceCodes.stream()
+        List<EndpointTypeEntity> endpoints = serviceCodes.stream()
                 .map(code -> {
                     try {
-                        return endpointService.getServiceBaseEndpoint(ownerClient, code);
+                        return endpointService.getServiceBaseEndpointEntity(ownerClient, code);
                     } catch (EndpointNotFoundException e) {
                         throw new RuntimeException(e);
                     }
                 }).collect(Collectors.toList());
 
-        Map<XRoadId.Conf, List<ServiceClientAccessRightDto>> dtosById = accessRightService.addAccessRightsInternal(
+        Map<XRoadIdConfEntity, List<ServiceClientAccessRightDto>> dtosById = accessRightService.addAccessRightsInternal(
                 subjectIds, ownerClient, endpoints);
 
         // should have 3 subjects with 3 identical access rights each

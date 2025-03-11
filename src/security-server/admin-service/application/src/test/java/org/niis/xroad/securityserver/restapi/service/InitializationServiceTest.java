@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
@@ -45,7 +44,8 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -69,7 +69,7 @@ public class InitializationServiceTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
     private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-    private static final ClientId.Conf CLIENT = ClientId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final ClientIdConfEntity CLIENT = ClientIdConfEntity.createMember(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
     private static final SecurityServerId SERVER = SecurityServerId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);
@@ -102,8 +102,8 @@ public class InitializationServiceTest {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
+        when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfTypeEntity());
+        when(serverConfService.getSecurityServerOwnerIdEntity()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
                 new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<>()));

@@ -72,11 +72,13 @@ import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceIdConfEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
@@ -642,7 +644,7 @@ public class MetadataServiceHandlerTest {
 
         when(mockProxyMessage.getSoapContent()).thenReturn(soapContentInputStream);
 
-        setUpDatabase(requestingWsdlForService, isRest);
+        setUpDatabase(XroadIdConfMapper.get().toEntity(requestingWsdlForService), isRest);
 
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
@@ -665,18 +667,18 @@ public class MetadataServiceHandlerTest {
         );
     }
 
-    private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
-        ServerConfType conf = new ServerConfType();
+    private void setUpDatabase(ServiceIdConfEntity serviceId, boolean isRest) throws Exception {
+        ServerConfTypeEntity conf = new ServerConfTypeEntity();
         conf.setServerCode("TestServer");
 
-        ClientType client = new ClientType();
+        ClientTypeEntity client = new ClientTypeEntity();
         client.setConf(conf);
 
         conf.getClient().add(client);
 
         client.setIdentifier(serviceId.getClientId());
 
-        ServiceDescriptionType wsdl = new ServiceDescriptionType();
+        ServiceDescriptionTypeEntity wsdl = new ServiceDescriptionTypeEntity();
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
         if (isRest) {
@@ -685,7 +687,7 @@ public class MetadataServiceHandlerTest {
             wsdl.setType(DescriptionType.WSDL);
         }
 
-        ServiceType service = new ServiceType();
+        ServiceTypeEntity service = new ServiceTypeEntity();
         service.setServiceDescription(wsdl);
         service.setTitle("someTitle");
         service.setServiceCode(serviceId.getServiceCode());
@@ -702,7 +704,7 @@ public class MetadataServiceHandlerTest {
     }
 
     private void setUpDatabase(ServiceId.Conf serviceId) throws Exception {
-        setUpDatabase(serviceId, false);
+        setUpDatabase(XroadIdConfMapper.get().toEntity(serviceId), false);
     }
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)

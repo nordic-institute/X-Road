@@ -25,21 +25,16 @@
  */
 package org.niis.xroad.serverconf.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.serverconf.PathGlob;
 
 /**
  * Endpoint
  */
 @Getter
 @Setter
-public class EndpointType {
-    public static final String ANY_METHOD = "*";
-    public static final String ANY_PATH = "**";
+public class EndpointType implements BaseEndpoint {
 
-    @Setter(AccessLevel.NONE)
     private Long id;
     private String serviceCode;
     private String method;
@@ -50,41 +45,13 @@ public class EndpointType {
         //JPA
     }
 
-    /**
-     * Create an endpoint
-     * @param serviceCode
-     * @param method
-     * @param path
-     */
     public EndpointType(String serviceCode, String method, String path, boolean generated) {
-        if (serviceCode == null || method == null || path == null) {
-            throw new IllegalArgumentException("Endpoint parts can not be null");
-        }
+
         this.serviceCode = serviceCode;
         this.method = method;
         this.path = path;
         this.generated = generated;
-    }
 
-    public final boolean matches(String anotherMethod, String anotherPath) {
-        return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
-                && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
-    }
-
-    public final boolean isEquivalent(EndpointType other) {
-        return other.getServiceCode().equals(serviceCode)
-                && other.getMethod().equals(method)
-                && other.getPath().equals(path);
-    }
-
-    /**
-     * Return true is this endpoint is base endpoint and false otherwise.
-     *
-     * Base endpoint is in other words service (code) level endpoint.
-     * Each service has one base endpoint.
-     * Base endpoint has method '*' and path '**'.
-     */
-    public final boolean isBaseEndpoint() {
-        return this.method.equals(ANY_METHOD) && this.path.equals(ANY_PATH);
+        validateArguments();
     }
 }

@@ -32,7 +32,7 @@ import org.hibernate.Session;
 public class AccessRightDAOImpl {
 
     public void deleteBySubjectId(Session session, XRoadId subjectId) {
-        var query = session.createMutationQuery("delete from AccessRightType where subjectId = :subjectId");
+        var query = session.createMutationQuery("delete from AccessRightTypeEntity where subjectId = :subjectId");
         query.setParameter("subjectId", subjectId);
         query.executeUpdate();
     }

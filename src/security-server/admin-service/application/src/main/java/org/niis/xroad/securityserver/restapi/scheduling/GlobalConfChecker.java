@@ -39,8 +39,10 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.mapper.TspTypeMapper;
 import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.ServerConfType;
 import org.niis.xroad.serverconf.model.TspType;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -124,7 +126,7 @@ public class GlobalConfChecker {
             return;
         }
 
-        ServerConfType serverConf = globalConfCheckerHelper.getServerConf();
+        ServerConfTypeEntity serverConf = globalConfCheckerHelper.getServerConf();
 
         addressChangeStatus.getAddressChangeRequest()
                 .ifPresent(requestedAddress -> {
@@ -146,7 +148,7 @@ public class GlobalConfChecker {
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
                 updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
                                 globalConfProvider.getInstanceIdentifier()),
-                        serverConf.getTsp()
+                        TspTypeMapper.get().toTargets(serverConf.getTsp())
                 );
             }
         } catch (Exception e) {
@@ -192,14 +194,14 @@ public class GlobalConfChecker {
                 ownerId.getMemberCode(), serverCode);
     }
 
-    private SecurityServerId buildSecurityServerId(ServerConfType serverConf) {
+    private SecurityServerId buildSecurityServerId(ServerConfTypeEntity serverConf) {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private void updateOwner(ServerConfType serverConf) throws Exception {
+    private void updateOwner(ServerConfTypeEntity serverConf) throws Exception {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
-        for (ClientType client : serverConf.getClient()) {
+        for (ClientTypeEntity client : serverConf.getClient()) {
             // Look for another member that is not the owner
             if (client.getIdentifier().getSubsystemCode() == null
                     && !client.getIdentifier().equals(ownerId)) {
@@ -237,10 +239,10 @@ public class GlobalConfChecker {
         return null;
     }
 
-    private void updateClientStatuses(ServerConfType serverConf, SecurityServerId securityServerId) {
+    private void updateClientStatuses(ServerConfTypeEntity serverConf, SecurityServerId securityServerId) {
         log.debug("Updating client statuses");
 
-        for (ClientType client : serverConf.getClient()) {
+        for (ClientTypeEntity client : serverConf.getClient()) {
             boolean registered = globalConfProvider.isSecurityServerClient(
                     client.getIdentifier(), securityServerId);
 
@@ -275,7 +277,7 @@ public class GlobalConfChecker {
         }
     }
 
-    private void updateClientStatus(ClientType client, String status) {
+    private void updateClientStatus(ClientTypeEntity client, String status) {
         client.setClientStatus(status);
         log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
     }

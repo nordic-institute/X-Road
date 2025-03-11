@@ -36,8 +36,6 @@ import lombok.Setter;
 public class TspType {
 
     private Long id;
-
     private String name;
-
     private String url;
 }

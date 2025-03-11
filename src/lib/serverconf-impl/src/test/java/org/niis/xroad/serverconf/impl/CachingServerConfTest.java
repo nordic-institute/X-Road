@@ -42,6 +42,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
@@ -356,8 +357,8 @@ public class CachingServerConfTest {
     }
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
-        return new ServiceDAOImpl().getServices(
+        return XroadIdConfMapper.get().toServices(new ServiceDAOImpl().getServices(
                 ServerConfDatabaseCtx.get().getSession(),
-                serviceProvider);
+                XroadIdConfMapper.get().toEntity(serviceProvider)));
     }
 }

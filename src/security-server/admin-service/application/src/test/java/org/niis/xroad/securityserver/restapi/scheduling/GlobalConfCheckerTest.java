@@ -44,6 +44,7 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.TspType;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
@@ -183,16 +184,16 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     public void updateLocalClientStatus() {
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         // Verify initial state
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
-        ClientType owner = clientService.getLocalClient(OWNER_MEMBER);
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
+        ClientTypeEntity owner = clientService.getLocalClientEntity(OWNER_MEMBER);
         log.debug("Owner {}", owner.getIdentifier());
         assertEquals(ClientType.STATUS_REGISTERED, owner.getClientStatus());
-        ClientType subsystem = clientService.getLocalClient(SUBSYSTEM);
+        ClientTypeEntity subsystem = clientService.getLocalClientEntity(SUBSYSTEM);
         assertEquals(ClientType.STATUS_REGISTERED, subsystem.getClientStatus());
 
         // Update serverconf
         globalConfChecker.checkGlobalConf();
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
         assertEquals(ClientType.STATUS_REGISTERED, owner.getClientStatus());
         // Subsystem status is changed to "GLOBALERR" since it's not recognized as a Security Server client
         assertEquals(ClientType.STATUS_GLOBALERR, subsystem.getClientStatus());
@@ -209,10 +210,10 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     public void registerMemberAndChangeSecurityServerOwner() throws Exception {
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
 
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
 
         // Add new member locally
-        ClientType clientType = clientService.addLocalClient(NEW_OWNER_MEMBER.getMemberClass(),
+        ClientTypeEntity clientType = clientService.addLocalClientEntity(NEW_OWNER_MEMBER.getMemberClass(),
                 NEW_OWNER_MEMBER.getMemberCode(), NEW_OWNER_MEMBER.getSubsystemCode(),
                 IsAuthentication.SSLAUTH, false);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
@@ -225,7 +226,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // Update serverconf
         globalConfChecker.checkGlobalConf();
         assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
 
         // Global conf starts to recognize the new member as the Security Server owner
         when(globalConfProvider.getServerOwner(SS_ID)).thenReturn(null);
@@ -234,7 +235,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         // Update serverconf => owner is changed
         globalConfChecker.checkGlobalConf();
-        assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
     }
 
     @Test

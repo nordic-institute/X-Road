@@ -38,7 +38,6 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.ResourceUtils;
@@ -70,7 +69,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAdd;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.securityserver.restapi.service.AccessRightService;
 import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
@@ -79,25 +77,17 @@ import org.niis.xroad.securityserver.restapi.service.CertificateNotFoundExceptio
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
-import org.niis.xroad.securityserver.restapi.service.InvalidServiceUrlException;
-import org.niis.xroad.securityserver.restapi.service.InvalidUrlException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupService;
-import org.niis.xroad.securityserver.restapi.service.MissingParameterException;
 import org.niis.xroad.securityserver.restapi.service.OrphanRemovalService;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
-import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
-import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
-import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.model.CertificateType;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.LocalGroupType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -133,7 +123,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CONNECTION_TYPE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.ErrorDeviation.newError;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.createCreatedResponse;
 
@@ -369,8 +358,6 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
     @AuditEventMethod(event = ADD_SERVICE_DESCRIPTION)
-    @SuppressWarnings({"java:S3776"}) // won't fix: too high cognitive complexity.
-    // should be fixed when this method is updated next.
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
                                                                           ServiceDescriptionAdd serviceDescription) {
         ClientId clientId = clientIdConverter.convertId(id);
@@ -382,53 +369,12 @@ public class ClientsApiController implements ClientsApi {
         auditDataHelper.put(clientId);
         auditDataHelper.putServiceDescriptionUrl(url, ServiceTypeMapping.map(serviceDescription.getType()).get());
 
-        ServiceDescriptionType addedServiceDescriptionType = null;
-        if (serviceDescription.getType() == ServiceType.WSDL) {
-            try {
-                addedServiceDescriptionType = serviceDescriptionService.addWsdlServiceDescription(
-                        clientId, url, ignoreWarnings);
-            } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
-                     | InvalidWsdlException | InvalidServiceUrlException e) {
-                // deviation data (errorcode + warnings) copied
-                throw new BadRequestException(e);
-            } catch (ClientNotFoundException e) {
-                // deviation data (errorcode + warnings) copied
-                throw new ResourceNotFoundException(e);
-            } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                     | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
-                // deviation data (errorcode + warnings) copied
-                throw new ConflictException(e);
-            } catch (InterruptedException e) {
-                throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
-            }
-        } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
-            try {
-                addedServiceDescriptionType = serviceDescriptionService.addOpenApi3ServiceDescription(clientId, url,
-                        restServiceCode, ignoreWarnings);
-            } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException
-                     | InvalidUrlException | UnsupportedOpenApiVersionException e) {
-                throw new BadRequestException(e);
-            } catch (ClientNotFoundException e) {
-                throw new ResourceNotFoundException(e);
-            } catch (ServiceDescriptionService.UrlAlreadyExistsException
-                     | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
-                throw new ConflictException(e);
-            }
-        } else if (serviceDescription.getType() == ServiceType.REST) {
-            try {
-                addedServiceDescriptionType = serviceDescriptionService.addRestEndpointServiceDescription(clientId,
-                        url, restServiceCode);
-            } catch (ClientNotFoundException e) {
-                throw new ResourceNotFoundException(e);
-            } catch (MissingParameterException | InvalidUrlException e) {
-                throw new BadRequestException(e);
-            } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException
-                     | ServiceDescriptionService.UrlAlreadyExistsException e) {
-                throw new ConflictException(e);
-            }
-        }
-        ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
-                addedServiceDescriptionType);
+        ServiceDescription addedServiceDescription = serviceDescriptionService.addServiceDescription(
+                        ServiceTypeMapping.map(serviceDescription.getType()).get(),
+                        clientId,
+                        url,
+                        restServiceCode,
+                        ignoreWarnings);
 
         auditDataHelper.put(DISABLED, addedServiceDescription.getDisabled());
         auditDataHelper.putDateTime(REFRESHED_DATE, addedServiceDescription.getRefreshedAt());

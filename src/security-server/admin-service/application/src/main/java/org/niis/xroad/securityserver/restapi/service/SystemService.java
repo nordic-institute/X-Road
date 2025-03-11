@@ -51,6 +51,8 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
+import org.niis.xroad.serverconf.entity.TspTypeEntity;
+import org.niis.xroad.serverconf.mapper.TspTypeMapper;
 import org.niis.xroad.serverconf.model.TspType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -113,7 +115,7 @@ public class SystemService {
      * @return
      */
     public List<TspType> getConfiguredTimestampingServices() {
-        return serverConfService.getConfiguredTimestampingServices();
+        return TspTypeMapper.get().toTargets(serverConfService.getConfiguredTimestampingServiceEntities());
     }
 
     /**
@@ -152,7 +154,7 @@ public class SystemService {
                             "is already configured")
             );
         }
-        serverConfService.getConfiguredTimestampingServices().add(tspTypeToAdd);
+        serverConfService.getConfiguredTimestampingServiceEntities().add(TspTypeMapper.get().toEntity(tspTypeToAdd));
     }
 
     /**
@@ -164,9 +166,9 @@ public class SystemService {
             throws TimestampingServiceNotFoundException {
         auditLog(tspTypeToDelete);
 
-        List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
+        List<TspTypeEntity> configuredTimestampingServices = serverConfService.getConfiguredTimestampingServiceEntities();
 
-        Optional<TspType> delete = configuredTimestampingServices.stream()
+        Optional<TspTypeEntity> delete = configuredTimestampingServices.stream()
                 .filter(tsp -> tspTypeToDelete.getName().equals(tsp.getName())
                         && tspTypeToDelete.getUrl().equals(tsp.getUrl()))
                 .findFirst();

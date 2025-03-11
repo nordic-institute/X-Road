@@ -29,7 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
 
 /**
  * LocalGroupDAO
@@ -41,21 +41,21 @@ public class LocalGroupDAOImpl {
      * @param session
      * @param groupCode
      * @param groupOwnerId
-     * @return LocalGroupType
+     * @return LocalGroupTypeEntity
      */
-    public LocalGroupType findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
+    public LocalGroupTypeEntity findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
         return new ClientDAOImpl().getClient(session, groupOwnerId).getLocalGroup().stream()
                 .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
                 .findFirst().orElse(null);
     }
 
     /**
-     * Returns the LocalGroupType for the given LocalGroupType id.
+     * Returns the LocalGroupTypeEntity for the given LocalGroupTypeEntity id.
      * @param session the session
-     * @param id the LocalGroupType id
-     * @return the LocalGroupType, or null if not found
+     * @param id the LocalGroupTypeEntity id
+     * @return the LocalGroupTypeEntity, or null if not found
      */
-    public LocalGroupType getLocalGroup(Session session, Long id) {
-        return session.get(LocalGroupType.class, id);
+    public LocalGroupTypeEntity getLocalGroup(Session session, Long id) {
+        return session.get(LocalGroupTypeEntity.class, id);
     }
 }

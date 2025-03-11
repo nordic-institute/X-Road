@@ -37,10 +37,11 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceIdConfEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,7 @@ import java.util.List;
  * Service data access object implementation.
  */
 @Slf4j
-public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
+public class ServiceDAOImpl extends AbstractDAOImpl<ServiceTypeEntity> {
 
     private static final String CLIENT_SUBSYSTEM_CODE = "clientSubsystemCode";
 
@@ -60,7 +61,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @param id the service identifier
      * @return the service object
      */
-    public ServiceType getService(Session session, ServiceId id) {
+    public ServiceTypeEntity getService(Session session, ServiceId id) {
         return find(session, id);
     }
 
@@ -80,7 +81,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @param serviceProvider the service provider
      * @return services of the specified service provider
      */
-    public List<ServiceId.Conf> getServices(Session session, ClientId serviceProvider) {
+    public List<ServiceIdConfEntity> getServices(Session session, ClientId serviceProvider) {
         return getServicesByDescriptionType(session, serviceProvider);
     }
 
@@ -92,13 +93,13 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @return services of the specified service provider
      */
     @SuppressWarnings("squid:S1192")
-    public List<ServiceId.Conf> getServicesByDescriptionType(Session session,
+    public List<ServiceIdConfEntity> getServicesByDescriptionType(Session session,
                                                              ClientId serviceProvider, DescriptionType... descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Tuple> tq = builder.createTupleQuery();
-        Root<ServiceType> root = tq.from(ServiceType.class);
-        Join<ServiceType, ServiceDescriptionType> joinServiceDescription = root.join("serviceDescription");
-        Join<ServiceDescriptionType, ClientType> joinClient = joinServiceDescription.join("client");
+        Root<ServiceTypeEntity> root = tq.from(ServiceTypeEntity.class);
+        Join<ServiceTypeEntity, ServiceDescriptionTypeEntity> joinServiceDescription = root.join("serviceDescription");
+        Join<ServiceDescriptionTypeEntity, ClientTypeEntity> joinClient = joinServiceDescription.join("client");
         tq.multiselect(root.get("serviceCode"), root.get("serviceVersion"));
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(joinClient.get("identifier").<String>get("xRoadInstance"),
@@ -118,18 +119,18 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         }
         tq.where(predicates.toArray(new Predicate[]{}));
         List<Tuple> resultList = session.createQuery(tq).getResultList();
-        List<ServiceId.Conf> services = new ArrayList<>();
+        List<ServiceIdConfEntity> services = new ArrayList<>();
         for (Tuple tuple : resultList) {
-            services.add(ServiceId.Conf.create(serviceProvider, (String) tuple.get(0),
+            services.add(ServiceIdConfEntity.create(serviceProvider, (String) tuple.get(0),
                     (String) tuple.get(1)));
         }
         return services;
     }
 
     @SuppressWarnings("squid:S1192")
-    private ServiceType find(Session session, ServiceId id) {
+    private ServiceTypeEntity find(Session session, ServiceId id) {
         String query = """
-                select s from ServiceType s
+                select s from ServiceTypeEntity s
                  inner join fetch s.serviceDescription w
                  inner join fetch w.client c
                  where s.serviceCode = :serviceCode
@@ -144,7 +145,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
                         nullOrName(id.getClientId().getSubsystemCode(), CLIENT_SUBSYSTEM_CODE)
                 );
 
-        Query<ServiceType> q = session.createQuery(query, ServiceType.class);
+        Query<ServiceTypeEntity> q = session.createQuery(query, ServiceTypeEntity.class);
 
         q.setParameter("serviceCode", id.getServiceCode());
         setString(q, "serviceVersion", id.getServiceVersion());

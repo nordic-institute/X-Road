@@ -25,12 +25,13 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,29 +53,29 @@ public class IdentifierRepository {
      * Executes a Hibernate persist(XRoadId) for multiple group members
      * @param identifiers
      */
-    public void persist(Collection<XRoadId.Conf> identifiers) {
+    public void persist(Collection<XRoadIdConfEntity> identifiers) {
         Session session = persistenceUtils.getCurrentSession();
-        for (XRoadId.Conf identifier : identifiers) {
+        for (XRoadIdConfEntity identifier : identifiers) {
             session.persist(identifier);
         }
     }
 
-    public void remove(XRoadId.Conf identifier) {
+    public void remove(XRoadIdConfEntity identifier) {
         persistenceUtils.getCurrentSession().remove(identifier);
     }
 
     /**
      * return all identifiers
      */
-    public Collection<XRoadId.Conf> getIdentifiers() {
+    public Collection<XRoadIdConfEntity> getIdentifiers() {
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
-        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadId.Conf.class);
+        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadIdConfEntity.class);
     }
 
     /**
      * Finds a (local) client identifier corresponding the example or null if none exits
      */
-    public ClientId.Conf getClientId(ClientId clientId) {
+    public ClientIdConfEntity getClientId(ClientId clientId) {
         Session session = persistenceUtils.getCurrentSession();
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
         return identifierDao.findClientId(session, clientId);

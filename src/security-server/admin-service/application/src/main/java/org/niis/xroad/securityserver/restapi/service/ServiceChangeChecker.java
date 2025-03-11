@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.Data;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -47,22 +47,22 @@ public class ServiceChangeChecker {
      * @param newServices
      * @return
      */
-    public ServiceChanges check(List<ServiceType> oldServices, List<ServiceType> newServices) {
+    public ServiceChanges check(List<ServiceTypeEntity> oldServices, List<ServiceTypeEntity> newServices) {
         List<String> oldFullServiceCodes = toFullServiceCodes(oldServices);
         List<String> newFullServiceCodes = toFullServiceCodes(newServices);
 
-        List<ServiceType> addedServices = new ArrayList<>(newServices);
+        List<ServiceTypeEntity> addedServices = new ArrayList<>(newServices);
         addedServices.removeIf(serviceType -> oldFullServiceCodes
                 .contains(ServiceFormatter.getServiceFullName(serviceType)));
 
-        List<ServiceType> removedServices = new ArrayList<>(oldServices);
+        List<ServiceTypeEntity> removedServices = new ArrayList<>(oldServices);
         removedServices.removeIf(serviceType -> newFullServiceCodes
                 .contains(ServiceFormatter.getServiceFullName(serviceType)));
 
         return new ServiceChanges(addedServices, removedServices);
     }
 
-    private List<String> toFullServiceCodes(List<ServiceType> newServices) {
+    private List<String> toFullServiceCodes(List<ServiceTypeEntity> newServices) {
         return newServices.stream()
                 .map(ServiceFormatter::getServiceFullName)
                 .collect(Collectors.toList());
@@ -76,10 +76,10 @@ public class ServiceChangeChecker {
     public class ServiceChanges {
         private List<String> addedFullServiceCodes;
         private List<String> removedFullServiceCodes;
-        private List<ServiceType> addedServices;
-        private List<ServiceType> removedServices;
+        private List<ServiceTypeEntity> addedServices;
+        private List<ServiceTypeEntity> removedServices;
 
-        public ServiceChanges(List<ServiceType> addedServices, List<ServiceType> removedServices) {
+        public ServiceChanges(List<ServiceTypeEntity> addedServices, List<ServiceTypeEntity> removedServices) {
             this.addedServices = addedServices;
             this.removedServices = removedServices;
             this.addedFullServiceCodes = toFullServiceCodes(addedServices);

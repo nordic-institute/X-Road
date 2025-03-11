@@ -96,7 +96,7 @@
             <tr v-for="groupMember in group.members" :key="groupMember.id">
               <td>{{ groupMember.name }}</td>
               <td>{{ groupMember.id }}</td>
-              <td>{{ groupMember.created_at }}</td>
+              <td>{{ $filters.formatDateTime(groupMember.created_at) }}</td>
 
               <td>
                 <div class="button-wrap">

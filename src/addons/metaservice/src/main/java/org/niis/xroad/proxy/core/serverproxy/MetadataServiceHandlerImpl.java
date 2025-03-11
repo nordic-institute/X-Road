@@ -64,6 +64,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.mapper.ServiceDescriptionTypeMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.w3c.dom.Node;
@@ -277,7 +278,10 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     private String getWsdlUrl(ServiceId service) throws Exception {
         ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
-                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
+                session -> ServiceDescriptionTypeMapper.get().toTarget(
+                        new ServiceDescriptionDAOImpl().getServiceDescription(session, service)
+                )
+        );
         if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");

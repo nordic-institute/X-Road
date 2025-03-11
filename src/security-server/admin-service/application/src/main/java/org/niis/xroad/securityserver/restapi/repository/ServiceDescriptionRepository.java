@@ -30,8 +30,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,27 +44,27 @@ import java.util.List;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ServiceDescriptionRepository extends AbstractRepository<ServiceDescriptionType> {
+public class ServiceDescriptionRepository extends AbstractRepository<ServiceDescriptionTypeEntity> {
 
     @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return multiple ServiceDescriptionTypes
+     * Return multiple ServiceDescriptionTypesEntity
      * @param entityIds
      * @return
      */
-    public List<ServiceDescriptionType> getServiceDescriptions(Long... entityIds) {
+    public List<ServiceDescriptionTypeEntity> getServiceDescriptions(Long... entityIds) {
         ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
         return serviceDescriptionDAO.getServiceDescriptions(persistenceUtils.getCurrentSession(), entityIds);
     }
 
     /**
-     * Return one ServiceDescriptionType
+     * Return one ServiceDescriptionTypeEntity
      * @param entityId
      * @return
      */
-    public ServiceDescriptionType getServiceDescription(Long entityId) {
+    public ServiceDescriptionTypeEntity getServiceDescription(Long entityId) {
         ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
         return serviceDescriptionDAO.getServiceDescription(persistenceUtils.getCurrentSession(), entityId);
     }
@@ -73,7 +73,7 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
      * Executes a Hibernate saveOrUpdate(serviceDescriptionType)
      * @param serviceDescriptionType
      */
-    public ServiceDescriptionType saveOrUpdate(ServiceDescriptionType serviceDescriptionType) {
+    public ServiceDescriptionTypeEntity saveOrUpdate(ServiceDescriptionTypeEntity serviceDescriptionType) {
         return persistenceUtils.getCurrentSession().merge(serviceDescriptionType);
     }
 
@@ -81,7 +81,7 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
      * Executes a Hibernate delete(serviceDescriptionType)
      * @param serviceDescriptionType
      */
-    public void delete(ServiceDescriptionType serviceDescriptionType) {
+    public void delete(ServiceDescriptionTypeEntity serviceDescriptionType) {
         persistenceUtils.getCurrentSession().remove(serviceDescriptionType);
     }
 }

@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -48,7 +48,7 @@ import static org.junit.Assert.assertEquals;
 @DataJpaTest
 @AutoConfigureTestDatabase
 @Slf4j
-@EntityScan("org.niis.xroad.restapi.entity")
+@EntityScan(basePackages = {"org.niis.xroad.serverconf.entity", "org.niis.xroad.restapi.entity"})
 @Transactional
 public class ExampleJpaTest {
 
@@ -64,16 +64,16 @@ public class ExampleJpaTest {
 
     @Test
     public void testTestEntityManager() {
-        ServerConfType conf2 = new ServerConfType();
+        ServerConfTypeEntity conf2 = new ServerConfTypeEntity();
         conf2.setServerCode("from-test");
         conf2.setId(null);
         conf2.setOwner(null);
-        ServerConfType confPersisted = testEntityManager.persistFlushFind(conf2);
+        ServerConfTypeEntity confPersisted = testEntityManager.persistFlushFind(conf2);
 
-        ServerConfType confLoad1 = testEntityManager.find(ServerConfType.class, 1L);
+        ServerConfTypeEntity confLoad1 = testEntityManager.find(ServerConfTypeEntity.class, 1L);
         assertEquals("TEST-INMEM-SS", confLoad1.getServerCode());
 
-        ServerConfType confLoad2 = testEntityManager.find(ServerConfType.class, confPersisted.getId());
+        ServerConfTypeEntity confLoad2 = testEntityManager.find(ServerConfTypeEntity.class, confPersisted.getId());
         assertEquals("from-test", confLoad2.getServerCode());
     }
 

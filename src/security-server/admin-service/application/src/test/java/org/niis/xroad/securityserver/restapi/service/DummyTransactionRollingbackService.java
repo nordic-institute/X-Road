@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -67,9 +67,9 @@ public class DummyTransactionRollingbackService {
      * @throws RuntimeException if exceptionType = RUNTIME_EXCEPTION
      * @throws Exception if exceptionType = EXCEPTION
      */
-    public LocalGroupType updateDescriptionAndRollback(Long groupId, String description, ExceptionType exceptionType)
+    public LocalGroupTypeEntity updateDescriptionAndRollback(Long groupId, String description, ExceptionType exceptionType)
             throws Exception {
-        LocalGroupType localGroupType = localGroupRepository.getLocalGroup(groupId);
+        LocalGroupTypeEntity localGroupType = localGroupRepository.getLocalGroup(groupId);
         if (localGroupType == null) {
             throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
         }

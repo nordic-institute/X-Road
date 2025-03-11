@@ -29,7 +29,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,21 +36,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class ServiceDescriptionType {
+public class ServiceDescriptionType extends ServiceDescriptionBaseType {
 
     private final List<ServiceType> service = new ArrayList<>();
-
-    private Long id;
-
-    private ClientType client;
-
-    private String url;
-
-    private boolean disabled;
-
-    private String disabledNotice;
-
-    private Date refreshedDate;
-
-    private DescriptionType type;
 }

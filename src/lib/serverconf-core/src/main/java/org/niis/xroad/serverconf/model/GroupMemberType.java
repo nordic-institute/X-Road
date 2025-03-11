@@ -40,9 +40,7 @@ import java.util.Date;
 public class GroupMemberType {
 
     private Long id;
-
     private ClientId groupMemberId;
-
     private Date added;
 
 }

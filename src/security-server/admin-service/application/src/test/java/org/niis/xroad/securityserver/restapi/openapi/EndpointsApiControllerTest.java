@@ -45,8 +45,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -126,7 +126,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @Test
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpoint() {
-        ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
+        ClientTypeEntity client = clientService.getLocalClientEntity(getClientId("FI", "GOV", "M2", "SS6"));
         int aclCount = client.getAcl().size();
         endpointsApiController.deleteEndpoint("11");
         assertTrue(client.getEndpoint().stream().noneMatch(ep -> ep.getId().equals(11L)));
@@ -164,8 +164,8 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         pathAndMethod.setPath("/test");
         endpointsApiController.updateEndpoint("12", pathAndMethod);
 
-        ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
-        EndpointType endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
+        ClientTypeEntity client = clientService.getLocalClientEntity(getClientId("FI", "GOV", "M2", "SS6"));
+        EndpointTypeEntity endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 
         assertTrue(endpointType.getMethod().equals("*"));

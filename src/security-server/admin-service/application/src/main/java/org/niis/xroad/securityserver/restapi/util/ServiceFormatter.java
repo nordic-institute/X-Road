@@ -27,23 +27,34 @@ package org.niis.xroad.securityserver.restapi.util;
 
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 
 @UtilityClass
 public class ServiceFormatter {
 
     /**
-     * Get the full service name (e.g. myService.v1) from ServiceType object
+     * Get the full service name (e.g. myService.v1) from serviceCode and serviceVersion
      *
-     * @param serviceType serviceType
+     * @param serviceCode service code
+     * @param serviceVersion service version
      * @return full service name as String
      */
-    public static String getServiceFullName(ServiceType serviceType) {
+    public static String getServiceFullName(String serviceCode, String serviceVersion) {
         StringBuilder sb = new StringBuilder();
-        sb.append(serviceType.getServiceCode());
-        if (!StringUtils.isEmpty(serviceType.getServiceVersion())) {
-            sb.append(".").append(serviceType.getServiceVersion());
+        sb.append(serviceCode);
+        if (!StringUtils.isEmpty(serviceVersion)) {
+            sb.append(".").append(serviceVersion);
         }
         return sb.toString();
+    }
+
+    /**
+     * Get the full service name (e.g. myService.v1) from ServiceTypeEntity object
+     *
+     * @param serviceType service type entity
+     * @return full service name as String
+     */
+    public static String getServiceFullName(ServiceTypeEntity serviceType) {
+        return getServiceFullName(serviceType.getServiceCode(), serviceType.getServiceVersion());
     }
 }

@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
@@ -46,7 +46,7 @@ public class ServerConfRepositoryIntegrationTest extends AbstractFacadeMockingTe
 
     @Test
     public void getServerConf() {
-        ServerConfType serverConf = serverConfRepository.getServerConf();
+        ServerConfTypeEntity serverConf = serverConfRepository.getServerConf();
         assertNotNull(serverConf);
         assertEquals("TEST-INMEM-SS", serverConf.getServerCode());
         ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);

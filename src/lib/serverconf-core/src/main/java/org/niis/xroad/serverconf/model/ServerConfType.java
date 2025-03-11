@@ -39,13 +39,9 @@ import java.util.List;
 public class ServerConfType {
 
     private Long id;
-
     private String serverCode;
-
     private ClientType owner;
-
     private final List<ClientType> client = new ArrayList<>();
-
     private final List<TspType> tsp = new ArrayList<>();
 
 }

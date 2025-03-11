@@ -34,10 +34,11 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.serverconf.model.CertificateType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
 
 import java.util.List;
 
@@ -46,7 +47,7 @@ import static java.util.Collections.emptyList;
 /**
  * Client data access object implementation.
  */
-public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
+public class ClientDAOImpl extends AbstractDAOImpl<ClientTypeEntity> {
 
     /**
      * Returns true, if client with specified identifier exists.
@@ -59,12 +60,12 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
     public boolean clientExists(Session session, ClientId id, boolean includeSubsystems) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<Boolean> query = cb.createQuery(Boolean.class);
-        final Root<ClientType> client = query.from(ClientType.class);
-        final Join<ClientType, ClientId> iden = client.join("identifier");
+        final Root<ClientTypeEntity> client = query.from(ClientTypeEntity.class);
+        final Join<ClientTypeEntity, ClientId> iden = client.join("identifier");
         Predicate pred = cb.conjunction();
 
         if (!includeSubsystems) {
-            pred = cb.and(pred, cb.equal(iden.get("type"), id.getObjectType()));
+            pred = cb.and(pred, cb.equal(iden.get("objectType"), id.getObjectType()));
         }
 
         pred = cb.and(pred,
@@ -87,14 +88,14 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      * @param id the client identifier
      * @return the client, or null if matching client was not found
      */
-    public ClientType getClient(Session session, ClientId id) {
+    public ClientTypeEntity getClient(Session session, ClientId id) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<ClientType> query = cb.createQuery(ClientType.class);
-        final Root<ClientType> client = query.from(ClientType.class);
-        final Join<ClientType, ClientId> iden = client.join("identifier");
+        final CriteriaQuery<ClientTypeEntity> query = cb.createQuery(ClientTypeEntity.class);
+        final Root<ClientTypeEntity> client = query.from(ClientTypeEntity.class);
+        final Join<ClientTypeEntity, ClientIdConfEntity> iden = client.join("identifier");
 
         Predicate pred =
-                cb.and(cb.equal(iden.get("type"), id.getObjectType()),
+                cb.and(cb.equal(iden.get("objectType"), id.getObjectType()),
                         cb.equal(iden.get("xRoadInstance"), id.getXRoadInstance()),
                         cb.equal(iden.get("memberClass"), id.getMemberClass()),
                         cb.equal(iden.get("memberCode"), id.getMemberCode()));
@@ -113,8 +114,8 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      * @param id      the client identifier
      * @return the information system certificates of the specified client
      */
-    public List<CertificateType> getIsCerts(Session session, ClientId id) {
-        ClientType client = getClient(session, id);
+    public List<CertificateTypeEntity> getIsCerts(Session session, ClientId id) {
+        ClientTypeEntity client = getClient(session, id);
         if (client != null) {
             return client.getIsCert();
         }
@@ -122,31 +123,31 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
     }
 
     /**
-     * Returns ClientType containing endpoint with id given as parameter
+     * Returns ClientTypeEntity containing endpoint with id given as parameter
      *
      * @param session       the session
      * @param endpointType  endpointType entity
      * @return the client, or null if matching client was not found for the endpoint id
      */
-    public ClientType getClientByEndpointId(Session session, EndpointType endpointType) {
-        Query<ClientType> query = session.createQuery(
-                "select c from ClientType as c where :endpoint member of c.endpoint",
-                ClientType.class);
+    public ClientTypeEntity getClientByEndpointId(Session session, EndpointTypeEntity endpointType) {
+        Query<ClientTypeEntity> query = session.createQuery(
+                "select c from ClientTypeEntity as c where :endpoint member of c.endpoint",
+                ClientTypeEntity.class);
         query.setParameter("endpoint", endpointType);
         return findOne(query);
     }
 
     /**
-     * Returns ClientType containing localGroupType given as parameter
+     * Returns ClientTypeEntity containing localGroupType given as parameter
      *
      * @param session       the session
      * @param localGroupType  localGroupType entity
      * @return the client, or null if matching client was not found for the localGroupType
      */
-    public ClientType getClientByLocalGroup(Session session, LocalGroupType localGroupType) {
-        Query<ClientType> query = session.createQuery(
-                "select c from ClientType as c where :localGroup member of c.localGroup",
-                ClientType.class);
+    public ClientTypeEntity getClientByLocalGroup(Session session, LocalGroupTypeEntity localGroupType) {
+        Query<ClientTypeEntity> query = session.createQuery(
+                "select c from ClientTypeEntity as c where :localGroup member of c.localGroup",
+                ClientTypeEntity.class);
         query.setParameter("localGroup", localGroupType);
         return findOne(query);
     }

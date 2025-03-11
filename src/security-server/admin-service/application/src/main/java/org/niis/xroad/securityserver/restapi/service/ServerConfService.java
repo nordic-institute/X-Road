@@ -32,8 +32,11 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.TspTypeEntity;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.TspType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -61,9 +64,9 @@ public class ServerConfService {
 
     /**
      * Get the Security Server's ServerConf
-     * @return ServerConfType
+     * @return ServerConfTypeEntity
      */
-    public ServerConfType getServerConf() {
+    ServerConfTypeEntity getServerConfEntity() {
         return serverConfRepository.getServerConf();
     }
 
@@ -72,10 +75,10 @@ public class ServerConfService {
      * a new transient instance is returned.
      * @return
      */
-    public ServerConfType getOrCreateServerConf() {
-        ServerConfType serverConfType = getServerConfGracefully();
+    ServerConfTypeEntity getOrCreateServerConfEntity() {
+        ServerConfTypeEntity serverConfType = getServerConfGracefully();
         if (serverConfType == null) {
-            return new ServerConfType();
+            return new ServerConfTypeEntity();
         }
         return serverConfType;
     }
@@ -85,7 +88,7 @@ public class ServerConfService {
      * @return SecurityServerId
      */
     public SecurityServerId.Conf getSecurityServerId() {
-        ServerConfType serverConf = getServerConf();
+        ServerConfTypeEntity serverConf = getServerConfEntity();
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         String serverCode = serverConf.getServerCode();
         return SecurityServerId.Conf.create(ownerId, serverCode);
@@ -94,18 +97,23 @@ public class ServerConfService {
     /**
      * Returns owner's ClientId of this security server
      */
-    public ClientId.Conf getSecurityServerOwnerId() {
-        ServerConfType serverConfType = serverConfRepository.getServerConf();
-        return serverConfType.getOwner().getIdentifier();
+    public ClientId getSecurityServerOwnerId() {
+        return XroadIdConfMapper.get().toTarget(getServerConfEntity().getOwner().getIdentifier());
+    }
+
+
+    public ClientIdConfEntity getSecurityServerOwnerIdEntity() {
+        return getServerConfEntity().getOwner().getIdentifier();
     }
 
     /**
      * Return a list of configured timestamping services
      * @return
      */
-    public List<TspType> getConfiguredTimestampingServices() {
-        ServerConfType serverConfType = serverConfRepository.getServerConf();
-        List<TspType> tsp = serverConfType.getTsp();
+
+    List<TspTypeEntity> getConfiguredTimestampingServiceEntities() {
+        ServerConfTypeEntity serverConfType = serverConfRepository.getServerConf();
+        List<TspTypeEntity> tsp = serverConfType.getTsp();
         Hibernate.initialize(tsp);
         return tsp;
     }
@@ -115,7 +123,7 @@ public class ServerConfService {
      * @return
      */
     public boolean isServerCodeInitialized() {
-        ServerConfType serverConfType = getServerConfGracefully();
+        ServerConfTypeEntity serverConfType = getServerConfGracefully();
         if (serverConfType != null) {
             return !StringUtils.isEmpty(serverConfType.getServerCode());
         }
@@ -127,7 +135,7 @@ public class ServerConfService {
      * @return
      */
     public boolean isServerOwnerInitialized() {
-        ServerConfType serverConfType = getServerConfGracefully();
+        ServerConfTypeEntity serverConfType = getServerConfGracefully();
         if (serverConfType != null) {
             return serverConfType.getOwner() != null;
         }
@@ -136,19 +144,18 @@ public class ServerConfService {
 
     /**
      * Save or update ServerConf
-     * @return ServerConfType
      */
-    public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
-        return serverConfRepository.saveOrUpdate(serverConfType);
+    public void saveOrUpdate(ServerConfTypeEntity serverConfType) {
+        serverConfRepository.saveOrUpdate(serverConfType);
     }
 
     /**
      * Helper to get the server conf object without failing if the server conf is not yet initialized
      * @return {@link ServerConfType} or <code>null</code> if not initialized
      */
-    private ServerConfType getServerConfGracefully() {
+    private ServerConfTypeEntity getServerConfGracefully() {
         try {
-            return getServerConf();
+            return getServerConfEntity();
         } catch (CodedException ce) {
             log.info("ServerConfService#isServerConfInitialized: CodedException thrown when getting Server Conf", ce);
             if (ce.getFaultCode().equals(X_MALFORMED_SERVERCONF)) {

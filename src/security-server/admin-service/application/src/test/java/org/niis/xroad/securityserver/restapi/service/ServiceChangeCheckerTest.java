@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,10 +44,10 @@ import static org.junit.Assert.assertTrue;
 public class ServiceChangeCheckerTest {
 
     private ServiceChangeChecker serviceChangeChecker;
-    private ServiceType random;
-    private ServiceType random1;
-    private ServiceType random2;
-    private ServiceType foo1;
+    private ServiceTypeEntity random;
+    private ServiceTypeEntity random1;
+    private ServiceTypeEntity random2;
+    private ServiceTypeEntity foo1;
 
     @Before
     public void setup() {
@@ -58,8 +58,8 @@ public class ServiceChangeCheckerTest {
         foo1 = createService("fooService", "v1");
     }
 
-    private ServiceType createService(String serviceCode, String serviceVersion) {
-        ServiceType service = new ServiceType();
+    private ServiceTypeEntity createService(String serviceCode, String serviceVersion) {
+        ServiceTypeEntity service = new ServiceTypeEntity();
         service.setServiceCode(serviceCode);
         service.setServiceVersion(serviceVersion);
         return service;
@@ -67,22 +67,22 @@ public class ServiceChangeCheckerTest {
 
     @Test
     public void testNoChanges() {
-        List<ServiceType> randoms = Arrays.asList(random1, random2);
+        List<ServiceTypeEntity> randoms = Arrays.asList(random1, random2);
         assertTrue(serviceChangeChecker.check(randoms, randoms).isEmpty());
     }
 
     @Test
     public void testChanges() {
-        List<ServiceType> oldServices = Arrays.asList(random1, random);
-        List<ServiceType> newServices = Arrays.asList(foo1, random1);
+        List<ServiceTypeEntity> oldServices = Arrays.asList(random1, random);
+        List<ServiceTypeEntity> newServices = Arrays.asList(foo1, random1);
         ServiceChangeChecker.ServiceChanges changes = serviceChangeChecker.check(oldServices, newServices);
         assertFalse(changes.isEmpty());
-        assertEquals(Arrays.asList("fooService.v1"), changes.getAddedFullServiceCodes());
-        assertEquals(Arrays.asList("getRandom"), changes.getRemovedFullServiceCodes());
+        assertEquals(List.of("fooService.v1"), changes.getAddedFullServiceCodes());
+        assertEquals(List.of("getRandom"), changes.getRemovedFullServiceCodes());
 
-        List<ServiceType> allServices = Arrays.asList(random1, random, random2, foo1);
+        List<ServiceTypeEntity> allServices = Arrays.asList(random1, random, random2, foo1);
         List<String> allCodes = Arrays.asList("getRandom", "getRandom.v1", "getRandom.v2", "fooService.v1");
-        List<ServiceType> noServices = new ArrayList<>();
+        List<ServiceTypeEntity> noServices = new ArrayList<>();
         changes = serviceChangeChecker.check(noServices, allServices);
         assertFalse(changes.isEmpty());
         assertEquals(new HashSet<>(allCodes), new HashSet<>(changes.getAddedFullServiceCodes()));

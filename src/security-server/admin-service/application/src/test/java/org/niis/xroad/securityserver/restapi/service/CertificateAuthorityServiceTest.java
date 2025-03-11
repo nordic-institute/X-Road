@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -138,7 +138,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 .toList()
                 .toArray(new String[]{});
         doReturn(ocspResponses).when(signerRpcClient).getOcspResponses(any());
-        when(clientRepository.getClient(any())).thenReturn(new ClientType());
+        when(clientRepository.getClient(any())).thenReturn(new ClientTypeEntity());
     }
 
     @Test
@@ -256,7 +256,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
         assertEquals(2, caDtos.size());
-        ApprovedCaDto ca = caDtos.get(0);
+        ApprovedCaDto ca = caDtos.getFirst();
         assertEquals("fi-not-auth-only", ca.getName());
         assertFalse(ca.isAuthenticationOnly());
         assertEquals("CN=N/A", ca.getIssuerDistinguishedName());
@@ -316,14 +316,9 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
     @Test
     public void getCertificateProfile() throws Exception {
-        ClientType client = new ClientType();
+        ClientTypeEntity client = new ClientTypeEntity();
         client.setIdentifier(COMMON_OWNER_ID);
         when(clientRepository.getAllLocalClients()).thenReturn(Collections.singletonList(client));
-
-        // test handling of profile info parameters:
-        //        private final SecurityServerId serverId;
-        //        private final ClientId clientId; (sign only)
-        //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
                 KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);

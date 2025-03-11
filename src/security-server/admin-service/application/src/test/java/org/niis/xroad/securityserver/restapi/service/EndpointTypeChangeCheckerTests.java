@@ -27,8 +27,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.serverconf.model.AccessRightType;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,45 +44,45 @@ import static org.junit.Assert.assertTrue;
 public class EndpointTypeChangeCheckerTests {
 
     private EndpointTypeChangeChecker serviceChangeChecker;
-    private EndpointType all;
-    private EndpointType toBeRemoved;
-    private EndpointType unchanged;
-    private EndpointType wsdlEndpoint;
-    private EndpointType newEndpoint;
-    private AccessRightType toBeRemovedAcl;
+    private EndpointTypeEntity all;
+    private EndpointTypeEntity toBeRemoved;
+    private EndpointTypeEntity unchanged;
+    private EndpointTypeEntity wsdlEndpoint;
+    private EndpointTypeEntity newEndpoint;
+    private AccessRightTypeEntity toBeRemovedAcl;
 
     @Before
     public void setup() {
         serviceChangeChecker = new EndpointTypeChangeChecker();
-        all = new EndpointType("unitTestService", "*", "**", true);
-        toBeRemoved = new EndpointType("unitTestService", "GET", "/random", true);
-        unchanged = new EndpointType("unitTestService", "POST", "/random1", true);
-        wsdlEndpoint = new EndpointType("wsdlOperation1", "*", "**", true);
-        newEndpoint = new EndpointType("unitTestService", "GET", "/foo", true);
+        all = EndpointTypeEntity.create("unitTestService", "*", "**", true);
+        toBeRemoved = EndpointTypeEntity.create("unitTestService", "GET", "/random", true);
+        unchanged = EndpointTypeEntity.create("unitTestService", "POST", "/random1", true);
+        wsdlEndpoint = EndpointTypeEntity.create("wsdlOperation1", "*", "**", true);
+        newEndpoint = EndpointTypeEntity.create("unitTestService", "GET", "/foo", true);
         toBeRemovedAcl = createAccessRight(toBeRemoved);
     }
 
-    private AccessRightType createAccessRight(EndpointType endpoint) {
-        AccessRightType acl = new AccessRightType();
+    private AccessRightTypeEntity createAccessRight(EndpointTypeEntity endpoint) {
+        AccessRightTypeEntity acl = new AccessRightTypeEntity();
         acl.setEndpoint(endpoint);
         return acl;
     }
 
     @Test
     public void testNoChanges() {
-        List<EndpointType> serviceClientEndpoints = List.of(all, toBeRemoved, unchanged, wsdlEndpoint);
-        List<EndpointType> openApiEndpoints = List.of(all, toBeRemoved, unchanged);
-        List<AccessRightType> acls = List.of();
+        List<EndpointTypeEntity> serviceClientEndpoints = List.of(all, toBeRemoved, unchanged, wsdlEndpoint);
+        List<EndpointTypeEntity> openApiEndpoints = List.of(all, toBeRemoved, unchanged);
+        List<AccessRightTypeEntity> acls = List.of();
         assertTrue(serviceChangeChecker.check(serviceClientEndpoints, openApiEndpoints, openApiEndpoints, acls)
                 .isEmpty());
     }
 
     @Test
     public void testChanges() {
-        List<EndpointType> serviceClientEndpoints = List.of(all, toBeRemoved, unchanged, wsdlEndpoint);
-        List<EndpointType> oldEndpoints = List.of(all, unchanged, toBeRemoved);
-        List<EndpointType> newEndpoints = List.of(all, unchanged, newEndpoint);
-        List<AccessRightType> acls = List.of(toBeRemovedAcl);
+        List<EndpointTypeEntity> serviceClientEndpoints = List.of(all, toBeRemoved, unchanged, wsdlEndpoint);
+        List<EndpointTypeEntity> oldEndpoints = List.of(all, unchanged, toBeRemoved);
+        List<EndpointTypeEntity> newEndpoints = List.of(all, unchanged, newEndpoint);
+        List<AccessRightTypeEntity> acls = List.of(toBeRemovedAcl);
         EndpointTypeChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
                 oldEndpoints, newEndpoints, acls);
 
@@ -95,11 +95,11 @@ public class EndpointTypeChangeCheckerTests {
 
     @Test
     public void testChangesAddAll() {
-        List<EndpointType> serviceClientEndpoints = List.of();
-        List<EndpointType> allServices = List.of(all, unchanged, toBeRemoved, newEndpoint);
+        List<EndpointTypeEntity> serviceClientEndpoints = List.of();
+        List<EndpointTypeEntity> allServices = List.of(all, unchanged, toBeRemoved, newEndpoint);
         List<String> allCodes = List.of("* **", "GET /random", "POST /random1", "GET /foo");
-        List<EndpointType> noServices = new ArrayList<>();
-        List<AccessRightType> acls = List.of(toBeRemovedAcl);
+        List<EndpointTypeEntity> noServices = new ArrayList<>();
+        List<AccessRightTypeEntity> acls = List.of(toBeRemovedAcl);
         EndpointTypeChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
                 noServices, allServices, acls);
 
@@ -111,11 +111,11 @@ public class EndpointTypeChangeCheckerTests {
 
     @Test
     public void testChangesRemoveAll() {
-        List<EndpointType> serviceClientEndpoints = List.of(all, toBeRemoved, unchanged, newEndpoint, wsdlEndpoint);
-        List<EndpointType> allServices = List.of(all, unchanged, toBeRemoved, newEndpoint);
+        List<EndpointTypeEntity> serviceClientEndpoints = List.of(all, toBeRemoved, unchanged, newEndpoint, wsdlEndpoint);
+        List<EndpointTypeEntity> allServices = List.of(all, unchanged, toBeRemoved, newEndpoint);
         List<String> allCodes = List.of("* **", "GET /random", "POST /random1", "GET /foo");
-        List<EndpointType> noServices = new ArrayList<>();
-        List<AccessRightType> acls = List.of(toBeRemovedAcl);
+        List<EndpointTypeEntity> noServices = new ArrayList<>();
+        List<AccessRightTypeEntity> acls = List.of(toBeRemovedAcl);
         EndpointTypeChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
                 allServices, noServices, acls);
 

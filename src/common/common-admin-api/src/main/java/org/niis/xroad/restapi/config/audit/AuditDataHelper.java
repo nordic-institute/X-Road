@@ -32,10 +32,10 @@ import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.CertificateType;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -144,7 +144,7 @@ public class AuditDataHelper {
     /**
      * put status of given client
      */
-    public void putClientStatus(ClientType client) {
+    public void putClientStatus(ClientTypeEntity client) {
         String clientStatus = null;
         if (client != null) {
             clientStatus = client.getClientStatus();
@@ -170,7 +170,7 @@ public class AuditDataHelper {
     /**
      * put service description url and type
      */
-    public void putServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType) {
+    public void putServiceDescriptionUrl(ServiceDescriptionTypeEntity serviceDescriptionType) {
         if (serviceDescriptionType != null) {
             putServiceDescriptionUrl(serviceDescriptionType.getUrl(), serviceDescriptionType.getType());
         }
@@ -256,7 +256,7 @@ public class AuditDataHelper {
     /**
      * Put (only) cert hash, and hash default algorithm
      */
-    public void put(CertificateType certificateType) {
+    public void put(CertificateTypeEntity certificateType) {
         if (certificateType != null) {
             String hash = createFormattedHash(certificateType.getData());
             put(RestApiAuditProperty.CERT_HASH, hash);

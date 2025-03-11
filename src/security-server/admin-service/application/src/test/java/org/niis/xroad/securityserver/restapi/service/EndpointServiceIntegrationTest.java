@@ -27,8 +27,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -51,23 +51,23 @@ public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTe
     @Test
     public void getServiceBaseEndpoints() throws Exception {
         Set<String> serviceCodes = new HashSet<>(Arrays.asList("getRandom", "openapi-servicecode", "rest-servicecode"));
-        ClientType owner = clientService.getLocalClient(TestUtils.getClientId("FI:GOV:M1:SS1"));
-        List<EndpointType> endpoints = endpointService.getServiceBaseEndpoints(owner, serviceCodes);
+        ClientTypeEntity owner = clientService.getLocalClientEntity(TestUtils.getClientId("FI:GOV:M1:SS1"));
+        List<EndpointTypeEntity> endpoints = endpointService.getServiceBaseEndpointEntities(owner, serviceCodes);
         assertEquals(3, endpoints.size());
         Set<Long> expectedIds = new HashSet<>(Arrays.asList(1L, 4L, 5L));
-        Set<Long> ids = endpoints.stream().map(e -> e.getId()).collect(Collectors.toSet());
+        Set<Long> ids = endpoints.stream().map(EndpointTypeEntity::getId).collect(Collectors.toSet());
         assertEquals(expectedIds, ids);
 
         Set<String> wrongServiceCodes = new HashSet<>(Arrays.asList("getRandom", "openapi-servicecode", "wrong"));
         try {
-            endpointService.getServiceBaseEndpoints(owner, wrongServiceCodes);
+            endpointService.getServiceBaseEndpointEntities(owner, wrongServiceCodes);
             fail("should throw exception");
         } catch (EndpointNotFoundException expected) {
         }
 
-        ClientType wrongOwner = clientService.getLocalClient(TestUtils.getClientId("FI:GOV:M1:SS2"));
+        ClientTypeEntity wrongOwner = clientService.getLocalClientEntity(TestUtils.getClientId("FI:GOV:M1:SS2"));
         try {
-            endpointService.getServiceBaseEndpoints(wrongOwner, serviceCodes);
+            endpointService.getServiceBaseEndpointEntities(wrongOwner, serviceCodes);
             fail("should throw exception");
         } catch (EndpointNotFoundException expected) {
         }

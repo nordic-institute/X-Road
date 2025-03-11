@@ -36,11 +36,12 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 import org.xml.sax.InputSource;
 
 import javax.wsdl.Definition;
@@ -81,8 +82,8 @@ public class GetWSDLMessage extends MessageTestCase {
 
     private final WireMockServer mockServer;
 
-    private final ClientId.Conf expectedProviderQuery =
-            ClientId.Conf.create("EE", "BUSINESS", "producer");
+    private final ClientIdConfEntity expectedProviderQuery =
+            ClientIdConfEntity.createMember("EE", "BUSINESS", "producer");
 
     private final String expectedServiceNameForWSDLQuery = "getRandom";
     private final List<String> expectedWSDLServiceNames =
@@ -140,22 +141,22 @@ public class GetWSDLMessage extends MessageTestCase {
     }
 
     private void setUpDatabase() throws Exception {
-        ServerConfType conf = new ServerConfType();
+        ServerConfTypeEntity conf = new ServerConfTypeEntity();
         conf.setServerCode("TestServer");
 
-        ClientType client = new ClientType();
+        ClientTypeEntity client = new ClientTypeEntity();
         client.setConf(conf);
 
         conf.getClient().add(client);
 
         client.setIdentifier(expectedProviderQuery);
 
-        ServiceDescriptionType wsdl = new ServiceDescriptionType();
+        ServiceDescriptionTypeEntity wsdl = new ServiceDescriptionTypeEntity();
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
         wsdl.setType(DescriptionType.WSDL);
 
-        ServiceType service = new ServiceType();
+        ServiceTypeEntity service = new ServiceTypeEntity();
         service.setServiceDescription(wsdl);
         service.setTitle("getRandomTitle");
         service.setServiceCode(expectedServiceNameForWSDLQuery);

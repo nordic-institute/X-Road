@@ -52,11 +52,14 @@ import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.entity.TspTypeEntity;
+import org.niis.xroad.serverconf.mapper.TspTypeMapper;
 import org.niis.xroad.serverconf.model.TspType;
 
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -95,13 +98,12 @@ public class SystemServiceTest {
 
     @Before
     public void setup() throws Exception {
-        TspType tsa1 = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
-        TspType tsa2 = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
+        TspTypeEntity tsa1 = TestUtils.createTspTypeEntity(TSA_1_URL, TSA_1_NAME);
+        TspTypeEntity tsa2 = TestUtils.createTspTypeEntity(TSA_2_URL, TSA_2_NAME);
 
-        when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(
-                Arrays.asList(tsa1, tsa2));
+        when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(TspTypeMapper.get().toTargets(List.of(tsa1, tsa2)));
         ClientId.Conf ownerId = ClientId.Conf.create("CS", "GOV", "1111");
-        when(serverConfService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
+        when(serverConfService.getConfiguredTimestampingServiceEntities()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
@@ -128,13 +130,13 @@ public class SystemServiceTest {
             SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
         TspType tspType = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
 
-        assertEquals(1, serverConfService.getConfiguredTimestampingServices().size());
+        assertEquals(1, serverConfService.getConfiguredTimestampingServiceEntities().size());
 
         systemService.addConfiguredTimestampingService(tspType);
 
-        assertEquals(2, serverConfService.getConfiguredTimestampingServices().size());
-        assertEquals(TSA_2_NAME, serverConfService.getConfiguredTimestampingServices().get(1).getName());
-        assertEquals(TSA_2_URL, serverConfService.getConfiguredTimestampingServices().get(1).getUrl());
+        assertEquals(2, serverConfService.getConfiguredTimestampingServiceEntities().size());
+        assertEquals(TSA_2_NAME, serverConfService.getConfiguredTimestampingServiceEntities().get(1).getName());
+        assertEquals(TSA_2_URL, serverConfService.getConfiguredTimestampingServiceEntities().get(1).getUrl());
     }
 
     @Test
@@ -166,11 +168,11 @@ public class SystemServiceTest {
     public void deleteConfiguredTimestampingService() throws TimestampingServiceNotFoundException {
         TspType tspType = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
 
-        assertEquals(1, serverConfService.getConfiguredTimestampingServices().size());
+        assertEquals(1, serverConfService.getConfiguredTimestampingServiceEntities().size());
 
         systemService.deleteConfiguredTimestampingService(tspType);
 
-        assertEquals(0, serverConfService.getConfiguredTimestampingServices().size());
+        assertEquals(0, serverConfService.getConfiguredTimestampingServiceEntities().size());
     }
 
     @Test

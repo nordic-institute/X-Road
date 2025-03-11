@@ -37,10 +37,14 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
+import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
+import org.niis.xroad.serverconf.mapper.ServiceTypeMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -73,7 +77,7 @@ public class ServiceService {
 
     /**
      * get ServiceType by ClientId and service code that includes service version
-     * see {@link ServiceFormatter#getServiceFullName(ServiceType)}.
+     * see {@link ServiceFormatter#getServiceFullName(String, String)}.
      * ServiceType has serviceType.serviceDescription.client.endpoints lazy field fetched.
      *
      * @param clientId
@@ -84,29 +88,34 @@ public class ServiceService {
      */
     public ServiceType getService(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
             ServiceNotFoundException {
-        ClientType client = clientRepository.getClient(clientId);
+        return ServiceTypeMapper.get().toTarget(getServiceEntity(clientId, fullServiceCode));
+    }
+
+    private ServiceTypeEntity getServiceEntity(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
+            ServiceNotFoundException {
+        ClientTypeEntity client = clientRepository.getClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + NOT_FOUND);
         }
 
-        ServiceType serviceType = getServiceFromClient(client, fullServiceCode);
+        ServiceTypeEntity serviceType = getServiceEntityFromClient(client, fullServiceCode);
         Hibernate.initialize(serviceType.getServiceDescription().getClient().getEndpoint());
         return serviceType;
     }
 
     /**
-     * Get {@link ServiceType} from a {@link ClientType} by comparing the full service code (with version).
+     * Get {@link ServiceTypeEntity} from a {@link ClientTypeEntity} by comparing the full service code (with version).
      *
      * @param client
      * @param fullServiceCode
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
-    public ServiceType getServiceFromClient(ClientType client, String fullServiceCode)
+    ServiceTypeEntity getServiceEntityFromClient(ClientTypeEntity client, String fullServiceCode)
             throws ServiceNotFoundException {
-        Optional<ServiceType> foundService = client.getServiceDescription()
+        Optional<ServiceTypeEntity> foundService = client.getServiceDescription()
                 .stream()
-                .map(ServiceDescriptionType::getService)
+                .map(ServiceDescriptionTypeEntity::getService)
                 .flatMap(List::stream)
                 .filter(serviceType -> ServiceFormatter.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
@@ -119,7 +128,7 @@ public class ServiceService {
      *
      * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
-     * see {@link ServiceFormatter#getServiceFullName(ServiceType)}
+     * see {@link ServiceFormatter#getServiceFullName(String, String)}
      * @param url
      * @param urlAll
      * @param timeout
@@ -151,14 +160,14 @@ public class ServiceService {
             throw new InvalidHttpsUrlException("HTTPS must be used when SSL authentication is enabled");
         }
 
-        ServiceType serviceType = getService(clientId, fullServiceCode);
+        ServiceTypeEntity serviceType = getServiceEntity(clientId, fullServiceCode);
 
         if (serviceType == null) {
             throw new ServiceNotFoundException("Service " + fullServiceCode + NOT_FOUND);
         }
 
         if (sslAuth && !ignoreWarnings) {
-            ClientType client = serviceType.getServiceDescription().getClient();
+            ClientTypeEntity client = serviceType.getServiceDescription().getClient();
             try {
                 internalServerTestService.testHttpsConnection(client.getIsCert(), url);
             } catch (SSLHandshakeException she) {
@@ -169,7 +178,7 @@ public class ServiceService {
             }
         }
 
-        ServiceDescriptionType serviceDescriptionType = serviceType.getServiceDescription();
+        ServiceDescriptionTypeEntity serviceDescriptionType = serviceType.getServiceDescription();
         if (DescriptionType.REST.equals(serviceDescriptionType.getType())) {
             serviceDescriptionType.setUrl(url);
             checkDuplicateUrl(serviceDescriptionType);
@@ -183,10 +192,11 @@ public class ServiceService {
                     serviceType, service);
         });
 
-        return serviceType;
+        return ServiceTypeMapper.get().toTarget(serviceType);
     }
 
-    private void checkDuplicateUrl(ServiceDescriptionType serviceDescription) throws ServiceDescriptionService.UrlAlreadyExistsException {
+    private void checkDuplicateUrl(
+            ServiceDescriptionTypeEntity serviceDescription) throws ServiceDescriptionService.UrlAlreadyExistsException {
         boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
                 .anyMatch(other -> !serviceDescription.equals(other)
                         && serviceDescription.getUrl().equals(other.getUrl()));
@@ -201,7 +211,7 @@ public class ServiceService {
      */
     private void updateServiceFromSameDefinition(String url, boolean urlAll, Integer timeout,
                                                  boolean timeoutAll, boolean sslAuth, boolean sslAuthAll,
-                                                 ServiceType targetService, ServiceType serviceFromSameDefinition) {
+                                                 ServiceTypeEntity targetService, ServiceTypeEntity serviceFromSameDefinition) {
 
         boolean serviceMatch = serviceFromSameDefinition == targetService;
         if (urlAll || serviceMatch) {
@@ -231,7 +241,8 @@ public class ServiceService {
     /**
      * Add new endpoint to a service
      *
-     * @param serviceType service where endpoint is added
+     * @param clientId service clientId where endpoint is added
+     * @param fullServiceCode service fullServiceCode where endpoint is added
      * @param method method
      * @param path path
      * @return
@@ -239,22 +250,26 @@ public class ServiceService {
      * this client
      * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException if trying to add endpoint to a WSDL
      */
-    public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
-            throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException {
+    public EndpointType addEndpoint(ClientId clientId, String fullServiceCode, String method, String path)
+            throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException,
+            ClientNotFoundException, ServiceNotFoundException {
+
+        ServiceTypeEntity serviceType = getServiceEntity(clientId, fullServiceCode);
 
         if (serviceType.getServiceDescription().getType().equals(DescriptionType.WSDL)) {
             throw new ServiceDescriptionService.WrongServiceDescriptionTypeException("Endpoint can't be added to a "
                     + "WSDL type of Service Description");
         }
 
-        EndpointType endpointType = new EndpointType(serviceType.getServiceCode(), method, path, false);
-        ClientType client = serviceType.getServiceDescription().getClient();
-        if (client.getEndpoint().stream().anyMatch(existingEp -> existingEp.isEquivalent(endpointType))) {
+        EndpointTypeEntity endpointType = EndpointTypeEntity.create(serviceType.getServiceCode(), method, path, false);
+        ClientTypeEntity client = serviceType.getServiceDescription().getClient();
+        if (client.getEndpoint().stream()
+                .anyMatch(existingEp -> existingEp.isEquivalent(endpointType))) {
             throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
                     + "exists for this client");
         }
         client.getEndpoint().add(endpointType);
         clientRepository.merge(client, false);
-        return endpointType;
+        return EndpointTypeMapper.get().toTarget(endpointType);
     }
 }

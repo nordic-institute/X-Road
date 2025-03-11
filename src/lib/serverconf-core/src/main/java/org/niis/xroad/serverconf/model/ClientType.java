@@ -30,9 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Client.
  */
@@ -48,18 +45,8 @@ public class ClientType {
     public static final String STATUS_DISABLING_INPROG = "disabling in progress";
     public static final String STATUS_ENABLING_INPROG = "enabling in progress";
 
-    private final List<ServiceDescriptionType> serviceDescription = new ArrayList<>();
-    private final List<LocalGroupType> localGroup = new ArrayList<>();
-    private final List<CertificateType> isCert = new ArrayList<>();
-    private final List<AccessRightType> acl = new ArrayList<>();
-    private final List<EndpointType> endpoint = new ArrayList<>();
-
     private Long id;
-
-    private ServerConfType conf;
-
     private ClientId.Conf identifier;
-
     private String clientStatus;
     private String isAuthentication;
 

@@ -34,18 +34,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.GroupMemberTypeEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
-import org.niis.xroad.serverconf.model.AccessRightType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.GroupMemberType;
-import org.niis.xroad.serverconf.model.LocalGroupType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 
 import java.util.Date;
 import java.util.List;
@@ -133,7 +134,7 @@ public class DAOImplTest {
     public void getServiceByIdentifier() throws Exception {
         ServiceId.Conf id = createTestServiceId(client(1), service(1, 1),
                 SERVICE_VERSION);
-        ServiceType service = new ServiceDAOImpl().getService(session, id);
+        ServiceTypeEntity service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
         assertNotNull(service.getServiceDescription());
         assertNotNull(service.getServiceDescription().getClient());
@@ -141,7 +142,7 @@ public class DAOImplTest {
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
-        ServiceDescriptionType serviceDescription = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
+        ServiceDescriptionTypeEntity serviceDescription = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
         assertNotNull(serviceDescription);
         assertNotNull(serviceDescription.getClient());
         assertEquals(id.getClientId(), serviceDescription.getClient().getIdentifier());
@@ -154,7 +155,7 @@ public class DAOImplTest {
     @Test
     public void getAcl() throws Exception {
         ClientId id = createTestClientId(client(1));
-        List<AccessRightType> acl = getClient(id).getAcl();
+        List<AccessRightTypeEntity> acl = getClient(id).getAcl();
         assertEquals(6, acl.size());
 
         assertTrue(acl.get(0).getSubjectId() instanceof ClientId);
@@ -170,15 +171,15 @@ public class DAOImplTest {
     @Test
     public void deleteClient() throws Exception {
         ClientId id = createTestClientId(client(2));
-        ClientType client = getClient(id);
+        ClientTypeEntity client = getClient(id);
 
-        ServerConfType conf = getConf();
+        ServerConfTypeEntity conf = getConf();
         assertTrue(conf.getClient().remove(client));
 
         session.merge(conf);
         session.remove(client);
 
-        client = new ClientDAOImpl().findById(session, ClientType.class,
+        client = new ClientDAOImpl().findById(session, ClientTypeEntity.class,
                 client.getId());
         assertNull(client);
     }
@@ -190,11 +191,11 @@ public class DAOImplTest {
     @Test
     public void deleteServiceDescription() throws Exception {
         ClientId id = createTestClientId(client(3));
-        ClientType client = getClient(id);
+        ClientTypeEntity client = getClient(id);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescription().size());
 
-        ServiceDescriptionType serviceDescription = client.getServiceDescription().get(0);
+        ServiceDescriptionTypeEntity serviceDescription = client.getServiceDescription().get(0);
         Long serviceDescriptionId = serviceDescription.getId();
 
         client.getServiceDescription().remove(serviceDescription);
@@ -202,7 +203,7 @@ public class DAOImplTest {
         session.remove(serviceDescription);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescription().size());
-        assertNull(session.get(ServiceDescriptionType.class, serviceDescriptionId));
+        assertNull(session.get(ServiceDescriptionTypeEntity.class, serviceDescriptionId));
     }
 
     /**
@@ -211,16 +212,16 @@ public class DAOImplTest {
      */
     @Test
     public void addLocalGroupMember() throws Exception {
-        ClientType client = getClient(createTestClientId(client(1)));
+        ClientTypeEntity client = getClient(createTestClientId(client(1)));
         assertTrue(!client.getLocalGroup().isEmpty());
 
-        LocalGroupType localGroup = client.getLocalGroup().get(0);
+        LocalGroupTypeEntity localGroup = client.getLocalGroup().get(0);
 
-        ClientId clientId =
+        ClientIdConfEntity clientId =
                 identifierDAO.findClientId(session, createTestClientId(client(3)));
         assertNotNull(clientId);
 
-        GroupMemberType member = new GroupMemberType();
+        GroupMemberTypeEntity member = new GroupMemberTypeEntity();
         member.setAdded(new Date());
         member.setGroupMemberId(clientId);
         session.persist(member);
@@ -228,7 +229,7 @@ public class DAOImplTest {
         localGroup.getGroupMember().add(member);
     }
 
-    private ServerConfType getConf() throws Exception {
+    private ServerConfTypeEntity getConf() throws Exception {
         return new ServerConfDAOImpl().getConf(session);
     }
 
@@ -237,8 +238,8 @@ public class DAOImplTest {
         return new ClientDAOImpl().clientExists(session, id, includeSubsystems);
     }
 
-    private ClientType getClient(ClientId id) throws Exception {
-        ClientType client = new ClientDAOImpl().getClient(session, id);
+    private ClientTypeEntity getClient(ClientId id) throws Exception {
+        ClientTypeEntity client = new ClientDAOImpl().getClient(session, id);
         assertNotNull(client);
         assertEquals(id, client.getIdentifier());
 

@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -44,10 +44,7 @@ public class ClientRepositoryIntegrationTest extends AbstractFacadeMockingTestCo
 
     @Test
     public void getAllLocalClients() {
-        List<ClientType> clients = clientRepository.getAllLocalClients();
+        List<ClientTypeEntity> clients = clientRepository.getAllLocalClients();
         assertEquals(7, clients.size());
     }
-
 }
-
-

@@ -56,13 +56,25 @@ import org.hibernate.SharedSessionContract;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
+import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
 import org.niis.xroad.serverconf.impl.dao.CertificateDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
-import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.mapper.CertificateTypeMapper;
+import org.niis.xroad.serverconf.mapper.ClientTypeMapper;
+import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
+import org.niis.xroad.serverconf.mapper.ServerConfTypeMapper;
+import org.niis.xroad.serverconf.mapper.ServiceDescriptionTypeMapper;
+import org.niis.xroad.serverconf.mapper.ServiceTypeMapper;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.serverconf.model.CertificateType;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.DescriptionType;
@@ -148,8 +160,8 @@ public class ServerConfImpl implements ServerConfProvider {
     public RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-            serviceDao.getServicesByDescriptionType(session, serviceProvider, DescriptionType.OPENAPI3,
-                            DescriptionType.REST)
+            serviceDao.getServicesByDescriptionType(session, XroadIdConfMapper.get().toEntity(serviceProvider),
+                            DescriptionType.OPENAPI3, DescriptionType.REST)
                     .forEach(serviceId -> {
                         XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                         serviceDetails.getEndpointList().addAll(getServiceEndpoints(serviceId));
@@ -204,20 +216,22 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
-        return tx(session -> serviceDao.getServices(session, serviceProvider));
+        return tx(session -> XroadIdConfMapper.get().toServices(serviceDao.getServices(session, serviceProvider)));
     }
 
     @Override
     public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
                                                              DescriptionType descriptionType) {
-        return tx(session -> serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType));
+        return tx(session -> XroadIdConfMapper.get().toServices(
+                serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
+        ));
     }
 
     @Override
     public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
-                    serviceDao.getServices(session, serviceProvider);
+                    XroadIdConfMapper.get().toServices(serviceDao.getServices(session, serviceProvider));
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
                     .collect(Collectors.toList());
@@ -229,7 +243,9 @@ public class ServerConfImpl implements ServerConfProvider {
                                                                     DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
-                    serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType);
+                    XroadIdConfMapper.get().toServices(
+                            serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
+                    );
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
                     .collect(Collectors.toList());
@@ -288,7 +304,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-        return tx(session -> clientDao.getIsCerts(session, client).stream()
+        return tx(session -> CertificateTypeMapper.get().toTargets(clientDao.getIsCerts(session, client)).stream()
                 .map(CertificateType::getData)
                 .map(CryptoUtils::readCertificate)
                 .toList());
@@ -297,7 +313,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<X509Certificate> getAllIsCerts() {
         return tx(session -> certificateDao.findAll(session).stream()
-                .map(CertificateType::getData)
+                .map(CertificateTypeEntity::getData)
                 .map(CryptoUtils::readCertificate)
                 .toList());
     }
@@ -366,7 +382,8 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
-        return tx(session -> getClient(session, serviceId.getClientId()).getEndpoint().stream()
+        return tx(session -> clientDao.getClient(session, serviceId.getClientId()).getEndpoint().stream()
+                .map(e -> EndpointTypeMapper.get().toTarget(e))
                 .filter(e -> e.getServiceCode().equals(serviceId.getServiceCode()))
                 .filter(e -> !e.isBaseEndpoint())
                 .map(e -> createEndpoint(e.getMethod(), e.getPath()))
@@ -393,19 +410,19 @@ public class ServerConfImpl implements ServerConfProvider {
     // ------------------------------------------------------------------------
 
     protected ServerConfType getConf(Session session) {
-        return serverConfDao.getConf(session);
+        return ServerConfTypeMapper.get().toTarget(serverConfDao.getConf(session));
     }
 
     protected ClientType getClient(Session session, ClientId c) {
-        return clientDao.getClient(session, c);
+        return ClientTypeMapper.get().toTarget(clientDao.getClient(session, c));
     }
 
     protected ServiceType getService(Session session, ServiceId s) {
-        return serviceDao.getService(session, s);
+        return ServiceTypeMapper.get().toTarget(serviceDao.getService(session, s));
     }
 
     protected ServiceDescriptionType getServiceDescription(Session session, ServiceId service) {
-        return serviceDescriptionDao.getServiceDescription(session, service);
+        return ServiceDescriptionTypeMapper.get().toTarget(serviceDescriptionDao.getServiceDescription(session, service));
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
@@ -438,7 +455,7 @@ public class ServerConfImpl implements ServerConfProvider {
     protected List<EndpointType> getAclEndpoints(Session session, ClientId client, ServiceId service) {
         log.debug("getAcl, session = {}", session);
 
-        final ClientType serviceOwner = getClient(session, service.getClientId());
+        final ClientTypeEntity serviceOwner = clientDao.getClient(session, service.getClientId());
 
         if (serviceOwner == null) {
             // should not normally happen, but possible if service and acl caches are in inconsistent state
@@ -446,36 +463,36 @@ public class ServerConfImpl implements ServerConfProvider {
             throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' owner not found", service);
         }
 
-        final ClientId localClientId = identifierDao.findClientId(session, client);
+        final ClientIdConfEntity localClientId = identifierDao.findClientId(session, client);
         // localClientId can be null if the permissions are defined by a global group
 
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<AccessRightType> query = cb.createQuery(AccessRightType.class);
-        final Root<ClientType> root = query.from(ClientType.class);
-        final Join<ClientType, AccessRightType> acl = root.join("acl");
-        final Join<AccessRightType, EndpointType> endpoint = acl.join("endpoint");
-        final Join<AccessRightType, XRoadId> identifier = acl.join("subjectId");
+        final CriteriaQuery<AccessRightTypeEntity> query = cb.createQuery(AccessRightTypeEntity.class);
+        final Root<ClientTypeEntity> root = query.from(ClientTypeEntity.class);
+        final Join<ClientTypeEntity, AccessRightTypeEntity> acl = root.join("acl");
+        final Join<AccessRightTypeEntity, EndpointTypeEntity> endpoint = acl.join("endpoint");
+        final Join<AccessRightTypeEntity, XRoadIdConfEntity> identifier = acl.join("subjectId");
         acl.fetch("endpoint");
 
         var orPredicates = new ArrayList<Predicate>();
         if (localClientId != null) {
             orPredicates.add(cb.equal(identifier, localClientId));
         }
-        orPredicates.add(cb.equal(identifier.get("type"), XRoadObjectType.GLOBALGROUP));
-        orPredicates.add(cb.equal(identifier.get("type"), XRoadObjectType.LOCALGROUP));
+        orPredicates.add(cb.equal(identifier.get("objectType"), XRoadObjectType.GLOBALGROUP));
+        orPredicates.add(cb.equal(identifier.get("objectType"), XRoadObjectType.LOCALGROUP));
 
         query.select(acl).where(cb.and(
                         cb.equal(root, serviceOwner),
                         cb.equal(endpoint.get("serviceCode"), service.getServiceCode())),
                 cb.or(orPredicates.toArray(new Predicate[0])));
-
-        return session.createQuery(query).setReadOnly(true).list().stream()
+        var accessRights = session.createQuery(query).setReadOnly(true).list();
+        return EndpointTypeMapper.get().toTargets(accessRights.stream()
                 .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), client))
-                .map(AccessRightType::getEndpoint)
-                .collect(Collectors.toList());
+                .map(AccessRightTypeEntity::getEndpoint)
+                .collect(Collectors.toList()));
     }
 
-    private boolean subjectMatches(ClientType serviceOwner, XRoadId aclSubject, ClientId client) {
+    private boolean subjectMatches(ClientTypeEntity serviceOwner, XRoadId aclSubject, ClientId client) {
         if (aclSubject instanceof GlobalGroupId globalGroupId) {
             return globalConfProvider.isSubjectInGlobalGroup(client, globalGroupId);
         } else if (aclSubject instanceof LocalGroupId localGroupId) {
@@ -485,7 +502,7 @@ public class ServerConfImpl implements ServerConfProvider {
         }
     }
 
-    private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientType groupOwner) {
+    private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientTypeEntity groupOwner) {
         return groupOwner.getLocalGroup().stream()
                 .filter(g -> Objects.equals(groupId.getGroupCode(), g.getGroupCode()))
                 .flatMap(g -> g.getGroupMember().stream())

@@ -25,11 +25,6 @@
  */
 package org.niis.xroad.serverconf.impl;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
@@ -37,6 +32,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.GlobalGroupConfEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupConfEntity;
+import org.niis.xroad.serverconf.entity.SecurityServerIdConfEntity;
+import org.niis.xroad.serverconf.entity.ServiceIdConfEntity;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 
 import static org.junit.Assert.assertEquals;
@@ -79,9 +79,9 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void clientId() {
-        assertCreateRead(() -> ClientId.Conf.create("EE", "class", "code1"),
+        assertCreateRead(() -> ClientIdConfEntity.createMember("EE", "class", "code1"),
                 id -> identifierDAO.findClientId(session, id));
-        assertCreateRead(() -> ClientId.Conf.create("EE", "class", "code2"),
+        assertCreateRead(() -> ClientIdConfEntity.createMember("EE", "class", "code2"),
                 id -> identifierDAO.findClientId(session, id));
     }
 
@@ -90,16 +90,16 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void serviceId() {
-        assertCreateRead(() -> ServiceId.Conf.create("EE", "cls", "code", null, "service1"),
+        assertCreateRead(() -> ServiceIdConfEntity.create("EE", "cls", "code", null, "service1"),
                 id -> identifierDAO.findServiceId(session, id));
 
-        assertCreateRead(() -> ServiceId.Conf.create("EE", "cls", "code", null, "service2"),
+        assertCreateRead(() -> ServiceIdConfEntity.create("EE", "cls", "code", null, "service2"),
                 id -> identifierDAO.findServiceId(session, id));
 
-        assertCreateRead(() -> ServiceId.Conf.create("EE", "cls", "code", null, "service3", "1.0"),
+        assertCreateRead(() -> ServiceIdConfEntity.create("EE", "cls", "code", null, "service3", "1.0"),
                 id -> identifierDAO.findServiceId(session, id));
 
-        assertCreateRead(() -> ServiceId.Conf.create("EE", "cls", "code", null, "service3", "2.0"),
+        assertCreateRead(() -> ServiceIdConfEntity.create("EE", "cls", "code", null, "service3", "2.0"),
                 id -> identifierDAO.findServiceId(session, id));
     }
 
@@ -108,9 +108,9 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void globalGroupId() {
-        assertCreateRead(() -> GlobalGroupId.Conf.create("XX", "globalGroup1"),
+        assertCreateRead(() -> GlobalGroupConfEntity.create("XX", "globalGroup1"),
                 id -> identifierDAO.findGlobalGroupId(session, id));
-        assertCreateRead(() -> GlobalGroupId.Conf.create("XX", "globalGroup2"),
+        assertCreateRead(() -> GlobalGroupConfEntity.create("XX", "globalGroup2"),
                 id -> identifierDAO.findGlobalGroupId(session, id));
     }
 
@@ -119,9 +119,9 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void localGroupId() {
-        assertCreateRead(() -> LocalGroupId.Conf.create("localGroup1"),
+        assertCreateRead(() -> LocalGroupConfEntity.create("localGroup1"),
                 id -> identifierDAO.findLocalGroupId(session, id));
-        assertCreateRead(() -> LocalGroupId.Conf.create("localGroup2"),
+        assertCreateRead(() -> LocalGroupConfEntity.create("localGroup2"),
                 id -> identifierDAO.findLocalGroupId(session, id));
     }
 
@@ -130,10 +130,10 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void securityServerId() {
-        assertCreateRead(() -> SecurityServerId.Conf.create("XX", "class", "code", "srv1"),
+        assertCreateRead(() -> SecurityServerIdConfEntity.create("XX", "class", "code", "srv1"),
                 id -> identifierDAO.findSecurityServerId(session, id));
 
-        assertCreateRead(() -> SecurityServerId.Conf.create("XX", "class", "code", "srv2"),
+        assertCreateRead(() -> SecurityServerIdConfEntity.create("XX", "class", "code", "srv2"),
                 id -> new IdentifierDAOImpl().findSecurityServerId(session, id));
     }
 

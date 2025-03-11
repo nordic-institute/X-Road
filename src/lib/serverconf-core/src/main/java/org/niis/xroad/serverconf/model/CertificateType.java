@@ -36,6 +36,5 @@ import lombok.Setter;
 public class CertificateType {
 
     private Long id;
-
     private byte[] data;
 }

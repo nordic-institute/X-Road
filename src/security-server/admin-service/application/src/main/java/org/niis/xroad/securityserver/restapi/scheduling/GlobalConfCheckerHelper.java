@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,9 +51,9 @@ class GlobalConfCheckerHelper {
 
     /**
      * Get the Security Server's ServerConf
-     * @return ServerConfType
+     * @return ServerConfTypeEntity
      */
-    ServerConfType getServerConf() {
+    ServerConfTypeEntity getServerConf() {
         return serverConfRepository.getServerConf();
     }
 }

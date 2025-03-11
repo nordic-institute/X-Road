@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,13 +41,13 @@ public class EndpointRepository {
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Get Endpoint by id
+     * Get EndpointEntity by id
      *
      * @param id
      * @return
      */
-    public EndpointType getEndpoint(Long id) {
-        return this.persistenceUtils.getCurrentSession().get(EndpointType.class, id);
+    public EndpointTypeEntity getEndpoint(Long id) {
+        return this.persistenceUtils.getCurrentSession().get(EndpointTypeEntity.class, id);
     }
 
 }

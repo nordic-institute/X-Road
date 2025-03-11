@@ -32,7 +32,8 @@ import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -213,10 +214,10 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
                 }));
 
         doReturn(Collections.singletonList(tokenInfo)).when(signerRpcClient).getTokens();
-        Map<ClientId, ClientType> localClients = new HashMap<>();
+        Map<ClientId, ClientTypeEntity> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
-            ClientType clientType = new ClientType();
-            clientType.setIdentifier(id);
+            ClientTypeEntity clientType = new ClientTypeEntity();
+            clientType.setIdentifier(XroadIdConfMapper.get().toEntity(id));
             localClients.put(id, clientType);
         });
         doReturn(new ArrayList<>(localClients.values())).when(clientRepository).getAllLocalClients();
