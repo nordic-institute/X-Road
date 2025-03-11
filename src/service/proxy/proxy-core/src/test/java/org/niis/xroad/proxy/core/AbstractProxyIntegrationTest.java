@@ -174,7 +174,7 @@ public abstract class AbstractProxyIntegrationTest {
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
                 mock(MonitorRpcClient.class), proxyProperties.addOn(), opMonitorCommonProperties);
         serverProxy = new ServerProxy(proxyProperties.server(), mock(AntiDosConfiguration.class), commonBeanProxy, serviceHandlerLoader,
-                opMonitorCommonProperties, vaultKeyProvider);
+                opMonitorCommonProperties);
         serverProxy.init();
 
         OpMonitoring.init(new NullOpMonitoringBuffer(null));

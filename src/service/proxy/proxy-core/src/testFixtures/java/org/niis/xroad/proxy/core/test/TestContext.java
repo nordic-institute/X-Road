@@ -104,7 +104,7 @@ public class TestContext {
                 ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(serverConfProvider, globalConfProvider,
                         monitorRpcClient, proxyProperties.addOn(), opMonitorCommonProperties);
                 serverProxy = new ServerProxy(proxyProperties.server(), antiDosConfiguration, commonBeanProxy, serviceHandlerLoader,
-                        opMonitorCommonProperties, vaultKeyProvider);
+                        opMonitorCommonProperties);
                 serverProxy.init();
             }
 

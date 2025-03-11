@@ -264,9 +264,9 @@ public abstract class MessageProcessorBase {
             }
 
             // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
-             if (clientAuthenticationIssuedByVault(auth)) {
-                 return;
-             }
+            if (clientAuthenticationIssuedByVault(auth)) {
+                return;
+            }
 
             List<X509Certificate> isCerts = commonBeanProxy.getServerConfProvider().getIsCerts(client);
             if (isCerts.isEmpty()) {

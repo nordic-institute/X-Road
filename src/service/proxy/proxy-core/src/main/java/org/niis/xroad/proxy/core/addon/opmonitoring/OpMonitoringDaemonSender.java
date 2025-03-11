@@ -145,8 +145,8 @@ public class OpMonitoringDaemonSender {
     }
 
     CloseableHttpClient createHttpClient() throws Exception {
-        return OpMonitoringDaemonHttpClient.createHttpClient(vaultKeyProvider,
-                opMonitorCommonProperties,
+        return OpMonitoringDaemonHttpClient.createHttpClient(
+                opMonitorCommonProperties, vaultKeyProvider, serverConfProvider.getSSLKey(),
                 1, 1,
                 TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().connectionTimeoutSeconds()),
                 TimeUtils.secondsToMillis(opMonitorCommonProperties.buffer().socketTimeoutSeconds()));

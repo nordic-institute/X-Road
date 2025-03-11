@@ -141,9 +141,16 @@ public final class OpMonitorDaemon {
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
 
-        ctx.init(new KeyManager[]{vaultKeyProvider.getKeyManager()},
-                new TrustManager[]{vaultKeyProvider.getTrustManager()},
-                new SecureRandom());
+        if (opMonitorCommonProperties.connection().clientTlsCertificate().isEmpty()) {
+            ctx.init(new KeyManager[]{vaultKeyProvider.getKeyManager()},
+                    new TrustManager[]{vaultKeyProvider.getTrustManager()},
+                    new SecureRandom());
+        } else {
+            // op-monitoring daemon client TLS certificate is explicitly configured in case of external op-monitoring daemon
+            ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()},
+                    new TrustManager[]{new OpMonitorSslTrustManager(opMonitorCommonProperties.connection().clientTlsCertificate().get())},
+                    new SecureRandom());
+        }
 
         cf.setSslContext(ctx);
         return new ServerConnector(server, cf);
