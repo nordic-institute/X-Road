@@ -37,7 +37,7 @@
     "vite": "^6.2.1",
     "vite-plugin-vuetify": "^2.1.0",
     "vitest": "^3.0.8",
-    "vue-eslint-parser": "^9.4.3",
+    "vue-eslint-parser": "^10.1.1",
     "vue-i18n": "^11.1.2",
     "vue-tsc": "^2.2.8"
   },
