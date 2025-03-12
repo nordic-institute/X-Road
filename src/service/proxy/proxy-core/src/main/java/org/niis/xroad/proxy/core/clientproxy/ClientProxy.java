@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -80,8 +79,8 @@ public class ClientProxy {
 
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
+    private final ReloadingSSLSocketFactory reloadingSSLSocketFactory;
     private final Instance<AbstractClientProxyHandler> clientHandlers;
-
 
     private final Server server = new Server();
 
@@ -198,6 +197,11 @@ public class ClientProxy {
         log.trace("stop()");
 
         server.stop();
+    }
+
+    public void reloadAuthKey() {
+        log.trace("reloadAuthKey()");
+        reloadingSSLSocketFactory.reload();
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {
