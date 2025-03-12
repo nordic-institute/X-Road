@@ -81,9 +81,6 @@ class QueryRequestProcessor {
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 
-        log.info("++++++++++");
-        log.info("Globalconf valid: {}", globalConfProvider.isValid());
-        log.info("GlobalconfProvider: {}", globalConfProvider);
         globalConfProvider.verifyValidity();
     }
 
