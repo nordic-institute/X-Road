@@ -60,23 +60,29 @@ public class ClientIdConfEntity extends XRoadIdConfEntity implements ee.ria.xroa
     public static ClientIdConfEntity create(ee.ria.xroad.common.identifier.ClientId identifier) {
         Validation.validateArgument("identifier", identifier);
 
-        return identifier.getSubsystemCode() == null
-                ? createMember(identifier.getXRoadInstance(), identifier.getMemberClass(), identifier.getMemberCode())
-                : createSubsystem(identifier.getXRoadInstance(), identifier.getMemberClass(), identifier.getMemberCode(),
-                        identifier.getSubsystemCode());
+        return create(identifier.getXRoadInstance(), identifier.getMemberClass(), identifier.getMemberCode(),
+                identifier.getSubsystemCode());
     }
 
-    public static ClientIdConfEntity createMember(String xRoadInstance,
-                                             String memberClass,
-                                             String memberCode) {
+    public static ClientIdConfEntity create(String xRoadInstance,
+                                            String memberClass,
+                                            String memberCode,
+                                            String subsystemCode) {
+
+        return subsystemCode == null
+                ? createMember(xRoadInstance, memberClass, memberCode)
+                : createSubsystem(xRoadInstance, memberClass, memberCode, subsystemCode);
+    }
+
+    public static ClientIdConfEntity createMember(String xRoadInstance, String memberClass, String memberCode) {
 
         return create(XRoadObjectType.MEMBER, xRoadInstance, memberClass, memberCode, null);
     }
 
     public static ClientIdConfEntity createSubsystem(String xRoadInstance,
-                                                  String memberClass,
-                                                  String memberCode,
-                                                  String subsystemCode) {
+                                                     String memberClass,
+                                                     String memberCode,
+                                                     String subsystemCode) {
         validateOptionalArgument("subsystemCode", subsystemCode);
 
         return create(XRoadObjectType.SUBSYSTEM, xRoadInstance, memberClass, memberCode, subsystemCode);

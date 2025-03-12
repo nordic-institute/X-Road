@@ -110,7 +110,7 @@ public class ServiceIdConfEntity extends XRoadIdConfEntity implements ee.ria.xro
     @Transient
     @Override
     public ClientIdConfEntity getClientId() {
-        return ClientIdConfEntity.createSubsystem(getXRoadInstance(), getMemberClass(), getMemberCode(), getSubsystemCode());
+        return ClientIdConfEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode(), getSubsystemCode());
     }
 
     @Override

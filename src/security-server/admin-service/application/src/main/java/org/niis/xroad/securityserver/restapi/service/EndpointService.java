@@ -34,7 +34,6 @@ import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
-import org.niis.xroad.serverconf.model.BaseEndpoint;
 import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

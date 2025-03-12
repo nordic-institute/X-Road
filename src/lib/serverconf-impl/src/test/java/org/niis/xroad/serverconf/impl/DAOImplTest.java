@@ -72,7 +72,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.service;
 public class DAOImplTest {
 
     private Session session;
-    private IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
+    private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
 
     /**
      * Prepares test database.
@@ -150,7 +150,7 @@ public class DAOImplTest {
      * Test getting ACL.
      */
     @Test
-    public void getAcl(){
+    public void getAcl() {
         ClientId id = createTestClientId(client(1));
         List<AccessRightTypeEntity> acl = getClient(id).getAcl();
         assertEquals(6, acl.size());
@@ -190,7 +190,7 @@ public class DAOImplTest {
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescription().size());
 
-        ServiceDescriptionTypeEntity serviceDescription = client.getServiceDescription().get(0);
+        ServiceDescriptionTypeEntity serviceDescription = client.getServiceDescription().getFirst();
         Long serviceDescriptionId = serviceDescription.getId();
 
         client.getServiceDescription().remove(serviceDescription);
@@ -207,9 +207,9 @@ public class DAOImplTest {
     @Test
     public void addLocalGroupMember() {
         ClientTypeEntity client = getClient(createTestClientId(client(1)));
-        assertTrue(!client.getLocalGroup().isEmpty());
+        assertFalse(client.getLocalGroup().isEmpty());
 
-        LocalGroupTypeEntity localGroup = client.getLocalGroup().get(0);
+        LocalGroupTypeEntity localGroup = client.getLocalGroup().getFirst();
 
         ClientIdConfEntity clientId =
                 identifierDAO.findClientId(session, createTestClientId(client(3)));

@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -73,7 +73,7 @@ public class ServerConfService {
     /**
      * Get a server conf; an existing server conf will be returned if one exists. Otherwise
      * a new transient instance is returned.
-     * @return
+     * @return ServerConfTypeEntity
      */
     ServerConfTypeEntity getOrCreateServerConfEntity() {
         ServerConfTypeEntity serverConfType = getServerConfGracefully();
@@ -101,14 +101,13 @@ public class ServerConfService {
         return XroadIdConfMapper.get().toTarget(getServerConfEntity().getOwner().getIdentifier());
     }
 
-
     public ClientIdConfEntity getSecurityServerOwnerIdEntity() {
         return getServerConfEntity().getOwner().getIdentifier();
     }
 
     /**
      * Return a list of configured timestamping services
-     * @return
+     * @return List<TspTypeEntity>
      */
 
     List<TspTypeEntity> getConfiguredTimestampingServiceEntities() {
@@ -120,19 +119,19 @@ public class ServerConfService {
 
     /**
      * Is server code initialized
-     * @return
+     * @return boolean
      */
     public boolean isServerCodeInitialized() {
         ServerConfTypeEntity serverConfType = getServerConfGracefully();
         if (serverConfType != null) {
-            return !StringUtils.isEmpty(serverConfType.getServerCode());
+            return !ObjectUtils.isEmpty(serverConfType.getServerCode());
         }
         return false;
     }
 
     /**
      * Is server owner initialized
-     * @return
+     * @return boolean
      */
     public boolean isServerOwnerInitialized() {
         ServerConfTypeEntity serverConfType = getServerConfGracefully();

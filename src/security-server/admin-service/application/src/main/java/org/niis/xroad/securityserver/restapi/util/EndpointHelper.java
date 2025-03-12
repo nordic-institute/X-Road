@@ -31,7 +31,6 @@ import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
-import org.niis.xroad.serverconf.model.BaseEndpoint;
 import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.stereotype.Component;
 
@@ -46,8 +45,8 @@ public class EndpointHelper {
 
     /**
      * Get endpoints from given service description
-     * @param serviceDescriptionType
-     * @return
+     * @param serviceDescriptionType service description
+     * @return List<EndpointTypeEntity>
      */
     public List<EndpointTypeEntity> getEndpoints(ServiceDescriptionTypeEntity serviceDescriptionType) {
         ClientTypeEntity client = serviceDescriptionType.getClient();
