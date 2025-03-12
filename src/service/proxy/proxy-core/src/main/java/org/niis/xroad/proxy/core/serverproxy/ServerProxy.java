@@ -212,7 +212,8 @@ public class ServerProxy {
                 SSLContextUtil.createXroadSSLContext(commonBeanProxy.getGlobalConfProvider(), commonBeanProxy.getKeyConfProvider()));
 
         return antiDosConfiguration.enabled()
-                ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server, ACCEPTOR_COUNT, sslContextFactory)
+                ? new AntiDosConnector(antiDosConfiguration, commonBeanProxy.getGlobalConfProvider(), server,
+                ACCEPTOR_COUNT, sslContextFactory)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, sslContextFactory);
     }
 
@@ -221,7 +222,8 @@ public class ServerProxy {
         if (sslContextFactory != null) {
             try {
                 sslContextFactory.setSslContext(
-                        SSLContextUtil.createXroadSSLContext(commonBeanProxy.globalConfProvider, commonBeanProxy.keyConfProvider));
+                        SSLContextUtil.createXroadSSLContext(commonBeanProxy.getGlobalConfProvider(),
+                                commonBeanProxy.getKeyConfProvider()));
                 sslContextFactory.reload(cf -> log.debug("Server SSL context reloaded"));
             } catch (Exception e) {
                 log.error("Failed to reload auth key", e);

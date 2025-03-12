@@ -44,7 +44,7 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -53,6 +53,7 @@ import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -64,6 +65,7 @@ import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.TestService;
 import org.niis.xroad.proxy.core.test.TestSigningCtxProvider;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
+import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
@@ -117,9 +119,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         final String serverPort = String.valueOf(getFreePort());
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
-
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
 
         org.apache.xml.security.Init.init();
@@ -148,17 +148,18 @@ public abstract class AbstractProxyIntegrationTest {
     private static void startClientProxy(ProxyProperties proxyProperties) throws Exception {
         clientKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
-        CertChainFactory certChainFactory = new CertChainFactory(TEST_GLOBAL_CONF);
-        clientAuthTrustVerifier = new LoggingAuthTrustVerifier(clientKeyConf, certHelper, certChainFactory);
+        clientAuthTrustVerifier = new LoggingAuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
+                TEST_GLOBAL_CONF, clientKeyConf, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 clientKeyConf, signingCtxProvider, certHelper, null);
 
+        ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                .proxyHttpClient(proxyProperties.clientProxy(), clientAuthTrustVerifier, TEST_GLOBAL_CONF, keyConfProvider);
+                .proxyHttpClient(proxyProperties.clientProxy(), clientAuthTrustVerifier, reloadingSSLSocketFactory);
 
         ClientRestMessageHandler restMessageHandler = new ClientRestMessageHandler(commonBeanProxy, httpClient);
-        clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(),
+        clientProxy = new ClientProxy(TEST_SERVER_CONF, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                 new ListInstanceWrapper<>(List.of(restMessageHandler)));
         clientProxy.init();
     }
@@ -166,10 +167,9 @@ public abstract class AbstractProxyIntegrationTest {
     private static void startServerProxy(ProxyProperties proxyProperties) throws Exception {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
-        CertChainFactory certChainFactory = new CertChainFactory(TEST_GLOBAL_CONF);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certChainFactory, certHelper);
+                serverKeyConf, signingCtxProvider, certHelper, null);
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,
@@ -245,8 +245,9 @@ public abstract class AbstractProxyIntegrationTest {
     public static class LoggingAuthTrustVerifier extends AuthTrustVerifier {
         private final List<X509Certificate> verifiedCertificates = new ArrayList<>();
 
-        public LoggingAuthTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-            super(keyConfProvider, certHelper, certChainFactory);
+        public LoggingAuthTrustVerifier(CertHashBasedOcspResponderClient certHashBasedOcspResponderClient,
+                                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, CertHelper certHelper) {
+            super(certHashBasedOcspResponderClient, globalConfProvider, keyConfProvider, certHelper);
         }
 
         @SneakyThrows

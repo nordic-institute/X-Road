@@ -39,8 +39,6 @@ import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBuffer;
-import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
-import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
@@ -88,8 +86,4 @@ public class ProxyConfig {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
     }
 
-    @ApplicationScoped
-    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
-        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
-    }
 }

@@ -47,10 +47,6 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.KeyManager;
@@ -83,8 +79,8 @@ public class ClientProxy {
 
     private final ServerConfProvider serverConfProvider;
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
+    private final ReloadingSSLSocketFactory reloadingSSLSocketFactory;
     private final Instance<AbstractClientProxyHandler> clientHandlers;
-
 
     private final Server server = new Server();
 
@@ -201,6 +197,11 @@ public class ClientProxy {
         log.trace("stop()");
 
         server.stop();
+    }
+
+    public void reloadAuthKey() {
+        log.trace("reloadAuthKey()");
+        reloadingSSLSocketFactory.reload();
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {

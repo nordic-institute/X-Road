@@ -67,8 +67,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
-import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -179,7 +179,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private void createClient() throws Exception {
         RegistryBuilder<ConnectionSocketFactory> socketFactoryRegistry =
-                RegistryBuilder.<ConnectionSocketFactory>create();
+                RegistryBuilder.create();
 
         socketFactoryRegistry.register("http", PlainConnectionSocketFactory.INSTANCE);
         socketFactoryRegistry.register("https", createSSLSocketFactory());

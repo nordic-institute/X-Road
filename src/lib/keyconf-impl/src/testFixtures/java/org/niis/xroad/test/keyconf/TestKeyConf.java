@@ -33,8 +33,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -114,11 +114,11 @@ public class TestKeyConf extends EmptyKeyConf {
         return ocspResponses.get(certHash);
     }
 
-    private X509Certificate getOcspSignerCert() throws Exception {
+    private X509Certificate getOcspSignerCert() {
         return TestCertUtil.getOcspSigner().certChain[0];
     }
 
-    private PrivateKey getOcspRequestKey() throws Exception {
+    private PrivateKey getOcspRequestKey() {
         return TestCertUtil.getOcspSigner().key;
     }
 }

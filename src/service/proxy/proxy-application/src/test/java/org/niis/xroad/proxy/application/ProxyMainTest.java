@@ -48,7 +48,7 @@ class ProxyMainTest {
     @ApplicationScoped
     @Mock
     ServerConfProvider serverConfProvider() {
-        return new TestServerConf(0);
+        return new TestServerConf();
     }
 
 }
