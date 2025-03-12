@@ -253,10 +253,15 @@ public class LocalGroupService {
      * @param groupId local group id
      * @param items
      * @throws LocalGroupMemberNotFoundException if local group member was not found in the group
+     * @throws LocalGroupNotFoundException if local group was not found
      */
     public void deleteGroupMembers(long groupId, List<ClientId> items)
-            throws LocalGroupMemberNotFoundException {
+            throws LocalGroupMemberNotFoundException, LocalGroupNotFoundException {
         LocalGroupTypeEntity managedLocalGroup = getLocalGroupEntity(groupId);
+
+        if (managedLocalGroup == null) {
+            throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
+        }
 
         auditLog(items, managedLocalGroup);
 

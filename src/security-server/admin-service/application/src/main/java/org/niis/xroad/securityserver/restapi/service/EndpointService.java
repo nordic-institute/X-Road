@@ -65,7 +65,7 @@ public class EndpointService {
      * Get endpoint by endpoint id
      *
      * @param id                            endpoint id
-     * @return
+     * @return EndpointType
      * @throws EndpointNotFoundException    endpoint not found with given id
      */
     public EndpointType getEndpoint(Long id) throws EndpointNotFoundException {
@@ -108,7 +108,7 @@ public class EndpointService {
      * @param id for the endpoint to be updated
      * @param method new value for method
      * @param path new value for path
-     * @return
+     * @return EndpointType
      * @throws EndpointNotFoundException                endpoint not found with given id
      * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
      * @throws IllegalArgumentException                 passing illegal combination of parameters
@@ -130,8 +130,9 @@ public class EndpointService {
         }
 
         ClientTypeEntity client = clientRepository.getClientByEndpointId(id);
-        Optional<EndpointTypeEntity> endpointType = client.getEndpoint().stream().filter(e -> e.getId() == id).findFirst();
-        if (!endpointType.isPresent()) {
+        Optional<EndpointTypeEntity> endpointType = client.getEndpoint().stream()
+                .filter(e -> e.getId().equals(id)).findFirst();
+        if (endpointType.isEmpty()) {
             throw new EndpointNotFoundException(id.toString());
         }
 

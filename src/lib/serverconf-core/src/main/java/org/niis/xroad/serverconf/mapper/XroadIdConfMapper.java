@@ -56,11 +56,11 @@ public interface XroadIdConfMapper extends GenericUniDirectionalMapper<XRoadIdCo
     default XRoadIdConfEntity toEntity(XRoadId.Conf source) {
         return switch (source) {
             case null -> null;
-            case ClientId.Conf record -> toEntity(record);
-            case GlobalGroupId.Conf record -> toEntity(record);
-            case LocalGroupId.Conf record -> toEntity(record);
-            case SecurityServerId.Conf record -> toEntity(record);
-            case ServiceId.Conf record -> toEntity(record);
+            case ClientId.Conf domain -> toEntity(domain);
+            case GlobalGroupId.Conf domain -> toEntity(domain);
+            case LocalGroupId.Conf domain -> toEntity(domain);
+            case SecurityServerId.Conf domain -> toEntity(domain);
+            case ServiceId.Conf domain -> toEntity(domain);
             default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
         };
     }
@@ -68,11 +68,11 @@ public interface XroadIdConfMapper extends GenericUniDirectionalMapper<XRoadIdCo
     default XRoadIdConfEntity toEntity(XRoadId source) {
         return switch (source) {
             case null -> null;
-            case ClientId record -> toEntity(record);
-            case GlobalGroupId record -> toEntity(record);
-            case LocalGroupId record -> toEntity(record);
-            case SecurityServerId record -> toEntity(record);
-            case ServiceId record -> toEntity(record);
+            case ClientId domain -> toEntity(domain);
+            case GlobalGroupId domain -> toEntity(domain);
+            case LocalGroupId domain -> toEntity(domain);
+            case SecurityServerId domain -> toEntity(domain);
+            case ServiceId domain -> toEntity(domain);
             default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
         };
     }

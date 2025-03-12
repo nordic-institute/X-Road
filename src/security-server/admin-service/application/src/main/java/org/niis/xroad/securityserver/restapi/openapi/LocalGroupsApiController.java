@@ -139,7 +139,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         try {
             localGroupService.deleteGroupMembers(localGroupType.getId(),
                     clientIdConverter.convertIds(members.getItems()));
-        } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
+        } catch (LocalGroupService.LocalGroupMemberNotFoundException | LocalGroupNotFoundException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

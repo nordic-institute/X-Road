@@ -274,9 +274,9 @@ public class ServiceDescriptionService {
                 throw new ConflictException(e);
             }
         }
-        ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
+
+        return serviceDescriptionConverter.convert(
                 ServiceDescriptionTypeMapper.get().toTarget(addedServiceDescriptionType));
-        return addedServiceDescription;
     }
 
     /**
