@@ -80,9 +80,9 @@ public class ServiceService {
      * see {@link ServiceFormatter#getServiceFullName(String, String)}.
      * ServiceType has serviceType.serviceDescription.client.endpoints lazy field fetched.
      *
-     * @param clientId
-     * @param fullServiceCode
-     * @return
+     * @param clientId clientId
+     * @param fullServiceCode fullServiceCode
+     * @return ServiceType
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      */
@@ -106,8 +106,8 @@ public class ServiceService {
     /**
      * Get {@link ServiceTypeEntity} from a {@link ClientTypeEntity} by comparing the full service code (with version).
      *
-     * @param client
-     * @param fullServiceCode
+     * @param client client
+     * @param fullServiceCode fullServiceCode
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
@@ -129,12 +129,12 @@ public class ServiceService {
      * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
      * see {@link ServiceFormatter#getServiceFullName(String, String)}
-     * @param url
-     * @param urlAll
-     * @param timeout
-     * @param timeoutAll
-     * @param sslAuth
-     * @param sslAuthAll
+     * @param url url
+     * @param urlAll urlAll
+     * @param timeout timeout
+     * @param timeoutAll timeoutAll
+     * @param sslAuth sslAuth
+     * @param sslAuthAll sslAuthAll
      * @return ServiceType
      * @throws InvalidUrlException if given url was not valid
      * @throws InvalidHttpsUrlException if given url does not use https and https is required
@@ -161,10 +161,6 @@ public class ServiceService {
         }
 
         ServiceTypeEntity serviceType = getServiceEntity(clientId, fullServiceCode);
-
-        if (serviceType == null) {
-            throw new ServiceNotFoundException("Service " + fullServiceCode + NOT_FOUND);
-        }
 
         if (sslAuth && !ignoreWarnings) {
             ClientTypeEntity client = serviceType.getServiceDescription().getClient();
@@ -245,7 +241,7 @@ public class ServiceService {
      * @param fullServiceCode service fullServiceCode where endpoint is added
      * @param method method
      * @param path path
-     * @return
+     * @return EndpointType
      * @throws EndpointAlreadyExistsException equivalent endpoint already exists for
      * this client
      * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException if trying to add endpoint to a WSDL
