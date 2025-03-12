@@ -9,7 +9,6 @@ dependencies {
   implementation(platform(libs.findLibrary("quarkus-bom").get()))
 }
 
-val buildType: String = project.findProperty("buildType")?.toString() ?: "containerized"
 val buildEnv: String = project.findProperty("buildEnv")?.toString() ?: "dev" //TODO default to prod later
 
 quarkus {

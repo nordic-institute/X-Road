@@ -12,8 +12,6 @@ services:
           memory: 64M
         limits:
           memory: 256M
-  #    volumes: TODO not required for now
-  #        - db-volume:/var/lib/postgresql/data
   db-messagelog:
     image: postgres:17
     environment:
@@ -27,8 +25,6 @@ services:
           memory: 64M
         limits:
           memory: 256M
-  #    volumes: TODO not required for now
-  #        - db-volume:/var/lib/postgresql/data
   db-serverconf-init:
     image: ${SERVERCONF_INIT_IMG}
     pull_policy: always
@@ -152,7 +148,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ] #TODO verify that endpoint returns 200
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
       - xroad-network
@@ -182,9 +178,6 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - XROAD_PROXY_UI_API_SECURITY_SERVER_URL=https://proxy:8443
-#    volumes:
-#      - ./temp-mount-xroad:/etc/xroad
-#      - ./temp-scripts:/usr/share/xroad/scripts
     ports:
       - "0:4000" # Frontend
       - "0:9999" # debug port
