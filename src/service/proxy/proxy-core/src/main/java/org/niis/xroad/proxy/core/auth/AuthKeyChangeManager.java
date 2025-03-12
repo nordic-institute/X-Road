@@ -32,7 +32,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 
@@ -52,9 +51,6 @@ public class AuthKeyChangeManager {
 
     private void onAuthKeyChange() {
         log.debug("Authentication key change detected, reloading key.");
-        if (keyConfProvider instanceof CachingKeyConfImpl cachingKeyConf) {
-            cachingKeyConf.invalidateCaches();
-        }
         clientProxy.reloadAuthKey();
         serverProxy.reloadAuthKey();
     }

@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.common.messagelog.MessageLogDbProperties;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
@@ -108,8 +109,9 @@ abstract class AbstractMessageLogTest {
         var props = ConfigUtils.initConfiguration(MessageLogDbProperties.class, hibernateProperties);
         databaseCtx = MessageLogDatabaseConfig.create(props);
         logRecordManager = new LogRecordManager(databaseCtx);
+        var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager);
+                null, null, logRecordManager, vaultKeyProvider);
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

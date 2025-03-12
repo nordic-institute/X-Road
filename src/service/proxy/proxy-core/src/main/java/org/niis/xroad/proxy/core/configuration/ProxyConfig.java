@@ -31,6 +31,7 @@ import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -60,11 +61,12 @@ public class ProxyConfig {
     @Startup
     AbstractOpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
                                                   OpMonitorCommonProperties opMonitorCommonProperties,
-                                                  ServerConfProvider serverConfProvider) throws Exception {
+                                                  ServerConfProvider serverConfProvider,
+                                                  VaultKeyProvider vaultKeyProvider) throws Exception {
         AbstractOpMonitoringBuffer opMonitorBuffer;
         if (addonProperties.opMonitor().enabled()) {
             log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
-            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider, opMonitorCommonProperties);
+            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
         } else {
             log.debug("Initializing NullOpMonitoringBuffer");
             opMonitorBuffer = new NullOpMonitoringBuffer(serverConfProvider);

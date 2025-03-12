@@ -29,6 +29,8 @@ package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -84,8 +86,9 @@ public class TestContext {
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
+            VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager);
+                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider);
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()

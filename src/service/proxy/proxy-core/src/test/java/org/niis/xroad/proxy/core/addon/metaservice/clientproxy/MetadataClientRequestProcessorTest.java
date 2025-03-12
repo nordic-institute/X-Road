@@ -43,6 +43,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -95,6 +97,7 @@ public class MetadataClientRequestProcessorTest {
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
+    private VaultKeyProvider vaultKeyProvider;
 
     /**
      * Init class-wide test instances
@@ -113,9 +116,10 @@ public class MetadataClientRequestProcessorTest {
         globalConfProvider = new TestSuiteGlobalConf();
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
+        vaultKeyProvider = mock(NoopVaultKeyProvider.class);
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null);
+                null, null, null, vaultKeyProvider);
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -168,7 +172,7 @@ public class MetadataClientRequestProcessorTest {
 
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null);
+                null, null, null, vaultKeyProvider);
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -216,7 +220,7 @@ public class MetadataClientRequestProcessorTest {
             }
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null);
+                null, null, null, vaultKeyProvider);
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,

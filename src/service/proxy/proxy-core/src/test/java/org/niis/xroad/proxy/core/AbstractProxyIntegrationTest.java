@@ -44,6 +44,8 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
@@ -151,8 +153,9 @@ public abstract class AbstractProxyIntegrationTest {
         clientAuthTrustVerifier = new LoggingAuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                 TEST_GLOBAL_CONF, clientKeyConf, certHelper);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
+        VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                clientKeyConf, signingCtxProvider, certHelper, null);
+                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider);
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -168,8 +171,9 @@ public abstract class AbstractProxyIntegrationTest {
         serverKeyConf = new TestKeyConf(TEST_GLOBAL_CONF);
         CertHelper certHelper = new CertHelper(TEST_GLOBAL_CONF);
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
+        VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certHelper, null);
+                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider);
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,

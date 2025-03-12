@@ -47,7 +47,7 @@ xroad:
     rpc:
       certificate-provisioning:
         secret-store-pki-path: xrd-pki
-        issuance-role-name: xrd-rpc-internal
+        issuance-role-name: xrd-internal
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
           - 127.0.0.1

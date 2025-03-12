@@ -57,7 +57,7 @@ else
     interval_duration="24h" || exit 1
 
   # Configure roles
-  bao write xrd-pki/roles/xrd-rpc-internal \
+  bao write xrd-pki/roles/xrd-internal \
     allow_any_name=true \
     allow_subdomains=true \
     allow_localhost=true \
