@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -48,6 +47,10 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
+import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import javax.net.ssl.KeyManager;

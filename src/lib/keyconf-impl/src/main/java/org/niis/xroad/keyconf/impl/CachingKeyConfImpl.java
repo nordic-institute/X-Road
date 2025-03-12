@@ -109,7 +109,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Invalidates both auth key and signing info caches
      */
-    protected void invalidateCaches() {
+    public void invalidateCaches() {
         authKeyInfoCache.invalidateAll();
         signingInfoCache.invalidateAll();
     }
@@ -142,7 +142,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
         var keyInfo = signerRpcClient.getAuthKey(serverId);
 
-        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.cert().getCertificateBytes());
+        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
 
         List<OCSPResp> ocspResponses = getOcspResponses(certChain.getAdditionalCerts());
         ocspResponses.add(new OCSPResp(keyInfo.cert().getOcspBytes()));
@@ -171,6 +171,5 @@ public class CachingKeyConfImpl extends KeyConfImpl {
             invalidateCaches();
         }
     }
-
 
 }

@@ -80,7 +80,7 @@ public class AuthTrustVerifier {
     private final KeyConfProvider keyConfProvider;
     private final CertHelper certHelper;
 
-    void verify(HttpContext context, SSLSession sslSession,
+    protected void verify(HttpContext context, SSLSession sslSession,
                 URI selectedAddress) {
         log.debug("verify()");
 

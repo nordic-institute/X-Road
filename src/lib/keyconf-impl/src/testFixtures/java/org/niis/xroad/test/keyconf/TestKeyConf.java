@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -61,7 +62,9 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 public class TestKeyConf extends EmptyKeyConf {
     private final GlobalConfProvider globalConfProvider;
 
-    Map<String, OCSPResp> ocspResponses = new HashMap<>();
+    private final Map<String, OCSPResp> ocspResponses = new HashMap<>();
+    @Setter
+    private PKCS12 authKey = TestCertUtil.getConsumer();
 
     @Override
     public SigningInfo getSigningInfo(ClientId clientId) {
@@ -71,11 +74,10 @@ public class TestKeyConf extends EmptyKeyConf {
     @Override
     @SneakyThrows
     public AuthKey getAuthKey() {
-        PKCS12 consumer = TestCertUtil.getConsumer();
         return new AuthKey(CertChainFactory
                 .create("EE",
-                        globalConfProvider.getCaCert("EE", consumer.certChain[0]),
-                        consumer.certChain[0], null), consumer.key);
+                        globalConfProvider.getCaCert("EE", authKey.certChain[0]),
+                        authKey.certChain[0], null), authKey.key);
     }
 
     @Override

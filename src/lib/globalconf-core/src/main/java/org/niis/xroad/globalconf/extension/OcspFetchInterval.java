@@ -56,7 +56,7 @@ public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
      */
     public static final int OCSP_FETCH_INTERVAL_MIN = 60;
 
-    OcspFetchInterval() {
+    public OcspFetchInterval() {
         super(OcspFetchIntervalSchemaValidator.class);
     }
 
