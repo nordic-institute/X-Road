@@ -44,7 +44,7 @@ public interface LocalGroupTypeMapper extends GenericUniDirectionalMapper<LocalG
 
     List<LocalGroupType> toTargets(List<LocalGroupTypeEntity> entities);
 
-    LocalGroupTypeEntity toEntity(LocalGroupType record);
+    LocalGroupTypeEntity toEntity(LocalGroupType domain);
 
-    List<LocalGroupTypeEntity> toEntities(List<LocalGroupType> records);
+    List<LocalGroupTypeEntity> toEntities(List<LocalGroupType> domains);
 }

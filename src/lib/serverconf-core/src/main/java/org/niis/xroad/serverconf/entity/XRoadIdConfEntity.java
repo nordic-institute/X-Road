@@ -31,10 +31,11 @@ import ee.ria.xroad.common.util.NoCoverage;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -43,7 +44,6 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.serverconf.mapper.XRoadObjectTypeConverter;
 
 import static jakarta.persistence.AccessType.FIELD;
 
@@ -66,7 +66,7 @@ public abstract class XRoadIdConfEntity implements ee.ria.xroad.common.identifie
     @Column(name = "discriminator", nullable = false, insertable = false, updatable = false)
     private String discriminator;
 
-    @Convert(converter = XRoadObjectTypeConverter.Impl.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private XRoadObjectType objectType;
 

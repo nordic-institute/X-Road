@@ -41,6 +41,7 @@ import org.niis.xroad.serverconf.entity.GroupMemberTypeEntity;
 import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
 import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceIdConfEntity;
 import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
@@ -61,7 +62,7 @@ import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_VERSION;
 import static org.niis.xroad.serverconf.impl.TestUtil.SUBSYSTEM;
 import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
-import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
+import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceIdEntity;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
 import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
@@ -100,10 +101,9 @@ public class DAOImplTest {
 
     /**
      * Test getting client by its identifier.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getClientByIdentifier() throws Exception {
+    public void getClientByIdentifier() {
         ClientId id = createTestClientId(client(1));
         assertTrue(clientExists(id, false));
         getClient(id);
@@ -118,27 +118,25 @@ public class DAOImplTest {
 
     /**
      * Test getting IS certificates.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getIsCerts() throws Exception {
+    public void getIsCerts() {
         ClientId id = createTestClientId(client(1));
         assertEquals(1, new ClientDAOImpl().getIsCerts(session, id).size());
     }
 
     /**
      * Test getting service by identifier.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getServiceByIdentifier() throws Exception {
-        ServiceId.Conf id = createTestServiceId(client(1), service(1, 1),
+    public void getServiceByIdentifier() {
+        ServiceIdConfEntity id = createTestServiceIdEntity(client(1), service(1, 1),
                 SERVICE_VERSION);
         ServiceTypeEntity service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
         assertNotNull(service.getServiceDescription());
         assertNotNull(service.getServiceDescription().getClient());
-        assertEquals(id, ServiceId.Conf.create(
+        assertEquals(id, ServiceIdConfEntity.create(
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
@@ -150,10 +148,9 @@ public class DAOImplTest {
 
     /**
      * Test getting ACL.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getAcl() throws Exception {
+    public void getAcl(){
         ClientId id = createTestClientId(client(1));
         List<AccessRightTypeEntity> acl = getClient(id).getAcl();
         assertEquals(6, acl.size());
@@ -166,10 +163,9 @@ public class DAOImplTest {
 
     /**
      * Test deleting client.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void deleteClient() throws Exception {
+    public void deleteClient() {
         ClientId id = createTestClientId(client(2));
         ClientTypeEntity client = getClient(id);
 
@@ -186,10 +182,9 @@ public class DAOImplTest {
 
     /**
      * Test deleting service description.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void deleteServiceDescription() throws Exception {
+    public void deleteServiceDescription() {
         ClientId id = createTestClientId(client(3));
         ClientTypeEntity client = getClient(id);
 
@@ -208,10 +203,9 @@ public class DAOImplTest {
 
     /**
      * Test adding local group member.
-     * @throws Exception if an error occurs
      */
     @Test
-    public void addLocalGroupMember() throws Exception {
+    public void addLocalGroupMember() {
         ClientTypeEntity client = getClient(createTestClientId(client(1)));
         assertTrue(!client.getLocalGroup().isEmpty());
 
@@ -229,16 +223,15 @@ public class DAOImplTest {
         localGroup.getGroupMember().add(member);
     }
 
-    private ServerConfTypeEntity getConf() throws Exception {
+    private ServerConfTypeEntity getConf() {
         return new ServerConfDAOImpl().getConf(session);
     }
 
-    private boolean clientExists(ClientId id, boolean includeSubsystems)
-            throws Exception {
+    private boolean clientExists(ClientId id, boolean includeSubsystems) {
         return new ClientDAOImpl().clientExists(session, id, includeSubsystems);
     }
 
-    private ClientTypeEntity getClient(ClientId id) throws Exception {
+    private ClientTypeEntity getClient(ClientId id) {
         ClientTypeEntity client = new ClientDAOImpl().getClient(session, id);
         assertNotNull(client);
         assertEquals(id, client.getIdentifier());

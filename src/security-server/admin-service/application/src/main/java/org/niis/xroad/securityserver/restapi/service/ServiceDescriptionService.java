@@ -95,6 +95,8 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_OPENAPI_VALIDATION_WARNINGS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
 
 /**
  * ServiceDescription service
@@ -224,6 +226,8 @@ public class ServiceDescriptionService {
                 .noneMatch(Predicate.isEqual(serviceCode));
     }
 
+    @SuppressWarnings({"java:S3776"}) // won't fix: too high cognitive complexity.
+    // should be fixed when this method is updated next.
     public ServiceDescription addServiceDescription(DescriptionType descriptionType, ClientId clientId, String url,
                                                     String restServiceCode, boolean ignoreWarnings) {
 
@@ -364,7 +368,7 @@ public class ServiceDescriptionService {
         // add all new endpoints into a hashmap with a combination key
         newServiceDescription.getService().stream()
                 .map(serviceType -> EndpointTypeEntity.create(
-                        serviceType.getServiceCode(), EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true))
+                        serviceType.getServiceCode(), ANY_METHOD, ANY_PATH, true))
                 .forEach(endpointType -> endpointMap.put(createEndpointKey(endpointType), endpointType));
 
         // remove all existing endpoints with an equal combination key from the map
@@ -439,7 +443,7 @@ public class ServiceDescriptionService {
         serviceDescriptionType.getService().add(serviceType);
 
         // Create endpoints
-        EndpointTypeEntity endpointType = EndpointTypeEntity.create(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true);
+        EndpointTypeEntity endpointType = EndpointTypeEntity.create(serviceCode, ANY_METHOD, ANY_PATH, true);
         List<EndpointTypeEntity> endpoints = new ArrayList<>();
         endpoints.add(endpointType);
         endpoints.addAll(result.getOperations().stream()
@@ -565,8 +569,8 @@ public class ServiceDescriptionService {
         client.getServiceDescription().add(serviceDescriptionType);
 
         // Add created endpoint to client
-        EndpointTypeEntity endpointType = EndpointTypeEntity.create(serviceCode, EndpointType.ANY_METHOD,
-                EndpointType.ANY_PATH, true);
+        EndpointTypeEntity endpointType = EndpointTypeEntity.create(serviceCode, ANY_METHOD,
+                ANY_PATH, true);
         client.getEndpoint().add(endpointType);
 
         checkDuplicateServiceCodes(serviceDescriptionType);

@@ -34,6 +34,7 @@ import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
+import org.niis.xroad.serverconf.model.BaseEndpoint;
 import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,8 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BASE_ENDPOINT_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_REMOVE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
 
 @Service
 @Transactional
@@ -178,8 +181,8 @@ public class EndpointService {
             throws EndpointNotFoundException {
         return clientType.getEndpoint().stream()
                 .filter(endpointType -> endpointType.getServiceCode().equals(serviceCode)
-                        && endpointType.getMethod().equals(EndpointType.ANY_METHOD)
-                        && endpointType.getPath().equals(EndpointType.ANY_PATH))
+                        && endpointType.getMethod().equals(ANY_METHOD)
+                        && endpointType.getPath().equals(ANY_PATH))
                 .findFirst()
                 .orElseThrow(() -> new EndpointNotFoundException(
                         ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "

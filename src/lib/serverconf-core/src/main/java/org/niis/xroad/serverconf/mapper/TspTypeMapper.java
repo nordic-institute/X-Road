@@ -44,7 +44,7 @@ public interface TspTypeMapper extends GenericUniDirectionalMapper<TspTypeEntity
 
     List<TspType> toTargets(List<TspTypeEntity> entities);
 
-    TspTypeEntity toEntity(TspType record);
+    TspTypeEntity toEntity(TspType domain);
 
-    List<TspTypeEntity> toEntities(List<TspType> record);
+    List<TspTypeEntity> toEntities(List<TspType> domains);
 }

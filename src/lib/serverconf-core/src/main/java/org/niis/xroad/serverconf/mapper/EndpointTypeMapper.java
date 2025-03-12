@@ -44,7 +44,7 @@ public interface EndpointTypeMapper extends GenericUniDirectionalMapper<Endpoint
 
     List<EndpointType> toTargets(List<EndpointTypeEntity> entities);
 
-    EndpointTypeEntity toEntity(EndpointType record);
+    EndpointTypeEntity toEntity(EndpointType domain);
 
-    List<EndpointTypeEntity> toEntities(List<EndpointType> records);
+    List<EndpointTypeEntity> toEntities(List<EndpointType> domains);
 }

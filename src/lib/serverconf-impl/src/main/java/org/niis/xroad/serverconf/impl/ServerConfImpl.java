@@ -486,10 +486,12 @@ public class ServerConfImpl implements ServerConfProvider {
                         cb.equal(endpoint.get("serviceCode"), service.getServiceCode())),
                 cb.or(orPredicates.toArray(new Predicate[0])));
         var accessRights = session.createQuery(query).setReadOnly(true).list();
-        return EndpointTypeMapper.get().toTargets(accessRights.stream()
+        return EndpointTypeMapper.get().toTargets(
+                accessRights.stream()
                 .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), client))
                 .map(AccessRightTypeEntity::getEndpoint)
-                .collect(Collectors.toList()));
+                .toList()
+        );
     }
 
     private boolean subjectMatches(ClientTypeEntity serviceOwner, XRoadId aclSubject, ClientId client) {

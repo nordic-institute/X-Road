@@ -30,8 +30,9 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Mapping between ServiceType in api (enum) and model (DescriptionType)
@@ -46,44 +47,17 @@ public enum ServiceTypeMapping {
     private final DescriptionType descriptionType;
     private final ServiceType serviceType;
 
-    /**
-     * Return matching ServiceType, if any
-     * @param descriptionType
-     * @return
-     */
-    public static Optional<ServiceType> map(DescriptionType descriptionType) {
-        return getFor(descriptionType).map(ServiceTypeMapping::getServiceType);
+    private static final Map<DescriptionType, ServiceType> DESCRIPTION_TO_SERVICE_MAP =
+            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getDescriptionType, ServiceTypeMapping::getServiceType));
+
+    private static final Map<ServiceType, DescriptionType> SERVICE_TO_DESCRIPTION_MAP =
+            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getServiceType, ServiceTypeMapping::getDescriptionType));
+
+    public static ServiceType map(DescriptionType descriptionType) {
+        return DESCRIPTION_TO_SERVICE_MAP.get(descriptionType);
     }
 
-    /**
-     * Return matching DescriptionType, if any
-     * @param serviceType
-     * @return
-     */
-    public static Optional<DescriptionType> map(ServiceType serviceType) {
-        return getFor(serviceType).map(ServiceTypeMapping::getDescriptionType);
+    public static DescriptionType map(ServiceType serviceType) {
+        return SERVICE_TO_DESCRIPTION_MAP.get(serviceType);
     }
-
-    /**
-     * return ServiceTypeMapping matching the given descriptionType, if any
-     * @param descriptionType
-     * @return
-     */
-    public static Optional<ServiceTypeMapping> getFor(DescriptionType descriptionType) {
-        return Arrays.stream(values())
-                .filter(mapping -> mapping.descriptionType.equals(descriptionType))
-                .findFirst();
-    }
-
-    /**
-     * return ServiceTypeMapping matching the given serviceType, if any
-     * @param serviceType
-     * @return
-     */
-    public static Optional<ServiceTypeMapping> getFor(ServiceType serviceType) {
-        return Arrays.stream(values())
-                .filter(mapping -> mapping.serviceType.equals(serviceType))
-                .findFirst();
-    }
-
 }

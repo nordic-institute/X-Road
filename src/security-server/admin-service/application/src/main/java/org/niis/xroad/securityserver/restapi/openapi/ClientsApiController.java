@@ -367,10 +367,10 @@ public class ClientsApiController implements ClientsApi {
 
         // audit logging from controller works better here since logic is split into 3 different methods
         auditDataHelper.put(clientId);
-        auditDataHelper.putServiceDescriptionUrl(url, ServiceTypeMapping.map(serviceDescription.getType()).get());
+        auditDataHelper.putServiceDescriptionUrl(url, ServiceTypeMapping.map(serviceDescription.getType()));
 
         ServiceDescription addedServiceDescription = serviceDescriptionService.addServiceDescription(
-                        ServiceTypeMapping.map(serviceDescription.getType()).get(),
+                        ServiceTypeMapping.map(serviceDescription.getType()),
                         clientId,
                         url,
                         restServiceCode,

@@ -79,7 +79,7 @@ public class ServiceDescriptionConverter {
                 serviceDescriptionType.getRefreshedDate()));
         serviceDescription.setServices(serviceConverter.convertServices(serviceDescriptionType.getService(),
                 serviceDescriptionType.getClient().getIdentifier()));
-        serviceDescription.setType(ServiceTypeMapping.map(serviceDescriptionType.getType()).get());
+        serviceDescription.setType(ServiceTypeMapping.map(serviceDescriptionType.getType()));
         serviceDescription.setUrl(serviceDescriptionType.getUrl());
 
         return serviceDescription;

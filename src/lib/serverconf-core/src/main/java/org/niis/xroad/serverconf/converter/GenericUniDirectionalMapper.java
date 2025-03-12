@@ -28,7 +28,7 @@ package org.niis.xroad.serverconf.converter;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
-public interface GenericUniDirectionalMapper<SOURCE, TARGET> {
+public interface GenericUniDirectionalMapper<S, T> {
     @NoCoverage
-    TARGET toTarget(SOURCE source);
+    T toTarget(S source);
 }

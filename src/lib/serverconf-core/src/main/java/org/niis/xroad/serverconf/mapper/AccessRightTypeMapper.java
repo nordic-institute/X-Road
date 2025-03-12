@@ -44,7 +44,7 @@ public interface AccessRightTypeMapper extends GenericUniDirectionalMapper<Acces
 
     List<AccessRightType> toTargets(List<AccessRightTypeEntity> entities);
 
-    AccessRightTypeEntity toEntity(AccessRightType record);
+    AccessRightTypeEntity toEntity(AccessRightType domain);
 
-    List<AccessRightTypeEntity> toEntities(List<AccessRightType> records);
+    List<AccessRightTypeEntity> toEntities(List<AccessRightType> domains);
 }

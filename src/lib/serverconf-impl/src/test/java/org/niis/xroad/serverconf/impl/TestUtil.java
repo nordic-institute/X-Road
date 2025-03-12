@@ -302,6 +302,12 @@ public final class TestUtil {
                 serviceCode, serviceVerison);
     }
 
+    static ServiceIdConfEntity createTestServiceIdEntity(String memberCode, String serviceCode,
+                                              String serviceVerison) {
+        return ServiceIdConfEntity.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
+                serviceCode, serviceVerison);
+    }
+
     static ServiceId.Conf createTestServiceId(ClientId member, String serviceCode,
                                               String serviceVersion) {
         return ServiceId.Conf.create(member, serviceCode, serviceVersion);

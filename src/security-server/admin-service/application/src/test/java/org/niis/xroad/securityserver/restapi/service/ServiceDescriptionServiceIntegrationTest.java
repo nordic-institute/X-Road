@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -69,9 +70,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
 import static org.niis.xroad.serverconf.model.DescriptionType.WSDL;
-import static org.niis.xroad.serverconf.model.EndpointType.ANY_METHOD;
-import static org.niis.xroad.serverconf.model.EndpointType.ANY_PATH;
 
 /**
  * test ServiceDescription service.
@@ -127,7 +128,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
-        var vastus = serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
 
         // update wsdl to one with 3 services
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
@@ -160,9 +161,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         File threeServicesWsdl = TestUtils.getTestResourceFile("wsdl/valid.wsdl");
         FileUtils.copyFile(threeServicesWsdl, testServiceWsdl);
         String url = testServiceWsdl.toURI().toURL().toString();
-        var vastus = serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1,
-                url,
-                false);
+        serviceDescriptionService.addWsdlServiceDescription(CLIENT_ID_SS1, url, false);
 
         // update wsdl to one with just one service
         FileUtils.copyFile(getRandomWsdl, testServiceWsdl);
@@ -671,9 +670,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     public void refreshOpenApi3ServiceDescriptionUpdatesDate() throws Exception {
 
         ServiceDescriptionTypeEntity serviceDescriptiontype = serviceDescriptionService.getServiceDescriptiontypeEntity(6L);
-        var originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
+        Date originalRefreshedDate = serviceDescriptiontype.getRefreshedDate();
         serviceDescriptionService.refreshServiceDescription(6L, false);
-        var kuku = serviceDescriptiontype.getRefreshedDate();
         assertTrue(originalRefreshedDate.compareTo(serviceDescriptiontype.getRefreshedDate()) < 0);
     }
 

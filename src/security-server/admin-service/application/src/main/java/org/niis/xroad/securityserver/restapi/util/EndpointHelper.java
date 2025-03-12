@@ -31,11 +31,15 @@ import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
 import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
 import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
+import org.niis.xroad.serverconf.model.BaseEndpoint;
 import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
 
 @Component
 public class EndpointHelper {
@@ -60,7 +64,7 @@ public class EndpointHelper {
         List<EndpointType> newEndpoints = result.getOperations().stream()
                 .map(operation -> mapOperationToEndpoint(serviceCode, operation))
                 .collect(Collectors.toList());
-        newEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
+        newEndpoints.add(new EndpointType(serviceCode, ANY_METHOD, ANY_PATH, true));
         return EndpointTypeMapper.get().toEntities(newEndpoints);
     }
 

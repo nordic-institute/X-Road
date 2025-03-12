@@ -44,7 +44,7 @@ public interface CertificateTypeMapper extends GenericUniDirectionalMapper<Certi
 
     List<CertificateType> toTargets(List<CertificateTypeEntity> entities);
 
-    CertificateTypeEntity toEntity(CertificateType record);
+    CertificateTypeEntity toEntity(CertificateType domain);
 
-    List<CertificateTypeEntity> toEntities(List<CertificateType> records);
+    List<CertificateTypeEntity> toEntities(List<CertificateType> domains);
 }

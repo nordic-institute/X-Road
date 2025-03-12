@@ -146,81 +146,81 @@ public interface XroadIdConfMapper extends GenericUniDirectionalMapper<XRoadIdCo
                 source.getServiceVersion());
     }
 
-    default ClientIdConfEntity toEntity(ClientId.Conf record) {
-        if (record == null) {
+    default ClientIdConfEntity toEntity(ClientId.Conf domain) {
+        if (domain == null) {
             return null;
         }
-        return ClientIdConfEntity.create(record);
+        return ClientIdConfEntity.create(domain);
     }
 
-    default ClientIdConfEntity toEntity(ClientId record) {
-        if (record == null) {
+    default ClientIdConfEntity toEntity(ClientId domain) {
+        if (domain == null) {
             return null;
         }
-        return ClientIdConfEntity.create(record);
+        return ClientIdConfEntity.create(domain);
     }
 
-    default GlobalGroupConfEntity toEntity(GlobalGroupId record) {
-        if (record == null) {
+    default GlobalGroupConfEntity toEntity(GlobalGroupId domain) {
+        if (domain == null) {
             return null;
         }
-        return GlobalGroupConfEntity.create(record);
+        return GlobalGroupConfEntity.create(domain);
     }
 
-    default GlobalGroupConfEntity toEntity(GlobalGroupId.Conf record) {
-        if (record == null) {
+    default GlobalGroupConfEntity toEntity(GlobalGroupId.Conf domain) {
+        if (domain == null) {
             return null;
         }
-        return GlobalGroupConfEntity.create(record);
+        return GlobalGroupConfEntity.create(domain);
     }
 
-    default LocalGroupConfEntity toEntity(LocalGroupId record) {
-        if (record == null) {
+    default LocalGroupConfEntity toEntity(LocalGroupId domain) {
+        if (domain == null) {
             return null;
         }
-        return LocalGroupConfEntity.create(record);
+        return LocalGroupConfEntity.create(domain);
     }
 
-    default LocalGroupConfEntity toEntity(LocalGroupId.Conf record) {
-        if (record == null) {
+    default LocalGroupConfEntity toEntity(LocalGroupId.Conf domain) {
+        if (domain == null) {
             return null;
         }
-        return LocalGroupConfEntity.create(record);
+        return LocalGroupConfEntity.create(domain);
     }
 
-    default SecurityServerIdConfEntity toEntity(SecurityServerId record) {
-        if (record == null) {
+    default SecurityServerIdConfEntity toEntity(SecurityServerId domain) {
+        if (domain == null) {
             return null;
         }
-        return SecurityServerIdConfEntity.create(record);
+        return SecurityServerIdConfEntity.create(domain);
     }
 
-    default SecurityServerIdConfEntity toEntity(SecurityServerId.Conf record) {
-        if (record == null) {
+    default SecurityServerIdConfEntity toEntity(SecurityServerId.Conf domain) {
+        if (domain == null) {
             return null;
         }
-        return SecurityServerIdConfEntity.create(record);
+        return SecurityServerIdConfEntity.create(domain);
     }
 
-    default ServiceIdConfEntity toEntity(ServiceId.Conf record) {
-        if (record == null) {
+    default ServiceIdConfEntity toEntity(ServiceId.Conf domain) {
+        if (domain == null) {
             return null;
         }
-        return ServiceIdConfEntity.create(record);
+        return ServiceIdConfEntity.create(domain);
     }
 
-    default ServiceIdConfEntity toEntity(ServiceId record) {
-        if (record == null) {
+    default ServiceIdConfEntity toEntity(ServiceId domain) {
+        if (domain == null) {
             return null;
         }
-        return ServiceIdConfEntity.create(record);
+        return ServiceIdConfEntity.create(domain);
     }
 
     Collection<XRoadId.Conf> toTargets(Collection<XRoadIdConfEntity> entities);
 
     List<ServiceId.Conf> toServices(List<ServiceIdConfEntity> entities);
 
-    Set<XRoadIdConfEntity> toEntities(Set<XRoadId.Conf> records);
+    Set<XRoadIdConfEntity> toEntities(Set<XRoadId.Conf> domains);
 
-    Set<XRoadIdConfEntity> toSubjects(Set<? extends XRoadId> records);
+    Set<XRoadIdConfEntity> toSubjects(Set<? extends XRoadId> domains);
 }

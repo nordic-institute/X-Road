@@ -42,7 +42,7 @@ public interface GroupMemberTypeMapper extends GenericUniDirectionalMapper<Group
     @Override
     GroupMemberType toTarget(GroupMemberTypeEntity entity);
 
-    GroupMemberTypeEntity toEntity(GroupMemberType record);
+    GroupMemberTypeEntity toEntity(GroupMemberType domain);
 
-    List<GroupMemberTypeEntity> toEntities(List<GroupMemberType> records);
+    List<GroupMemberTypeEntity> toEntities(List<GroupMemberType> domains);
 }

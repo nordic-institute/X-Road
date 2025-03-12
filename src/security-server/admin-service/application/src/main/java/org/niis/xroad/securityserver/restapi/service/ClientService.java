@@ -463,9 +463,11 @@ public class ClientService {
         List<String> localClientIds = localClients.stream().map(localClient ->
                 localClient.getIdentifier().toShortString()).collect(Collectors.toList());
 
-        return ClientTypeMapper.get().toTargets(globalClients.stream()
+        return ClientTypeMapper.get().toTargets(
+                globalClients.stream()
                 .filter(globalClient -> !localClientIds.contains(globalClient.getIdentifier().toShortString()))
-                .collect(Collectors.toList()));
+                .toList()
+        );
     }
 
     /**
@@ -497,7 +499,7 @@ public class ClientService {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
-        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(client.getIdentifier())) {
             throw new CannotRegisterOwnerException();
         }
@@ -512,6 +514,10 @@ public class ClientService {
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
+    }
+
+    private ClientIdConfEntity getCurrentSecurityServerOwnerIdEntity() {
+        return XroadIdConfMapper.get().toEntity(currentSecurityServerId.getServerId().getOwner());
     }
 
     /**
@@ -568,7 +574,7 @@ public class ClientService {
         auditDataHelper.put(clientId);
         ClientTypeEntity client = getLocalClientEntityOrThrowNotFound(clientId);
         auditDataHelper.putClientStatus(client);
-        ClientId.Conf ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
         }
@@ -762,7 +768,7 @@ public class ClientService {
         auditDataHelper.put(isAuthentication);
 
         ClientTypeEntity existingLocalClient = getLocalClientEntity(clientId);
-        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (existingLocalClient != null) {
             throw new ClientAlreadyExistsException("client " + clientId + " already exists");
         }
@@ -846,7 +852,7 @@ public class ClientService {
 
         ClientTypeEntity clientType = getLocalClientEntityOrThrowNotFound(clientId);
         // cant delete owner
-        ClientId ownerId = currentSecurityServerId.getServerId().getOwner();
+        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(clientType.getIdentifier())) {
             throw new CannotDeleteOwnerException();
         }
