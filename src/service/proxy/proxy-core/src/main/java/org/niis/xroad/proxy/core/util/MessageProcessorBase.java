@@ -44,6 +44,8 @@ import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
+import javax.net.ssl.X509TrustManager;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateExpiredException;
@@ -261,8 +263,8 @@ public abstract class MessageProcessorBase {
                                 + " TLS certificate", client);
             }
 
-            if (auth.cert().equals(commonBeanProxy.getServerConfProvider().getSSLKey().getCertChain()[0])) {
-                // do not check certificates for local TLS connections
+            // Accept certificates issued by OpenBao (management requests from Proxy UI to ClientProxy within the same security server)
+            if (clientAuthenticationIssuedByVault(auth)) {
                 return;
             }
 
@@ -279,6 +281,24 @@ public abstract class MessageProcessorBase {
             }
 
             clientIsCertPeriodValidatation(client, auth.cert());
+        }
+    }
+
+    private boolean clientAuthenticationIssuedByVault(IsAuthenticationData auth) {
+        try {
+            var trustManager = (X509TrustManager) commonBeanProxy.getVaultKeyProvider().getTrustManager();
+            for (X509Certificate vaultIssuer : trustManager.getAcceptedIssuers()) {
+                try {
+                    auth.cert().verify(vaultIssuer.getPublicKey());
+                    return true;
+                } catch (Exception e) {
+                    // given issuer is not the one that signed the client cert, try next
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn("Failed to obtain vault key provider's trust manager", e);
+            return false;
         }
     }
 

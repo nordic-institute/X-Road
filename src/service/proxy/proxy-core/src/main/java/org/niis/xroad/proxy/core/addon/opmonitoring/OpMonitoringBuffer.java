@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.core.addon.opmonitoring;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -67,7 +68,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      * @throws Exception if an error occurs
      */
     public OpMonitoringBuffer(ServerConfProvider serverConfProvider,
-                              OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
+                              OpMonitorCommonProperties opMonitorCommonProperties,
+                              VaultKeyProvider vaultKeyProvider) throws Exception {
         super(serverConfProvider);
         this.opMonitorCommonProperties = opMonitorCommonProperties;
 
@@ -80,7 +82,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             opMonitoringDataProcessor = null;
             savedServiceEndpoint = null;
         } else {
-            sender = createSender(serverConfProvider, opMonitorCommonProperties);
+            sender = createSender(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -93,8 +95,9 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
-                                          OpMonitorCommonProperties opMonCommonProperties) throws Exception {
-        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties);
+                                          OpMonitorCommonProperties opMonCommonProperties,
+                                          VaultKeyProvider vaultKeyProvider) throws Exception {
+        return new OpMonitoringDaemonSender(serverConfProvider, this, opMonCommonProperties, vaultKeyProvider);
     }
 
     @Override

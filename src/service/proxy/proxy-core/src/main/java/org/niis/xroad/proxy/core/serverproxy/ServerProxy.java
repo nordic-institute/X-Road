@@ -118,8 +118,8 @@ public class ServerProxy {
     }
 
     private void createOpMonitorClient() throws Exception {
-        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(commonBeanProxy.getServerConfProvider().getSSLKey(),
-                opMonitorCommonProperties);
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                opMonitorCommonProperties, commonBeanProxy.getVaultKeyProvider(), commonBeanProxy.getServerConfProvider().getSSLKey());
     }
 
     private void createConnectors() throws Exception {

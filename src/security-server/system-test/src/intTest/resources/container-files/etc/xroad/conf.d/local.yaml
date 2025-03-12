@@ -1,9 +1,12 @@
 xroad:
   common:
+    rpc:
+      certificate-provisioning:
+        # To ensure vault-powered mTLS certificate rotation
+        ttl-minutes: 2
+        refresh-interval-minutes: 1
     global-conf:
       source: "REMOTE"
-    server-conf:
-      cache-period: 0
   configuration-client:
     update-interval: 3
     global-conf-tls-cert-verification: false
@@ -31,3 +34,5 @@ xroad:
     messagelog-keystore-password: somepassword
     messagelog-key-id: key1
     archive-encryption-enabled: true
+  op-monitor:
+    scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
