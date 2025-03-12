@@ -1,10 +1,11 @@
 #!/bin/bash -e
 set -e
 
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 origin="$(pwd)"
 
 gradleModule=""
-gradleArgs="clean build -xtest -xcheckstyleMain -xcheckstyleTest "
+gradleArgs="clean build -x check "
 case $1 in
 "proxy")
   gradleModule="service/proxy/proxy-application"
@@ -20,15 +21,13 @@ case $1 in
   ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"
-  gradleArgs+="-xintTest"
   ;;
 "cs-management-service")
   gradleModule="central-server/management-service"
-  gradleArgs+="-xintTest"
   ;;
 esac
 
-cd ../../src/
+cd "$SCRIPT_DIR"/../../src/
 set -o xtrace
 ./gradlew $gradleArgs -p $gradleModule
 set +o xtrace

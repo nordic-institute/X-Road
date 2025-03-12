@@ -56,7 +56,7 @@ public class TestService {
     private final Server server = new Server();
 
     private Handler handler;
-    private Throwable exception;
+    private Exception exception;
 
     /**
      * Handler
@@ -99,6 +99,10 @@ public class TestService {
         server.addConnector(connector);
     }
 
+    public int getPort() {
+        return ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+    }
+
     public synchronized void start() throws Exception {
         server.start();
     }
@@ -122,7 +126,7 @@ public class TestService {
     /**
      * checks if the handler was successful
      */
-    public synchronized void assertOk() throws Throwable {
+    public synchronized void assertOk() throws Exception {
         if (exception != null) {
             throw exception;
         }
@@ -136,12 +140,12 @@ public class TestService {
                 try {
                     handler.handle(request, response);
                     callback.succeeded();
-                } catch (Throwable t) {
-                    exception = t;
-                    log.error("Error when handling request", t);
+                } catch (Exception e) {
+                    exception = e;
+                    log.error("Error when handling request", e);
                     response.setStatus(INTERNAL_SERVER_ERROR_500);
-                    Content.Sink.write(response, true, UTF_8.encode(t.getMessage()));
-                    callback.failed(t);
+                    Content.Sink.write(response, true, UTF_8.encode(e.getMessage()));
+                    callback.failed(e);
                 }
                 return true;
             }

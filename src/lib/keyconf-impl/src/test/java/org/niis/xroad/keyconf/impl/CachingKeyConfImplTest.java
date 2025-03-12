@@ -189,7 +189,6 @@ class CachingKeyConfImplTest {
 
         expectedCacheHits++;
         assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
-
     }
 
     @Test
@@ -450,7 +449,7 @@ class CachingKeyConfImplTest {
         }
 
         @Override
-        protected void invalidateCaches() {
+        public void invalidateCaches() {
             super.invalidateCaches();
             changed.countDown();
         }

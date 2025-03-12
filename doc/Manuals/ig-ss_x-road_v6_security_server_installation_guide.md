@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.55  
+Version: 2.56  
 Doc. ID: IG-SS
 
 ---
@@ -75,6 +75,7 @@ Doc. ID: IG-SS
 | 24.09.2024 | 2.53    | Add mail server to the network diagram                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 08.11.2024 | 2.54    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
 | 13.02.2025 | 2.55    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
+| 10.03.2025 | 2.56    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
 
 ## License
 
@@ -138,7 +139,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 1.1 Target Audience
 
-The intended audience of this Installation Guide are X-Road Security server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the Security Server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
+The intended audience of this Installation Guide are X-Road Security Server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the Security Server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
@@ -169,8 +170,8 @@ There are multiple alternatives how the Security Server can be deployed. The opt
 
 The Security Server is officially supported on the following platforms:
 
-* Ubuntu Server 20.04, 22.04 or 24.04 Long-Term Support (LTS) operating system on a x86-64 platform.
-* Red Hat Enterprise Linux (RHEL) 7, 8, 9 (x86-64). See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
+* Ubuntu Server 22.04 and 24.04 Long-Term Support (LTS) operating system on a x86-64 platform.
+* Red Hat Enterprise Linux (RHEL) 8 and 9 on a x86-64 platform. See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -182,34 +183,34 @@ The software can be installed both on physical and virtualized hardware (of the 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
-| **Ref** |                                                                                                                      | **Explanation**                                                                                                                                                                                                                                                                            |
-|---------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0     | Ubuntu 20.04, 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                              | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
-| 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                       | X-Road package repository                                                                                                                                                                                                                                                                  |
+| **Ref** |                                                                                                                      | **Explanation**                                                                                                                                                                                                                                                                           |
+|---------|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0     | Ubuntu 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                     | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                           |
+| 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                       | X-Road package repository                                                                                                                                                                                                                                                                 |
 | 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                         |
-| 1.4     | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
-| &nbsp;  | TCP 80                                                                                                               | Incoming ACME challenge requests from ACME Servers                                                                                                                                                                                                                                         |
-| &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
-| &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| 1.5     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
-| &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
-| &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| &nbsp;  | TCP 4001                                                                                                             | Communication with the Central Server                                                                                                                                                                                                                                                      |
-| &nbsp;  | TCP 80,443                                                                                                           | Downloading global configuration from the Central Server                                                                                                                                                                                                                                   |
-| &nbsp;  | TCP 80,443                                                                                                           | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
-| &nbsp;  | TCP 80,443                                                                                                           | Communication with ACME servers                                                                                                                                                                                                                                                            |
-| 1.6     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
-| &nbsp;  | TCP 4000                                                                                                             | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
-| &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
-| &nbsp;  | TCP 587                                                                                                              | Communication with the mail server                                                                                                                                                                                                                                                         |
-| 1.7     | **Outbound ports to internal network**                                                                               | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
-| &nbsp;  | TCP 80, 443, *other*                                                                                                 | Producer information system endpoints                                                                                                                                                                                                                                                      |
-| &nbsp;  | TCP 2080                                                                                                             | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
-| 1.8     |                                                                                                                      | Security server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
-| 1.9     |                                                                                                                      | Security server public IP address, NAT address                                                                                                                                                                                                                                             |
-| 1.10    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
-| 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate                                                                                                                                                                                                                                             |
+| 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                        |
+| 1.4     | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                            |
+| &nbsp;  | TCP 80                                                                                                               | Incoming ACME challenge requests from ACME servers                                                                                                                                                                                                                                        |
+| &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                 |
+| &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                       |
+| 1.5     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                           |
+| &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                 |
+| &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                       |
+| &nbsp;  | TCP 4001                                                                                                             | Communication with the Central Server                                                                                                                                                                                                                                                     |
+| &nbsp;  | TCP 80,443                                                                                                           | Downloading global configuration from the Central Server                                                                                                                                                                                                                                  |
+| &nbsp;  | TCP 80,443                                                                                                           | Most common OCSP and time-stamping services                                                                                                                                                                                                                                               |
+| &nbsp;  | TCP 80,443                                                                                                           | Communication with ACME servers                                                                                                                                                                                                                                                           |
+| &nbsp;  | TCP 587                                                                                                              | Communication with mail servers. The mail server may be located in internal or external network                                                                                                                                                                                           |
+| 1.6     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                            |
+| &nbsp;  | TCP 4000                                                                                                             | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                     |
+| &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                       |
+| 1.7     | **Outbound ports to internal network**                                                                               | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                            |
+| &nbsp;  | TCP 80, 443, *other*                                                                                                 | Producer information system endpoints                                                                                                                                                                                                                                                     |
+| &nbsp;  | TCP 2080                                                                                                             | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                 |
+| 1.8     |                                                                                                                      | Security Server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                   |
+| 1.9     |                                                                                                                      | Security Server public IP address, NAT address                                                                                                                                                                                                                                            |
+| 1.10    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                      |
+| 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate                                                                                                                                                                                                                                            |
 
 #### 2.2.1 Network Diagram
 
@@ -219,21 +220,22 @@ The network diagram below provides an example of a basic Security Server setup. 
 
 The table below lists the required connections between different components.
 
-| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                       |
-|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|--------------------------------|
-| Out                 | Security Server                                          | Central Server                                           | 80, 443, 4001    | tcp          |                                |
-| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                |
-| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                |
-| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                |
-| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                |
-| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network |
-| Out                 | Security Server                                          | ACME Server                                              | 80 / 443         | tcp          |                                |
-| Out                 | Security Server                                          | Mail server                                              | 587              | tcp          |                                |
-| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                |
-| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                |
-| In                  | ACME Server                                              | Security Server                                          | 80               | tcp          |                                | 
-| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network |
-| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network |
+| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                                                                                                                                                                              |
+|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Out                 | Security Server                                          | Central Server                                           | 80, 443, 4001    | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network                                                                                                                                                        |
+| Out                 | Security Server                                          | ACME Server                                              | 80 / 443         | tcp          |                                                                                                                                                                                       |
+| Out                 | Security Server                                          | Mail server                                              | 587              | tcp          |                                                                                                                                                                                       |
+| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                                                                                                                                                                       |
+| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                                                                                                                                                                       |
+| In                  | ACME Server                                              | Security Server                                          | 80               | tcp          |                                                                                                                                                                                       | 
+| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network                                                                                                                                                        |
+| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network                                                                                                                                                        |
+| In                  | Monitoring system                                        | Security Server                                          | other            | tcp          | Source in the internal network<br />The health check interface is disabled by default and the target port is defined by the Security Server administrator when the feature is enabled |
 
 The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
 
@@ -261,7 +263,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured Ubuntu 20.04 LTS, 22.04 or 24.04 LTS x86-64 operating system;
+* an installed and configured Ubuntu 22.04 LTS or 24.04 LTS x86-64 operating system;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -495,7 +497,7 @@ The Security Server code and the software token’s PIN will be determined durin
 | 2.1 | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file            |
 | 2.2 | E.g.<br>GOV - government<br> COM - commercial           | Member class of the Security Server's owner |
 | 2.3 | &lt;Security Server owner register code&gt;             | Member code of the Security Server's owner  |
-| 2.4 | &lt;choose Security Server identificator name&gt;       | Security server's code                      |
+| 2.4 | &lt;choose Security Server identificator name&gt;       | Security Server's code                      |
 | 2.5 | &lt;choose PIN for software token&gt;                   | Software token’s PIN                        |
 
 ### 3.3 Configuration
@@ -519,7 +521,7 @@ If the configuration is successfully downloaded, the system asks for the followi
 
   If the member class and member code are correctly entered, the system displays the Security Server owner’s name as registered in the X-Road center.
 
-* Security server code (**reference data: 2.4**), which is chosen by the Security Server administrator and which has to be unique across all the Security Servers belonging to the same X-Road member.
+* Security Server code (**reference data: 2.4**), which is chosen by the Security Server administrator and which has to be unique across all the Security Servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
 ### 3.4 Configuring Firewall
@@ -546,7 +548,7 @@ The parameter can be changed by following the [System Parameters guide](ug-syspa
 
 ### 3.5 Configuring Configuration Backup Encryption
 
-It is possible to automatically encrypt Security Server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
+It is possible to automatically encrypt Security Server configuration backups. Security Server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
@@ -795,30 +797,30 @@ X-Road Security Server has multiple deployment options. The simplest choice is t
 
 The simplest deployment option is to use a single Security Server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
-![Security server with local database](img/ig-ss_local_db.svg)
+![Security Server with local database](img/ig-ss_local_db.svg)
 
 
 ### C.3 Remote Database
 
 It is possible to use a remote database with Security Server. This option is sometimes used in development and testing when there's need to externalize the database state.
 
-Security server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
+Security Server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
 
-![Security server with remote database](img/ig-ss_remote_db.svg)
+![Security Server with remote database](img/ig-ss_remote_db.svg)
 
 
 ### C.4 High Availability Setup
 
-In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+In production systems it's rarely acceptable to have a single point of failure. Security Server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
-![Security server high-availability setup](img/ig-ss_high_availability.svg)
+![Security Server high-availability setup](img/ig-ss_high_availability.svg)
 
 
 ### C.5 Load Balancing Setup
 
 Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a Security Server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
-![Security server load balancing setup](img/ig-ss_load_balancing.svg)
+![Security Server load balancing setup](img/ig-ss_load_balancing.svg)
 
 
 ### C.6 Summary

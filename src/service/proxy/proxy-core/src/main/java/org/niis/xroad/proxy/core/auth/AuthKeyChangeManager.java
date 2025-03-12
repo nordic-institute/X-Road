@@ -24,31 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.proxy.core.auth;
 
-package org.niis.xroad.proxy.application;
-
-import io.quarkus.test.Mock;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.junit.jupiter.api.Test;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.test.serverconf.TestServerConf;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
+import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
+import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 
-@QuarkusTest
-@TestProfile(ProxyTestProfile.class)
-class ProxyMainTest {
+@Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
+@Startup
+public class AuthKeyChangeManager {
+    private final KeyConfProvider keyConfProvider;
+    private final ClientProxy clientProxy;
+    private final ServerProxy serverProxy;
 
-    @Test
-    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
-    void contextLoads() {
-        // ok
+    @PostConstruct
+    public void afterPropertiesSet() {
+        keyConfProvider.addChangeListener(this::onAuthKeyChange);
     }
 
-    @ApplicationScoped
-    @Mock
-    ServerConfProvider serverConfProvider() {
-        return new TestServerConf();
+    private void onAuthKeyChange() {
+        log.debug("Authentication key change detected, reloading key.");
+        if (keyConfProvider instanceof CachingKeyConfImpl cachingKeyConf) {
+            cachingKeyConf.invalidateCaches();
+        }
+        clientProxy.reloadAuthKey();
+        serverProxy.reloadAuthKey();
     }
 
 }
