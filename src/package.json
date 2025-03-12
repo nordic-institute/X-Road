@@ -15,7 +15,7 @@
     "@rushstack/eslint-patch": "^1.10.5",
     "@tsconfig/node18": "^18.2.4",
     "@types/node": "^22.13.10",
-    "@vitejs/plugin-basic-ssl": "^1.2.0",
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^13.0.0",
