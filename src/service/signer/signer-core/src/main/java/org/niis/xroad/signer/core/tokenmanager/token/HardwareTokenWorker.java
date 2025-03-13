@@ -83,17 +83,6 @@ import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.addCert;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.addKey;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.getKeyInfo;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.isTokenAvailable;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.listKeys;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setKeyAvailable;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setPublicKey;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenActive;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenAvailable;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenInfo;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenStatus;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKey;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPublicKey;
@@ -126,8 +115,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
      * @param tokenInfo the token info
      * @param tokenType the token type
      */
-    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties) {
-        super(tokenInfo, signerProperties);
+    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties, TokenManager tokenManager) {
+        super(tokenInfo, signerProperties, tokenManager);
 
         this.tokenType = tokenType;
 
@@ -148,9 +137,9 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("start()");
         try {
             initialize();
-            setTokenAvailable(tokenId, true);
+            tokenManager.setTokenAvailable(tokenId, true);
         } catch (Exception e) {
-            setTokenAvailable(tokenId, false);
+            tokenManager.setTokenAvailable(tokenId, false);
 
             log.error("Error initializing token ({})", getWorkerId(), e);
 
@@ -184,7 +173,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     public void refresh() throws Exception {
         log.trace("refresh()");
 
-        if (isTokenAvailable(tokenId) && activeSession != null) {
+        if (tokenManager.isTokenAvailable(tokenId) && activeSession != null) {
             findKeysNotInConf();
             findPublicKeysForPrivateKeys();
             findCertificatesNotInConf();
@@ -318,7 +307,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         assertTokenWritable();
         assertActiveSession();
 
-        KeyInfo keyInfo = TokenManager.getKeyInfoForCertId(certId);
+        KeyInfo keyInfo = tokenManager.getKeyInfoForCertId(certId);
 
         if (keyInfo == null) {
             throw certWithIdNotFound(certId);
@@ -336,7 +325,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                     if (Arrays.equals(certInfo.getCertificateBytes(), cert.getValue().getByteArrayValue())) {
                         destroyCert(cert);
                         certsOnModule.remove(cert);
-                        TokenManager.removeCert(certId);
+                        tokenManager.removeCert(certId);
 
                         break;
                     }
@@ -393,7 +382,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
 
         assertKeyAvailable(keyId);
-        KeyInfo keyInfo = getKeyInfo(keyId);
+        KeyInfo keyInfo = tokenManager.getKeyInfo(keyId);
         CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
 
@@ -433,11 +422,11 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                     continue;
                 }
 
-                KeyInfo key = getKeyInfo(keyId);
+                KeyInfo key = tokenManager.getKeyInfo(keyId);
 
                 if (key == null) {
-                    key = addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
-                    setKeyAvailable(keyId, true);
+                    key = tokenManager.addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
+                    tokenManager.setKeyAvailable(keyId, true);
 
                     log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
                 }
@@ -446,7 +435,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 char[] label = keyOnToken.getLabel().getCharArrayValue();
 
                 if (label != null) {
-                    TokenManager.setKeyLabel(keyId, new String(label));
+                    tokenManager.setKeyLabel(keyId, new String(label));
                 }
 
                 if (key.getPublicKey() == null) {
@@ -473,7 +462,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     private void findPublicKeysForPrivateKeys() throws Exception {
         log.trace("findPublicKeysForPrivateKeys()");
 
-        for (KeyInfo key : listKeys(tokenId)) {
+        for (KeyInfo key : tokenManager.listKeys(tokenId)) {
             if (key.getPublicKey() == null && key.getId() != null) {
                 updatePublicKey(key.getId());
             }
@@ -485,7 +474,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
         try {
             List<X509PublicKeyCertificate> certsOnModule = findPublicKeyCertificates(activeSession);
-            List<KeyInfo> existingKeys = listKeys(tokenId);
+            List<KeyInfo> existingKeys = tokenManager.listKeys(tokenId);
 
             for (X509PublicKeyCertificate certOnModule : certsOnModule) {
                 byte[] certBytes = certOnModule.getValue().getByteArrayValue();
@@ -494,7 +483,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                     if (key.getId().equals(keyId(certOnModule)) && !hasCert(key, certBytes)) {
                         log.debug("Found new certificate for key '{}'", key.getId());
 
-                        addCert(key.getId(), certBytes);
+                        tokenManager.addCert(key.getId(), certBytes);
                         putCert(key.getId(), certOnModule);
                     }
                 }
@@ -517,11 +506,11 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             switch (publicKey) {
                 case RSAPublicKey rsaPublicKey -> {
                     publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(KeyAlgorithm.RSA).generateX509PublicKey(rsaPublicKey));
-                    setPublicKey(keyId, publicKeyBase64);
+                    tokenManager.setPublicKey(keyId, publicKeyBase64);
                 }
                 case ECDSAPublicKey ecPublicKey -> {
                     publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(KeyAlgorithm.EC).generateX509PublicKey(ecPublicKey));
-                    setPublicKey(keyId, publicKeyBase64);
+                    tokenManager.setPublicKey(keyId, publicKeyBase64);
                 }
                 case null, default -> {
                     X509PublicKeyCertificate first = certs.get(keyId).getFirst();
@@ -533,7 +522,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             if (publicKeyBase64 != null) {
                 log.debug("Found public key for key '{}'...", keyId);
 
-                setPublicKey(keyId, publicKeyBase64);
+                tokenManager.setPublicKey(keyId, publicKeyBase64);
             }
         } catch (PKCS11Exception e) {
             throw e;
@@ -569,8 +558,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
             log.info("User successfully logged in");
 
-            setTokenStatus(tokenId, TokenStatusInfo.OK);
-            setTokenActive(tokenId, true);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
+            tokenManager.setTokenActive(tokenId, true);
             loadPrivateKeys();
         } catch (PKCS11Exception e) {
             setTokenStatusFromErrorCode(e.getErrorCode());
@@ -593,13 +582,13 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
             log.info("User successfully logged out");
 
-            setTokenStatus(tokenId, TokenStatusInfo.OK);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
         } catch (PKCS11Exception e) {
             setTokenStatusFromErrorCode(e.getErrorCode());
 
             throw e;
         } finally {
-            setTokenActive(tokenId, false);
+            tokenManager.setTokenActive(tokenId, false);
         }
     }
 
@@ -659,19 +648,19 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             log.trace("Private key '{}' added to token '{}'", keyId, getWorkerId());
 
             if (isKeyMissing(keyId)) {
-                addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
+                tokenManager.addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
             } else {
                 log.debug("Private key ({}) found in token '{}'", keyId, getWorkerId());
             }
 
-            setKeyAvailable(keyId, true);
+            tokenManager.setKeyAvailable(keyId, true);
         }
 
-        for (KeyInfo keyInfo : listKeys(tokenId)) {
+        for (KeyInfo keyInfo : tokenManager.listKeys(tokenId)) {
             String keyId = keyInfo.getId();
 
             if (!privateKeys.containsKey(keyId)) {
-                setKeyAvailable(keyId, false);
+                tokenManager.setKeyAvailable(keyId, false);
 
                 log.debug("Private key ({}) not found in token '{}'", keyId, getWorkerId());
             }
@@ -691,7 +680,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             Map<String, String> tokenInfo = new HashMap<>();
             HardwareTokenInfo.fillInTokenInfo(getToken().getTokenInfo(), tokenInfo);
 
-            setTokenInfo(tokenId, tokenInfo);
+            tokenManager.setTokenInfo(tokenId, tokenInfo);
         } catch (Exception e) {
             log.error("Failed to update token info", e);
         }
@@ -716,7 +705,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         TokenStatusInfo status = getTokenStatus(getToken().getTokenInfo(), errorCode);
 
         if (status != null) {
-            setTokenStatus(tokenId, status);
+            tokenManager.setTokenStatus(tokenId, status);
         }
     }
 

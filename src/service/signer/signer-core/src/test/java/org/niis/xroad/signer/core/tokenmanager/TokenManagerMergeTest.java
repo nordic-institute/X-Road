@@ -82,6 +82,8 @@ public class TokenManagerMergeTest {
 
     private File testingFile;
 
+    private TokenRegistry tokenRegistry;
+    private TokenManager tokenManager;
     @Rule
     public final ProvideSystemProperty slaveProperty
             = new ProvideSystemProperty(SystemProperties.NODE_TYPE, SystemProperties.NodeType.SLAVE.toString());
@@ -103,33 +105,34 @@ public class TokenManagerMergeTest {
      */
     @Before
     public void setUp() throws Exception {
-
         testingFile = temporaryFolder.newFile("keyconf-testing.xml");
 
         SignerProperties signerProperties = initConfiguration(SignerProperties.class, Map.of(
                 "xroad.signer.key-configuration-file", testingFile.getPath()
         ));
+        tokenRegistry = new TokenRegistry(signerProperties);
+        tokenManager = new TokenManager(tokenRegistry);
 
         Files.copy(ORIGINAL_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        TokenManager.init(signerProperties);
+        tokenRegistry.init();
     }
 
     @Test
     public void shouldMergeKeyAvailability() throws Exception {
 
         final String testKeyId = "636f6e73756d6574";
-        KeyInfo beforeKeyInfo = TokenManager.getKeyInfo(testKeyId);
+        KeyInfo beforeKeyInfo = tokenManager.getKeyInfo(testKeyId);
         assertNotNull("test setup failure", beforeKeyInfo);
-        assertFalse(TokenManager.isKeyAvailable(testKeyId));
+        assertFalse(tokenManager.isKeyAvailable(testKeyId));
 
-        TokenManager.setKeyAvailable(testKeyId, true);
+        tokenManager.setKeyAvailable(testKeyId, true);
         Files.copy(ADDED_KEY_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        TokenManager.merge(addedCerts -> {
+        tokenRegistry.merge(addedCerts -> {
         });
 
-        assertTrue("key availability was not merged", TokenManager.isKeyAvailable(testKeyId));
+        assertTrue("key availability was not merged", tokenManager.isKeyAvailable(testKeyId));
     }
 
     @Test
@@ -138,17 +141,17 @@ public class TokenManagerMergeTest {
         List<Token> beforeTokens = TokenConf.getInstance().getTokens();
 
         final int beforeSize = beforeTokens.size();
-        final int beforeCertCount = TokenManager.getAllCerts().size();
+        final int beforeCertCount = tokenManager.getAllCerts().size();
 
         File emptyFile = temporaryFolder.newFile();
         Files.copy(emptyFile.toPath(), testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        TokenManager.merge(addedCerts -> {
+        tokenRegistry.merge(addedCerts -> {
         });
 
         List<Token> afterTokens = TokenConf.getInstance().getTokens();
         assertEquals("token amount changed", beforeSize, afterTokens.size());
-        assertEquals("cert amount changed", beforeCertCount, TokenManager.getAllCerts().size());
+        assertEquals("cert amount changed", beforeCertCount, tokenManager.getAllCerts().size());
 
     }
 
@@ -162,15 +165,15 @@ public class TokenManagerMergeTest {
 
         assertTrue("test setup failure", Files.exists(ADDED_KEY_FILE_PATH));
 
-        final int beforeCertCount = TokenManager.getAllCerts().size();
+        final int beforeCertCount = tokenManager.getAllCerts().size();
 
         Files.copy(ADDED_KEY_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         TokenMergeAddedCertificatesListener listenerMock = mock(TokenMergeAddedCertificatesListener.class);
 
-        TokenManager.merge(listenerMock);
+        tokenRegistry.merge(listenerMock);
 
-        assertEquals("cert amount should be original + 1", beforeCertCount + 1, TokenManager.getAllCerts().size());
+        assertEquals("cert amount should be original + 1", beforeCertCount + 1, tokenManager.getAllCerts().size());
         verify(listenerMock, times(1)).mergeDone(certListArgumentCaptor.capture());
         assertThat("Added certs count mismatch", certListArgumentCaptor.getValue().size(), is(1));
 
@@ -182,17 +185,17 @@ public class TokenManagerMergeTest {
         assertTrue("test setup failure", Files.exists(ADDED_KEY_CERT_FILE_PATH));
 
         final String testKeyId = "70726f6475636572";
-        KeyInfo beforeKeyInfo = TokenManager.getKeyInfo(testKeyId);
+        KeyInfo beforeKeyInfo = tokenManager.getKeyInfo(testKeyId);
         assertNotNull("test setup failure", beforeKeyInfo);
 
         final int beforeCount = beforeKeyInfo.getCerts().size();
 
         Files.copy(ADDED_KEY_CERT_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        TokenManager.merge(addedCerts -> {
+        tokenRegistry.merge(addedCerts -> {
         });
 
         assertEquals("cert amount for key should be original + 1",
-                beforeCount + 1, TokenManager.getKeyInfo(testKeyId).getCerts().size());
+                beforeCount + 1, tokenManager.getKeyInfo(testKeyId).getCerts().size());
     }
 
     @Test
@@ -201,12 +204,12 @@ public class TokenManagerMergeTest {
         assertTrue("test setup failure", Files.exists(ADDED_KEY_FILE_PATH));
 
         final String testKeyId = "70726f6475636572";
-        KeyInfo beforeKeyInfo = TokenManager.getKeyInfo(testKeyId);
+        KeyInfo beforeKeyInfo = tokenManager.getKeyInfo(testKeyId);
         assertNotNull("test setup failure", beforeKeyInfo);
 
         final String testCertId = "06700c12f395183c779884fcd49d4ca55fa485aa65617da5b75d84927bec2c91";
         final String testCertSha1Hash = "e82e0b2b184d4387c2afd83708d4cfeaeb872cf7";
-        CertificateInfo beforeCertInfo = TokenManager.getCertificateInfo(testCertId);
+        CertificateInfo beforeCertInfo = tokenManager.getCertificateInfo(testCertId);
         assertNotNull("test setup failure", beforeCertInfo);
 
         // assert no ocsp response exists before test
@@ -215,19 +218,19 @@ public class TokenManagerMergeTest {
         OCSPResp shouldMatchResponse = mock(OCSPResp.class);
         final byte[] shouldMatchOcspResponseBytes = "some example string  11 2 34".getBytes();
         when(shouldMatchResponse.getEncoded()).thenReturn(shouldMatchOcspResponseBytes);
-        TokenManager.setOcspResponse(testCertSha1Hash, shouldMatchResponse);
+        tokenManager.setOcspResponse(testCertSha1Hash, shouldMatchResponse);
 
-        final int beforeCertCount = TokenManager.getAllCerts().size();
+        final int beforeCertCount = tokenManager.getAllCerts().size();
 
         Files.copy(ADDED_KEY_CERT_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        TokenManager.merge(addedCerts -> {
+        tokenRegistry.merge(addedCerts -> {
         });
 
         // make sure the merge actually reads the file, otherwise the ocsp response will of course be there
-        assertEquals("merge did not add expected cert", beforeCertCount + 1, TokenManager.getAllCerts().size());
+        assertEquals("merge did not add expected cert", beforeCertCount + 1, tokenManager.getAllCerts().size());
 
         assertArrayEquals("ocsp response bytes does not match",
                 shouldMatchOcspResponseBytes,
-                TokenManager.getCertificateInfo(testCertId).getOcspBytes());
+                tokenManager.getCertificateInfo(testCertId).getOcspBytes());
     }
 }

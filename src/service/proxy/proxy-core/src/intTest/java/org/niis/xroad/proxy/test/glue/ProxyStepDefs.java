@@ -52,6 +52,7 @@ import org.niis.xroad.serverconf.impl.ServerConfImpl;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
@@ -82,6 +83,7 @@ public class ProxyStepDefs extends BaseStepDefs {
     private String scenarioKeyId;
 
     private final SignerRpcClient signerRpcClient = BatchSignerInitHook.signerRpcClient;
+    private final SignerSignClient signerSignClient = BatchSignerInitHook.signerSignClient;
 
     @Step("tokens are listed")
     public void listTokens() {
@@ -212,17 +214,14 @@ public class ProxyStepDefs extends BaseStepDefs {
         var serverConf = new ServerConfImpl(null, globalConf);
         var keyconf = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
-        return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient));
+        return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient, signerSignClient));
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)
             throws InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(threads);
 
-        try {
+        try (ExecutorService executorService = Executors.newFixedThreadPool(threads);) {
             return executorService.invokeAll(callables);
-        } finally {
-            executorService.shutdown();
         }
     }
 

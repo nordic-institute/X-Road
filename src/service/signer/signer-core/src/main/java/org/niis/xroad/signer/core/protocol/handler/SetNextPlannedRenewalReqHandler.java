@@ -28,7 +28,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
 
 import java.time.Instant;
@@ -43,7 +42,7 @@ public class SetNextPlannedRenewalReqHandler
     @Override
     protected Empty handle(SetNextPlannedRenewalReq request) throws Exception {
         Instant nextRenewalTime = Instant.ofEpochSecond(request.getNextRenewalTime().getSeconds(), request.getNextRenewalTime().getNanos());
-        TokenManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
+        tokenManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
 
         return Empty.getDefaultInstance();
     }

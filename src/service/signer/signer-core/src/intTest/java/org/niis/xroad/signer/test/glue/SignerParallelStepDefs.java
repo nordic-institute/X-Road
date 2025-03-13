@@ -29,6 +29,11 @@ package org.niis.xroad.signer.test.glue;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
+import io.cucumber.java.en.Step;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -43,11 +48,6 @@ import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_EC
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import io.cucumber.java.en.Step;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.StopWatch;
-import org.niis.xroad.signer.api.dto.KeyInfo;
 
 @Slf4j
 public class SignerParallelStepDefs extends BaseSignerStepDefs {
