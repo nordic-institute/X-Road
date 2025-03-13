@@ -8,11 +8,11 @@
 metrics = "4.2.30"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.5.3.Final"
+hibernate = "6.6.8.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
 mockito = "5.15.2"
-springBoot = "3.3.9"
+springBoot = "3.4.2"
 junitJupiter = "5.11.4"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
@@ -43,7 +43,7 @@ springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies",
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.5" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.0" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
@@ -76,12 +76,12 @@ testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide",
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
 
-jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.1" }
-jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.1.0" }
+jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
+jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.0.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
 jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
 jakarta-soapApi = { module = "jakarta.xml.soap:jakarta.xml.soap-api", version = "3.0.2" }
-jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
+jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", version = "2.1.1" }
 
 mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
