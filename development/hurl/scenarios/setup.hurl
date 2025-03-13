@@ -233,16 +233,6 @@ Content-Type: application/json
 
 HTTP 201
 
-# disable https for management requests
-PATCH https://{{ss0_host}}:4000/api/v1/clients/DEV%3ACOM%3A1234
-X-XSRF-TOKEN: {{ss0_xsrf_token}}
-Content-Type: application/json
-{
-  "connection_type":"HTTPS_NO_AUTH"
-}
-
-HTTP 200
-
 # Log in to the Security Servers token
 PUT https://{{ss0_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
@@ -593,16 +583,6 @@ Content-Type: application/json
 }
 
 HTTP 201
-
-# disable https for management requests
-PATCH https://{{ss1_host}}:4000/api/v1/clients/DEV%3ACOM%3A4321
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
-Content-Type: application/json
-{
-  "connection_type":"HTTPS_NO_AUTH"
-}
-
-HTTP 200
 
 # Log in to the Security Servers token
 PUT https://{{ss1_host}}:4000/api/v1/tokens/0/login

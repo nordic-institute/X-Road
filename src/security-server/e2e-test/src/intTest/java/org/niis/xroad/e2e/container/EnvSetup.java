@@ -57,6 +57,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String PROXY = "proxy";
     private static final String UI = "ui";
     private static final String SIGNER = "signer";
+    private static final String CONFIGURATION_CLIENT = "configuration-client";
 
     public static final String HURL = "hurl";
 
@@ -104,6 +105,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withExposedService(UI, Port.UI, forListeningPort())
                 .withLogConsumer(UI, createLogConsumer(name, UI))
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
+                .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER));
     }
 
