@@ -36,8 +36,8 @@ mkdir -p %{buildroot}%{_unitdir}
 
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
-cp -p %{srcdir}/common/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
-cp -p %{srcdir}/common/addon/proxy/messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-db/src/main/resources/liquibase/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-db/src/main/resources/liquibase//messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
 cp -p %{srcdir}/common/addon/proxy/setup_messagelog_db.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/common/addon/proxy/xroad-messagelog-archiver %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xroad/services/

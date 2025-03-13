@@ -23,6 +23,7 @@ grpc = "1.70.0"
 swaggerParser = "2.1.25"
 logback = "1.5.16"
 logbackAccess = "2.0.6"
+liquibase = "4.31.1"
 apacheCxf = "4.1.0"
 archUnitPlugin = "4.0.0"
 protobufPlugin = "0.9.4"
@@ -160,7 +161,7 @@ assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.12.0" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
-liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.31.0" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.5" }
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }
@@ -206,6 +207,7 @@ quarkus-core = [
 quarkus-containerized = [
   "quarkus-kubernetes",
   "quarkus-health",
+  "quarkus-containerImage-jib"
 ]
 
 [plugins]

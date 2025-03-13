@@ -49,6 +49,7 @@ import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateParsingException;
@@ -83,6 +84,9 @@ public class AcmeClientWorker {
     private final ServerConfRepository serverConfRepository;
     private final MailNotificationHelper mailNotificationHelper;
     private final VaultKeyProvider vaultKeyProvider;
+
+    @Value("${xroad.proxy-ui-api.security-server-url}")
+    private String proxyUrl;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -372,8 +376,7 @@ public class AcmeClientWorker {
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfRepository.getServerConf().getOwner().getIdentifier();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, sender, receiver,
-                SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, sender, receiver, proxyUrl);
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {

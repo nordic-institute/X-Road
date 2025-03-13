@@ -43,6 +43,7 @@ import org.niis.xroad.signer.core.config.SignerProperties;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -194,9 +195,18 @@ public class ModuleConf {
         MODULES.clear();
         MODULES.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
 
+        var configPath = Paths.get(fileName);
+        if (Files.exists(configPath)) {
+            readDevicesConfig(configPath);
+        } else {
+            log.error("Module configuration file '{}' not found", configPath); //TODO xroad8, decide if this should be an error
+        }
+    }
+
+    private static void readDevicesConfig(Path configPath) throws Exception {
         INIConfiguration conf = new INIConfiguration();
         conf.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
-        try (Reader reader = Files.newBufferedReader(Paths.get(fileName), StandardCharsets.UTF_8)) {
+        try (Reader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {
             conf.read(reader);
         }
 

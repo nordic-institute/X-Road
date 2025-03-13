@@ -9,73 +9,56 @@ dependencies {
   implementation(platform(libs.findLibrary("quarkus-bom").get()))
 }
 
-val buildType: String = project.findProperty("buildType")?.toString() ?: "native"
 val buildEnv: String = project.findProperty("buildEnv")?.toString() ?: "dev" //TODO default to prod later
 
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
-      put("quarkus.container-image.build", "false")
+      put("quarkus.package.jar.type", "fast-jar")
+      put("quarkus.container-image.build", "true")
+      put("quarkus.container-image.registry", "${project.property("xroadImageRegistry")}")
+      put("quarkus.container-image.insecure", "true")
+      put("quarkus.container-image.push", "true")
+      put("quarkus.container-image.builder", "jib")
+      put("quarkus.jib.working-directory", "/opt/app")
 
-      when (buildType) {
-        "native" -> {
-          put("quarkus.package.jar.type", "fast-jar")
-        }
+      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-runtime:latest")
+      put("quarkus.jib.platforms", "linux/amd64,linux/arm64/v8")
+      put("quarkus.jib.user", "xroad")
 
-        "containerized" -> {
-          put("quarkus.package.jar.type", "fast-jar")
-        }
+      val jvmArgs = mutableListOf("-Dquarkus.profile=containerized")
 
-        else -> error("Unsupported buildType: $buildType. Use 'native' or 'containerized'")
+      if (buildEnv == "dev") {
+        // Add debug parameters - each as a separate list item
+        jvmArgs.add("-Xdebug")
+        jvmArgs.add("-agentlib:jdwp=transport=dt_socket,address=*:9999,server=y,suspend=n")
+
+        // Add JMX parameters - each as a separate list item
+        jvmArgs.add("-Dcom.sun.management.jmxremote=true")
+        jvmArgs.add("-Dcom.sun.management.jmxremote.local.only=false")
+        jvmArgs.add("-Dcom.sun.management.jmxremote.authenticate=false")
+        jvmArgs.add("-Dcom.sun.management.jmxremote.ssl=false")
+        jvmArgs.add("-Djava.rmi.server.hostname=localhost")
+        jvmArgs.add("-Dcom.sun.management.jmxremote.port=9990")
+        jvmArgs.add("-Dcom.sun.management.jmxremote.rmi.port=9990")
+      }
+
+// Set the JVM arguments
+      jvmArgs.forEachIndexed { index, arg ->
+        put("quarkus.jib.jvm-additional-arguments[$index]", arg)
       }
     }
   )
 }
 
-jib {
-  container {
-    creationTime.set("USE_CURRENT_TIMESTAMP")
-    jvmFlags = buildList {
-      add("-Djava.util.logging.manager=org.jboss.logmanager.LogManager")
-      add("-Dquarkus.profile=containerized")
-
-      // Add debug and JMX flags only in dev environment
-      if (buildEnv == "dev") {
-        add("-Xdebug")
-        add("-agentlib:jdwp=transport=dt_socket,address=*:9999,server=y,suspend=n")
-        add("-Dcom.sun.management.jmxremote=true")
-        add("-Dcom.sun.management.jmxremote.local.only=false")
-        add("-Dcom.sun.management.jmxremote.authenticate=false")
-        add("-Dcom.sun.management.jmxremote.ssl=false")
-        add("-Djava.rmi.server.hostname=localhost")
-        add("-Dcom.sun.management.jmxremote.port=9990")
-        add("-Dcom.sun.management.jmxremote.rmi.port=9990")
-      }
-    }
-  }
-
-  pluginExtensions {
-    pluginExtension {
-      implementation = "com.google.cloud.tools.jib.gradle.extension.quarkus.JibQuarkusExtension"
-      properties = mapOf("packageType" to "fast-jar")
-    }
-  }
-
-  extraDirectories {
-    paths {
-      path {
-        setFrom(project.file("../../../packages/docker/entrypoint/").toPath())
-        into = "/app"
-      }
-    }
-  }
-}
-
 tasks {
-  named<JavaCompile>("compileJava") {
+  named("compileJava") {
     dependsOn("compileQuarkusGeneratedSourcesJava")
   }
   test {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+  }
+  jar {
+    enabled = false
   }
 }

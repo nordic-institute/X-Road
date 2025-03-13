@@ -73,6 +73,7 @@ include("service:signer:signer-cli")
 include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
 
+include("service:message-log-archiver:message-log-archiver-core")
 include("service:message-log-archiver:message-log-archiver-application")
 
 // Tool projects

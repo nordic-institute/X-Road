@@ -3,16 +3,17 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-jib {
-  to {
-    image = "${project.property("xroadImageRegistry")}/ss-monitor"
-    tags = setOf("latest")
-  }
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-monitor")
+    }
+  )
 }
 
 dependencies {
-  implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))
+  implementation(libs.bundles.quarkus.containerized)
   implementation(project(":common:common-rpc-quarkus"))
 
   implementation(libs.quarkus.extension.systemd.notify)

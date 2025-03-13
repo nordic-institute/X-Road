@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.ResourceUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.util.Arrays;
 import org.niis.xroad.signer.core.util.SignerUtil;
 
 import java.io.File;
@@ -75,7 +76,7 @@ public final class SoftwareTokenUtil {
 
     static final String P12 = ".p12";
 
-    static final FileAttribute<Set<PosixFilePermission>> SOFT_TOKEN_KEY_DIR_PERMISSIONS =
+    public static final FileAttribute<Set<PosixFilePermission>> KEY_DIR_PERMISSIONS =
             PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ,
                     GROUP_EXECUTE));
     static final String SOFT_TOKEN_KEY_DIR_NAME = "softtoken";
@@ -127,20 +128,23 @@ public final class SoftwareTokenUtil {
      */
     public static Path createTempKeyDir() throws IOException {
         return Files.createTempDirectory(Paths.get(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)),
-                SOFT_TOKEN_KEY_DIR_NAME + "-", SOFT_TOKEN_KEY_DIR_PERMISSIONS);
+                SOFT_TOKEN_KEY_DIR_NAME + "-", KEY_DIR_PERMISSIONS);
     }
 
     static List<String> listKeysOnDisk() {
         List<String> keys = new ArrayList<>();
 
-        for (String p12File : getKeyDir().list(P12_FILTER)) {
-            keys.add(p12File.substring(0, p12File.indexOf(P12)));
+        String[] filesList = getKeyDir().list(P12_FILTER);
+        if (!Arrays.isNullOrEmpty(filesList)) {
+            for (String p12File : filesList) {
+                keys.add(p12File.substring(0, p12File.indexOf(P12)));
+            }
         }
 
         return keys;
     }
 
-    static File getKeyDir() {
+    public static File getKeyDir() {
         return new File(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
                 + SOFT_TOKEN_KEY_DIR_NAME + File.separator);
     }

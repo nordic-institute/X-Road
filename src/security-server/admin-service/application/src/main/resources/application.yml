@@ -9,7 +9,7 @@ spring:
     password: ${xroad.db.serverconf.hibernate.connection.password}
     hikari:
       data-source-properties:
-        currentSchema: ${xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema}
+        currentSchema: ${xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema:public}
   jpa:
     mapping-resources: identifiers.orm.xml,serverconf.orm.xml
     open-in-view: false
@@ -69,6 +69,7 @@ xroad:
     request-size-limit-binary-upload: 10MB
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
+    security-server-url: https://localhost:8443
 
 file-upload-endpoints:
   endpoint-definitions:
@@ -120,7 +121,10 @@ spring:
       on-profile: containerized
 logging:
   config: classpath:logback-containerized.xml
-
+xroad:
+  common:
+    global-conf:
+      source: REMOTE
 ---
 spring:
   config:

@@ -5,8 +5,8 @@
 
 ../../../../src/xroad/default-configuration/addons/message-log.ini etc/xroad/conf.d/addons/
 
-../../../../src/xroad/common/addon/proxy/messagelog-changelog.xml usr/share/xroad/db/
-../../../../src/xroad/common/addon/proxy/messagelog/ usr/share/xroad/db/
+../../../../../addons/messagelog/messagelog-db/src/main/resources/liquibase/messagelog-changelog.xml usr/share/xroad/db/
+../../../../../addons/messagelog/messagelog-db/src/main/resources/liquibase/messagelog/ usr/share/xroad/db/
 ../../../../src/xroad/common/addon/proxy/setup_messagelog_db.sh usr/share/xroad/scripts/
 
 ../../../../../service/message-log-archiver/message-log-archiver-application/scripts/demo-upload.pl usr/share/doc/xroad-addon-messagelog/archive-server/
