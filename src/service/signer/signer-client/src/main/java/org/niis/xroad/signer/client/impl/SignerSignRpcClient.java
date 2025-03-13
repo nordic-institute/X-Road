@@ -2,11 +2,6 @@ package org.niis.xroad.signer.client.impl;
 
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import java.io.Closeable;
-import java.security.PublicKey;
-
-import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
-
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -22,6 +17,11 @@ import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignServiceGrpc;
+
+import java.io.Closeable;
+import java.security.PublicKey;
+
+import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
 
 @Slf4j
 @RequiredArgsConstructor

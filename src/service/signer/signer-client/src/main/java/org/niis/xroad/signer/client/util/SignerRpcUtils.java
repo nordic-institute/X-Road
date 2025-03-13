@@ -3,18 +3,20 @@ package org.niis.xroad.signer.client.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import lombok.experimental.UtilityClass;
+import org.niis.xroad.rpc.error.CodedExceptionProto;
+import org.niis.xroad.signer.api.exception.SignerException;
+
 import java.util.function.Function;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
-import org.niis.xroad.signer.api.exception.SignerException;
-
+@UtilityClass
 public class SignerRpcUtils {
 
     public static void tryToRun(Action action) throws SignerException {

@@ -2,9 +2,9 @@ package org.niis.xroad.signer.client;
 
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import java.security.PublicKey;
-
 import org.niis.xroad.signer.api.exception.SignerException;
+
+import java.security.PublicKey;
 
 public interface SignerSignClient {
 

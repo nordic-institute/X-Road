@@ -31,25 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.common.util.SignerProtoUtils.charToByte;
-import static java.time.Instant.ofEpochMilli;
-import static java.util.Arrays.asList;
-import static java.util.Optional.ofNullable;
-import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
-import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
-
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -113,6 +94,25 @@ import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.SignerProtoUtils.charToByte;
+import static java.time.Instant.ofEpochMilli;
+import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
+import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
