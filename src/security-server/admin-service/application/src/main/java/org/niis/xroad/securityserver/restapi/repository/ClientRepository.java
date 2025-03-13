@@ -36,7 +36,6 @@ import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.serverconf.entity.ClientTypeEntity;
 import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
 import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
@@ -62,7 +61,7 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
 
     /**
      * return one local client
-     * @param id
+     * @param id client id
      * @return the client, or null if matching client was not found
      */
     public ClientTypeEntity getClient(ClientId id) {
@@ -72,7 +71,7 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
 
     /**
      * return all local clients
-     * @return
+     * @return List<ClientTypeEntity>
      */
     public List<ClientTypeEntity> getAllLocalClients() {
         ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
@@ -112,7 +111,7 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
         }
 
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        ClientTypeEntity clientType = clientDAO.getClientByEndpointId(session, endpointType);
+        ClientTypeEntity clientType = clientDAO.getClientByEndpoint(session, endpointType);
 
         session.refresh(clientType);
 
@@ -126,7 +125,6 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
     /**
      * Return ClientTypeEntity containing the id matching local group
      *
-     * @throws LocalGroupNotFoundException if local group is not found with given id
      * @throws ClientNotFoundException if client is not found with given endpoint id
      */
     public ClientTypeEntity getClientByLocalGroup(LocalGroupTypeEntity localGroupType)

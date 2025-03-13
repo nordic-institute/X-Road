@@ -60,7 +60,7 @@ public class LocalGroupRepository {
 
     /**
      * Executes a Hibernate persist(localGroupType)
-     * @param localGroupType
+     * @param localGroupType localGroupTypeEntity
      */
     public void persist(LocalGroupTypeEntity localGroupType) {
         persistenceUtils.getCurrentSession().persist(localGroupType);
@@ -68,7 +68,7 @@ public class LocalGroupRepository {
 
     /**
      * Executes a Hibernate persist(groupMemberType) for multiple group members
-     * @param groupMemberTypes
+     * @param groupMemberTypes list of GroupMemberTypeEntity
      */
     public void saveOrUpdateAll(List<GroupMemberTypeEntity> groupMemberTypes) {
         Session session = persistenceUtils.getCurrentSession();
@@ -79,8 +79,7 @@ public class LocalGroupRepository {
 
     /**
      * Executes a Hibernate delete(localGroupType)
-     * @param localGroupType
-     * @return
+     * @param localGroupType LocalGroupTypeEntity
      */
     public void delete(LocalGroupTypeEntity localGroupType) {
         persistenceUtils.getCurrentSession().remove(localGroupType);

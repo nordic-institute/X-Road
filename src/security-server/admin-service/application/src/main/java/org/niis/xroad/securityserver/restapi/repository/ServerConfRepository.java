@@ -44,7 +44,7 @@ public class ServerConfRepository {
 
     /**
      * Return ServerConfTypeEntity
-     * @return
+     * @return ServerConfTypeEntity
      */
     public ServerConfTypeEntity getServerConf() {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
@@ -53,9 +53,8 @@ public class ServerConfRepository {
 
     /**
      * Save or update ServerConfEntity
-     * @return
      */
-    public ServerConfTypeEntity saveOrUpdate(ServerConfTypeEntity serverConfType) {
-        return persistenceUtils.getCurrentSession().merge(serverConfType);
+    public void saveOrUpdate(ServerConfTypeEntity serverConfType) {
+        persistenceUtils.getCurrentSession().merge(serverConfType);
     }
 }

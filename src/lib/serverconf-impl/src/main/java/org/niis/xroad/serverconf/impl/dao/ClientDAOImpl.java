@@ -61,7 +61,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientTypeEntity> {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<Boolean> query = cb.createQuery(Boolean.class);
         final Root<ClientTypeEntity> client = query.from(ClientTypeEntity.class);
-        final Join<ClientTypeEntity, ClientId> iden = client.join("identifier");
+        final Join<ClientTypeEntity, ClientIdConfEntity> iden = client.join("identifier");
         Predicate pred = cb.conjunction();
 
         if (!includeSubsystems) {
@@ -129,7 +129,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientTypeEntity> {
      * @param endpointType  endpointType entity
      * @return the client, or null if matching client was not found for the endpoint id
      */
-    public ClientTypeEntity getClientByEndpointId(Session session, EndpointTypeEntity endpointType) {
+    public ClientTypeEntity getClientByEndpoint(Session session, EndpointTypeEntity endpointType) {
         Query<ClientTypeEntity> query = session.createQuery(
                 "select c from ClientTypeEntity as c where :endpoint member of c.endpoint",
                 ClientTypeEntity.class);

@@ -25,9 +25,6 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
 
@@ -35,19 +32,6 @@ import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
  * LocalGroupDAO
  */
 public class LocalGroupDAOImpl {
-
-    /**
-     * Return the local group by groupcode and client id
-     * @param session
-     * @param groupCode
-     * @param groupOwnerId
-     * @return LocalGroupTypeEntity
-     */
-    public LocalGroupTypeEntity findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
-        return new ClientDAOImpl().getClient(session, groupOwnerId).getLocalGroup().stream()
-                .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
-                .findFirst().orElse(null);
-    }
 
     /**
      * Returns the LocalGroupTypeEntity for the given LocalGroupTypeEntity id.

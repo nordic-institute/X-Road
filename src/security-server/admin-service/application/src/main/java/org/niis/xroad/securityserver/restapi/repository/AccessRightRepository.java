@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.identifier.XRoadId;
-
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
 import org.niis.xroad.serverconf.impl.dao.AccessRightDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +40,7 @@ public class AccessRightRepository {
     private final PersistenceUtils persistenceUtils;
     private final AccessRightDAOImpl accessRightDAO = new AccessRightDAOImpl();
 
-    public void deleteBySubjectId(XRoadId subjectId) {
+    public void deleteBySubjectId(XRoadIdConfEntity subjectId) {
         accessRightDAO.deleteBySubjectId(persistenceUtils.getCurrentSession(), subjectId);
     }
 }

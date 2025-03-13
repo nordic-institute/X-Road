@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
-import ee.ria.xroad.common.identifier.XRoadId;
-
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
 
 public class AccessRightDAOImpl {
 
-    public void deleteBySubjectId(Session session, XRoadId subjectId) {
+    public void deleteBySubjectId(Session session, XRoadIdConfEntity subjectId) {
         var query = session.createMutationQuery("delete from AccessRightTypeEntity where subjectId = :subjectId");
         query.setParameter("subjectId", subjectId);
         query.executeUpdate();

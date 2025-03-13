@@ -35,8 +35,6 @@ import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
  * ServiceDescription repository
  */
@@ -50,19 +48,9 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return multiple ServiceDescriptionTypesEntity
-     * @param entityIds
-     * @return
-     */
-    public List<ServiceDescriptionTypeEntity> getServiceDescriptions(Long... entityIds) {
-        ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
-        return serviceDescriptionDAO.getServiceDescriptions(persistenceUtils.getCurrentSession(), entityIds);
-    }
-
-    /**
      * Return one ServiceDescriptionTypeEntity
-     * @param entityId
-     * @return
+     * @param entityId entity id
+     * @return ServiceDescriptionTypeEntity
      */
     public ServiceDescriptionTypeEntity getServiceDescription(Long entityId) {
         ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
@@ -71,15 +59,16 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
 
     /**
      * Executes a Hibernate saveOrUpdate(serviceDescriptionType)
-     * @param serviceDescriptionType
+     *
+     * @param serviceDescriptionType ServiceDescriptionTypeEntity
      */
-    public ServiceDescriptionTypeEntity saveOrUpdate(ServiceDescriptionTypeEntity serviceDescriptionType) {
-        return persistenceUtils.getCurrentSession().merge(serviceDescriptionType);
+    public void saveOrUpdate(ServiceDescriptionTypeEntity serviceDescriptionType) {
+        persistenceUtils.getCurrentSession().merge(serviceDescriptionType);
     }
 
     /**
      * Executes a Hibernate delete(serviceDescriptionType)
-     * @param serviceDescriptionType
+     * @param serviceDescriptionType ServiceDescriptionTypeEntity
      */
     public void delete(ServiceDescriptionTypeEntity serviceDescriptionType) {
         persistenceUtils.getCurrentSession().remove(serviceDescriptionType);

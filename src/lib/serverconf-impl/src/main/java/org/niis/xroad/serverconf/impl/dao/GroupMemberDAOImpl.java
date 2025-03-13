@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
 
 public class GroupMemberDAOImpl {
 
-    public void deleteByGroupMemberId(Session session, ClientId memberId) {
+    public void deleteByGroupMemberId(Session session, ClientIdConfEntity memberId) {
         var query = session.createMutationQuery("delete from GroupMemberTypeEntity where groupMemberId = :memberId");
         query.setParameter("memberId", memberId);
         query.executeUpdate();
