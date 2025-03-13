@@ -49,8 +49,6 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.messagelog.clientproxy.AsicContainerHandler;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
@@ -59,9 +57,9 @@ import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientRestMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
 import org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory;
+import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.proxy.core.util.SSLContextUtil;
 
 @Slf4j
 public class ProxyClientConfig {
@@ -102,8 +100,7 @@ public class ProxyClientConfig {
         @Named("proxyHttpClient")
         public CloseableHttpClient proxyHttpClient(ProxyProperties.ClientProxyProperties clientProxyProperties,
                                                    AuthTrustVerifier authTrustVerifier,
-                                                   GlobalConfProvider globalConfProvider,
-                                                   KeyConfProvider keyConfProvider) throws Exception {
+                                                   ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
             log.trace("createClient()");
 
             int timeout = SystemProperties.getClientProxyTimeout();
@@ -115,7 +112,7 @@ public class ProxyClientConfig {
 
             HttpClientBuilder cb = HttpClients.custom();
             HttpClientConnectionManager connectionManager = getClientConnectionManager(clientProxyProperties,
-                    authTrustVerifier, globalConfProvider, keyConfProvider);
+                    authTrustVerifier, reloadingSSLSocketFactory);
             cb.setConnectionManager(connectionManager);
 
             if (clientProxyProperties.clientUseIdleConnectionMonitor()) {
@@ -143,15 +140,14 @@ public class ProxyClientConfig {
 
         private HttpClientConnectionManager getClientConnectionManager(ProxyProperties.ClientProxyProperties clientProxyProperties,
                                                                        AuthTrustVerifier authTrustVerifier,
-                                                                       GlobalConfProvider globalConfProvider,
-                                                                       KeyConfProvider keyConfProvider) throws Exception {
+                                                                       ReloadingSSLSocketFactory reloadingSSLSocketFactory) {
             RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
             if (SystemProperties.isSslEnabled()) {
-                sfr.register("https", createSSLSocketFactory(authTrustVerifier, globalConfProvider,
-                        keyConfProvider, clientProxyProperties));
+                sfr.register("https", createSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
+                         clientProxyProperties));
             }
 
             SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
@@ -170,12 +166,10 @@ public class ProxyClientConfig {
         }
 
         private SSLConnectionSocketFactory createSSLSocketFactory(AuthTrustVerifier authTrustVerifier,
-                                                                  GlobalConfProvider globalConfProvider,
-                                                                  KeyConfProvider keyConfProvider,
-                                                                  ProxyProperties.ClientProxyProperties clientProxyProperties)
-                throws Exception {
-            return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier,
-                    SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider), clientProxyProperties);
+                                                                  ReloadingSSLSocketFactory reloadingSSLSocketFactory,
+                                                                  ProxyProperties.ClientProxyProperties clientProxyProperties) {
+            return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory,
+                    clientProxyProperties);
         }
     }
 

@@ -31,6 +31,8 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 import io.smallrye.config.WithParentName;
 
+import java.util.Optional;
+
 @ConfigMapping(prefix = "xroad.op-monitor")
 public interface OpMonitorCommonProperties {
 
@@ -73,19 +75,18 @@ public interface OpMonitorCommonProperties {
 
         /**
          * Property name of the path to the location of the TLS certificate used by the HTTP client sending requests to the
-         * operational data daemon. Validated by the daemon server and should be the security server internal certificate.
+         * operational data daemon.
+         * If not explicitly specified, certificate from Vault will be used.
          */
         @WithName("client-tls-certificate")
-        @WithDefault("/etc/xroad/ssl/internal.crt")
-        String clientTlsCertificate();
+        Optional<String> clientTlsCertificate();
 
         /**
          * @return the path to the location of the operational monitoring daemon TLS certificate,
-         * '/etc/xroad/ssl/opmonitor.crt' by default.
+         * If not explicitly specified, certificate from Vault will be used.
          */
         @WithName("tls-certificate")
-        @WithDefault("/etc/xroad/ssl/opmonitor.crt")
-        String tlsCertificate();
+        Optional<String> tlsCertificate();
 
     }
 

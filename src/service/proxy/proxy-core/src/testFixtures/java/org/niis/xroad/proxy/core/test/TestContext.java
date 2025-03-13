@@ -29,6 +29,8 @@ package org.niis.xroad.proxy.core.test;
 
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
@@ -40,6 +42,7 @@ import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.clientproxy.ClientSoapMessageHandler;
+import org.niis.xroad.proxy.core.clientproxy.ReloadingSSLSocketFactory;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
@@ -83,15 +86,17 @@ public class TestContext {
             AuthTrustVerifier authTrustVerifier = new AuthTrustVerifier(mock(CertHashBasedOcspResponderClient.class),
                     globalConfProvider, keyConfProvider, certHelper);
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
+            VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager);
+                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider);
 
+            ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
-                    .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, globalConfProvider, keyConfProvider);
+                    .proxyHttpClient(proxyProperties.clientProxy(), authTrustVerifier, reloadingSSLSocketFactory);
             MetadataHandler metadataHandler = new MetadataHandler(commonBeanProxy, httpClient);
             ClientSoapMessageHandler soapMessageHandler = new ClientSoapMessageHandler(commonBeanProxy, httpClient);
 
-            clientProxy = new ClientProxy(serverConfProvider, proxyProperties.clientProxy(),
+            clientProxy = new ClientProxy(serverConfProvider, proxyProperties.clientProxy(), reloadingSSLSocketFactory,
                     new ListInstanceWrapper<>(List.of(metadataHandler, soapMessageHandler)));
             clientProxy.init();
 

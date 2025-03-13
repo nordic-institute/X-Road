@@ -40,8 +40,8 @@ import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.clientproxy.FastestSocketSelector.SocketInfo;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -84,17 +84,17 @@ public class FastestConnectionSelectingSSLSocketFactory
     public static final int CACHE_MAXIMUM_SIZE = 10000;
 
     private final AuthTrustVerifier authTrustVerifier;
-    private final javax.net.ssl.SSLSocketFactory socketfactory;
+    private final SSLSocketFactory socketfactory;
 
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
 
-    public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLContext sslContext,
+    public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLSocketFactory socketfactory,
                                                       ProxyProperties.ClientProxyProperties clientProxyProperties) {
-        super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
+        super(socketfactory, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
         this.authTrustVerifier = authTrustVerifier;
-        this.socketfactory = sslContext.getSocketFactory();
+        this.socketfactory = socketfactory;
         this.selectedHosts = CacheBuilder.newBuilder()
                 .expireAfterWrite(clientProxyProperties.clientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
                 .maximumSize(CACHE_MAXIMUM_SIZE)

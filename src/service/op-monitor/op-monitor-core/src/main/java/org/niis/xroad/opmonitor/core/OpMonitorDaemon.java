@@ -43,6 +43,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
@@ -65,7 +66,6 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @ApplicationScoped
 @RequiredArgsConstructor
 public final class OpMonitorDaemon {
-
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
     private static final int SSL_SESSION_TIMEOUT = 600;
@@ -79,6 +79,7 @@ public final class OpMonitorDaemon {
 
     private final OpMonitorProperties opMonitorProperties;
     private final OpMonitorCommonProperties opMonitorCommonProperties;
+    private final VaultKeyProvider vaultKeyProvider;
     private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
     private final HealthDataMetrics healthDataMetrics;
@@ -139,9 +140,17 @@ public final class OpMonitorDaemon {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()},
-                new TrustManager[]{new OpMonitorSslTrustManager(opMonitorCommonProperties)},
-                new SecureRandom());
+
+        if (opMonitorCommonProperties.connection().clientTlsCertificate().isEmpty()) {
+            ctx.init(new KeyManager[]{vaultKeyProvider.getKeyManager()},
+                    new TrustManager[]{vaultKeyProvider.getTrustManager()},
+                    new SecureRandom());
+        } else {
+            // op-monitoring daemon client TLS certificate is explicitly configured in case of external op-monitoring daemon
+            ctx.init(new KeyManager[]{new OpMonitorSslKeyManager()},
+                    new TrustManager[]{new OpMonitorSslTrustManager(opMonitorCommonProperties.connection().clientTlsCertificate().get())},
+                    new SecureRandom());
+        }
 
         cf.setSslContext(ctx);
         return new ServerConnector(server, cf);

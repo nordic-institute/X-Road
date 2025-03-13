@@ -46,6 +46,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -75,27 +76,31 @@ public final class OpMonitoringDaemonHttpClient {
     private static final int DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE = 10000;
 
+
     /**
      * Creates HTTP client.
      *
+     * @param vaultKeyProvider keys & trust provider for TLS
      * @param authKey the client's authentication key
      * @return HTTP client
      * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
-    public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-                                                       OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
+    public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
+                                                       VaultKeyProvider vaultKeyProvider,
+                                                       InternalSSLKey authKey) throws Exception {
         int connectionTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().connectionTimeoutSeconds());
         int socketTimeoutMilliseconds = TimeUtils.secondsToMillis(opMonitorCommonProperties.service().socketTimeoutSeconds());
 
-        return createHttpClient(authKey, opMonitorCommonProperties, DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS,
-                DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
+        return createHttpClient(opMonitorCommonProperties, vaultKeyProvider, authKey,
+                DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
                 connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
 
     /**
      * Creates HTTP client.
      *
-     * @param authKey                       the client's authentication key
+     * @param vaultKeyProvider keys & trust provider for TLS
+     * @param authKey the client's authentication key
      * @param clientMaxTotalConnections     client max total connections
      * @param clientMaxConnectionsPerRoute  client max connections per route
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds
@@ -104,8 +109,9 @@ public final class OpMonitoringDaemonHttpClient {
      * @throws Exception if creating a HTTPS client and SSLContext
      *                   initialization fails
      */
-    public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-                                                       OpMonitorCommonProperties opMonitorCommonProperties,
+    public static CloseableHttpClient createHttpClient(OpMonitorCommonProperties opMonitorCommonProperties,
+                                                       VaultKeyProvider vaultKeyProvider,
+                                                       InternalSSLKey authKey,
                                                        int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
                                                        int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         log.trace("createHttpClient()");
@@ -113,7 +119,7 @@ public final class OpMonitoringDaemonHttpClient {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
         if ("https".equalsIgnoreCase(opMonitorCommonProperties.connection().scheme())) {
-            sfr.register("https", createSSLSocketFactory(authKey, opMonitorCommonProperties));
+            sfr.register("https", createSSLSocketFactory(opMonitorCommonProperties, vaultKeyProvider, authKey));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
@@ -138,10 +144,21 @@ public final class OpMonitoringDaemonHttpClient {
         return cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey,
-                                                                     OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
+    private static SSLConnectionSocketFactory createSSLSocketFactory(OpMonitorCommonProperties opMonitorCommonProperties,
+                                                                     VaultKeyProvider vaultKeyProvider,
+                                                                     InternalSSLKey authKey) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(getKeyManager(authKey), new TrustManager[]{new OpMonitorTrustManager(opMonitorCommonProperties)}, new SecureRandom());
+
+        if (opMonitorCommonProperties.connection().tlsCertificate().isEmpty()) {
+            ctx.init(new KeyManager[]{vaultKeyProvider.getKeyManager()},
+                    new TrustManager[]{vaultKeyProvider.getTrustManager()},
+                    new SecureRandom());
+        } else {
+            // op-monitoring daemon TLS certificate is explicitly configured in case of external op-monitoring daemon
+            ctx.init(new KeyManager[]{new OpMonitorClientKeyManager(authKey)},
+                    new TrustManager[]{new OpMonitorClientTrustManager(opMonitorCommonProperties.connection().tlsCertificate().get())},
+                    new SecureRandom());
+        }
 
         return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[]{CryptoUtils.SSL_PROTOCOL},
                 SystemProperties.getXroadTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
@@ -158,12 +175,10 @@ public final class OpMonitoringDaemonHttpClient {
         return new KeyManager[]{new OpMonitorClientKeyManager(authKey)};
     }
 
-    private static final class OpMonitorTrustManager implements X509TrustManager {
+    private static final class OpMonitorClientTrustManager implements X509TrustManager {
         private X509Certificate opMonitorCert = null;
 
-        private OpMonitorTrustManager(OpMonitorCommonProperties properties) {
-            String monitorCertPath = properties.connection().tlsCertificate();
-
+        private OpMonitorClientTrustManager(String monitorCertPath) {
             try (InputStream monitorCertStream = new FileInputStream(monitorCertPath)) {
                 opMonitorCert = CryptoUtils.readCertificate(monitorCertStream);
             } catch (Exception e) {
@@ -247,4 +262,5 @@ public final class OpMonitoringDaemonHttpClient {
             return ALIAS;
         }
     }
+
 }

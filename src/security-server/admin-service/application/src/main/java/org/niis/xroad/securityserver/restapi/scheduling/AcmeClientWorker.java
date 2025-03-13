@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
@@ -83,6 +84,7 @@ public class AcmeClientWorker {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfRepository serverConfRepository;
     private final MailNotificationHelper mailNotificationHelper;
+    private final VaultKeyProvider vaultKeyProvider;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -372,7 +374,7 @@ public class AcmeClientWorker {
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfRepository.getServerConf().getOwner().getIdentifier();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, signerSignClient, sender, receiver,
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, signerSignClient, sender, receiver,
                 SystemProperties.getProxyUiSecurityServerUrl());
     }
 

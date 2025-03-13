@@ -37,6 +37,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
@@ -72,6 +74,7 @@ public class MetadataHandlerTest {
     private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private ServerConfProvider serverConfProvider;
+    private VaultKeyProvider vaultKeyProvider;
 
     /**
      * Init common data for tests
@@ -81,8 +84,9 @@ public class MetadataHandlerTest {
         globalConfProvider = new TestSuiteGlobalConf();
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
         serverConfProvider = mock(ServerConfProvider.class);
+        vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null);
+                null, null, null, vaultKeyProvider);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);

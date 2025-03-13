@@ -36,7 +36,7 @@ import java.util.List;
 @ConfigMapping(prefix = CommonRpcProperties.PREFIX)
 public interface CommonRpcProperties {
     String PREFIX = "xroad.common.rpc";
-    String DEFAULT_USE_TLS = "false";
+    String DEFAULT_USE_TLS = "true";
 
     @WithName("use-tls")
     @WithDefault(DEFAULT_USE_TLS)

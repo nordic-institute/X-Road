@@ -43,8 +43,11 @@ import org.niis.xroad.keyconf.dto.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
+import java.lang.ref.WeakReference;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -66,8 +69,11 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
 
     private final int checkPeriod = 5;
-    private String previousChecksum;
     private final ScheduledExecutorService taskScheduler;
+
+    private String previousChecksum;
+
+    private final List<WeakReference<KeyConfChangeListener>> listeners = new ArrayList<>();
 
     public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                               SignerRpcClient signerRpcClient) {
@@ -109,7 +115,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Invalidates both auth key and signing info caches
      */
-    protected void invalidateCaches() {
+    public void invalidateCaches() {
         authKeyInfoCache.invalidateAll();
         signingInfoCache.invalidateAll();
     }
@@ -165,6 +171,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
                 log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
                 previousChecksum = checkSum;
                 invalidateCaches();
+                notifyListeners();
             }
         } catch (Exception e) {
             log.error("Failed to get key conf checksum", e);
@@ -172,5 +179,20 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
+    @Override
+    public void addChangeListener(KeyConfChangeListener listener) {
+        listeners.add(new WeakReference<>(listener));
+    }
 
+    private void notifyListeners() {
+        Iterator<WeakReference<KeyConfChangeListener>> it = listeners.iterator();
+        while (it.hasNext()) {
+            var listener = it.next().get();
+            if (listener != null) {
+                listener.keyConfChanged();
+            } else {
+                it.remove();
+            }
+        }
+    }
 }

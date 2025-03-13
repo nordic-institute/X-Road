@@ -59,7 +59,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.net.ServerSocket;
 import java.net.URI;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -68,6 +67,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static org.niis.xroad.proxy.core.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
@@ -139,8 +139,8 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     void testWithSender() throws Exception {
         createClient();
         var host = "127.0.0.1";
-        int port1 = getFreePort();
-        int port2 = getFreePort();
+        int port1 = findRandomPort();
+        int port2 = findRandomPort();
         final URI uri1 = URI.create("https://%s:%s".formatted(host, port1));
         final URI uri2 = URI.create("https://%s:%s".formatted(host, port2));
 
@@ -179,7 +179,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private void createClient() throws Exception {
         RegistryBuilder<ConnectionSocketFactory> socketFactoryRegistry =
-                RegistryBuilder.<ConnectionSocketFactory>create();
+                RegistryBuilder.create();
 
         socketFactoryRegistry.register("http", PlainConnectionSocketFactory.INSTANCE);
         socketFactoryRegistry.register("https", createSSLSocketFactory());
@@ -212,7 +212,7 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx,
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory(),
                 defaultConfiguration(ProxyProperties.ClientProxyProperties.class));
     }
 
@@ -233,12 +233,5 @@ class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         }
     }
 
-    static int getFreePort() {
-        try (ServerSocket ss = new ServerSocket(0)) {
-            return ss.getLocalPort();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }
 
