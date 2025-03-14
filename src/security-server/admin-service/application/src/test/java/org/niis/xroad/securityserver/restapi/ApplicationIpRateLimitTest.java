@@ -75,7 +75,7 @@ class ApplicationIpRateLimitTest {
     @MockitoBean
     MonitorClient monitorClient;
 
-    @MockBean
+    @MockitoBean
     GlobalConfProvider globalConfProvider;
 
     @PostConstruct
