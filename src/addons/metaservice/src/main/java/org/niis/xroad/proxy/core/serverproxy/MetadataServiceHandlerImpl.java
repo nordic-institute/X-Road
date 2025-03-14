@@ -74,6 +74,7 @@ import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.LexicalHandler;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -84,6 +85,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -157,9 +160,14 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
+                var pipedInputStream = new PipedInputStream();
+                var pipedOutputStream = new PipedOutputStream(pipedInputStream);
+
+                requestProxyMessage.writeSoapContent(pipedOutputStream);
+
                 requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
                         requestProxyMessage.getSoapContentType(),
-                        requestProxyMessage.getSoapContent());
+                        pipedInputStream);
                 yield true;
             }
             default -> false;
@@ -184,7 +192,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
         opMonitoringData.setServiceType(DescriptionType.WSDL.name());
-
 
         switch (serviceCode) {
             case LIST_METHODS -> handleListMethods(requestMessage);
@@ -335,7 +342,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
-     *
      * @param wsdl
      * @return
      */
@@ -362,7 +368,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
             // offer InputStream into processed String
             return new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException | SAXException | TransformerConfigurationException e) {
+        } catch (IOException | SAXException | TransformerConfigurationException | ParserConfigurationException e) {
             throw new RuntimeException(e);
         }
     }

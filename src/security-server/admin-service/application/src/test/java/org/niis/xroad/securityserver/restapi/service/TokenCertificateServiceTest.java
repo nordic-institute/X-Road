@@ -62,10 +62,10 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -141,43 +141,43 @@ public class TokenCertificateServiceTest {
     @Autowired
     private TokenCertificateService tokenCertificateService;
 
-    @MockBean
+    @MockitoBean
     private SignerRpcClient signerRpcClient;
 
-    @MockBean
+    @MockitoBean
     private ClientService clientService;
 
-    @MockBean
+    @MockitoBean
     private ManagementRequestSenderService managementRequestSenderService;
 
-    @MockBean
+    @MockitoBean
     private CertificateAuthorityService certificateAuthorityService;
 
-    @SpyBean
+    @MockitoSpyBean
     private KeyService keyService;
 
-    @MockBean
+    @MockitoBean
     private GlobalConfService globalConfService;
 
-    @MockBean
+    @MockitoBean
     private GlobalConfProvider globalConfProvider;
 
-    @MockBean
+    @MockitoBean
     private ClientRepository clientRepository;
 
-    @MockBean
+    @MockitoBean
     private ServerConfService serverConfService;
 
-    @SpyBean
+    @MockitoSpyBean
     private PossibleActionsRuleEngine possibleActionsRuleEngine;
 
-    @MockBean
+    @MockitoBean
     private TokenService tokenService;
 
-    @MockBean
+    @MockitoBean
     private AcmeService acmeService;
 
-    @MockBean
+    @MockitoBean
     MonitorClient monitorClient;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,

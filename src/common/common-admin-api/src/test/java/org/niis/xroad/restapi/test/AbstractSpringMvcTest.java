@@ -40,12 +40,12 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.unit.DataSize;
@@ -64,13 +64,13 @@ import org.springframework.util.unit.DataSize;
         webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public abstract class AbstractSpringMvcTest {
 
-    @MockBean
+    @MockitoBean
     AuditEventLoggingFacade auditEventLoggingFacade;
-    @MockBean
+    @MockitoBean
     AuditDataHelper auditDataHelper;
-    @MockBean
+    @MockitoBean
     AuditEventHelper auditEventHelper;
-    @MockBean
+    @MockitoBean
     ApiKeyAuthenticationManager apiKeyAuthenticationManager;
     @Autowired
     protected CommonModuleEndpointPaths commonModuleEndpointPaths;
