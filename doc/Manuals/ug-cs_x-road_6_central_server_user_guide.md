@@ -778,7 +778,7 @@ Access rights: Registration Officer
 To add a subsystem to an X-Road member, follow these steps.
 1. In the Members tab, select the member to whom you wish to add a subsystem and click members name.
 2. In the view that opens, locate the Subsystems tab and click Add new subsystem to database.
-3. Enter the code of the subsystem and optional name for it then click Add.
+3. Enter the subsystem code, name (optional) and click Add.
 
 ### 7.4 Registering a Member's Security Server
 
@@ -868,7 +868,7 @@ Access rights: Registration Officer
 In the Central Server, the X-Road member's subsystem can be renamed if needed.
 
 To rename an X-Road member's subsystem, follow these steps.
-1. In the Members tab, select the member whose subsystem you wish to delete and click members name.
+1. In the Members tab, select the member whose subsystem you wish to rename and click member's name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Rename button next to its name, in case subsystem doesn't have name, click Add subsystem name.
 
 

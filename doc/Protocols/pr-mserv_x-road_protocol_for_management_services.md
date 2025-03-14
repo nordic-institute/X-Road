@@ -49,6 +49,7 @@ Doc. ID: PR-MSERV
   - [2.6 *addressChange* - Security Server address change](#26-addresschange---security-server-address-change)
   - [2.7 *clientDisable* - Disable Security Server Client Subsystem Temporarily](#27-clientdisable---disable-security-server-client-subsystem-temporarily)
   - [2.8 *clientEnable* - Enable Security Server Client Subsystem](#28-clientenable---enable-security-server-client-subsystem)
+  - [2.9 *clientRename* - Rename Security Server Client Subsystem](#29-clientrename---rename-security-server-client-subsystem)
 - [Annex A. Example messages](#annex-a-example-messages)
   - [A.1 clientReg](#a1-clientreg)
   - [A.2 clientDeletion](#a2-clientdeletion)
@@ -358,7 +359,7 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
  
-2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+2. Signature of owner member that owns the subsystem to be disabled. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
  
 3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
  
@@ -395,7 +396,7 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
  
-2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+2. Signature of owner member that owns the subsystem to be enabled. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
  
 3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
  
@@ -433,7 +434,7 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
 
-2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+2. Signature of owner member that owns the subsystem to be renamed. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
 3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
 

@@ -1119,7 +1119,7 @@ To rename a client subsystem, follow these steps.
 
 3.  Next, a subsystem is put into "Name change is submitted" state, which doesn't affect the subsystem functionality. Once the name change is propagated through the global configuration, subsystem name is updated.
 
-**Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where newer rename replaces previous one and rename will be executed on client registration request using last provided name. 
+**Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
 
 
 ## 5 Security Tokens, Keys, and Certificates
