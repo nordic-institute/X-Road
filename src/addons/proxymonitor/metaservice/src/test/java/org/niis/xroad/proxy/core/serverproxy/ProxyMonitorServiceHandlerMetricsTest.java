@@ -41,13 +41,14 @@ import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.junit.rules.ExpectedException;
+import org.mockito.stubbing.Answer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -63,19 +64,23 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static java.util.UUID.randomUUID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
@@ -98,9 +103,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
     private static Unmarshaller unmarshaller;
     private static MessageFactory messageFactory;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final ProvideSystemProperty hibernatePropertiesProperty
@@ -159,9 +161,9 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                 "testUser", randomUUID().toString());
 
         when(mockProxyMessage.getSoap()).thenReturn(soapMessage);
-        when(mockProxyMessage.getSoapContent()).thenReturn(
-                new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset())));
-
+        doAnswer(copyStream(new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset()))))
+                .when(mockProxyMessage)
+                .writeSoapContent(any());
 
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
@@ -224,7 +226,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
     /**
      * As above but only environmental parameters defined in outputSpec.
-     *
      * @throws Exception
      */
     @Test
@@ -232,7 +233,6 @@ public class ProxyMonitorServiceHandlerMetricsTest {
 
         // setup
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
-
 
         final SoapMessageImpl soapMessage = build(
                 false,
@@ -242,11 +242,10 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                 randomUUID().toString(),
                 new MetricsQueryBuilder(Arrays.asList("proxyVersion", "CommittedVirtualMemory", "DiskSpaceFree")));
 
-
         when(mockProxyMessage.getSoap()).thenReturn(soapMessage);
-        when(mockProxyMessage.getSoapContent()).thenReturn(
-                new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset())));
-
+        doAnswer(copyStream(new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset()))))
+                .when(mockProxyMessage)
+                .writeSoapContent(any());
 
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
@@ -306,5 +305,13 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
         assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
+    }
+
+    private Answer<Object> copyStream(InputStream source) {
+        return args -> {
+            OutputStream out = args.getArgument(0);
+            IOUtils.copy(source, out);
+            return null;
+        };
     }
 }

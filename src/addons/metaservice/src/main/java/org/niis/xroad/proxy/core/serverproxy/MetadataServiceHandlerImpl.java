@@ -85,8 +85,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -160,14 +158,13 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
-                var pipedInputStream = new PipedInputStream();
-                var pipedOutputStream = new PipedOutputStream(pipedInputStream);
+                var messageOut = new ByteArrayOutputStream();
 
-                requestProxyMessage.writeSoapContent(pipedOutputStream);
+                requestProxyMessage.writeSoapContent(messageOut);
 
                 requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
                         requestProxyMessage.getSoapContentType(),
-                        pipedInputStream);
+                        new ByteArrayInputStream(messageOut.toByteArray()));
                 yield true;
             }
             default -> false;

@@ -83,7 +83,7 @@ import static ee.ria.xroad.common.util.MimeUtils.UTF8;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
@@ -128,12 +128,13 @@ public final class MetaserviceTestUtil {
         return CONTENT_TYPES;
     }
 
-    /** Try to extract a single element of type T from the Soap Body, of class clazz.
-     * @param body the {@link SOAPBody}
+    /**
+     * Try to extract a single element of type T from the Soap Body, of class clazz.
+     * @param body  the {@link SOAPBody}
      * @param clazz the class of type T
-     * @param <T> the {@link JAXBElement} value to extract, like {@link ee.ria.xroad.common.metadata.MethodListType}
+     * @param <T>   the {@link JAXBElement} value to extract, like {@link ee.ria.xroad.common.metadata.MethodListType}
      * @return the resulting element of type T
-     * @throws JAXBException if unexpected errors occur during unmarshalling
+     * @throws JAXBException  if unexpected errors occur during unmarshalling
      * @throws AssertionError if more than one element of the type T
      */
     public static <T> T verifyAndGetSingleBodyElementOfType(SOAPBody body, Class<T> clazz) throws JAXBException {
@@ -141,12 +142,13 @@ public final class MetaserviceTestUtil {
         return verifyAndGetSingleBodyElementOfType(body, clazz, () -> unmarshaller);
     }
 
-    /** Try to extract a single element of type T from the Soap Body, of class clazz.
-     * @param body the {@link SOAPBody}
-     * @param clazz the class of type T
+    /**
+     * Try to extract a single element of type T from the Soap Body, of class clazz.
+     * @param body                 the {@link SOAPBody}
+     * @param clazz                the class of type T
      * @param unmarshallerSupplier a {@link Supplier} for the unmarshaller. Needed if this util class does not
      *                             know of the class you want to unmarshall
-     * @param <T> the {@link JAXBElement} value to extract, like {@link ee.ria.xroad.common.metadata.MethodListType}
+     * @param <T>                  the {@link JAXBElement} value to extract, like {@link ee.ria.xroad.common.metadata.MethodListType}
      * @return the resulting element of type T
      * @throws JAXBException if unexpected errors occur during unmarshalling
      */
@@ -174,7 +176,8 @@ public final class MetaserviceTestUtil {
                 "consumer", "SUB", serviceCode);
     }
 
-    /** The definition to extract {@link BindingOperation} names from
+    /**
+     * The definition to extract {@link BindingOperation} names from
      * @param definition
      * @return List of the names of the {@link BindingOperation}s in the given definition
      */
@@ -212,7 +215,8 @@ public final class MetaserviceTestUtil {
     }
 
 
-    /** Merge xroad-specific {@link SoapHeader} to the generic {@link SOAPHeader}
+    /**
+     * Merge xroad-specific {@link SoapHeader} to the generic {@link SOAPHeader}
      * @param header
      * @param xrHeader
      * @throws JAXBException
@@ -220,8 +224,7 @@ public final class MetaserviceTestUtil {
      * @throws SOAPException
      */
     public static void mergeHeaders(SOAPHeader header, SoapHeader xrHeader) throws JAXBException,
-            ParserConfigurationException, SOAPException {
-
+                                                                                   ParserConfigurationException, SOAPException {
 
         Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
         final DocumentFragment documentFragment = document.createDocumentFragment();
@@ -256,8 +259,9 @@ public final class MetaserviceTestUtil {
 
     }
 
-    /** Stub class for {@link OutputStream}. For mocking Servlet interactions.
-     * */
+    /**
+     * Stub class for {@link OutputStream}. For mocking Servlet interactions.
+     */
     public static class StubServletOutputStream extends OutputStream {
 
         private ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -311,7 +315,8 @@ public final class MetaserviceTestUtil {
         }
     }
 
-    /** Clean the database (You are using this from a test, right?)
+    /**
+     * Clean the database (You are using this from a test, right?)
      */
     public static void cleanDB() throws Exception {
         doInTransaction(session -> {
@@ -358,7 +363,8 @@ public final class MetaserviceTestUtil {
             return this;
         }
 
-        /** Create a {@link SOAPMessage} from the input and return it as an inputstream
+        /**
+         * Create a {@link SOAPMessage} from the input and return it as an inputstream
          * @return an {@link InputStream} to the SOAPMessage content
          * @throws Exception
          */

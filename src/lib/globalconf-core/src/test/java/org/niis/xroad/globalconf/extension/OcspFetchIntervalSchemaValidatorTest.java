@@ -28,19 +28,18 @@ package org.niis.xroad.globalconf.extension;
 import ee.ria.xroad.common.util.ResourceUtils;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.net.URL;
+
+import static org.junit.Assert.assertThrows;
 
 /**
  * Tests for {@link OcspFetchIntervalSchemaValidator}
  */
 public class OcspFetchIntervalSchemaValidatorTest {
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
+
 
     private static final String VALID_FILE = "valid-fetchinterval-params.xml";
     private static final String EMPTY_FILE = "empty-fetchinterval-params.xml";
@@ -59,16 +58,14 @@ public class OcspFetchIntervalSchemaValidatorTest {
     }
 
     @Test
-    public void testEmptyConfigurationIsInvalid() throws Exception {
+    public void testEmptyConfigurationIsInvalid() {
         OcspFetchIntervalSchemaValidator validator = new OcspFetchIntervalSchemaValidator();
-        exception.expect(Exception.class);
-        validator.validateFile(getClasspathFilename(EMPTY_FILE));
+        assertThrows(Exception.class, () -> validator.validateFile(getClasspathFilename(EMPTY_FILE)));
     }
 
     @Test
-    public void testInvalidConfiguration() throws Exception {
+    public void testInvalidConfiguration() {
         OcspFetchIntervalSchemaValidator validator = new OcspFetchIntervalSchemaValidator();
-        exception.expect(Exception.class);
-        validator.validateFile(getClasspathFilename(INVALID_FILE));
+        assertThrows(Exception.class, () -> validator.validateFile(getClasspathFilename(INVALID_FILE)));
     }
 }

@@ -341,6 +341,7 @@ public final class XmlUtils {
      */
     public static XMLReader createXmlReader() throws SAXException, ParserConfigurationException {
         var factory = SAXParserFactory.newInstance();
+        factory.setNamespaceAware(true);
         XMLReader reader = factory.newSAXParser().getXMLReader();
         reader.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
         reader.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
