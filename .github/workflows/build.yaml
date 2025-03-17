@@ -67,7 +67,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: Unit and integration tests
@@ -143,7 +143,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: Central Server system test
@@ -208,7 +208,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: Security Server system tests
@@ -293,7 +293,7 @@ jobs:
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: E2E tests
