@@ -160,9 +160,9 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
-                var in = new PipedInputStream();
-                var out = new PipedOutputStream(in);
-                try (in) {
+                try (var in = new PipedInputStream()) {
+                    @SuppressWarnings("java:S2095")// out is closed in try-with-resources
+                    var out = new PipedOutputStream(in);
                     Thread.startVirtualThread(() -> {
                         try (out) {
                             requestProxyMessage.writeSoapContent(out);
