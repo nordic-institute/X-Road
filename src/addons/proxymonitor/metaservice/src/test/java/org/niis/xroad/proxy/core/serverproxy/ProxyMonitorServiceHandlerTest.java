@@ -34,7 +34,6 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -84,14 +83,6 @@ public class ProxyMonitorServiceHandlerTest {
     private ServerConfProvider serverConfProvider;
     private GlobalConfProvider globalConfProvider;
     private ProxyMessage mockProxyMessage;
-
-    /**
-     * Init class-wide test instances
-     */
-    @BeforeClass
-    public static void initCommon() {
-
-    }
 
     /**
      * Init data for tests

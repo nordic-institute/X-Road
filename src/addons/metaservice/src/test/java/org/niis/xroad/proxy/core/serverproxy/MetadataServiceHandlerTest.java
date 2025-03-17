@@ -705,7 +705,9 @@ public class MetadataServiceHandlerTest {
     private Answer<Object> copyStream(InputStream source) {
         return args -> {
             OutputStream out = args.getArgument(0);
-            IOUtils.copy(source, out);
+            try (out; source) {
+                IOUtils.copy(source, out);
+            }
             return null;
         };
     }
