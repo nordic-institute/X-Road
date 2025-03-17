@@ -160,9 +160,11 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
-                try (var in = new PipedInputStream()) {
+                var in = new PipedInputStream();
+                var out = new PipedOutputStream(in);
+                try (in) {
                     Thread.startVirtualThread(() -> {
-                        try (var out = new PipedOutputStream(in)) {
+                        try (out) {
                             requestProxyMessage.writeSoapContent(out);
                         } catch (IOException e) {
                             throw new RuntimeException("Failed to write soap content", e);
