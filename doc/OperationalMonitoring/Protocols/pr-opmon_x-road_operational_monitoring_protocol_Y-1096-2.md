@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.2  
+Version: 1.3  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author            |
@@ -16,6 +16,7 @@ Doc. ID: PR-OPMON
 | 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä     |
 | 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis   |
 | 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki  |
+| 27.03.2025 | 1.3     | Syntax and styling                                                   | Pauline Dimmek    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -68,12 +69,12 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-<a name="PR-MESS"></a>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
-<a name="WSDL"></a>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
-<a name="SWAREF"></a>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
-<a name="RFC1952"></a>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  
-<a name="RFC2119"></a>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt  
-<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
+<a name="PR-MESS"/>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
+<a name="WSDL"/>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
+<a name="SWAREF"/>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
+<a name="RFC1952"/>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  
+<a name="RFC2119"/>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt  
+<a name="Ref_TERMS" class="anchor"/>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 # 2 Retrieving Operational Data of Security Server
 
@@ -280,7 +281,7 @@ The XML schema fragment of the health data response body is shown below. For cla
 
 The example response message is presented in \[[Annex C.4](#AnnexC.4)\].
 
-<a name="AnnexA"/></a>
+<a name="AnnexA"/>
 # Annex A WSDL for Operational Monitoring Messages
 
 The XML-schema for operational monitoring messages is located in the file *src/op-monitor-daemon/src/main/resources/op-monitoring.xsd* of the X-Road source code.
@@ -946,7 +947,7 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
 ```
 
 <a name="AnnexB"/></a>
-# Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
+## Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
 
 The schema is located in the file *src/op-monitor-daemon/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
 
@@ -1111,10 +1112,10 @@ required:
 ```
 
 <a name="AnnexC"/></a>
-# Annex C Example Messages
+## Annex C Example Messages
 
 <a name="AnnexC.1"/></a>
-## C.1 getSecurityServerOperationalData Request
+### C.1 getSecurityServerOperationalData Request
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1157,7 +1158,7 @@ required:
 ```
 
 <a name="AnnexC.2"/></a>
-## C.2 getSecurityServerOperationalData Response
+### C.2 getSecurityServerOperationalData Response
 
 ```xml
 Content-Type: multipart/related; type="text/xml"; charset=UTF-8;
@@ -1257,7 +1258,7 @@ content-id: <operational-monitoring-data.json.gz>
 }
 ```
 <a name="AnnexC.3"/></a>
-## C.3 getSecurityServerHealthData Request
+### C.3 getSecurityServerHealthData Request
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1304,7 +1305,7 @@ content-id: <operational-monitoring-data.json.gz>
 ```
 
 <a name="AnnexC.3"/></a>
-## C.4 getSecurityServerHealthData Response
+### C.4 getSecurityServerHealthData Response
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
