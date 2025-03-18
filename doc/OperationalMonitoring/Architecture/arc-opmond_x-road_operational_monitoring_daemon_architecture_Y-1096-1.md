@@ -161,7 +161,7 @@ Figure 2 shows the deployment diagram.
 **Figure 2. Operational monitoring daemon deployment**
 
 
-<a name="AppendixA"/></a>
+<a name="AppendixA"></a>
 ## Appendix A Store Operational Monitoring Data Messages
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
