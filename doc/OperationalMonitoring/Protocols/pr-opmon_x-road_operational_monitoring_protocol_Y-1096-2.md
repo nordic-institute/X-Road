@@ -945,7 +945,7 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
 </wsdl:definitions>
 ```
 
-<a name="AnnexB"/></a>
+<a name="AnnexB"/>
 ## Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
 
 The schema is located in the file *src/op-monitor-daemon/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
@@ -1110,10 +1110,10 @@ required:
 - records
 ```
 
-<a name="AnnexC"/></a>
+<a name="AnnexC"/>
 ## Annex C Example Messages
 
-<a name="AnnexC.1"/></a>
+<a name="AnnexC.1"/>
 ### C.1 getSecurityServerOperationalData Request
 
 ```xml
@@ -1156,7 +1156,7 @@ required:
 </SOAP-ENV:Envelope>
 ```
 
-<a name="AnnexC.2"/></a>
+<a name="AnnexC.2"/>
 ### C.2 getSecurityServerOperationalData Response
 
 ```xml
@@ -1256,7 +1256,7 @@ content-id: <operational-monitoring-data.json.gz>
   ]
 }
 ```
-<a name="AnnexC.3"/></a>
+<a name="AnnexC.3"/>
 ### C.3 getSecurityServerHealthData Request
 
 ```xml
@@ -1303,7 +1303,7 @@ content-id: <operational-monitoring-data.json.gz>
 </SOAP-ENV:Envelope>
 ```
 
-<a name="AnnexC.3"/></a>
+<a name="AnnexC.3"/>
 ### C.4 getSecurityServerHealthData Response
 
 ```xml
