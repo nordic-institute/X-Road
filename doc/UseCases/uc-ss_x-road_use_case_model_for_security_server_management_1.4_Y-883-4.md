@@ -330,7 +330,7 @@ logged in user has been idle for 30 minutes.
 
 1.  User has been idle for 30 minutes.
 
-2.  System displays the dialog “Session expired - You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out. <Button OK>”
+2.  System displays the dialog “Session expired - You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out. \<Button OK>”
  
 3.  System logs the SS administrator out of the GUI and redirects the user to the Log-in view.
 
