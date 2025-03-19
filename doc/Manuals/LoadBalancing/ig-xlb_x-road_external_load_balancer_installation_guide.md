@@ -1078,6 +1078,7 @@ Repeat this process for each secondary node, one by one.
    ```bash
    service xroad-sync start
    ```
+   
 7. Restart the X-Road services and wait until the secondary node is healthy.
 
 8. After the node is healthy, enable the secondary node in the load balancer if you manually disabled it. If using the
