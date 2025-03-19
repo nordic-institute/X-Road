@@ -33,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.util.StringUtil;
 
+import java.util.Comparator;
+
 @Slf4j
 @RequiredArgsConstructor
 class SavedServiceEndpoint {
@@ -45,13 +47,16 @@ class SavedServiceEndpoint {
                 var endpointTypes = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
                         .map(v -> new EndpointType(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
                         .filter(ep -> ep.matches(data.getRestMethod(), data.getRestPath()))
-                        .findFirst();
-
-                return endpointTypes.map(EndpointType::getPath).orElse(data.getRestPath());
+                        // sort by path and method before finding first
+                        // because [* /pets/*] and [GET /pets/first] also matches, but we want [GET /pets/first] is returned
+                        .min(Comparator.comparing(EndpointType::getPath).reversed()
+                                .thenComparing(EndpointType::getMethod, Comparator.reverseOrder()));
+                // the path is logged only if it can be resolved to an endpoint described for the service
+                return endpointTypes.map(EndpointType::getPath).orElse(null);
             } catch (Exception e) {
                 log.error("Cannot query saved endpoint for: {}", data.getRestPath(), e);
             }
         }
-        return data.getRestPath();
+        return null;
     }
 }

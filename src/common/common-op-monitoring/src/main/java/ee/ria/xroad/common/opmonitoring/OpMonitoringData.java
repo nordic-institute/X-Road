@@ -77,6 +77,8 @@ public class OpMonitoringData {
 
     private static final String SECURITY_SERVER_TYPE = "securityServerType";
 
+    private static final String XROAD_VERSION = "xRoadVersion";
+
     // Unix timestamps in milliseconds.
     private static final String REQUEST_IN_TIMESTAMP = "requestInTs";
     private static final String REQUEST_OUT_TIMESTAMP = "requestOutTs";
@@ -458,6 +460,21 @@ public class OpMonitoringData {
      */
     public String getRestPath() {
         return (String) data.get(REST_PATH);
+    }
+
+    /**
+     * Sets X-Road version.
+     * @param xRoadVersion X-Road version
+     */
+    public void setXRoadVersion(String xRoadVersion) {
+        data.put(XROAD_VERSION, xRoadVersion);
+    }
+
+    /**
+     * Gets X-Road version.
+     */
+    public String getXRoadVersion() {
+        return (String) data.get(XROAD_VERSION);
     }
 
     public boolean isProducer() {

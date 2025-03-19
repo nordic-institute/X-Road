@@ -1,6 +1,6 @@
 @SecurityServer
 @Addon
-Feature: 2000 - SS: JMX monitor
+Feature: 2200 - SS: JMX monitor
 
   Scenario: Proxymonitor responds with correct response for TotalPhysicalMemory
     When JMX request for object "TotalPhysicalMemory" attribute "Value"

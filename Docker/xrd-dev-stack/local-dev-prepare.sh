@@ -47,7 +47,7 @@ fi
 
 if [[ "$GRADLE_BUILD" -eq 1 ]]; then
   echo "Building & packaging X-Road.."
-  cd "$XROAD_HOME"/src/ && ./build_packages.sh -r noble "$@"
+  cd "$XROAD_HOME"/src/ && ./build_packages.sh "$@"
 fi
 
 if [ ! -d "$PACKAGES_LOCAL_PATH" ] || [ ! "$(ls -A "$PACKAGES_LOCAL_PATH")" ]; then
