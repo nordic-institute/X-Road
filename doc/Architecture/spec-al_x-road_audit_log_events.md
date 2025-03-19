@@ -1,6 +1,6 @@
 # Audit log events
 
-Version: 1.13
+Version: 1.14
 
 Doc. ID: SPEC-AL
 
@@ -25,6 +25,7 @@ Doc. ID: SPEC-AL
 | 05.06.2023 | 1.11    | New Central Server                                                                                                                                        | Eneli Reimets      |
 | 09.12.2023 | 1.12    | Management service TLS certificate                                                                                                                        | Eneli Reimets      |
 | 29.01.2025 | 1.13    | Inactive token deletion                                                                                                                                   | Eneli Reimets      |
+| 17.03.2025 | 1.14    | Syntax and styling fixes                                                                                                                                  | Pauline Dimmek     |
 
 ## Table of Contents
 
