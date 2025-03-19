@@ -247,9 +247,9 @@ This chapter describes the system parameters used by the components of the X-Roa
 | grpc-internal-host                | 127.0.0.1                                       | Bind gRPC servers to a specific host.                                |
 | grpc-internal-tls-enabled         | true                                            | Enables mTLS for gRPC services                                       |
 | grpc-internal-keystore            | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC keystore for mTLS configuration.                                |
-| grpc-internal-keystore-password   | <generated-value>                               | gRPC keystore password.                                              |
+| grpc-internal-keystore-password   | \<generated-value>                               | gRPC keystore password.                                              |
 | grpc-internal-truststore          | /var/run/xroad/xroad-grpc-internal-keystore.p12 | gRPC truststore for mTLS configuration.                              |
-| grpc-internal-truststore-password | <generated-value>                               | gRPC truststore password.                                            |
+| grpc-internal-truststore-password | \<generated-value>                               | gRPC truststore password.                                            |
 
 ### 3.2 Proxy parameters: `[proxy]`
 
