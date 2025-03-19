@@ -470,13 +470,6 @@ public class OpMonitoringData {
         data.put(XROAD_VERSION, xRoadVersion);
     }
 
-    /**
-     * Gets X-Road version.
-     */
-    public String getXRoadVersion() {
-        return (String) data.get(XROAD_VERSION);
-    }
-
     public boolean isProducer() {
         var type = (String) data.get(SECURITY_SERVER_TYPE);
         return Objects.equals(PRODUCER, SecurityServerType.fromString(type));

@@ -67,7 +67,7 @@ properties:
           description: Path of the rest
           type: string
         xRoadVersion:
-          description: X-Road version
+          description: Version of the X-Road
           type: string
           maxLength: 255
         serviceVersion:

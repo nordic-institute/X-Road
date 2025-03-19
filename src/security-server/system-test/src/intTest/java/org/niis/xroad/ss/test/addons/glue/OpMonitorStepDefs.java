@@ -83,7 +83,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings({"checkstyle:OperatorWrap", "checkstyle:MagicNumber"})
     @Step("Security Server Operational Data request was sent")
     public void executeGetSecurityServerOperationalData() throws Exception {
-        //Thread.sleep(20000);
+        Thread.sleep(60000);
         InputStream is = new FileInputStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
