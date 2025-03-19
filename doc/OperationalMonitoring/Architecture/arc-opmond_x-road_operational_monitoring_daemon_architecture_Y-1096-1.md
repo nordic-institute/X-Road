@@ -1,20 +1,21 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.4  
+Version: 1.5  
 Document ID: ARC-OPMOND
 
-| Date       | Version | Description                                                         | Author           |
-|------------|---------|---------------------------------------------------------------------|------------------|
-|            | 0.5     | Initial version                                                     |                  |
-| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio      |
-| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                         | Antti Luoma      |
-| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        |
-| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                             | Caro Hautamäki   |
-| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                         | Ilkka Seppälä    |
-| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX          | Petteri Kivimäki |
-| 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
-| 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
-| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
+| Date       | Version | Description                                                                                    | Author           |
+|------------|---------|------------------------------------------------------------------------------------------------|------------------|
+|            | 0.5     | Initial version                                                                                |                  |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history                                      | Sami Kallio      |
+| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                                                    | Antti Luoma      |
+| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc                            | Tatu Repo        |
+| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                                                        | Caro Hautamäki   |
+| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                                                    | Ilkka Seppälä    |
+| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX                                     | Petteri Kivimäki |
+| 01.06.2023 | 1.2     | Update references                                                                              | Petteri Kivimäki |
+| 02.10.2024 | 1.3     | Update schema file locations                                                                   | Justas Samuolis  |
+| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                                                | Eneli Reimets    |
+| 19.03.2025 | 1.5     | New optional field: xRoadVersion (string) and added example for REST request for producer side | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -170,7 +171,7 @@ The schema is located in the file *src/op-monitor-daemon/core/src/main/resources
 
 ### A.2 Example Store Operational Monitoring Data Request
 
-The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST request and the third one unsuccessfully mediated request.
+The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST client request and third REST request on the producer side and the fourth one unsuccessfully mediated request.
 
 ```json
 {
@@ -193,6 +194,7 @@ The first record of the store request reflects successfully mediated SOAP reques
       "serviceSubsystemCode": "SERVICE",
       "serviceCode": "getRandom",
       "serviceVersion": "v1",
+      "xRoadVersion": "7.6.2",
       "messageId": "1234",
       "messageUserId": "1234",
       "messageIssue": "1234",
@@ -225,7 +227,40 @@ The first record of the store request reflects successfully mediated SOAP reques
       "serviceSubsystemCode": "SERVICE",
       "serviceCode": "pets",
       "restMethod": "GET",
+      "xRoadVersion": "7.6.2",
+      "messageId": "1234",
+      "messageProtocolVersion": "1",
+      "clientSecurityServerAddress": "ss1",
+      "serviceSecurityServerAddress": "ss1",
+      "requestSize": 214,
+      "responseSize": 462,
+      "requestAttachmentCount": 0,
+      "responseAttachmentCount": 0,
+      "succeeded": true,
+      "statusCode": 200,
+      "xRequestId": "1244d018-9300-4f1b-8c2b-9b7f2bc4e933",
+      "serviceType": "REST"
+    },
+    {
+      "monitoringDataTs": 1733404603,
+      "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
+      "securityServerType": "Producer",
+      "requestInTs": 1733404602876,
+      "requestOutTs": 1733404602884,
+      "responseInTs": 1733404602970,
+      "responseOutTs": 1733404603005,
+      "clientXRoadInstance": "FI",
+      "clientMemberClass": "COM",
+      "clientMemberCode": "111",
+      "clientSubsystemCode": "CLIENT",
+      "serviceXRoadInstance": "FI",
+      "serviceMemberClass": "COM",
+      "serviceMemberCode": "111",
+      "serviceSubsystemCode": "SERVICE",
+      "serviceCode": "pets",
+      "restMethod": "GET",
       "restPath": "/cat",
+      "xRoadVersion": "7.6.2",
       "messageId": "1234",
       "messageProtocolVersion": "1",
       "clientSecurityServerAddress": "ss1",
@@ -255,6 +290,7 @@ The first record of the store request reflects successfully mediated SOAP reques
       "serviceMemberCode": "111",
       "serviceCode": "getSecurityServerHealthData",
       "serviceVersion": "v1",
+      "xRoadVersion": "7.6.2",
       "messageId": "1234",
       "messageProtocolVersion": "4.x",
       "clientSecurityServerAddress": "ss1",
