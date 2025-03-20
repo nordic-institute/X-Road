@@ -31,6 +31,7 @@ import org.niis.xroad.proxy.core.util.ServerConfStatsLogger;
 import org.quartz.SchedulerException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 @Configuration
@@ -38,6 +39,7 @@ public class ProxyJobConfig {
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
     @Bean
+    @DependsOn("serverConfProvider") //ensure serverConfProvider is initialized first in main thread
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
         final var jobManager = new JobManager(springBeanJobFactory);
 
