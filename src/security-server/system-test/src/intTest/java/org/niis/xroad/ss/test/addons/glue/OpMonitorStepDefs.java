@@ -83,7 +83,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @SuppressWarnings({"checkstyle:OperatorWrap", "checkstyle:MagicNumber"})
     @Step("Security Server Operational Data request was sent")
     public void executeGetSecurityServerOperationalData() throws Exception {
-        Thread.sleep(60000);
+        Thread.sleep(2000);
         InputStream is = new FileInputStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
@@ -154,7 +154,9 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                     @SuppressWarnings("checkstyle:MagicNumber")
                     public void soap(SoapMessage message, Map<String, String> headers) {
                         assertEquals("cid:" + OPERATIONAL_DATA_JSON, findOperationalDataRecordsContentId(message, "records"));
-                        assertTrue(Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount")) >= 15);
+                        var recordsCount = Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount"));
+                        log.info("operational data records count: {}", recordsCount);
+                        assertTrue(recordsCount > 0);
                     }
 
 

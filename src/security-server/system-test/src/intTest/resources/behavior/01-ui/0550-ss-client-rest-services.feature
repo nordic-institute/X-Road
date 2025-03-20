@@ -122,7 +122,7 @@ Feature: 0550 - SS: Client REST with base path services
     When Service endpoint with HTTP request method "PATCH" and path "/new/path/edited" is deleted
     And Service endpoint with HTTP request method "PATCH" and path "/new/path/edited" is missing in the list
 
-  Scenario: Newly added one service are enabled with one endpoint and the second added service is disabled
+  Scenario: Newly added one service is disabled and the second is enabled with one added endpoint
     Given Client "TestService" is opened
     And Services sub-tab is selected
     When Service "REST (http://example.com/v2)" is enabled
