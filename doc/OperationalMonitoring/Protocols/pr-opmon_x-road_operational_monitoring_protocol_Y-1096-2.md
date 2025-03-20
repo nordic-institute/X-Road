@@ -110,7 +110,6 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *serviceCode*
  * *restMethod*
  * *restPath*
- * *xRoadVersion*
  * *serviceVersion*
  * *representedPartyClass*
  * *representedPartyCode*
@@ -131,6 +130,7 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *faultCode*
  * *faultString*
  * *statusCode*
+ * *xRoadVersion*
  
 
 The fields are described in the JSON-schema of the response payload \[[Annex B](#AnnexB)\].
