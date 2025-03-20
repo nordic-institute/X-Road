@@ -3,19 +3,19 @@
 Version: 1.5  
 Document ID: ARC-OPMOND
 
-| Date       | Version | Description                                                                                    | Author           |
-|------------|---------|------------------------------------------------------------------------------------------------|------------------|
-|            | 0.5     | Initial version                                                                                |                  |
-| 23.01.2017 | 0.6     | Added license text, table of contents and version history                                      | Sami Kallio      |
-| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                                                    | Antti Luoma      |
-| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc                            | Tatu Repo        |
-| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                                                        | Caro Hautamäki   |
-| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                                                    | Ilkka Seppälä    |
-| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX                                     | Petteri Kivimäki |
-| 01.06.2023 | 1.2     | Update references                                                                              | Petteri Kivimäki |
-| 02.10.2024 | 1.3     | Update schema file locations                                                                   | Justas Samuolis  |
-| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                                                | Eneli Reimets    |
-| 19.03.2025 | 1.5     | New optional field: xRoadVersion (string) and added example for REST request for producer side | Eneli Reimets    |
+| Date       | Version | Description                                                         | Author           |
+|------------|---------|---------------------------------------------------------------------|------------------|
+|            | 0.5     | Initial version                                                     |                  |
+| 23.01.2017 | 0.6     | Added license text, table of contents and version history           | Sami Kallio      |
+| 02.02.2018 | 0.7     | Technology matrix moved to the ARC-TEC-file                         | Antti Luoma      |
+| 05.03.2018 | 0.8     | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo        |
+| 18.02.2019 | 0.9     | New optional field: xRequestId (string)                             | Caro Hautamäki   |
+| 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                         | Ilkka Seppälä    |
+| 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX          | Petteri Kivimäki |
+| 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
+| 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
+| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
+| 19.03.2025 | 1.5     | Added field xRoadVersion and example for producer side REST request | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 

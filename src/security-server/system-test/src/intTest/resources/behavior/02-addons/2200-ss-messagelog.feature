@@ -1,6 +1,6 @@
 @SecurityServer
 @Addon
-Feature: 2300 - SS: Messagelog addon
+Feature: 2200 - SS: Messagelog addon
 
   Scenario: Messagelog contains metrics requests
     When Security Server Metrics request was sent with queryId "ID4321"
