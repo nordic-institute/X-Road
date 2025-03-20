@@ -31,20 +31,18 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
-import org.niis.xroad.common.test.container.TestCaAuxiliaryContainer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
 @SuppressWarnings("checkstyle:MagicNumber")
 public class TestCaFeignInterceptor implements FeignClientInterceptor {
     private static final int EXECUTION_ORDER = 50;
 
-    private final TestCaAuxiliaryContainer testCaAuxiliaryContainer;
+    private final Supplier<Integer> testCaPortSupplier;
 
     @Override
     public int getOrder() {
@@ -58,7 +56,7 @@ public class TestCaFeignInterceptor implements FeignClientInterceptor {
 
         if (request.url().encodedPath().contains("/testca")) {
             var newUrl = request.url().newBuilder()
-                    .port(testCaAuxiliaryContainer.getTestContainer().getMappedPort(8888))
+                    .port(testCaPortSupplier.get())
                     .build();
 
             return chain.proceed(request.newBuilder()
@@ -68,6 +66,5 @@ public class TestCaFeignInterceptor implements FeignClientInterceptor {
 
         return chain.proceed(request);
     }
-
 
 }

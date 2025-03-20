@@ -32,7 +32,7 @@ import io.qameta.allure.selenide.AllureSelenide;
 import io.qameta.allure.selenide.LogType;
 import jakarta.annotation.PostConstruct;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
-import org.niis.xroad.ss.test.ui.TargetHostUrlProvider;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.page.CommonPageObj;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ public abstract class BaseUiStepDefs extends BaseStepDefs {
     protected final CommonPageObj commonPageObj = new CommonPageObj();
 
     @Autowired
-    protected TargetHostUrlProvider targetHostUrlProvider;
+    protected EnvSetup envSetup;
 
     @PostConstruct
     private void init() {

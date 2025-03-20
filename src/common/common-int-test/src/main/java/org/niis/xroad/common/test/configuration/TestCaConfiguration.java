@@ -26,12 +26,23 @@
 package org.niis.xroad.common.test.configuration;
 
 import org.niis.xroad.common.test.api.TestCaFeignApi;
+import org.niis.xroad.common.test.container.TestCaAuxiliaryContainer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.function.Supplier;
+
 @Configuration
-@ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
 @EnableFeignClients(clients = TestCaFeignApi.class)
 public class TestCaConfiguration {
+
+    @ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
+    @Bean
+    @SuppressWarnings("checkstyle:MagicNumber")
+    Supplier<Integer> testCaPortSupplier(TestCaAuxiliaryContainer testCaAuxiliaryContainer) {
+        return () -> testCaAuxiliaryContainer.getTestContainer().getMappedPort(8888);
+    }
+
 }

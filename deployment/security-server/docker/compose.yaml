@@ -20,6 +20,10 @@ services:
       - POSTGRES_USER=serverconf
     networks:
       - xrd-ss-network
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-d", "serverconf", "-U", "serverconf" ]
     deploy:
       resources:
         reservations:
@@ -33,6 +37,10 @@ services:
       - POSTGRES_USER=messagelog
     networks:
       - xrd-ss-network
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-d", "messagelog", "-U", "messagelog" ]
     deploy:
       resources:
         reservations:
@@ -164,6 +172,7 @@ services:
       - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
       - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
+      - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME=messagelog
@@ -231,8 +240,6 @@ services:
         limits:
           memory: 512M
 
-volumes:
-  db-volume:
 networks:
   xroad-network:
     name: xroad-network

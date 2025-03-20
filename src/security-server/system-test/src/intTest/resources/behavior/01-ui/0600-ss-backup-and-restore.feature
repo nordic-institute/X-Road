@@ -1,5 +1,7 @@
 @SecurityServer
 @BackupAndRestore
+@Skip
+#todo backups not implemented on containers yet
 Feature: 0600 - SS: Backup and Restore
 
   Background:
