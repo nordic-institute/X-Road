@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-06-12T09:51:37.673Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" etag="9IIrMpxypgji53OoBVID" version="21.5.1" type="device">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.1.1 Chrome/132.0.6834.210 Electron/34.3.3 Safari/537.36" version="26.1.1">
   <diagram id="JbDlwLFTd4TnMdRyGuPK" name="Ubuntu">
-    <mxGraphModel dx="1718" dy="615" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2261" dy="870" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -172,13 +172,13 @@
             <mxPoint x="1" y="-23" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ZLEEcUuc3kJOhti-5JWz-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;startArrow=none;startFill=0;strokeColor=#663CDC;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="LwSU-SxfXM3Ihz1b4emU-8" target="LwSU-SxfXM3Ihz1b4emU-2">
+        <mxCell id="ZLEEcUuc3kJOhti-5JWz-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;startArrow=none;startFill=0;strokeColor=#663CDC;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="LwSU-SxfXM3Ihz1b4emU-8" target="LwSU-SxfXM3Ihz1b4emU-2" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="250" y="450" as="sourcePoint" />
             <mxPoint x="330" y="450" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ZLEEcUuc3kJOhti-5JWz-4" value="IN&lt;br&gt;80/tcp&lt;br&gt;443/tcp&lt;br&gt;4001/tcp" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;fontColor=#663CDC;" vertex="1" connectable="0" parent="ZLEEcUuc3kJOhti-5JWz-3">
+        <mxCell id="ZLEEcUuc3kJOhti-5JWz-4" value="IN&lt;br&gt;80/tcp&lt;br&gt;443/tcp&lt;br&gt;4001/tcp" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;fontColor=#663CDC;" parent="ZLEEcUuc3kJOhti-5JWz-3" vertex="1" connectable="0">
           <mxGeometry x="0.5212" y="1" relative="1" as="geometry">
             <mxPoint x="21" y="34" as="offset" />
           </mxGeometry>

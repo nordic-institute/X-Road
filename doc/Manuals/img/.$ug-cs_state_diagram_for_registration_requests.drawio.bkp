@@ -1,0 +1,91 @@
+<mxfile host="app.diagrams.net" modified="2023-05-25T09:14:32.599Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0" etag="5SDxoX6C2plSKqesm6od" version="21.3.2" type="device">
+  <diagram id="prtHgNgQTEPvFCAcTncT" name="Page-1">
+    <mxGraphModel dx="1370" dy="740" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-9" value="" style="swimlane;startSize=0;" parent="1" vertex="1">
+          <mxGeometry x="50" y="150" width="670" height="350" as="geometry">
+            <mxRectangle x="380" y="310" width="50" height="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-10" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#ffffff;fillColor=#000000;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="50" y="150" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-12" value="Request received" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="10" y="115" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-14" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1ba1e2;fontColor=#ffffff;strokeColor=#006EAF;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="150" y="130" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-17" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="cPbxSx_PGkr2KnkIm7Pm-9" source="cPbxSx_PGkr2KnkIm7Pm-10" target="cPbxSx_PGkr2KnkIm7Pm-14" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="290" as="sourcePoint" />
+            <mxPoint x="370" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-18" value="PENDING" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="235" y="145" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-29" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="cPbxSx_PGkr2KnkIm7Pm-9" source="cPbxSx_PGkr2KnkIm7Pm-14" target="cPbxSx_PGkr2KnkIm7Pm-37" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="230" y="190" as="sourcePoint" />
+            <mxPoint x="240" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-30" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;[Deletion request received]&lt;/font&gt;" style="edgeLabel;resizable=0;html=1;align=center;verticalAlign=middle;" parent="cPbxSx_PGkr2KnkIm7Pm-29" connectable="0" vertex="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-78" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-32" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1.006;exitY=0.401;exitDx=0;exitDy=0;exitPerimeter=0;" parent="cPbxSx_PGkr2KnkIm7Pm-9" source="cPbxSx_PGkr2KnkIm7Pm-14" target="cPbxSx_PGkr2KnkIm7Pm-35" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="350" y="145" as="sourcePoint" />
+            <mxPoint x="400" y="95" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="440" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-41" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;Request approved&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="cPbxSx_PGkr2KnkIm7Pm-32" vertex="1" connectable="0">
+          <mxGeometry x="0.383" y="-2" relative="1" as="geometry">
+            <mxPoint y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-33" value="" style="edgeStyle=orthogonalEdgeStyle;elbow=horizontal;endArrow=classic;html=1;rounded=0;endSize=8;startSize=8;exitX=1.009;exitY=0.645;exitDx=0;exitDy=0;exitPerimeter=0;" parent="cPbxSx_PGkr2KnkIm7Pm-9" source="cPbxSx_PGkr2KnkIm7Pm-14" target="cPbxSx_PGkr2KnkIm7Pm-36" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="350" y="175" as="sourcePoint" />
+            <mxPoint x="400" y="125" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="440" y="169" />
+              <mxPoint x="440" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-42" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;Request declined&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="cPbxSx_PGkr2KnkIm7Pm-33" vertex="1" connectable="0">
+          <mxGeometry x="0.2604" y="1" relative="1" as="geometry">
+            <mxPoint x="11" y="1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-35" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;labelBackgroundColor=none;fontColor=#000040;fillColor=#000000;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="570" y="95" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-36" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="570" y="200" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-37" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="260" y="260" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-44" value="APPROVED" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="540" y="65" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-43" value="REJECTED" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="540" y="220" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cPbxSx_PGkr2KnkIm7Pm-45" value="REVOKED" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="cPbxSx_PGkr2KnkIm7Pm-9" vertex="1">
+          <mxGeometry x="230" y="280" width="80" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

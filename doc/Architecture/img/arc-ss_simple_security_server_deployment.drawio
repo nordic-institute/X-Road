@@ -1,0 +1,19 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" version="26.1.1">
+  <diagram id="25afHc79MigDFWw9spGJ" name="Page-1">
+    <mxGraphModel dx="1434" dy="822" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="dmkHZSF7uz1fVC1_wd5T-1" value="&lt;div&gt;&lt;b style=&quot;line-height: 140%&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Security Server&lt;/b&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;- Signer&lt;br&gt;- Proxy&lt;br&gt;- Message Log&lt;br&gt;- Metadata Services&lt;br&gt;- Database&lt;br&gt;- Configuration Client&lt;br&gt;- User Interface and REST API&lt;br&gt;- Password Store&lt;br&gt;- Operational Monitoring Services&lt;br&gt;- Opmonitor&lt;br&gt;- Environmental Monitoring Service&lt;br&gt;- Monitor&lt;br&gt;&lt;/font&gt;" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=0;html=1;fillColor=#EFEBFB;strokeColor=#663CDC;" parent="1" vertex="1">
+          <mxGeometry x="60" y="350" width="200" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="dmkHZSF7uz1fVC1_wd5T-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=100;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;" parent="1" source="dmkHZSF7uz1fVC1_wd5T-2" target="dmkHZSF7uz1fVC1_wd5T-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dmkHZSF7uz1fVC1_wd5T-2" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;line-height: 140%&quot;&gt;SSCD&lt;/b&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 11px&quot;&gt;&lt;br&gt;&lt;/font&gt;" style="verticalAlign=top;align=center;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=0;html=1;fillColor=#EFEBFB;strokeColor=#663CDC;" parent="1" vertex="1">
+          <mxGeometry x="310" y="420" width="100" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
