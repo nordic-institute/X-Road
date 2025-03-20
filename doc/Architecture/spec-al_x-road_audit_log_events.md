@@ -9,7 +9,7 @@ Doc. ID: SPEC-AL
 | Date       | Version | Description                                                                                                                                               | Author             |
 |------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
 | 11.09.2015 | 0.1     | Initial version                                                                                                                                           | Kristo Heero       |
-| 14.09.2015 | 0.2	    | Bug fixes                                                                                                                                                 | Kristo Heero       |
+| 14.09.2015 | 0.2	    | Bug fixes                                                                                                                                                | Kristo Heero       |
 | 16.09.2015 | 0.3     | 	Made editorial changes in introduction                                                                                                                   | Margus Freudenthal |
 | 18.09.2015 | 1.0     | Editorial changes made                                                                                                                                    | Imbi Nõgisto       |
 | 09.10.2015 | 1.1     | Delete certificate/key events of security server updated                                                                                                  | Kristo Heero       |
