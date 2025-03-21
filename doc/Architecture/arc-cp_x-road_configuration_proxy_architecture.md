@@ -1,7 +1,7 @@
 # X-Road: Configuration Proxy Architecture
 **Technical Specification**
 
-Version: 1.7  
+Version: 1.8  
 01.06.2023
 <!-- 1 pages -->
  Doc. ID: ARC-CP
@@ -23,6 +23,7 @@ Version: 1.7
  02.03.2018 | 1.5     | Moved terms and abbreviations to terms document                                                      | Tatu Repo
  25.08.2021 | 1.6     | Update X-Road references from version 6 to 7                                                         | Caro Hautamäki
  01.06.2023 | 1.7     | Update references                                                                                    | Petteri Kivimäki
+ 21.03.2025 | 1.8     | Syntax and styling                                                                                   | Pauline Dimmek
 
 ## Table of Contents
 
