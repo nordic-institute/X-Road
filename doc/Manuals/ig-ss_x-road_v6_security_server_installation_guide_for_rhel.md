@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.29  
+Version: 1.30  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -42,6 +42,8 @@ Doc. ID: IG-SS-RHEL
 | 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis  |
 | 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki |
 | 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki |
+| 21.03.2025 | 1.30    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek   |
+
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/

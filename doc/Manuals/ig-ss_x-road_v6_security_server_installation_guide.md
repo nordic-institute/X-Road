@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.52  
+Version: 2.53  
 Doc. ID: IG-SS
 
 ---
@@ -72,6 +72,7 @@ Doc. ID: IG-SS
 | 26.04.2024 | 2.50    | Ubuntu 24.04 support                                                                                                                                                                                                 | Madis Loitmaa      |
  | 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki   |
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki   |
+| 21.03.2025 | 2.53    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
 
 ## License
 

@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.40
+Version: 2.41
 Doc. ID: IG-CS
 
 ---
@@ -57,7 +57,9 @@ Doc. ID: IG-CS
 | 08.12.2023 | 2.37    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki   |
 | 02.01.2024 | 2.38    | Loopback ports added                                                                                                                                                                          | Justas Samuolis    |
 | 25.04.2024 | 2.39    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa      |
- | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki   |
+| 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki   |
+| 21.03.2025 | 2.41    | Syntax and styling                                                                                                                                                                            | Pauline Dimmek     |
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->

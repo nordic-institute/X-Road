@@ -2,7 +2,7 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.17
+Version: 1.18
 12.06.2024
 <!-- 15 pages -->
 Doc. ID: ARC-SS
@@ -37,6 +37,7 @@ Doc. ID: ARC-SS
 | 20.06.2023 | 1.15    | Fixed Security Server Admin API OpenAPI specification link                                           | Madis Loitmaa      |
 | 03.10.2023 | 1.16    | Remove Akka references                                                                               | Ričardas Bučiūnas  |
 | 12.06.2024 | 1.17    | Add information about ACME support                                                                   | Petteri Kivimäki   |
+| 21.03.2025 | 1.19    | Syntax and styling fixes                                                                             | Pauline Dimmek     |
 
 ## Table of Contents <!-- omit in toc -->
 
