@@ -31,6 +31,7 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ import java.util.function.Supplier;
 
 @Component
 @RequiredArgsConstructor
+@ConditionalOnBean(name = "testCaPortSupplier")
 @SuppressWarnings("checkstyle:MagicNumber")
 public class TestCaFeignInterceptor implements FeignClientInterceptor {
     private static final int EXECUTION_ORDER = 50;

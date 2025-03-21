@@ -124,7 +124,7 @@ public class SsAddonTestConfiguration {
         return new JmxClientImpl(() -> String.format(JMX_URL_TEMPLATE, "localhost", Port.MONITOR_JMX.get()));
     }
 
-    @Bean
+    @Bean(name = "testCaPortSupplier")
     Supplier<Integer> testCaPortSupplier(EnvSetup envSetup) {
         return () -> envSetup.getContainerMapping(EnvSetup.TESTCA, Port.TEST_CA).port();
     }

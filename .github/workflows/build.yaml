@@ -284,8 +284,7 @@ jobs:
           name: SS System Test report
           path: |
             src/security-server/system-test/build/allure-report/
-            src/security-server/system-test/build/ss-container-logs/
-            src/security-server/system-test/build/ca-container-logs/
+            src/security-server/system-test/build/container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
   RunE2ETests:
     name: Run E2E tests

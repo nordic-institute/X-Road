@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 public class TestCaConfiguration {
 
     @ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
-    @Bean
+    @Bean(name = "testCaPortSupplier")
     @SuppressWarnings("checkstyle:MagicNumber")
     Supplier<Integer> testCaPortSupplier(TestCaAuxiliaryContainer testCaAuxiliaryContainer) {
         return () -> testCaAuxiliaryContainer.getTestContainer().getMappedPort(8888);
