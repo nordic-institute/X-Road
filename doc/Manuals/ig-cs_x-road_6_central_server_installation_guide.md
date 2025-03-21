@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.42
+Version: 2.43
 Doc. ID: IG-CS
 
 ---
@@ -60,6 +60,7 @@ Doc. ID: IG-CS
 | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki     |
 | 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA Configuration signing keys                                                                   | Ovidijus Narkevicius |
 | 10.03.2025 | 2.42    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki     |
+| 21.03.2025 | 2.43    | Syntax and styling                                                                                                                                                                            | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 

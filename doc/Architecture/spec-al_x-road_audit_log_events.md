@@ -9,7 +9,7 @@ Doc. ID: SPEC-AL
 | Date       | Version | Description                                                                                                                                               | Author             |
 |------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
 | 11.09.2015 | 0.1     | Initial version                                                                                                                                           | Kristo Heero       |
-| 14.09.2015 | 0.2	    | Bug fixes                                                                                                                                                | Kristo Heero       |
+| 14.09.2015 | 0.2	   | Bug fixes                                                                                                                                                 | Kristo Heero       |
 | 16.09.2015 | 0.3     | 	Made editorial changes in introduction                                                                                                                   | Margus Freudenthal |
 | 18.09.2015 | 1.0     | Editorial changes made                                                                                                                                    | Imbi Nõgisto       |
 | 09.10.2015 | 1.1     | Delete certificate/key events of security server updated                                                                                                  | Kristo Heero       |
@@ -25,7 +25,7 @@ Doc. ID: SPEC-AL
 | 05.06.2023 | 1.11    | New Central Server                                                                                                                                        | Eneli Reimets      |
 | 09.12.2023 | 1.12    | Management service TLS certificate                                                                                                                        | Eneli Reimets      |
 | 29.01.2025 | 1.13    | Inactive token deletion                                                                                                                                   | Eneli Reimets      |
-| 17.03.2025 | 1.14    | Syntax and styling fixes                                                                                                                                  | Pauline Dimmek     |
+| 17.03.2025 | 1.14    | Syntax and styling                                                                                                                                        | Pauline Dimmek     |
 
 ## Table of Contents
 
