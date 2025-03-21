@@ -115,6 +115,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
     }
 
+    @SuppressWarnings("checkstyle:magicnumber")
     public void start(String service) {
         var containerState = env.getContainerByServiceName(service).orElseThrow();
         var dockerClient = containerState.getDockerClient();
