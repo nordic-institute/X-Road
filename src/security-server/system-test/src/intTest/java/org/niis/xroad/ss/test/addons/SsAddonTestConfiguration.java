@@ -37,6 +37,7 @@ import feign.hc5.ApacheHttp5Client;
 import feign.jackson.JacksonEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
@@ -48,8 +49,6 @@ import org.springframework.cloud.openfeign.FeignClientsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import java.util.function.Supplier;
 
 @Slf4j
 @Configuration
@@ -124,9 +123,9 @@ public class SsAddonTestConfiguration {
         return new JmxClientImpl(() -> String.format(JMX_URL_TEMPLATE, "localhost", Port.MONITOR_JMX.get()));
     }
 
-    @Bean(name = "testCaPortSupplier")
-    Supplier<Integer> testCaPortSupplier(EnvSetup envSetup) {
-        return () -> envSetup.getContainerMapping(EnvSetup.TESTCA, Port.TEST_CA).port();
+    @Bean
+    TestCaFeignInterceptor testCaFeignInterceptor(EnvSetup envSetup) {
+        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(EnvSetup.TESTCA, Port.TEST_CA).port());
     }
 
 }
