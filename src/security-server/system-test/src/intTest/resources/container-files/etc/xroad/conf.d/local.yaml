@@ -26,7 +26,7 @@ xroad:
     rate-limit-requests-per-second: 100
     rate-limit-requests-per-minute: 1000
     acme-challenge-port-enabled: true
-    wsdl-validator-command: /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+    wsdl-validator-command: #todo: /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
     automatic-activate-acme-sign-certificate: true
   message-log:
     messagelog-encryption-enabled: true
@@ -36,3 +36,4 @@ xroad:
     archive-encryption-enabled: true
   op-monitor:
     scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
+    host: op-monitor

@@ -109,6 +109,19 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
     }
 
+    public void stop(String service) {
+        var containerState = env.getContainerByServiceName(service).orElseThrow();
+        var dockerClient = containerState.getDockerClient();
+        dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
+    }
+
+    public void start(String service) {
+        var containerState = env.getContainerByServiceName(service).orElseThrow();
+        var dockerClient = containerState.getDockerClient();
+        dockerClient.startContainerCmd(containerState.getContainerId()).exec();
+        await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
+    }
+
     private Slf4jLogConsumer createLogConsumer(String containerName) {
         return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-".formatted(containerName)));
     }

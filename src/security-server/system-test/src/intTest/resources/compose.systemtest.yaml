@@ -8,11 +8,10 @@ services:
       - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
     volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/signer-predefined:/signer-predefined
-
+      - ../../../src/security-server/system-test/build/signer-volume:/etc/xroad/signer
   proxy:
     volumes:
-      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
+      - ../../../src/security-server/system-test/build/resources/intTest/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/messagelog:/etc/xroad/messagelog
     depends_on:
       op-monitor:
@@ -27,7 +26,6 @@ services:
       - JAVA_TOOL_OPTIONS=-Dcom.sun.management.jmxremote.rmi.port=${MONITOR_JMX_PORT} -Dcom.sun.management.jmxremote.port=${MONITOR_JMX_PORT}
       - com.sun.management.jmxremote.port=${MONITOR_JMX_PORT}
       - com.sun.management.jmxremote.rmi.port=${MONITOR_JMX_PORT}
-
   ui:
     environment:
       - JAVA_TOOL_OPTIONS=-Dserver.servlet.session.timeout=1m
@@ -45,10 +43,6 @@ services:
       - POSTGRES_USER=opmonitor
     networks:
       - xrd-ss-network
-    healthcheck:
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "pg_isready", "-d", "op-monitor", "-U", "opmonitor" ]
     deploy:
       resources:
         reservations:

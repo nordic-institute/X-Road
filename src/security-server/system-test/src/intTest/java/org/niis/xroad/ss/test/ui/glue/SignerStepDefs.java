@@ -25,59 +25,61 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import com.codeborne.selenide.Selenide;
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.io.FileUtils;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class SignerStepDefs extends BaseUiStepDefs {
-    @Autowired
-    private TestableApplicationContainerProvider containerProvider;
 
     @SneakyThrows
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
-        var execResult = containerProvider.getContainer()
-                .execInContainer("supervisorctl", "restart", "xroad-signer");
-
-        testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
-        Selenide.sleep(3000L);
+        envSetup.restartContainer("signer");
     }
 
     @SneakyThrows
     @Step("predefined signer softtoken is uploaded")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void updateSignerSoftToken() {
-        execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("rm", "-rf", "/etc/xroad/signer/");
-        execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
-        execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
-        execInContainer("supervisorctl", "start", "xroad-signer");
-        Selenide.sleep(3000L);
+        envSetup.stop(EnvSetup.SIGNER);
+
+        FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
+        FileUtils.copyDirectory(
+                Paths.get("src/intTest/resources/container-files/etc/xroad/signer-predefined").toFile(),
+                Paths.get("build/signer-volume").toFile());
+
+        envSetup.start(EnvSetup.SIGNER);
     }
 
     @SneakyThrows
     @Step("Predefined inactive signer token is uploaded")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void addInactiveSignerToken() {
-        execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("sed", "-i", "/<\\/device>/a\\\n"
-                + "<device>\\\n"
-                + "        <deviceType>softToken</deviceType>\\\n"
-                + "        <friendlyName>softToken-for-deletion</friendlyName>\\\n"
-                + "        <id>1</id>\\\n"
-                + "        <pinIndex>1</pinIndex>\\\n"
-                + "    </device>", "/etc/xroad/signer/keyconf.xml");
-        execInContainer("supervisorctl", "start", "xroad-signer");
-        Selenide.sleep(3000L);
+        envSetup.stop(EnvSetup.SIGNER);
+
+        String deviceEntry = """
+                </device>
+                <device>
+                    <deviceType>softToken</deviceType>
+                    <friendlyName>softToken-for-deletion</friendlyName>
+                    <id>1</id>
+                    <pinIndex>1</pinIndex>
+                </device>
+                """;
+
+        Path keyconfPath = Paths.get("build/signer-volume/keyconf.xml");
+
+        String content = Files.readString(keyconfPath);
+        content = content.replaceFirst("</device>", deviceEntry);
+        Files.writeString(keyconfPath, content);
+
+        envSetup.start(EnvSetup.SIGNER);
     }
 
-    @SneakyThrows
-    private void execInContainer(String... args) {
-        var execResult = containerProvider.getContainer().execInContainer(args);
-        testReportService.attachJson(StringUtils.join(args, " "), execResult);
-    }
 }
