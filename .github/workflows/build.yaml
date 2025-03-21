@@ -119,17 +119,21 @@ jobs:
           docker pull localhost:5000/ss-proxy:latest
           docker pull localhost:5000/ss-signer:latest
           docker pull localhost:5000/ss-monitor:latest
+          docker pull localhost:5000/ss-op-monitor:latest
           docker pull localhost:5000/ss-proxy-ui-api:latest
           docker pull localhost:5000/ss-db-serverconf-init:latest
           docker pull localhost:5000/ss-db-messagelog-init:latest
+          docker pull localhost:5000/ss-db-opmonitor-init:latest
 
           docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5000/ss-db-serverconf-init:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5000/ss-db-messagelog-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5000/ss-db-opmonitor-init:latest
       - name: Store docker images for other jobs
         uses: actions/upload-artifact@v4
         with:
@@ -222,29 +226,45 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-      - name: Initialize docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Download debian packages
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#        with:
+#          driver-opts: network=host
+#      - name: Initialize docker setup
+#        working-directory: ./Docker/securityserver
+#        run: ./init_context.sh
+#      - name: Download debian packages
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: debian-packages
+#          path: ./Docker/securityserver/build/packages/
+#      - name: Build SS docker image
+#        uses: docker/build-push-action@v6
+#        with:
+#          context: ./Docker/securityserver/
+#          push: true
+#          build-args: |
+#            PACKAGE_SOURCE=internal
+#          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+      - name: Download SS docker images
         uses: actions/download-artifact@v4
         with:
-          name: debian-packages
-          path: ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
+      - name: Load SS docker images into registry
+        run: |
+          for tar in ${{ runner.temp }}/docker-images/*.tar; do
+            echo "Processing $tar..."
+            IMAGE_ID=$(docker load -i "$tar" | awk '/Loaded image:/ {print $NF}')
+            docker push "$IMAGE_ID"
+          done
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
+        run: |
+          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
+          docker network create xroad-network
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest 
+#                  -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
