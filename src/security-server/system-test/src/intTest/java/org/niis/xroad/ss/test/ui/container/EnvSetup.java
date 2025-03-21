@@ -29,6 +29,7 @@ package org.niis.xroad.ss.test.ui.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Primary;
@@ -39,6 +40,10 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -65,6 +70,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     @Override
     public void initialize() {
+        prepareDirectories("build/signer-volume/softtoken");
         env = new ComposeContainer("ss-",
                 new File(COMPOSE_SS_FILE), new File(COMPOSE_SYSTEMTEST_FILE))
                 .withLocalCompose(true)
@@ -89,6 +95,16 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         //copy nginx files to container to prevent changing local files
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
+    }
+
+    @SneakyThrows
+    private void prepareDirectories(String path) {
+        Path dirPath = Paths.get(path);
+
+        dirPath.toFile().mkdirs();
+        if (SystemUtils.IS_OS_UNIX) {
+            Files.setPosixFilePermissions(dirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
+        }
     }
 
     @Override
