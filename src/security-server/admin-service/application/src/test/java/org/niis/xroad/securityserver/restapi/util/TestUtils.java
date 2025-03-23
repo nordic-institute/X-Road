@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -35,11 +36,11 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.TspTypeEntity;
-import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -197,8 +198,8 @@ public final class TestUtils {
         return new ClientIdConverter().convertId(encodedId);
     }
 
-    public static ClientIdConfEntity getClientIdEntity(String encodedId) {
-        return XroadIdConfMapper.get().toEntity(new ClientIdConverter().convertId(encodedId));
+    public static ClientIdEntity getClientIdEntity(String encodedId) {
+        return XRoadIdMapper.get().toEntity(new ClientIdConverter().convertId(encodedId));
     }
 
     /**
@@ -304,15 +305,15 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TspType createTspType(String url, String name) {
-        TspType tsp = new TspType();
+    public static TimestampingService createTspType(String url, String name) {
+        TimestampingService tsp = new TimestampingService();
         tsp.setUrl(url);
         tsp.setName(name);
         return tsp;
     }
 
-    public static TspTypeEntity createTspTypeEntity(String url, String name) {
-        TspTypeEntity tsp = new TspTypeEntity();
+    public static TimestampingServiceEntity createTspTypeEntity(String url, String name) {
+        TimestampingServiceEntity tsp = new TimestampingServiceEntity();
         tsp.setUrl(url);
         tsp.setName(name);
         return tsp;
@@ -339,8 +340,8 @@ public final class TestUtils {
      * @param name
      * @return
      */
-    public static TimestampingService createTimestampingService(String url, String name) {
-        TimestampingService timestampingService = new TimestampingService();
+    public static TimestampingServiceDto createTimestampingService(String url, String name) {
+        TimestampingServiceDto timestampingService = new TimestampingServiceDto();
         timestampingService.setUrl(url);
         timestampingService.setName(name);
         return timestampingService;

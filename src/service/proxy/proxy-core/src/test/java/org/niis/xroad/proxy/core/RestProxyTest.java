@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -36,7 +37,7 @@ import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.proxy.core.test.TestService;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 import org.niis.xroad.test.globalconf.TestGlobalConf;
 
 import java.io.InputStream;
@@ -242,11 +243,11 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     public void shouldNotAllowCallingWSDLServices() {
         TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
-            public DescriptionType getDescriptionType(ServiceId service) {
+            public Description getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
-                    return DescriptionType.WSDL;
+                    return Description.WSDL;
                 }
-                return DescriptionType.REST;
+                return Description.REST;
             }
         });
 
@@ -315,11 +316,11 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
         TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
-            public DescriptionType getDescriptionType(ServiceId service) {
+            public Description getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
-                    return DescriptionType.WSDL;
+                    return Description.WSDL;
                 }
-                return DescriptionType.REST;
+                return Description.REST;
             }
         });
 

@@ -42,7 +42,7 @@ import org.apache.http.client.HttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -135,7 +135,7 @@ public abstract class MessageProcessorBase {
                     soapMessage.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(
                     soapMessage.getProtocolVersion());
-            opMonitoringData.setServiceType(DescriptionType.WSDL.name());
+            opMonitoringData.setServiceType(Description.WSDL.name());
             opMonitoringData.setRequestSize(soapMessage.getBytes().length);
         }
     }
@@ -153,7 +153,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
-                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(Description.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
             opMonitoringData.setRestPath(getNormalizedServicePath(request.getServicePath()));
         }

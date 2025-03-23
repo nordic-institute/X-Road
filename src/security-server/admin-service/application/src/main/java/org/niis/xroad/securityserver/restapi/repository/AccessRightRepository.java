@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdEntity;
 import org.niis.xroad.serverconf.impl.dao.AccessRightDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,7 @@ public class AccessRightRepository {
     private final PersistenceUtils persistenceUtils;
     private final AccessRightDAOImpl accessRightDAO = new AccessRightDAOImpl();
 
-    public void deleteBySubjectId(XRoadIdConfEntity subjectId) {
+    public void deleteBySubjectId(XRoadIdEntity subjectId) {
         accessRightDAO.deleteBySubjectId(persistenceUtils.getCurrentSession(), subjectId);
     }
 }

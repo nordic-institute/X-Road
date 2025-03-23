@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -59,8 +60,8 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.Description;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.AttributesImpl;
 
@@ -331,7 +332,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
 
-        if (!ClientType.STATUS_REGISTERED.equals(status)) {
+        if (!Client.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
@@ -381,8 +382,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        DescriptionType descriptionType = commonBeanProxy.serverConfProvider.getDescriptionType(requestServiceId);
-        if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
+        Description description = commonBeanProxy.serverConfProvider.getDescriptionType(requestServiceId);
+        if (description != null && description != Description.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and cannot be called using SOAP interface");
         }

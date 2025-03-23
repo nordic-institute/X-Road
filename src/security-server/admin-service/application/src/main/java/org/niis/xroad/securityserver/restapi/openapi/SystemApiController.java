@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -46,16 +47,16 @@ import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
-import org.niis.xroad.securityserver.restapi.openapi.model.NodeType;
-import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponse;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.ConfigurationDownloadException;
@@ -69,7 +70,7 @@ import org.niis.xroad.securityserver.restapi.service.ManagementRequestSendingFai
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -116,17 +117,17 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_INTERNAL_TLS_CERT')")
-    public ResponseEntity<CertificateDetails> getSystemCertificate() {
+    public ResponseEntity<CertificateDetailsDto> getSystemCertificate() {
         X509Certificate x509Certificate = internalTlsCertificateService.getInternalTlsCertificate();
-        CertificateDetails certificate = certificateDetailsConverter.convert(x509Certificate);
+        CertificateDetailsDto certificate = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificate, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<VersionInfo> systemVersion() {
-        VersionInfoDto versionInfoDto = versionService.getVersionInfo();
-        VersionInfo result = versionConverter.convert(versionInfoDto);
+    public ResponseEntity<VersionInfoDto> systemVersion() {
+        VersionInfo versionInfo = versionService.getVersionInfo();
+        VersionInfoDto result = versionConverter.convert(versionInfo);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -144,19 +145,19 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
-    public ResponseEntity<Set<TimestampingService>> getConfiguredTimestampingServices() {
-        Set<TimestampingService> timestampingServices;
-        List<TspType> tsps = systemService.getConfiguredTimestampingServices();
-        timestampingServices = timestampingServiceConverter.convert(tsps);
+    public ResponseEntity<Set<TimestampingServiceDto>> getConfiguredTimestampingServices() {
+        Set<TimestampingServiceDto> timestampingServiceDtos;
+        List<TimestampingService> tsps = systemService.getConfiguredTimestampingServices();
+        timestampingServiceDtos = timestampingServiceConverter.convert(tsps);
 
-        return new ResponseEntity<>(timestampingServices, HttpStatus.OK);
+        return new ResponseEntity<>(timestampingServiceDtos, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ADD_TSP')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_TSP)
-    public ResponseEntity<TimestampingService> addConfiguredTimestampingService(
-            TimestampingService timestampingServiceToAdd) {
+    public ResponseEntity<TimestampingServiceDto> addConfiguredTimestampingService(
+            TimestampingServiceDto timestampingServiceToAdd) {
         try {
             systemService.addConfiguredTimestampingService(timestampingServiceConverter
                     .convert(timestampingServiceToAdd));
@@ -171,9 +172,9 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS)
-    public ResponseEntity<Void> addressChange(SecurityServerAddress securityServerAddress) {
+    public ResponseEntity<Void> addressChange(SecurityServerAddressDto securityServerAddressDto) {
         try {
-            systemService.changeSecurityServerAddress(securityServerAddress.getAddress());
+            systemService.changeSecurityServerAddress(securityServerAddressDto.getAddress());
         } catch (GlobalConfOutdatedException e) {
             throw new ConflictException(e);
         } catch (ManagementRequestSendingFailedException e) {
@@ -184,12 +185,12 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
-    public ResponseEntity<SecurityServerAddressStatus> getServerAddress() {
+    public ResponseEntity<SecurityServerAddressStatusDto> getServerAddress() {
         String current = globalConfService.getSecurityServerAddress(currentSecurityServerId.getServerId());
-        SecurityServerAddressStatus response = new SecurityServerAddressStatus();
-        response.setCurrentAddress(new SecurityServerAddress(current));
+        SecurityServerAddressStatusDto response = new SecurityServerAddressStatusDto();
+        response.setCurrentAddress(new SecurityServerAddressDto(current));
         addressChangeStatus.getAddressChangeRequest()
-                .map(SecurityServerAddress::new)
+                .map(SecurityServerAddressDto::new)
                 .ifPresent(response::setRequestedChange);
         return ResponseEntity.ok(response);
     }
@@ -197,10 +198,10 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('DELETE_TSP')")
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_TSP)
-    public ResponseEntity<Void> deleteConfiguredTimestampingService(TimestampingService timestampingService) {
+    public ResponseEntity<Void> deleteConfiguredTimestampingService(TimestampingServiceDto timestampingServiceDto) {
         try {
             systemService.deleteConfiguredTimestampingService(timestampingServiceConverter
-                    .convert(timestampingService));
+                    .convert(timestampingServiceDto));
         } catch (TimestampingServiceNotFoundException e) {
             throw new BadRequestException(e);
         }
@@ -211,7 +212,7 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_CSR')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_CSR)
-    public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedName distinguishedName) {
+    public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedNameDto distinguishedName) {
         byte[] csrBytes = null;
         try {
             csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
@@ -225,7 +226,7 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('IMPORT_INTERNAL_TLS_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.IMPORT_INTERNAL_TLS_CERT)
-    public ResponseEntity<CertificateDetails> importSystemCertificate(Resource certificateResource) {
+    public ResponseEntity<CertificateDetailsDto> importSystemCertificate(Resource certificateResource) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
         String filename = certificateResource.getFilename();
@@ -238,13 +239,13 @@ public class SystemApiController implements SystemApi {
         } catch (InvalidCertificateException | KeyNotFoundException | CertificateAlreadyExistsException e) {
             throw new BadRequestException(e);
         }
-        CertificateDetails certificateDetails = certificateDetailsConverter.convert(x509Certificate);
+        CertificateDetailsDto certificateDetails = certificateDetailsConverter.convert(x509Certificate);
         return new ResponseEntity<>(certificateDetails, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ANCHOR')")
-    public ResponseEntity<Anchor> getAnchor() {
+    public ResponseEntity<AnchorDto> getAnchor() {
         try {
             AnchorFile anchorFile = systemService.getAnchorFile();
             return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
@@ -282,7 +283,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
-    public ResponseEntity<Anchor> previewAnchor(Boolean verifyInstance, Resource anchorResource) {
+    public ResponseEntity<AnchorDto> previewAnchor(Boolean verifyInstance, Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
         AnchorFile anchorFile = null;
         try {
@@ -320,10 +321,10 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_NODE_TYPE')")
-    public ResponseEntity<NodeTypeResponse> getNodeType() {
+    public ResponseEntity<NodeTypeResponseDto> getNodeType() {
         // node type is never null so isPresent check can be omitted
-        NodeType nodeType = NodeTypeMapping.map(systemService.getServerNodeType()).get();
-        NodeTypeResponse nodeTypeResponse = new NodeTypeResponse().nodeType(nodeType);
+        NodeTypeDto nodeTypeDto = NodeTypeMapping.map(systemService.getServerNodeType()).get();
+        NodeTypeResponseDto nodeTypeResponse = new NodeTypeResponseDto().nodeType(nodeTypeDto);
         return new ResponseEntity<>(nodeTypeResponse, HttpStatus.OK);
     }
 }

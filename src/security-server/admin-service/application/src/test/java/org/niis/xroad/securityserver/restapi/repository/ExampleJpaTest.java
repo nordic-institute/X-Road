@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -64,16 +65,16 @@ public class ExampleJpaTest {
 
     @Test
     public void testTestEntityManager() {
-        ServerConfTypeEntity conf2 = new ServerConfTypeEntity();
+        ServerConfEntity conf2 = new ServerConfEntity();
         conf2.setServerCode("from-test");
         conf2.setId(null);
         conf2.setOwner(null);
-        ServerConfTypeEntity confPersisted = testEntityManager.persistFlushFind(conf2);
+        ServerConfEntity confPersisted = testEntityManager.persistFlushFind(conf2);
 
-        ServerConfTypeEntity confLoad1 = testEntityManager.find(ServerConfTypeEntity.class, 1L);
+        ServerConfEntity confLoad1 = testEntityManager.find(ServerConfEntity.class, 1L);
         assertEquals("TEST-INMEM-SS", confLoad1.getServerCode());
 
-        ServerConfTypeEntity confLoad2 = testEntityManager.find(ServerConfTypeEntity.class, confPersisted.getId());
+        ServerConfEntity confLoad2 = testEntityManager.find(ServerConfEntity.class, confPersisted.getId());
         assertEquals("from-test", confLoad2.getServerCode());
     }
 

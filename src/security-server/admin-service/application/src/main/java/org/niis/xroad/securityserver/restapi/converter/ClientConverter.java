@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -35,11 +36,11 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
@@ -65,34 +66,34 @@ public class ClientConverter {
 
     /**
      *
-     * @param clientType
+     * @param client
      * @return
      */
-    public Client convert(ClientType clientType) {
-        Client client = new Client();
-        client.setId(clientIdConverter.convertId(clientType.getIdentifier()));
-        client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
-        client.setMemberClass(clientType.getIdentifier().getMemberClass());
-        client.setMemberCode(clientType.getIdentifier().getMemberCode());
-        client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
-        client.setMemberName(globalConfProvider.getMemberName(clientType.getIdentifier()));
-        client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
-        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
+    public ClientDto convert(Client client) {
+        ClientDto clientDto = new ClientDto();
+        clientDto.setId(clientIdConverter.convertId(client.getIdentifier()));
+        clientDto.setInstanceId(client.getIdentifier().getXRoadInstance());
+        clientDto.setMemberClass(client.getIdentifier().getMemberClass());
+        clientDto.setMemberCode(client.getIdentifier().getMemberCode());
+        clientDto.setSubsystemCode(client.getIdentifier().getSubsystemCode());
+        clientDto.setMemberName(globalConfProvider.getMemberName(client.getIdentifier()));
+        clientDto.setOwner(client.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
+        clientDto.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(client.getIdentifier(),
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));
-        Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
-        client.setStatus(status.orElse(null));
-        Optional<ConnectionType> connectionTypeEnum =
-                ConnectionTypeMapping.map(clientType.getIsAuthentication());
-        client.setConnectionType(connectionTypeEnum.orElse(null));
-        return client;
+        Optional<ClientStatusDto> status = ClientStatusMapping.map(client.getClientStatus());
+        clientDto.setStatus(status.orElse(null));
+        Optional<ConnectionTypeDto> connectionTypeEnum =
+                ConnectionTypeMapping.map(client.getIsAuthentication());
+        clientDto.setConnectionType(connectionTypeEnum.orElse(null));
+        return clientDto;
     }
 
     /**
-     * Convert a group of ClientType into a list of openapi Client class
+     * Convert a group of ClientType into a list of openapi ClientDto class
      * @param clientTypes
      * @return
      */
-    public Set<Client> convert(Iterable<ClientType> clientTypes) {
+    public Set<ClientDto> convert(Iterable<Client> clientTypes) {
         return Streams.stream(clientTypes)
                 .map(this::convert)
                 .sorted(clientSortingComparator)
@@ -101,27 +102,27 @@ public class ClientConverter {
 
 
     /**
-     * Convert MemberInfo into Client
+     * Convert MemberInfo into ClientDto
      * @param memberInfo
-     * @return Client
+     * @return ClientDto
      */
-    public Client convertMemberInfoToClient(MemberInfo memberInfo) {
+    public ClientDto convertMemberInfoToClient(MemberInfo memberInfo) {
         ClientId clientId = memberInfo.id();
-        Client client = new Client();
-        client.setId(clientIdConverter.convertId(clientId));
-        client.setMemberClass(clientId.getMemberClass());
-        client.setMemberCode(clientId.getMemberCode());
-        client.setSubsystemCode(clientId.getSubsystemCode());
-        client.setMemberName(memberInfo.name());
-        return client;
+        ClientDto clientDto = new ClientDto();
+        clientDto.setId(clientIdConverter.convertId(clientId));
+        clientDto.setMemberClass(clientId.getMemberClass());
+        clientDto.setMemberCode(clientId.getMemberCode());
+        clientDto.setSubsystemCode(clientId.getSubsystemCode());
+        clientDto.setMemberName(memberInfo.name());
+        return clientDto;
     }
 
     /**
-     * Convert MemberInfo list into Client list
+     * Convert MemberInfo list into ClientDto list
      * @param memberInfos
-     * @return List of Clients
+     * @return List of ClientDto
      */
-    public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
+    public List<ClientDto> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
 

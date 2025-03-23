@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,11 +33,11 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.openapi.model.GroupMember;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
-import org.niis.xroad.serverconf.model.GroupMemberType;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.securityserver.restapi.openapi.model.GroupMemberDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
+import org.niis.xroad.serverconf.model.GroupMember;
+import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -58,20 +59,20 @@ public class LocalGroupConverter {
 
     /**
      * Converts LocalGroupType to Group
-     * @param localGroupType
-     * @return Group
+     * @param localGroup
+     * @return LocalGroupDto
      */
-    public LocalGroup convert(LocalGroupType localGroupType) {
-        LocalGroup group = new LocalGroup();
+    public LocalGroupDto convert(LocalGroup localGroup) {
+        LocalGroupDto localGroupDto = new LocalGroupDto();
 
-        group.setId(String.valueOf(localGroupType.getId()));
-        group.setCode(localGroupType.getGroupCode());
-        group.setDescription(localGroupType.getDescription());
-        group.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroupType.getUpdated()));
-        group.setMemberCount(localGroupType.getGroupMember().size());
-        group.setMembers(localGroupType.getGroupMember().stream().map(this::convert).collect(Collectors.toSet()));
+        localGroupDto.setId(String.valueOf(localGroup.getId()));
+        localGroupDto.setCode(localGroup.getGroupCode());
+        localGroupDto.setDescription(localGroup.getDescription());
+        localGroupDto.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroup.getUpdated()));
+        localGroupDto.setMemberCount(localGroup.getGroupMember().size());
+        localGroupDto.setMembers(localGroup.getGroupMember().stream().map(this::convert).collect(Collectors.toSet()));
 
-        return group;
+        return localGroupDto;
     }
 
     /**
@@ -79,70 +80,70 @@ public class LocalGroupConverter {
      * @param localGroupTypes
      * @return
      */
-    public Set<LocalGroup> convert(Iterable<LocalGroupType> localGroupTypes) {
+    public Set<LocalGroupDto> convert(Iterable<LocalGroup> localGroupTypes) {
         return Streams.stream(localGroupTypes)
                 .map(this::convert).collect(Collectors.toSet());
     }
 
     /**
-     * Converts LocalGroup to LocalGroupType. Ignores LocalGroup#id field since it is obsolete in LocalGroupType
-     * @param group
+     * Converts LocalGroupDto to LocalGroupType. Ignores LocalGroup#id field since it is obsolete in LocalGroupType
+     * @param localGroupDto
      * @return LocalGroupType
      */
-    public LocalGroupType convert(LocalGroup group) {
-        LocalGroupType localGroupType = new LocalGroupType();
+    public LocalGroup convert(LocalGroupDto localGroupDto) {
+        LocalGroup localGroup = new LocalGroup();
 
-        localGroupType.setDescription(group.getDescription());
-        localGroupType.setGroupCode(group.getCode());
-        localGroupType.setUpdated(new Date());
-        if (group.getMembers() != null) {
-            localGroupType.getGroupMember().addAll(group.getMembers().stream()
+        localGroup.setDescription(localGroupDto.getDescription());
+        localGroup.setGroupCode(localGroupDto.getCode());
+        localGroup.setUpdated(new Date());
+        if (localGroupDto.getMembers() != null) {
+            localGroup.getGroupMember().addAll(localGroupDto.getMembers().stream()
                     .map(this::convert).collect(Collectors.toList()));
         }
 
-        return localGroupType;
+        return localGroup;
     }
 
     /**
-     * Converts LocalGroupAdd to LocalGroupType
-     * @param group
+     * Converts LocalGroupAddDto to LocalGroupType
+     * @param localGroupAddDto
      * @return LocalGroupType
      */
-    public LocalGroupType convert(LocalGroupAdd group) {
-        LocalGroupType localGroupType = new LocalGroupType();
+    public LocalGroup convert(LocalGroupAddDto localGroupAddDto) {
+        LocalGroup localGroup = new LocalGroup();
 
-        localGroupType.setDescription(group.getDescription());
-        localGroupType.setGroupCode(group.getCode());
-        localGroupType.setUpdated(new Date());
+        localGroup.setDescription(localGroupAddDto.getDescription());
+        localGroup.setGroupCode(localGroupAddDto.getCode());
+        localGroup.setUpdated(new Date());
 
-        return localGroupType;
+        return localGroup;
     }
 
     /**
-     * Converts GroupMember to GroupMemberType. Ignores id field
-     * @param groupMember
+     * Converts GroupMemberDto to GroupMemberType. Ignores id field
+     * @param groupMemberDto
      * @return GroupMemberType
      */
-    private GroupMemberType convert(GroupMember groupMember) {
-        GroupMemberType groupMemberType = new GroupMemberType();
+    private GroupMember convert(GroupMemberDto groupMemberDto) {
+        GroupMember groupMember = new GroupMember();
 
-        groupMemberType.setGroupMemberId(clientIdConverter.convertId(groupMember.getId()));
-        groupMemberType.setAdded(new Date(groupMember.getCreatedAt().toEpochSecond()));
+        groupMember.setGroupMemberId(clientIdConverter.convertId(groupMemberDto.getId()));
+        groupMember.setAdded(new Date(groupMemberDto.getCreatedAt().toEpochSecond()));
 
-        return groupMemberType;
+        return groupMember;
     }
 
     /**
-     * Converts GroupMemberType to GroupMember. Ignores id field
-     * @param groupMemberType
-     * @return GroupMember
+     * Converts GroupMemberType to GroupMemberDto. Ignores id field
+     * @param groupMember
+     * @return GroupMemberDto
      */
-    public GroupMember convert(GroupMemberType groupMemberType) {
-        GroupMember groupMember = new GroupMember();
-        groupMember.setId(clientIdConverter.convertId(groupMemberType.getGroupMemberId()));
-        groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-        groupMember.setName(globalConfProvider.getMemberName(groupMemberType.getGroupMemberId()));
-        return groupMember;
+    public GroupMemberDto convert(GroupMember groupMember) {
+        GroupMemberDto groupMemberDto = new GroupMemberDto();
+        groupMemberDto.setId(clientIdConverter.convertId(groupMember.getGroupMemberId()));
+        groupMemberDto.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMember.getAdded()));
+        groupMemberDto.setName(globalConfProvider.getMemberName(groupMember.getGroupMemberId()));
+        return groupMemberDto;
     }
 
     /**

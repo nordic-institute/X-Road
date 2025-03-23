@@ -36,7 +36,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.util.Arrays;
 import java.util.List;
@@ -97,7 +97,7 @@ public class ListMethodsMessage extends MessageTestCase {
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
             public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                     DescriptionType descriptionType) {
+                                                                     Description description) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));
                 return expectedServices;
             }

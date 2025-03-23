@@ -30,10 +30,10 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
-import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdEntity;
+import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -64,26 +64,26 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     @Test
     public void addLocalGroup() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
-        LocalGroupType localGroupType = new LocalGroupType();
-        localGroupType.setGroupCode(TestUtils.NEW_GROUPCODE);
-        localGroupType.setDescription(TestUtils.GROUP_DESC);
-        localGroupType.setUpdated(new Date());
-        localGroupType = localGroupService.addLocalGroup(id, localGroupType);
+        LocalGroup localGroup = new LocalGroup();
+        localGroup.setGroupCode(TestUtils.NEW_GROUPCODE);
+        localGroup.setDescription(TestUtils.GROUP_DESC);
+        localGroup.setUpdated(new Date());
+        localGroup = localGroupService.addLocalGroup(id, localGroup);
 
-        LocalGroupType localGroupTypeFromDb = localGroupService.getLocalGroup(localGroupType.getId());
+        LocalGroup localGroupFromDb = localGroupService.getLocalGroup(localGroup.getId());
 
-        assertEquals(TestUtils.NEW_GROUPCODE, localGroupTypeFromDb.getGroupCode());
-        assertEquals(TestUtils.GROUP_DESC, localGroupTypeFromDb.getDescription());
-        assertEquals(0, localGroupTypeFromDb.getGroupMember().size());
-        assertNotNull(localGroupTypeFromDb.getId());
+        assertEquals(TestUtils.NEW_GROUPCODE, localGroupFromDb.getGroupCode());
+        assertEquals(TestUtils.GROUP_DESC, localGroupFromDb.getDescription());
+        assertEquals(0, localGroupFromDb.getGroupMember().size());
+        assertNotNull(localGroupFromDb.getId());
     }
 
     @Test
     public void addDuplicateLocalGroup() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
         try {
-            localGroupService.addLocalGroup(id, localGroupType);
+            localGroupService.addLocalGroup(id, localGroup);
             fail("should have thrown DuplicateLocalGroupCodeException");
         } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
         }
@@ -91,17 +91,17 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
     @Test
     public void updateDescription() throws Exception {
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroupType.getDescription(), FOO);
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        assertEquals(localGroup.getDescription(), FOO);
         localGroupService.updateDescription(GROUP_ID, TestUtils.NEW_GROUP_DESC);
-        localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroupType.getDescription(), TestUtils.NEW_GROUP_DESC);
+        localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        assertEquals(localGroup.getDescription(), TestUtils.NEW_GROUP_DESC);
     }
 
     @Test
     public void localGroupsExist() {
-        ClientTypeEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
-        ClientTypeEntity ss2 = clientService.getLocalClientEntity(
+        ClientEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
+        ClientEntity ss2 = clientService.getLocalClientEntity(
                 ClientId.Conf.create("FI", "GOV", "M1", "SS2"));
         assertTrue(localGroupService.localGroupsExist(ss1,
                 Collections.singletonList(LocalGroupId.Conf.create("group2"))));
@@ -119,9 +119,9 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
     @Test
     public void deleteLocalGroup() throws Exception {
-        ClientTypeEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
+        ClientEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
         Long groupId = Long.valueOf(TestUtils.DB_LOCAL_GROUP_ID_1);
-        XRoadIdConfEntity localGroupXroadId = XroadIdConfMapper.get().toEntity(
+        XRoadIdEntity localGroupXroadId = XRoadIdMapper.get().toEntity(
                 localGroupService.getLocalGroupIdAsXroadId(groupId)
         );
 
@@ -132,7 +132,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
         localGroupService.deleteLocalGroup(groupId);
 
         // local group should be removed
-        LocalGroupType localGroup = localGroupService.getLocalGroup(groupId);
+        LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
         assertNull(localGroup);
 
         // access rights of the local group should be removed

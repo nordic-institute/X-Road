@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,15 +30,15 @@ import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDto;
+import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Convert ServiceDescription related data between openapi and service domain classes
+ * Convert ServiceDescriptionDto related data between openapi and service domain classes
  */
 @Component
 @RequiredArgsConstructor
@@ -54,34 +55,34 @@ public class ServiceDescriptionConverter {
      * @param serviceDescriptionTypes
      * @return
      */
-    public Set<ServiceDescription> convert(Iterable<ServiceDescriptionType> serviceDescriptionTypes) {
+    public Set<ServiceDescriptionDto> convert(Iterable<ServiceDescription> serviceDescriptionTypes) {
         return Streams.stream(serviceDescriptionTypes)
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
     /**
-     * Convert a ServiceDescriptionType into ServiceDescription.
+     * Convert a ServiceDescriptionType into ServiceDescriptionDto.
      * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes.
      * This expects that serviceDescription.client.endpoints have been fetched
-     * @param serviceDescriptionType
+     * @param serviceDescription
      * @return
      */
-    public ServiceDescription convert(ServiceDescriptionType serviceDescriptionType) {
-        ServiceDescription serviceDescription = new ServiceDescription();
+    public ServiceDescriptionDto convert(ServiceDescription serviceDescription) {
+        ServiceDescriptionDto serviceDescriptionDto = new ServiceDescriptionDto();
 
-        serviceDescription.setId(String.valueOf(serviceDescriptionType.getId()));
-        serviceDescription.setClientId(clientIdConverter.convertId(
-                serviceDescriptionType.getClient().getIdentifier()));
-        serviceDescription.setDisabled(serviceDescriptionType.isDisabled());
-        serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
-        serviceDescription.setRefreshedAt(FormatUtils.fromDateToOffsetDateTime(
-                serviceDescriptionType.getRefreshedDate()));
-        serviceDescription.setServices(serviceConverter.convertServices(serviceDescriptionType.getService(),
-                serviceDescriptionType.getClient().getIdentifier()));
-        serviceDescription.setType(ServiceTypeMapping.map(serviceDescriptionType.getType()));
-        serviceDescription.setUrl(serviceDescriptionType.getUrl());
+        serviceDescriptionDto.setId(String.valueOf(serviceDescription.getId()));
+        serviceDescriptionDto.setClientId(clientIdConverter.convertId(
+                serviceDescription.getClient().getIdentifier()));
+        serviceDescriptionDto.setDisabled(serviceDescription.isDisabled());
+        serviceDescriptionDto.setDisabledNotice(serviceDescription.getDisabledNotice());
+        serviceDescriptionDto.setRefreshedAt(FormatUtils.fromDateToOffsetDateTime(
+                serviceDescription.getRefreshedDate()));
+        serviceDescriptionDto.setServices(serviceConverter.convertServices(serviceDescription.getService(),
+                serviceDescription.getClient().getIdentifier()));
+        serviceDescriptionDto.setType(ServiceTypeMapping.map(serviceDescription.getType()));
+        serviceDescriptionDto.setUrl(serviceDescription.getUrl());
 
-        return serviceDescription;
+        return serviceDescriptionDto;
     }
 }

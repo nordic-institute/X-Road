@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +47,7 @@ public class EndpointRepository {
      * @param id endpoint id
      * @return EndpointTypeEntity
      */
-    public EndpointTypeEntity getEndpoint(Long id) {
-        return this.persistenceUtils.getCurrentSession().get(EndpointTypeEntity.class, id);
+    public EndpointEntity getEndpoint(Long id) {
+        return this.persistenceUtils.getCurrentSession().get(EndpointEntity.class, id);
     }
 }

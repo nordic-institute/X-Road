@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,8 +33,8 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,9 +69,9 @@ public class IdentifierService {
      * @param xRoadIds
      * @return List of XRoadIds
      */
-    Set<XRoadIdConfEntity> getOrPersistXroadIdEntities(Set<XRoadIdConfEntity> xRoadIds) {
-        Set<XRoadIdConfEntity> idsToPersist = new HashSet<>(xRoadIds);
-        Set<XRoadIdConfEntity> managedEntities = getXroadIdEntities(idsToPersist);
+    Set<XRoadIdEntity> getOrPersistXroadIdEntities(Set<XRoadIdEntity> xRoadIds) {
+        Set<XRoadIdEntity> idsToPersist = new HashSet<>(xRoadIds);
+        Set<XRoadIdEntity> managedEntities = getXroadIdEntities(idsToPersist);
         idsToPersist.removeAll(managedEntities); // remove the persistent ones
         identifierRepository.persist(idsToPersist); // persist the non-persisted
         managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
@@ -82,7 +83,7 @@ public class IdentifierService {
      * @param xRoadId
      * @return managed XRoadId which exists in IDENTIFIER table
      */
-    XRoadIdConfEntity getOrPersistXroadIdEntity(XRoadIdConfEntity xRoadId) {
+    XRoadIdEntity getOrPersistXroadIdEntity(XRoadIdEntity xRoadId) {
         return getOrPersistXroadIdEntities(new HashSet<>(Arrays.asList(xRoadId))).iterator().next();
     }
 
@@ -91,8 +92,8 @@ public class IdentifierService {
      * @param xRoadIds
      * @return List of XRoadIds
      */
-    Set<XRoadIdConfEntity> getXroadIdEntities(Set<XRoadIdConfEntity> xRoadIds) {
-        Collection<XRoadIdConfEntity> allIdsFromDb = identifierRepository.getIdentifiers();
+    Set<XRoadIdEntity> getXroadIdEntities(Set<XRoadIdEntity> xRoadIds) {
+        Collection<XRoadIdEntity> allIdsFromDb = identifierRepository.getIdentifiers();
         return allIdsFromDb.stream()
                 .filter(xRoadIds::contains) // this works because of the XRoadId equals and hashCode overrides
                 .collect(Collectors.toSet());
@@ -108,10 +109,10 @@ public class IdentifierService {
      * @param serviceClientIds service client ids to check
      * @throws ServiceClientNotFoundException if some service client objects could not be found
      */
-    public void verifyServiceClientObjectsExist(ClientTypeEntity clientType, Set<XRoadIdConfEntity> serviceClientIds)
+    public void verifyServiceClientObjectsExist(ClientEntity clientType, Set<XRoadIdEntity> serviceClientIds)
             throws ServiceClientNotFoundException {
-        Map<XRoadObjectType, List<XRoadIdConfEntity>> idsPerType = serviceClientIds.stream()
-                .collect(groupingBy(XRoadIdConfEntity::getObjectType));
+        Map<XRoadObjectType, List<XRoadIdEntity>> idsPerType = serviceClientIds.stream()
+                .collect(groupingBy(XRoadIdEntity::getObjectType));
         for (XRoadObjectType type : idsPerType.keySet()) {
             if (!isValidServiceClientType(type)) {
                 throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);

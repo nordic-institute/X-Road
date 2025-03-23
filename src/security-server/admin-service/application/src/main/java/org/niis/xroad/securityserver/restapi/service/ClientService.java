@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -47,21 +48,21 @@ import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
-import org.niis.xroad.serverconf.mapper.CertificateTypeMapper;
-import org.niis.xroad.serverconf.mapper.ClientTypeMapper;
-import org.niis.xroad.serverconf.mapper.LocalGroupTypeMapper;
-import org.niis.xroad.serverconf.mapper.ServiceDescriptionTypeMapper;
-import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
-import org.niis.xroad.serverconf.model.CertificateType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.LocalGroupType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.entity.CertificateEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.mapper.CertificateMapper;
+import org.niis.xroad.serverconf.mapper.ClientMapper;
+import org.niis.xroad.serverconf.mapper.LocalGroupMapper;
+import org.niis.xroad.serverconf.mapper.ServiceDescriptionMapper;
+import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.Certificate;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.LocalGroup;
+import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -91,14 +92,14 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_ALRE
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_DELINPROG;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLED;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_GLOBALERR;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGINPROG;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGISTERED;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_SAVED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_DELINPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_DISABLED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_DISABLING_INPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_ENABLING_INPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_GLOBALERR;
+import static org.niis.xroad.serverconf.model.Client.STATUS_REGINPROG;
+import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_SAVED;
 
 /**
  * client service
@@ -131,11 +132,11 @@ public class ClientService {
      *
      * @return
      */
-    public List<ClientType> getAllLocalClients() {
-        return ClientTypeMapper.get().toTargets(clientRepository.getAllLocalClients());
+    public List<Client> getAllLocalClients() {
+        return ClientMapper.get().toTargets(clientRepository.getAllLocalClients());
     }
 
-    List<ClientTypeEntity> getAllLocalClientEntities() {
+    List<ClientEntity> getAllLocalClientEntities() {
         return clientRepository.getAllLocalClients();
     }
 
@@ -145,7 +146,7 @@ public class ClientService {
      *
      * @return
      */
-    List<ClientTypeEntity> getAllLocalMemberEntities() {
+    List<ClientEntity> getAllLocalMemberEntities() {
         return getAllLocalClientEntities().stream()
                 .filter(ct -> ct.getIdentifier().getSubsystemCode() == null)
                 .collect(Collectors.toList());
@@ -164,9 +165,9 @@ public class ClientService {
      * @return
      */
     public Set<ClientId> getLocalClientMemberIds() {
-        List<ClientTypeEntity> allClients = getAllLocalClientEntities();
+        List<ClientEntity> allClients = getAllLocalClientEntities();
         Set<ClientId> members = new HashSet<>();
-        for (ClientTypeEntity client : allClients) {
+        for (ClientEntity client : allClients) {
             ClientId id = client.getIdentifier();
             members.add(ClientId.Conf.create(id.getXRoadInstance(), id.getMemberClass(), id.getMemberCode()));
         }
@@ -178,12 +179,12 @@ public class ClientService {
      *
      * @return
      */
-    private List<ClientTypeEntity> getAllGlobalClientEntities() {
+    private List<ClientEntity> getAllGlobalClientEntities() {
         return globalConfProvider.getMembers()
                 .stream()
                 .map(memberInfo -> {
-                    ClientTypeEntity clientType = new ClientTypeEntity();
-                    clientType.setIdentifier(XroadIdConfMapper.get().toEntity(memberInfo.id()));
+                    ClientEntity clientType = new ClientEntity();
+                    clientType.setIdentifier(XRoadIdMapper.get().toEntity(memberInfo.id()));
                     return clientType;
                 })
                 .collect(Collectors.toList());
@@ -198,11 +199,11 @@ public class ClientService {
      * @param id
      * @return the client, or null if matching client was not found
      */
-    public ClientType getLocalClient(ClientId id) {
-        return ClientTypeMapper.get().toTarget(getLocalClientEntity(id));
+    public Client getLocalClient(ClientId id) {
+        return ClientMapper.get().toTarget(getLocalClientEntity(id));
     }
 
-    public ClientTypeEntity getLocalClientEntity(ClientId id) {
+    public ClientEntity getLocalClientEntity(ClientId id) {
         return clientRepository.getClient(id);
     }
 
@@ -212,11 +213,11 @@ public class ClientService {
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
      */
-    public List<CertificateType> getLocalClientIsCerts(ClientId id) {
-        ClientTypeEntity clientType = getLocalClientEntity(id);
+    public List<Certificate> getLocalClientIsCerts(ClientId id) {
+        ClientEntity clientType = getLocalClientEntity(id);
         if (clientType != null) {
             Hibernate.initialize(clientType.getIsCert());
-            return CertificateTypeMapper.get().toTargets(clientType.getIsCert());
+            return CertificateMapper.get().toTargets(clientType.getIsCert());
         }
         return null;
     }
@@ -228,14 +229,14 @@ public class ClientService {
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
      */
-    public List<ServiceDescriptionType> getLocalClientServiceDescriptions(ClientId id) {
-        ClientTypeEntity clientType = getLocalClientEntity(id);
+    public List<ServiceDescription> getLocalClientServiceDescriptions(ClientId id) {
+        ClientEntity clientType = getLocalClientEntity(id);
         if (clientType != null) {
-            for (ServiceDescriptionTypeEntity serviceDescriptionType : clientType.getServiceDescription()) {
+            for (ServiceDescriptionEntity serviceDescriptionType : clientType.getServiceDescription()) {
                 Hibernate.initialize(serviceDescriptionType.getService());
             }
             Hibernate.initialize(clientType.getEndpoint());
-            return ServiceDescriptionTypeMapper.get().toTargets(clientType.getServiceDescription());
+            return ServiceDescriptionMapper.get().toTargets(clientType.getServiceDescription());
         }
         return null;
     }
@@ -247,13 +248,13 @@ public class ClientService {
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
      */
-    public List<LocalGroupType> getLocalClientLocalGroups(ClientId id) {
-        ClientTypeEntity clientType = getLocalClientEntity(id);
+    public List<LocalGroup> getLocalClientLocalGroups(ClientId id) {
+        ClientEntity clientType = getLocalClientEntity(id);
         if (clientType != null) {
-            for (LocalGroupTypeEntity localGroupType : clientType.getLocalGroup()) {
+            for (LocalGroupEntity localGroupType : clientType.getLocalGroup()) {
                 Hibernate.initialize(localGroupType.getGroupMember());
             }
-            return LocalGroupTypeMapper.get().toTargets(clientType.getLocalGroup());
+            return LocalGroupMapper.get().toTargets(clientType.getLocalGroup());
         }
         return null;
     }
@@ -267,14 +268,14 @@ public class ClientService {
      * @throws IllegalArgumentException if connectionType was not supported value
      * @throws ClientNotFoundException if client was not found
      */
-    public ClientType updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
+    public Client updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
         auditDataHelper.put(id);
-        ClientTypeEntity clientType = getLocalClientEntityOrThrowNotFound(id);
+        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         auditDataHelper.put(enumValue);
         clientType.setIsAuthentication(connectionType);
-        return ClientTypeMapper.get().toTarget(clientType);
+        return ClientMapper.get().toTarget(clientType);
     }
 
     /**
@@ -282,8 +283,8 @@ public class ClientService {
      *
      * @throws ClientNotFoundException if not found
      */
-    ClientTypeEntity getLocalClientEntityOrThrowNotFound(ClientId id) throws ClientNotFoundException {
-        ClientTypeEntity clientType = getLocalClientEntity(id);
+    ClientEntity getLocalClientEntityOrThrowNotFound(ClientId id) throws ClientNotFoundException {
+        ClientEntity clientType = getLocalClientEntity(id);
         if (clientType == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
         }
@@ -298,7 +299,7 @@ public class ClientService {
      * @throws CertificateAlreadyExistsException if certificate already exists
      * @throws ClientNotFoundException if client was not found
      */
-    public CertificateType addTlsCertificate(ClientId id, byte[] certBytes)
+    public Certificate addTlsCertificate(ClientId id, byte[] certBytes)
             throws CertificateException, CertificateAlreadyExistsException, ClientNotFoundException {
         auditDataHelper.put(id);
         X509Certificate x509Certificate;
@@ -308,7 +309,7 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
-        CertificateTypeEntity certificateType = new CertificateTypeEntity();
+        CertificateEntity certificateType = new CertificateEntity();
         try {
             certificateType.setData(x509Certificate.getEncoded());
         } catch (CertificateEncodingException ex) {
@@ -317,8 +318,8 @@ public class ClientService {
         }
         auditDataHelper.put(certificateType);
 
-        ClientTypeEntity clientType = getLocalClientEntityOrThrowNotFound(id);
-        Optional<CertificateTypeEntity> duplicate = clientType.getIsCert().stream()
+        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
+        Optional<CertificateEntity> duplicate = clientType.getIsCert().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findFirst();
         if (duplicate.isPresent()) {
@@ -326,7 +327,7 @@ public class ClientService {
         }
 
         clientType.getIsCert().add(certificateType);
-        return CertificateTypeMapper.get().toTarget(certificateType);
+        return CertificateMapper.get().toTarget(certificateType);
     }
 
     /**
@@ -366,8 +367,8 @@ public class ClientService {
 
         auditDataHelper.put(id);
 
-        ClientTypeEntity clientType = getLocalClientEntityOrThrowNotFound(id);
-        Optional<CertificateTypeEntity> certificateType = clientType.getIsCert().stream()
+        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
+        Optional<CertificateEntity> certificateType = clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
         if (!certificateType.isPresent()) {
@@ -387,31 +388,31 @@ public class ClientService {
      * @return
      * @throws ClientNotFoundException if client was not found
      */
-    public Optional<CertificateType> getTlsCertificate(ClientId id, String certificateHash)
+    public Optional<Certificate> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {
-        ClientTypeEntity clientType = getLocalClientEntityOrThrowNotFound(id);
+        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
         return clientType.getIsCert().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
-                .map(certificateTypeEntity -> CertificateTypeMapper.get().toTarget(certificateTypeEntity))
+                .map(certificateTypeEntity -> CertificateMapper.get().toTarget(certificateTypeEntity))
                 .findAny();
     }
 
     /**
      * Find clients in the local serverconf
      */
-    List<ClientTypeEntity> findLocalClientEntities(ClientService.SearchParameters searchParameters) {
+    List<ClientEntity> findLocalClientEntities(ClientService.SearchParameters searchParameters) {
         return searchClientEntities(searchParameters, getAllLocalClientEntities());
     }
 
     /**
      * Find clients in the globalconf
      */
-    List<ClientTypeEntity> findGlobalClientEntities(ClientService.SearchParameters searchParameters) {
+    List<ClientEntity> findGlobalClientEntities(ClientService.SearchParameters searchParameters) {
         return searchClientEntities(searchParameters, getAllGlobalClientEntities());
     }
 
-    List<ClientTypeEntity> searchClientEntities(SearchParameters searchParameters, List<ClientTypeEntity> allClients) {
-        Predicate<ClientTypeEntity> matchingSearchTerms = buildClientEntitySearchPredicate(searchParameters);
+    List<ClientEntity> searchClientEntities(SearchParameters searchParameters, List<ClientEntity> allClients) {
+        Predicate<ClientEntity> matchingSearchTerms = buildClientEntitySearchPredicate(searchParameters);
         return allClients.stream()
                 .filter(matchingSearchTerms)
                 .filter(c -> searchParameters.showMembers || c.getIdentifier().getSubsystemCode() != null)
@@ -424,10 +425,10 @@ public class ClientService {
      * @param clientId
      * @return
      */
-    Optional<ClientTypeEntity> findEntityByClientId(ClientId clientId) {
-        List<ClientTypeEntity> localClients = getAllLocalClientEntities();
-        List<ClientTypeEntity> globalClients = getAllGlobalClientEntities();
-        List<ClientTypeEntity> distinctClients = mergeClientEntitiesDistinctively(globalClients, localClients);
+    Optional<ClientEntity> findEntityByClientId(ClientId clientId) {
+        List<ClientEntity> localClients = getAllLocalClientEntities();
+        List<ClientEntity> globalClients = getAllGlobalClientEntities();
+        List<ClientEntity> distinctClients = mergeClientEntitiesDistinctively(globalClients, localClients);
         return distinctClients.stream()
                 .filter(clientType -> clientType.getIdentifier().toShortString().trim()
                         .equals(clientId.toShortString().trim()))
@@ -437,18 +438,18 @@ public class ClientService {
     /**
      * Find from all clients (local or global)
      */
-    public List<ClientType> findClients(ClientService.SearchParameters searchParameters) {
-        List<ClientTypeEntity> localClients = findLocalClientEntities(searchParameters);
+    public List<Client> findClients(ClientService.SearchParameters searchParameters) {
+        List<ClientEntity> localClients = findLocalClientEntities(searchParameters);
         if (searchParameters.internalSearch) {
-            return ClientTypeMapper.get().toTargets(localClients);
+            return ClientMapper.get().toTargets(localClients);
         }
 
-        List<ClientTypeEntity> globalClients = findGlobalClientEntities(searchParameters);
+        List<ClientEntity> globalClients = findGlobalClientEntities(searchParameters);
         if (searchParameters.excludeLocal) {
             return subtractLocalFromGlobalClients(globalClients, localClients);
         }
 
-        return ClientTypeMapper.get().toTargets(mergeClientEntitiesDistinctively(globalClients, localClients));
+        return ClientMapper.get().toTargets(mergeClientEntitiesDistinctively(globalClients, localClients));
     }
 
     /**
@@ -458,12 +459,12 @@ public class ClientService {
      * @param localClients
      * @return
      */
-    private List<ClientType> subtractLocalFromGlobalClients(List<ClientTypeEntity> globalClients,
-                                                            List<ClientTypeEntity> localClients) {
+    private List<Client> subtractLocalFromGlobalClients(List<ClientEntity> globalClients,
+                                                        List<ClientEntity> localClients) {
         List<String> localClientIds = localClients.stream().map(localClient ->
                 localClient.getIdentifier().toShortString()).collect(Collectors.toList());
 
-        return ClientTypeMapper.get().toTargets(
+        return ClientMapper.get().toTargets(
                 globalClients.stream()
                 .filter(globalClient -> !localClientIds.contains(globalClient.getIdentifier().toShortString()))
                 .toList()
@@ -487,7 +488,7 @@ public class ClientService {
 
         auditDataHelper.put(clientId);
 
-        ClientTypeEntity client = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity client = getLocalClientEntityOrThrowNotFound(clientId);
 
         String instanceIdentifier = client.getIdentifier().getXRoadInstance();
         if (!instanceIdentifier.equals(globalConfProvider.getInstanceIdentifier())) {
@@ -499,16 +500,16 @@ public class ClientService {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
         }
 
-        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
+        ClientIdEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(client.getIdentifier())) {
             throw new CannotRegisterOwnerException();
         }
-        if (!client.getClientStatus().equals(ClientType.STATUS_SAVED)) {
+        if (!client.getClientStatus().equals(Client.STATUS_SAVED)) {
             throw new ActionNotPossibleException("Only clients with status 'saved' can be registered");
         }
         try {
             Integer requestId = managementRequestSenderService.sendClientRegisterRequest(clientId);
-            client.setClientStatus(ClientType.STATUS_REGINPROG);
+            client.setClientStatus(Client.STATUS_REGINPROG);
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
         } catch (ManagementRequestSendingFailedException e) {
@@ -516,8 +517,8 @@ public class ClientService {
         }
     }
 
-    private ClientIdConfEntity getCurrentSecurityServerOwnerIdEntity() {
-        return XroadIdConfMapper.get().toEntity(currentSecurityServerId.getServerId().getOwner());
+    private ClientIdEntity getCurrentSecurityServerOwnerIdEntity() {
+        return XRoadIdMapper.get().toEntity(currentSecurityServerId.getServerId().getOwner());
     }
 
     /**
@@ -534,7 +535,7 @@ public class ClientService {
 
         auditDataHelper.put(clientId);
 
-        ClientTypeEntity client = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity client = getLocalClientEntityOrThrowNotFound(clientId);
         List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG, STATUS_DISABLED);
         if (!allowedStatuses.contains(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
@@ -572,9 +573,9 @@ public class ClientService {
         ClientId.Conf clientId =
                 ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), memberClass, memberCode);
         auditDataHelper.put(clientId);
-        ClientTypeEntity client = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity client = getLocalClientEntityOrThrowNotFound(clientId);
         auditDataHelper.putClientStatus(client);
-        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
+        ClientIdEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
         }
@@ -603,7 +604,7 @@ public class ClientService {
 
         auditDataHelper.put(clientId);
 
-        ClientTypeEntity client = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity client = getLocalClientEntityOrThrowNotFound(clientId);
         if (!STATUS_REGISTERED.equals(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot disable client with status " + client.getClientStatus());
         }
@@ -630,7 +631,7 @@ public class ClientService {
 
         auditDataHelper.put(clientId);
 
-        ClientTypeEntity client = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity client = getLocalClientEntityOrThrowNotFound(clientId);
         if (!STATUS_DISABLED.equals(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot enable client with status " + client.getClientStatus());
         }
@@ -653,8 +654,8 @@ public class ClientService {
      * @param moreClients list of clients (these will override the ones in {@code clients} in the case of duplicates)
      * @return
      */
-    private List<ClientTypeEntity> mergeClientEntitiesDistinctively(List<ClientTypeEntity> clients, List<ClientTypeEntity> moreClients) {
-        Map<String, ClientTypeEntity> uniqueClientMap = new HashMap<>();
+    private List<ClientEntity> mergeClientEntitiesDistinctively(List<ClientEntity> clients, List<ClientEntity> moreClients) {
+        Map<String, ClientEntity> uniqueClientMap = new HashMap<>();
         // add clients into the HashMap with client identifier string as the key
         clients.forEach(clientType -> uniqueClientMap.put(clientType.getIdentifier().toShortString(), clientType));
         /*
@@ -665,8 +666,8 @@ public class ClientService {
         return new ArrayList<>(uniqueClientMap.values());
     }
 
-    private Predicate<ClientTypeEntity> buildClientEntitySearchPredicate(ClientService.SearchParameters searchParameters) {
-        Predicate<ClientTypeEntity> clientTypePredicate = clientType -> true;
+    private Predicate<ClientEntity> buildClientEntitySearchPredicate(ClientService.SearchParameters searchParameters) {
+        Predicate<ClientEntity> clientTypePredicate = clientType -> true;
         if (!StringUtils.isEmpty(searchParameters.name)) {
             clientTypePredicate = clientTypePredicate.and(ct -> {
                 String memberName = globalConfProvider.getMemberName(ct.getIdentifier());
@@ -702,7 +703,7 @@ public class ClientService {
      * @param clientType
      * @return
      */
-    private boolean hasValidLocalSignCertCheck(ClientTypeEntity clientType) {
+    private boolean hasValidLocalSignCertCheck(ClientEntity clientType) {
         List<CertificateInfo> signCertificateInfos = currentSecurityServerSignCertificates
                 .getSignCertificateInfos();
         return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
@@ -736,24 +737,24 @@ public class ClientService {
      * @throws InvalidMemberClassException if client has an invalid member class, meaning that the
      * member class that is not defined in this instance's configuration
      */
-    public ClientType addLocalClient(String memberClass,
-                                     String memberCode,
-                                     String subsystemCode,
-                                     IsAuthentication isAuthentication,
-                                     boolean ignoreWarnings) throws ClientAlreadyExistsException, AdditionalMemberAlreadyExistsException,
+    public Client addLocalClient(String memberClass,
+                                 String memberCode,
+                                 String subsystemCode,
+                                 IsAuthentication isAuthentication,
+                                 boolean ignoreWarnings) throws ClientAlreadyExistsException, AdditionalMemberAlreadyExistsException,
                                                                     UnhandledWarningsException, InvalidMemberClassException {
 
-        return ClientTypeMapper.get().toTarget(
+        return ClientMapper.get().toTarget(
                 addLocalClientEntity(memberClass, memberCode, subsystemCode, isAuthentication, ignoreWarnings));
     }
 
 
-    public ClientTypeEntity addLocalClientEntity(String memberClass,
-                                     String memberCode,
-                                     String subsystemCode,
-                                     IsAuthentication isAuthentication,
-                                     boolean ignoreWarnings) throws ClientAlreadyExistsException, AdditionalMemberAlreadyExistsException,
-            UnhandledWarningsException, InvalidMemberClassException {
+    public ClientEntity addLocalClientEntity(String memberClass,
+                                             String memberCode,
+                                             String subsystemCode,
+                                             IsAuthentication isAuthentication,
+                                             boolean ignoreWarnings) throws ClientAlreadyExistsException,
+            AdditionalMemberAlreadyExistsException, UnhandledWarningsException, InvalidMemberClassException {
 
         if (!isValidMemberClass(memberClass)) {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
@@ -767,15 +768,15 @@ public class ClientService {
         auditDataHelper.put(clientId);
         auditDataHelper.put(isAuthentication);
 
-        ClientTypeEntity existingLocalClient = getLocalClientEntity(clientId);
-        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
+        ClientEntity existingLocalClient = getLocalClientEntity(clientId);
+        ClientIdEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (existingLocalClient != null) {
             throw new ClientAlreadyExistsException("client " + clientId + " already exists");
         }
         if (clientId.getSubsystemCode() == null) {
             // adding member - check that we dont already have owner + one additional member
-            List<ClientTypeEntity> existingMembers = getAllLocalMemberEntities();
-            Optional<ClientTypeEntity> additionalMember = existingMembers.stream()
+            List<ClientEntity> existingMembers = getAllLocalMemberEntities();
+            Optional<ClientEntity> additionalMember = existingMembers.stream()
                     .filter(m -> !ownerId.equals(m.getIdentifier()))
                     .findFirst();
             if (additionalMember.isPresent()) {
@@ -795,17 +796,17 @@ public class ClientService {
         }
 
         boolean clientRegistered = globalConfService.isSecurityServerClientForThisInstance(clientId);
-        ClientTypeEntity client = new ClientTypeEntity();
+        ClientEntity client = new ClientEntity();
         client.setIdentifier(getPossiblyManagedEntity(clientId));
         if (clientRegistered) {
-            client.setClientStatus(ClientType.STATUS_REGISTERED);
+            client.setClientStatus(Client.STATUS_REGISTERED);
         } else {
-            client.setClientStatus(ClientType.STATUS_SAVED);
+            client.setClientStatus(Client.STATUS_SAVED);
         }
         auditDataHelper.putClientStatus(client);
 
         client.setIsAuthentication(isAuthentication.name());
-        ServerConfTypeEntity serverConfType = serverConfService.getServerConfEntity();
+        ServerConfEntity serverConfType = serverConfService.getServerConfEntity();
         client.setConf(serverConfType);
         serverConfType.getClient().add(client);
 
@@ -828,12 +829,12 @@ public class ClientService {
      * If ClientId already exists in DB, return the managed instance.
      * Otherwise return transient instance that was given as parameter
      */
-    private ClientIdConfEntity getPossiblyManagedEntity(ClientId.Conf transientClientId) {
-        ClientIdConfEntity managedEntity = identifierRepository.getClientId(transientClientId);
+    private ClientIdEntity getPossiblyManagedEntity(ClientId.Conf transientClientId) {
+        ClientIdEntity managedEntity = identifierRepository.getClientId(transientClientId);
         if (managedEntity != null) {
             return managedEntity;
         } else {
-            return XroadIdConfMapper.get().toEntity(transientClientId);
+            return XRoadIdMapper.get().toEntity(transientClientId);
         }
     }
 
@@ -850,9 +851,9 @@ public class ClientService {
 
         auditDataHelper.put(clientId);
 
-        ClientTypeEntity clientType = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(clientId);
         // cant delete owner
-        ClientIdConfEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
+        ClientIdEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(clientType.getIdentifier())) {
             throw new CannotDeleteOwnerException();
         }
@@ -867,8 +868,8 @@ public class ClientService {
         removeLocalClient(clientType);
     }
 
-    private void removeLocalClient(ClientTypeEntity clientType) {
-        ServerConfTypeEntity serverConfType = serverConfService.getServerConfEntity();
+    private void removeLocalClient(ClientEntity clientType) {
+        ServerConfEntity serverConfType = serverConfService.getServerConfEntity();
         if (!serverConfType.getClient().remove(clientType)) {
             throw new RuntimeException("client to be deleted was somehow missing from server conf");
         }

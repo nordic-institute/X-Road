@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public class ClientRepositoryIntegrationTest extends AbstractFacadeMockingTestCo
 
     @Test
     public void getAllLocalClients() {
-        List<ClientTypeEntity> clients = clientRepository.getAllLocalClients();
+        List<ClientEntity> clients = clientRepository.getAllLocalClients();
         assertEquals(7, clients.size());
     }
 }

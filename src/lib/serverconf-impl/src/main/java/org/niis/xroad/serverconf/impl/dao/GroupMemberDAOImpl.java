@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,12 +27,12 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
 
 public class GroupMemberDAOImpl {
 
-    public void deleteByGroupMemberId(Session session, ClientIdConfEntity memberId) {
-        var query = session.createMutationQuery("delete from GroupMemberTypeEntity where groupMemberId = :memberId");
+    public void deleteByGroupMemberId(Session session, ClientIdEntity memberId) {
+        var query = session.createMutationQuery("delete from GroupMemberEntity where groupMemberId = :memberId");
         query.setParameter("memberId", memberId);
         query.executeUpdate();
     }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.springframework.stereotype.Repository;
 
@@ -46,7 +47,7 @@ public class ServerConfRepository {
      * Return ServerConfTypeEntity
      * @return ServerConfTypeEntity
      */
-    public ServerConfTypeEntity getServerConf() {
+    public ServerConfEntity getServerConf() {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
         return serverConfDAO.getConf(persistenceUtils.getCurrentSession());
     }
@@ -54,7 +55,7 @@ public class ServerConfRepository {
     /**
      * Save or update ServerConfEntity
      */
-    public void saveOrUpdate(ServerConfTypeEntity serverConfType) {
+    public void saveOrUpdate(ServerConfEntity serverConfType) {
         persistenceUtils.getCurrentSession().merge(serverConfType);
     }
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.NotFoundException;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -86,14 +87,14 @@ public class OrphanRemovalService {
 
     private boolean hasAliveSiblings(ClientId clientId) {
         // find out if siblings
-        Optional<ClientTypeEntity> sibling = clientService.getAllLocalClientEntities().stream()
+        Optional<ClientEntity> sibling = clientService.getAllLocalClientEntities().stream()
                 .filter(c -> c.getIdentifier().memberEquals(clientId))
                 .findFirst();
         return sibling.isPresent();
     }
 
     private boolean isAlive(ClientId clientId) {
-        ClientTypeEntity clientType = clientService.getLocalClientEntity(clientId);
+        ClientEntity clientType = clientService.getLocalClientEntity(clientId);
         // cant have orphans if still alive
         return clientType != null;
     }

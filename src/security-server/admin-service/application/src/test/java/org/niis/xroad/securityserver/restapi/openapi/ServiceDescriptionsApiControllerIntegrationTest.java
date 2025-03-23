@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -33,13 +34,13 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.IgnoreWarnings;
-import org.niis.xroad.securityserver.restapi.openapi.model.Service;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDisabledNotice;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdate;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.IgnoreWarningsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDisabledNoticeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -91,7 +92,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     public void enableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.enableServiceDescription("2");
-        Optional<ServiceDescription> serviceDescription = getServiceDescription(
+        Optional<ServiceDescriptionDto> serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "2");
         assertTrue(serviceDescription.isPresent());
         assertFalse(serviceDescription.get().getDisabled());
@@ -119,7 +120,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
 
     }
 
-    private Optional<ServiceDescription> getServiceDescription(Set<ServiceDescription> serviceDescriptions,
+    private Optional<ServiceDescriptionDto> getServiceDescription(Set<ServiceDescriptionDto> serviceDescriptions,
                                                                String id) {
         return serviceDescriptions.stream()
                 .filter(serviceDescription -> serviceDescription.getId().equals(id))
@@ -131,8 +132,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     public void disableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.disableServiceDescription("2",
-                new ServiceDescriptionDisabledNotice().disabledNotice("foo-notice"));
-        Optional<ServiceDescription> serviceDescription = getServiceDescription(
+                new ServiceDescriptionDisabledNoticeDto().disabledNotice("foo-notice"));
+        Optional<ServiceDescriptionDto> serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "2");
         assertTrue(serviceDescription.isPresent());
         assertTrue(serviceDescription.get().getDisabled());
@@ -140,7 +141,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
 
         // serviceDescription that was enabled
         serviceDescriptionsApiController.disableServiceDescription("1",
-                new ServiceDescriptionDisabledNotice().disabledNotice("foo-notice"));
+                new ServiceDescriptionDisabledNoticeDto().disabledNotice("foo-notice"));
         serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "1");
         assertTrue(serviceDescription.isPresent());
@@ -164,10 +165,10 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_DETAILS", "DELETE_WSDL", "VIEW_CLIENT_SERVICES"})
     public void deleteServiceDescription() {
-        Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
+        ClientDto client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescriptionsApiController.deleteServiceDescription("2");
-        Set<ServiceDescription> serviceDescriptions =
+        Set<ServiceDescriptionDto> serviceDescriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody();
         assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT - 1, serviceDescriptions.size());
         client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
@@ -177,9 +178,9 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES", "EDIT_WSDL"})
     public void updateServiceDescription() {
-        Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
+        ClientDto client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
-        ServiceDescription serviceDescription = getServiceDescription(
+        ServiceDescriptionDto serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody(), "1").get();
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
         Set<String> serviceIds = getServiceIds(serviceDescription);
@@ -191,8 +192,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CODE_GET_RANDOM));
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CALCULATE_PRIME));
 
-        ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
-                .url("file:src/test/resources/wsdl/testservice.wsdl").type(ServiceType.WSDL);
+        ServiceDescriptionUpdateDto serviceDescriptionUpdate = new ServiceDescriptionUpdateDto()
+                .url("file:src/test/resources/wsdl/testservice.wsdl").type(ServiceTypeDto.WSDL);
         // ignore warningDeviations about adding and removing services
         serviceDescriptionUpdate.setIgnoreWarnings(true);
         serviceDescriptionsApiController.updateServiceDescription("1", serviceDescriptionUpdate);
@@ -219,7 +220,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "REFRESH_WSDL"})
     public void refreshServiceDescription() {
-        ServiceDescription serviceDescription = getServiceDescription(
+        ServiceDescriptionDto serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS2).getBody(), "3").get();
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
@@ -231,8 +232,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CODE_BMI_OLD));
 
         // ignore warningDeviations (about adding and deleting services)
-        ServiceDescription refreshed = serviceDescriptionsApiController.refreshServiceDescription("3",
-                new IgnoreWarnings().ignoreWarnings(true)).getBody();
+        ServiceDescriptionDto refreshed = serviceDescriptionsApiController.refreshServiceDescription("3",
+                new IgnoreWarningsDto().ignoreWarnings(true)).getBody();
         assertEquals(serviceDescription.getId(), refreshed.getId());
         serviceIds = getServiceIds(refreshed);
         serviceCodes = getServiceCodes(refreshed);
@@ -255,16 +256,16 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"REFRESH_REST"})
     public void refreshRestServiceDescriptionWithoutRights() {
-        serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarnings().ignoreWarnings(false));
+        serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarningsDto().ignoreWarnings(false));
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES"})
     public void getServiceDescription() {
-        ResponseEntity<ServiceDescription> response =
+        ResponseEntity<ServiceDescriptionDto> response =
                 serviceDescriptionsApiController.getServiceDescription("1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        ServiceDescription serviceDescription = response.getBody();
+        ServiceDescriptionDto serviceDescription = response.getBody();
         assertEquals("https://soapservice.com/v1/Endpoint?wsdl", serviceDescription.getUrl());
         Set<String> serviceIds = getServiceIds(serviceDescription);
         Set<String> serviceCodes = getServiceCodes(serviceDescription);
@@ -291,12 +292,12 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES"})
     public void getServiceDescriptionServices() {
-        ResponseEntity<Set<Service>> response =
+        ResponseEntity<Set<ServiceDto>> response =
                 serviceDescriptionsApiController.getServiceDescriptionServices("1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<Service> services = response.getBody();
+        Set<ServiceDto> services = response.getBody();
         assertEquals(4, services.size());
-        Service getRandomService = getService(services, TestUtils.CLIENT_ID_SS1 + ":"
+        ServiceDto getRandomService = getService(services, TestUtils.CLIENT_ID_SS1 + ":"
                 + TestUtils.FULL_SERVICE_CODE_GET_RANDOM);
         assertEquals("https://soapservice.com/v1/Endpoint", getRandomService.getUrl());
         assertEquals(TestUtils.SERVICE_CODE_GET_RANDOM, getRandomService.getServiceCode());
@@ -320,21 +321,21 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         }
     }
 
-    private Set<String> getServiceIds(ServiceDescription serviceDescription) {
+    private Set<String> getServiceIds(ServiceDescriptionDto serviceDescription) {
         return serviceDescription.getServices()
                 .stream()
-                .map(Service::getId)
+                .map(ServiceDto::getId)
                 .collect(Collectors.toSet());
     }
 
-    private Set<String> getServiceCodes(ServiceDescription serviceDescription) {
+    private Set<String> getServiceCodes(ServiceDescriptionDto serviceDescription) {
         return serviceDescription.getServices()
                 .stream()
-                .map(Service::getServiceCode)
+                .map(ServiceDto::getServiceCode)
                 .collect(Collectors.toSet());
     }
 
-    private Service getService(Set<Service> services, String id) {
+    private ServiceDto getService(Set<ServiceDto> services, String id) {
         return services.stream()
                 .filter(s -> id.equals(s.getId()))
                 .findFirst().get();

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 import static org.niis.xroad.serverconf.IsAuthentication.NOSSL;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGISTERED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
 
 public class ClientRestMessageProcessorTest {
 

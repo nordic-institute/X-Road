@@ -39,8 +39,8 @@ import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -104,17 +104,17 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"BACKUP_CONFIGURATION"})
     public void getBackups() throws Exception {
-        ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
+        ResponseEntity<Set<BackupDto>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Set<Backup> backups = response.getBody();
+        Set<BackupDto> backups = response.getBody();
         assertEquals(2, backups.size());
-        Backup firstBackup = response.getBody()
+        BackupDto firstBackup = response.getBody()
                 .stream()
                 .filter(backup -> backup.getCreatedAt().toString().equals(BACKUP_FILE_1_CREATED_AT))
                 .findFirst()
                 .orElse(null);
-        Backup secondBackup = response.getBody()
+        BackupDto secondBackup = response.getBody()
                 .stream()
                 .filter(backup -> backup.getCreatedAt().toString().equals(BACKUP_FILE_2_CREATED_AT))
                 .findFirst()
@@ -128,10 +128,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     public void getBackupsEmptyList() {
         when(backupService.getBackupFiles()).thenReturn(new ArrayList<>());
 
-        ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
+        ResponseEntity<Set<BackupDto>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Set<Backup> backups = response.getBody();
+        Set<BackupDto> backups = response.getBody();
         assertEquals(0, backups.size());
     }
 
@@ -141,7 +141,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         when(backupService.getBackupFiles()).thenThrow(new RuntimeException());
 
         try {
-            ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
+            ResponseEntity<Set<BackupDto>> response = backupsApiController.getBackups();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
             // success
@@ -207,7 +207,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         BackupFile backupFile = new BackupFile(BACKUP_FILE_1_NAME, TimeUtils.now().atOffset(ZoneOffset.UTC));
         when(backupGenerator.generateBackup()).thenReturn(backupFile);
 
-        ResponseEntity<Backup> response = backupsApiController.addBackup();
+        ResponseEntity<BackupDto> response = backupsApiController.addBackup();
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(BACKUP_FILE_1_NAME, response.getBody().getFilename());
     }
@@ -218,7 +218,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         doThrow(new InterruptedException("")).when(backupGenerator).generateBackup();
 
         try {
-            ResponseEntity<Backup> response = backupsApiController.addBackup();
+            ResponseEntity<BackupDto> response = backupsApiController.addBackup();
             fail("should throw InternalServerErrorException");
         } catch (ServiceException expected) {
             // success
@@ -232,7 +232,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
         when(backupService.uploadBackup(any(Boolean.class), any(String.class), any())).thenReturn(backupFile);
 
-        ResponseEntity<Backup> response = backupsApiController.uploadBackup(true, mockMultipartFile);
+        ResponseEntity<BackupDto> response = backupsApiController.uploadBackup(true, mockMultipartFile);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(BACKUP_FILE_1_NAME, response.getBody().getFilename());
     }
@@ -246,7 +246,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         MockMultipartFile mockMultipartWithInvalidName = new MockMultipartFile("test", "/test.gpg",
                 "multipart/form-data", "content".getBytes());
         try {
-            ResponseEntity<Backup> response = backupsApiController.uploadBackup(true,
+            ResponseEntity<BackupDto> response = backupsApiController.uploadBackup(true,
                     mockMultipartWithInvalidName);
             fail("should throw BadRequestException");
         } catch (ValidationFailureException expected) {
@@ -261,7 +261,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
                 .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {
-            ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
+            ResponseEntity<BackupDto> response = backupsApiController.uploadBackup(false, mockMultipartFile);
             fail("should throw BadRequestException");
         } catch (ServiceException expected) {
             // success
@@ -275,7 +275,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
                 .uploadBackup(any(Boolean.class), any(String.class), any());
 
         try {
-            ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
+            ResponseEntity<BackupDto> response = backupsApiController.uploadBackup(false, mockMultipartFile);
             fail("should throw BadRequestException");
         } catch (ServiceException expected) {
             // success
@@ -285,10 +285,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackup() {
-        ResponseEntity<TokensLoggedOut> response = backupsApiController
+        ResponseEntity<TokensLoggedOutDto> response = backupsApiController
                 .restoreBackup(BACKUP_FILE_1_NAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        TokensLoggedOut tokensLoggedOut = response.getBody();
+        TokensLoggedOutDto tokensLoggedOut = response.getBody();
         assertFalse(tokensLoggedOut.getHsmTokensLoggedOut());
     }
 
@@ -296,10 +296,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void restoreFromBackupWithLoggedOutTokens() {
         when(tokenService.hasHardwareTokens()).thenReturn(true);
-        ResponseEntity<TokensLoggedOut> response = backupsApiController
+        ResponseEntity<TokensLoggedOutDto> response = backupsApiController
                 .restoreBackup(BACKUP_FILE_1_NAME);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        TokensLoggedOut tokensLoggedOut = response.getBody();
+        TokensLoggedOutDto tokensLoggedOut = response.getBody();
         assertTrue(tokensLoggedOut.getHsmTokensLoggedOut());
     }
 

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -35,8 +36,8 @@ import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestCon
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.ServerConf;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 
@@ -79,8 +80,8 @@ public abstract class AbstractServiceIntegrationTestContext extends AbstractFaca
 
     @Before
     public void setupCommonMocks() {
-        ServerConfType sct = new ServerConfType();
-        ClientType owner = new ClientType();
+        ServerConf sct = new ServerConf();
+        Client owner = new Client();
         owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");

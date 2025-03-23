@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -41,11 +42,11 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -69,7 +70,7 @@ public class InitializationServiceTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
     private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-    private static final ClientIdConfEntity CLIENT = ClientIdConfEntity.createMember(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final ClientIdEntity CLIENT = ClientIdEntity.createMember(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
     private static final SecurityServerId SERVER = SecurityServerId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);
@@ -102,7 +103,7 @@ public class InitializationServiceTest {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfTypeEntity());
+        when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfEntity());
         when(serverConfService.getSecurityServerOwnerIdEntity()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
@@ -114,7 +115,7 @@ public class InitializationServiceTest {
 
     @Test
     public void isSecurityServerInitialized() {
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -124,7 +125,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedTokenNot() {
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.NOT_INITIALIZED);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -134,7 +135,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedServerOwnerNot() {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertFalse(initStatus.isServerOwnerInitialized());
@@ -144,7 +145,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedServerCodeNot() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertFalse(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -155,7 +156,7 @@ public class InitializationServiceTest {
     public void isSecurityServerInitializedAnchorNot() {
         when(systemService.isAnchorImported()).thenReturn(false);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertFalse(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -165,7 +166,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedSoftwareTokenUnresolved() {
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.UNKNOWN);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,8 +33,8 @@ import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ import static ee.ria.xroad.common.crypto.NamedCurves.getCurveName;
 import static ee.ria.xroad.common.crypto.NamedCurves.getEncodedPoint;
 
 /**
- * Converter for CertificateDetails related data between openapi and service domain classes
+ * Converter for CertificateDetailsDto related data between openapi and service domain classes
  */
 @Component
 @RequiredArgsConstructor
@@ -58,11 +59,11 @@ public class CertificateDetailsConverter {
 
     /**
      * convert CertificateType into openapi Certificate class
-     * @param certificateType
+     * @param certificate
      * @return
      */
-    public CertificateDetails convert(CertificateType certificateType) {
-        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateType.getData());
+    public CertificateDetailsDto convert(Certificate certificate) {
+        X509Certificate x509Certificate = CryptoUtils.readCertificate(certificate.getData());
         return convert(x509Certificate);
     }
 
@@ -71,7 +72,7 @@ public class CertificateDetailsConverter {
      * @param certificateInfo
      * @return
      */
-    public CertificateDetails convert(CertificateInfo certificateInfo) {
+    public CertificateDetailsDto convert(CertificateInfo certificateInfo) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
         return convert(x509Certificate);
     }
@@ -82,8 +83,8 @@ public class CertificateDetailsConverter {
      * @param x509Certificate
      * @return
      */
-    public CertificateDetails convert(X509Certificate x509Certificate) {
-        CertificateDetails certificate = new CertificateDetails();
+    public CertificateDetailsDto convert(X509Certificate x509Certificate) {
+        CertificateDetailsDto certificate = new CertificateDetailsDto();
 
         String issuerCommonName = null;
         String subjectCommonName = null;

@@ -7,22 +7,22 @@
     <session-factory>
         <property name="hikari.maximumPoolSize">20</property>
         <property name="hibernate.id.db_structure_naming_strategy">single</property>
-        <mapping class="org.niis.xroad.serverconf.entity.AccessRightTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.CertificateTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.ClientIdConfEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.ClientTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.EndpointTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.GlobalGroupConfEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.GroupMemberTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.LocalGroupConfEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.LocalGroupTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.SecurityServerIdConfEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.ServerConfTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.ServiceIdConfEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.ServiceTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.TspTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.UiUserTypeEntity" />
-        <mapping class="org.niis.xroad.serverconf.entity.XRoadIdConfEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.AccessRightEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.CertificateEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.ClientIdEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.ClientEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.EndpointEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.GlobalGroupIdEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.GroupMemberEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.LocalGroupIdEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.LocalGroupEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.SecurityServerIdEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.ServerConfEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.ServiceDescriptionEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.ServiceIdEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.ServiceEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.TimestampingServiceEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.UiUserEntity" />
+        <mapping class="org.niis.xroad.serverconf.entity.XRoadIdEntity" />
     </session-factory>
 </hibernate-configuration>

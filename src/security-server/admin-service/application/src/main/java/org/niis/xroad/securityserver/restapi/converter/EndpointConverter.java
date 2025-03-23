@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,8 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
+import org.niis.xroad.serverconf.model.Endpoint;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,19 +36,18 @@ import java.util.stream.Collectors;
 @Component
 public class EndpointConverter {
 
-    public Endpoint convert(EndpointType endpointType) {
-        Endpoint endpoint = new Endpoint();
+    public EndpointDto convert(Endpoint endpoint) {
+        EndpointDto endpointDto = new EndpointDto();
 
-        endpoint.setId(String.valueOf(endpointType.getId()));
-        endpoint.setServiceCode(endpointType.getServiceCode());
-        endpoint.setMethod(Endpoint.MethodEnum.fromValue(endpointType.getMethod()));
-        endpoint.setPath(endpointType.getPath());
-        endpoint.setGenerated(endpointType.isGenerated());
-        return endpoint;
+        endpointDto.setId(String.valueOf(endpoint.getId()));
+        endpointDto.setServiceCode(endpoint.getServiceCode());
+        endpointDto.setMethod(EndpointDto.MethodEnum.fromValue(endpoint.getMethod()));
+        endpointDto.setPath(endpoint.getPath());
+        endpointDto.setGenerated(endpoint.isGenerated());
+        return endpointDto;
     }
 
-    public List<Endpoint> convert(List<EndpointType> endpointTypes) {
-        return endpointTypes.stream().map(e -> convert(e)).collect(Collectors.toList());
+    public List<EndpointDto> convert(List<Endpoint> endpoints) {
+        return endpoints.stream().map(e -> convert(e)).collect(Collectors.toList());
     }
-
 }

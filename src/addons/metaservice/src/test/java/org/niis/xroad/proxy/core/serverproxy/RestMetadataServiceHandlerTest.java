@@ -57,7 +57,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -123,8 +123,8 @@ public class RestMetadataServiceHandlerTest {
     public void init() {
         serverConfProvider = new TestSuiteServerConf() {
             @Override
-            public DescriptionType getDescriptionType(ServiceId service) {
-                return DescriptionType.OPENAPI3;
+            public Description getDescriptionType(ServiceId service) {
+                return Description.OPENAPI3;
             }
 
             @Override

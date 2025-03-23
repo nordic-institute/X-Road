@@ -33,7 +33,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 
 /**
  * Test serverconf implementation.
@@ -57,7 +57,7 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
-        return DescriptionType.REST;
+    public Description getDescriptionType(ServiceId service) {
+        return Description.REST;
     }
 }

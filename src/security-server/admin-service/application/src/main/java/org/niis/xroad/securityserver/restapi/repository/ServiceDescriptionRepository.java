@@ -30,7 +30,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ServiceDescriptionRepository extends AbstractRepository<ServiceDescriptionTypeEntity> {
+public class ServiceDescriptionRepository extends AbstractRepository<ServiceDescriptionEntity> {
 
     @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
@@ -52,7 +52,7 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
      * @param entityId entity id
      * @return ServiceDescriptionTypeEntity
      */
-    public ServiceDescriptionTypeEntity getServiceDescription(Long entityId) {
+    public ServiceDescriptionEntity getServiceDescription(Long entityId) {
         ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
         return serviceDescriptionDAO.getServiceDescription(persistenceUtils.getCurrentSession(), entityId);
     }
@@ -62,7 +62,7 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
      *
      * @param serviceDescriptionType ServiceDescriptionTypeEntity
      */
-    public void saveOrUpdate(ServiceDescriptionTypeEntity serviceDescriptionType) {
+    public void saveOrUpdate(ServiceDescriptionEntity serviceDescriptionType) {
         persistenceUtils.getCurrentSession().merge(serviceDescriptionType);
     }
 
@@ -70,7 +70,7 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
      * Executes a Hibernate delete(serviceDescriptionType)
      * @param serviceDescriptionType ServiceDescriptionTypeEntity
      */
-    public void delete(ServiceDescriptionTypeEntity serviceDescriptionType) {
+    public void delete(ServiceDescriptionEntity serviceDescriptionType) {
         persistenceUtils.getCurrentSession().remove(serviceDescriptionType);
     }
 }

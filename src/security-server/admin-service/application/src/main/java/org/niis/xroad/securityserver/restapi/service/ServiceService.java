@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,17 +38,16 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
-import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
-import org.niis.xroad.serverconf.mapper.ServiceTypeMapper;
-import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.mapper.EndpointMapper;
+import org.niis.xroad.serverconf.mapper.ServiceMapper;
+import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.Endpoint;
+import org.niis.xroad.serverconf.model.Service;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -64,7 +64,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_
  * service class for handling services
  */
 @Slf4j
-@Service
+@org.springframework.stereotype.Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
@@ -86,36 +86,36 @@ public class ServiceService {
      * @throws ClientNotFoundException if client with given id was not found
      * @throws ServiceNotFoundException if service with given fullServicecode was not found
      */
-    public ServiceType getService(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
+    public Service getService(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
             ServiceNotFoundException {
-        return ServiceTypeMapper.get().toTarget(getServiceEntity(clientId, fullServiceCode));
+        return ServiceMapper.get().toTarget(getServiceEntity(clientId, fullServiceCode));
     }
 
-    private ServiceTypeEntity getServiceEntity(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
+    private ServiceEntity getServiceEntity(ClientId clientId, String fullServiceCode) throws ClientNotFoundException,
             ServiceNotFoundException {
-        ClientTypeEntity client = clientRepository.getClient(clientId);
+        ClientEntity client = clientRepository.getClient(clientId);
         if (client == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + NOT_FOUND);
         }
 
-        ServiceTypeEntity serviceType = getServiceEntityFromClient(client, fullServiceCode);
+        ServiceEntity serviceType = getServiceEntityFromClient(client, fullServiceCode);
         Hibernate.initialize(serviceType.getServiceDescription().getClient().getEndpoint());
         return serviceType;
     }
 
     /**
-     * Get {@link ServiceTypeEntity} from a {@link ClientTypeEntity} by comparing the full service code (with version).
+     * Get {@link ServiceEntity} from a {@link ClientEntity} by comparing the full service code (with version).
      *
      * @param client client
      * @param fullServiceCode fullServiceCode
      * @return ServiceType
      * @throws ServiceNotFoundException if service with fullServiceCode was not found
      */
-    ServiceTypeEntity getServiceEntityFromClient(ClientTypeEntity client, String fullServiceCode)
+    ServiceEntity getServiceEntityFromClient(ClientEntity client, String fullServiceCode)
             throws ServiceNotFoundException {
-        Optional<ServiceTypeEntity> foundService = client.getServiceDescription()
+        Optional<ServiceEntity> foundService = client.getServiceDescription()
                 .stream()
-                .map(ServiceDescriptionTypeEntity::getService)
+                .map(ServiceDescriptionEntity::getService)
                 .flatMap(List::stream)
                 .filter(serviceType -> ServiceFormatter.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
@@ -145,9 +145,9 @@ public class ServiceService {
      *         exists for other rest service
      * Security Server and information system fails, and ignoreWarnings was false
      */
-    public ServiceType updateService(ClientId clientId, String fullServiceCode,
-                                     String url, boolean urlAll, Integer timeout, boolean timeoutAll,
-                                     boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
+    public Service updateService(ClientId clientId, String fullServiceCode,
+                                 String url, boolean urlAll, Integer timeout, boolean timeoutAll,
+                                 boolean sslAuth, boolean sslAuthAll, boolean ignoreWarnings) throws InvalidUrlException,
             ServiceDescriptionService.UrlAlreadyExistsException,
             ServiceNotFoundException, ClientNotFoundException, UnhandledWarningsException, InvalidHttpsUrlException {
 
@@ -160,10 +160,10 @@ public class ServiceService {
             throw new InvalidHttpsUrlException("HTTPS must be used when SSL authentication is enabled");
         }
 
-        ServiceTypeEntity serviceType = getServiceEntity(clientId, fullServiceCode);
+        ServiceEntity serviceType = getServiceEntity(clientId, fullServiceCode);
 
         if (sslAuth && !ignoreWarnings) {
-            ClientTypeEntity client = serviceType.getServiceDescription().getClient();
+            ClientEntity client = serviceType.getServiceDescription().getClient();
             try {
                 internalServerTestService.testHttpsConnection(client.getIsCert(), url);
             } catch (SSLHandshakeException she) {
@@ -174,8 +174,8 @@ public class ServiceService {
             }
         }
 
-        ServiceDescriptionTypeEntity serviceDescriptionType = serviceType.getServiceDescription();
-        if (DescriptionType.REST.equals(serviceDescriptionType.getType())) {
+        ServiceDescriptionEntity serviceDescriptionType = serviceType.getServiceDescription();
+        if (Description.REST.equals(serviceDescriptionType.getType())) {
             serviceDescriptionType.setUrl(url);
             checkDuplicateUrl(serviceDescriptionType);
         }
@@ -188,11 +188,11 @@ public class ServiceService {
                     serviceType, service);
         });
 
-        return ServiceTypeMapper.get().toTarget(serviceType);
+        return ServiceMapper.get().toTarget(serviceType);
     }
 
     private void checkDuplicateUrl(
-            ServiceDescriptionTypeEntity serviceDescription) throws ServiceDescriptionService.UrlAlreadyExistsException {
+            ServiceDescriptionEntity serviceDescription) throws ServiceDescriptionService.UrlAlreadyExistsException {
         boolean hasDuplicates = serviceDescription.getClient().getServiceDescription().stream()
                 .anyMatch(other -> !serviceDescription.equals(other)
                         && serviceDescription.getUrl().equals(other.getUrl()));
@@ -207,7 +207,7 @@ public class ServiceService {
      */
     private void updateServiceFromSameDefinition(String url, boolean urlAll, Integer timeout,
                                                  boolean timeoutAll, boolean sslAuth, boolean sslAuthAll,
-                                                 ServiceTypeEntity targetService, ServiceTypeEntity serviceFromSameDefinition) {
+                                                 ServiceEntity targetService, ServiceEntity serviceFromSameDefinition) {
 
         boolean serviceMatch = serviceFromSameDefinition == targetService;
         if (urlAll || serviceMatch) {
@@ -246,19 +246,19 @@ public class ServiceService {
      * this client
      * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException if trying to add endpoint to a WSDL
      */
-    public EndpointType addEndpoint(ClientId clientId, String fullServiceCode, String method, String path)
+    public Endpoint addEndpoint(ClientId clientId, String fullServiceCode, String method, String path)
             throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException,
             ClientNotFoundException, ServiceNotFoundException {
 
-        ServiceTypeEntity serviceType = getServiceEntity(clientId, fullServiceCode);
+        ServiceEntity serviceType = getServiceEntity(clientId, fullServiceCode);
 
-        if (serviceType.getServiceDescription().getType().equals(DescriptionType.WSDL)) {
+        if (serviceType.getServiceDescription().getType().equals(Description.WSDL)) {
             throw new ServiceDescriptionService.WrongServiceDescriptionTypeException("Endpoint can't be added to a "
                     + "WSDL type of Service Description");
         }
 
-        EndpointTypeEntity endpointType = EndpointTypeEntity.create(serviceType.getServiceCode(), method, path, false);
-        ClientTypeEntity client = serviceType.getServiceDescription().getClient();
+        EndpointEntity endpointType = EndpointEntity.create(serviceType.getServiceCode(), method, path, false);
+        ClientEntity client = serviceType.getServiceDescription().getClient();
         if (client.getEndpoint().stream()
                 .anyMatch(existingEp -> existingEp.isEquivalent(endpointType))) {
             throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
@@ -266,6 +266,6 @@ public class ServiceService {
         }
         client.getEndpoint().add(endpointType);
         clientRepository.merge(client, false);
-        return EndpointTypeMapper.get().toTarget(endpointType);
+        return EndpointMapper.get().toTarget(endpointType);
     }
 }

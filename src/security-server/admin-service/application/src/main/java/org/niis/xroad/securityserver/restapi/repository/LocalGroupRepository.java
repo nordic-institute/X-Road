@@ -28,9 +28,9 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.GroupMemberTypeEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.GroupMemberEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupEntity;
 import org.niis.xroad.serverconf.impl.dao.GroupMemberDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.LocalGroupDAOImpl;
 import org.springframework.stereotype.Repository;
@@ -49,12 +49,12 @@ public class LocalGroupRepository {
     private final PersistenceUtils persistenceUtils;
     private final GroupMemberDAOImpl groupMemberDAO = new GroupMemberDAOImpl();
 
-    public LocalGroupTypeEntity getLocalGroup(Long entityId) {
+    public LocalGroupEntity getLocalGroup(Long entityId) {
         LocalGroupDAOImpl localGroupDAO = new LocalGroupDAOImpl();
         return localGroupDAO.getLocalGroup(persistenceUtils.getCurrentSession(), entityId);
     }
 
-    public void deleteGroupMembersByMemberId(ClientIdConfEntity memberId) {
+    public void deleteGroupMembersByMemberId(ClientIdEntity memberId) {
         groupMemberDAO.deleteByGroupMemberId(persistenceUtils.getCurrentSession(), memberId);
     }
 
@@ -62,7 +62,7 @@ public class LocalGroupRepository {
      * Executes a Hibernate persist(localGroupType)
      * @param localGroupType localGroupTypeEntity
      */
-    public void persist(LocalGroupTypeEntity localGroupType) {
+    public void persist(LocalGroupEntity localGroupType) {
         persistenceUtils.getCurrentSession().persist(localGroupType);
     }
 
@@ -70,9 +70,9 @@ public class LocalGroupRepository {
      * Executes a Hibernate persist(groupMemberType) for multiple group members
      * @param groupMemberTypes list of GroupMemberTypeEntity
      */
-    public void saveOrUpdateAll(List<GroupMemberTypeEntity> groupMemberTypes) {
+    public void saveOrUpdateAll(List<GroupMemberEntity> groupMemberTypes) {
         Session session = persistenceUtils.getCurrentSession();
-        for (GroupMemberTypeEntity groupMemberType : groupMemberTypes) {
+        for (GroupMemberEntity groupMemberType : groupMemberTypes) {
             session.persist(groupMemberType);
         }
     }
@@ -81,7 +81,7 @@ public class LocalGroupRepository {
      * Executes a Hibernate delete(localGroupType)
      * @param localGroupType LocalGroupTypeEntity
      */
-    public void delete(LocalGroupTypeEntity localGroupType) {
+    public void delete(LocalGroupEntity localGroupType) {
         persistenceUtils.getCurrentSession().remove(localGroupType);
     }
 }

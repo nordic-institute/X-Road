@@ -30,19 +30,19 @@
   >
     <div class="pa-4">
       <xrd-sub-view-title
-        v-if="serviceDescription.type === serviceType.WSDL"
+        v-if="serviceDescription.type === service.WSDL"
         :title="$t('services.wsdlDetails')"
         data-test="wsdl-service-description-details-dialog"
         @close="close"
       />
       <xrd-sub-view-title
-        v-else-if="serviceDescription.type === serviceType.REST"
+        v-else-if="serviceDescription.type === service.REST"
         :title="$t('services.restDetails')"
         data-test="rest-service-description-details-dialog"
         @close="close"
       />
       <xrd-sub-view-title
-        v-else-if="serviceDescription.type === serviceType.OPENAPI3"
+        v-else-if="serviceDescription.type === service.OPENAPI3"
         :title="$t('services.openapiDetails')"
         data-test="openapi-service-description-details-dialog"
         @close="close"
@@ -61,17 +61,17 @@
 
     <div class="px-4">
       <div class="edit-row pb-4">
-        <div>{{ $t('services.serviceType') }}</div>
+        <div>{{ $t('services.service') }}</div>
 
         <div
-          v-if="serviceDescription.type === serviceType.REST"
+          v-if="serviceDescription.type === service.REST"
           class="code-input"
           data-test="service-description-details-url-type-value"
         >
           {{ $t('services.restApiBasePath') }}
         </div>
         <div
-          v-else-if="serviceDescription.type === serviceType.OPENAPI3"
+          v-else-if="serviceDescription.type === service.OPENAPI3"
           class="code-input"
           data-test="service-description-details-url-type-value"
         >
@@ -100,8 +100,8 @@
       <div class="edit-row">
         <template
           v-if="
-            serviceDescription.type === serviceType.REST ||
-            serviceDescription.type === serviceType.OPENAPI3
+            serviceDescription.type === service.REST ||
+            serviceDescription.type === service.OPENAPI3
           "
         >
           <div>{{ $t('services.serviceCode') }}</div>
@@ -258,7 +258,7 @@ export default defineComponent({
       initialServiceCode: '',
       saving: false,
       editLoading: false,
-      serviceType: ServiceType,
+      service: ServiceType,
       serviceDescriptionUpdate: null as ServiceDescriptionUpdate | null,
     };
   },
@@ -288,8 +288,8 @@ export default defineComponent({
       };
 
       if (
-        this.serviceDescriptionUpdate.type === this.serviceType.REST ||
-        this.serviceDescriptionUpdate.type === this.serviceType.OPENAPI3
+        this.serviceDescriptionUpdate.type === this.service.REST ||
+        this.serviceDescriptionUpdate.type === this.service.OPENAPI3
       ) {
         this.serviceDescriptionUpdate.rest_service_code =
           this.initialServiceCode;
@@ -323,8 +323,8 @@ export default defineComponent({
         });
     },
 
-    showDeletePopup(serviceType: string): void {
-      if (serviceType === this.serviceType.WSDL) {
+    showDeletePopup(service: string): void {
+      if (service === this.service.WSDL) {
         this.confirmWSDLDelete = true;
       } else {
         this.confirmRESTDelete = true;

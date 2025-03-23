@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupEntity;
 
 /**
  * LocalGroupDAO
@@ -39,7 +40,7 @@ public class LocalGroupDAOImpl {
      * @param id the LocalGroupTypeEntity id
      * @return the LocalGroupTypeEntity, or null if not found
      */
-    public LocalGroupTypeEntity getLocalGroup(Session session, Long id) {
-        return session.get(LocalGroupTypeEntity.class, id);
+    public LocalGroupEntity getLocalGroup(Session session, Long id) {
+        return session.get(LocalGroupEntity.class, id);
     }
 }

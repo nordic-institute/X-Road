@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,7 +33,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -96,7 +97,7 @@ public interface ServerConfProvider {
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
+    List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description);
 
     /**
      * @param serviceProvider the service provider identifier
@@ -113,7 +114,7 @@ public interface ServerConfProvider {
      * has permission to invoke filtered by description type
      */
     List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                             DescriptionType descriptionType);
+                                                             Description description);
 
     /**
      * @param client the client identifier
@@ -186,9 +187,9 @@ public interface ServerConfProvider {
 
     /**
      * @param service the service identifier
-     * @return the type of the service as {@link DescriptionType}
+     * @return the type of the service as {@link Description}
      */
-    DescriptionType getDescriptionType(ServiceId service);
+    Description getDescriptionType(ServiceId service);
 
     /**
      * @param service the service identifier

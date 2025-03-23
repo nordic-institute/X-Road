@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -42,11 +43,11 @@ import org.niis.xroad.securityserver.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.securityserver.restapi.converter.KeyConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.PossibleActionConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormat;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerate;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyName;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
@@ -96,12 +97,12 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public ResponseEntity<Key> getKey(String keyId) {
-        Key key = getKeyFromService(keyId);
-        return new ResponseEntity<>(key, HttpStatus.OK);
+    public ResponseEntity<KeyDto> getKey(String keyId) {
+        KeyDto keyDto = getKeyFromService(keyId);
+        return new ResponseEntity<>(keyDto, HttpStatus.OK);
     }
 
-    private Key getKeyFromService(String keyId) {
+    private KeyDto getKeyFromService(String keyId) {
         try {
             KeyInfo keyInfo = keyService.getKey(keyId);
             return keyConverter.convert(keyInfo);
@@ -113,51 +114,51 @@ public class KeysApiController implements KeysApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_KEY_FRIENDLY_NAME')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_KEY_NAME)
-    public ResponseEntity<Key> updateKey(String id, KeyName keyName) {
+    public ResponseEntity<KeyDto> updateKey(String id, KeyNameDto keyNameDto) {
         KeyInfo keyInfo = null;
         try {
-            keyInfo = keyService.updateKeyFriendlyName(id, keyName.getName());
+            keyInfo = keyService.updateKeyFriendlyName(id, keyNameDto.getName());
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
-        Key key = keyConverter.convert(keyInfo);
-        return new ResponseEntity<>(key, HttpStatus.OK);
+        KeyDto keyDto = keyConverter.convert(keyInfo);
+        return new ResponseEntity<>(keyDto, HttpStatus.OK);
     }
 
     @SuppressWarnings({"squid:S3655", "checkstyle:LineLength"}) // squid: see reason below. checkstyle: for readability
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + "#csrGenerate.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION and"
-            + "(!#csrGenerate.acmeOrder or hasAuthority('IMPORT_AUTH_CERT')))"
+            + "#csrGenerateDto.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).AUTHENTICATION and"
+            + "(!#csrGenerateDto.acmeOrder or hasAuthority('IMPORT_AUTH_CERT')))"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#csrGenerate.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING and"
-            + "(!#csrGenerate.acmeOrder or hasAuthority('IMPORT_SIGN_CERT')))")
+            + "#csrGenerateDto.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).SIGNING and"
+            + "(!#csrGenerateDto.acmeOrder or hasAuthority('IMPORT_SIGN_CERT')))")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_CSR)
-    public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
+    public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerateDto csrGenerateDto) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerateDto.getKeyUsageType()).get();
         ClientId.Conf memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
-            memberId = clientIdConverter.convertId(csrGenerate.getMemberId());
+            memberId = clientIdConverter.convertId(csrGenerateDto.getMemberId());
         }
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
-        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerate.getCsrFormat()).get();
+        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerateDto.getCsrFormat()).get();
 
         byte[] csr;
         try {
             csr = tokenCertificateService.generateCertRequest(keyId,
                     memberId,
                     keyUsageInfo,
-                    csrGenerate.getCaName(),
-                    csrGenerate.getSubjectFieldValues(),
+                    csrGenerateDto.getCaName(),
+                    csrGenerateDto.getSubjectFieldValues(),
                     csrFormat,
-                    csrGenerate.getAcmeOrder()).certRequest();
+                    csrGenerateDto.getAcmeOrder()).certRequest();
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
                  | ClientNotFoundException | CertificateAuthorityNotFoundException
                  | TokenCertificateService.AuthCertificateNotSupportedException e) {
@@ -170,7 +171,7 @@ public class KeysApiController implements KeysApi {
         } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
             throw new InternalServerErrorException(e);
         }
-        if (csrGenerate.getAcmeOrder()) {
+        if (csrGenerateDto.getAcmeOrder()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
@@ -195,7 +196,7 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public ResponseEntity<List<PossibleAction>> getPossibleActionsForCsr(String id, String csrId) {
+    public ResponseEntity<List<PossibleActionDto>> getPossibleActionsForCsr(String id, String csrId) {
         try {
             EnumSet<PossibleActionEnum> actions = tokenCertificateService
                     .getPossibleActionsForCsr(csrId);
@@ -207,7 +208,7 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public ResponseEntity<List<PossibleAction>> getPossibleActionsForKey(String keyId) {
+    public ResponseEntity<List<PossibleActionDto>> getPossibleActionsForKey(String keyId) {
         try {
             EnumSet<PossibleActionEnum> actions = keyService.getPossibleActionsForKey(keyId);
             return new ResponseEntity<>(possibleActionConverter.convert(actions), HttpStatus.OK);
@@ -234,11 +235,11 @@ public class KeysApiController implements KeysApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('GENERATE_AUTH_CERT_REQ', 'GENERATE_SIGN_CERT_REQ')")
-    public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormat csrFormat) {
+    public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormatDto csrFormatDto) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since csr format is mandatory parameter
-        CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormat).get();
+        CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormatDto).get();
         SignerRpcClient.GeneratedCertRequestInfo csrInfo;
         try {
             csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);
@@ -254,5 +255,4 @@ public class KeysApiController implements KeysApi {
 
         return ControllerUtil.createAttachmentResourceResponse(csrInfo.certRequest(), filename);
     }
-
 }

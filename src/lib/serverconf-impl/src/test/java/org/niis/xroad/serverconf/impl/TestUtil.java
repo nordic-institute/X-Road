@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,21 +32,21 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
-import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
-import org.niis.xroad.serverconf.entity.GroupMemberTypeEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceIdConfEntity;
-import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
-import org.niis.xroad.serverconf.entity.TspTypeEntity;
-import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
-import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.entity.CertificateEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.entity.GroupMemberEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.entity.ServiceIdEntity;
+import org.niis.xroad.serverconf.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdEntity;
+import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.util.Date;
 
@@ -127,7 +128,7 @@ public final class TestUtil {
         }
 
         doInTransaction(session -> {
-            ServerConfTypeEntity conf = createTestData(session);
+            ServerConfEntity conf = createTestData(session);
             session.persist(conf);
             return null;
         });
@@ -144,12 +145,12 @@ public final class TestUtil {
         });
     }
 
-    static ServerConfTypeEntity createTestData(Session session) {
-        ServerConfTypeEntity conf = new ServerConfTypeEntity();
+    static ServerConfEntity createTestData(Session session) {
+        ServerConfEntity conf = new ServerConfEntity();
         conf.setServerCode(SERVER_CODE);
 
         for (int i = 0; i < NUM_CLIENTS; i++) {
-            ClientTypeEntity client = new ClientTypeEntity();
+            ClientEntity client = new ClientEntity();
             client.setConf(conf);
             conf.getClient().add(client);
 
@@ -158,7 +159,7 @@ public final class TestUtil {
                 conf.setOwner(client);
                 continue;
             } else {
-                ClientIdConfEntity id;
+                ClientIdEntity id;
                 if (i == NUM_CLIENTS - 1) {
                     id = createClientIdConfEntity(client(i), SUBSYSTEM);
                 } else {
@@ -172,7 +173,7 @@ public final class TestUtil {
             switch (i) {
                 case 1:
                     client.setIsAuthentication("SSLAUTH");
-                    CertificateTypeEntity ct = new CertificateTypeEntity();
+                    CertificateEntity ct = new CertificateEntity();
                     ct.setData(decodeBase64(BASE64_CERT));
                     client.getIsCert().add(ct);
                     break;
@@ -185,13 +186,13 @@ public final class TestUtil {
             }
 
             for (int j = 0; j < NUM_SERVICEDESCRIPTIONS; j++) {
-                ServiceDescriptionTypeEntity serviceDescription = new ServiceDescriptionTypeEntity();
+                ServiceDescriptionEntity serviceDescription = new ServiceDescriptionEntity();
                 serviceDescription.setClient(client);
                 serviceDescription.setUrl(SERVICEDESCRIPTION_URL + j);
-                serviceDescription.setType(DescriptionType.WSDL);
+                serviceDescription.setType(Description.WSDL);
 
                 for (int k = 0; k < NUM_SERVICES; k++) {
-                    ServiceTypeEntity service = new ServiceTypeEntity();
+                    ServiceEntity service = new ServiceEntity();
                     service.setServiceDescription(serviceDescription);
                     service.setTitle(SERVICE_TITLE + k);
                     service.setServiceCode(service(j, k));
@@ -217,7 +218,7 @@ public final class TestUtil {
             }
 
             String serviceCode = service(1, 1);
-            final EndpointTypeEntity endpoint = new EndpointTypeEntity();
+            final EndpointEntity endpoint = new EndpointEntity();
             endpoint.setServiceCode(serviceCode);
             endpoint.setMethod("*");
             endpoint.setPath("**");
@@ -229,28 +230,28 @@ public final class TestUtil {
             client.getAcl().add(
                     createAccessRight(endpoint, client.getIdentifier()));
 
-            ClientIdConfEntity cl = XroadIdConfMapper.get().toEntity(ClientId.Conf.create("XX", "memberClass", "memberCode" + i));
+            ClientIdEntity cl = XRoadIdMapper.get().toEntity(ClientId.Conf.create("XX", "memberClass", "memberCode" + i));
             client.getAcl().add(createAccessRight(endpoint, cl));
 
-            ServiceIdConfEntity se = XroadIdConfMapper.get().toEntity(ServiceId.Conf.create("XX", "memberClass",
+            ServiceIdEntity se = XRoadIdMapper.get().toEntity(ServiceId.Conf.create("XX", "memberClass",
                     "memberCode" + i, "subsystemCode", "serviceCode" + i));
             client.getAcl().add(createAccessRight(endpoint, se));
 
             LocalGroupId.Conf lg = LocalGroupId.Conf.create("testGroup" + i);
-            client.getAcl().add(createAccessRight(endpoint, XroadIdConfMapper.get().toEntity(lg)));
+            client.getAcl().add(createAccessRight(endpoint, XRoadIdMapper.get().toEntity(lg)));
 
             //rest service
-            ServiceDescriptionTypeEntity serviceDescription = new ServiceDescriptionTypeEntity();
+            ServiceDescriptionEntity serviceDescription = new ServiceDescriptionEntity();
             serviceDescription.setClient(client);
             serviceDescription.setUrl(SERVICEDESCRIPTION_URL + "rest");
-            serviceDescription.setType(DescriptionType.REST);
+            serviceDescription.setType(Description.REST);
 
-            ServiceTypeEntity service = new ServiceTypeEntity();
+            ServiceEntity service = new ServiceEntity();
             service.setServiceDescription(serviceDescription);
             service.setTitle(SERVICE_TITLE + "REST");
             service.setServiceCode("rest");
 
-            EndpointTypeEntity restEndpoint = new EndpointTypeEntity();
+            EndpointEntity restEndpoint = new EndpointEntity();
             restEndpoint.setServiceCode(service.getServiceCode());
             restEndpoint.setMethod("GET");
             restEndpoint.setPath("/api/**");
@@ -259,7 +260,7 @@ public final class TestUtil {
             client.getEndpoint().add(restEndpoint);
             client.getAcl().add(createAccessRight(restEndpoint, client.getIdentifier()));
 
-            EndpointTypeEntity restEndpoint2 = new EndpointTypeEntity();
+            EndpointEntity restEndpoint2 = new EndpointEntity();
             restEndpoint2.setServiceCode(service.getServiceCode());
             restEndpoint2.setMethod("POST");
             restEndpoint2.setPath("/api/test/*");
@@ -268,11 +269,11 @@ public final class TestUtil {
             client.getEndpoint().add(restEndpoint2);
             client.getAcl().add(createAccessRight(restEndpoint2, client.getIdentifier()));
 
-            LocalGroupTypeEntity localGroup = new LocalGroupTypeEntity();
+            LocalGroupEntity localGroup = new LocalGroupEntity();
             localGroup.setGroupCode("localGroup" + i);
             localGroup.setDescription("local group description");
             localGroup.setUpdated(new Date());
-            GroupMemberTypeEntity localGroupMember = new GroupMemberTypeEntity();
+            GroupMemberEntity localGroupMember = new GroupMemberEntity();
             localGroupMember.setAdded(new Date());
             localGroupMember.setGroupMemberId(cl);
             localGroup.getGroupMember().add(localGroupMember);
@@ -281,7 +282,7 @@ public final class TestUtil {
         }
 
         for (int j = 0; j < NUM_TSPS; j++) {
-            TspTypeEntity tsp = new TspTypeEntity();
+            TimestampingServiceEntity tsp = new TimestampingServiceEntity();
             tsp.setName("tspName" + j);
             tsp.setUrl("tspUrl" + j);
             conf.getTsp().add(tsp);
@@ -302,9 +303,9 @@ public final class TestUtil {
                 serviceCode, serviceVerison);
     }
 
-    static ServiceIdConfEntity createTestServiceIdEntity(String memberCode, String serviceCode,
-                                              String serviceVerison) {
-        return ServiceIdConfEntity.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
+    static ServiceIdEntity createTestServiceIdEntity(String memberCode, String serviceCode,
+                                                     String serviceVerison) {
+        return ServiceIdEntity.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode, serviceVerison);
     }
 
@@ -327,17 +328,17 @@ public final class TestUtil {
                 subsystemCode);
     }
 
-    static ClientIdConfEntity createClientIdConfEntity() {
-        return XroadIdConfMapper.get().toEntity(ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE));
+    static ClientIdEntity createClientIdConfEntity() {
+        return XRoadIdMapper.get().toEntity(ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE));
     }
 
-    static ClientIdConfEntity createClientIdConfEntity(String memberCode) {
+    static ClientIdEntity createClientIdConfEntity(String memberCode) {
         return createClientIdConfEntity(memberCode, null);
     }
 
-    static ClientIdConfEntity createClientIdConfEntity(String memberCode,
-                                                 String subsystemCode) {
-        return XroadIdConfMapper.get().toEntity(ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode,
+    static ClientIdEntity createClientIdConfEntity(String memberCode,
+                                                   String subsystemCode) {
+        return XRoadIdMapper.get().toEntity(ClientId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode,
                 subsystemCode));
     }
 
@@ -349,8 +350,8 @@ public final class TestUtil {
         return SERVICE_CODE + "-" + serviceDescriptionIdx + "-" + serviceIdx;
     }
 
-    static AccessRightTypeEntity createAccessRight(EndpointTypeEntity endpoint, XRoadIdConfEntity xRoadId) {
-        AccessRightTypeEntity accessRight = new AccessRightTypeEntity();
+    static AccessRightEntity createAccessRight(EndpointEntity endpoint, XRoadIdEntity xRoadId) {
+        AccessRightEntity accessRight = new AccessRightEntity();
         accessRight.setEndpoint(endpoint);
         accessRight.setSubjectId(xRoadId);
         accessRight.setRightsGiven(new Date());

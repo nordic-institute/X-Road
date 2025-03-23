@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -39,11 +40,11 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
-import org.niis.xroad.serverconf.mapper.TspTypeMapper;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -126,7 +127,7 @@ public class GlobalConfChecker {
             return;
         }
 
-        ServerConfTypeEntity serverConf = globalConfCheckerHelper.getServerConf();
+        ServerConfEntity serverConf = globalConfCheckerHelper.getServerConf();
 
         addressChangeStatus.getAddressChangeRequest()
                 .ifPresent(requestedAddress -> {
@@ -148,7 +149,7 @@ public class GlobalConfChecker {
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
                 updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
                                 globalConfProvider.getInstanceIdentifier()),
-                        TspTypeMapper.get().toTargets(serverConf.getTsp())
+                        TimestampingServiceMapper.get().toTargets(serverConf.getTsp())
                 );
             }
         } catch (Exception e) {
@@ -163,9 +164,9 @@ public class GlobalConfChecker {
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database
      */
-    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TspType> localTsps) {
+    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TimestampingService> localTsps) {
 
-        for (TspType localTsp : localTsps) {
+        for (TimestampingService localTsp : localTsps) {
             List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
                     .toList();
@@ -194,14 +195,14 @@ public class GlobalConfChecker {
                 ownerId.getMemberCode(), serverCode);
     }
 
-    private SecurityServerId buildSecurityServerId(ServerConfTypeEntity serverConf) {
+    private SecurityServerId buildSecurityServerId(ServerConfEntity serverConf) {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private void updateOwner(ServerConfTypeEntity serverConf) throws Exception {
+    private void updateOwner(ServerConfEntity serverConf) throws Exception {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
-        for (ClientTypeEntity client : serverConf.getClient()) {
+        for (ClientEntity client : serverConf.getClient()) {
             // Look for another member that is not the owner
             if (client.getIdentifier().getSubsystemCode() == null
                     && !client.getIdentifier().equals(ownerId)) {
@@ -239,10 +240,10 @@ public class GlobalConfChecker {
         return null;
     }
 
-    private void updateClientStatuses(ServerConfTypeEntity serverConf, SecurityServerId securityServerId) {
+    private void updateClientStatuses(ServerConfEntity serverConf, SecurityServerId securityServerId) {
         log.debug("Updating client statuses");
 
-        for (ClientTypeEntity client : serverConf.getClient()) {
+        for (ClientEntity client : serverConf.getClient()) {
             boolean registered = globalConfProvider.isSecurityServerClient(
                     client.getIdentifier(), securityServerId);
 
@@ -251,14 +252,14 @@ public class GlobalConfChecker {
 
             if (registered && client.getClientStatus() != null) {
                 switch (client.getClientStatus()) {
-                    case ClientType.STATUS_REGISTERED:
+                    case Client.STATUS_REGISTERED:
                         // do nothing
                         break;
-                    case ClientType.STATUS_SAVED,
-                         ClientType.STATUS_REGINPROG,
-                         ClientType.STATUS_GLOBALERR,
-                         ClientType.STATUS_ENABLING_INPROG:
-                        updateClientStatus(client, ClientType.STATUS_REGISTERED);
+                    case Client.STATUS_SAVED,
+                         Client.STATUS_REGINPROG,
+                         Client.STATUS_GLOBALERR,
+                         Client.STATUS_ENABLING_INPROG:
+                        updateClientStatus(client, Client.STATUS_REGISTERED);
                         break;
                     default:
                         log.warn("Unexpected status {} for client '{}'",
@@ -267,17 +268,17 @@ public class GlobalConfChecker {
                 }
             }
 
-            if (!registered && ClientType.STATUS_REGISTERED.equals(client.getClientStatus())) {
-                updateClientStatus(client, ClientType.STATUS_GLOBALERR);
+            if (!registered && Client.STATUS_REGISTERED.equals(client.getClientStatus())) {
+                updateClientStatus(client, Client.STATUS_GLOBALERR);
             }
 
-            if (!registered && ClientType.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
-                updateClientStatus(client, ClientType.STATUS_DISABLED);
+            if (!registered && Client.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
+                updateClientStatus(client, Client.STATUS_DISABLED);
             }
         }
     }
 
-    private void updateClientStatus(ClientTypeEntity client, String status) {
+    private void updateClientStatus(ClientEntity client, String status) {
         client.setClientStatus(status);
         log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
     }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,7 +31,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
-import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -64,7 +65,7 @@ public class BackupConverterTest {
 
     @Test
     public void convertSingleBackup() {
-        Backup backup = backupConverter.convert(new BackupFile(BACKUP_FILE_1, DEFAULT_CREATED_TIME));
+        BackupDto backup = backupConverter.convert(new BackupFile(BACKUP_FILE_1, DEFAULT_CREATED_TIME));
 
         assertEquals(BACKUP_FILE_1, backup.getFilename());
     }
@@ -74,7 +75,7 @@ public class BackupConverterTest {
         List<BackupFile> files = new ArrayList<>(Arrays.asList(new BackupFile(BACKUP_FILE_1, DEFAULT_CREATED_TIME),
                 new BackupFile(BACKUP_FILE_2, DEFAULT_CREATED_TIME),
                 new BackupFile(BACKUP_FILE_3, DEFAULT_CREATED_TIME)));
-        Set<Backup> backups = backupConverter.convert(files);
+        Set<BackupDto> backups = backupConverter.convert(files);
 
         assertEquals(3, backups.size());
     }
@@ -82,7 +83,7 @@ public class BackupConverterTest {
     @Test
     public void convertMEmptyList() {
         List<BackupFile> files = new ArrayList<>();
-        Set<Backup> backups = backupConverter.convert(files);
+        Set<BackupDto> backups = backupConverter.convert(files);
 
         assertEquals(0, backups.size());
     }

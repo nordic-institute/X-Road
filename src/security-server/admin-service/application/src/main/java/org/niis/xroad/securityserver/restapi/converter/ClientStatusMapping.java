@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatusDto;
+import org.niis.xroad.serverconf.model.Client;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -39,35 +40,35 @@ import java.util.Optional;
 @Getter
 @RequiredArgsConstructor
 public enum ClientStatusMapping {
-    SAVED(ClientType.STATUS_SAVED, ClientStatus.SAVED),
-    REGISTRATION_IN_PROGRESS(ClientType.STATUS_REGINPROG, ClientStatus.REGISTRATION_IN_PROGRESS),
-    REGISTERED(ClientType.STATUS_REGISTERED, ClientStatus.REGISTERED),
-    DELETION_IN_PROGRESS(ClientType.STATUS_DELINPROG, ClientStatus.DELETION_IN_PROGRESS),
-    GLOBAL_ERROR(ClientType.STATUS_GLOBALERR, ClientStatus.GLOBAL_ERROR),
-    DISABLING_IN_PROGRESS(ClientType.STATUS_DISABLING_INPROG, ClientStatus.DISABLING_IN_PROGRESS),
-    DISABLED(ClientType.STATUS_DISABLED, ClientStatus.DISABLED),
-    ENABLING_IN_PROGRESS(ClientType.STATUS_ENABLING_INPROG, ClientStatus.ENABLING_IN_PROGRESS);
+    SAVED(Client.STATUS_SAVED, ClientStatusDto.SAVED),
+    REGISTRATION_IN_PROGRESS(Client.STATUS_REGINPROG, ClientStatusDto.REGISTRATION_IN_PROGRESS),
+    REGISTERED(Client.STATUS_REGISTERED, ClientStatusDto.REGISTERED),
+    DELETION_IN_PROGRESS(Client.STATUS_DELINPROG, ClientStatusDto.DELETION_IN_PROGRESS),
+    GLOBAL_ERROR(Client.STATUS_GLOBALERR, ClientStatusDto.GLOBAL_ERROR),
+    DISABLING_IN_PROGRESS(Client.STATUS_DISABLING_INPROG, ClientStatusDto.DISABLING_IN_PROGRESS),
+    DISABLED(Client.STATUS_DISABLED, ClientStatusDto.DISABLED),
+    ENABLING_IN_PROGRESS(Client.STATUS_ENABLING_INPROG, ClientStatusDto.ENABLING_IN_PROGRESS);
 
 
     private final String clientTypeStatus; // ClientType statuses
-    private final ClientStatus statusEnum;
+    private final ClientStatusDto clientStatusDto;
 
     /**
      * Return matching StatusEnum, if any
      * @param clientTypeStatus
      * @return
      */
-    public static Optional<ClientStatus> map(String clientTypeStatus) {
-        return getFor(clientTypeStatus).map(ClientStatusMapping::getStatusEnum);
+    public static Optional<ClientStatusDto> map(String clientTypeStatus) {
+        return getFor(clientTypeStatus).map(ClientStatusMapping::getClientStatusDto);
     }
 
     /**
      * Return matching client type status string, if any
-     * @param statusEnum
+     * @param clientStatusDto
      * @return
      */
-    public static Optional<String> map(ClientStatus statusEnum) {
-        return getFor(statusEnum).map(ClientStatusMapping::getClientTypeStatus);
+    public static Optional<String> map(ClientStatusDto clientStatusDto) {
+        return getFor(clientStatusDto).map(ClientStatusMapping::getClientTypeStatus);
     }
 
     /**
@@ -83,12 +84,12 @@ public enum ClientStatusMapping {
 
     /**
      * return item matching ClientType status, if any
-     * @param statusEnum
+     * @param clientStatusDto
      * @return
      */
-    public static Optional<ClientStatusMapping> getFor(ClientStatus statusEnum) {
+    public static Optional<ClientStatusMapping> getFor(ClientStatusDto clientStatusDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.statusEnum.equals(statusEnum))
+                .filter(mapping -> mapping.clientStatusDto.equals(clientStatusDto))
                 .findFirst();
     }
 

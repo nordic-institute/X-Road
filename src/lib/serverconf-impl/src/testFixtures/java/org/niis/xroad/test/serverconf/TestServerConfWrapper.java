@@ -35,7 +35,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import lombok.Setter;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -89,8 +89,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
-        return serverConfProvider.getServicesByDescriptionType(serviceProvider, descriptionType);
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description) {
+        return serverConfProvider.getServicesByDescriptionType(serviceProvider, description);
     }
 
     @Override
@@ -100,8 +100,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                    DescriptionType descriptionType) {
-        return serverConfProvider.getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
+                                                                    Description description) {
+        return serverConfProvider.getAllowedServicesByDescriptionType(serviceProvider, client, description);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public Description getDescriptionType(ServiceId service) {
         return serverConfProvider.getDescriptionType(service);
     }
 

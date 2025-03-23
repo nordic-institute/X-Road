@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,43 +30,43 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatusDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between OcspStatus in api (enum) and model (DiagnosticsErrorCode)
+ * Mapping between OcspStatusDto in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
 @RequiredArgsConstructor
 public enum OcspStatusMapping {
     SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS,
-            OcspStatus.SUCCESS),
+            OcspStatusDto.SUCCESS),
     ERROR_CODE_OCSP_CONNECTION_ERROR(DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
-            OcspStatus.ERROR_CODE_OCSP_CONNECTION_ERROR),
+            OcspStatusDto.ERROR_CODE_OCSP_CONNECTION_ERROR),
     ERROR_CODE_OCSP_FAILED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
-            OcspStatus.ERROR_CODE_OCSP_FAILED),
+            OcspStatusDto.ERROR_CODE_OCSP_FAILED),
     ERROR_CODE_OCSP_RESPONSE_INVALID(DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID,
-            OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID),
+            OcspStatusDto.ERROR_CODE_OCSP_RESPONSE_INVALID),
     ERROR_CODE_OCSP_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED,
-            OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED),
+            OcspStatusDto.ERROR_CODE_OCSP_UNINITIALIZED),
     ERROR_CODE_OCSP_RESPONSE_UNVERIFIED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED,
-            OcspStatus.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED),
-    UNKNOWN(-1, OcspStatus.UNKNOWN);
+            OcspStatusDto.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED),
+    UNKNOWN(-1, OcspStatusDto.UNKNOWN);
 
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
-    private final OcspStatus ocspStatus;
+    private final OcspStatusDto ocspStatusDto;
 
     /**
-     * Return matching OcspStatus, if any
+     * Return matching OcspStatusDto, if any
      *
      * @param diagnosticsErrorCode
      * @return
      */
-    public static Optional<OcspStatus> map(Integer diagnosticsErrorCode) {
-        return getFor(diagnosticsErrorCode).map(OcspStatusMapping::getOcspStatus);
+    public static Optional<OcspStatusDto> map(Integer diagnosticsErrorCode) {
+        return getFor(diagnosticsErrorCode).map(OcspStatusMapping::getOcspStatusDto);
     }
 
     /**

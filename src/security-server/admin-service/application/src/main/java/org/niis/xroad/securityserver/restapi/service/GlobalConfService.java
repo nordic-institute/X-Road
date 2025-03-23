@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -39,7 +40,7 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -184,9 +185,9 @@ public class GlobalConfService {
 
     /**
      * @return approved timestamping services for current instance.
-     * {@link TspType#getId()} is null for all returned items
+     * {@link TimestampingService#getId()} is null for all returned items
      */
-    public List<TspType> getApprovedTspsForThisInstance() {
+    public List<TimestampingService> getApprovedTspsForThisInstance() {
         List<SharedParameters.ApprovedTSA> approvedTspTypes =
                 globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
         return approvedTspTypes.stream()
@@ -197,8 +198,8 @@ public class GlobalConfService {
     /**
      * init TspType DTO with name and url. id will be null
      */
-    private TspType createTspType(SharedParameters.ApprovedTSA approvedTSA) {
-        TspType tsp = new TspType();
+    private TimestampingService createTspType(SharedParameters.ApprovedTSA approvedTSA) {
+        TimestampingService tsp = new TimestampingService();
         tsp.setUrl(approvedTSA.getUrl());
         tsp.setName(approvedTSA.getName());
         return tsp;

@@ -42,12 +42,12 @@ import org.niis.xroad.securityserver.restapi.converter.EndpointConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
-import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
-import org.niis.xroad.securityserver.restapi.openapi.model.Service;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdate;
+import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdateDto;
 import org.niis.xroad.securityserver.restapi.service.AccessRightService;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointAlreadyExistsException;
@@ -59,7 +59,7 @@ import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceService;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.model.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,27 +90,27 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
-    public ResponseEntity<Service> getService(String id) {
-        ServiceType serviceType = getServiceType(id);
+    public ResponseEntity<ServiceDto> getService(String id) {
+        Service service = getServiceType(id);
         ClientId clientId = serviceConverter.parseClientId(id);
-        Service service = serviceConverter.convert(serviceType, clientId);
-        return new ResponseEntity<>(service, HttpStatus.OK);
+        ServiceDto serviceDto = serviceConverter.convert(service, clientId);
+        return new ResponseEntity<>(serviceDto, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_SERVICE_PARAMS')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_SERVICE_PARAMS)
-    public ResponseEntity<Service> updateService(String id, ServiceUpdate serviceUpdate) {
+    public ResponseEntity<ServiceDto> updateService(String id, ServiceUpdateDto serviceUpdateDto) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
-        Service updatedService = null;
-        boolean ignoreWarnings = serviceUpdate.getIgnoreWarnings();
+        ServiceDto updatedService = null;
+        boolean ignoreWarnings = serviceUpdateDto.getIgnoreWarnings();
         try {
             updatedService = serviceConverter.convert(
                     serviceService.updateService(clientId, fullServiceCode,
-                            serviceUpdate.getUrl(), serviceUpdate.getUrlAll(),
-                            serviceUpdate.getTimeout(), serviceUpdate.getTimeoutAll(),
-                            Boolean.TRUE.equals(serviceUpdate.getSslAuth()), serviceUpdate.getSslAuthAll(),
+                            serviceUpdateDto.getUrl(), serviceUpdateDto.getUrlAll(),
+                            serviceUpdateDto.getTimeout(), serviceUpdateDto.getTimeoutAll(),
+                            Boolean.TRUE.equals(serviceUpdateDto.getSslAuth()), serviceUpdateDto.getSslAuthAll(),
                             ignoreWarnings),
                     clientId);
         } catch (InvalidUrlException | InvalidHttpsUrlException | UnhandledWarningsException e) {
@@ -123,7 +123,7 @@ public class ServicesApiController implements ServicesApi {
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 
-    private ServiceType getServiceType(String id) {
+    private Service getServiceType(String id) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         try {
@@ -135,27 +135,27 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
-    public ResponseEntity<Set<ServiceClient>> getServiceServiceClients(String encodedServiceId) {
+    public ResponseEntity<Set<ServiceClientDto>> getServiceServiceClients(String encodedServiceId) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        List<ServiceClientDto> serviceClientDtos = null;
+        List<ServiceClient> serviceClients = null;
         try {
-            serviceClientDtos = serviceClientService.getServiceClientsByService(clientId, fullServiceCode);
+            serviceClients = serviceClientService.getServiceClientsByService(clientId, fullServiceCode);
         } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        Set<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+        Set<ServiceClientDto> serviceClientDtos = serviceClientConverter.convertServiceClientDtos(serviceClients);
+        return new ResponseEntity<>(serviceClientDtos, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.REMOVE_SERVICE_ACCESS_RIGHTS)
-    public ResponseEntity<Void> deleteServiceServiceClients(String encodedServiceId, ServiceClients serviceClients) {
+    public ResponseEntity<Void> deleteServiceServiceClients(String encodedServiceId, ServiceClientsDto serviceClientsDto) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         try {
-            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClientsDto);
             accessRightService.deleteSoapServiceAccessRights(clientId, fullServiceCode, new HashSet<>(xRoadIds));
         } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -170,14 +170,14 @@ public class ServicesApiController implements ServicesApi {
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_SERVICE_ACCESS_RIGHTS)
-    public ResponseEntity<Set<ServiceClient>> addServiceServiceClients(String encodedServiceId,
-                                                                       ServiceClients serviceClients) {
+    public ResponseEntity<Set<ServiceClientDto>> addServiceServiceClients(String encodedServiceId,
+                                                                       ServiceClientsDto serviceClientsDto) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
-        List<ServiceClientDto> serviceClientDtos;
+        List<ServiceClient> serviceClients;
         try {
-            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
-            serviceClientDtos = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode, xRoadIds);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClientsDto);
+            serviceClients = accessRightService.addSoapServiceAccessRights(clientId, fullServiceCode, xRoadIds);
         } catch (ClientNotFoundException | ServiceNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceClientNotFoundException e) {
@@ -187,27 +187,26 @@ public class ServicesApiController implements ServicesApi {
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
         }
-        Set<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
-                serviceClientDtos);
+        Set<ServiceClientDto> serviceClientDtos = serviceClientConverter.convertServiceClientDtos(serviceClients);
 
-        return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
+        return new ResponseEntity<>(serviceClientDtos, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('ADD_OPENAPI3_ENDPOINT')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_REST_ENDPOINT)
-    public ResponseEntity<Endpoint> addEndpoint(String id, Endpoint endpoint) {
-        if (endpoint.getId() != null) {
+    public ResponseEntity<EndpointDto> addEndpoint(String id, EndpointDto endpointDto) {
+        if (endpointDto.getId() != null) {
             throw new BadRequestException("Passing id for endpoint while creating it is not allowed");
         }
 
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
 
-        Endpoint ep;
+        EndpointDto resultEndpointDto;
         try {
-            ep = endpointConverter.convert(serviceService.addEndpoint(clientId, fullServiceCode,
-                    endpoint.getMethod().toString(), endpoint.getPath()));
+            resultEndpointDto = endpointConverter.convert(serviceService.addEndpoint(clientId, fullServiceCode,
+                    endpointDto.getMethod().toString(), endpointDto.getPath()));
         } catch (ServiceNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (EndpointAlreadyExistsException e) {
@@ -215,6 +214,6 @@ public class ServicesApiController implements ServicesApi {
         } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
             throw new BadRequestException(e);
         }
-        return ControllerUtil.createCreatedResponse("/api/endpoints/{id}", ep, ep.getId());
+        return ControllerUtil.createCreatedResponse("/api/endpoints/{id}", resultEndpointDto, resultEndpointDto.getId());
     }
 }

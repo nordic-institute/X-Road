@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,7 +26,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter.comparator;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
@@ -34,7 +35,7 @@ import java.util.Comparator;
  * Comparator for comparing Clients for sorting purposes.
  */
 @Component
-public class ClientSortingComparator implements Comparator<Client> {
+public class ClientSortingComparator implements Comparator<ClientDto> {
 
     /**
      * Compare Client objects using member name as the primary sort key, and client id
@@ -44,7 +45,7 @@ public class ClientSortingComparator implements Comparator<Client> {
      * @return
      */
     @Override
-    public int compare(Client c1, Client c2) {
+    public int compare(ClientDto c1, ClientDto c2) {
         if (c1.getMemberName() == null && c2.getMemberName() == null) {
             return c1.getId().compareToIgnoreCase(c2.getId());
         } else if (c1.getMemberName() == null) {

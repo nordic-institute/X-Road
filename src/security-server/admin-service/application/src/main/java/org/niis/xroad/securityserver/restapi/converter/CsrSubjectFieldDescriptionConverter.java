@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescription;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescriptionDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -37,18 +38,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Converter for CsrSubjectFieldDescription related data between openapi and service domain classes
+ * Converter for CsrSubjectFieldDescriptionDto related data between openapi and service domain classes
  */
 @Component
 public class CsrSubjectFieldDescriptionConverter {
 
     /**
-     * convert DnFieldDescription into openapi CsrSubjectFieldDescription class
+     * convert DnFieldDescription into openapi CsrSubjectFieldDescriptionDto class
      * @param dnFieldDescription
      * @return
      */
-    public CsrSubjectFieldDescription convert(DnFieldDescription dnFieldDescription) {
-        CsrSubjectFieldDescription description = new CsrSubjectFieldDescription();
+    public CsrSubjectFieldDescriptionDto convert(DnFieldDescription dnFieldDescription) {
+        CsrSubjectFieldDescriptionDto description = new CsrSubjectFieldDescriptionDto();
         description.setId(dnFieldDescription.getId());
         if (dnFieldDescription.isLocalized()) {
             description.setLabelKey(dnFieldDescription.getLabelKey());
@@ -63,22 +64,22 @@ public class CsrSubjectFieldDescriptionConverter {
     }
 
     /**
-     * convert a group of DnFieldDescriptions into a list of CsrSubjectFieldDescriptions
+     * convert a group of DnFieldDescriptions into a set of CsrSubjectFieldDescriptionDto
      * @param dnFieldDescriptions
      * @return
      */
-    public Set<CsrSubjectFieldDescription> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
+    public Set<CsrSubjectFieldDescriptionDto> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
         return Streams.stream(dnFieldDescriptions)
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
     /**
-     * convert an array of DnFieldDescriptions into a list of CsrSubjectFieldDescriptions
+     * convert an array of DnFieldDescriptions into a set of CsrSubjectFieldDescriptionDto
      * @param dnFieldDescriptions
      * @return
      */
-    public Set<CsrSubjectFieldDescription> convert(DnFieldDescription[] dnFieldDescriptions) {
+    public Set<CsrSubjectFieldDescriptionDto> convert(DnFieldDescription[] dnFieldDescriptions) {
         return convert(new HashSet<>(Arrays.asList(dnFieldDescriptions)));
     }
 }

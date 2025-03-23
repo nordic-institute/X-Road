@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,13 +43,13 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -117,17 +118,17 @@ public class InitializationService {
      *
      * @return
      */
-    public InitializationStatusDto getSecurityServerInitializationStatus() {
+    public InitializationStatus getSecurityServerInitializationStatus() {
         boolean isAnchorImported = systemService.isAnchorImported();
         boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
         boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
         TokenInitStatusInfo tokenInitStatus = tokenService.getSoftwareTokenInitStatus();
-        InitializationStatusDto initializationStatusDto = new InitializationStatusDto();
-        initializationStatusDto.setAnchorImported(isAnchorImported);
-        initializationStatusDto.setServerCodeInitialized(isServerCodeInitialized);
-        initializationStatusDto.setServerOwnerInitialized(isServerOwnerInitialized);
-        initializationStatusDto.setSoftwareTokenInitStatusInfo(tokenInitStatus);
-        return initializationStatusDto;
+        InitializationStatus initializationStatus = new InitializationStatus();
+        initializationStatus.setAnchorImported(isAnchorImported);
+        initializationStatus.setServerCodeInitialized(isServerCodeInitialized);
+        initializationStatus.setServerOwnerInitialized(isServerOwnerInitialized);
+        initializationStatus.setSoftwareTokenInitStatusInfo(tokenInitStatus);
+        return initializationStatus;
     }
 
     /**
@@ -170,11 +171,11 @@ public class InitializationService {
         verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                 isServerCodeInitialized, isServerOwnerInitialized, isSoftwareTokenInitialized);
         String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
-        ClientIdConfEntity ownerClientId = null;
+        ClientIdEntity ownerClientId = null;
         if (isServerOwnerInitialized) {
             ownerClientId = serverConfService.getSecurityServerOwnerIdEntity();
         } else {
-            ownerClientId = ClientIdConfEntity.createMember(instanceIdentifier, ownerMemberClass, ownerMemberCode);
+            ownerClientId = ClientIdEntity.createMember(instanceIdentifier, ownerMemberClass, ownerMemberCode);
         }
         auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
         auditDataHelper.put(SERVER_CODE, securityServerCode);
@@ -186,7 +187,7 @@ public class InitializationService {
         // when second one fails server server moves to unusable state
 
         // --- Start the init ---
-        ServerConfTypeEntity serverConf = createInitialServerConf(ownerClientId, securityServerCode);
+        ServerConfEntity serverConf = createInitialServerConf(ownerClientId, securityServerCode);
         if (!isSoftwareTokenInitialized) {
             initializeSoftwareToken(softwareTokenPin);
         }
@@ -305,15 +306,15 @@ public class InitializationService {
      * @param securityServerCode
      * @return ServerConfType
      */
-    private ServerConfTypeEntity createInitialServerConf(ClientIdConfEntity ownerClientId, String securityServerCode) {
-        ServerConfTypeEntity serverConf = serverConfService.getOrCreateServerConfEntity();
+    private ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
+        ServerConfEntity serverConf = serverConfService.getOrCreateServerConfEntity();
 
         if (StringUtils.isEmpty(serverConf.getServerCode())) {
             serverConf.setServerCode(securityServerCode);
         }
 
         if (serverConf.getOwner() == null) {
-            ClientTypeEntity ownerClient = getInitialClient(ownerClientId);
+            ClientEntity ownerClient = getInitialClient(ownerClientId);
             ownerClient.setConf(serverConf);
             if (!serverConf.getClient().contains(ownerClient)) {
                 serverConf.getClient().add(ownerClient);
@@ -375,12 +376,12 @@ public class InitializationService {
      * @param clientId
      * @return
      */
-    private ClientTypeEntity getInitialClient(ClientIdConfEntity clientId) {
-        ClientTypeEntity localClient = clientService.getLocalClientEntity(clientId);
+    private ClientEntity getInitialClient(ClientIdEntity clientId) {
+        ClientEntity localClient = clientService.getLocalClientEntity(clientId);
         if (localClient == null) {
-            localClient = new ClientTypeEntity();
+            localClient = new ClientEntity();
             localClient.setIdentifier(clientId);
-            localClient.setClientStatus(ClientType.STATUS_SAVED);
+            localClient.setClientStatus(Client.STATUS_SAVED);
             localClient.setIsAuthentication(IsAuthentication.SSLAUTH.name());
         }
         return localClient;

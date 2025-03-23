@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -42,7 +43,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
-import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
+import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
 import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
@@ -357,8 +358,8 @@ public class CachingServerConfTest {
     }
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
-        return XroadIdConfMapper.get().toServices(new ServiceDAOImpl().getServices(
+        return XRoadIdMapper.get().toServices(new ServiceDAOImpl().getServices(
                 ServerConfDatabaseCtx.get().getSession(),
-                XroadIdConfMapper.get().toEntity(serviceProvider)));
+                XRoadIdMapper.get().toEntity(serviceProvider)));
     }
 }

@@ -32,10 +32,10 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.openapi.model.Service;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.model.Service;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class ServiceConverter {
      * @param serviceTypes
      * @return
      */
-    public Set<Service> convertServices(Iterable<ServiceType> serviceTypes, ClientId clientId) {
+    public Set<ServiceDto> convertServices(Iterable<Service> serviceTypes, ClientId clientId) {
         return Streams.stream(serviceTypes)
                 .map(serviceType -> convert(serviceType, clientId))
                 .collect(Collectors.toSet());
@@ -80,42 +80,42 @@ public class ServiceConverter {
     /**
      * Convert a ServiceType into Service.
      * This expects that serviceType.serviceDescription.client.endpoints has been fetched
-     * @param serviceType
+     * @param service
      * @param clientId
      * @return
      */
-    public Service convert(ServiceType serviceType, ClientId clientId) {
-        Service service = new Service();
+    public ServiceDto convert(Service service, ClientId clientId) {
+        ServiceDto serviceDto = new ServiceDto();
 
-        service.setId(convertId(serviceType, clientId));
-        service.setServiceCode(serviceType.getServiceCode());
-        service.setFullServiceCode(
-                ServiceFormatter.getServiceFullName(serviceType.getServiceCode(), serviceType.getServiceVersion()));
-        if (serviceType.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
-            service.setSslAuth(false);
+        serviceDto.setId(convertId(service, clientId));
+        serviceDto.setServiceCode(service.getServiceCode());
+        serviceDto.setFullServiceCode(
+                ServiceFormatter.getServiceFullName(service.getServiceCode(), service.getServiceVersion()));
+        if (service.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
+            serviceDto.setSslAuth(false);
         } else {
-            service.setSslAuth(defaultIfNull(serviceType.getSslAuthentication(), true));
+            serviceDto.setSslAuth(defaultIfNull(service.getSslAuthentication(), true));
         }
-        service.setTimeout(serviceType.getTimeout());
-        service.setUrl(serviceType.getUrl());
-        service.setTitle(serviceType.getTitle());
-        service.setEndpoints(this.endpointConverter.convert(serviceType.getEndpoints()));
+        serviceDto.setTimeout(service.getTimeout());
+        serviceDto.setUrl(service.getUrl());
+        serviceDto.setTitle(service.getTitle());
+        serviceDto.setEndpoints(this.endpointConverter.convert(service.getEndpoints()));
 
-        return service;
+        return serviceDto;
     }
 
     /**
      * Convert service and client information into encoded client-service-id,
      * e.g. <code>CS:ORG:Client:myService.v1</code>
-     * @param serviceType
+     * @param service
      * @param clientId
      * @return
      */
-    public String convertId(ServiceType serviceType, ClientId clientId) {
+    public String convertId(Service service, ClientId clientId) {
         StringBuilder builder = new StringBuilder();
         builder.append(clientIdConverter.convertId(clientId));
         builder.append(ENCODED_ID_SEPARATOR);
-        builder.append(ServiceFormatter.getServiceFullName(serviceType.getServiceCode(), serviceType.getServiceVersion()));
+        builder.append(ServiceFormatter.getServiceFullName(service.getServiceCode(), service.getServiceVersion()));
         return builder.toString();
     }
 

@@ -35,7 +35,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
-import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
@@ -56,33 +55,33 @@ import org.hibernate.SharedSessionContract;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
-import org.niis.xroad.serverconf.entity.CertificateTypeEntity;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
-import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
+import org.niis.xroad.serverconf.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.entity.CertificateEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdEntity;
 import org.niis.xroad.serverconf.impl.dao.CertificateDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
-import org.niis.xroad.serverconf.mapper.CertificateTypeMapper;
-import org.niis.xroad.serverconf.mapper.ClientTypeMapper;
-import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
-import org.niis.xroad.serverconf.mapper.ServerConfTypeMapper;
-import org.niis.xroad.serverconf.mapper.ServiceDescriptionTypeMapper;
-import org.niis.xroad.serverconf.mapper.ServiceTypeMapper;
-import org.niis.xroad.serverconf.mapper.XroadIdConfMapper;
-import org.niis.xroad.serverconf.model.CertificateType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.mapper.CertificateMapper;
+import org.niis.xroad.serverconf.mapper.ClientMapper;
+import org.niis.xroad.serverconf.mapper.EndpointMapper;
+import org.niis.xroad.serverconf.mapper.ServerConfMapper;
+import org.niis.xroad.serverconf.mapper.ServiceDescriptionMapper;
+import org.niis.xroad.serverconf.mapper.ServiceMapper;
+import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.Certificate;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.Endpoint;
+import org.niis.xroad.serverconf.model.ServerConf;
+import org.niis.xroad.serverconf.model.Service;
+import org.niis.xroad.serverconf.model.ServiceDescription;
+import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -118,8 +117,8 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public SecurityServerId.Conf getIdentifier() {
         return tx(session -> {
-            ServerConfType confType = getConf(session);
-            ClientType owner = confType.getOwner();
+            ServerConf confType = getConf(session);
+            Client owner = confType.getOwner();
             if (owner == null) {
                 throw new CodedException(X_MALFORMED_SERVERCONF, "Owner is not set");
             }
@@ -135,7 +134,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getServiceAddress(ServiceId service) {
         return tx(session -> {
-            ServiceType serviceType = getService(session, service);
+            Service serviceType = getService(session, service);
             if (serviceType != null) {
                 return serviceType.getUrl();
             }
@@ -147,7 +146,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public int getServiceTimeout(ServiceId service) {
         return tx(session -> {
-            ServiceType serviceType = getService(session, service);
+            Service serviceType = getService(session, service);
             if (serviceType != null) {
                 return serviceType.getTimeout();
             }
@@ -160,8 +159,8 @@ public class ServerConfImpl implements ServerConfProvider {
     public RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-            serviceDao.getServicesByDescriptionType(session, XroadIdConfMapper.get().toEntity(serviceProvider),
-                            DescriptionType.OPENAPI3, DescriptionType.REST)
+            serviceDao.getServicesByDescriptionType(session, XRoadIdMapper.get().toEntity(serviceProvider),
+                            Description.OPENAPI3, Description.REST)
                     .forEach(serviceId -> {
                         XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                         serviceDetails.getEndpointList().addAll(getServiceEndpoints(serviceId));
@@ -175,14 +174,14 @@ public class ServerConfImpl implements ServerConfProvider {
     public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-            serviceDao.getServicesByDescriptionType(session, serviceProvider, DescriptionType.OPENAPI3,
-                            DescriptionType.REST)
+            serviceDao.getServicesByDescriptionType(session, serviceProvider, Description.OPENAPI3,
+                            Description.REST)
                     .forEach(serviceId -> {
-                        final List<EndpointType> acl = getAclEndpoints(session, client, serviceId);
+                        final List<Endpoint> acl = getAclEndpoints(session, client, serviceId);
                         if (!acl.isEmpty()) {
-                            final List<Endpoint> endpoints = getServiceEndpoints(serviceId);
+                            final List<ee.ria.xroad.common.metadata.Endpoint> endpoints = getServiceEndpoints(serviceId);
                             XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
-                            for (Endpoint e : endpoints) {
+                            for (ee.ria.xroad.common.metadata.Endpoint e : endpoints) {
                                 if (acl.stream().anyMatch(it -> it.matches(e.getMethod(), e.getPath()))) {
                                     serviceDetails.getEndpointList().add(e);
                                 }
@@ -206,8 +205,8 @@ public class ServerConfImpl implements ServerConfProvider {
         return serviceDetails;
     }
 
-    private RestServiceType getRestServiceType(DescriptionType descriptionType) {
-        return switch (descriptionType) {
+    private RestServiceType getRestServiceType(Description description) {
+        return switch (description) {
             case REST -> RestServiceType.REST;
             case OPENAPI3 -> RestServiceType.OPENAPI;
             default -> throw new IllegalArgumentException("The given parameter is not a REST service type!");
@@ -216,14 +215,14 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
-        return tx(session -> XroadIdConfMapper.get().toServices(serviceDao.getServices(session, serviceProvider)));
+        return tx(session -> XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProvider)));
     }
 
     @Override
     public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                             DescriptionType descriptionType) {
-        return tx(session -> XroadIdConfMapper.get().toServices(
-                serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
+                                                             Description description) {
+        return tx(session -> XRoadIdMapper.get().toServices(
+                serviceDao.getServicesByDescriptionType(session, serviceProvider, description)
         ));
     }
 
@@ -231,7 +230,7 @@ public class ServerConfImpl implements ServerConfProvider {
     public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
-                    XroadIdConfMapper.get().toServices(serviceDao.getServices(session, serviceProvider));
+                    XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProvider));
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
                     .collect(Collectors.toList());
@@ -240,11 +239,11 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                    DescriptionType descriptionType) {
+                                                                    Description description) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
-                    XroadIdConfMapper.get().toServices(
-                            serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
+                    XRoadIdMapper.get().toServices(
+                            serviceDao.getServicesByDescriptionType(session, serviceProvider, description)
                     );
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
@@ -255,7 +254,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isSslAuthentication(ServiceId service) {
         return tx(session -> {
-            ServiceType serviceType = getService(session, service);
+            Service serviceType = getService(session, service);
             if (serviceType != null) {
                 return ObjectUtils.defaultIfNull(
                         serviceType.getSslAuthentication(), true);
@@ -269,14 +268,14 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<ClientId.Conf> getMembers() {
         return tx(session -> getConf(session).getClient().stream()
-                .map(ClientType::getIdentifier)
+                .map(Client::getIdentifier)
                 .collect(Collectors.toList()));
     }
 
     @Override
     public String getMemberStatus(ClientId memberId) {
         return tx(session -> {
-            ClientType client = getClient(session, memberId);
+            Client client = getClient(session, memberId);
             if (client != null) {
                 return client.getClientStatus();
             } else {
@@ -288,7 +287,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public IsAuthentication getIsAuthentication(ClientId client) {
         return tx(session -> {
-            ClientType clientType = getClient(session, client);
+            Client clientType = getClient(session, client);
             if (clientType != null) {
                 String isAuth = clientType.getIsAuthentication();
                 if (isAuth == null) {
@@ -304,8 +303,8 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-        return tx(session -> CertificateTypeMapper.get().toTargets(clientDao.getIsCerts(session, client)).stream()
-                .map(CertificateType::getData)
+        return tx(session -> CertificateMapper.get().toTargets(clientDao.getIsCerts(session, client)).stream()
+                .map(Certificate::getData)
                 .map(CryptoUtils::readCertificate)
                 .toList());
     }
@@ -313,7 +312,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<X509Certificate> getAllIsCerts() {
         return tx(session -> certificateDao.findAll(session).stream()
-                .map(CertificateTypeEntity::getData)
+                .map(CertificateEntity::getData)
                 .map(CryptoUtils::readCertificate)
                 .toList());
     }
@@ -321,13 +320,13 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getDisabledNotice(ServiceId service) {
         return tx(session -> {
-            ServiceDescriptionType serviceDescriptionType = getServiceDescription(session, service);
-            if (serviceDescriptionType != null && serviceDescriptionType.isDisabled()) {
-                if (serviceDescriptionType.getDisabledNotice() == null) {
+            ServiceDescription serviceDescription = getServiceDescription(session, service);
+            if (serviceDescription != null && serviceDescription.isDisabled()) {
+                if (serviceDescription.getDisabledNotice() == null) {
                     return String.format("Service '%s' is disabled", service);
                 }
 
-                return serviceDescriptionType.getDisabledNotice();
+                return serviceDescription.getDisabledNotice();
             }
 
             return null;
@@ -352,15 +351,15 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<String> getTspUrl() {
         return tx(session -> getConf(session).getTsp().stream()
-                .map(TspType::getUrl)
+                .map(TimestampingService::getUrl)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public Description getDescriptionType(ServiceId service) {
         return tx(session -> {
-            ServiceType serviceType = getService(session, service);
+            Service serviceType = getService(session, service);
             if (serviceType != null && serviceType.getServiceDescription() != null) {
                 return serviceType.getServiceDescription().getType();
             }
@@ -372,7 +371,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public String getServiceDescriptionURL(ServiceId service) {
         return tx(session -> {
-            ServiceType serviceType = getService(session, service);
+            Service serviceType = getService(session, service);
             if (serviceType != null && serviceType.getServiceDescription() != null) {
                 return serviceType.getServiceDescription().getUrl();
             }
@@ -381,9 +380,9 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
+    public List<ee.ria.xroad.common.metadata.Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return tx(session -> clientDao.getClient(session, serviceId.getClientId()).getEndpoint().stream()
-                .map(e -> EndpointTypeMapper.get().toTarget(e))
+                .map(e -> EndpointMapper.get().toTarget(e))
                 .filter(e -> e.getServiceCode().equals(serviceId.getServiceCode()))
                 .filter(e -> !e.isBaseEndpoint())
                 .map(e -> createEndpoint(e.getMethod(), e.getPath()))
@@ -400,8 +399,8 @@ public class ServerConfImpl implements ServerConfProvider {
         }
     }
 
-    private static Endpoint createEndpoint(String method, String path) {
-        Endpoint endpoint = new Endpoint();
+    private static ee.ria.xroad.common.metadata.Endpoint createEndpoint(String method, String path) {
+        ee.ria.xroad.common.metadata.Endpoint endpoint = new ee.ria.xroad.common.metadata.Endpoint();
         endpoint.setMethod(method);
         endpoint.setPath(path);
         return endpoint;
@@ -409,20 +408,20 @@ public class ServerConfImpl implements ServerConfProvider {
 
     // ------------------------------------------------------------------------
 
-    protected ServerConfType getConf(Session session) {
-        return ServerConfTypeMapper.get().toTarget(serverConfDao.getConf(session));
+    protected ServerConf getConf(Session session) {
+        return ServerConfMapper.get().toTarget(serverConfDao.getConf(session));
     }
 
-    protected ClientType getClient(Session session, ClientId c) {
-        return ClientTypeMapper.get().toTarget(clientDao.getClient(session, c));
+    protected Client getClient(Session session, ClientId c) {
+        return ClientMapper.get().toTarget(clientDao.getClient(session, c));
     }
 
-    protected ServiceType getService(Session session, ServiceId s) {
-        return ServiceTypeMapper.get().toTarget(serviceDao.getService(session, s));
+    protected Service getService(Session session, ServiceId s) {
+        return ServiceMapper.get().toTarget(serviceDao.getService(session, s));
     }
 
-    protected ServiceDescriptionType getServiceDescription(Session session, ServiceId service) {
-        return ServiceDescriptionTypeMapper.get().toTarget(serviceDescriptionDao.getServiceDescription(session, service));
+    protected ServiceDescription getServiceDescription(Session session, ServiceId service) {
+        return ServiceDescriptionMapper.get().toTarget(serviceDescriptionDao.getServiceDescription(session, service));
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
@@ -452,10 +451,10 @@ public class ServerConfImpl implements ServerConfProvider {
      * <p>
      * Includes only endpoints the client has a direct acl entry for, does not check for implicitly allowed endpoints.
      */
-    protected List<EndpointType> getAclEndpoints(Session session, ClientId client, ServiceId service) {
+    protected List<Endpoint> getAclEndpoints(Session session, ClientId client, ServiceId service) {
         log.debug("getAcl, session = {}", session);
 
-        final ClientTypeEntity serviceOwner = clientDao.getClient(session, service.getClientId());
+        final ClientEntity serviceOwner = clientDao.getClient(session, service.getClientId());
 
         if (serviceOwner == null) {
             // should not normally happen, but possible if service and acl caches are in inconsistent state
@@ -463,15 +462,15 @@ public class ServerConfImpl implements ServerConfProvider {
             throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' owner not found", service);
         }
 
-        final ClientIdConfEntity localClientId = identifierDao.findClientId(session, client);
+        final ClientIdEntity localClientId = identifierDao.findClientId(session, client);
         // localClientId can be null if the permissions are defined by a global group
 
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<AccessRightTypeEntity> query = cb.createQuery(AccessRightTypeEntity.class);
-        final Root<ClientTypeEntity> root = query.from(ClientTypeEntity.class);
-        final Join<ClientTypeEntity, AccessRightTypeEntity> acl = root.join("acl");
-        final Join<AccessRightTypeEntity, EndpointTypeEntity> endpoint = acl.join("endpoint");
-        final Join<AccessRightTypeEntity, XRoadIdConfEntity> identifier = acl.join("subjectId");
+        final CriteriaQuery<AccessRightEntity> query = cb.createQuery(AccessRightEntity.class);
+        final Root<ClientEntity> root = query.from(ClientEntity.class);
+        final Join<ClientEntity, AccessRightEntity> acl = root.join("acl");
+        final Join<AccessRightEntity, EndpointEntity> endpoint = acl.join("endpoint");
+        final Join<AccessRightEntity, XRoadIdEntity> identifier = acl.join("subjectId");
         acl.fetch("endpoint");
 
         var orPredicates = new ArrayList<Predicate>();
@@ -486,15 +485,15 @@ public class ServerConfImpl implements ServerConfProvider {
                         cb.equal(endpoint.get("serviceCode"), service.getServiceCode())),
                 cb.or(orPredicates.toArray(new Predicate[0])));
         var accessRights = session.createQuery(query).setReadOnly(true).list();
-        return EndpointTypeMapper.get().toTargets(
+        return EndpointMapper.get().toTargets(
                 accessRights.stream()
                 .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), client))
-                .map(AccessRightTypeEntity::getEndpoint)
+                .map(AccessRightEntity::getEndpoint)
                 .toList()
         );
     }
 
-    private boolean subjectMatches(ClientTypeEntity serviceOwner, XRoadId aclSubject, ClientId client) {
+    private boolean subjectMatches(ClientEntity serviceOwner, XRoadId aclSubject, ClientId client) {
         if (aclSubject instanceof GlobalGroupId globalGroupId) {
             return globalConfProvider.isSubjectInGlobalGroup(client, globalGroupId);
         } else if (aclSubject instanceof LocalGroupId localGroupId) {
@@ -504,7 +503,7 @@ public class ServerConfImpl implements ServerConfProvider {
         }
     }
 
-    private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientTypeEntity groupOwner) {
+    private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientEntity groupOwner) {
         return groupOwner.getLocalGroup().stream()
                 .filter(g -> Objects.equals(groupId.getGroupCode(), g.getGroupCode()))
                 .flatMap(g -> g.getGroupMember().stream())

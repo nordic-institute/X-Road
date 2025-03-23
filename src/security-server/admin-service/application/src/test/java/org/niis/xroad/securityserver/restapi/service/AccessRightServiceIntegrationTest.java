@@ -1,5 +1,6 @@
 /*
  *  The MIT License
+ *
  *  Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  *  Copyright (c) 2018 Estonian Information System Authority (RIA),
  *  Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -34,18 +35,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
-import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.PersistenceTestUtil;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
-import org.niis.xroad.serverconf.entity.GlobalGroupConfEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupConfEntity;
-import org.niis.xroad.serverconf.entity.XRoadIdConfEntity;
+import org.niis.xroad.serverconf.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.entity.GlobalGroupIdEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupIdEntity;
+import org.niis.xroad.serverconf.entity.XRoadIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -136,15 +137,15 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     AccessRightService accessRightService;
 
     private long countIdentifiers() {
-        return persistenceTestUtil.countRows(XRoadIdConfEntity.class);
+        return persistenceTestUtil.countRows(XRoadIdEntity.class);
     }
 
     private long countAccessRights() {
-        return persistenceTestUtil.countRows(AccessRightTypeEntity.class);
+        return persistenceTestUtil.countRows(AccessRightEntity.class);
     }
 
     private int countServiceClients(ClientId serviceOwnerId) {
-        ClientTypeEntity owner = clientRepository.getClient(serviceOwnerId);
+        ClientEntity owner = clientRepository.getClient(serviceOwnerId);
         var serviceClients = owner.getAcl().stream().map(acl -> acl.getSubjectId())
                 .collect(Collectors.toSet());
         return serviceClients.size();
@@ -152,35 +153,35 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
     @Test
     public void findAllAccessRightHolderCandidates() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+        List<ServiceClient> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, null, null, null, null);
         assertEquals(10, dtos.size());
     }
 
     @Test
     public void findAccessRightHolderCandidatesByMemberOrGroupCode() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+        List<ServiceClient> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, null, null, "1", null);
         assertEquals(6, dtos.size());
     }
 
     @Test
     public void findAccessRightHolderCandidatesByMemberOrGroupCodeNoResults() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+        List<ServiceClient> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, null, null, "öäöäöäöäöäöä", null);
         assertEquals(0, dtos.size());
     }
 
     @Test
     public void findAccessRightHolderCandidatesByInstance() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+        List<ServiceClient> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, TestUtils.INSTANCE_EE, null, null, null);
         assertEquals(5, dtos.size());
     }
 
     @Test
     public void findAccessRightHolderCandidatesByInstanceAndSubSystem() throws Throwable {
-        List<ServiceClientDto> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
+        List<ServiceClient> dtos = accessRightService.findAccessRightHolderCandidates(TestUtils.getM1Ss1ClientId(),
                 null, null, TestUtils.INSTANCE_FI, null, null, TestUtils.SUBSYSTEM1);
         assertEquals(1, dtos.size());
     }
@@ -550,14 +551,14 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         Set<String> serviceCodes = new HashSet<>(Arrays.asList(
                 "calculatePrime", "openapi-servicecode", "rest-servicecode"));
 
-        ClientIdConfEntity subsystemId = TestUtils.getClientIdEntity(TestUtils.CLIENT_ID_SS5);
-        LocalGroupConfEntity localGroupId = LocalGroupConfEntity.create("group2");
-        GlobalGroupConfEntity globalGroupId = GlobalGroupConfEntity.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
-        Set<XRoadIdConfEntity> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
+        ClientIdEntity subsystemId = TestUtils.getClientIdEntity(TestUtils.CLIENT_ID_SS5);
+        LocalGroupIdEntity localGroupId = LocalGroupIdEntity.create("group2");
+        GlobalGroupIdEntity globalGroupId = GlobalGroupIdEntity.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE);
+        Set<XRoadIdEntity> subjectIds = new HashSet<>(Arrays.asList(subsystemId, localGroupId, globalGroupId));
 
-        ClientTypeEntity ownerClient = clientRepository.getClient(serviceOwner);
+        ClientEntity ownerClient = clientRepository.getClient(serviceOwner);
 
-        List<EndpointTypeEntity> endpoints = serviceCodes.stream()
+        List<EndpointEntity> endpoints = serviceCodes.stream()
                 .map(code -> {
                     try {
                         return endpointService.getServiceBaseEndpointEntity(ownerClient, code);
@@ -566,7 +567,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
                     }
                 }).collect(Collectors.toList());
 
-        Map<XRoadIdConfEntity, List<ServiceClientAccessRightDto>> dtosById = accessRightService.addAccessRightsInternal(
+        Map<XRoadIdEntity, List<ServiceClientAccessRightDto>> dtosById = accessRightService.addAccessRightsInternal(
                 subjectIds, ownerClient, endpoints);
 
         // should have 3 subjects with 3 identical access rights each
@@ -783,7 +784,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
                 TestUtils.SUBSYSTEM2));
         subjectIds.add(GlobalGroupId.Conf.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         subjectIds.add(LocalGroupId.Conf.create("group2"));
-        List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
+        List<ServiceClient> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds);
         assertEquals(4, dtos.size());
     }
@@ -799,10 +800,10 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         subjectIds.add(ss3);
         subjectIds.add(GlobalGroupId.Conf.create(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE));
         subjectIds.add(LocalGroupId.Conf.create("group2"));
-        List<ServiceClientDto> dtos = accessRightService.addSoapServiceAccessRights(clientId,
+        List<ServiceClient> dtos = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds);
         assertEquals(4, dtos.size());
-        ServiceClientDto persistedSs3 = dtos.stream()
+        ServiceClient persistedSs3 = dtos.stream()
                 .filter(accessRightHolderDto -> accessRightHolderDto.getSubjectId().equals(ss3))
                 .findFirst().get();
         ClientId ss3PersistedSubjectId = (ClientId) persistedSs3.getSubjectId();
@@ -839,9 +840,9 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         ClientId clientId = TestUtils.getM1Ss1ClientId();
         Set<XRoadId.Conf> subjectIds = new HashSet<>();
         subjectIds.add(LocalGroupId.Conf.create("group1")); // this is a LocalGroup with groupCode 'group1' in data.sql
-        List<ServiceClientDto> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
+        List<ServiceClient> aclHolders = accessRightService.addSoapServiceAccessRights(clientId,
                 TestUtils.FULL_SERVICE_CALCULATE_PRIME, subjectIds);
-        Optional<ServiceClientDto> addedLocalGroupServiceClient = aclHolders.stream()
+        Optional<ServiceClient> addedLocalGroupServiceClient = aclHolders.stream()
                 .filter(s -> "group1".equals(s.getLocalGroupCode()))
                 .findFirst();
         assertTrue(addedLocalGroupServiceClient.isPresent());

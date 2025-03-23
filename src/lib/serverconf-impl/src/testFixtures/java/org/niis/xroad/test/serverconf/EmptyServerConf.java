@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,8 +38,8 @@ import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.Description;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -145,7 +146,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public Description getDescriptionType(ServiceId service) {
         return null;
     }
 
@@ -184,7 +185,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description) {
         return emptyList();
     }
 
@@ -200,13 +201,13 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                                                    ClientId client, DescriptionType descriptionType) {
+                                                                    ClientId client, Description description) {
         return emptyList();
     }
 
     @Override
     public String getMemberStatus(ClientId memberId) {
-        return ClientType.STATUS_REGISTERED;
+        return Client.STATUS_REGISTERED;
     }
 
     @Override
@@ -226,10 +227,10 @@ public class EmptyServerConf implements ServerConfProvider {
         return serviceDetails;
     }
 
-    private RestServiceType getRestServiceType(DescriptionType descriptionType) {
-        if (descriptionType.equals(DescriptionType.REST)) {
+    private RestServiceType getRestServiceType(Description description) {
+        if (description.equals(Description.REST)) {
             return RestServiceType.REST;
-        } else if (descriptionType.equals(DescriptionType.OPENAPI3)) {
+        } else if (description.equals(Description.OPENAPI3)) {
             return RestServiceType.OPENAPI;
         } else {
             throw new UnsupportedOperationException("The given parameter is not a REST service type!");

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -40,11 +41,11 @@ import org.niis.xroad.securityserver.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.securityserver.restapi.converter.EndpointConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
-import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
-import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientsDto;
 import org.niis.xroad.securityserver.restapi.service.AccessRightService;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointAlreadyExistsException;
@@ -83,15 +84,15 @@ public class EndpointsApiController implements EndpointsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT')")
-    public ResponseEntity<Endpoint> getEndpoint(String id) {
+    public ResponseEntity<EndpointDto> getEndpoint(String id) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        Endpoint endpoint;
+        EndpointDto endpointDto;
         try {
-            endpoint = endpointConverter.convert(endpointService.getEndpoint(endpointId));
+            endpointDto = endpointConverter.convert(endpointService.getEndpoint(endpointId));
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         }
-        return new ResponseEntity<>(endpoint, HttpStatus.OK);
+        return new ResponseEntity<>(endpointDto, HttpStatus.OK);
     }
 
     @Override
@@ -114,13 +115,13 @@ public class EndpointsApiController implements EndpointsApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3_ENDPOINT')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_REST_ENDPOINT)
-    public ResponseEntity<Endpoint> updateEndpoint(String id, EndpointUpdate endpointUpdate) {
+    public ResponseEntity<EndpointDto> updateEndpoint(String id, EndpointUpdateDto endpointUpdateDto) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        Endpoint ep;
+        EndpointDto endpointDto;
         try {
-            String method = endpointUpdate.getMethod() == null ? null : endpointUpdate.getMethod().toString();
-            ep = endpointConverter.convert(endpointService.updateEndpoint(endpointId,
-                    method, endpointUpdate.getPath()));
+            String method = endpointUpdateDto.getMethod() == null ? null : endpointUpdateDto.getMethod().toString();
+            endpointDto = endpointConverter.convert(endpointService.updateEndpoint(endpointId,
+                    method, endpointUpdateDto.getPath()));
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         } catch (EndpointService.IllegalGeneratedEndpointUpdateException e) {
@@ -131,14 +132,14 @@ public class EndpointsApiController implements EndpointsApi {
             throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
 
-        return new ResponseEntity<>(ep, HttpStatus.OK);
+        return new ResponseEntity<>(endpointDto, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT_ACL')")
-    public ResponseEntity<Set<ServiceClient>> getEndpointServiceClients(String id) {
+    public ResponseEntity<Set<ServiceClientDto>> getEndpointServiceClients(String id) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        List<ServiceClientDto> serviceClientsByEndpoint;
+        List<ServiceClient> serviceClientsByEndpoint;
         try {
             serviceClientsByEndpoint = serviceClientService.getServiceClientsByEndpoint(endpointId);
         } catch (EndpointNotFoundException e) {
@@ -146,19 +147,19 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
         }
-        Set<ServiceClient> serviceClients = serviceClientConverter
+        Set<ServiceClientDto> serviceClientDtos = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+        return new ResponseEntity<>(serviceClientDtos, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
-    public ResponseEntity<Set<ServiceClient>> addEndpointServiceClients(String id, ServiceClients serviceClients) {
+    public ResponseEntity<Set<ServiceClientDto>> addEndpointServiceClients(String id, ServiceClientsDto serviceClientDtos) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        List<ServiceClientDto> serviceClientsByEndpoint = null;
+        List<ServiceClient> serviceClientsByEndpoint = null;
 
         try {
-            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClientDtos);
             serviceClientsByEndpoint = accessRightService.addEndpointAccessRights(endpointId,
                     new HashSet<>(xRoadIds));
         } catch (EndpointNotFoundException e) {
@@ -171,17 +172,17 @@ public class EndpointsApiController implements EndpointsApi {
             throw serviceClientHelper.wrapInBadRequestException(e);
         }
 
-        Set<ServiceClient> serviceClientsResult = serviceClientConverter
+        Set<ServiceClientDto> resultServiceClientDtos = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
+        return new ResponseEntity<>(resultServiceClientDtos, HttpStatus.CREATED);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
-    public ResponseEntity<Void> deleteEndpointServiceClients(String id, ServiceClients serviceClients) {
+    public ResponseEntity<Void> deleteEndpointServiceClients(String id, ServiceClientsDto serviceClientDtos) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
         try {
-            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClients);
+            Set<XRoadId.Conf> xRoadIds = serviceClientHelper.processServiceClientXRoadIds(serviceClientDtos);
             accessRightService.deleteEndpointAccessRights(endpointId, xRoadIds);
         } catch (EndpointNotFoundException | AccessRightService.AccessRightNotFoundException e) {
             throw new ResourceNotFoundException(e);
@@ -195,5 +196,4 @@ public class EndpointsApiController implements EndpointsApi {
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
 }

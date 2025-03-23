@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,12 +27,12 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
-import org.niis.xroad.serverconf.mapper.EndpointTypeMapper;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.mapper.EndpointMapper;
+import org.niis.xroad.serverconf.model.Endpoint;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -48,26 +49,26 @@ public class EndpointHelper {
      * @param serviceDescriptionType service description
      * @return List<EndpointTypeEntity>
      */
-    public List<EndpointTypeEntity> getEndpoints(ServiceDescriptionTypeEntity serviceDescriptionType) {
-        ClientTypeEntity client = serviceDescriptionType.getClient();
+    public List<EndpointEntity> getEndpoints(ServiceDescriptionEntity serviceDescriptionType) {
+        ClientEntity client = serviceDescriptionType.getClient();
         List<String> allServiceCodes = serviceDescriptionType.getService().stream()
-                .map(ServiceTypeEntity::getServiceCode)
+                .map(ServiceEntity::getServiceCode)
                 .toList();
-        List<EndpointTypeEntity> allEndpoints = client.getEndpoint();
+        List<EndpointEntity> allEndpoints = client.getEndpoint();
         return allEndpoints.stream()
                 .filter(endpointType -> allServiceCodes.contains(endpointType.getServiceCode()))
                 .collect(Collectors.toList());
     }
 
-    public List<EndpointTypeEntity> getNewEndpoints(String serviceCode, OpenApiParser.Result result) {
-        List<EndpointType> newEndpoints = result.getOperations().stream()
+    public List<EndpointEntity> getNewEndpoints(String serviceCode, OpenApiParser.Result result) {
+        List<Endpoint> newEndpoints = result.getOperations().stream()
                 .map(operation -> mapOperationToEndpoint(serviceCode, operation))
                 .collect(Collectors.toList());
-        newEndpoints.add(new EndpointType(serviceCode, ANY_METHOD, ANY_PATH, true));
-        return EndpointTypeMapper.get().toEntities(newEndpoints);
+        newEndpoints.add(new Endpoint(serviceCode, ANY_METHOD, ANY_PATH, true));
+        return EndpointMapper.get().toEntities(newEndpoints);
     }
 
-    private EndpointType mapOperationToEndpoint(String serviceCode, OpenApiParser.Operation operation) {
-        return new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true);
+    private Endpoint mapOperationToEndpoint(String serviceCode, OpenApiParser.Operation operation) {
+        return new Endpoint(serviceCode, operation.getMethod(), operation.getPath(), true);
     }
 }

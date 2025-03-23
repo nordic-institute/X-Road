@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,10 +38,10 @@ import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.model.Client;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -83,16 +84,16 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     @MockBean
     LocalGroupRepository localGroupRepository;
     @MockBean
-    ServerConfTypeEntity serverConfType;
+    ServerConfEntity serverConfType;
     @MockBean
     TokenPinValidator tokenPinValidator;
 
-    static final ClientIdConfEntity COMMON_OWNER_ID = ClientIdConfEntity.createMember("FI", "GOV", "M1");
+    static final ClientIdEntity COMMON_OWNER_ID = ClientIdEntity.createMember("FI", "GOV", "M1");
 
     @Before
     public void setupCommonMocks() {
-        ServerConfTypeEntity sct = new ServerConfTypeEntity();
-        ClientTypeEntity owner = new ClientTypeEntity();
+        ServerConfEntity sct = new ServerConfEntity();
+        ClientEntity owner = new ClientEntity();
         owner.setIdentifier(COMMON_OWNER_ID);
         sct.setOwner(owner);
         sct.setServerCode("SS1");
@@ -103,12 +104,12 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-        when(clientRepository.getClient(any(ClientId.Conf.class))).thenAnswer((Answer<ClientType>) invocation -> {
+        when(clientRepository.getClient(any(ClientId.Conf.class))).thenAnswer((Answer<Client>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId.Conf identifier = (ClientId.Conf) args[0];
-            ClientType clientType = new ClientType();
-            clientType.setIdentifier(identifier);
-            return clientType;
+            Client client = new Client();
+            client.setIdentifier(identifier);
+            return client;
         });
     }
 }

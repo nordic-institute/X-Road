@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -36,10 +37,10 @@ import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointNotFoundException;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.EndpointTypeEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.springframework.stereotype.Repository;
@@ -54,7 +55,7 @@ import java.util.List;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
+public class ClientRepository extends AbstractRepository<ClientEntity> {
 
     @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
@@ -64,7 +65,7 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
      * @param id client id
      * @return the client, or null if matching client was not found
      */
-    public ClientTypeEntity getClient(ClientId id) {
+    public ClientEntity getClient(ClientId id) {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
         return clientDAO.getClient(persistenceUtils.getCurrentSession(), id);
     }
@@ -73,10 +74,10 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
      * return all local clients
      * @return List<ClientTypeEntity>
      */
-    public List<ClientTypeEntity> getAllLocalClients() {
+    public List<ClientEntity> getAllLocalClients() {
         ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
-        ServerConfTypeEntity serverConfType = serverConfDao.getConf(persistenceUtils.getCurrentSession());
-        List<ClientTypeEntity> clientTypes = serverConfType.getClient();
+        ServerConfEntity serverConfType = serverConfDao.getConf(persistenceUtils.getCurrentSession());
+        List<ClientEntity> clientTypes = serverConfType.getClient();
         Hibernate.initialize(clientTypes);
         return clientTypes;
     }
@@ -101,17 +102,17 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
      * @throws EndpointNotFoundException if endpoint is not found with given id
      * @throws ClientNotFoundException if client is not found with given endpoint id
      */
-    public ClientTypeEntity getClientByEndpointId(Long id)
+    public ClientEntity getClientByEndpointId(Long id)
             throws EndpointNotFoundException, ClientNotFoundException {
         Session session = this.persistenceUtils.getCurrentSession();
-        EndpointTypeEntity endpointType = session.get(EndpointTypeEntity.class, id);
+        EndpointEntity endpointType = session.get(EndpointEntity.class, id);
 
         if (endpointType == null) {
             throw new EndpointNotFoundException(id.toString());
         }
 
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        ClientTypeEntity clientType = clientDAO.getClientByEndpoint(session, endpointType);
+        ClientEntity clientType = clientDAO.getClientByEndpoint(session, endpointType);
 
         session.refresh(clientType);
 
@@ -127,10 +128,10 @@ public class ClientRepository extends AbstractRepository<ClientTypeEntity> {
      *
      * @throws ClientNotFoundException if client is not found with given endpoint id
      */
-    public ClientTypeEntity getClientByLocalGroup(LocalGroupTypeEntity localGroupType)
+    public ClientEntity getClientByLocalGroup(LocalGroupEntity localGroupType)
             throws ClientNotFoundException {
         ClientDAOImpl clientDAO = new ClientDAOImpl();
-        ClientTypeEntity clientType = clientDAO.getClientByLocalGroup(persistenceUtils.getCurrentSession(), localGroupType);
+        ClientEntity clientType = clientDAO.getClientByLocalGroup(persistenceUtils.getCurrentSession(), localGroupType);
         if (clientType == null) {
             throw new ClientNotFoundException("Client not found for localGroup with id: " + localGroupType.getId());
         }

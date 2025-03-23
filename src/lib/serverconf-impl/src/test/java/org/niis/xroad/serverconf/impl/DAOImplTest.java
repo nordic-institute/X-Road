@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -34,15 +35,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.niis.xroad.serverconf.entity.AccessRightTypeEntity;
-import org.niis.xroad.serverconf.entity.ClientIdConfEntity;
-import org.niis.xroad.serverconf.entity.ClientTypeEntity;
-import org.niis.xroad.serverconf.entity.GroupMemberTypeEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupTypeEntity;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionTypeEntity;
-import org.niis.xroad.serverconf.entity.ServiceIdConfEntity;
-import org.niis.xroad.serverconf.entity.ServiceTypeEntity;
+import org.niis.xroad.serverconf.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.entity.GroupMemberEntity;
+import org.niis.xroad.serverconf.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
@@ -130,17 +131,17 @@ public class DAOImplTest {
      */
     @Test
     public void getServiceByIdentifier() {
-        ServiceIdConfEntity id = createTestServiceIdEntity(client(1), service(1, 1),
+        ServiceIdEntity id = createTestServiceIdEntity(client(1), service(1, 1),
                 SERVICE_VERSION);
-        ServiceTypeEntity service = new ServiceDAOImpl().getService(session, id);
+        ServiceEntity service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
         assertNotNull(service.getServiceDescription());
         assertNotNull(service.getServiceDescription().getClient());
-        assertEquals(id, ServiceIdConfEntity.create(
+        assertEquals(id, ServiceIdEntity.create(
                 service.getServiceDescription().getClient().getIdentifier(),
                 service.getServiceCode(), service.getServiceVersion()));
 
-        ServiceDescriptionTypeEntity serviceDescription = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
+        ServiceDescriptionEntity serviceDescription = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
         assertNotNull(serviceDescription);
         assertNotNull(serviceDescription.getClient());
         assertEquals(id.getClientId(), serviceDescription.getClient().getIdentifier());
@@ -152,7 +153,7 @@ public class DAOImplTest {
     @Test
     public void getAcl() {
         ClientId id = createTestClientId(client(1));
-        List<AccessRightTypeEntity> acl = getClient(id).getAcl();
+        List<AccessRightEntity> acl = getClient(id).getAcl();
         assertEquals(6, acl.size());
 
         assertTrue(acl.get(0).getSubjectId() instanceof ClientId);
@@ -167,15 +168,15 @@ public class DAOImplTest {
     @Test
     public void deleteClient() {
         ClientId id = createTestClientId(client(2));
-        ClientTypeEntity client = getClient(id);
+        ClientEntity client = getClient(id);
 
-        ServerConfTypeEntity conf = getConf();
+        ServerConfEntity conf = getConf();
         assertTrue(conf.getClient().remove(client));
 
         session.merge(conf);
         session.remove(client);
 
-        client = new ClientDAOImpl().findById(session, ClientTypeEntity.class,
+        client = new ClientDAOImpl().findById(session, ClientEntity.class,
                 client.getId());
         assertNull(client);
     }
@@ -186,11 +187,11 @@ public class DAOImplTest {
     @Test
     public void deleteServiceDescription() {
         ClientId id = createTestClientId(client(3));
-        ClientTypeEntity client = getClient(id);
+        ClientEntity client = getClient(id);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescription().size());
 
-        ServiceDescriptionTypeEntity serviceDescription = client.getServiceDescription().getFirst();
+        ServiceDescriptionEntity serviceDescription = client.getServiceDescription().getFirst();
         Long serviceDescriptionId = serviceDescription.getId();
 
         client.getServiceDescription().remove(serviceDescription);
@@ -198,7 +199,7 @@ public class DAOImplTest {
         session.remove(serviceDescription);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescription().size());
-        assertNull(session.get(ServiceDescriptionTypeEntity.class, serviceDescriptionId));
+        assertNull(session.get(ServiceDescriptionEntity.class, serviceDescriptionId));
     }
 
     /**
@@ -206,16 +207,16 @@ public class DAOImplTest {
      */
     @Test
     public void addLocalGroupMember() {
-        ClientTypeEntity client = getClient(createTestClientId(client(1)));
+        ClientEntity client = getClient(createTestClientId(client(1)));
         assertFalse(client.getLocalGroup().isEmpty());
 
-        LocalGroupTypeEntity localGroup = client.getLocalGroup().getFirst();
+        LocalGroupEntity localGroup = client.getLocalGroup().getFirst();
 
-        ClientIdConfEntity clientId =
+        ClientIdEntity clientId =
                 identifierDAO.findClientId(session, createTestClientId(client(3)));
         assertNotNull(clientId);
 
-        GroupMemberTypeEntity member = new GroupMemberTypeEntity();
+        GroupMemberEntity member = new GroupMemberEntity();
         member.setAdded(new Date());
         member.setGroupMemberId(clientId);
         session.persist(member);
@@ -223,7 +224,7 @@ public class DAOImplTest {
         localGroup.getGroupMember().add(member);
     }
 
-    private ServerConfTypeEntity getConf() {
+    private ServerConfEntity getConf() {
         return new ServerConfDAOImpl().getConf(session);
     }
 
@@ -231,8 +232,8 @@ public class DAOImplTest {
         return new ClientDAOImpl().clientExists(session, id, includeSubsystems);
     }
 
-    private ClientTypeEntity getClient(ClientId id) {
-        ClientTypeEntity client = new ClientDAOImpl().getClient(session, id);
+    private ClientEntity getClient(ClientId id) {
+        ClientEntity client = new ClientDAOImpl().getClient(session, id);
         assertNotNull(client);
         assertEquals(id, client.getIdentifier());
 

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,7 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ServerConfTypeEntity;
+import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
@@ -46,7 +47,7 @@ public class ServerConfRepositoryIntegrationTest extends AbstractFacadeMockingTe
 
     @Test
     public void getServerConf() {
-        ServerConfTypeEntity serverConf = serverConfRepository.getServerConf();
+        ServerConfEntity serverConf = serverConfRepository.getServerConf();
         assertNotNull(serverConf);
         assertEquals("TEST-INMEM-SS", serverConf.getServerCode());
         ClientId clientId = TestUtils.getClientId("FI", "GOV", "M1", null);
