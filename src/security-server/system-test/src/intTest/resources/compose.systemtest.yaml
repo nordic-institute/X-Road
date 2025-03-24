@@ -10,6 +10,10 @@ services:
     volumes:
       - ../../../src/security-server/system-test/build/signer-volume:/etc/xroad/signer
   proxy:
+    networks:
+      xrd-ss-network:
+        aliases:
+          - ss0 #address is in global conf
     volumes:
       - ../../../src/security-server/system-test/build/resources/intTest/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/messagelog:/etc/xroad/messagelog
@@ -19,13 +23,13 @@ services:
       testca:
         condition: service_healthy
 
-  monitor:
-    ports:
-      - ${MONITOR_JMX_PORT}:${MONITOR_JMX_PORT} #still not working
-    environment:
-      - JAVA_TOOL_OPTIONS=-Dcom.sun.management.jmxremote.rmi.port=${MONITOR_JMX_PORT} -Dcom.sun.management.jmxremote.port=${MONITOR_JMX_PORT}
-      - com.sun.management.jmxremote.port=${MONITOR_JMX_PORT}
-      - com.sun.management.jmxremote.rmi.port=${MONITOR_JMX_PORT}
+#  monitor:
+#    ports:
+#      - ${MONITOR_JMX_PORT}:${MONITOR_JMX_PORT} #still not working
+#    environment:
+#      - JAVA_TOOL_OPTIONS=-Dcom.sun.management.jmxremote.rmi.port=${MONITOR_JMX_PORT} -Dcom.sun.management.jmxremote.port=${MONITOR_JMX_PORT}
+#      - com.sun.management.jmxremote.port=${MONITOR_JMX_PORT}
+#      - com.sun.management.jmxremote.rmi.port=${MONITOR_JMX_PORT}
   ui:
     environment:
       - JAVA_TOOL_OPTIONS=-Dserver.servlet.session.timeout=1m

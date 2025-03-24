@@ -81,8 +81,6 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
 
-                .withEnv("MONITOR_JMX_PORT", String.valueOf(Port.MONITOR_JMX.get()))
-
                 .withLogConsumer(UI, createLogConsumer(UI))
                 .withLogConsumer(PROXY, createLogConsumer(PROXY))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))

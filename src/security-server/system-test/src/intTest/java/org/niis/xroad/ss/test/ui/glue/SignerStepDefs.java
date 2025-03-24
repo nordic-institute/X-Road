@@ -27,14 +27,21 @@ package org.niis.xroad.ss.test.ui.glue;
 
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
+@Slf4j
 public class SignerStepDefs extends BaseUiStepDefs {
 
     @SneakyThrows
@@ -58,16 +65,13 @@ public class SignerStepDefs extends BaseUiStepDefs {
         envSetup.start(EnvSetup.SIGNER);
     }
 
-    //    @SneakyThrows
     @Step("Predefined inactive signer token is uploaded")
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public void addInactiveSignerToken() {
+//    @SuppressWarnings("checkstyle:MagicNumber")
+    public void addInactiveSignerToken() throws Exception {
         // make file accessible for editing outside the container.
         if (SystemUtils.IS_OS_UNIX) {
             envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
         }
-        envSetup.stop(EnvSetup.SIGNER);
-
         String deviceEntry = """
                 </device>
                 <device>
@@ -80,14 +84,33 @@ public class SignerStepDefs extends BaseUiStepDefs {
 
         Path keyconfPath = Paths.get("build/signer-volume/keyconf.xml");
         try {
+            envSetup.stop(EnvSetup.SIGNER);
+
+            logFileInfo(keyconfPath);
+            logFileInfo(Paths.get("build/signer-volume"));
+
             String content = Files.readString(keyconfPath);
             content = content.replaceFirst("</device>", deviceEntry);
             Files.writeString(keyconfPath, content);
         } catch (Exception e) {
-            testReportService.attachText("Failed to modify keyconf.xml file", e.getMessage());
+            log.error("Failed to modify keyconf.xml file", e);
+            throw e;
+//            testReportService.attachText(, e.getMessage());
+        } finally {
+            envSetup.start(EnvSetup.SIGNER);
         }
 
-        envSetup.start(EnvSetup.SIGNER);
+    }
+
+    private void logFileInfo(Path path) throws IOException {
+        PosixFileAttributes attrs = Files.readAttributes(path, PosixFileAttributes.class);
+        log.info("----------------");
+        log.info("Owner: " + attrs.owner().getName());
+        log.info("Group: " + attrs.group().getName());
+
+        Set<PosixFilePermission> permissions = attrs.permissions();
+        log.info("Permissions: " + PosixFilePermissions.toString(permissions));
+        log.info("================");
     }
 
 }
