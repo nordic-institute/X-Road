@@ -52,8 +52,8 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,7 +91,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private ClientService clientService;
     @Autowired
     private GlobalConfService globalConfService;
-    @MockBean
+    @MockitoBean
     private MailNotificationHelper mailNotificationHelper;
 
     private static final ClientId.Conf OWNER_MEMBER =

@@ -43,6 +43,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,7 +59,6 @@ public class RequestTest {
 
     /**
      * Test to ensure bodymass index test request creation is correct.
-     *
      * @throws IOException if request template file could not be read
      */
     @Test
@@ -85,7 +85,7 @@ public class RequestTest {
                 new RequestTag("weight", Double.toString(80.1)));
 
         String template = FileUtils
-                .readFileToString(new File(TEMPLATES_DIR + File.separator + "xroadDoclitRequest.st"));
+                .readFileToString(new File(TEMPLATES_DIR + File.separator + "xroadDoclitRequest.st"), StandardCharsets.UTF_8);
 
         Request request =
                 new Request(template, client, service, id, content);
@@ -95,14 +95,14 @@ public class RequestTest {
         log.debug("XML from request: {}", xmlFromRequest);
 
         // Then
-        String expectedRequest = FileUtils.readFileToString(new File("src/test/resources/xroadDoclit2.request"));
+        String expectedRequest = FileUtils.readFileToString(new File("src/test/resources/xroadDoclit2.request"),
+                StandardCharsets.UTF_8);
 
         assertXml(xmlFromRequest, expectedRequest);
     }
 
     /**
      * Test to ensure bodymass index test RPC request (with version) creation is correct.
-     *
      * @throws IOException if request template file could not be read
      */
     @Test
@@ -129,7 +129,7 @@ public class RequestTest {
                 new RequestTag("weight", Double.toString(80.1)));
 
         String template = FileUtils.readFileToString(new File(
-                TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"));
+                TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"), StandardCharsets.UTF_8);
 
         Request request =
                 new Request(template, client, service, id, content);
@@ -140,13 +140,12 @@ public class RequestTest {
 
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
-                "src/test/resources/v5DoclitWithVersion.request"));
+                "src/test/resources/v5DoclitWithVersion.request"), StandardCharsets.UTF_8);
         assertXml(xmlFromRequest, expectedRequest);
     }
 
     /**
      * Test to ensure bodymass index test RPC request (without version) creation is correct.
-     *
      * @throws IOException if request template file could not be read
      */
     @Test
@@ -173,7 +172,7 @@ public class RequestTest {
                 new RequestTag("weight", Double.toString(80.1)));
 
         String template = FileUtils.readFileToString(new File(
-                TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"));
+                TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"), StandardCharsets.UTF_8);
 
         Request request =
                 new Request(template, client, service, id, content);
@@ -184,7 +183,7 @@ public class RequestTest {
 
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
-                "src/test/resources/v5DoclitWithoutVersion.request"));
+                "src/test/resources/v5DoclitWithoutVersion.request"), StandardCharsets.UTF_8);
         assertXml(xmlFromRequest, expectedRequest);
     }
 
@@ -193,7 +192,7 @@ public class RequestTest {
             assertTrue(normalize(XmlUtils.parseDocument(xml))
                     .isEqualNode(normalize(XmlUtils.parseDocument(expectedXml))));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to assert XML", e);
             fail();
         }
     }
@@ -212,14 +211,15 @@ public class RequestTest {
     static {
         try {
             XSLT = XmlUtils.parseDocument(
-                    "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
-                            + " <xsl:strip-space elements=\"*\"/>"
-                            + "  <xsl:template match=\"node() | @*\">\n"
-                            + "    <xsl:copy>\n"
-                            + "      <xsl:apply-templates select=\"node() | @*\"/>\n"
-                            + "    </xsl:copy>\n"
-                            + "  </xsl:template>\n"
-                            + "</xsl:stylesheet>");
+                    """
+                            <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                             <xsl:strip-space elements="*"/>\
+                              <xsl:template match="node() | @*">
+                                <xsl:copy>
+                                  <xsl:apply-templates select="node() | @*"/>
+                                </xsl:copy>
+                              </xsl:template>
+                            </xsl:stylesheet>""");
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

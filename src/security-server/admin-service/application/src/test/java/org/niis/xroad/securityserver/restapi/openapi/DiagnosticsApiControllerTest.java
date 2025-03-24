@@ -47,13 +47,13 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -93,7 +93,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Autowired
     DiagnosticsApiController diagnosticsApiController;
-    @MockBean
+    @MockitoBean
     private DiagnosticReportService diagnosticReportService;
 
     @BeforeClass

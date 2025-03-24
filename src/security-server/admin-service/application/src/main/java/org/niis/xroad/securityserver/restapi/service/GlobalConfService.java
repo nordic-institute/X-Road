@@ -85,7 +85,7 @@ public class GlobalConfService {
         this.serverConfService = serverConfService;
         this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
         this.restTemplate = restTemplateBuilder
-                .setReadTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
+                .readTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
                 .build();
     }
 
@@ -109,9 +109,10 @@ public class GlobalConfService {
      * Global groups may or may not have entries in IDENTIFIER table
      */
     public boolean globalGroupsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
+        var existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::id)
-                .collect(Collectors.toList());
+                .map(XRoadId.class::cast)
+                .collect(Collectors.toSet());
         return existingIdentifiers.containsAll(identifiers);
     }
 
@@ -121,9 +122,10 @@ public class GlobalConfService {
      * Clients may or may not have entries in IDENTIFIER table
      */
     public boolean clientsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfProvider.getMembers().stream()
+        var existingIdentifiers = globalConfProvider.getMembers().stream()
                 .map(MemberInfo::id)
-                .collect(Collectors.toList());
+                .map(XRoadId.class::cast)
+                .collect(Collectors.toSet());
         return existingIdentifiers.containsAll(identifiers);
     }
 
@@ -140,7 +142,6 @@ public class GlobalConfService {
 
     /**
      * Check the validity of the GlobalConf
-     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
@@ -214,26 +215,24 @@ public class GlobalConfService {
 
     /**
      * Sends an http request to configuration-client in order to trigger the downloading of the global conf
-     *
      * @throws ConfigurationDownloadException if the request succeeds but configuration-client returns an error
      * @throws DeviationAwareRuntimeException if the request fails
      */
     public void executeDownloadConfigurationFromAnchor() throws ConfigurationDownloadException {
         log.info("Starting to download GlobalConf");
-        ResponseEntity<String> response = null;
+        ResponseEntity<String> response;
         try {
             response = restTemplate.getForEntity(downloadConfigurationAnchorUrl, String.class);
         } catch (RestClientException e) {
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST));
         }
-        if (response != null && response.getStatusCode() != HttpStatus.OK) {
+        if (response.getStatusCode() != HttpStatus.OK) {
             throw new ConfigurationDownloadException(response.getBody());
         }
     }
 
     /**
      * Find member's name in the global conf
-     *
      * @param memberClass
      * @param memberCode
      * @return

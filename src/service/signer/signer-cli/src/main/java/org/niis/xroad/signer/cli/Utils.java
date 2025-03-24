@@ -46,6 +46,7 @@ import java.io.FileOutputStream;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 final class Utils {
 
@@ -147,9 +148,9 @@ final class Utils {
         }
     }
 
-    static void base64ToFile(String file, byte[] bytes) throws Exception {
+    static void base64ToFile(String file, byte[] bytes) {
         try (FileOutputStream out = new FileOutputStream(file)) {
-            IOUtils.write(encodeBase64(bytes), out);
+            IOUtils.write(encodeBase64(bytes), out, UTF_8);
 
             System.out.println("Saved to file " + file);
         } catch (Exception e) {
@@ -165,7 +166,7 @@ final class Utils {
         }
 
         if (parts.length > CLIENT_ID_PARTS) {
-            String subsystem = parts.length > CLIENT_ID_PARTS ? parts[parts.length - 1] : null;
+            String subsystem = parts[parts.length - 1];
             String code = StringUtils.join(ArrayUtils.subarray(parts, 2, parts.length - 1), " ");
 
             return ClientId.Conf.create(parts[0], parts[1], code, subsystem);
