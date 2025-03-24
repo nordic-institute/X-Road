@@ -86,10 +86,11 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 """;
 
         try {
-            envSetup.stop(EnvSetup.SIGNER);
-
             String currenKeyconf = envSetup
                     .execInContainer(EnvSetup.SIGNER, "cat", "/etc/xroad/signer/keyconf.xml").getStdout();
+
+            envSetup.stop(EnvSetup.SIGNER);
+
             String updatedKeyConf = currenKeyconf.replaceFirst("</device>", deviceEntry);
 
             Path tempDir = Files.createTempDirectory("signertmp");
@@ -98,7 +99,6 @@ public class SignerStepDefs extends BaseUiStepDefs {
 
             Path keyconfFile = tempDir.resolve("keyconf.xml");
             Files.writeString(keyconfFile, updatedKeyConf);
-
 
             FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
             FileUtils.copyDirectory(
