@@ -55,6 +55,10 @@ public class SignerStepDefs extends BaseUiStepDefs {
     @Step("predefined signer softtoken is uploaded")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void updateSignerSoftToken() {
+        if (SystemUtils.IS_OS_UNIX) {
+            envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
+        }
+
         envSetup.stop(EnvSetup.SIGNER);
 
         FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
@@ -66,7 +70,6 @@ public class SignerStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Predefined inactive signer token is uploaded")
-//    @SuppressWarnings("checkstyle:MagicNumber")
     public void addInactiveSignerToken() throws Exception {
         // make file accessible for editing outside the container.
         if (SystemUtils.IS_OS_UNIX) {
@@ -82,16 +85,32 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 </device>
                 """;
 
-        Path keyconfPath = Paths.get("build/signer-volume/keyconf.xml");
         try {
             envSetup.stop(EnvSetup.SIGNER);
 
-            logFileInfo(keyconfPath);
-            logFileInfo(Paths.get("build/signer-volume"));
+            String currenKeyconf = envSetup
+                    .execInContainer(EnvSetup.SIGNER, "cat", "/etc/xroad/signer/keyconf.xml").getStdout();
+            String updatedKeyConf = currenKeyconf.replaceFirst("</device>", deviceEntry);
 
-            String content = Files.readString(keyconfPath);
-            content = content.replaceFirst("</device>", deviceEntry);
-            Files.writeString(keyconfPath, content);
+            Path tempDir = Files.createTempDirectory("signertmp");
+            FileUtils.copyDirectory(Paths.get("build/signer-volume/softtoken").toFile(),
+                    tempDir.resolve("softoken").toFile());
+
+            Path keyconfFile = tempDir.resolve("keyconf.xml");
+            Files.writeString(keyconfFile, updatedKeyConf);
+
+
+            FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
+            FileUtils.copyDirectory(
+                    tempDir.toFile(),
+                    Paths.get("build/signer-volume").toFile());
+
+//            logFileInfo(keyconfPath);
+//            logFileInfo(Paths.get("build/signer-volume"));
+//
+//            String content = Files.readString(keyconfPath);
+//            content = content.replaceFirst("</device>", deviceEntry);
+//            Files.writeString(keyconfPath, content);
         } catch (Exception e) {
             log.error("Failed to modify keyconf.xml file", e);
             throw e;

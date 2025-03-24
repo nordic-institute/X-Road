@@ -94,7 +94,7 @@ Feature: 0300 - SS: Keys and certificates
     And User logs in token: softToken-0 with PIN: T0ken1zer3
     And Token: softToken-0 is logged-in
 
-  @Skip
+#  @Skip
   # todo issues with modifying the keyconf.xml file on linux.
   Scenario: Inactive token can be deleted
     Given Predefined inactive signer token is uploaded
