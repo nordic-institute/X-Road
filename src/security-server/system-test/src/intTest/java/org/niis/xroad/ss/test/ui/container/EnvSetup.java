@@ -70,7 +70,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     @Override
     public void initialize() {
-        prepareDirectories("build/signer-volume/softtoken");
+        prepareDirectories("build/signer-volume", "build/signer-volume/softtoken");
         env = new ComposeContainer("ss-",
                 new File(COMPOSE_SS_FILE), new File(COMPOSE_SYSTEMTEST_FILE))
                 .withLocalCompose(true)
@@ -98,12 +98,13 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     @SneakyThrows
-    private void prepareDirectories(String path) {
-        Path dirPath = Paths.get(path);
-
-        dirPath.toFile().mkdirs();
-        if (SystemUtils.IS_OS_UNIX) {
-            Files.setPosixFilePermissions(dirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
+    private void prepareDirectories(String... paths) {
+        for (String path : paths) {
+            Path dirPath = Paths.get(path);
+            dirPath.toFile().mkdirs();
+            if (SystemUtils.IS_OS_UNIX) {
+                Files.setPosixFilePermissions(dirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
+            }
         }
     }
 

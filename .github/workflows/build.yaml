@@ -274,9 +274,9 @@ jobs:
           name: Security Server system tests
           path: src/security-server/system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
-      - name: Fix system-test build dir permissions
-        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
-        if: failure()
+#      - name: Fix system-test build dir permissions
+#        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
+#        if: failure()
       - name: Upload SS report
         uses: actions/upload-artifact@v4
         if: failure()
