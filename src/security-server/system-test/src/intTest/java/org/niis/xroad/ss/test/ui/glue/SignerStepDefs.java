@@ -105,6 +105,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
     private void logFileInfo(Path path) throws IOException {
         PosixFileAttributes attrs = Files.readAttributes(path, PosixFileAttributes.class);
         log.info("----------------");
+        log.info(path.toString());
         log.info("Owner: " + attrs.owner().getName());
         log.info("Group: " + attrs.group().getName());
 
