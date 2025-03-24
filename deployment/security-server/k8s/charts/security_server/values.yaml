@@ -1,4 +1,3 @@
-
 init:
   serverconf:
     image: localhost:5555/ss-db-serverconf-init:latest
@@ -6,20 +5,17 @@ init:
     host: "db-serverconf.ss.svc.cluster.local"
     port: "5432"
     database: "serverconf"
-    postgres_password: "replace-me"
-    db_username: "servcerconf"
+    db_username: "serverconf"
     schema: "public"
   messagelog:
     image: localhost:5555/ss-db-messagelog-init:latest
     imagePullPolicy: IfNotPresent
     host: "db-messagelog.ss.svc.cluster.local"
     port: "5432"
-    database: "serverconf"
-    postgres_password: "replace-me"
-    db_username: "serverconf"
+    database: "messagelog"
+    db_username: "messagelog"
     schema: "public"
 
-#TODO for now this purely for temporary cert init
 serviceAccount:
   name: "ss-init-sa"
   create: true
@@ -109,18 +105,22 @@ services:
       XROAD_SECRET_STORE_SCHEME: "http"
       XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST: "configuration-client.ss.svc.cluster.local"
       XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST: "signer.ss.svc.cluster.local"
-      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog.ss.svc.cluster.local:5432/messagelog"
-      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
-      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
-      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD: "secret"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
-      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
-      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD: "secret"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
+      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-messagelog.ss.svc.cluster.local:5432/messagelog"
+      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_USERNAME: "messagelog"
+      XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
+      - name: "XROAD_DB_MESSAGELOG_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-messagelog"
+        key: "password"
   proxy-ui-api:
     image: localhost:5555/ss-proxy-ui-api:latest
     imagePullPolicy: IfNotPresent
@@ -148,14 +148,16 @@ services:
       XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy.ss.svc.cluster.local"
       XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor.ss.svc.cluster.local"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
-      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
-      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD: "secret"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_PROXY_UI_API_SECURITY_SERVER_URL: "https://proxy.ss.svc.cluster.local:8443"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"
   messagelog-archiver:
     image: localhost:5555/ss-message-log-archiver:latest
     imagePullPolicy: IfNotPresent
@@ -209,10 +211,12 @@ services:
       XROAD_COMMON_RPC_CHANNEL_PROXY_HOST: "proxy.ss.svc.cluster.local"
       XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST: "monitor.ss.svc.cluster.local"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL: "jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf"
-      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
       XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME: "serverconf"
-      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD: "secret"
+      XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS: "org.postgresql.Driver"
     envFromSecrets:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
+      - name: "XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD"
+        secretName: "db-serverconf"
+        key: "password"

@@ -1,5 +1,5 @@
 
-module "kind_cluster" {
+module "kind-cluster" {
   source       = "../../modules/kind"
 
   kind_cluster_name = "xroad-cluster"
@@ -11,14 +11,14 @@ module "openbao" {
   source      = "../../modules/openbao"
 
   depends_on = [
-    module.kind_cluster
+    module.kind-cluster
   ]
 
   openbao_dev = false
 }
 
-module "cs_service_bridge" {
-  source        = "../../modules/external_service_bridge"
+module "cs-service-bridge" {
+  source        = "../../modules/external-service-bridge"
   name          = "xrd-cs"
   external_host = "host.docker.internal"
   ports = [
@@ -45,12 +45,12 @@ module "cs_service_bridge" {
   ]
 
   depends_on = [
-    module.kind_cluster
+    module.kind-cluster
   ]
 }
 
-module "ca_service_bridge" {
-  source        = "../../modules/external_service_bridge"
+module "ca-service-bridge" {
+  source        = "../../modules/external-service-bridge"
   name          = "xrd-ca"
   external_host = "host.docker.internal"
   ports = [
@@ -67,12 +67,12 @@ module "ca_service_bridge" {
   ]
 
   depends_on = [
-    module.kind_cluster
+    module.kind-cluster
   ]
 }
 
-module "ss0_service_bridge" {
-  source        = "../../modules/external_service_bridge"
+module "ss0-service-bridge" {
+  source        = "../../modules/external-service-bridge"
   name          = "xrd-ss0"
   external_host = "host.docker.internal"
   ports = [
@@ -89,18 +89,18 @@ module "ss0_service_bridge" {
   ]
 
   depends_on = [
-    module.kind_cluster
+    module.kind-cluster
   ]
 }
 
-module "xroad-ss" {
-  source       = "../../modules/xroad-ss"
+module "security-server" {
+  source       = "../../modules/security-server"
 
   depends_on = [
     module.openbao,
-    module.cs_service_bridge,
-    module.ca_service_bridge,
-    module.ss0_service_bridge
+    module.cs-service-bridge,
+    module.ca-service-bridge,
+    module.ss0-service-bridge
   ]
 
   serverconf_db_postgres_password = "secret"

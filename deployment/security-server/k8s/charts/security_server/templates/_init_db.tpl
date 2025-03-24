@@ -2,13 +2,13 @@
 Common DB init job template
 */}}
 {{- define "xroad.db.init.job" -}}
-{{- $jobName := .name }}
+{{- $name := .name }}
 {{- $config := .config }}
 {{- $root := .root }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $jobName }}-db-init
+  name: {{ $name }}-db-init
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "-5"
@@ -18,7 +18,7 @@ spec:
   template:
     spec:
       containers:
-        - name: {{ $jobName }}-db-init
+        - name: {{ $name }}-db-init
           image: {{ $config.image }}
           imagePullPolicy: {{ $config.imagePullPolicy }}
           resources:
@@ -30,7 +30,10 @@ spec:
             - name: LIQUIBASE_COMMAND_USERNAME
               value: "postgres"
             - name: LIQUIBASE_COMMAND_PASSWORD
-              value: {{ $config.postgres_password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: db-{{ $name }}
+                  key: postgres-password
             - name: LIQUIBASE_COMMAND_URL
               value: "jdbc:postgresql://{{ $config.host }}:{{ $config.port }}/{{ $config.database }}"
               {{ $config.url | quote }}
@@ -42,7 +45,7 @@ spec:
         - name: check-db-ready
           image: "postgres:17"
           command: ['sh', '-c',
-                    'until pg_isready -h {{ $config.host }} -p {{ $config.port }}; do echo waiting for database; sleep 2; done;']
+                    'until pg_isready -h {{ $config.host }} -p {{ $config.port }}; do echo waiting for database; sleep 1; done;']
       restartPolicy: Never
 {{- end }}
 

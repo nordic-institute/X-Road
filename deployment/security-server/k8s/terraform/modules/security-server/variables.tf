@@ -3,12 +3,6 @@ variable "namespace" {
   default     = "ss"
 }
 
-variable "serverconf_db_name" {
-  description = "Serverconf DB name"
-  type        = string
-  default     = "serverconf"
-}
-
 variable "serverconf_db_postgres_password" {
   description = "Postgres superuser's password for serverconf DB"
   type        = string
@@ -25,12 +19,6 @@ variable "serverconf_db_user_password" {
   description = "Serverconf DB uses's password"
   type        = string
   sensitive   = true
-}
-
-variable "messagelog_db_name" {
-  description = "Messagelog DB name"
-  type        = string
-  default     = "messagelog"
 }
 
 variable "messagelog_db_postgres_password" {
