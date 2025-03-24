@@ -111,8 +111,8 @@ public class DiagnosticService {
         mediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
         converter.setSupportedMediaTypes(mediaTypes);
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
-                .setReadTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
+                .connectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
+                .readTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
                 .messageConverters(converter)
                 .build();
     }

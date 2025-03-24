@@ -33,7 +33,6 @@ import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -48,9 +47,7 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpFields;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
@@ -105,12 +102,8 @@ public class RestMetadataServiceHandlerTest {
         MAPPER = mapper;
     }
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
-    private ResponseWrapper mockResponse;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
 
@@ -141,7 +134,6 @@ public class RestMetadataServiceHandlerTest {
         var mockHeaders = mock(HttpFields.class);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
-        mockResponse = mock(ResponseWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockRequest.getHeaders()).thenReturn(mockHeaders);
@@ -209,7 +201,7 @@ public class RestMetadataServiceHandlerTest {
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
         assertEquals(3, restServiceDetailsList.getService().size());
-        assertEquals(1, restServiceDetailsList.getService().get(0).getEndpointList().size());
+        assertEquals(1, restServiceDetailsList.getService().getFirst().getEndpointList().size());
     }
 
     @Test
@@ -238,7 +230,7 @@ public class RestMetadataServiceHandlerTest {
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
         assertEquals(3, restServiceDetailsList.getService().size());
-        assertEquals(1, restServiceDetailsList.getService().get(0).getEndpointList().size());
+        assertEquals(1, restServiceDetailsList.getService().getFirst().getEndpointList().size());
     }
 
     @Test
@@ -296,9 +288,9 @@ public class RestMetadataServiceHandlerTest {
 
         assertFalse(yaml.contains("http://petstore.swagger.io/v1/cats"));
         assertTrue(yaml.contains("/v1/cats"));
-        assertEquals(StringUtils.countMatches(yaml, "/v1/cats"), 1);
+        assertEquals(1, StringUtils.countMatches(yaml, "/v1/cats"));
         assertTrue(yaml.contains("null"));
-        assertEquals(StringUtils.countMatches(yaml, "null"), 2);
+        assertEquals(2, StringUtils.countMatches(yaml, "null"));
         assertTrue(yaml.contains("- \"this\""));
         assertTrue(yaml.contains("- \"should\""));
         assertTrue(yaml.contains("- \"be\""));

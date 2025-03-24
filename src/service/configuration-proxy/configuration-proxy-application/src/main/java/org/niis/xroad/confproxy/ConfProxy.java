@@ -47,7 +47,6 @@ public class ConfProxy {
 
     /**
      * Initializes a new configuration proxy instance.
-     *
      * @param instance name of this proxy instance
      * @throws Exception if loading instance configuration fails
      */
@@ -60,7 +59,6 @@ public class ConfProxy {
     /**
      * Launch the configuration proxy instance. Downloads signed directory,
      * signs its content and moves it to the public distribution directory.
-     *
      * @throws Exception in case of any errors
      */
     public final void execute() throws Exception {
@@ -99,7 +97,6 @@ public class ConfProxy {
     /**
      * Downloads the global configuration to configuration download path e.g. /etc/xroad/globalconf,
      * according to the instance configuration.
-     *
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */

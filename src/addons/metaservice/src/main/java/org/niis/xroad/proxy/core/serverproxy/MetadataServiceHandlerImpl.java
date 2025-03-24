@@ -76,6 +76,7 @@ import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.LexicalHandler;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -86,6 +87,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -159,9 +162,18 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
-                requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
-                        requestProxyMessage.getSoapContentType(),
-                        requestProxyMessage.getSoapContent());
+                try (var in = new PipedInputStream()) {
+                    @SuppressWarnings("java:S2095")// out is closed in try-with-resources
+                    var out = new PipedOutputStream(in);
+                    Thread.startVirtualThread(() -> {
+                        try (out) {
+                            requestProxyMessage.writeSoapContent(out);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to write soap content", e);
+                        }
+                    });
+                    requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(requestProxyMessage.getSoapContentType(), in);
+                }
                 yield true;
             }
             default -> false;
@@ -187,7 +199,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
         opMonitoringData.setServiceType(Description.WSDL.name());
 
-
         switch (serviceCode) {
             case LIST_METHODS -> handleListMethods(requestMessage);
             case ALLOWED_METHODS -> handleAllowedMethods(requestMessage);
@@ -212,7 +223,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         return new ByteArrayInputStream(responseOut.toByteArray());
     }
 
-    // ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
     private void handleListMethods(SoapMessageImpl request) throws Exception {
         log.trace("handleListMethods()");
@@ -275,7 +286,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-    // ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
     private String getWsdlUrl(ServiceId service) throws Exception {
         ServiceDescription wsdl = ServerConfDatabaseCtx.doInTransaction(
@@ -340,7 +351,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
-     *
      * @param wsdl
      * @return
      */
@@ -367,7 +377,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
             // offer InputStream into processed String
             return new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException | SAXException | TransformerConfigurationException e) {
+        } catch (IOException | SAXException | TransformerConfigurationException | ParserConfigurationException e) {
             throw new RuntimeException(e);
         }
     }

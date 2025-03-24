@@ -55,8 +55,8 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.scheduling.support.NoOpTaskScheduler;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -88,11 +88,11 @@ import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.ge
 public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     private static final String DNS = "ss9";
-    @SpyBean
+    @MockitoSpyBean
     private AcmeClientWorker acmeClientWorker;
     @Mock
     ManagementRequestSender managementRequestSenderMock;
-    @SpyBean
+    @MockitoSpyBean
     MailNotificationHelper mailNotificationHelper;
 
     private final KeyPair keyPair = getKeyPairGenerator().generateKeyPair();

@@ -48,7 +48,7 @@ public class GetCertificateProfile {
      */
     public CertificateProfileInfoProvider instance() throws Exception {
         try {
-            return klass().newInstance();
+            return klass().getDeclaredConstructor().newInstance();
         } catch (InstantiationException e) {
             throw new CodedException(X_INTERNAL_ERROR, e,
                     "Could not instantiate %s: %s", className, e.getMessage());

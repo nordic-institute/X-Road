@@ -42,7 +42,7 @@ import org.niis.xroad.serverconf.entity.ClientEntity;
 import org.niis.xroad.serverconf.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
  * test classes inheriting this will shared the same mock bean configuration, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the tests.
  *
- * Do not introduce new @MockBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
+ * Do not introduce new @MockitoBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
  * creates a different applicationContext for the inherited class and other AbstractServiceTestContext classes,
  * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
  * in this base class instead.
@@ -71,21 +71,21 @@ import static org.mockito.Mockito.when;
  * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  */
 public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     BackupRepository backupRepository;
-    @MockBean
+    @MockitoBean
     ClientRepository clientRepository;
-    @MockBean
+    @MockitoBean
     ServerConfRepository serverConfRepository;
-    @MockBean
+    @MockitoBean
     AnchorRepository anchorRepository;
-    @MockBean
+    @MockitoBean
     IdentifierRepository identifierRepository;
-    @MockBean
+    @MockitoBean
     LocalGroupRepository localGroupRepository;
-    @MockBean
+    @MockitoBean
     ServerConfEntity serverConfEntity;
-    @MockBean
+    @MockitoBean
     TokenPinValidator tokenPinValidator;
 
     static final ClientIdEntity COMMON_OWNER_ID = ClientIdEntity.createMember("FI", "GOV", "M1");

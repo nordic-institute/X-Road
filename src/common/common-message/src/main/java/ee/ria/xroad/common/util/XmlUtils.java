@@ -36,13 +36,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -141,7 +141,7 @@ public final class XmlUtils {
 
     /**
      * Creates a new document object from the given input stream containing the document XML.
-     * @param documentXml the input stream containing the XML
+     * @param documentXml    the input stream containing the XML
      * @param namespaceAware flag indicating namespace awareness
      * @return the created document object
      * @throws Exception if an error occurs
@@ -173,7 +173,7 @@ public final class XmlUtils {
 
     /**
      * Returns the first element matching the given tag name.
-     * @param doc the document from which to search the element
+     * @param doc     the document from which to search the element
      * @param tagName the name of the tag to match
      * @return optional containing the element or empty if the element cannot be found
      */
@@ -185,9 +185,9 @@ public final class XmlUtils {
 
     /**
      * Returns an element matching the given xpath expression and using the specified namespace context.
-     * @param parent the parent element from which to search
+     * @param parent    the parent element from which to search
      * @param xpathExpr the xpath expression
-     * @param nsCtx the namespace context (can be null)
+     * @param nsCtx     the namespace context (can be null)
      * @return the element or null if the element cannot be found or the xpath expression is invalid
      */
     public static Element getElementXPathNS(Element parent, String xpathExpr, NamespaceContext nsCtx) {
@@ -201,7 +201,7 @@ public final class XmlUtils {
 
             return (Element) xpath.evaluate(xpathExpr, parent, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e.getMessage(), e);
 
             return null;
         }
@@ -209,9 +209,9 @@ public final class XmlUtils {
 
     /**
      * Returns a list of elements matching the given xpath expression and using the specified namespace context.
-     * @param parent the parent element from which to search
+     * @param parent    the parent element from which to search
      * @param xpathExpr the xpath expression
-     * @param nsCtx the namespace context (can be null)
+     * @param nsCtx     the namespace context (can be null)
      * @return the elements or null if the element cannot be found or the xpath expression is invalid
      */
     public static NodeList getElementsXPathNS(Element parent, String xpathExpr, NamespaceContext nsCtx) {
@@ -225,7 +225,7 @@ public final class XmlUtils {
 
             return (NodeList) xpath.evaluate(xpathExpr, parent, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
-            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e.getMessage(), e);
 
             return null;
         }
@@ -235,7 +235,7 @@ public final class XmlUtils {
      * Returns the element that has an ID attribute matching the input.
      * The search is performed using XPath evaluation.
      * @param doc the document
-     * @param id the id
+     * @param id  the id
      * @return the element or null, if the element cannot be found
      */
     public static Element getElementById(Document doc, String id) {
@@ -249,7 +249,7 @@ public final class XmlUtils {
 
             return (Element) xpath.evaluate("//*[@Id = '" + id + "']", doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            log.warn(ELEMENT_NOT_FOUND_WARNING, e);
+            log.warn(ELEMENT_NOT_FOUND_WARNING, e.getMessage(), e);
 
             return null;
         }
@@ -259,7 +259,7 @@ public final class XmlUtils {
      * Calculates and return the result of canonicalization of the specified node, using the specified
      * canonicalization method.
      * @param algorithmUri the URI of the canonicalization algorithm that is known to the class Canonicalizer.
-     * @param node the node to canonicalize
+     * @param node         the node to canonicalize
      * @return the c14n result.
      * @throws Exception if any errors occur
      */
@@ -292,7 +292,7 @@ public final class XmlUtils {
     /**
      * Pretty prints the document to string using specified charset.
      * @param document the document
-     * @param charset the charset
+     * @param charset  the charset
      * @return printed document in String form
      * @throws Exception if any errors occur
      */
@@ -339,8 +339,10 @@ public final class XmlUtils {
      * @return
      * @throws SAXException
      */
-    public static XMLReader createXmlReader() throws SAXException {
-        XMLReader reader = XMLReaderFactory.createXMLReader();
+    public static XMLReader createXmlReader() throws SAXException, ParserConfigurationException {
+        var factory = SAXParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        XMLReader reader = factory.newSAXParser().getXMLReader();
         reader.setFeature(FEATURE_DISALLOW_DOCTYPE, true);
         reader.setFeature(FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
         return reader;

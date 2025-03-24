@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -43,7 +44,7 @@ public class ProxyMessageTest {
     public static final byte[] MOCK_SOAP_MESSAGE_BODY = "<mock-soap-message-body-xml/>".getBytes(UTF_8);
 
     @Test
-    public void soapContentTypeMimeEncodedSoap() throws Exception {
+    public void soapContentTypeMimeEncodedSoap() {
         var originalContentType = "multipart/related";
 
         ProxyMessage message = new ProxyMessage(originalContentType);
@@ -62,7 +63,7 @@ public class ProxyMessageTest {
     }
 
     @Test
-    public void soapContentTypeTextXml() throws Exception {
+    public void soapContentTypeTextXml() {
         var originalContentType = "application/xml";
 
         ProxyMessage message = new ProxyMessage(originalContentType);
@@ -76,7 +77,9 @@ public class ProxyMessageTest {
         ProxyMessage message = new ProxyMessage("text/xml; charset=UTF-8");
         message.soap(getMockSoapMessage(), Map.of());
 
-        assertThat(message.getSoapContent().readAllBytes())
+        var outputStream = new ByteArrayOutputStream();
+        message.writeSoapContent(outputStream);
+        assertThat(outputStream.toByteArray())
                 .withRepresentation(bytes -> new String((byte[]) bytes))
                 .isEqualTo(MOCK_SOAP_MESSAGE_BODY);
     }
@@ -94,9 +97,10 @@ public class ProxyMessageTest {
         ProxyMessage message = new ProxyMessage("multipart/related; boundary=BOUNDARY");
         message.soap(getMockSoapMessage(), Map.of());
 
-        var soapContent = message.getSoapContent().readAllBytes();
+        var outputStream = new ByteArrayOutputStream();
+        message.writeSoapContent(outputStream);
 
-        assertThat(soapContent)
+        assertThat(outputStream.toByteArray())
                 .withRepresentation(bytes -> new String((byte[]) bytes))
                 .isEqualTo(expectedSoapContent.getBytes(UTF_8));
     }
@@ -119,9 +123,10 @@ public class ProxyMessageTest {
         message.soap(getMockSoapMessage(), Map.of());
         message.attachment("text/plain", new ByteArrayInputStream("attachment".getBytes(UTF_8)), Map.of());
 
-        var soapConent = message.getSoapContent().readAllBytes();
+        var outputStream = new ByteArrayOutputStream();
+        message.writeSoapContent(outputStream);
 
-        assertThat(soapConent)
+        assertThat(outputStream.toByteArray())
                 .withRepresentation(bytes -> new String((byte[]) bytes))
                 .isEqualTo(expectedSoapContent.getBytes(UTF_8));
     }

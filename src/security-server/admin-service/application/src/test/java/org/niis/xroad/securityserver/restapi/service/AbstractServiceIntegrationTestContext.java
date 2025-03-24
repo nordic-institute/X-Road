@@ -38,8 +38,8 @@ import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.ServerConf;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import static org.mockito.Mockito.when;
 
@@ -62,18 +62,18 @@ import static org.mockito.Mockito.when;
  *
  */
 public abstract class AbstractServiceIntegrationTestContext extends AbstractFacadeMockingTestContext {
-    @SpyBean
+    @MockitoSpyBean
     GlobalConfService globalConfService;
-    @SpyBean
+    @MockitoSpyBean
     OpenApiParser openApiParser;
 
-    @MockBean
+    @MockitoBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-    @MockBean
+    @MockitoBean
     CurrentSecurityServerId currentSecurityServerId;
-    @MockBean
+    @MockitoBean
     WsdlValidator wsdlValidator;
-    @MockBean
+    @MockitoBean
     UrlValidator urlValidator;
 
     static final ClientId.Conf COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
