@@ -9,28 +9,7 @@ resource "kind_cluster" "xroad-cluster" {
     api_version = "kind.x-k8s.io/v1alpha4"
     node {
       role = "control-plane"
-      kubeadm_config_patches = [
-        <<-EOF
-        kind: InitConfiguration
-        nodeRegistration:
-          kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-        EOF
-      ]
-
-      extra_port_mappings {
-        container_port = 80
-        host_port = 80
-        protocol = "TCP"
-      }
-
-      extra_port_mappings {
-        container_port = 443
-        host_port = 443
-        protocol = "TCP"
-      }
     }
-
     node {
       role = "worker"
 

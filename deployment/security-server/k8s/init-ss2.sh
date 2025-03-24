@@ -1,7 +1,5 @@
 #!/bin/bash
 
-dirname "$0"
-
 hurl --insecure \
       --variables-file ../../../development/hurl/scenarios/k8-ss2/vars.env \
       --file-root ../../../development/hurl/scenarios/k8-ss2 \

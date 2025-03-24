@@ -94,8 +94,10 @@ services:
         name: http
       - port: 5567
         name: grpc
-      - port: 8443
+      - port: 8080
         name: proxy-http
+      - port: 8443
+        name: proxy-https
     readinessProbe:
       path: "/q/health"
       scheme: "HTTP"

@@ -7,14 +7,6 @@ module "kind_cluster" {
   images_registry = "localhost:5555"
 }
 
-module "ingress" {
-  source       = "../../modules/ingress"
-
-  depends_on = [
-    module.kind_cluster
-  ]
-}
-
 module "openbao" {
   source      = "../../modules/openbao"
 

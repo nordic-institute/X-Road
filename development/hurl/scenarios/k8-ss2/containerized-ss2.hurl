@@ -20,11 +20,11 @@ gconf_anchor: body
 # Initialize Security Server 2 (ss2)
 
 # Check that the Security Server UI is up and running
-GET https://{{ss2_host}}
+GET https://{{ss2_host}}:4000
 HTTP 200
 
 # Log in to the Security Server
-POST https://{{ss2_host}}/login
+POST https://{{ss2_host}}:4000/login
 [FormParams]
 username: xrd
 password: secret
@@ -34,7 +34,7 @@ HTTP 200
 ss2_xsrf_token: cookie "XSRF-TOKEN"
 
 # Add configuration anchor
-POST https://{{ss2_host}}/api/v1/system/anchor
+POST https://{{ss2_host}}:4000/api/v1/system/anchor
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/octet-stream
 ```
@@ -44,7 +44,7 @@ Content-Type: application/octet-stream
 HTTP 201
 
 # Initialize Security Server
-POST https://{{ss2_host}}/api/v1/initialization
+POST https://{{ss2_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/json
 {
@@ -58,7 +58,7 @@ Content-Type: application/json
 HTTP 201
 
 # Log in to the Security Servers token
-PUT https://{{ss2_host}}/api/v1/tokens/0/login
+PUT https://{{ss2_host}}:4000/api/v1/tokens/0/login
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/json
 {
@@ -68,7 +68,7 @@ Content-Type: application/json
 HTTP *
 
 # Get the CA name
-GET https://{{ss2_host}}/api/v1/certificate-authorities
+GET https://{{ss2_host}}:4000/api/v1/certificate-authorities
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 200
@@ -77,7 +77,7 @@ HTTP 200
 ca_name: jsonpath "$[0].name"
 
 # Add auth key to the Security Server token
-POST https://{{ss2_host}}/api/v1/tokens/0/keys-with-csrs
+POST https://{{ss2_host}}:4000/api/v1/tokens/0/keys-with-csrs
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/json
 {
@@ -104,7 +104,7 @@ ss2_auth_key_id: jsonpath "$.key.id"
 ss2_auth_key_csr_id: jsonpath "$.csr_id"
 
 # Get the auth key CSR
-GET https://{{ss2_host}}/api/v1/keys/{{ss2_auth_key_id}}/csrs/{{ss2_auth_key_csr_id}}?csr_format=PEM
+GET https://{{ss2_host}}:4000/api/v1/keys/{{ss2_auth_key_id}}/csrs/{{ss2_auth_key_csr_id}}?csr_format=PEM
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 200
@@ -133,7 +133,7 @@ HTTP 200
 ss2_auth_key_cert: body
 
 # Import auth certificate
-POST https://{{ss2_host}}/api/v1/token-certificates
+POST https://{{ss2_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/octet-stream
 ```
@@ -146,7 +146,7 @@ HTTP 201
 ss2_auth_key_cert_hash: jsonpath "$.certificate_details.hash"
 
 # Add sign key to the Security Server token
-POST https://{{ss2_host}}/api/v1/tokens/0/keys-with-csrs
+POST https://{{ss2_host}}:4000/api/v1/tokens/0/keys-with-csrs
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/json
 {
@@ -174,7 +174,7 @@ ss2_sign_key_id: jsonpath "$.key.id"
 ss2_sign_key_csr_id: jsonpath "$.csr_id"
 
 # Get the sign key CSR
-GET https://{{ss2_host}}/api/v1/keys/{{ss2_sign_key_id}}/csrs/{{ss2_sign_key_csr_id}}?csr_format=PEM
+GET https://{{ss2_host}}:4000/api/v1/keys/{{ss2_sign_key_id}}/csrs/{{ss2_sign_key_csr_id}}?csr_format=PEM
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 200
@@ -203,7 +203,7 @@ HTTP 200
 ss2_sign_key_cert: body
 
 # Import auth certificate
-POST https://{{ss2_host}}/api/v1/token-certificates
+POST https://{{ss2_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 Content-Type: application/octet-stream
 ```
@@ -217,7 +217,7 @@ ss2_sign_key_cert_hash: jsonpath "$.certificate_details.hash"
 
 
 # Register auth certificate
-PUT https://{{ss2_host}}/api/v1/token-certificates/{{ss2_auth_key_cert_hash}}/register
+PUT https://{{ss2_host}}:4000/api/v1/token-certificates/{{ss2_auth_key_cert_hash}}/register
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 {
   "address": "proxy"
@@ -242,13 +242,13 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 HTTP 200
 
 # Activate auth certificate on ss2 Security Server
-PUT https://{{ss2_host}}/api/v1/token-certificates/{{ss2_auth_key_cert_hash}}/activate
+PUT https://{{ss2_host}}:4000/api/v1/token-certificates/{{ss2_auth_key_cert_hash}}/activate
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 204
 
 # Set timestamping service on ss2 Security Server
-GET https://{{ss2_host}}/api/v1/timestamping-services
+GET https://{{ss2_host}}:4000/api/v1/timestamping-services
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 200
@@ -257,7 +257,7 @@ HTTP 200
 tsa_name: jsonpath "$[0].name"
 tsa_url: jsonpath "$[0].url"
 
-POST https://{{ss2_host}}/api/v1/system/timestamping-services
+POST https://{{ss2_host}}:4000/api/v1/system/timestamping-services
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 {
   "name": "{{tsa_name}}",
@@ -267,7 +267,7 @@ X-XSRF-TOKEN: {{ss2_xsrf_token}}
 HTTP 201
 
 # Add Subsystem to ss2 Security Server
-POST https://{{ss2_host}}/api/v1/clients
+POST https://{{ss2_host}}:4000/api/v1/clients
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 {
   "ignore_warnings": true,
@@ -285,7 +285,7 @@ HTTP 201
 ss2_test_client_id: jsonpath "$.id"
 
 # Register subsystem
-PUT https://{{ss2_host}}/api/v1/clients/{{ss2_test_client_id}}/register
+PUT https://{{ss2_host}}:4000/api/v1/clients/{{ss2_test_client_id}}/register
 X-XSRF-TOKEN: {{ss2_xsrf_token}}
 
 HTTP 204
