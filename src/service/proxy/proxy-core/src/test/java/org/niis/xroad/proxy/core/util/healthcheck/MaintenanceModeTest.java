@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.util.healthcheck;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -37,9 +38,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
 import org.niis.xroad.proxy.core.healthcheck.StoppableCombinationHealthCheckProvider;
@@ -47,11 +46,12 @@ import org.niis.xroad.proxy.core.healthcheck.StoppableHealthCheckProvider;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -62,6 +62,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests setting {@link HealthCheckPortImpl} on and off maintenance mode
  */
+@Slf4j
 public class MaintenanceModeTest {
 
     private static HealthCheckPortImpl testPort;
@@ -70,9 +71,6 @@ public class MaintenanceModeTest {
     private static CloseableHttpClient testClient;
 
     private static final int TEST_PORT_NUMBER = 23555;
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     /**
      * Setup for all tests
@@ -103,7 +101,7 @@ public class MaintenanceModeTest {
             try {
                 testClient.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         }
 
@@ -111,7 +109,7 @@ public class MaintenanceModeTest {
             try {
                 testPort.destroy();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         }
     }
@@ -140,7 +138,7 @@ public class MaintenanceModeTest {
             assertEquals(HttpStatus.SERVICE_UNAVAILABLE_503, response.getStatusLine().getStatusCode());
             HttpEntity responseEntity = response.getEntity();
             assertNotNull("HealthCheckPorts's response did not contain a message", responseEntity);
-            String responseMessage = IOUtils.toString(responseEntity.getContent());
+            String responseMessage = IOUtils.toString(responseEntity.getContent(), StandardCharsets.UTF_8);
             assertThat("HealthCheckPorts's response did not contain maintenance message",
                     responseMessage, containsString(HealthCheckPortImpl.MAINTENANCE_MESSAGE));
         }

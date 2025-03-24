@@ -27,7 +27,6 @@
 package org.niis.xroad.proxy.core.addon.proxymonitor.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -39,7 +38,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
-import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.core.protocol.ProxyMessage;
@@ -49,12 +47,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
 
-import static org.hamcrest.Matchers.containsString;
+import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 
 /**
  * Unit tests for {@link ProxyMonitorServiceHandlerImpl}
@@ -71,8 +71,7 @@ public class ProxyMonitorServiceHandlerTest {
     private static final ServiceId.Conf MONITOR_SERVICE_ID = ServiceId.Conf.create(DEFAULT_OWNER_CLIENT,
             ProxyMonitorServiceHandlerImpl.SERVICE_CODE);
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+
 
     @Rule
     public final ProvideSystemProperty configurationPathProperty
@@ -188,14 +187,14 @@ public class ProxyMonitorServiceHandlerTest {
 
         when(mockProxyMessage.getSoap()).thenReturn(mockSoap);
 
-        thrown.expect(CodedException.class);
-        thrown.expect(faultCodeEquals(ErrorCodes.X_ACCESS_DENIED));
-        thrown.expectMessage(containsString("Request is not allowed"));
-
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
         // execution
-        handlerToTest.shouldVerifyAccess();
+
+        var ce = assertThrows(CodedException.class, handlerToTest::shouldVerifyAccess);
+
+        assertEquals(X_ACCESS_DENIED, ce.getFaultCode());
+        assertTrue(ce.getMessage().contains("Request is not allowed"));
 
         // expecting an exception..
     }

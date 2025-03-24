@@ -57,10 +57,10 @@ public class ProxyMonitorService extends MonitorServiceGrpc.MonitorServiceImplBa
             final StatsResp response = StatsResp.newBuilder()
                     .setOpenFileDescriptorCount(stats.getOpenFileDescriptorCount())
                     .setMaxFileDescriptorCount(stats.getMaxFileDescriptorCount())
-                    .setSystemCpuLoad(Math.max(stats.getSystemCpuLoad(), 0d))
+                    .setSystemCpuLoad(Math.max(stats.getCpuLoad(), 0d))
                     .setCommittedVirtualMemorySize(stats.getCommittedVirtualMemorySize())
-                    .setFreePhysicalMemorySize(stats.getFreePhysicalMemorySize())
-                    .setTotalPhysicalMemorySize(stats.getTotalPhysicalMemorySize())
+                    .setFreePhysicalMemorySize(stats.getFreeMemorySize())
+                    .setTotalPhysicalMemorySize(stats.getTotalMemorySize())
                     .setFreeSwapSpaceSize(stats.getFreeSwapSpaceSize())
                     .setTotalSwapSpaceSize(stats.getTotalSwapSpaceSize())
                     .build();

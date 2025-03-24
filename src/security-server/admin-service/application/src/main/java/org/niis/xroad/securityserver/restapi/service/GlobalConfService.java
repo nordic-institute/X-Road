@@ -83,9 +83,10 @@ public class GlobalConfService {
      * Global groups may or may not have entries in IDENTIFIER table
      */
     public boolean globalGroupsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
+        var existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::id)
-                .collect(Collectors.toList());
+                .map(XRoadId.class::cast)
+                .collect(Collectors.toSet());
         return new HashSet<>(existingIdentifiers).containsAll(identifiers);
     }
 
@@ -95,9 +96,10 @@ public class GlobalConfService {
      * Clients may or may not have entries in IDENTIFIER table
      */
     public boolean clientsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfProvider.getMembers().stream()
+        var existingIdentifiers = globalConfProvider.getMembers().stream()
                 .map(MemberInfo::id)
-                .collect(Collectors.toList());
+                .map(XRoadId.class::cast)
+                .collect(Collectors.toSet());
         return new HashSet<>(existingIdentifiers).containsAll(identifiers);
     }
 
@@ -114,7 +116,6 @@ public class GlobalConfService {
 
     /**
      * Check the validity of the GlobalConf
-     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
@@ -188,7 +189,6 @@ public class GlobalConfService {
 
     /**
      * Find member's name in the global conf
-     *
      * @param memberClass
      * @param memberCode
      * @return

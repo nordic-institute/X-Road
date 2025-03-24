@@ -85,7 +85,7 @@ public class XmlUtilsTest {
     }
 
     @Test(expected = SAXParseException.class)
-    public void createXmlParser() throws SAXException, IOException {
+    public void createXmlParser() throws SAXException, IOException, ParserConfigurationException {
         XMLReader reader = XMLReaderFactory.createXMLReader();
         reader.setContentHandler(new XMLReaderAdapter());
 
