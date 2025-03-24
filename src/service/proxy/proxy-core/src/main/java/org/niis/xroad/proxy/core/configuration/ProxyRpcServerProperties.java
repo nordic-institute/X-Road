@@ -30,7 +30,6 @@ package org.niis.xroad.proxy.core.configuration;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
-import org.springframework.context.annotation.DependsOn;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
 @ConfigMapping(prefix = "xroad.proxy.rpc")

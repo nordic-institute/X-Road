@@ -55,7 +55,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoMockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -103,13 +103,13 @@ public class CsrfWebMvcTest {
     @MockitoSpyBean
     private ApiKeyAuthenticationManager apiKeyAuthenticationManager;
 
-    @MockitoMockBean
+    @MockitoBean
     private ConfClientRpcClient confClientRpcClient;
 
-    @MockitoMockBean
+    @MockitoBean
     private ProxyRpcClient proxyRpcClient;
 
-    @MockitoMockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 
     @Before

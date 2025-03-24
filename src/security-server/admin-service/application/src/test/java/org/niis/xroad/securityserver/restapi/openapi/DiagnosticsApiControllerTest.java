@@ -52,7 +52,6 @@ import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
 import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -228,7 +227,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getGlobalConfDiagnosticsException() throws Exception {
-        when(confClientRpcClient.getStatus()).thenThrow(new RuntimeException());        DeviationAwareRuntimeException exception =
+        when(confClientRpcClient.getStatus()).thenThrow(new RuntimeException());
+        DeviationAwareRuntimeException exception =
                 assertThrows(DeviationAwareRuntimeException.class, diagnosticsApiController::getGlobalConfDiagnostics);
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
     }

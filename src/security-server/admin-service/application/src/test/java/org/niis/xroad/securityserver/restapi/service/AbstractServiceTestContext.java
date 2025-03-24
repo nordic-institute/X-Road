@@ -74,8 +74,6 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     @MockitoBean
     ServerConfRepository serverConfRepository;
     @MockitoBean
-    AnchorRepository anchorRepository;
-    @MockitoBean
     IdentifierRepository identifierRepository;
     @MockitoBean
     LocalGroupRepository localGroupRepository;

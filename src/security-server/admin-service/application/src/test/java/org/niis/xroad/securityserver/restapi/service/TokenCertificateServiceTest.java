@@ -186,13 +186,13 @@ public class TokenCertificateServiceTest {
     @MockitoBean
     MonitorRpcClient monitorClient;
 
-    @MockBean
+    @MockitoBean
     ProxyRpcClient proxyRpcClient;
 
-    @MockBean
+    @MockitoBean
     ConfClientRpcClient confClientRpcClient;
 
-    @MockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 
     private final ClientId.Conf client = ClientId.Conf.create(TestUtils.INSTANCE_FI,

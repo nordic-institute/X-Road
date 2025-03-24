@@ -80,12 +80,12 @@ class ApplicationIpRateLimitTest {
 
     @MockitoBean
     MonitorRpcClient monitorClient;
-    @MockBean
+    @MockitoBean
     ConfClientRpcClient confClientRpcClient;
-    @MockBean
+    @MockitoBean
     ProxyRpcClient proxyRpcClient;
 
-    @MockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 
     @PostConstruct

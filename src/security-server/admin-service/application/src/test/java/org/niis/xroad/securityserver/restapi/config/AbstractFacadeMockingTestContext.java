@@ -73,10 +73,10 @@ public abstract class AbstractFacadeMockingTestContext {
     protected AcmeService acmeService;
     @MockitoBean
     MonitorRpcClient monitorClient;
-    @MockBean
+    @MockitoBean
     protected ProxyRpcClient proxyRpcClient;
-    @MockBean
+    @MockitoBean
     protected ConfClientRpcClient confClientRpcClient;
-    @MockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 }
