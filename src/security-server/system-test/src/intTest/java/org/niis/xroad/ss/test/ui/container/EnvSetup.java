@@ -99,10 +99,10 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     @SneakyThrows
     private void prepareDirectories(String... paths) {
-        for (String path : paths) {
-            Path dirPath = Paths.get(path);
-            dirPath.toFile().mkdirs();
-            if (SystemUtils.IS_OS_UNIX) {
+        if (SystemUtils.IS_OS_UNIX) {
+            for (String path : paths) {
+                Path dirPath = Paths.get(path);
+                dirPath.toFile().mkdirs();
                 Files.setPosixFilePermissions(dirPath, PosixFilePermissions.fromString("rwxrwxrwx"));
             }
         }

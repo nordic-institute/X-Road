@@ -61,6 +61,8 @@ public class SignerStepDefs extends BaseUiStepDefs {
     @Step("Predefined inactive signer token is uploaded")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void addInactiveSignerToken() {
+        // make file accessible for editing outside the container.
+        envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R",  "777", "/etc/xroad/signer");
         envSetup.stop(EnvSetup.SIGNER);
 
         String deviceEntry = """
