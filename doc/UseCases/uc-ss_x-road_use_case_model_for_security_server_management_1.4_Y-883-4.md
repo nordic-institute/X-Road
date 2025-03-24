@@ -211,7 +211,7 @@ following actor:
 The relationships between actors, systems and use cases are described in
 Figure 1.
 
-![](img/use_case_diagram_for_security_server_management.PNG)
+![](img/use_case_diagram_for_security_server_management.png)
 
 Figure 1. Use case diagram for security server management
 
