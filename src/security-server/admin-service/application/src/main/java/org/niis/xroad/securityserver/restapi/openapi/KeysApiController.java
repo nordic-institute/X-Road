@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -169,7 +170,7 @@ public class KeysApiController implements KeysApi {
         } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
             throw new InternalServerErrorException(e);
         }
-        if (csrGenerateDto.getAcmeOrder()) {
+        if (BooleanUtils.isTrue(csrGenerateDto.getAcmeOrder())) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
@@ -235,9 +236,8 @@ public class KeysApiController implements KeysApi {
     @PreAuthorize("hasAnyAuthority('GENERATE_AUTH_CERT_REQ', 'GENERATE_SIGN_CERT_REQ')")
     public ResponseEntity<Resource> downloadCsr(String keyId, String csrId, CsrFormatDto csrFormatDto) {
 
-        // squid:S3655 throwing NoSuchElementException if there is no value present is
-        // fine since csr format is mandatory parameter
-        CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormatDto).get();
+        // since csr format is mandatory parameter
+        CertificateRequestFormat certificateRequestFormat = CsrFormatMapping.map(csrFormatDto).orElseThrow();
         SignerRpcClient.GeneratedCertRequestInfo csrInfo;
         try {
             csrInfo = tokenCertificateService.regenerateCertRequest(keyId, csrId, certificateRequestFormat);

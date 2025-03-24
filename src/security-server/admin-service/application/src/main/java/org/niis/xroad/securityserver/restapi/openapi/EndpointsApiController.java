@@ -119,7 +119,7 @@ public class EndpointsApiController implements EndpointsApi {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
         EndpointDto endpointDto;
         try {
-            String method = endpointUpdateDto.getMethod() == null ? null : endpointUpdateDto.getMethod().toString();
+            String method = endpointUpdateDto.getMethod().toString();
             endpointDto = endpointConverter.convert(endpointService.updateEndpoint(endpointId,
                     method, endpointUpdateDto.getPath()));
         } catch (EndpointNotFoundException e) {
@@ -129,7 +129,7 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ClientNotFoundException e) {
-            throw new ConflictException("Client not found for the given endpoint with id: " + id);
+                throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
 
         return new ResponseEntity<>(endpointDto, HttpStatus.OK);

@@ -302,7 +302,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @WithMockUser(roles = "WRONG_ROLE")
     public void forbidden() {
         try {
-            ResponseEntity<Set<ClientDto>> response = clientsApiController.findClients(null, null, null, null, null, null,
+            clientsApiController.findClients(null, null, null, null, null, null,
                     null, null, false);
             fail("should throw AccessDeniedException");
         } catch (AccessDeniedException expected) {
@@ -1237,7 +1237,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         // Get subsystem service client
         ServiceClientDto subSystemserviceClient =
                 clientsApiController.getServiceClient(clientId, serviceClientId).getBody();
-        assertTrue(ServiceClientTypeDto.SUBSYSTEM.equals(subSystemserviceClient.getServiceClientType()));
+        assertEquals(ServiceClientTypeDto.SUBSYSTEM, subSystemserviceClient.getServiceClientType());
         assertTrue("FI:GOV:M1:SS2".equals(subSystemserviceClient.getId()));
 
         // Get localgroup service client

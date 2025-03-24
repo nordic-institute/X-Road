@@ -420,7 +420,7 @@ public class ClientsApiController implements ClientsApi {
         IsAuthentication isAuthentication = null;
 
         try {
-            isAuthentication = ConnectionTypeMapping.map(clientAddDto.getClient().getConnectionType()).get();
+            isAuthentication = ConnectionTypeMapping.map(clientAddDto.getClient().getConnectionType()).orElseThrow();
         } catch (Exception e) {
             throw new BadRequestException(e, newError(ERROR_INVALID_CONNECTION_TYPE));
         }

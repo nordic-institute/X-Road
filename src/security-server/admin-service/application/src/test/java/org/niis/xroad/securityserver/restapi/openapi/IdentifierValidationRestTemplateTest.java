@@ -48,7 +48,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.KeyNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescriptionDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
@@ -61,7 +60,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -488,8 +486,6 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         LocalGroupDescriptionDto localGroupDescription = new LocalGroupDescriptionDto()
                 .description(newLocalGroupDescription);
         HttpEntity<LocalGroupDescriptionDto> localGroupDescriptionEntity = new HttpEntity<>(localGroupDescription);
-        ParameterizedTypeReference<LocalGroupDto> typeRef = new ParameterizedTypeReference<LocalGroupDto>() {
-        };
         return restTemplate.exchange("/api/v1/local-groups/0", HttpMethod.PATCH, localGroupDescriptionEntity,
                 Object.class);
     }

@@ -107,9 +107,9 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @WithMockUser(authorities = {"VIEW_ENDPOINT"})
     public void getEndpoint() {
         EndpointDto endpoint = endpointsApiController.getEndpoint("12").getBody();
-        assertTrue(endpoint.getId().equals("12"));
-        assertTrue(endpoint.getMethod().equals(EndpointDto.MethodEnum.PUT));
-        assertTrue(endpoint.getPath().equals("/foo"));
+        assertEquals("12", endpoint.getId());
+        assertEquals(EndpointDto.MethodEnum.PUT, endpoint.getMethod());
+        assertEquals("/foo", endpoint.getPath());
     }
 
     @Test(expected = ResourceNotFoundException.class)

@@ -181,11 +181,11 @@ public class ServiceService {
 
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
 
-        serviceDescriptionEntity.getServices().forEach(service -> {
-            updateServiceFromSameDefinition(url, urlAll, timeout,
+        serviceDescriptionEntity.getServices().forEach(service ->
+                updateServiceFromSameDefinition(url, urlAll, timeout,
                     timeoutAll, sslAuth, sslAuthAll,
-                    serviceEntity, service);
-        });
+                    serviceEntity, service)
+        );
 
         return ServiceMapper.get().toTarget(serviceEntity);
     }

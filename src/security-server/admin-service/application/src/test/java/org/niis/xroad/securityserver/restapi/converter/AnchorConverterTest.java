@@ -62,7 +62,7 @@ public class AnchorConverterTest {
 
         AnchorDto anchor = anchorConverter.convert(anchorFile);
 
-        assertEquals(ANCHOR_HASH, anchorFile.getHash());
-        assertEquals(CREATED_AT, anchorFile.getCreatedAt().toString());
+        assertEquals(ANCHOR_HASH, anchor.getHash());
+        assertEquals(CREATED_AT, anchor.getCreatedAt().toString());
     }
 }

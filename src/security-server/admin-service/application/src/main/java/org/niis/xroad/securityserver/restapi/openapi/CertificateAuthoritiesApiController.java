@@ -200,7 +200,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + "(#acmeOrderDto.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).SIGNING))")
     @AuditEventMethod(event = RestApiAuditEvent.ACME_ORDER_CERTIFICATE)
     public ResponseEntity<Void> orderAcmeCertificate(String caName, AcmeOrderDto acmeOrderDto) {
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrderDto.getKeyUsageType()).get();
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrderDto.getKeyUsageType()).orElseThrow();
         try {
             tokenCertificateService.orderAcmeCertificate(caName, acmeOrderDto.getCsrId(), keyUsageInfo);
         } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException

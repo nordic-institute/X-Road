@@ -55,6 +55,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -309,7 +310,7 @@ public class InitializationService {
     private ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
         ServerConfEntity serverConfEntity = serverConfService.getOrCreateServerConfEntity();
 
-        if (StringUtils.isEmpty(serverConfEntity.getServerCode())) {
+        if (ObjectUtils.isEmpty(serverConfEntity.getServerCode())) {
             serverConfEntity.setServerCode(securityServerCode);
         }
 

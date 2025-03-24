@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Util class for comparing collections of EndpointEntity
@@ -63,7 +62,7 @@ public class EndpointEntityChangeChecker {
 
         List<EndpointEntity> addedEndpoints = newEndpoints.stream()
                 .filter(parsedEp -> serviceClientEndpoints.stream().noneMatch(ep -> ep.isEquivalent(parsedEp)))
-                .collect(Collectors.toList());
+                .toList();
 
         List<AccessRightEntity> removedAcls = serviceClientAcls.stream()
                 .filter(acl -> isAclRemoved(acl, addedEndpoints, removedEndpoints))
@@ -83,7 +82,7 @@ public class EndpointEntityChangeChecker {
     private List<String> toFullEndpointCodes(List<EndpointEntity> endpoints) {
         return endpoints.stream()
                 .map(this::toFullEndpointCode)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private String toFullEndpointCode(EndpointEntity endpointEntity) {

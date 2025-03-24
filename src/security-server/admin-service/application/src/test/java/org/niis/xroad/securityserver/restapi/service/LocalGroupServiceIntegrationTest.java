@@ -92,10 +92,10 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     @Test
     public void updateDescription() throws Exception {
         LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroup.getDescription(), FOO);
+        assertEquals(FOO, localGroup.getDescription());
         localGroupService.updateDescription(GROUP_ID, TestUtils.NEW_GROUP_DESC);
         localGroup = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroup.getDescription(), TestUtils.NEW_GROUP_DESC);
+        assertEquals(TestUtils.NEW_GROUP_DESC, localGroup.getDescription());
     }
 
     @Test
@@ -125,9 +125,11 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
                 localGroupService.getLocalGroupIdAsXroadId(groupId)
         );
 
-        assertTrue(ss1.getAccessRights().stream()
-                .filter(acl -> acl.getSubjectId().equals(localGroupXroadId))
-                .count() == TestUtils.GROUP1_ACCESS_RIGHTS_COUNT);
+        assertEquals(TestUtils.GROUP1_ACCESS_RIGHTS_COUNT,
+                ss1.getAccessRights().stream()
+                        .filter(acl -> acl.getSubjectId().equals(localGroupXroadId))
+                        .count()
+        );
 
         localGroupService.deleteLocalGroup(groupId);
 
