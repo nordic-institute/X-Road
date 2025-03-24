@@ -125,7 +125,7 @@ following actors.
 Relationships between the actors, the systems and the use cases are
 described in Figure 1.
 
-![](img/use_case_diagarm_for_federation_of_xroad_systems.PNG)
+![](img/use_case_diagarm_for_federation_of_xroad_systems.png)
 Figure 1. Use case diagram for the federation of X-Road systems
 
 ### 3.2 UC FED\_01: View Trusted Anchors
