@@ -219,7 +219,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                serverConfProvider.getServicesByDescriptionType(
+                serverConfProvider.getServicesByDescription(
                         request.getService().getClientId(), Description.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
@@ -233,7 +233,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                serverConfProvider.getAllowedServicesByDescriptionType(
+                serverConfProvider.getAllowedServicesByDescription(
                         request.getService().getClientId(),
                         request.getClient(), Description.WSDL));
 

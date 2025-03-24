@@ -65,7 +65,7 @@ public class ServerConfService {
 
     /**
      * Get the Security Server's ServerConf
-     * @return ServerConfTypeEntity
+     * @return ServerConfEntity
      */
     ServerConfEntity getServerConfEntity() {
         return serverConfRepository.getServerConf();
@@ -74,14 +74,14 @@ public class ServerConfService {
     /**
      * Get a server conf; an existing server conf will be returned if one exists. Otherwise
      * a new transient instance is returned.
-     * @return ServerConfTypeEntity
+     * @return ServerConfEntity
      */
     ServerConfEntity getOrCreateServerConfEntity() {
-        ServerConfEntity serverConfType = getServerConfGracefully();
-        if (serverConfType == null) {
+        ServerConfEntity serverConfEntity = getServerConfGracefully();
+        if (serverConfEntity == null) {
             return new ServerConfEntity();
         }
-        return serverConfType;
+        return serverConfEntity;
     }
 
     /**
@@ -108,12 +108,12 @@ public class ServerConfService {
 
     /**
      * Return a list of configured timestamping services
-     * @return List<TspTypeEntity>
+     * @return List<TimestampingServiceEntity>
      */
 
     List<TimestampingServiceEntity> getConfiguredTimestampingServiceEntities() {
-        ServerConfEntity serverConfType = serverConfRepository.getServerConf();
-        List<TimestampingServiceEntity> tsp = serverConfType.getTsp();
+        ServerConfEntity serverConfEntity = serverConfRepository.getServerConf();
+        List<TimestampingServiceEntity> tsp = serverConfEntity.getTimestampingServices();
         Hibernate.initialize(tsp);
         return tsp;
     }
@@ -123,9 +123,9 @@ public class ServerConfService {
      * @return boolean
      */
     public boolean isServerCodeInitialized() {
-        ServerConfEntity serverConfType = getServerConfGracefully();
-        if (serverConfType != null) {
-            return !ObjectUtils.isEmpty(serverConfType.getServerCode());
+        ServerConfEntity serverConfEntity = getServerConfGracefully();
+        if (serverConfEntity != null) {
+            return !ObjectUtils.isEmpty(serverConfEntity.getServerCode());
         }
         return false;
     }
@@ -135,9 +135,9 @@ public class ServerConfService {
      * @return boolean
      */
     public boolean isServerOwnerInitialized() {
-        ServerConfEntity serverConfType = getServerConfGracefully();
-        if (serverConfType != null) {
-            return serverConfType.getOwner() != null;
+        ServerConfEntity serverConfEntity = getServerConfGracefully();
+        if (serverConfEntity != null) {
+            return serverConfEntity.getOwner() != null;
         }
         return false;
     }
@@ -145,8 +145,8 @@ public class ServerConfService {
     /**
      * Save or update ServerConf
      */
-    public void saveOrUpdate(ServerConfEntity serverConfType) {
-        serverConfRepository.saveOrUpdate(serverConfType);
+    public void saveOrUpdate(ServerConfEntity serverConfEntity) {
+        serverConfRepository.saveOrUpdate(serverConfEntity);
     }
 
     /**

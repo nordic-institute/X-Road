@@ -146,7 +146,8 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
     private int countServiceClients(ClientId serviceOwnerId) {
         ClientEntity owner = clientRepository.getClient(serviceOwnerId);
-        var serviceClients = owner.getAcl().stream().map(acl -> acl.getSubjectId())
+        var serviceClients = owner.getAccessRights().stream()
+                .map(AccessRightEntity::getSubjectId)
                 .collect(Collectors.toSet());
         return serviceClients.size();
     }
@@ -285,20 +286,20 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         ClientId.Conf subsystemId = TestUtils.getClientId(TestUtils.CLIENT_ID_SS5);
         int initialServiceClients = countServiceClients(serviceOwner);
         long initialAccessRights = countAccessRights();
-        int initialAclSize = clientRepository.getClient(serviceOwner).getAcl().size();
+        int initialAclSize = clientRepository.getClient(serviceOwner).getAccessRights().size();
         List<ServiceClientAccessRightDto> dtos = accessRightService.addServiceClientAccessRights(
                 serviceOwner, serviceCodes, subsystemId);
         assertEquals(3, dtos.size());
         assertEquals(initialServiceClients + 1, countServiceClients(serviceOwner));
         assertEquals(initialAccessRights + 3, countAccessRights());
-        assertEquals(initialAclSize + 3, clientRepository.getClient(serviceOwner).getAcl().size());
+        assertEquals(initialAclSize + 3, clientRepository.getClient(serviceOwner).getAccessRights().size());
 
         // delete 2/3 of the added
         accessRightService.deleteServiceClientAccessRights(serviceOwner,
                 new HashSet<>(Arrays.asList("openapi-servicecode", "rest-servicecode")),
                 subsystemId);
         assertEquals(initialServiceClients + 1, countServiceClients(serviceOwner));
-        assertEquals(initialAclSize + 1, clientRepository.getClient(serviceOwner).getAcl().size());
+        assertEquals(initialAclSize + 1, clientRepository.getClient(serviceOwner).getAccessRights().size());
         assertEquals(initialAccessRights + 1, countAccessRights());
 
         // delete 1/3 remaining added

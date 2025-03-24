@@ -183,9 +183,9 @@ public class ClientService {
         return globalConfProvider.getMembers()
                 .stream()
                 .map(memberInfo -> {
-                    ClientEntity clientType = new ClientEntity();
-                    clientType.setIdentifier(XRoadIdMapper.get().toEntity(memberInfo.id()));
-                    return clientType;
+                    ClientEntity clientEntity = new ClientEntity();
+                    clientEntity.setIdentifier(XRoadIdMapper.get().toEntity(memberInfo.id()));
+                    return clientEntity;
                 })
                 .collect(Collectors.toList());
     }
@@ -208,53 +208,53 @@ public class ClientService {
     }
 
     /**
-     * Returns clientType.getIsCert() that has been fetched with Hibernate.init.
+     * Returns clientEntity.getCertificates() that has been fetched with Hibernate.init.
      *
-     * @param id
-     * @return list of CertificateTypes, or null if client does not exist
+     * @param id client id
+     * @return list of Certificate, or null if client does not exist
      */
     public List<Certificate> getLocalClientIsCerts(ClientId id) {
-        ClientEntity clientType = getLocalClientEntity(id);
-        if (clientType != null) {
-            Hibernate.initialize(clientType.getIsCert());
-            return CertificateMapper.get().toTargets(clientType.getIsCert());
+        ClientEntity clientEntity = getLocalClientEntity(id);
+        if (clientEntity != null) {
+            Hibernate.initialize(clientEntity.getCertificates());
+            return CertificateMapper.get().toTargets(clientEntity.getCertificates());
         }
         return null;
     }
 
     /**
-     * Returns clientType.getServiceDescription() that has been fetched with Hibernate.init.
+     * Returns client.getServiceDescription() that has been fetched with Hibernate.init.
      * Also serviceDescription.services and serviceDescription.client.endpoints have been fetched.
      *
      * @param id
-     * @return list of ServiceDescriptionTypes, or null if client does not exist
+     * @return list of ServiceDescription, or null if client does not exist
      */
     public List<ServiceDescription> getLocalClientServiceDescriptions(ClientId id) {
-        ClientEntity clientType = getLocalClientEntity(id);
-        if (clientType != null) {
-            for (ServiceDescriptionEntity serviceDescriptionType : clientType.getServiceDescription()) {
-                Hibernate.initialize(serviceDescriptionType.getService());
+        ClientEntity clientEntity = getLocalClientEntity(id);
+        if (clientEntity != null) {
+            for (ServiceDescriptionEntity serviceDescriptionEntity : clientEntity.getServiceDescriptions()) {
+                Hibernate.initialize(serviceDescriptionEntity.getServices());
             }
-            Hibernate.initialize(clientType.getEndpoint());
-            return ServiceDescriptionMapper.get().toTargets(clientType.getServiceDescription());
+            Hibernate.initialize(clientEntity.getEndpoints());
+            return ServiceDescriptionMapper.get().toTargets(clientEntity.getServiceDescriptions());
         }
         return null;
     }
 
     /**
-     * Returns clientType.getLocalGroup() that has been fetched with Hibernate.init.
+     * Returns client.getLocalGroup() that has been fetched with Hibernate.init.
      * Also localGroup.groupMembers have been fetched.
      *
-     * @param id
-     * @return list of LocalGroupTypes, or null if client does not exist
+     * @param id id
+     * @return list of LocalGroup, or null if client does not exist
      */
     public List<LocalGroup> getLocalClientLocalGroups(ClientId id) {
-        ClientEntity clientType = getLocalClientEntity(id);
-        if (clientType != null) {
-            for (LocalGroupEntity localGroupType : clientType.getLocalGroup()) {
-                Hibernate.initialize(localGroupType.getGroupMember());
+        ClientEntity clientEntity = getLocalClientEntity(id);
+        if (clientEntity != null) {
+            for (LocalGroupEntity localGroupEntity : clientEntity.getLocalGroups()) {
+                Hibernate.initialize(localGroupEntity.getGroupMembers());
             }
-            return LocalGroupMapper.get().toTargets(clientType.getLocalGroup());
+            return LocalGroupMapper.get().toTargets(clientEntity.getLocalGroups());
         }
         return null;
     }
@@ -270,12 +270,12 @@ public class ClientService {
      */
     public Client updateConnectionType(ClientId id, String connectionType) throws ClientNotFoundException {
         auditDataHelper.put(id);
-        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
+        ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
         // validate connectionType param by creating enum out of it
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         auditDataHelper.put(enumValue);
-        clientType.setIsAuthentication(connectionType);
-        return ClientMapper.get().toTarget(clientType);
+        clientEntity.setIsAuthentication(connectionType);
+        return ClientMapper.get().toTarget(clientEntity);
     }
 
     /**
@@ -284,17 +284,17 @@ public class ClientService {
      * @throws ClientNotFoundException if not found
      */
     ClientEntity getLocalClientEntityOrThrowNotFound(ClientId id) throws ClientNotFoundException {
-        ClientEntity clientType = getLocalClientEntity(id);
-        if (clientType == null) {
+        ClientEntity clientEntity = getLocalClientEntity(id);
+        if (clientEntity == null) {
             throw new ClientNotFoundException("client with id " + id + " not found");
         }
-        return clientType;
+        return clientEntity;
     }
 
     /**
      * @param id
      * @param certBytes either PEM or DER -encoded certificate
-     * @return created CertificateType with id populated
+     * @return created Certificate with id populated
      * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
      * @throws CertificateAlreadyExistsException if certificate already exists
      * @throws ClientNotFoundException if client was not found
@@ -309,25 +309,25 @@ public class ClientService {
             throw new CertificateException("cannot convert bytes to certificate", e);
         }
         String hash = calculateCertHexHash(x509Certificate);
-        CertificateEntity certificateType = new CertificateEntity();
+        CertificateEntity certificateEntity = new CertificateEntity();
         try {
-            certificateType.setData(x509Certificate.getEncoded());
+            certificateEntity.setData(x509Certificate.getEncoded());
         } catch (CertificateEncodingException ex) {
             // client cannot do anything about this
             throw new RuntimeException(ex);
         }
-        auditDataHelper.put(certificateType);
+        auditDataHelper.put(certificateEntity);
 
-        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
-        Optional<CertificateEntity> duplicate = clientType.getIsCert().stream()
+        ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
+        Optional<CertificateEntity> duplicate = clientEntity.getCertificates().stream()
                 .filter(cert -> hash.equalsIgnoreCase(calculateCertHexHash(cert.getData())))
                 .findFirst();
         if (duplicate.isPresent()) {
             throw new CertificateAlreadyExistsException("certificate already exists");
         }
 
-        clientType.getIsCert().add(certificateType);
-        return CertificateMapper.get().toTarget(certificateType);
+        clientEntity.getCertificates().add(certificateEntity);
+        return CertificateMapper.get().toTarget(certificateEntity);
     }
 
     /**
@@ -367,33 +367,33 @@ public class ClientService {
 
         auditDataHelper.put(id);
 
-        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
-        Optional<CertificateEntity> certificateType = clientType.getIsCert().stream()
+        ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
+        Optional<CertificateEntity> certificateEntity = clientEntity.getCertificates().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
-        if (!certificateType.isPresent()) {
+        if (!certificateEntity.isPresent()) {
             throw new CertificateNotFoundException();
         }
 
-        auditDataHelper.put(certificateType.get());
+        auditDataHelper.put(certificateEntity.get());
 
-        clientType.getIsCert().remove(certificateType.get());
+        clientEntity.getCertificates().remove(certificateEntity.get());
     }
 
     /**
      * Returns a single client tls certificate that has matching hash
      *
-     * @param id
-     * @param certificateHash
-     * @return
+     * @param id id
+     * @param certificateHash certificateHash
+     * @return Optional<Certificate>
      * @throws ClientNotFoundException if client was not found
      */
     public Optional<Certificate> getTlsCertificate(ClientId id, String certificateHash)
             throws ClientNotFoundException {
-        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(id);
-        return clientType.getIsCert().stream()
+        ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
+        return clientEntity.getCertificates().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
-                .map(certificateTypeEntity -> CertificateMapper.get().toTarget(certificateTypeEntity))
+                .map(certificateEntity -> CertificateMapper.get().toTarget(certificateEntity))
                 .findAny();
     }
 
@@ -700,13 +700,12 @@ public class ClientService {
     /**
      * Check whether client has valid local sign cert
      *
-     * @param clientType
-     * @return
+     * @param clientEntity clientEntity
+     * @return boolean
      */
-    private boolean hasValidLocalSignCertCheck(ClientEntity clientType) {
-        List<CertificateInfo> signCertificateInfos = currentSecurityServerSignCertificates
-                .getSignCertificateInfos();
-        return ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(), signCertificateInfos);
+    private boolean hasValidLocalSignCertCheck(ClientEntity clientEntity) {
+        List<CertificateInfo> signCertificateInfos = currentSecurityServerSignCertificates.getSignCertificateInfos();
+        return ClientUtils.hasValidLocalSignCert(clientEntity.getIdentifier(), signCertificateInfos);
     }
 
     /**
@@ -806,9 +805,9 @@ public class ClientService {
         auditDataHelper.putClientStatus(client);
 
         client.setIsAuthentication(isAuthentication.name());
-        ServerConfEntity serverConfType = serverConfService.getServerConfEntity();
-        client.setConf(serverConfType);
-        serverConfType.getClient().add(client);
+        ServerConfEntity serverConfEntity = serverConfService.getServerConfEntity();
+        client.setConf(serverConfEntity);
+        serverConfEntity.getClients().add(client);
 
         return clientRepository.persist(client);
     }
@@ -851,29 +850,29 @@ public class ClientService {
 
         auditDataHelper.put(clientId);
 
-        ClientEntity clientType = getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(clientId);
         // cant delete owner
         ClientIdEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
-        if (ownerId.equals(clientType.getIdentifier())) {
+        if (ownerId.equals(clientEntity.getIdentifier())) {
             throw new CannotDeleteOwnerException();
         }
         // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
         Set<String> allowedStatuses = Set.of(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
-        if (!allowedStatuses.contains(clientType.getClientStatus())) {
-            throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
+        if (!allowedStatuses.contains(clientEntity.getClientStatus())) {
+            throw new ActionNotPossibleException("cannot delete client with status " + clientEntity.getClientStatus());
         }
         // we also remove local group members and access rights what is given to this client
-        localGroupRepository.deleteGroupMembersByMemberId(clientType.getIdentifier());
-        accessRightRepository.deleteBySubjectId(clientType.getIdentifier());
-        removeLocalClient(clientType);
+        localGroupRepository.deleteGroupMembersByMemberId(clientEntity.getIdentifier());
+        accessRightRepository.deleteBySubjectId(clientEntity.getIdentifier());
+        removeLocalClient(clientEntity);
     }
 
-    private void removeLocalClient(ClientEntity clientType) {
-        ServerConfEntity serverConfType = serverConfService.getServerConfEntity();
-        if (!serverConfType.getClient().remove(clientType)) {
+    private void removeLocalClient(ClientEntity clientEntity) {
+        ServerConfEntity serverConfEntity = serverConfService.getServerConfEntity();
+        if (!serverConfEntity.getClients().remove(clientEntity)) {
             throw new RuntimeException("client to be deleted was somehow missing from server conf");
         }
-        identifierRepository.remove(clientType.getIdentifier());
+        identifierRepository.remove(clientEntity.getIdentifier());
     }
 
     /**

@@ -302,26 +302,26 @@ public class InitializationService {
      * Helper to create the initial server conf with a new server code and owner. If an existing server conf is found
      * and it already has a server code or an owner -> the existing values will not be overridden
      *
-     * @param ownerClientId
-     * @param securityServerCode
-     * @return ServerConfType
+     * @param ownerClientId ownerClientId
+     * @param securityServerCode securityServerCode
+     * @return ServerConfEntity
      */
     private ServerConfEntity createInitialServerConf(ClientIdEntity ownerClientId, String securityServerCode) {
-        ServerConfEntity serverConf = serverConfService.getOrCreateServerConfEntity();
+        ServerConfEntity serverConfEntity = serverConfService.getOrCreateServerConfEntity();
 
-        if (StringUtils.isEmpty(serverConf.getServerCode())) {
-            serverConf.setServerCode(securityServerCode);
+        if (StringUtils.isEmpty(serverConfEntity.getServerCode())) {
+            serverConfEntity.setServerCode(securityServerCode);
         }
 
-        if (serverConf.getOwner() == null) {
+        if (serverConfEntity.getOwner() == null) {
             ClientEntity ownerClient = getInitialClient(ownerClientId);
-            ownerClient.setConf(serverConf);
-            if (!serverConf.getClient().contains(ownerClient)) {
-                serverConf.getClient().add(ownerClient);
+            ownerClient.setConf(serverConfEntity);
+            if (!serverConfEntity.getClients().contains(ownerClient)) {
+                serverConfEntity.getClients().add(ownerClient);
             }
-            serverConf.setOwner(ownerClient);
+            serverConfEntity.setOwner(ownerClient);
         }
-        return serverConf;
+        return serverConfEntity;
     }
 
     /**

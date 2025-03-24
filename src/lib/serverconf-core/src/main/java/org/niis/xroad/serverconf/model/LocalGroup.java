@@ -43,6 +43,6 @@ public class LocalGroup {
     private Long id;
     private String groupCode;
     private String description;
-    private final List<GroupMember> groupMember = new ArrayList<>();
+    private final List<GroupMember> groupMembers = new ArrayList<>();
     private Date updated;
 }

@@ -36,20 +36,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Util class for comparing collections of EndpointType
+ * Util class for comparing collections of EndpointEntity
  */
 @Component
-public class EndpointTypeChangeChecker {
+public class EndpointEntityChangeChecker {
 
     /**
      * Create lists of full service codes, ones that were added and ones that were removed,
-     * by comparing collections of {@link EndpointEntity}s. Also retain the lists as List<EndpointTypeEntity>
+     * by comparing collections of {@link EndpointEntity}s. Also retain the lists as List<EndpointEntity>
      *
-     * @param serviceClientEndpoints
-     * @param oldEndpoints
-     * @param newEndpoints
-     * @param serviceClientAcls
-     * @return
+     * @param serviceClientEndpoints serviceClientEndpoints
+     * @param oldEndpoints oldEndpoints
+     * @param newEndpoints newEndpoints
+     * @param serviceClientAcls serviceClientAcls
+     * @return ServiceChanges
      */
     ServiceChanges check(List<EndpointEntity> serviceClientEndpoints,
                                 List<EndpointEntity> oldEndpoints,
@@ -72,12 +72,12 @@ public class EndpointTypeChangeChecker {
         return new ServiceChanges(addedEndpoints, removedEndpoints, removedAcls);
     }
 
-    private boolean isAclRemoved(AccessRightEntity accessRightType,
+    private boolean isAclRemoved(AccessRightEntity accessRightEntity,
                                  List<EndpointEntity> addedEndpoints,
                                  List<EndpointEntity> removedEndpoints) {
-        EndpointEntity endpoint = accessRightType.getEndpoint();
-        return removedEndpoints.contains(endpoint)
-                && addedEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(endpoint));
+        EndpointEntity endpointEntity = accessRightEntity.getEndpoint();
+        return removedEndpoints.contains(endpointEntity)
+                && addedEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(endpointEntity));
     }
 
     private List<String> toFullEndpointCodes(List<EndpointEntity> endpoints) {
@@ -86,12 +86,12 @@ public class EndpointTypeChangeChecker {
                 .collect(Collectors.toList());
     }
 
-    private String toFullEndpointCode(EndpointEntity endpointType) {
-        return endpointType.getMethod() + " " + endpointType.getPath();
+    private String toFullEndpointCode(EndpointEntity endpointEntity) {
+        return endpointEntity.getMethod() + " " + endpointEntity.getPath();
     }
 
     /**
-     * List of EndpointType of added and removed endpoints
+     * List of EndpointEntity of added and removed endpoints
      */
     @Data
     public class ServiceChanges {

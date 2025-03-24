@@ -49,7 +49,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
     private LocalGroupConverter localGroupConverter;
-    private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @Before
     public void setup() {
@@ -76,7 +76,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
         localGroup.setDescription("Local Group 1");
         localGroup.setGroupCode("Local Group Code 1");
         localGroup.setUpdated(new Date());
-        localGroup.getGroupMember().add(groupMember);
+        localGroup.getGroupMembers().add(groupMember);
 
         LocalGroupDto group = localGroupConverter.convert(localGroup);
 

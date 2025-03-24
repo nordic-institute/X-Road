@@ -85,5 +85,5 @@ public class ServiceDescriptionEntity {
     private ClientEntity client;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "serviceDescription", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<ServiceEntity> service = new ArrayList<>();
+    private List<ServiceEntity> services = new ArrayList<>();
 }

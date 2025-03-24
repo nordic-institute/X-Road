@@ -46,17 +46,17 @@ public class EndpointHelper {
 
     /**
      * Get endpoints from given service description
-     * @param serviceDescriptionType service description
-     * @return List<EndpointTypeEntity>
+     * @param serviceDescriptionEntity service description
+     * @return List<EndpointEntity>
      */
-    public List<EndpointEntity> getEndpoints(ServiceDescriptionEntity serviceDescriptionType) {
-        ClientEntity client = serviceDescriptionType.getClient();
-        List<String> allServiceCodes = serviceDescriptionType.getService().stream()
+    public List<EndpointEntity> getEndpoints(ServiceDescriptionEntity serviceDescriptionEntity) {
+        ClientEntity client = serviceDescriptionEntity.getClient();
+        List<String> allServiceCodes = serviceDescriptionEntity.getServices().stream()
                 .map(ServiceEntity::getServiceCode)
                 .toList();
-        List<EndpointEntity> allEndpoints = client.getEndpoint();
+        List<EndpointEntity> allEndpoints = client.getEndpoints();
         return allEndpoints.stream()
-                .filter(endpointType -> allServiceCodes.contains(endpointType.getServiceCode()))
+                .filter(endpointEntity -> allServiceCodes.contains(endpointEntity.getServiceCode()))
                 .collect(Collectors.toList());
     }
 

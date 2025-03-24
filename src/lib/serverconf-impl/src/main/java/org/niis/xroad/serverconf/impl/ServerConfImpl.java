@@ -201,7 +201,7 @@ public class ServerConfImpl implements ServerConfProvider {
         serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
         serviceDetails.setServiceCode(serviceId.getServiceCode());
         serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-        serviceDetails.setServiceType(getRestServiceType(getDescriptionType(serviceId)));
+        serviceDetails.setServiceType(getRestServiceType(getDescription(serviceId)));
         return serviceDetails;
     }
 
@@ -219,8 +219,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                             Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
         return tx(session -> XRoadIdMapper.get().toServices(
                 serviceDao.getServicesByDescriptionType(session, serviceProvider, description)
         ));
@@ -238,8 +237,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                    Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
                     XRoadIdMapper.get().toServices(
@@ -267,7 +265,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ClientId.Conf> getMembers() {
-        return tx(session -> getConf(session).getClient().stream()
+        return tx(session -> getConf(session).getClients().stream()
                 .map(Client::getIdentifier)
                 .collect(Collectors.toList()));
     }
@@ -350,14 +348,14 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<String> getTspUrl() {
-        return tx(session -> getConf(session).getTsp().stream()
+        return tx(session -> getConf(session).getTimestampingServices().stream()
                 .map(TimestampingService::getUrl)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }
 
     @Override
-    public Description getDescriptionType(ServiceId service) {
+    public Description getDescription(ServiceId service) {
         return tx(session -> {
             Service serviceType = getService(session, service);
             if (serviceType != null && serviceType.getServiceDescription() != null) {
@@ -381,7 +379,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ee.ria.xroad.common.metadata.Endpoint> getServiceEndpoints(ServiceId serviceId) {
-        return tx(session -> clientDao.getClient(session, serviceId.getClientId()).getEndpoint().stream()
+        return tx(session -> clientDao.getClient(session, serviceId.getClientId()).getEndpoints().stream()
                 .map(e -> EndpointMapper.get().toTarget(e))
                 .filter(e -> e.getServiceCode().equals(serviceId.getServiceCode()))
                 .filter(e -> !e.isBaseEndpoint())
@@ -468,7 +466,7 @@ public class ServerConfImpl implements ServerConfProvider {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<AccessRightEntity> query = cb.createQuery(AccessRightEntity.class);
         final Root<ClientEntity> root = query.from(ClientEntity.class);
-        final Join<ClientEntity, AccessRightEntity> acl = root.join("acl");
+        final Join<ClientEntity, AccessRightEntity> acl = root.join("accessRights");
         final Join<AccessRightEntity, EndpointEntity> endpoint = acl.join("endpoint");
         final Join<AccessRightEntity, XRoadIdEntity> identifier = acl.join("subjectId");
         acl.fetch("endpoint");
@@ -504,9 +502,9 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientEntity groupOwner) {
-        return groupOwner.getLocalGroup().stream()
+        return groupOwner.getLocalGroups().stream()
                 .filter(g -> Objects.equals(groupId.getGroupCode(), g.getGroupCode()))
-                .flatMap(g -> g.getGroupMember().stream())
+                .flatMap(g -> g.getGroupMembers().stream())
                 .anyMatch(m -> m.getGroupMemberId().equals(member));
     }
 

@@ -76,7 +76,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<LocalGroupDto> getLocalGroup(String groupIdString) {
-        LocalGroup localGroup = getLocalGroupType(groupIdString);
+        LocalGroup localGroup = getLocalGroupFromDb(groupIdString);
         return new ResponseEntity<>(localGroupConverter.convert(localGroup), HttpStatus.OK);
     }
 
@@ -136,7 +136,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     @AuditEventMethod(event = REMOVE_LOCAL_GROUP_MEMBERS)
     public ResponseEntity<Void> deleteLocalGroupMember(String groupIdString, MembersDto membersDto) {
-        LocalGroup localGroup = getLocalGroupType(groupIdString);
+        LocalGroup localGroup = getLocalGroupFromDb(groupIdString);
         try {
             localGroupService.deleteGroupMembers(localGroup.getId(),
                     clientIdConverter.convertIds(membersDto.getItems()));
@@ -150,7 +150,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
      * Read one group from DB, throw ResourceNotFoundException or
      * BadRequestException is needed
      */
-    private LocalGroup getLocalGroupType(String groupIdString) {
+    private LocalGroup getLocalGroupFromDb(String groupIdString) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
         if (localGroup == null) {

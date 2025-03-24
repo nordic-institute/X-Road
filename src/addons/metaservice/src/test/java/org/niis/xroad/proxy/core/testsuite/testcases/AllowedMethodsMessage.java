@@ -100,7 +100,7 @@ public class AllowedMethodsMessage extends MessageTestCase {
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+            public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
                                                                             Description description) {
 
                 assertThat("Wrong client in query", client, is(expectedClientQuery));

@@ -61,8 +61,8 @@ public interface ServiceMapper extends GenericUniDirectionalMapper<ServiceEntity
             service.setTimeout(entity.getTimeout());
         }
         service.getEndpoints().addAll(EndpointMapper.get().toTargets(
-                entity.getServiceDescription().getClient().getEndpoint().stream()
-                .filter(endpointTypeEntity -> endpointTypeEntity.getServiceCode().equals(entity.getServiceCode()))
+                entity.getServiceDescription().getClient().getEndpoints().stream()
+                .filter(endpointEntity -> endpointEntity.getServiceCode().equals(entity.getServiceCode()))
                 .collect(Collectors.toList())
                 )
         );

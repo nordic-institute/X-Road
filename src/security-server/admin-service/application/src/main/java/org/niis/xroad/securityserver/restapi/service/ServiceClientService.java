@@ -85,15 +85,15 @@ public class ServiceClientService {
         }
 
         // Filter just acls that are set to base endpoints so they are on service code level
-        List<AccessRightEntity> serviceCodeLevelAcls = owner.getAcl().stream()
+        List<AccessRightEntity> serviceCodeLevelAcls = owner.getAccessRights().stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint())
                 .collect(Collectors.toList());
-        List<AccessRightEntity> distinctAccessRightTypes = distinctAccessRightTypeByXroadId(serviceCodeLevelAcls);
-        return accessRightService.mapAccessRightsToServiceClients(owner, distinctAccessRightTypes);
+        List<AccessRightEntity> distinctAccessRights = distinctAccessRightEntityByXRoadId(serviceCodeLevelAcls);
+        return accessRightService.mapAccessRightsToServiceClients(owner, distinctAccessRights);
     }
 
-    // Get unique AccessRightTypes from the given list
-    private List<AccessRightEntity> distinctAccessRightTypeByXroadId(List<AccessRightEntity> acls) {
+    // Get unique AccessRightEntity from the given list
+    private List<AccessRightEntity> distinctAccessRightEntityByXRoadId(List<AccessRightEntity> acls) {
         HashMap<XRoadId, AccessRightEntity> uniqueServiceClientMap = new HashMap<>();
         for (AccessRightEntity acl : acls) {
             if (!uniqueServiceClientMap.containsKey(acl.getSubjectId())) {
@@ -101,8 +101,8 @@ public class ServiceClientService {
             } else {
                 // if there are multiple access right with equal subjectId populate the hashmap
                 // with the one with earliest timestamp in rights_given_at
-                AccessRightEntity accessRightType = uniqueServiceClientMap.get(acl.getSubjectId());
-                if (acl.getRightsGiven().before(accessRightType.getRightsGiven())) {
+                AccessRightEntity accessRightEntity = uniqueServiceClientMap.get(acl.getSubjectId());
+                if (acl.getRightsGiven().before(accessRightEntity.getRightsGiven())) {
                     uniqueServiceClientMap.put(acl.getSubjectId(), acl);
                 }
             }
@@ -144,17 +144,16 @@ public class ServiceClientService {
      */
     public List<ServiceClient> getServiceClientsByService(ClientId clientId, String fullServiceCode)
             throws ClientNotFoundException, ServiceNotFoundException, EndpointNotFoundException {
-        ClientEntity clientType = clientRepository.getClient(clientId);
-        if (clientType == null) {
+        ClientEntity clientEntity = clientRepository.getClient(clientId);
+        if (clientEntity == null) {
             throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
         }
 
-        ServiceEntity serviceType = serviceService.getServiceEntityFromClient(clientType, fullServiceCode);
-        EndpointEntity endpointType = endpointService.getServiceBaseEndpoint(serviceType);
+        ServiceEntity serviceEntity = serviceService.getServiceEntityFromClient(clientEntity, fullServiceCode);
+        EndpointEntity endpointEntity = endpointService.getServiceBaseEndpointEntity(serviceEntity);
 
-        List<AccessRightEntity> accessRightsByEndpoint = accessRightService
-                .getAccessRightsByEndpoint(clientType, endpointType);
-        return accessRightService.mapAccessRightsToServiceClients(clientType, accessRightsByEndpoint);
+        List<AccessRightEntity> accessRightsByEndpoint = accessRightService.getAccessRightsByEndpoint(clientEntity, endpointEntity);
+        return accessRightService.mapAccessRightsToServiceClients(clientEntity, accessRightsByEndpoint);
     }
 
     /**
@@ -167,12 +166,11 @@ public class ServiceClientService {
     public List<ServiceClient> getServiceClientsByEndpoint(Long id)
             throws EndpointNotFoundException, ClientNotFoundException {
 
-        ClientEntity clientType = clientRepository.getClientByEndpointId(id);
-        EndpointEntity endpointType = endpointService.getEndpointEntity(id);
+        ClientEntity clientEntity = clientRepository.getClientByEndpointId(id);
+        EndpointEntity endpointEntity = endpointService.getEndpointEntity(id);
 
-        List<AccessRightEntity> accessRightsByEndpoint = accessRightService
-                .getAccessRightsByEndpoint(clientType, endpointType);
-        return accessRightService.mapAccessRightsToServiceClients(clientType, accessRightsByEndpoint);
+        List<AccessRightEntity> accessRightsByEndpoint = accessRightService.getAccessRightsByEndpoint(clientEntity, endpointEntity);
+        return accessRightService.mapAccessRightsToServiceClients(clientEntity, accessRightsByEndpoint);
     }
 
     /**
@@ -197,7 +195,7 @@ public class ServiceClientService {
         getServiceClient(ownerId, serviceClientId);
 
         // Filter service clients access rights from the given clients acl-list
-        return AccessRightMapper.get().toTargets(owner.getAcl()).stream()
+        return AccessRightMapper.get().toTargets(owner.getAccessRights()).stream()
                 .filter(acl -> acl.getEndpoint().isBaseEndpoint() && acl.getSubjectId().equals(serviceClientId))
                 .map(acl -> ServiceClientAccessRightDto.builder()
                         .serviceCode(acl.getEndpoint().getServiceCode())

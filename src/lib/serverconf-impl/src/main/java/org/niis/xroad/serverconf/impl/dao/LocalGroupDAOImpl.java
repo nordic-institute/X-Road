@@ -35,10 +35,10 @@ import org.niis.xroad.serverconf.entity.LocalGroupEntity;
 public class LocalGroupDAOImpl {
 
     /**
-     * Returns the LocalGroupTypeEntity for the given LocalGroupTypeEntity id.
+     * Returns the LocalGroupEntity for the given LocalGroupEntity id.
      * @param session the session
-     * @param id the LocalGroupTypeEntity id
-     * @return the LocalGroupTypeEntity, or null if not found
+     * @param id the LocalGroupEntity id
+     * @return the LocalGroupEntity, or null if not found
      */
     public LocalGroupEntity getLocalGroup(Session session, Long id) {
         return session.get(LocalGroupEntity.class, id);

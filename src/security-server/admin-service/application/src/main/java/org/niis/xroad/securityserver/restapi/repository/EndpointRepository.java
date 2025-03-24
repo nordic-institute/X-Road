@@ -45,7 +45,7 @@ public class EndpointRepository {
      * Get EndpointEntity by id
      *
      * @param id endpoint id
-     * @return EndpointTypeEntity
+     * @return EndpointEntity
      */
     public EndpointEntity getEndpoint(Long id) {
         return this.persistenceUtils.getCurrentSession().get(EndpointEntity.class, id);

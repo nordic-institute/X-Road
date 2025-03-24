@@ -349,7 +349,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        Description description = commonBeanProxy.serverConfProvider.getDescriptionType(requestServiceId);
+        Description description = commonBeanProxy.serverConfProvider.getDescription(requestServiceId);
         if (description != null && description != Description.REST
                 && description != Description.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,

@@ -194,7 +194,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<ClientDto> getClient(String id) {
-        Client client = getClientType(id);
+        Client client = getClientFromDb(id);
         ClientDto clientDto = clientConverter.convert(client);
         return new ResponseEntity<>(clientDto, HttpStatus.OK);
     }
@@ -203,11 +203,11 @@ public class ClientsApiController implements ClientsApi {
      * Read one client from DB
      * @param encodedId id that is encoded with the <INSTANCE>:<MEMBER_CLASS>:....
      * encoding
-     * @return
+     * @return Client
      * @throws ResourceNotFoundException if client does not exist
      * @throws BadRequestException if encodedId was not proper encoded client ID
      */
-    private Client getClientType(String encodedId) {
+    private Client getClientFromDb(String encodedId) {
         ClientId clientId = clientIdConverter.convertId(encodedId);
         Client client = clientService.getLocalClient(clientId);
         if (client == null) {
@@ -219,7 +219,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
     public ResponseEntity<Set<TokenCertificateDto>> getClientSignCertificates(String encodedId) {
-        Client client = getClientType(encodedId);
+        Client client = getClientFromDb(encodedId);
         List<CertificateInfo> certificateInfos = tokenService.getSignCertificates(client);
         Set<TokenCertificateDto> certificates = new HashSet<>(tokenCertificateConverter.convert(certificateInfos));
         return new ResponseEntity<>(certificates, HttpStatus.OK);
@@ -295,23 +295,23 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public ResponseEntity<CertificateDetailsDto> getClientTlsCertificate(String encodedId, String certHash) {
         ClientId clientId = clientIdConverter.convertId(encodedId);
-        Optional<Certificate> certificateType;
+        Optional<Certificate> certificate;
         try {
-            certificateType = clientService.getTlsCertificate(clientId, certHash);
+            certificate = clientService.getTlsCertificate(clientId, certHash);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        if (!certificateType.isPresent()) {
+        if (!certificate.isPresent()) {
             throw new ResourceNotFoundException("certificate with hash " + certHash
                     + ", client id " + encodedId + " not found");
         }
-        return new ResponseEntity<>(certificateDetailsConverter.convert(certificateType.get()), HttpStatus.OK);
+        return new ResponseEntity<>(certificateDetailsConverter.convert(certificate.get()), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
     public ResponseEntity<Set<CertificateDetailsDto>> getClientTlsCertificates(String encodedId) {
-        Client client = getClientType(encodedId);
+        Client client = getClientFromDb(encodedId);
         Set<CertificateDetailsDto> certificates = clientService.getLocalClientIsCerts(client.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
@@ -323,7 +323,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP)
     public ResponseEntity<LocalGroupDto> addClientLocalGroup(String id, LocalGroupAddDto localGroupAdd) {
-        Client client = getClientType(id);
+        Client client = getClientFromDb(id);
         LocalGroup localGroup = null;
         try {
             localGroup = localGroupService.addLocalGroup(client.getIdentifier(),
@@ -340,7 +340,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<Set<LocalGroupDto>> getClientLocalGroups(String encodedId) {
-        Client client = getClientType(encodedId);
+        Client client = getClientFromDb(encodedId);
         List<LocalGroup> localGroups = clientService.getLocalClientLocalGroups(client.getIdentifier());
         Set<LocalGroupDto> localGroupDtos = localGroupConverter.convert(localGroups);
         return new ResponseEntity<>(localGroupDtos, HttpStatus.OK);
@@ -349,7 +349,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<Set<ServiceDescriptionDto>> getClientServiceDescriptions(String encodedId) {
-        Client client = getClientType(encodedId);
+        Client client = getClientFromDb(encodedId);
         Set<ServiceDescriptionDto> serviceDescriptionDtos = serviceDescriptionConverter.convert(
                 clientService.getLocalClientServiceDescriptions(client.getIdentifier()));
 
@@ -624,10 +624,10 @@ public class ClientsApiController implements ClientsApi {
                                                                          String endcodedServiceClientId, AccessRightsDto accessRightDtos) {
         ClientId clientId = clientIdConverter.convertId(encodedClientId);
         Set<String> serviceCodes = getServiceCodes(accessRightDtos);
-        List<ServiceClientAccessRightDto> accessRightTypes = null;
+        List<ServiceClientAccessRightDto> serviceClientAccessRightDtos = null;
         try {
             XRoadId.Conf serviceClientId = serviceClientHelper.processServiceClientXRoadId(endcodedServiceClientId);
-            accessRightTypes = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
+            serviceClientAccessRightDtos = accessRightService.addServiceClientAccessRights(clientId, serviceCodes, serviceClientId);
         } catch (ServiceClientNotFoundException | ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ServiceNotFoundException e) {
@@ -637,7 +637,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
         }
-        return new ResponseEntity<>(accessRightConverter.convert(accessRightTypes), HttpStatus.CREATED);
+        return new ResponseEntity<>(accessRightConverter.convert(serviceClientAccessRightDtos), HttpStatus.CREATED);
     }
 
     @Override

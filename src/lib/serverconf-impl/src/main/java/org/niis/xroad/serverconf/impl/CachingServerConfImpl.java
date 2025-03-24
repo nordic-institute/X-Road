@@ -190,57 +190,57 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public boolean serviceExists(ServiceId service) {
-        return getService(service).isPresent();
+    public boolean serviceExists(ServiceId serviceId) {
+        return getService(serviceId).isPresent();
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
-        return getService(service).map(Service::getUrl).orElse(null);
+    public String getServiceAddress(ServiceId serviceId) {
+        return getService(serviceId).map(Service::getUrl).orElse(null);
     }
 
     @Override
-    public String getServiceDescriptionURL(ServiceId service) {
-        return getService(service).map(it -> it.getServiceDescription().getUrl()).orElse(null);
+    public String getServiceDescriptionURL(ServiceId serviceId) {
+        return getService(serviceId).map(it -> it.getServiceDescription().getUrl()).orElse(null);
     }
 
     @Override
-    public Description getDescriptionType(ServiceId service) {
-        return getService(service).map(it -> it.getServiceDescription().getType()).orElse(null);
+    public Description getDescription(ServiceId serviceId) {
+        return getService(serviceId).map(it -> it.getServiceDescription().getType()).orElse(null);
     }
 
     @Override
-    public boolean isSslAuthentication(ServiceId service) {
-        Optional<Service> serviceTypeOptional = getService(service);
-        if (!serviceTypeOptional.isPresent()) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service);
+    public boolean isSslAuthentication(ServiceId serviceId) {
+        Optional<Service> serviceOptional = getService(serviceId);
+        if (serviceOptional.isEmpty()) {
+            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", serviceId);
         }
-        Service serviceType = serviceTypeOptional.get();
-        return (boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true);
+        Service service = serviceOptional.get();
+        return (boolean) ObjectUtils.defaultIfNull(service.getSslAuthentication(), true);
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
-        return getService(service).map(it ->
-                it.getServiceDescription().isDisabled() ? it.getServiceDescription().getDisabledNotice() : null
+    public String getDisabledNotice(ServiceId serviceId) {
+        return getService(serviceId)
+                .map(it -> it.getServiceDescription().isDisabled() ? it.getServiceDescription().getDisabledNotice() : null
         ).orElse(null);
     }
 
     @Override
-    public int getServiceTimeout(ServiceId service) {
-        return getService(service).map(Service::getTimeout).orElse(DEFAULT_SERVICE_TIMEOUT);
+    public int getServiceTimeout(ServiceId serviceId) {
+        return getService(serviceId).map(Service::getTimeout).orElse(DEFAULT_SERVICE_TIMEOUT);
     }
 
     @Override
-    protected List<Endpoint> getAclEndpoints(Session session, ClientId client, ServiceId service) {
-        final AclCacheKey key = new AclCacheKey(client, service);
+    protected List<Endpoint> getAclEndpoints(Session session, ClientId client, ServiceId serviceId) {
+        final AclCacheKey key = new AclCacheKey(client, serviceId);
         try {
             /*
              * Implementation note. It seems that the loader function is executed in the same thread, in which case the
              * transaction simply joins the current one. However, this is not explicitly promised by the API,
              * so we start a transaction if necessary.
              */
-            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, client, service)));
+            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, client, serviceId)));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
                 throw (CodedException) e.getCause();

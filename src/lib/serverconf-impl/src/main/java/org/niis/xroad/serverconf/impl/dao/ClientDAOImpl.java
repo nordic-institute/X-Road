@@ -118,38 +118,38 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientEntity> {
     public List<CertificateEntity> getIsCerts(Session session, ClientId id) {
         ClientEntity client = getClient(session, id);
         if (client != null) {
-            return client.getIsCert();
+            return client.getCertificates();
         }
         return emptyList();
     }
 
     /**
-     * Returns ClientTypeEntity containing endpoint with id given as parameter
+     * Returns ClientEntity containing endpoint with id given as parameter
      *
      * @param session       the session
-     * @param endpointType  endpointType entity
+     * @param endpointEntity  endpoint entity
      * @return the client, or null if matching client was not found for the endpoint id
      */
-    public ClientEntity getClientByEndpoint(Session session, EndpointEntity endpointType) {
+    public ClientEntity getClientByEndpoint(Session session, EndpointEntity endpointEntity) {
         Query<ClientEntity> query = session.createQuery(
-                "select c from ClientEntity as c where :endpoint member of c.endpoint",
+                "select c from ClientEntity as c where :endpoint member of c.endpoints",
                 ClientEntity.class);
-        query.setParameter("endpoint", endpointType);
+        query.setParameter("endpoint", endpointEntity);
         return findOne(query);
     }
 
     /**
-     * Returns ClientTypeEntity containing localGroupType given as parameter
+     * Returns ClientEntity containing localGroupEntity given as parameter
      *
      * @param session       the session
-     * @param localGroupType  localGroupType entity
-     * @return the client, or null if matching client was not found for the localGroupType
+     * @param localGroupEntity  localGroup entity
+     * @return the client, or null if matching client was not found for the localGroupEntity
      */
-    public ClientEntity getClientByLocalGroup(Session session, LocalGroupEntity localGroupType) {
+    public ClientEntity getClientByLocalGroup(Session session, LocalGroupEntity localGroupEntity) {
         Query<ClientEntity> query = session.createQuery(
-                "select c from ClientEntity as c where :localGroup member of c.localGroup",
+                "select c from ClientEntity as c where :localGroup member of c.localGroups",
                 ClientEntity.class);
-        query.setParameter("localGroup", localGroupType);
+        query.setParameter("localGroup", localGroupEntity);
         return findOne(query);
     }
 }

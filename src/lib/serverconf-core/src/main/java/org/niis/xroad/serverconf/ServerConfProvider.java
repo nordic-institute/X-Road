@@ -97,7 +97,7 @@ public interface ServerConfProvider {
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description);
+    List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description);
 
     /**
      * @param serviceProvider the service provider identifier
@@ -111,10 +111,9 @@ public interface ServerConfProvider {
      * @param serviceProvider the service provider identifier
      * @param client the client identifier
      * @return all the services by a service provider that the caller
-     * has permission to invoke filtered by description type
+     * has permission to invoke filtered by description
      */
-    List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                             Description description);
+    List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description);
 
     /**
      * @param client the client identifier
@@ -189,7 +188,7 @@ public interface ServerConfProvider {
      * @param service the service identifier
      * @return the type of the service as {@link Description}
      */
-    Description getDescriptionType(ServiceId service);
+    Description getDescription(ServiceId service);
 
     /**
      * @param service the service identifier

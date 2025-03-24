@@ -147,7 +147,7 @@ public class GetWSDLMessage extends MessageTestCase {
         ClientEntity client = new ClientEntity();
         client.setConf(conf);
 
-        conf.getClient().add(client);
+        conf.getClients().add(client);
 
         client.setIdentifier(expectedProviderQuery);
 
@@ -161,9 +161,9 @@ public class GetWSDLMessage extends MessageTestCase {
         service.setTitle("getRandomTitle");
         service.setServiceCode(expectedServiceNameForWSDLQuery);
 
-        wsdl.getService().add(service);
+        wsdl.getServices().add(service);
 
-        client.getServiceDescription().add(wsdl);
+        client.getServiceDescriptions().add(wsdl);
 
         doInTransaction(session -> {
             session.persist(conf);

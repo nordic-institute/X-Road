@@ -622,9 +622,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 .get();
         assertEquals(4, wsdlServiceDescription.getServices().size());
 
-        ServiceDescriptionDto serviceDescriptionTypeRest = getDescription(descriptions.getBody(),
+        ServiceDescriptionDto serviceDescriptionDto = getDescription(descriptions.getBody(),
                 "https://restservice.com/api/v1/nosuchservice").get();
-        assertEquals(ServiceTypeDto.REST, serviceDescriptionTypeRest.getType());
+        assertEquals(ServiceTypeDto.REST, serviceDescriptionDto.getType());
     }
 
     private Optional<ServiceDescriptionDto> getDescription(Set<ServiceDescriptionDto> descriptions, String url) {

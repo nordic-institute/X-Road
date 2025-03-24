@@ -91,7 +91,7 @@ public class ServicesApiController implements ServicesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<ServiceDto> getService(String id) {
-        Service service = getServiceType(id);
+        Service service = getServiceFromDb(id);
         ClientId clientId = serviceConverter.parseClientId(id);
         ServiceDto serviceDto = serviceConverter.convert(service, clientId);
         return new ResponseEntity<>(serviceDto, HttpStatus.OK);
@@ -123,7 +123,7 @@ public class ServicesApiController implements ServicesApi {
         return new ResponseEntity<>(updatedService, HttpStatus.OK);
     }
 
-    private Service getServiceType(String id) {
+    private Service getServiceFromDb(String id) {
         ClientId clientId = serviceConverter.parseClientId(id);
         String fullServiceCode = serviceConverter.parseFullServiceCode(id);
         try {
@@ -211,7 +211,7 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
+        } catch (ServiceDescriptionService.WrongServiceDescriptionException e) {
             throw new BadRequestException(e);
         }
         return ControllerUtil.createCreatedResponse("/api/endpoints/{id}", resultEndpointDto, resultEndpointDto.getId());

@@ -214,19 +214,19 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
 
         // Add new member locally
-        ClientEntity clientType = clientService.addLocalClientEntity(NEW_OWNER_MEMBER.getMemberClass(),
+        ClientEntity clientEntity = clientService.addLocalClientEntity(NEW_OWNER_MEMBER.getMemberClass(),
                 NEW_OWNER_MEMBER.getMemberCode(), NEW_OWNER_MEMBER.getSubsystemCode(),
                 IsAuthentication.SSLAUTH, false);
-        assertEquals(Client.STATUS_SAVED, clientType.getClientStatus());
+        assertEquals(Client.STATUS_SAVED, clientEntity.getClientStatus());
 
         // Register new member
         clientService.registerClient(NEW_OWNER_MEMBER);
-        assertEquals(Client.STATUS_REGINPROG, clientType.getClientStatus());
+        assertEquals(Client.STATUS_REGINPROG, clientEntity.getClientStatus());
         when(globalConfProvider.isSecurityServerClient(any(), any())).thenReturn(true);
 
         // Update serverconf
         globalConfChecker.checkGlobalConf();
-        assertEquals(Client.STATUS_REGISTERED, clientType.getClientStatus());
+        assertEquals(Client.STATUS_REGISTERED, clientEntity.getClientStatus());
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
 
         // Global conf starts to recognize the new member as the Security Server owner

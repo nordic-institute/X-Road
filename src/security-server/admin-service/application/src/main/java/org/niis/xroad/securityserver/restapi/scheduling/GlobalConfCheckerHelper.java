@@ -52,7 +52,7 @@ class GlobalConfCheckerHelper {
 
     /**
      * Get the Security Server's ServerConf
-     * @return ServerConfTypeEntity
+     * @return ServerConfEntity
      */
     ServerConfEntity getServerConf() {
         return serverConfRepository.getServerConf();

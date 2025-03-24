@@ -71,11 +71,10 @@ public class ServerConfEntity {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "conf", orphanRemoval = true, cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<ClientEntity> client = new ArrayList<>();
+    private List<ClientEntity> clients = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @OrderBy("id ASC")
     @JoinColumn(name = "conf_id")
-    private List<TimestampingServiceEntity> tsp = new ArrayList<>();
+    private List<TimestampingServiceEntity> timestampingServices = new ArrayList<>();
 }
-

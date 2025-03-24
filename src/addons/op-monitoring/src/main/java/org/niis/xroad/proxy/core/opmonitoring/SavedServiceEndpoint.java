@@ -41,12 +41,12 @@ class SavedServiceEndpoint {
     String getPathIfExists(OpMonitoringData data) {
         if (data.isProducer() && !StringUtil.isEmpty(data.getRestPath())) {
             try {
-                var endpointTypes = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
+                var endpoint = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
                         .map(v -> new Endpoint(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
                         .filter(ep -> ep.matches(data.getRestMethod(), data.getRestPath()))
                         .findFirst();
 
-                return endpointTypes.map(Endpoint::getPath).orElse(data.getRestPath());
+                return endpoint.map(Endpoint::getPath).orElse(data.getRestPath());
             } catch (Exception e) {
                 log.error("Cannot query saved endpoint for: {}", data.getRestPath(), e);
             }

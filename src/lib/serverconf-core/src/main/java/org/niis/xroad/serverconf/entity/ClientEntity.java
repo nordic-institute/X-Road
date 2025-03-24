@@ -77,21 +77,21 @@ public class ClientEntity {
     private ClientIdEntity identifier;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "client", orphanRemoval = true, cascade = CascadeType.ALL)
-    private List<ServiceDescriptionEntity> serviceDescription = new ArrayList<>();
+    private List<ServiceDescriptionEntity> serviceDescriptions = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
-    private List<LocalGroupEntity> localGroup = new ArrayList<>();
+    private List<LocalGroupEntity> localGroups = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
-    private List<CertificateEntity> isCert = new ArrayList<>();
+    private List<CertificateEntity> certificates = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
-    private List<AccessRightEntity> acl = new ArrayList<>();
+    private List<AccessRightEntity> accessRights = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "client_id")
-    private List<EndpointEntity> endpoint = new ArrayList<>();
+    private List<EndpointEntity> endpoints = new ArrayList<>();
 }

@@ -56,9 +56,9 @@ public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptio
     }
 
     /**
-     * Returns the service description of the given ServiceDescriptionTypeEntity PK.
+     * Returns the service description of the given ServiceDescriptionEntity PK.
      * @param session the session
-     * @param id the ServiceDescriptionTypeEntity PK
+     * @param id the ServiceDescriptionEntity PK
      * @return the service description of the given service identifier
      */
     public ServiceDescriptionEntity getServiceDescription(Session session, Long id) {

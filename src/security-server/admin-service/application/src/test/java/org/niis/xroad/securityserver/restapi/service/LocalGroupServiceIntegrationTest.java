@@ -74,7 +74,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
         assertEquals(TestUtils.NEW_GROUPCODE, localGroupFromDb.getGroupCode());
         assertEquals(TestUtils.GROUP_DESC, localGroupFromDb.getDescription());
-        assertEquals(0, localGroupFromDb.getGroupMember().size());
+        assertEquals(0, localGroupFromDb.getGroupMembers().size());
         assertNotNull(localGroupFromDb.getId());
     }
 
@@ -125,7 +125,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
                 localGroupService.getLocalGroupIdAsXroadId(groupId)
         );
 
-        assertTrue(ss1.getAcl().stream()
+        assertTrue(ss1.getAccessRights().stream()
                 .filter(acl -> acl.getSubjectId().equals(localGroupXroadId))
                 .count() == TestUtils.GROUP1_ACCESS_RIGHTS_COUNT);
 
@@ -136,7 +136,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
         assertNull(localGroup);
 
         // access rights of the local group should be removed
-        assertTrue(ss1.getAcl().stream().noneMatch(acl -> acl.getSubjectId().equals(localGroupXroadId)));
+        assertTrue(ss1.getAccessRights().stream().noneMatch(acl -> acl.getSubjectId().equals(localGroupXroadId)));
     }
 
 }

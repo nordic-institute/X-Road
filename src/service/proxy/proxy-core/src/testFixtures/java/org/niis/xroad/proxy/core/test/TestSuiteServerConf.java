@@ -97,7 +97,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
         List<ServiceId.Conf> list = new ArrayList<>();
         if (description == Description.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
@@ -113,8 +113,7 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                    Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
         List<ServiceId.Conf> list = new ArrayList<>();
         if (description == Description.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));

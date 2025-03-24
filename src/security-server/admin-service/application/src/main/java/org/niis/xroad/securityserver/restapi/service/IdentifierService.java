@@ -105,11 +105,11 @@ public class IdentifierService {
      * - subsystem is registered in global configuration
      * - global group exists in global configuration
      * - local group exists and belongs to given client
-     * @param clientType owner of (possible) local groups
+     * @param clientEntity owner of (possible) local groups
      * @param serviceClientIds service client ids to check
      * @throws ServiceClientNotFoundException if some service client objects could not be found
      */
-    public void verifyServiceClientObjectsExist(ClientEntity clientType, Set<XRoadIdEntity> serviceClientIds)
+    public void verifyServiceClientObjectsExist(ClientEntity clientEntity, Set<XRoadIdEntity> serviceClientIds)
             throws ServiceClientNotFoundException {
         Map<XRoadObjectType, List<XRoadIdEntity>> idsPerType = serviceClientIds.stream()
                 .collect(groupingBy(XRoadIdEntity::getObjectType));
@@ -129,7 +129,7 @@ public class IdentifierService {
             }
         }
         if (idsPerType.containsKey(XRoadObjectType.LOCALGROUP)) {
-            if (!localGroupService.localGroupsExist(clientType, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
+            if (!localGroupService.localGroupsExist(clientEntity, idsPerType.get(XRoadObjectType.LOCALGROUP))) {
                 throw new ServiceClientNotFoundException();
             }
         }

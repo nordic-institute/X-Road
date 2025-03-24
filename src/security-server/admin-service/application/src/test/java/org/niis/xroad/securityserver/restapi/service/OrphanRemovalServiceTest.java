@@ -217,9 +217,9 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
         doReturn(Collections.singletonList(tokenInfo)).when(signerRpcClient).getTokens();
         Map<ClientId, ClientEntity> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
-            ClientEntity clientType = new ClientEntity();
-            clientType.setIdentifier(XRoadIdMapper.get().toEntity(id));
-            localClients.put(id, clientType);
+            ClientEntity clientEntity = new ClientEntity();
+            clientEntity.setIdentifier(XRoadIdMapper.get().toEntity(id));
+            localClients.put(id, clientEntity);
         });
         doReturn(new ArrayList<>(localClients.values())).when(clientRepository).getAllLocalClients();
         doAnswer(invocation -> {

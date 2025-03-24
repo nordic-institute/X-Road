@@ -36,7 +36,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * ServiceDescription repository
+ * ServiceDescriptionEntity repository
  */
 @Slf4j
 @Repository
@@ -48,9 +48,9 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return one ServiceDescriptionTypeEntity
+     * Return one ServiceDescriptionEntity
      * @param entityId entity id
-     * @return ServiceDescriptionTypeEntity
+     * @return ServiceDescriptionEntity
      */
     public ServiceDescriptionEntity getServiceDescription(Long entityId) {
         ServiceDescriptionDAOImpl serviceDescriptionDAO = new ServiceDescriptionDAOImpl();
@@ -58,19 +58,19 @@ public class ServiceDescriptionRepository extends AbstractRepository<ServiceDesc
     }
 
     /**
-     * Executes a Hibernate saveOrUpdate(serviceDescriptionType)
+     * Executes a Hibernate saveOrUpdate(serviceDescriptionEntity)
      *
-     * @param serviceDescriptionType ServiceDescriptionTypeEntity
+     * @param serviceDescriptionEntity ServiceDescriptionEntity
      */
-    public void saveOrUpdate(ServiceDescriptionEntity serviceDescriptionType) {
-        persistenceUtils.getCurrentSession().merge(serviceDescriptionType);
+    public void saveOrUpdate(ServiceDescriptionEntity serviceDescriptionEntity) {
+        persistenceUtils.getCurrentSession().merge(serviceDescriptionEntity);
     }
 
     /**
-     * Executes a Hibernate delete(serviceDescriptionType)
-     * @param serviceDescriptionType ServiceDescriptionTypeEntity
+     * Executes a Hibernate delete(serviceDescriptionEntity)
+     * @param serviceDescriptionEntity ServiceDescriptionEntity
      */
-    public void delete(ServiceDescriptionEntity serviceDescriptionType) {
-        persistenceUtils.getCurrentSession().remove(serviceDescriptionType);
+    public void delete(ServiceDescriptionEntity serviceDescriptionEntity) {
+        persistenceUtils.getCurrentSession().remove(serviceDescriptionEntity);
     }
 }

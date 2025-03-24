@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * LocalGroup repository
+ * localGroupEntity repository
  */
 @Repository
 @Transactional
@@ -59,29 +59,29 @@ public class LocalGroupRepository {
     }
 
     /**
-     * Executes a Hibernate persist(localGroupType)
-     * @param localGroupType localGroupTypeEntity
+     * Executes a Hibernate persist(localGroupEntity)
+     * @param localGroupEntity localGroupEntity
      */
-    public void persist(LocalGroupEntity localGroupType) {
-        persistenceUtils.getCurrentSession().persist(localGroupType);
+    public void persist(LocalGroupEntity localGroupEntity) {
+        persistenceUtils.getCurrentSession().persist(localGroupEntity);
     }
 
     /**
-     * Executes a Hibernate persist(groupMemberType) for multiple group members
-     * @param groupMemberTypes list of GroupMemberTypeEntity
+     * Executes a Hibernate persist(GroupMemberEntity) for multiple group members
+     * @param groupMemberEntities list of GroupMemberEntity
      */
-    public void saveOrUpdateAll(List<GroupMemberEntity> groupMemberTypes) {
+    public void saveOrUpdateAll(List<GroupMemberEntity> groupMemberEntities) {
         Session session = persistenceUtils.getCurrentSession();
-        for (GroupMemberEntity groupMemberType : groupMemberTypes) {
-            session.persist(groupMemberType);
+        for (GroupMemberEntity groupMemberEntity : groupMemberEntities) {
+            session.persist(groupMemberEntity);
         }
     }
 
     /**
-     * Executes a Hibernate delete(localGroupType)
-     * @param localGroupType LocalGroupTypeEntity
+     * Executes a Hibernate delete(localGroupEntity)
+     * @param localGroupEntity LocalGroupEntity
      */
-    public void delete(LocalGroupEntity localGroupType) {
-        persistenceUtils.getCurrentSession().remove(localGroupType);
+    public void delete(LocalGroupEntity localGroupEntity) {
+        persistenceUtils.getCurrentSession().remove(localGroupEntity);
     }
 }

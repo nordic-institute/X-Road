@@ -71,6 +71,6 @@ public class LocalGroupEntity {
 
     @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "localgroup_id")
-    private Set<GroupMemberEntity> groupMember = new HashSet<>();
+    private Set<GroupMemberEntity> groupMembers = new HashSet<>();
 }
 

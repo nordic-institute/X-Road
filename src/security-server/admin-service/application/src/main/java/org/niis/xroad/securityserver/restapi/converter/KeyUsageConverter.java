@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Convert X598Certificate's public abstract boolean[] getKeyUsage()
@@ -57,12 +58,12 @@ public class KeyUsageConverter {
 
     /**
      * Convert boolean array of key usage bits as returned by
-     * https://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Certificate.html#getKeyUsage--
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Certificate.html#getKeyUsage--">...</a>
      * into an EnumSet
-     * @param keyUsageBits
-     * @return
+     * @param keyUsageBits keyUsageBits
+     * @return Set<KeyUsageDto>
      */
-    public EnumSet<KeyUsageDto> convert(boolean[] keyUsageBits) {
+    public Set<KeyUsageDto> convert(boolean[] keyUsageBits) {
         EnumSet<KeyUsageDto> usages = EnumSet.noneOf(KeyUsageDto.class);
         if (keyUsageBits != null) {
             for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {

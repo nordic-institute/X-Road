@@ -86,7 +86,7 @@ public class GlobalConfService {
         this.serverConfService = serverConfService;
         this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
         this.restTemplate = restTemplateBuilder
-                .setReadTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
+                .readTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
                 .build();
     }
 
@@ -196,7 +196,7 @@ public class GlobalConfService {
     }
 
     /**
-     * init TspType DTO with name and url. id will be null
+     * init TimestampingService DTO with name and url. id will be null
      */
     private TimestampingService createTspType(SharedParameters.ApprovedTSA approvedTSA) {
         TimestampingService tsp = new TimestampingService();

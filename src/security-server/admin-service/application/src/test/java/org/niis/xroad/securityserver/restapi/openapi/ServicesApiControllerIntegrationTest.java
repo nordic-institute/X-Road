@@ -540,7 +540,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL"})
-    public void deleteServiceAccessRightsWrongLocalGroupType() {
+    public void deleteServiceAccessRightsWrongLocalGroup() {
         Set<ServiceClientDto> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());

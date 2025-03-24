@@ -195,7 +195,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 targetServiceCode);
         log.trace("targetServiceId={}", targetServiceId);
 
-        Description description = serverConfProvider.getDescriptionType(targetServiceId);
+        Description description = serverConfProvider.getDescription(targetServiceId);
         if (description == null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Service not found: %s", targetServiceId));

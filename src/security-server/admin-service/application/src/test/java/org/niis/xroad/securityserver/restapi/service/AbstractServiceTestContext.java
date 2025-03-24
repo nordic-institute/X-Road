@@ -84,7 +84,7 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     @MockBean
     LocalGroupRepository localGroupRepository;
     @MockBean
-    ServerConfEntity serverConfType;
+    ServerConfEntity serverConfEntity;
     @MockBean
     TokenPinValidator tokenPinValidator;
 

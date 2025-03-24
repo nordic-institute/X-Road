@@ -61,7 +61,7 @@ public class DummyTransactionRollingbackService {
      * Edit local group description and throw exception to cause transaction rollback
      *
      * @param exceptionType which type of exception, if any, to throw
-     * @return LocalGroupType
+     * @return LocalGroupEntity
      * @throws LocalGroupNotFoundException if local group with given id was not found
      * @throws LocalGroupService.DuplicateLocalGroupCodeException
      * if exceptionType = SERVICE_EXCEPTION
@@ -70,17 +70,17 @@ public class DummyTransactionRollingbackService {
      */
     public LocalGroupEntity updateDescriptionAndRollback(Long groupId, String description, ExceptionType exceptionType)
             throws Exception {
-        LocalGroupEntity localGroupType = localGroupRepository.getLocalGroup(groupId);
-        if (localGroupType == null) {
+        LocalGroupEntity localGroupEntity = localGroupRepository.getLocalGroup(groupId);
+        if (localGroupEntity == null) {
             throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
         }
-        localGroupType.setDescription(description);
-        localGroupType.setUpdated(new Date());
+        localGroupEntity.setDescription(description);
+        localGroupEntity.setUpdated(new Date());
         return switch (exceptionType) {
             case EXCEPTION -> throw new Exception("failing on purpose");
             case RUNTIME_EXCEPTION -> throw new RuntimeException("failing on purpose");
             case SERVICE_EXCEPTION -> throw new LocalGroupService.DuplicateLocalGroupCodeException("failing on purpose");
-            default -> localGroupType;
+            default -> localGroupEntity;
         };
     }
 

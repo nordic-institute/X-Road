@@ -128,10 +128,10 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpoint() {
         ClientEntity client = clientService.getLocalClientEntity(getClientId("FI", "GOV", "M2", "SS6"));
-        int aclCount = client.getAcl().size();
+        int aclCount = client.getAccessRights().size();
         endpointsApiController.deleteEndpoint("11");
-        assertTrue(client.getEndpoint().stream().noneMatch(ep -> ep.getId().equals(11L)));
-        assertTrue(client.getAcl().size() < aclCount);
+        assertTrue(client.getEndpoints().stream().noneMatch(ep -> ep.getId().equals(11L)));
+        assertTrue(client.getAccessRights().size() < aclCount);
     }
 
     @Test(expected = BadRequestException.class)
@@ -166,11 +166,11 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         endpointsApiController.updateEndpoint("12", pathAndMethod);
 
         ClientEntity client = clientService.getLocalClientEntity(getClientId("FI", "GOV", "M2", "SS6"));
-        EndpointEntity endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
+        EndpointEntity endpointEntity = client.getEndpoints().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 
-        assertTrue(endpointType.getMethod().equals("*"));
-        assertTrue(endpointType.getPath().equals("/test"));
+        assertTrue(endpointEntity.getMethod().equals("*"));
+        assertTrue(endpointEntity.getPath().equals("/test"));
     }
 
     @Test(expected = NotFoundException.class)

@@ -171,9 +171,9 @@ public class AuditDataHelper {
     /**
      * put service description url and type
      */
-    public void putServiceDescriptionUrl(ServiceDescriptionEntity serviceDescriptionType) {
-        if (serviceDescriptionType != null) {
-            putServiceDescriptionUrl(serviceDescriptionType.getUrl(), serviceDescriptionType.getType());
+    public void putServiceDescriptionUrl(ServiceDescriptionEntity serviceDescriptionEntity) {
+        if (serviceDescriptionEntity != null) {
+            putServiceDescriptionUrl(serviceDescriptionEntity.getUrl(), serviceDescriptionEntity.getType());
         }
     }
 
@@ -257,9 +257,9 @@ public class AuditDataHelper {
     /**
      * Put (only) cert hash, and hash default algorithm
      */
-    public void put(CertificateEntity certificateType) {
-        if (certificateType != null) {
-            String hash = createFormattedHash(certificateType.getData());
+    public void put(CertificateEntity certificateEntity) {
+        if (certificateEntity != null) {
+            String hash = createFormattedHash(certificateEntity.getData());
             put(RestApiAuditProperty.CERT_HASH, hash);
             putDefaultCertHashAlgorithm();
         }

@@ -323,7 +323,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('VIEW_NODE_TYPE')")
     public ResponseEntity<NodeTypeResponseDto> getNodeType() {
         // node type is never null so isPresent check can be omitted
-        NodeTypeDto nodeTypeDto = NodeTypeMapping.map(systemService.getServerNodeType()).get();
+        NodeTypeDto nodeTypeDto = NodeTypeMapping.map(systemService.getServerNodeType()).orElseThrow();
         NodeTypeResponseDto nodeTypeResponse = new NodeTypeResponseDto().nodeType(nodeTypeDto);
         return new ResponseEntity<>(nodeTypeResponse, HttpStatus.OK);
     }

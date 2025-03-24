@@ -58,9 +58,9 @@ public class CertificateDetailsConverter {
     private final KeyUsageConverter keyUsageConverter;
 
     /**
-     * convert CertificateType into openapi Certificate class
-     * @param certificate
-     * @return
+     * convert Certificate into openapi Certificate class
+     * @param certificate certificate
+     * @return CertificateDetailsDto
      */
     public CertificateDetailsDto convert(Certificate certificate) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificate.getData());

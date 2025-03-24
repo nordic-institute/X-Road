@@ -153,7 +153,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
-                    commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(Description.REST).name());
+                    commonBeanProxy.serverConfProvider.getDescription(request.getServiceId())).orElse(Description.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
             opMonitoringData.setRestPath(getNormalizedServicePath(request.getServicePath()));
         }

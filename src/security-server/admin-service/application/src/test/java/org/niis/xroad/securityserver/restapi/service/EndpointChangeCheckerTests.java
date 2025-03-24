@@ -44,7 +44,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class EndpointChangeCheckerTests {
 
-    private EndpointTypeChangeChecker serviceChangeChecker;
+    private EndpointEntityChangeChecker serviceChangeChecker;
     private EndpointEntity all;
     private EndpointEntity toBeRemoved;
     private EndpointEntity unchanged;
@@ -54,7 +54,7 @@ public class EndpointChangeCheckerTests {
 
     @Before
     public void setup() {
-        serviceChangeChecker = new EndpointTypeChangeChecker();
+        serviceChangeChecker = new EndpointEntityChangeChecker();
         all = EndpointEntity.create("unitTestService", "*", "**", true);
         toBeRemoved = EndpointEntity.create("unitTestService", "GET", "/random", true);
         unchanged = EndpointEntity.create("unitTestService", "POST", "/random1", true);
@@ -84,7 +84,7 @@ public class EndpointChangeCheckerTests {
         List<EndpointEntity> oldEndpoints = List.of(all, unchanged, toBeRemoved);
         List<EndpointEntity> newEndpoints = List.of(all, unchanged, newEndpoint);
         List<AccessRightEntity> acls = List.of(toBeRemovedAcl);
-        EndpointTypeChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
+        EndpointEntityChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
                 oldEndpoints, newEndpoints, acls);
 
         assertFalse(changes.isEmpty());
@@ -101,7 +101,7 @@ public class EndpointChangeCheckerTests {
         List<String> allCodes = List.of("* **", "GET /random", "POST /random1", "GET /foo");
         List<EndpointEntity> noServices = new ArrayList<>();
         List<AccessRightEntity> acls = List.of(toBeRemovedAcl);
-        EndpointTypeChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
+        EndpointEntityChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
                 noServices, allServices, acls);
 
         assertFalse(changes.isEmpty());
@@ -117,7 +117,7 @@ public class EndpointChangeCheckerTests {
         List<String> allCodes = List.of("* **", "GET /random", "POST /random1", "GET /foo");
         List<EndpointEntity> noServices = new ArrayList<>();
         List<AccessRightEntity> acls = List.of(toBeRemovedAcl);
-        EndpointTypeChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
+        EndpointEntityChangeChecker.ServiceChanges changes = serviceChangeChecker.check(serviceClientEndpoints,
                 allServices, noServices, acls);
 
         assertFalse(changes.isEmpty());

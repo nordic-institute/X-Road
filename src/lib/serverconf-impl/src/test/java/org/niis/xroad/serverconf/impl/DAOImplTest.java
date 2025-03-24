@@ -153,7 +153,7 @@ public class DAOImplTest {
     @Test
     public void getAcl() {
         ClientId id = createTestClientId(client(1));
-        List<AccessRightEntity> acl = getClient(id).getAcl();
+        List<AccessRightEntity> acl = getClient(id).getAccessRights();
         assertEquals(6, acl.size());
 
         assertTrue(acl.get(0).getSubjectId() instanceof ClientId);
@@ -171,7 +171,7 @@ public class DAOImplTest {
         ClientEntity client = getClient(id);
 
         ServerConfEntity conf = getConf();
-        assertTrue(conf.getClient().remove(client));
+        assertTrue(conf.getClients().remove(client));
 
         session.merge(conf);
         session.remove(client);
@@ -189,16 +189,16 @@ public class DAOImplTest {
         ClientId id = createTestClientId(client(3));
         ClientEntity client = getClient(id);
 
-        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescription().size());
+        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescriptions().size());
 
-        ServiceDescriptionEntity serviceDescription = client.getServiceDescription().getFirst();
+        ServiceDescriptionEntity serviceDescription = client.getServiceDescriptions().getFirst();
         Long serviceDescriptionId = serviceDescription.getId();
 
-        client.getServiceDescription().remove(serviceDescription);
+        client.getServiceDescriptions().remove(serviceDescription);
         session.merge(client);
         session.remove(serviceDescription);
 
-        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescription().size());
+        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescriptions().size());
         assertNull(session.get(ServiceDescriptionEntity.class, serviceDescriptionId));
     }
 
@@ -208,9 +208,9 @@ public class DAOImplTest {
     @Test
     public void addLocalGroupMember() {
         ClientEntity client = getClient(createTestClientId(client(1)));
-        assertFalse(client.getLocalGroup().isEmpty());
+        assertFalse(client.getLocalGroups().isEmpty());
 
-        LocalGroupEntity localGroup = client.getLocalGroup().getFirst();
+        LocalGroupEntity localGroup = client.getLocalGroups().getFirst();
 
         ClientIdEntity clientId =
                 identifierDAO.findClientId(session, createTestClientId(client(3)));
@@ -221,7 +221,7 @@ public class DAOImplTest {
         member.setGroupMemberId(clientId);
         session.persist(member);
 
-        localGroup.getGroupMember().add(member);
+        localGroup.getGroupMembers().add(member);
     }
 
     private ServerConfEntity getConf() {

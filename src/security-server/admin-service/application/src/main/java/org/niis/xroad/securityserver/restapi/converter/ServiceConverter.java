@@ -66,23 +66,23 @@ public class ServiceConverter {
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Converts a group of ServiceTypes to a list of Services and sorts the list alphabetically by fullServiceCode.
+     * Converts a group of Services to a list of Services and sorts the list alphabetically by fullServiceCode.
      * This expects that serviceType.serviceDescription.client.endpoints have been fetched
-     * @param serviceTypes
+     * @param services
      * @return
      */
-    public Set<ServiceDto> convertServices(Iterable<Service> serviceTypes, ClientId clientId) {
-        return Streams.stream(serviceTypes)
-                .map(serviceType -> convert(serviceType, clientId))
+    public Set<ServiceDto> convertServices(Iterable<Service> services, ClientId clientId) {
+        return Streams.stream(services)
+                .map(service -> convert(service, clientId))
                 .collect(Collectors.toSet());
     }
 
     /**
-     * Convert a ServiceType into Service.
+     * Convert a Service into Service.
      * This expects that serviceType.serviceDescription.client.endpoints has been fetched
-     * @param service
-     * @param clientId
-     * @return
+     * @param service service
+     * @param clientId clientId
+     * @return ServiceDto
      */
     public ServiceDto convert(Service service, ClientId clientId) {
         ServiceDto serviceDto = new ServiceDto();

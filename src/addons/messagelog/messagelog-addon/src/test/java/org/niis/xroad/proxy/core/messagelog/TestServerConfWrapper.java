@@ -90,8 +90,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description) {
-        return serverConfProvider.getServicesByDescriptionType(serviceProvider, description);
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
+        return serverConfProvider.getServicesByDescription(serviceProvider, description);
     }
 
     @Override
@@ -100,9 +100,9 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
                                                                     Description description) {
-        return serverConfProvider.getAllowedServicesByDescriptionType(serviceProvider, client, description);
+        return serverConfProvider.getAllowedServicesByDescription(serviceProvider, client, description);
     }
 
     @Override
@@ -156,8 +156,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public Description getDescriptionType(ServiceId service) {
-        return serverConfProvider.getDescriptionType(service);
+    public Description getDescription(ServiceId service) {
+        return serverConfProvider.getDescription(service);
     }
 
     @Override

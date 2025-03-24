@@ -52,10 +52,10 @@ public class ServiceFormatter {
     /**
      * Get the full service name (e.g. myService.v1) from ServiceEntity object
      *
-     * @param serviceType service type entity
+     * @param serviceEntity service type entity
      * @return full service name as String
      */
-    public static String getServiceFullName(ServiceEntity serviceType) {
-        return getServiceFullName(serviceType.getServiceCode(), serviceType.getServiceVersion());
+    public static String getServiceFullName(ServiceEntity serviceEntity) {
+        return getServiceFullName(serviceEntity.getServiceCode(), serviceEntity.getServiceVersion());
     }
 }

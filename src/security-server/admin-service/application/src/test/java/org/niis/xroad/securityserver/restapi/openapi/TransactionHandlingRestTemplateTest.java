@@ -196,10 +196,10 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void clientConverterCannotLazyLoadPropertiesSinceOsivIsNotUsed() {
         doAnswer((Answer<String>) invocation -> {
-            ClientEntity clientType = (ClientEntity) invocation.getArguments()[0];
+            ClientEntity clientEntity = (ClientEntity) invocation.getArguments()[0];
             // cause a lazy loading exception
-            clientType.getServiceDescription().size();
-            log.info("lazy loaded server code=" + clientType.getConf().getServerCode());
+            clientEntity.getServiceDescriptions().size();
+            log.info("lazy loaded server code=" + clientEntity.getConf().getServerCode());
             return null;
         }).when(clientConverter).convert(any(Client.class));
 

@@ -55,11 +55,11 @@ public class LocalGroupConverter {
 
     private final GlobalConfProvider globalConfProvider;
 
-    private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Converts LocalGroupType to Group
-     * @param localGroup
+     * Converts LocalGroup to LocalGroupDto
+     * @param localGroup localGroup
      * @return LocalGroupDto
      */
     public LocalGroupDto convert(LocalGroup localGroup) {
@@ -69,26 +69,26 @@ public class LocalGroupConverter {
         localGroupDto.setCode(localGroup.getGroupCode());
         localGroupDto.setDescription(localGroup.getDescription());
         localGroupDto.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroup.getUpdated()));
-        localGroupDto.setMemberCount(localGroup.getGroupMember().size());
-        localGroupDto.setMembers(localGroup.getGroupMember().stream().map(this::convert).collect(Collectors.toSet()));
+        localGroupDto.setMemberCount(localGroup.getGroupMembers().size());
+        localGroupDto.setMembers(localGroup.getGroupMembers().stream().map(this::convert).collect(Collectors.toSet()));
 
         return localGroupDto;
     }
 
     /**
-     * Converts a group of LocalGroupType to a list of Groups
-     * @param localGroupTypes
-     * @return
+     * Converts a group of LocalGroup to a list of Groups
+     * @param localGroups localGroups
+     * @return Set<LocalGroupDto>
      */
-    public Set<LocalGroupDto> convert(Iterable<LocalGroup> localGroupTypes) {
-        return Streams.stream(localGroupTypes)
+    public Set<LocalGroupDto> convert(Iterable<LocalGroup> localGroups) {
+        return Streams.stream(localGroups)
                 .map(this::convert).collect(Collectors.toSet());
     }
 
     /**
-     * Converts LocalGroupDto to LocalGroupType. Ignores LocalGroup#id field since it is obsolete in LocalGroupType
-     * @param localGroupDto
-     * @return LocalGroupType
+     * Converts LocalGroupDto to LocalGroup. Ignores LocalGroup#id field since it is obsolete in LocalGroup
+     * @param localGroupDto localGroupDto
+     * @return LocalGroup
      */
     public LocalGroup convert(LocalGroupDto localGroupDto) {
         LocalGroup localGroup = new LocalGroup();
@@ -97,17 +97,17 @@ public class LocalGroupConverter {
         localGroup.setGroupCode(localGroupDto.getCode());
         localGroup.setUpdated(new Date());
         if (localGroupDto.getMembers() != null) {
-            localGroup.getGroupMember().addAll(localGroupDto.getMembers().stream()
-                    .map(this::convert).collect(Collectors.toList()));
+            localGroup.getGroupMembers().addAll(localGroupDto.getMembers().stream()
+                    .map(this::convert).toList());
         }
 
         return localGroup;
     }
 
     /**
-     * Converts LocalGroupAddDto to LocalGroupType
-     * @param localGroupAddDto
-     * @return LocalGroupType
+     * Converts LocalGroupAddDto to LocalGroup
+     * @param localGroupAddDto localGroupAddDto
+     * @return LocalGroup
      */
     public LocalGroup convert(LocalGroupAddDto localGroupAddDto) {
         LocalGroup localGroup = new LocalGroup();
@@ -120,9 +120,9 @@ public class LocalGroupConverter {
     }
 
     /**
-     * Converts GroupMemberDto to GroupMemberType. Ignores id field
-     * @param groupMemberDto
-     * @return GroupMemberType
+     * Converts GroupMemberDto to GroupMember. Ignores id field
+     * @param groupMemberDto groupMemberDto
+     * @return GroupMember
      */
     private GroupMember convert(GroupMemberDto groupMemberDto) {
         GroupMember groupMember = new GroupMember();
@@ -134,8 +134,8 @@ public class LocalGroupConverter {
     }
 
     /**
-     * Converts GroupMemberType to GroupMemberDto. Ignores id field
-     * @param groupMember
+     * Converts GroupMember to GroupMemberDto. Ignores id field
+     * @param groupMember groupMember
      * @return GroupMemberDto
      */
     public GroupMemberDto convert(GroupMember groupMember) {
@@ -156,7 +156,7 @@ public class LocalGroupConverter {
 
     /**
      * Convert LocalGroupId into encoded id string
-     * @param localGroupId
+     * @param localGroupId localGroupId
      * @return String
      */
     public String convertId(LocalGroupId localGroupId, boolean includeType) {

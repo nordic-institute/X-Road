@@ -296,8 +296,7 @@ public class MetadataServiceHandlerTest {
 
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                     Description description) {
+            public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -356,7 +355,7 @@ public class MetadataServiceHandlerTest {
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
 
             @Override
-            public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+            public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
                                                                             Description description) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
@@ -674,7 +673,7 @@ public class MetadataServiceHandlerTest {
         ClientEntity client = new ClientEntity();
         client.setConf(conf);
 
-        conf.getClient().add(client);
+        conf.getClients().add(client);
 
         client.setIdentifier(serviceId.getClientId());
 
@@ -692,9 +691,9 @@ public class MetadataServiceHandlerTest {
         service.setTitle("someTitle");
         service.setServiceCode(serviceId.getServiceCode());
 
-        wsdl.getService().add(service);
+        wsdl.getServices().add(service);
 
-        client.getServiceDescription().add(wsdl);
+        client.getServiceDescriptions().add(wsdl);
 
         doInTransaction(session -> {
             session.persist(conf);

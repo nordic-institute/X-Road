@@ -138,17 +138,15 @@ public class KeysApiController implements KeysApi {
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_CSR)
     public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerateDto csrGenerateDto) {
 
-        // squid:S3655 throwing NoSuchElementException if there is no value present is
-        // fine since keyUsageInfo is mandatory parameter
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerateDto.getKeyUsageType()).get();
+        // since keyUsageInfo is mandatory parameter
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerateDto.getKeyUsageType()).orElseThrow();
         ClientId.Conf memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
             memberId = clientIdConverter.convertId(csrGenerateDto.getMemberId());
         }
 
-        // squid:S3655 throwing NoSuchElementException if there is no value present is
-        // fine since csr format is mandatory parameter
-        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerateDto.getCsrFormat()).get();
+        // since csr format is mandatory parameter
+        CertificateRequestFormat csrFormat = CsrFormatMapping.map(csrGenerateDto.getCsrFormat()).orElseThrow();
 
         byte[] csr;
         try {

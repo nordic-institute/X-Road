@@ -116,7 +116,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Description getDescriptionType(ServiceId service) {
+    public Description getDescription(ServiceId service) {
         return null;
     }
 
@@ -146,7 +146,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
         return emptyList();
     }
 
@@ -157,8 +157,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                                                    ClientId client, Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
         return emptyList();
     }
 

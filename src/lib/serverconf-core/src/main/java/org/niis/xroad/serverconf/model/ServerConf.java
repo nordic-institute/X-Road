@@ -41,7 +41,7 @@ public class ServerConf {
     private Long id;
     private String serverCode;
     private Client owner;
-    private final List<Client> client = new ArrayList<>();
-    private final List<TimestampingService> tsp = new ArrayList<>();
+    private final List<Client> clients = new ArrayList<>();
+    private final List<TimestampingService> timestampingServices = new ArrayList<>();
 
 }

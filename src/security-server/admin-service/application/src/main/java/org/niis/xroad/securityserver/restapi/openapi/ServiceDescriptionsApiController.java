@@ -164,7 +164,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             }
 
         } catch (WsdlParser.WsdlNotFoundException | OpenApiParser.ParsingException | UnhandledWarningsException
-                 | InvalidUrlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                 | InvalidUrlException | ServiceDescriptionService.WrongServiceDescriptionException
                  | InvalidWsdlException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
@@ -193,7 +193,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                     serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
-                 | InvalidWsdlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
+                 | InvalidWsdlException | ServiceDescriptionService.WrongServiceDescriptionException
                  | OpenApiParser.ParsingException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
@@ -216,11 +216,8 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<ServiceDescriptionDto> getServiceDescription(String id) {
-        ServiceDescription serviceDescription =
-                getServiceDescriptionType(id);
-        return new ResponseEntity<>(
-                serviceDescriptionConverter.convert(serviceDescription),
-                HttpStatus.OK);
+        ServiceDescription serviceDescription = getServiceDescriptionFromDb(id);
+        return new ResponseEntity<>(serviceDescriptionConverter.convert(serviceDescription), HttpStatus.OK);
     }
 
     /**
@@ -233,22 +230,20 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
     public ResponseEntity<Set<ServiceDto>> getServiceDescriptionServices(String id) {
-        ServiceDescription serviceDescription =
-                getServiceDescriptionType(id);
+        ServiceDescription serviceDescription = getServiceDescriptionFromDb(id);
         ClientId clientId = serviceDescription.getClient().getIdentifier();
-        Set<ServiceDto> services = serviceDescription.getService().stream()
-                .map(serviceType -> serviceConverter.convert(serviceType, clientId))
+        Set<ServiceDto> services = serviceDescription.getServices().stream()
+                .map(service -> serviceConverter.convert(service, clientId))
                 .collect(Collectors.toSet());
         return new ResponseEntity<>(services, HttpStatus.OK);
     }
 
     /**
-     * return matching ServiceDescriptionType, or throw ResourceNotFoundException
+     * return matching ServiceDescription, or throw ResourceNotFoundException
      */
-    private ServiceDescription getServiceDescriptionType(String id) {
+    private ServiceDescription getServiceDescriptionFromDb(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        ServiceDescription serviceDescription =
-                serviceDescriptionService.getServiceDescriptiontype(serviceDescriptionId);
+        ServiceDescription serviceDescription = serviceDescriptionService.getServiceDescription(serviceDescriptionId);
         if (serviceDescription == null) {
             throw new ResourceNotFoundException();
         }

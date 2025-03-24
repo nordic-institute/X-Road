@@ -31,7 +31,6 @@ import org.niis.xroad.serverconf.model.Endpoint;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class EndpointConverter {
@@ -48,6 +47,6 @@ public class EndpointConverter {
     }
 
     public List<EndpointDto> convert(List<Endpoint> endpoints) {
-        return endpoints.stream().map(e -> convert(e)).collect(Collectors.toList());
+        return endpoints.stream().map(this::convert).toList();
     }
 }

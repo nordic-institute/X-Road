@@ -149,7 +149,7 @@ public class GlobalConfChecker {
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
                 updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
                                 globalConfProvider.getInstanceIdentifier()),
-                        TimestampingServiceMapper.get().toTargets(serverConf.getTsp())
+                        TimestampingServiceMapper.get().toTargets(serverConf.getTimestampingServices())
                 );
             }
         } catch (Exception e) {
@@ -202,7 +202,7 @@ public class GlobalConfChecker {
 
     private void updateOwner(ServerConfEntity serverConf) throws Exception {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
-        for (ClientEntity client : serverConf.getClient()) {
+        for (ClientEntity client : serverConf.getClients()) {
             // Look for another member that is not the owner
             if (client.getIdentifier().getSubsystemCode() == null
                     && !client.getIdentifier().equals(ownerId)) {
@@ -243,7 +243,7 @@ public class GlobalConfChecker {
     private void updateClientStatuses(ServerConfEntity serverConf, SecurityServerId securityServerId) {
         log.debug("Updating client statuses");
 
-        for (ClientEntity client : serverConf.getClient()) {
+        for (ClientEntity client : serverConf.getClients()) {
             boolean registered = globalConfProvider.isSecurityServerClient(
                     client.getIdentifier(), securityServerId);
 

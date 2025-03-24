@@ -68,8 +68,8 @@ public class ServerConfServiceTest extends AbstractServiceTestContext {
         configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa2.com", "TSA 2"));
         configuredTimestampingServices.add(TestUtils.createTspTypeEntity("https://tsa1.com", "TSA 1"));
 
-        when(serverConfRepository.getServerConf()).thenReturn(serverConfType);
-        when(serverConfType.getTsp()).thenReturn(configuredTimestampingServices);
+        when(serverConfRepository.getServerConf()).thenReturn(serverConfEntity);
+        when(serverConfEntity.getTimestampingServices()).thenReturn(configuredTimestampingServices);
 
         List<TimestampingServiceEntity> tsp = serverConfService.getConfiguredTimestampingServiceEntities();
 

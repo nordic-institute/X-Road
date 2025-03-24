@@ -34,7 +34,7 @@ import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.springframework.stereotype.Repository;
 
 /**
- * repository for working with ServerConfType / serverconf table
+ * repository for working with ServerConfEntity / serverconf table
  */
 @Slf4j
 @Repository
@@ -44,8 +44,8 @@ public class ServerConfRepository {
     private final PersistenceUtils persistenceUtils;
 
     /**
-     * Return ServerConfTypeEntity
-     * @return ServerConfTypeEntity
+     * Return ServerConfEntity
+     * @return ServerConfEntity
      */
     public ServerConfEntity getServerConf() {
         ServerConfDAOImpl serverConfDAO = new ServerConfDAOImpl();
@@ -55,7 +55,7 @@ public class ServerConfRepository {
     /**
      * Save or update ServerConfEntity
      */
-    public void saveOrUpdate(ServerConfEntity serverConfType) {
-        persistenceUtils.getCurrentSession().merge(serverConfType);
+    public void saveOrUpdate(ServerConfEntity serverConfEntity) {
+        persistenceUtils.getCurrentSession().merge(serverConfEntity);
     }
 }

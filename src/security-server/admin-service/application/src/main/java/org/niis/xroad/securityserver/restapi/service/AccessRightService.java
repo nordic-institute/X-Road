@@ -113,13 +113,13 @@ public class AccessRightService {
             throws ClientNotFoundException, AccessRightNotFoundException,
                    ServiceNotFoundException {
 
-        ClientEntity clientType = clientService.getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity clientEntity = clientService.getLocalClientEntityOrThrowNotFound(clientId);
 
-        EndpointEntity endpointType = endpointService.getBaseEndpointTypeEntity(clientType, fullServiceCode);
+        EndpointEntity endpointEntity = endpointService.getBaseEndpointEntity(clientEntity, fullServiceCode);
 
-        addAuditData(clientId, subjectIds, endpointType.getServiceCode());
+        addAuditData(clientId, subjectIds, endpointEntity.getServiceCode());
 
-        deleteEndpointAccessRights(clientType, endpointType, XRoadIdMapper.get().toSubjects(subjectIds));
+        deleteEndpointAccessRights(clientEntity, endpointEntity, XRoadIdMapper.get().toSubjects(subjectIds));
     }
 
     /**
@@ -146,35 +146,34 @@ public class AccessRightService {
     /**
      * Remove access rights from endpoint
      *
-     * @param endpointId
-     * @param subjectIds
+     * @param endpointId endpointId
+     * @param subjectIds subjectIds
      * @throws EndpointNotFoundException if endpoint by given id is not found
      * @throws ClientNotFoundException if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<? extends XRoadId> subjectIds)
-            throws EndpointNotFoundException,
-                   ClientNotFoundException, AccessRightNotFoundException {
+            throws EndpointNotFoundException, ClientNotFoundException, AccessRightNotFoundException {
 
-        ClientEntity clientType = clientRepository.getClientByEndpointId(endpointId);
-        EndpointEntity endpointType = endpointService.getEndpointEntity(endpointId);
-        deleteEndpointAccessRights(clientType, endpointType, XRoadIdMapper.get().toSubjects(subjectIds));
+        ClientEntity clientEntity = clientRepository.getClientByEndpointId(endpointId);
+        EndpointEntity endpointEntity = endpointService.getEndpointEntity(endpointId);
+        deleteEndpointAccessRights(clientEntity, endpointEntity, XRoadIdMapper.get().toSubjects(subjectIds));
     }
 
     /**
      * Remove access rights from one endpoint
      *
-     * @param clientType
-     * @param endpointType
-     * @param subjectIds
+     * @param clientEntity clientEntity
+     * @param endpointEntity endpointEntity
+     * @param subjectIds subjectIds
      * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
-    private void deleteEndpointAccessRights(ClientEntity clientType,
-                                            EndpointEntity endpointType,
+    private void deleteEndpointAccessRights(ClientEntity clientEntity,
+                                            EndpointEntity endpointEntity,
                                             Set<XRoadIdEntity> subjectIds)
             throws AccessRightNotFoundException {
 
-        deleteEndpointAccessRights(clientType, Collections.singletonList(endpointType), subjectIds);
+        deleteEndpointAccessRights(clientEntity, Collections.singletonList(endpointEntity), subjectIds);
     }
 
     /**
@@ -185,27 +184,27 @@ public class AccessRightService {
      * subjects will probably not be used, but if it is, all endpoints have to exist for all subjects, otherwise
      * exception is thrown.
      *
-     * @param clientType
-     * @param endpointTypes
-     * @param subjectIds
+     * @param clientEntity clientEntity
+     * @param endpointEntities endpointEntities
+     * @param subjectIds subjectIds
      * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
-    private void deleteEndpointAccessRights(ClientEntity clientType, List<EndpointEntity> endpointTypes,
+    private void deleteEndpointAccessRights(ClientEntity clientEntity, List<EndpointEntity> endpointEntities,
                                             Set<XRoadIdEntity> subjectIds) throws AccessRightNotFoundException {
 
-        for (EndpointEntity endpointType : endpointTypes) {
+        for (EndpointEntity endpointEntity : endpointEntities) {
             // check that all access rights exist and can be deleted
-            List<AccessRightEntity> accessRightsToBeRemoved = clientType.getAcl().stream()
-                    .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
+            List<AccessRightEntity> accessRightsToBeRemoved = clientEntity.getAccessRights().stream()
+                    .filter(acl -> acl.getEndpoint().getId().equals(endpointEntity.getId())
                             && subjectIds.contains(acl.getSubjectId()))
                     .toList();
             if (accessRightsToBeRemoved.size() != subjectIds.size()) {
                 throw new AccessRightNotFoundException("All local service client identifiers + "
                         + subjectIds
                         + " weren't found in the access rights list of the given client: "
-                        + clientType.getIdentifier());
+                        + clientEntity.getIdentifier());
             }
-            clientType.getAcl().removeAll(accessRightsToBeRemoved);
+            clientEntity.getAccessRights().removeAll(accessRightsToBeRemoved);
         }
     }
 
@@ -237,14 +236,14 @@ public class AccessRightService {
                                                  DuplicateAccessRightException,
                                                  ServiceClientNotFoundException {
 
-        ClientEntity clientType = clientService.getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity clientEntity = clientService.getLocalClientEntityOrThrowNotFound(clientId);
 
-        EndpointEntity endpointType = endpointService.getBaseEndpointTypeEntity(clientType, fullServiceCode);
+        EndpointEntity endpointEntity = endpointService.getBaseEndpointEntity(clientEntity, fullServiceCode);
 
-        addAuditData(clientId, subjectIds, endpointType.getServiceCode());
+        addAuditData(clientId, subjectIds, endpointEntity.getServiceCode());
 
         // Combine subject ids and localgroup ids to a single list of XRoadIds
-        return addEndpointAccessRights(clientType, endpointType, XRoadIdMapper.get().toEntities(subjectIds));
+        return addEndpointAccessRights(clientEntity, endpointEntity, XRoadIdMapper.get().toEntities(subjectIds));
     }
 
     /**
@@ -252,9 +251,9 @@ public class AccessRightService {
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
      *
-     * @param endpointId
-     * @param subjectIds
-     * @return
+     * @param endpointId endpointId
+     * @param subjectIds subjectIds
+     * @return List<ServiceClient>
      * @throws EndpointNotFoundException endpoint is not found with given id
      * @throws ClientNotFoundException client for the endpoint is not found (shouldn't happen)
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
@@ -262,13 +261,12 @@ public class AccessRightService {
      * @throws DuplicateAccessRightException Trying to add duplicate access rights
      */
     public List<ServiceClient> addEndpointAccessRights(Long endpointId, Set<XRoadId.Conf> subjectIds)
-            throws EndpointNotFoundException, ClientNotFoundException,
-                   ServiceClientNotFoundException, DuplicateAccessRightException {
+            throws EndpointNotFoundException, ClientNotFoundException, ServiceClientNotFoundException, DuplicateAccessRightException {
 
-        EndpointEntity endpointType = endpointService.getEndpointEntity(endpointId);
+        EndpointEntity endpointEntity = endpointService.getEndpointEntity(endpointId);
 
-        ClientEntity clientType = clientRepository.getClientByEndpointId(endpointId);
-        return addEndpointAccessRights(clientType, endpointType, XRoadIdMapper.get().toEntities(subjectIds));
+        ClientEntity clientEntity = clientRepository.getClientByEndpointId(endpointId);
+        return addEndpointAccessRights(clientEntity, endpointEntity, XRoadIdMapper.get().toEntities(subjectIds));
 
     }
 
@@ -279,24 +277,24 @@ public class AccessRightService {
      * @throws DuplicateAccessRightException
      */
     private List<ServiceClient> addEndpointAccessRights(
-            ClientEntity clientType,
-            EndpointEntity endpointType,
+            ClientEntity clientEntity,
+            EndpointEntity endpointEntity,
             Set<XRoadIdEntity> subjectIds) throws DuplicateAccessRightException, ServiceClientNotFoundException {
 
         subjectIds.forEach(this::validateServiceClientObjectType);
 
         // verify that all subject ids exist
-        identifierService.verifyServiceClientObjectsExist(clientType, subjectIds);
+        identifierService.verifyServiceClientObjectsExist(clientEntity, subjectIds);
 
         // Get all ids from serverconf db IDENTIFIER table - or add them if they don't exist
         Set<XRoadIdEntity> managedIds = identifierService.getOrPersistXroadIdEntities(subjectIds);
 
         // Add access rights to endpoint
-        addAccessRightsInternal(managedIds, clientType, Collections.singletonList(endpointType));
+        addAccessRightsInternal(managedIds, clientEntity, Collections.singletonList(endpointEntity));
 
         // Create DTOs for returning data
-        List<AccessRightEntity> accessRightsByEndpoint = getAccessRightsByEndpoint(clientType, endpointType);
-        return mapAccessRightsToServiceClients(clientType, accessRightsByEndpoint);
+        List<AccessRightEntity> accessRightsByEndpoint = getAccessRightsByEndpoint(clientEntity, endpointEntity);
+        return mapAccessRightsToServiceClients(clientEntity, accessRightsByEndpoint);
     }
 
     /**
@@ -325,19 +323,19 @@ public class AccessRightService {
 
         addAuditData(clientId, subjectId, serviceCodes);
 
-        ClientEntity clientType = clientService.getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity clientEntity = clientService.getLocalClientEntityOrThrowNotFound(clientId);
 
         validateServiceClientObjectType(subjectId);
 
         XRoadIdEntity subjectIdEntity = XRoadIdMapper.get().toEntity(subjectId);
 
         // verify that given service client objects exist, otherwise access cannot be added
-        identifierService.verifyServiceClientObjectsExist(clientType, Set.of(subjectIdEntity));
+        identifierService.verifyServiceClientObjectsExist(clientEntity, Set.of(subjectIdEntity));
 
         // prepare params for addAccessRightsInternal
         List<EndpointEntity> baseEndpoints = null;
         try {
-            baseEndpoints = endpointService.getServiceBaseEndpointEntities(clientType, serviceCodes);
+            baseEndpoints = endpointService.getServiceBaseEndpointEntities(clientEntity, serviceCodes);
         } catch (EndpointNotFoundException e) {
             throw new ServiceNotFoundException(e);
         }
@@ -345,7 +343,7 @@ public class AccessRightService {
         // make sure subject id exists in serverconf db IDENTIFIER table, and use a managed entity
         XRoadIdEntity managedSubjectId = identifierService.getOrPersistXroadIdEntity(subjectIdEntity);
 
-        return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientType, baseEndpoints)
+        return addAccessRightsInternal(new HashSet<>(Arrays.asList(managedSubjectId)), clientEntity, baseEndpoints)
                 .get(managedSubjectId);
     }
 
@@ -370,39 +368,39 @@ public class AccessRightService {
 
         addAuditData(clientId, subjectId, serviceCodes);
 
-        ClientEntity clientType = clientService.getLocalClientEntityOrThrowNotFound(clientId);
+        ClientEntity clientEntity = clientService.getLocalClientEntityOrThrowNotFound(clientId);
 
         validateServiceClientObjectType(subjectId);
 
         // first delete base endpoint access rights. These all need to exist, otherwise AccessRightNotFoundException
         List<EndpointEntity> baseEndpoints = null;
         try {
-            baseEndpoints = endpointService.getServiceBaseEndpointEntities(clientType, serviceCodes);
+            baseEndpoints = endpointService.getServiceBaseEndpointEntities(clientEntity, serviceCodes);
         } catch (EndpointNotFoundException e) {
             throw new ServiceNotFoundException(e);
         }
-        Set<XRoadIdEntity> subjectIds = new HashSet<>(Arrays.asList(XRoadIdMapper.get().toEntity(subjectId)));
-        deleteEndpointAccessRights(clientType, baseEndpoints, subjectIds);
+        Set<XRoadIdEntity> subjectIds = new HashSet<>(Collections.singletonList(XRoadIdMapper.get().toEntity(subjectId)));
+        deleteEndpointAccessRights(clientEntity, baseEndpoints, subjectIds);
 
         // then delete all non-base endpoint access rights, for this subject. If there's none, that's fine
-        List<EndpointEntity> allEndpoints = endpointService.getServiceEndpointEntities(clientType, serviceCodes);
-        List<AccessRightEntity> remainingAccessRights = getEndpointAccessRights(clientType, allEndpoints, subjectIds);
+        List<EndpointEntity> allEndpoints = endpointService.getServiceEndpointEntities(clientEntity, serviceCodes);
+        List<AccessRightEntity> remainingAccessRights = getEndpointAccessRights(clientEntity, allEndpoints, subjectIds);
         if (!remainingAccessRights.isEmpty()) {
             Set<EndpointEntity> endpointsWithAccessRights = remainingAccessRights.stream()
-                    .map(a -> a.getEndpoint())
+                    .map(AccessRightEntity::getEndpoint)
                     .collect(Collectors.toSet());
-            deleteEndpointAccessRights(clientType, new ArrayList<>(endpointsWithAccessRights), subjectIds);
+            deleteEndpointAccessRights(clientEntity, new ArrayList<>(endpointsWithAccessRights), subjectIds);
         }
     }
 
     /**
-     * Get client's acl entries that match endpointTypes and subjects
+     * Get client's acl entries that match endpoints and subjects
      */
-    private List<AccessRightEntity> getEndpointAccessRights(ClientEntity clientType, List<EndpointEntity> endpointTypes,
+    private List<AccessRightEntity> getEndpointAccessRights(ClientEntity clientEntity, List<EndpointEntity> endpointEntities,
                                                             Set<XRoadIdEntity> subjectIds) {
 
-        List<Long> endpointIds = endpointTypes.stream().map(EndpointEntity::getId).toList();
-        return clientType.getAcl().stream()
+        List<Long> endpointIds = endpointEntities.stream().map(EndpointEntity::getId).toList();
+        return clientEntity.getAccessRights().stream()
                 .filter(acl -> endpointIds.contains(acl.getEndpoint().getId())
                         && subjectIds.contains(acl.getSubjectId()))
                 .collect(Collectors.toList());
@@ -432,41 +430,39 @@ public class AccessRightService {
     /**
      * Get access right holders (serviceClients) for endpoint
      *
-     * @param clientType
-     * @param accessRightTypes
-     * @return
+     * @param clientEntity clientEntity
+     * @param accessRightEntities accessRightEntities
+     * @return List<ServiceClient>
      */
-    public List<ServiceClient> mapAccessRightsToServiceClients(ClientEntity clientType,
-                                                               List<AccessRightEntity> accessRightTypes) {
+    public List<ServiceClient> mapAccessRightsToServiceClients(ClientEntity clientEntity, List<AccessRightEntity> accessRightEntities) {
         Map<String, LocalGroupEntity> localGroupMap = new HashMap<>();
-        clientType.getLocalGroup().forEach(localGroupType -> localGroupMap.put(localGroupType.getGroupCode(),
-                localGroupType));
+        clientEntity.getLocalGroups().forEach(localGroupEntity -> localGroupMap.put(localGroupEntity.getGroupCode(), localGroupEntity));
 
-        return accessRightTypes.stream()
-                .map((accessRightType -> accessRightTypeToServiceClientDto(accessRightType, localGroupMap)))
+        return accessRightEntities.stream()
+                .map((accessRightEntity -> accessRightEntityToServiceClientDto(accessRightEntity, localGroupMap)))
                 .collect(Collectors.toList());
     }
 
     /**
      * Makes an {@link ServiceClient} out of {@link AccessRight}
-     * @param accessRightType The AccessRightType to convert from
-     * @param localGroupMap A Map containing {@link LocalGroup LocalGroupTypes} mapped by
+     * @param accessRightEntity The accessRightEntity to convert from
+     * @param localGroupMap A Map containing {@link LocalGroup LocalGroup} mapped by
      * their corresponding {@link LocalGroup#getGroupCode()}
-     * @return
+     * @return ServiceClient
      */
-    private ServiceClient accessRightTypeToServiceClientDto(AccessRightEntity accessRightType,
+    private ServiceClient accessRightEntityToServiceClientDto(AccessRightEntity accessRightEntity,
                                                             Map<String, LocalGroupEntity> localGroupMap) {
         ServiceClient serviceClient = new ServiceClient();
-        XRoadId subjectId = accessRightType.getSubjectId();
+        XRoadId subjectId = accessRightEntity.getSubjectId();
         serviceClient.setRightsGiven(
-                FormatUtils.fromDateToOffsetDateTime(accessRightType.getRightsGiven()));
+                FormatUtils.fromDateToOffsetDateTime(accessRightEntity.getRightsGiven()));
         serviceClient.setSubjectId(subjectId);
         if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
             LocalGroupId localGroupId = (LocalGroupId) subjectId;
-            LocalGroupEntity localGroupType = localGroupMap.get(localGroupId.getGroupCode());
-            serviceClient.setLocalGroupId(localGroupType.getId().toString());
-            serviceClient.setLocalGroupCode(localGroupType.getGroupCode());
-            serviceClient.setLocalGroupDescription(localGroupType.getDescription());
+            LocalGroupEntity localGroupEntity = localGroupMap.get(localGroupId.getGroupCode());
+            serviceClient.setLocalGroupId(localGroupEntity.getId().toString());
+            serviceClient.setLocalGroupCode(localGroupEntity.getGroupCode());
+            serviceClient.setLocalGroupDescription(localGroupEntity.getDescription());
         } else if (subjectId.getObjectType() == XRoadObjectType.GLOBALGROUP) {
             GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
             serviceClient.setGlobalGroupDescription(globalConfProvider.getGlobalGroupDescription(globalGroupId));
@@ -477,13 +473,13 @@ public class AccessRightService {
     /**
      * Get access rights of an endpoint
      *
-     * @param clientType
-     * @param endpointType
-     * @return
+     * @param clientEntity clientEntity
+     * @param endpointEntity endpointEntity
+     * @return List<AccessRightEntity>
      */
-    List<AccessRightEntity> getAccessRightsByEndpoint(ClientEntity clientType, EndpointEntity endpointType) {
-        return clientType.getAcl().stream()
-                .filter(accessRightType -> accessRightType.getEndpoint().getId().equals(endpointType.getId()))
+    List<AccessRightEntity> getAccessRightsByEndpoint(ClientEntity clientEntity, EndpointEntity endpointEntity) {
+        return clientEntity.getAccessRights().stream()
+                .filter(accessRightEntity -> accessRightEntity.getEndpoint().getId().equals(endpointEntity.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -495,13 +491,13 @@ public class AccessRightService {
      * Note that subjectIds need to be managed entities.
      *
      * @param subjectIds *managed* access rights subjects to grant access for, "service clients"
-     * @param clientType endpoint owner
+     * @param clientEntity endpoint owner
      * @param endpoints endpoints to add access rights to
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
     Map<XRoadIdEntity, List<ServiceClientAccessRightDto>> addAccessRightsInternal(Set<XRoadIdEntity> subjectIds,
-                                                                                  ClientEntity clientType,
+                                                                                  ClientEntity clientEntity,
                                                                                   List<EndpointEntity> endpoints)
             throws DuplicateAccessRightException {
         Date now = new Date();
@@ -517,28 +513,28 @@ public class AccessRightService {
 
         for (EndpointEntity endpoint : endpoints) {
             for (XRoadIdEntity subjectId : subjectIds) {
-                ServiceClientAccessRightDto dto = addAccessRightInternal(clientType, now, endpoint, subjectId);
+                ServiceClientAccessRightDto dto = addAccessRightInternal(clientEntity, now, endpoint, subjectId);
                 addedAccessRights.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(dto);
             }
         }
-        clientRepository.merge(clientType);
+        clientRepository.merge(clientEntity);
 
         return addedAccessRights;
     }
 
     /**
      * Add access right for a single subject (subjectId), to a single endpoint (endpoint)
-     * that belongs to clientType. Assumes parameters are already validated, service client objects
+     * that belongs to client. Assumes parameters are already validated, service client objects
      * for subjectId exist
-     * @param clientType
-     * @param rightsGiven
-     * @param endpoint
-     * @param subjectId
-     * @return
+     * @param clientEntity clientEntity
+     * @param rightsGiven rightsGiven
+     * @param endpointEntity endpointEntity
+     * @param subjectId subjectId
+     * @return ServiceClientAccessRightDto
      * @throws DuplicateAccessRightException if access right already exists
      */
-    private ServiceClientAccessRightDto addAccessRightInternal(ClientEntity clientType, Date rightsGiven,
-                                                               EndpointEntity endpoint, XRoadIdEntity subjectId)
+    private ServiceClientAccessRightDto addAccessRightInternal(ClientEntity clientEntity, Date rightsGiven,
+                                                               EndpointEntity endpointEntity, XRoadIdEntity subjectId)
             throws DuplicateAccessRightException {
 
         // some sanity checks for the parameters. These should be covered already in earlier methods,
@@ -546,42 +542,42 @@ public class AccessRightService {
         // Throw runtime exceptions if these checks fail
         validateServiceClientObjectType(subjectId);
 
-        List<LocalGroupEntity> clientLocalGroups = clientType.getLocalGroup();
+        List<LocalGroupEntity> clientLocalGroups = clientEntity.getLocalGroups();
 
         if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
             LocalGroupId localGroupId = (LocalGroupId) subjectId;
             boolean localGroupNotFound = clientLocalGroups.stream()
-                    .noneMatch(localGroupType -> localGroupType.getGroupCode()
+                    .noneMatch(localGroupEntity -> localGroupEntity.getGroupCode()
                             .equals(localGroupId.getGroupCode()));
             if (localGroupNotFound) {
                 String errorMsg = String.format("LocalGroup with the groupCode %s does not belong to client %s",
-                        subjectId.toShortString(), clientType.getIdentifier().toShortString());
+                        subjectId.toShortString(), clientEntity.getIdentifier().toShortString());
                 throw new IllegalStateException(errorMsg);
             }
         }
 
         // list endpoints, which this subject / service client has already been granted access to
-        Set<EndpointEntity> existingAccessibleEndpoints = clientType.getAcl().stream()
-                .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
+        Set<EndpointEntity> existingAccessibleEndpoints = clientEntity.getAccessRights().stream()
+                .filter(accessRightEntity -> accessRightEntity.getSubjectId().equals(subjectId))
                 .map(AccessRightEntity::getEndpoint)
                 .collect(Collectors.toSet());
 
-        if (existingAccessibleEndpoints.contains(endpoint)) {
+        if (existingAccessibleEndpoints.contains(endpointEntity)) {
             throw new DuplicateAccessRightException("Subject " + subjectId.toShortString()
-                    + " already has an access right for endpoint " + endpoint.getId());
+                    + " already has an access right for endpoint " + endpointEntity.getId());
         }
 
         AccessRightEntity newAccessRight = new AccessRightEntity();
-        newAccessRight.setEndpoint(endpoint);
+        newAccessRight.setEndpoint(endpointEntity);
         newAccessRight.setSubjectId(subjectId);
         newAccessRight.setRightsGiven(rightsGiven);
-        clientType.getAcl().add(newAccessRight);
+        clientEntity.getAccessRights().add(newAccessRight);
 
         // return a dto
         return ServiceClientAccessRightDto.builder()
-                .serviceCode(endpoint.getServiceCode())
+                .serviceCode(endpointEntity.getServiceCode())
                 .rightsGiven(FormatUtils.fromDateToOffsetDateTime(rightsGiven))
-                .title(serviceDescriptionService.getServiceTitle(clientType, endpoint.getServiceCode()))
+                .title(serviceDescriptionService.getServiceTitle(clientEntity, endpointEntity.getServiceCode()))
                 .build();
     }
 
@@ -592,11 +588,6 @@ public class AccessRightService {
         public AccessRightNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
         }
-
-        public AccessRightNotFoundException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
-        }
-
     }
 
     /**
@@ -611,7 +602,7 @@ public class AccessRightService {
 
     /**
      * Find access right holder (serviceClient) candidates by search terms
-     * @param clientId
+     * @param clientId clientId
      * @param subjectType search term for subjectType. Null or empty value is considered a match
      * @param memberNameOrGroupDescription search term for memberName or groupDescription (depending on subject's type).
      * Null or empty value is considered a match
@@ -648,7 +639,7 @@ public class AccessRightService {
         }
 
         // get local groups
-        List<ServiceClient> localGroups = getLocalGroupsAsDtos(client.getLocalGroup());
+        List<ServiceClient> localGroups = getLocalGroupsAsDtos(client.getLocalGroups());
         if (!localGroups.isEmpty()) {
             dtos.addAll(localGroups);
         }
@@ -661,8 +652,8 @@ public class AccessRightService {
                 .collect(Collectors.toList());
     }
 
-    private List<ServiceClient> getLocalGroupsAsDtos(List<LocalGroupEntity> localGroupTypes) {
-        return localGroupTypes.stream()
+    private List<ServiceClient> getLocalGroupsAsDtos(List<LocalGroupEntity> localGroupEntities) {
+        return localGroupEntities.stream()
                 .map(localGroup -> {
                     ServiceClient serviceClient = new ServiceClient();
                     serviceClient.setLocalGroupId(localGroup.getId().toString());

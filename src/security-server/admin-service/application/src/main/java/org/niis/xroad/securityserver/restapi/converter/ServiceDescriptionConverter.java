@@ -46,27 +46,27 @@ public class ServiceDescriptionConverter {
 
     private final ServiceConverter serviceConverter;
 
-    private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Converts a group of ServiceDescriptionTypes to a list of ServiceDescriptions
-     * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes.
+     * Converts a group of ServiceDescription to a list of ServiceDescriptions
+     * Does a deep conversion, converts ServiceDescription.ServiceTypes.
      * This expects that serviceDescription.client.endpoints have been fetched
-     * @param serviceDescriptionTypes
-     * @return
+     * @param serviceDescriptions serviceDescriptions
+     * @return Set<ServiceDescriptionDto>
      */
-    public Set<ServiceDescriptionDto> convert(Iterable<ServiceDescription> serviceDescriptionTypes) {
-        return Streams.stream(serviceDescriptionTypes)
+    public Set<ServiceDescriptionDto> convert(Iterable<ServiceDescription> serviceDescriptions) {
+        return Streams.stream(serviceDescriptions)
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
     /**
-     * Convert a ServiceDescriptionType into ServiceDescriptionDto.
-     * Does a deep conversion, converts ServiceDescriptionType.ServiceTypes.
+     * Convert a ServiceDescription into ServiceDescriptionDto.
+     * Does a deep conversion, converts ServiceDescription.Services.
      * This expects that serviceDescription.client.endpoints have been fetched
-     * @param serviceDescription
-     * @return
+     * @param serviceDescription serviceDescription
+     * @return ServiceDescriptionDto
      */
     public ServiceDescriptionDto convert(ServiceDescription serviceDescription) {
         ServiceDescriptionDto serviceDescriptionDto = new ServiceDescriptionDto();
@@ -78,7 +78,7 @@ public class ServiceDescriptionConverter {
         serviceDescriptionDto.setDisabledNotice(serviceDescription.getDisabledNotice());
         serviceDescriptionDto.setRefreshedAt(FormatUtils.fromDateToOffsetDateTime(
                 serviceDescription.getRefreshedDate()));
-        serviceDescriptionDto.setServices(serviceConverter.convertServices(serviceDescription.getService(),
+        serviceDescriptionDto.setServices(serviceConverter.convertServices(serviceDescription.getServices(),
                 serviceDescription.getClient().getIdentifier()));
         serviceDescriptionDto.setType(ServiceTypeMapping.map(serviceDescription.getType()));
         serviceDescriptionDto.setUrl(serviceDescription.getUrl());

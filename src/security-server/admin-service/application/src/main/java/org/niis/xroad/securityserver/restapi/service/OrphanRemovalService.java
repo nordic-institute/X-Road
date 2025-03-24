@@ -94,9 +94,9 @@ public class OrphanRemovalService {
     }
 
     private boolean isAlive(ClientId clientId) {
-        ClientEntity clientType = clientService.getLocalClientEntity(clientId);
+        ClientEntity clientEntity = clientService.getLocalClientEntity(clientId);
         // cant have orphans if still alive
-        return clientType != null;
+        return clientEntity != null;
     }
 
     /**

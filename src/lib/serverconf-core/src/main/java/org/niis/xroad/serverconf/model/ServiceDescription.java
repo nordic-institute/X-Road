@@ -38,5 +38,5 @@ import java.util.List;
 @Setter
 public class ServiceDescription extends ServiceDescriptionBase {
 
-    private final List<Service> service = new ArrayList<>();
+    private final List<Service> services = new ArrayList<>();
 }
