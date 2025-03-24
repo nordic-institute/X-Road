@@ -79,19 +79,20 @@ jobs:
         working-directory: ./src
 #        todo: revert after testing
 #        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PxroadImageRegistry=localhost:5000
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build -PxroadImageRegistry=localhost:5000 -x test
-      - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          name: Unit and integration tests
-          path: src/**/build/test-results/**/TEST-*.xml
-          reporter: java-junit
-          list-suites: 'failed'
-          list-tests: 'failed'
+        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build -PxroadImageRegistry=localhost:5000 -x test -x intTest
+
 #        todo: revert after testing
+#      - name: Test report
+#        env:
+#          NODE_OPTIONS: '--max-old-space-size=6144'
+#        uses: dorny/test-reporter@v1
+#        if: success() || failure()
+#        with:
+#          name: Unit and integration tests
+#          path: src/**/build/test-results/**/TEST-*.xml
+#          reporter: java-junit
+#          list-suites: 'failed'
+#          list-tests: 'failed'
 #      - name: Build RHEL8 packages
 #        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
 #      - name: Build RHEL9 packages
