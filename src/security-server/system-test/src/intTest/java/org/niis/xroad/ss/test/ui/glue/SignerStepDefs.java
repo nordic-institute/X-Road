@@ -28,6 +28,7 @@ package org.niis.xroad.ss.test.ui.glue;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
 
 import java.nio.file.Files;
@@ -57,12 +58,14 @@ public class SignerStepDefs extends BaseUiStepDefs {
         envSetup.start(EnvSetup.SIGNER);
     }
 
-    @SneakyThrows
+    //    @SneakyThrows
     @Step("Predefined inactive signer token is uploaded")
     @SuppressWarnings("checkstyle:MagicNumber")
     public void addInactiveSignerToken() {
         // make file accessible for editing outside the container.
-        envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R",  "777", "/etc/xroad/signer");
+        if (SystemUtils.IS_OS_UNIX) {
+            envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
+        }
         envSetup.stop(EnvSetup.SIGNER);
 
         String deviceEntry = """
@@ -76,10 +79,13 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 """;
 
         Path keyconfPath = Paths.get("build/signer-volume/keyconf.xml");
-
-        String content = Files.readString(keyconfPath);
-        content = content.replaceFirst("</device>", deviceEntry);
-        Files.writeString(keyconfPath, content);
+        try {
+            String content = Files.readString(keyconfPath);
+            content = content.replaceFirst("</device>", deviceEntry);
+            Files.writeString(keyconfPath, content);
+        } catch (Exception e) {
+            testReportService.attachText("Failed to modify keyconf.xml file", e.getMessage());
+        }
 
         envSetup.start(EnvSetup.SIGNER);
     }
