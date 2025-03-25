@@ -113,7 +113,7 @@ public class GetListClientsMessage extends MessageTestCase {
 
         List<MemberInfo> resultMembers = clientListType
                 .stream()
-                .map(clientType -> new MemberInfo(clientType.getId(), clientType.getName()))
+                .map(clientType -> new MemberInfo(clientType.getId(), clientType.getName(), clientType.getSubsystemName()))
                 .collect(Collectors.toList());
 
         assertThat("Wrong amount of clients",
@@ -142,7 +142,7 @@ public class GetListClientsMessage extends MessageTestCase {
 
     private static MemberInfo createMember(String member, String subsystem) {
         return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
-                member, subsystem), member + "-name");
+                member, subsystem), member + "-name", subsystem == null ? null : (subsystem + "-name"));
     }
 
     @Override

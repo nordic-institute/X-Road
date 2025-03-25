@@ -75,7 +75,7 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setName(globalConfProvider.getMemberName(serviceClientId));
+                serviceClient.setName(serviceClientDto.getSubsystemName());
                 serviceClient.setId(clientIdConverter.convertId(serviceClientId));
                 serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
                 break;

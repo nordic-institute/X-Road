@@ -56,6 +56,7 @@ public class ServiceClientDto {
      * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
      */
     private String memberName;
+    private String subsystemName;
     private XRoadId subjectId;
     private OffsetDateTime rightsGiven;
 }

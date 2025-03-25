@@ -24,22 +24,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    data-test="unregister-client-button"
-    outlined
-    @click="confirmUnregisterClient = true"
-    >{{ $t('action.unregister') }}</xrd-button
-  >
+  <div class="d-inline-block">
+    <xrd-button
+      data-test="unregister-client-button"
+      outlined
+      @click="confirmUnregisterClient = true"
+    >{{ $t('action.unregister') }}
+    </xrd-button>
 
-  <!-- Confirm dialog for unregister client -->
-  <xrd-confirm-dialog
-    v-if="confirmUnregisterClient"
-    :loading="unregisterLoading"
-    title="client.action.unregister.confirmTitle"
-    text="client.action.unregister.confirmText"
-    @cancel="confirmUnregisterClient = false"
-    @accept="unregisterClient()"
-  />
+    <!-- Confirm dialog for unregister client -->
+    <xrd-confirm-dialog
+      v-if="confirmUnregisterClient"
+      :loading="unregisterLoading"
+      title="client.action.unregister.confirmTitle"
+      text="client.action.unregister.confirmText"
+      @cancel="confirmUnregisterClient = false"
+      @accept="unregisterClient()"
+    />
+  </div>
 </template>
 
 <script lang="ts">

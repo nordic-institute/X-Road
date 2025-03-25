@@ -60,7 +60,7 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.OWNER_SERVER_
  * Test live clients api controller with rest template.
  * Test exists to check proper loading of lazy collections, and
  * open-session-in-view configuration.
- *
+ * <p>
  * If data source is altered with TestRestTemplate (e.g. POST, PUT or DELETE) in this test class,
  * please remember to mark the context dirty with the following annotation:
  * <code>@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)</code>
@@ -87,7 +87,11 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
             List<MemberInfo> members = new ArrayList<>();
             for (String encodedId : encodedClientIds) {
                 ClientId.Conf clientId = clientIdConverter.convertId(encodedId);
-                members.add(new MemberInfo(clientId, "mock-name-for-" + encodedId));
+                members.add(new MemberInfo(
+                        clientId,
+                        "mock-name-for-" + encodedId,
+                        clientId.isSubsystem() ? ("subsystem-name-for" + encodedId) : null
+                ));
             }
             return members;
         }).when(globalConfProvider).getMembers();

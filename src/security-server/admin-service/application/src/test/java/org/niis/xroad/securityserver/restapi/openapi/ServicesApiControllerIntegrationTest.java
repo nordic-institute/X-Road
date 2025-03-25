@@ -95,6 +95,13 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
             ClientId identifier = (ClientId) args[0];
             return TestUtils.NAME_FOR + identifier.toShortString().replace("/", ":");
         });
+
+        when(globalConfProvider.getSubsystemName(any())).thenAnswer((Answer<String>) invocation -> {
+            Object[] args = invocation.getArguments();
+            ClientId identifier = (ClientId) args[0];
+            return TestUtils.NAME_FOR + identifier.toShortString().replace("/", ":");
+        });
+
         when(globalConfProvider.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                         null),
@@ -365,8 +372,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     private Optional<ServiceClient> getServiceClientByTypeExceptId(
             Set<ServiceClient> serviceClients, String type, String exceptId) {
-        return serviceClients
-                .stream()
+        return serviceClients.stream()
                 .filter(serviceClient -> serviceClient.getServiceClientType().name().equals(type)
                         & !serviceClient.getId().equals(exceptId))
                 .findFirst();

@@ -34,6 +34,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
@@ -49,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 public class ClientConverterTest {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
+    public static final String SUBSYSTEM_NAME_PREFIX = "subsystem-name-for-";
     private ClientConverter clientConverter;
     private ClientSortingComparator clientSortingComparator = new ClientSortingComparator();
 
@@ -59,12 +61,19 @@ public class ClientConverterTest {
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();
             }
+
+            @Override
+            public String getSubsystemName(ClientId identifier) {
+                return SUBSYSTEM_NAME_PREFIX + identifier.getSubsystemCode();
+            }
         };
         ClientId.Conf ownerId = ClientId.Conf.create("XRD2", "GOV", "M4");
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "CS");
 
+        SubsystemNameStatus subsystemNameStatus = new SubsystemNameStatus();
+
         clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
-                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator, subsystemNameStatus);
     }
 
     @Test

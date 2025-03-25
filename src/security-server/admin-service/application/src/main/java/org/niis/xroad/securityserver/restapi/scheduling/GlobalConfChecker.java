@@ -33,11 +33,13 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.ServerConfType;
@@ -75,6 +77,7 @@ public class GlobalConfChecker {
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final SubsystemNameStatus subsystemNameStatus;
     private final MailNotificationHelper mailNotificationHelper;
 
     /**
@@ -85,7 +88,6 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
-     *
      * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
@@ -157,7 +159,6 @@ public class GlobalConfChecker {
     /**
      * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
      * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
-     *
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database
      */
@@ -241,11 +242,10 @@ public class GlobalConfChecker {
         log.debug("Updating client statuses");
 
         for (ClientType client : serverConf.getClient()) {
-            boolean registered = globalConfProvider.isSecurityServerClient(
-                    client.getIdentifier(), securityServerId);
+            var clientId = client.getIdentifier();
+            boolean registered = globalConfProvider.isSecurityServerClient(clientId, securityServerId);
 
-            log.debug("Client '{}' registered = '{}'", client.getIdentifier(),
-                    registered);
+            log.debug("Client '{}' registered = '{}'", clientId, registered);
 
             if (registered && client.getClientStatus() != null) {
                 switch (client.getClientStatus()) {
@@ -259,9 +259,7 @@ public class GlobalConfChecker {
                         updateClientStatus(client, ClientType.STATUS_REGISTERED);
                         break;
                     default:
-                        log.warn("Unexpected status {} for client '{}'",
-                                client.getIdentifier(),
-                                client.getClientStatus());
+                        log.warn("Unexpected status {} for client '{}'", client.getClientStatus(), clientId);
                 }
             }
 
@@ -271,6 +269,11 @@ public class GlobalConfChecker {
 
             if (!registered && ClientType.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
                 updateClientStatus(client, ClientType.STATUS_DISABLED);
+            }
+
+            if (clientId.isSubsystem()) {
+                subsystemNameStatus.clearIf(clientId,
+                        (oldName, newName) -> !StringUtils.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
             }
         }
     }

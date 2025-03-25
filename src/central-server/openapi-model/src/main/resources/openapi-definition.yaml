@@ -4805,6 +4805,9 @@ components:
         client_owner_name:
           type: string
           readOnly: true
+        client_subsystem_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time

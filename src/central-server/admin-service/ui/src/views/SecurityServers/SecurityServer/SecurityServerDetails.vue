@@ -35,7 +35,7 @@
     <main
       v-if="securityServer && !loading"
       data-test="security-server-details-view"
-      class="mt-8"
+      class="mt-5"
     >
       <!-- Security Server Details -->
       <div id="security-server-details">

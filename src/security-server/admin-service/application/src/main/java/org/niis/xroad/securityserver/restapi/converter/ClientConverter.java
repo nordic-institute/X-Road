@@ -34,17 +34,16 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.securityserver.restapi.openapi.model.RenameStatus;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,31 +59,42 @@ public class ClientConverter {
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     private final ClientSortingComparator clientSortingComparator;
+    private final SubsystemNameStatus subsystemNameStatus;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     *
      * @param clientType
      * @return
      */
     public Client convert(ClientType clientType) {
-        Client client = new Client();
-        client.setId(clientIdConverter.convertId(clientType.getIdentifier()));
-        client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
-        client.setMemberClass(clientType.getIdentifier().getMemberClass());
-        client.setMemberCode(clientType.getIdentifier().getMemberCode());
-        client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
-        client.setMemberName(globalConfProvider.getMemberName(clientType.getIdentifier()));
-        client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
-        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
+        var clientId = clientType.getIdentifier();
+        var client = new Client();
+        client.setId(clientIdConverter.convertId(clientId));
+        client.setInstanceId(clientId.getXRoadInstance());
+        client.setMemberClass(clientId.getMemberClass());
+        client.setMemberCode(clientId.getMemberCode());
+        client.setSubsystemCode(clientId.getSubsystemCode());
+        client.setMemberName(globalConfProvider.getMemberName(clientId));
+        client.setSubsystemName(globalConfProvider.getSubsystemName(clientId));
+        client.setOwner(clientId.equals(securityServerOwner.getServerId().getOwner()));
+        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientId,
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));
-        Optional<ClientStatus> status = ClientStatusMapping.map(clientType.getClientStatus());
-        client.setStatus(status.orElse(null));
-        Optional<ConnectionType> connectionTypeEnum =
-                ConnectionTypeMapping.map(clientType.getIsAuthentication());
-        client.setConnectionType(connectionTypeEnum.orElse(null));
+        client.setStatus(ClientStatusMapping.map(clientType.getClientStatus()).orElse(null));
+        client.setConnectionType(ConnectionTypeMapping.map(clientType.getIsAuthentication()).orElse(null));
+        client.setRenameStatus(mapRenameStatus(clientId));
         return client;
+    }
+
+    private RenameStatus mapRenameStatus(ClientId clientId) {
+        if (clientId.isSubsystem()) {
+            if (subsystemNameStatus.isSubmitted(clientId)) {
+                return RenameStatus.NAME_SUBMITTED;
+            } else if (subsystemNameStatus.isSet(clientId)) {
+                return RenameStatus.NAME_SET;
+            }
+        }
+        return null;
     }
 
     /**
@@ -98,7 +108,6 @@ public class ClientConverter {
                 .sorted(clientSortingComparator)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
-
 
     /**
      * Convert MemberInfo into Client

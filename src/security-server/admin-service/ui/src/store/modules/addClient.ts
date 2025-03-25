@@ -81,6 +81,7 @@ export interface AddClientState {
   memberClass: string;
   memberCode: string;
   subsystemCode: string | undefined;
+  subsystemName: string | undefined;
   memberWizardMode: AddMemberWizardModes;
   reservedMemberData: ReservedMemberData | undefined;
 }
@@ -97,6 +98,7 @@ export const useAddClient = defineStore('addClient', {
       memberClass: '',
       memberCode: '',
       subsystemCode: undefined,
+      subsystemName: undefined,
       tokenId: undefined,
       memberWizardMode: AddMemberWizardModes.FULL,
       reservedMemberData: undefined,
@@ -135,6 +137,7 @@ export const useAddClient = defineStore('addClient', {
           member_class: this.memberClass,
           member_code: this.memberCode,
           subsystem_code: this.subsystemCode,
+          subsystem_name: this.subsystemName,
         },
         ignore_warnings: ignoreWarnings,
       };
@@ -159,25 +162,6 @@ export const useAddClient = defineStore('addClient', {
     },
 
     fetchReservedClients(client: Client) {
-      // Fetch clients from backend that match the selected client without subsystem code
-      return api
-        .get<Client[]>('/clients', {
-          params: {
-            instance: client.instance_id,
-            member_class: client.member_class,
-            member_code: client.member_code,
-            internal_search: true,
-          },
-        })
-        .then((res) => {
-          this.reservedClients = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
-    fetchReservedMembers(client: Client) {
       // Fetch clients from backend that match the selected client without subsystem code
       return api
         .get<Client[]>('/clients', {

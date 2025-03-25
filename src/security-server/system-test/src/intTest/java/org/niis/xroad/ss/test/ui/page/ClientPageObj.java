@@ -29,6 +29,9 @@ package org.niis.xroad.ss.test.ui.page;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import java.util.ArrayList;
+import java.util.Optional;
+
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
@@ -55,15 +58,35 @@ public class ClientPageObj {
     }
 
     public SelenideElement linkClientDetailsOfName(String name) {
-        return $x(format("//tbody//span[contains(text(),'%s')]", name));
+        return $x(format("//tbody//span[contains(@class, 'client-name') and contains(text(),'%s')]", name));
+    }
+
+    public SelenideElement linkClientDetailsOfId(String id) {
+        return $x(format("//tbody/tr[td[@data-test='client-id']/span[text()='%s']]//span[contains(@class, 'client-name')]", id));
     }
 
     public SelenideElement tableRowWithNameAndStatus(String name, String status) {
-        return $x(format("//tbody/tr[ td[1]/span[text()='%s'] and td[3]//*[text()='%s'] ]", name, status));
+        return tableRowWithNameAndStatus(name, status, null);
+    }
+
+    public SelenideElement tableRowWithNameAndStatus(String name, String status, String id) {
+        var matchers = new ArrayList<String>(2);
+        Optional.ofNullable(name)
+                .map("td[@data-test='client-name']//span[text()='%s']"::formatted)
+                .ifPresent(matchers::add);
+        Optional.ofNullable(status)
+                .map("td[@data-test='client-status']//*[text()='%s']"::formatted)
+                .ifPresent(matchers::add);
+
+        Optional.ofNullable(id)
+                .map("td[@data-test='client-id']/span[text()='%s']"::formatted)
+                .ifPresent(matchers::add);
+
+        return $x(format("//tbody/tr[ %s ]", String.join(" and ", matchers)));
     }
 
     public SelenideElement groupByPos(int pos) {
-        return $x(format("//tbody//tr[%d]//td[1]/span", pos));
+        return $x(format("//tbody//tr[%d]", pos));
     }
 
     public ElementsCollection groups() {
@@ -107,6 +130,10 @@ public class ClientPageObj {
             return $x("//div[@data-test='subsystem-code-input']");
         }
 
+        public SelenideElement inputSubsystemName() {
+            return $x("//div[@data-test='subsystem-name-input']");
+        }
+
         public SelenideElement inputRegisterSubsystem() {
             return $x("//div[@data-test='register-subsystem-checkbox']");
         }
@@ -148,6 +175,10 @@ public class ClientPageObj {
 
         public SelenideElement btnNext() {
             return $x("//button[@data-test='next-button']");
+        }
+
+        public SelenideElement inputSubsystemName() {
+            return $x("//div[@data-test='subsystem-name-input']");
         }
 
     }

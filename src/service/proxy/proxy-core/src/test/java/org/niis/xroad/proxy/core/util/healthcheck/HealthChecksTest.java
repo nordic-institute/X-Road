@@ -242,7 +242,7 @@ public class HealthChecksTest {
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
-        assertTrue("health check result should be a failure", !checkedResult.isOk());
+        assertFalse("health check result should be a failure", checkedResult.isOk());
         assertThat(checkedResult.getErrorMessage(), containsString("ServerConf is not available"));
     }
 
@@ -257,7 +257,7 @@ public class HealthChecksTest {
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
-        assertTrue("health check result should be a failure", !checkedResult.isOk());
+        assertFalse("health check result should be a failure", checkedResult.isOk());
         assertThat(checkedResult.getErrorMessage(), containsString("No authentication key available"));
     }
 
@@ -274,7 +274,7 @@ public class HealthChecksTest {
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
-        assertTrue("health check result should be a failure", !checkedResult.isOk());
+        assertFalse("health check result should be a failure", checkedResult.isOk());
         assertThat(checkedResult.getErrorMessage(), containsString("No certificate chain available"));
     }
 
@@ -294,7 +294,7 @@ public class HealthChecksTest {
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
-        assertTrue("health check result should be a failure", !checkedResult.isOk());
+        assertFalse("health check result should be a failure", checkedResult.isOk());
         assertThat(checkedResult.getErrorMessage(), containsString("No end entity certificate available"));
     }
 
@@ -309,7 +309,7 @@ public class HealthChecksTest {
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
-        assertTrue("health check result should be a failure", !checkedResult.isOk());
+        assertFalse("health check result should be a failure", checkedResult.isOk());
         assertThat(checkedResult.getErrorMessage(),
                 containsString("Authentication key OCSP response status"));
     }

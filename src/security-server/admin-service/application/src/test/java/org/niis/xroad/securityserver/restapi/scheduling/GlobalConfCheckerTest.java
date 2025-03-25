@@ -68,8 +68,10 @@ import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
 import static ee.ria.xroad.common.SystemProperties.NodeType.MASTER;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -131,7 +133,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         });
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         when(globalConfProvider.getServerId(any())).thenReturn(SS_ID);
 
         KeyInfo ownerSignKey = new TokenTestUtils.KeyInfoBuilder()
@@ -206,6 +208,19 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
+    public void updateRenameStatus() {
+        var originalName = "originalName";
+        var newName = "newName";
+        when(globalConfProvider.getSubsystemName(SUBSYSTEM)).thenReturn(originalName);
+        subsystemNameStatus.submit(SUBSYSTEM, null, newName);
+
+        when(globalConfProvider.getSubsystemName(SUBSYSTEM)).thenReturn(newName);
+        globalConfChecker.checkGlobalConf();
+
+        assertFalse(subsystemNameStatus.getRename(SUBSYSTEM).isPresent());
+    }
+
+    @Test
     public void registerMemberAndChangeSecurityServerOwner() throws Exception {
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
 
@@ -213,7 +228,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         // Add new member locally
         ClientType clientType = clientService.addLocalClient(NEW_OWNER_MEMBER.getMemberClass(),
-                NEW_OWNER_MEMBER.getMemberCode(), NEW_OWNER_MEMBER.getSubsystemCode(),
+                NEW_OWNER_MEMBER.getMemberCode(), NEW_OWNER_MEMBER.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
         assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
 

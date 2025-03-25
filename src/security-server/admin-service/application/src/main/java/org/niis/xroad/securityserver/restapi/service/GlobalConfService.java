@@ -54,6 +54,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -241,5 +242,10 @@ public class GlobalConfService {
         String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         ClientId clientId = ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
         return globalConfProvider.getMemberName(clientId);
+    }
+
+
+    public OptionalInt getGlobalConfigurationVersion() {
+        return globalConfProvider.getVersion();
     }
 }

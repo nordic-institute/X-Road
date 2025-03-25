@@ -172,6 +172,7 @@ export default defineComponent({
         ManagementRequestType.CLIENT_DISABLE_REQUEST,
         ManagementRequestType.CLIENT_ENABLE_REQUEST,
         ManagementRequestType.OWNER_CHANGE_REQUEST,
+        ManagementRequestType.CLIENT_RENAME_REQUEST,
       ].includes(this.managementRequestsStore.currentManagementRequest.type);
     },
     newClientOwner(): boolean {

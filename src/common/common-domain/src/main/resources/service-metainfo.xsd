@@ -28,6 +28,7 @@
         <xs:sequence>
             <xs:element name="id" type="id:XRoadClientIdentifierType"/>
             <xs:element name="name" type="xs:string" minOccurs="0"/>
+            <xs:element name="subsystemName" type="xs:string" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
     <xs:simpleType name="RestServiceType">

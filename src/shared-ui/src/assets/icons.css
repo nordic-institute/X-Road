@@ -89,6 +89,7 @@ i[class*=' icon-']:before {
 }
 .icon-Edit:before {
   content: '\f10f';
+  transform: translate(-1px, -7px);
 }
 .icon-Error-notification:before {
   content: '\f110';

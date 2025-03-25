@@ -46,6 +46,11 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
 
     @Step("Add Client details is filled with preselected client {string} is opened")
     public void addClientDetails(String client) {
+        addClientDetails(client, null);
+    }
+
+    @Step("Add Client details is filled with preselected client {string} and with new name: {string} is opened")
+    public void addClientDetails(String client, String newName) {
         clientPageObj.addClientDetails.btnNext().shouldBe(disabled);
 
         clientPageObj.addClientDetails.btnSelectClient().click();
@@ -59,6 +64,10 @@ public class ClientAddStepDefs extends BaseUiStepDefs {
         clientPageObj.addClientDetails.selectMemberClass().shouldBe(text(idParts[1]));
         vTextField(clientPageObj.addClientDetails.inputMemberCode()).shouldHaveText(idParts[2]);
         vTextField(clientPageObj.addClientDetails.inputSubsystemCode()).shouldHaveText(idParts[3]);
+
+        if (newName != null) {
+            vTextField(clientPageObj.addClientDetails.inputSubsystemName()).setValue(newName);
+        }
 
         clientPageObj.addClientDetails.btnNext().click();
     }
