@@ -95,7 +95,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
 
             Path tempDir = Files.createTempDirectory("signertmp");
             FileUtils.copyDirectory(Paths.get("build/signer-volume/softtoken").toFile(),
-                    tempDir.resolve("softoken").toFile());
+                    tempDir.resolve("softtoken").toFile());
 
             Path keyconfFile = tempDir.resolve("keyconf.xml");
             Files.writeString(keyconfFile, updatedKeyConf);
