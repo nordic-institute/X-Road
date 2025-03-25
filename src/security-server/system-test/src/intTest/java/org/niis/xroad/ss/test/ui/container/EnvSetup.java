@@ -70,6 +70,8 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     @Override
     public void initialize() {
+        // Creating directories for volume mounts with full permissions
+        // to ensure containers have the necessary access to modify their contents.
         prepareDirectories(
                 "build/signer-volume",
                 "build/signer-volume/softtoken",
