@@ -76,7 +76,7 @@ import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.entity.ServiceEntity;
 import org.niis.xroad.serverconf.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
@@ -291,7 +291,7 @@ public class MetadataServiceHandlerTest {
 
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
+            public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -350,7 +350,7 @@ public class MetadataServiceHandlerTest {
 
             @Override
             public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
-                                                                            Description description) {
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClient));
 
@@ -668,9 +668,9 @@ public class MetadataServiceHandlerTest {
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
         if (isRest) {
-            wsdl.setType(Description.REST);
+            wsdl.setType(DescriptionType.REST);
         } else {
-            wsdl.setType(Description.WSDL);
+            wsdl.setType(DescriptionType.WSDL);
         }
 
         ServiceEntity service = new ServiceEntity();

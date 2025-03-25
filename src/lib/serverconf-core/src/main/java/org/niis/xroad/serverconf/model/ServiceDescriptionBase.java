@@ -44,5 +44,5 @@ public class ServiceDescriptionBase {
     private boolean disabled;
     private String disabledNotice;
     private Date refreshedDate;
-    private Description type;
+    private DescriptionType type;
 }

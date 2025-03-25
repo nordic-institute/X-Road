@@ -78,7 +78,7 @@ import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.OutputStream;
 import java.security.cert.X509Certificate;
@@ -349,9 +349,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        Description description = commonBeanProxy.serverConfProvider.getDescription(requestServiceId);
-        if (description != null && description != Description.REST
-                && description != Description.OPENAPI3) {
+        DescriptionType descriptionType = commonBeanProxy.serverConfProvider.getDescription(requestServiceId);
+        if (descriptionType != null && descriptionType != DescriptionType.REST
+                && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }

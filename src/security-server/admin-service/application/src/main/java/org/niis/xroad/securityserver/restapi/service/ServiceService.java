@@ -44,7 +44,7 @@ import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.entity.ServiceEntity;
 import org.niis.xroad.serverconf.mapper.EndpointMapper;
 import org.niis.xroad.serverconf.mapper.ServiceMapper;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.serverconf.model.Service;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -174,7 +174,7 @@ public class ServiceService {
         }
 
         ServiceDescriptionEntity serviceDescriptionEntity = serviceEntity.getServiceDescription();
-        if (Description.REST.equals(serviceDescriptionEntity.getType())) {
+        if (DescriptionType.REST.equals(serviceDescriptionEntity.getType())) {
             serviceDescriptionEntity.setUrl(url);
             checkDuplicateUrl(serviceDescriptionEntity);
         }
@@ -251,7 +251,7 @@ public class ServiceService {
 
         ServiceEntity serviceEntity = getServiceEntity(clientId, fullServiceCode);
 
-        if (serviceEntity.getServiceDescription().getType().equals(Description.WSDL)) {
+        if (serviceEntity.getServiceDescription().getType().equals(DescriptionType.WSDL)) {
             throw new ServiceDescriptionService.WrongServiceDescriptionException("Endpoint can't be added to a "
                     + "WSDL type of Service Description");
         }

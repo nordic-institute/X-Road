@@ -72,7 +72,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
-import static org.niis.xroad.serverconf.model.Description.WSDL;
+import static org.niis.xroad.serverconf.model.DescriptionType.WSDL;
 
 /**
  * test ServiceDescription service.

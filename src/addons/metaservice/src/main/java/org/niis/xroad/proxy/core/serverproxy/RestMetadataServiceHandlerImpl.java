@@ -55,7 +55,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessageDecoder;
 import org.niis.xroad.proxy.core.protocol.ProxyMessageEncoder;
 import org.niis.xroad.proxy.core.util.OpenapiDescriptionFiletype;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -156,7 +156,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         // and the responseInTs must be equal with the responseOutTs.
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
-        opMonitoringData.setServiceType(Description.REST.name());
+        opMonitoringData.setServiceType(DescriptionType.REST.name());
     }
 
     private void handleListMethods(ProxyMessage requestProxyMessage) throws IOException {
@@ -195,14 +195,14 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 targetServiceCode);
         log.trace("targetServiceId={}", targetServiceId);
 
-        Description description = serverConfProvider.getDescription(targetServiceId);
-        if (description == null) {
+        DescriptionType descriptionType = serverConfProvider.getDescription(targetServiceId);
+        if (descriptionType == null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Service not found: %s", targetServiceId));
         }
-        if (description != Description.OPENAPI3) {
+        if (descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Invalid service type: %s", description));
+                    String.format("Invalid service type: %s", descriptionType));
         }
 
         String serviceDescriptionURL = serverConfProvider.getServiceDescriptionURL(targetServiceId);

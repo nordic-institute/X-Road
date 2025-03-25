@@ -66,7 +66,7 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.niis.xroad.serverconf.mapper.ServiceDescriptionMapper;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -197,7 +197,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         // and the responseInTs must be equal with the responseOutTs.
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
-        opMonitoringData.setServiceType(Description.WSDL.name());
+        opMonitoringData.setServiceType(DescriptionType.WSDL.name());
 
         switch (serviceCode) {
             case LIST_METHODS -> handleListMethods(requestMessage);
@@ -231,7 +231,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
                 serverConfProvider.getServicesByDescription(
-                        request.getService().getClientId(), Description.WSDL));
+                        request.getService().getClientId(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
@@ -246,7 +246,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         methodList.getService().addAll(
                 serverConfProvider.getAllowedServicesByDescription(
                         request.getService().getClientId(),
-                        request.getClient(), Description.WSDL));
+                        request.getClient(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createAllowedMethodsResponse(methodList));
@@ -294,7 +294,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
                         new ServiceDescriptionDAOImpl().getServiceDescription(session, service)
                 )
         );
-        if (wsdl != null && wsdl.getType() != Description.WSDL) {
+        if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
         }

@@ -62,7 +62,7 @@ import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.entity.ServiceEntity;
 import org.niis.xroad.serverconf.mapper.EndpointMapper;
 import org.niis.xroad.serverconf.mapper.ServiceDescriptionMapper;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -226,11 +226,11 @@ public class ServiceDescriptionService {
 
     @SuppressWarnings({"java:S3776"}) // won't fix: too high cognitive complexity.
     // should be fixed when this method is updated next.
-    public ServiceDescriptionDto addServiceDescription(Description description, ClientId clientId, String url,
+    public ServiceDescriptionDto addServiceDescription(DescriptionType descriptionType, ClientId clientId, String url,
                                                        String restServiceCode, boolean ignoreWarnings) {
 
         ServiceDescriptionEntity addedServiceDescriptionEntity = null;
-        if (description == Description.WSDL) {
+        if (descriptionType == DescriptionType.WSDL) {
             try {
                 addedServiceDescriptionEntity = addWsdlServiceDescription(clientId, url, ignoreWarnings);
             } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
@@ -247,7 +247,7 @@ public class ServiceDescriptionService {
             } catch (InterruptedException e) {
                 throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
             }
-        } else if (description == Description.OPENAPI3) {
+        } else if (descriptionType == DescriptionType.OPENAPI3) {
             try {
                 addedServiceDescriptionEntity = addOpenApi3ServiceDescription(clientId, url, restServiceCode, ignoreWarnings);
             } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException
@@ -259,7 +259,7 @@ public class ServiceDescriptionService {
                      | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
                 throw new ConflictException(e);
             }
-        } else if (description == Description.REST) {
+        } else if (descriptionType == DescriptionType.REST) {
             try {
                 addedServiceDescriptionEntity = addRestEndpointServiceDescription(clientId,
                         url, restServiceCode);
@@ -425,7 +425,7 @@ public class ServiceDescriptionService {
         }
 
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(clientEntity, url,
-                Description.OPENAPI3);
+                DescriptionType.OPENAPI3);
 
         // Initiate default service
         ServiceEntity serviceEntity = new ServiceEntity();
@@ -545,7 +545,7 @@ public class ServiceDescriptionService {
         }
 
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(client, url,
-                Description.REST);
+                DescriptionType.REST);
 
         // Populate service
         ServiceEntity serviceEntity = new ServiceEntity();
@@ -641,9 +641,9 @@ public class ServiceDescriptionService {
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
 
-        if (serviceDescriptionEntity.getType().equals(Description.WSDL)) {
+        if (serviceDescriptionEntity.getType().equals(DescriptionType.WSDL)) {
             serviceDescriptionEntity = refreshWSDLServiceDescription(serviceDescriptionEntity, ignoreWarnings);
-        } else if (serviceDescriptionEntity.getType().equals(Description.OPENAPI3)) {
+        } else if (serviceDescriptionEntity.getType().equals(DescriptionType.OPENAPI3)) {
             serviceDescriptionEntity = refreshOpenApi3ServiceDescription(serviceDescriptionEntity, ignoreWarnings);
         }
 
@@ -676,7 +676,7 @@ public class ServiceDescriptionService {
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
             WsdlUrlAlreadyExistsException, InterruptedException {
 
-        if (!serviceDescriptionEntity.getType().equals(Description.WSDL)) {
+        if (!serviceDescriptionEntity.getType().equals(DescriptionType.WSDL)) {
             throw new WrongServiceDescriptionException("Expected description type WSDL");
         }
 
@@ -706,7 +706,7 @@ public class ServiceDescriptionService {
             OpenApiParser.ParsingException, InvalidUrlException,
             UnsupportedOpenApiVersionException {
 
-        if (!serviceDescriptionEntity.getType().equals(Description.OPENAPI3)) {
+        if (!serviceDescriptionEntity.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionException("Expected description type OPENAPI3");
         }
 
@@ -757,7 +757,7 @@ public class ServiceDescriptionService {
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
         auditDataHelper.put(RestApiAuditProperty.URL_NEW, url);
-        if (!serviceDescriptionEntity.getType().equals(Description.REST)) {
+        if (!serviceDescriptionEntity.getType().equals(DescriptionType.REST)) {
             throw new WrongServiceDescriptionException("Expected description type REST");
         }
 
@@ -814,7 +814,7 @@ public class ServiceDescriptionService {
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
         auditDataHelper.put(RestApiAuditProperty.URL_NEW, url);
 
-        if (!serviceDescriptionEntity.getType().equals(Description.OPENAPI3)) {
+        if (!serviceDescriptionEntity.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionException("Expected description type OPENAPI3");
         }
 
@@ -1012,7 +1012,7 @@ public class ServiceDescriptionService {
         }
 
         // Shouldn't be able to edit e.g. REST service descriptions with a WSDL URL
-        if (serviceDescriptionEntity.getType() != Description.WSDL) {
+        if (serviceDescriptionEntity.getType() != DescriptionType.WSDL) {
             throw new WrongServiceDescriptionException("Existing service description (id: "
                     + serviceDescriptionEntity.getId().toString() + " is not WSDL");
         }
@@ -1149,7 +1149,7 @@ public class ServiceDescriptionService {
     private ServiceDescriptionEntity buildWsdlServiceDescription(ClientEntity clientEntity,
                                                                  Collection<WsdlParser.ServiceInfo> parsedServices,
                                                                  String url) {
-        ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(clientEntity, url, Description.WSDL);
+        ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(clientEntity, url, DescriptionType.WSDL);
 
         // create services
         List<ServiceEntity> newServices = parsedServices
@@ -1162,13 +1162,13 @@ public class ServiceDescriptionService {
         return serviceDescriptionEntity;
     }
 
-    private ServiceDescriptionEntity getServiceDescriptionEntity(ClientEntity clientEntity, String url, Description description) {
+    private ServiceDescriptionEntity getServiceDescriptionEntity(ClientEntity clientEntity, String url, DescriptionType descriptionType) {
         ServiceDescriptionEntity serviceDescriptionEntity = new ServiceDescriptionEntity();
         serviceDescriptionEntity.setClient(clientEntity);
         serviceDescriptionEntity.setDisabled(true);
         serviceDescriptionEntity.setDisabledNotice(DEFAULT_DISABLED_NOTICE);
         serviceDescriptionEntity.setRefreshedDate(new Date());
-        serviceDescriptionEntity.setType(description);
+        serviceDescriptionEntity.setType(descriptionType);
         serviceDescriptionEntity.setUrl(url);
         return serviceDescriptionEntity;
     }

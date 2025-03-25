@@ -76,7 +76,7 @@ import org.niis.xroad.serverconf.mapper.ServiceMapper;
 import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.Certificate;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.serverconf.model.ServerConf;
 import org.niis.xroad.serverconf.model.Service;
@@ -160,7 +160,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
             serviceDao.getServicesByDescriptionType(session, XRoadIdMapper.get().toEntity(serviceProvider),
-                            Description.OPENAPI3, Description.REST)
+                            DescriptionType.OPENAPI3, DescriptionType.REST)
                     .forEach(serviceId -> {
                         XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                         serviceDetails.getEndpointList().addAll(getServiceEndpoints(serviceId));
@@ -174,8 +174,8 @@ public class ServerConfImpl implements ServerConfProvider {
     public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-            serviceDao.getServicesByDescriptionType(session, serviceProvider, Description.OPENAPI3,
-                            Description.REST)
+            serviceDao.getServicesByDescriptionType(session, serviceProvider, DescriptionType.OPENAPI3,
+                            DescriptionType.REST)
                     .forEach(serviceId -> {
                         final List<Endpoint> acl = getAclEndpoints(session, client, serviceId);
                         if (!acl.isEmpty()) {
@@ -205,8 +205,8 @@ public class ServerConfImpl implements ServerConfProvider {
         return serviceDetails;
     }
 
-    private RestServiceType getRestServiceType(Description description) {
-        return switch (description) {
+    private RestServiceType getRestServiceType(DescriptionType descriptionType) {
+        return switch (descriptionType) {
             case REST -> RestServiceType.REST;
             case OPENAPI3 -> RestServiceType.OPENAPI;
             default -> throw new IllegalArgumentException("The given parameter is not a REST service type!");
@@ -219,9 +219,9 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType) {
         return tx(session -> XRoadIdMapper.get().toServices(
-                serviceDao.getServicesByDescriptionType(session, serviceProvider, description)
+                serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
         ));
     }
 
@@ -237,11 +237,12 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
+                                                                DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
                     XRoadIdMapper.get().toServices(
-                            serviceDao.getServicesByDescriptionType(session, serviceProvider, description)
+                            serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
                     );
             return allServices.stream()
                     .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
@@ -355,7 +356,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public Description getDescription(ServiceId service) {
+    public DescriptionType getDescription(ServiceId service) {
         return tx(session -> {
             Service serviceType = getService(session, service);
             if (serviceType != null && serviceType.getServiceDescription() != null) {

@@ -61,7 +61,7 @@ import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.AttributesImpl;
 
@@ -382,8 +382,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        Description description = commonBeanProxy.serverConfProvider.getDescription(requestServiceId);
-        if (description != null && description != Description.WSDL) {
+        DescriptionType descriptionType = commonBeanProxy.serverConfProvider.getDescription(requestServiceId);
+        if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and cannot be called using SOAP interface");
         }

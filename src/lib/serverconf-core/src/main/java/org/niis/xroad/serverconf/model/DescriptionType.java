@@ -29,6 +29,6 @@ package org.niis.xroad.serverconf.model;
 /**
  * Type of service description
  */
-public enum Description {
+public enum DescriptionType {
     WSDL, REST, OPENAPI3
 }

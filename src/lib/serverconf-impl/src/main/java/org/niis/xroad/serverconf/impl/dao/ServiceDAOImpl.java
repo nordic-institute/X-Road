@@ -41,7 +41,7 @@ import org.niis.xroad.serverconf.entity.ClientEntity;
 import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.entity.ServiceEntity;
 import org.niis.xroad.serverconf.entity.ServiceIdEntity;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,12 +89,12 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
      * Returns the services of the specified service provider filtered by type.
      * @param session the session
      * @param serviceProvider the service provider
-     * @param description filter results by description type
+     * @param descriptionType filter results by description type
      * @return services of the specified service provider
      */
     @SuppressWarnings("squid:S1192")
     public List<ServiceIdEntity> getServicesByDescriptionType(Session session,
-                                                              ClientId serviceProvider, Description... description) {
+                                                              ClientId serviceProvider, DescriptionType... descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Tuple> tq = builder.createTupleQuery();
         Root<ServiceEntity> root = tq.from(ServiceEntity.class);
@@ -114,8 +114,8 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
             predicates.add(builder.equal(joinClient.get("identifier").<String>get("subsystemCode"),
                     serviceProvider.getSubsystemCode()));
         }
-        if (description != null && description.length > 0) {
-            predicates.add(joinServiceDescription.get("type").in((Object[]) description));
+        if (descriptionType != null && descriptionType.length > 0) {
+            predicates.add(joinServiceDescription.get("type").in((Object[]) descriptionType));
         }
         tq.where(predicates.toArray(new Predicate[]{}));
         List<Tuple> resultList = session.createQuery(tq).getResultList();

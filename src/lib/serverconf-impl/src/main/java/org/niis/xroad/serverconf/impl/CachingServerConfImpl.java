@@ -41,7 +41,7 @@ import org.hibernate.Session;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.Endpoint;
 import org.niis.xroad.serverconf.model.Service;
 
@@ -205,7 +205,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public Description getDescription(ServiceId serviceId) {
+    public DescriptionType getDescription(ServiceId serviceId) {
         return getService(serviceId).map(it -> it.getServiceDescription().getType()).orElse(null);
     }
 

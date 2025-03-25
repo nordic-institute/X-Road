@@ -39,7 +39,7 @@ import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Client;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -146,7 +146,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Description getDescription(ServiceId service) {
+    public DescriptionType getDescription(ServiceId service) {
         return null;
     }
 
@@ -185,7 +185,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType) {
         return emptyList();
     }
 
@@ -200,7 +200,8 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
+                                                                DescriptionType descriptionType) {
         return emptyList();
     }
 
@@ -226,10 +227,10 @@ public class EmptyServerConf implements ServerConfProvider {
         return serviceDetails;
     }
 
-    private RestServiceType getRestServiceType(Description description) {
-        if (description.equals(Description.REST)) {
+    private RestServiceType getRestServiceType(DescriptionType descriptionType) {
+        if (descriptionType.equals(DescriptionType.REST)) {
             return RestServiceType.REST;
-        } else if (description.equals(Description.OPENAPI3)) {
+        } else if (descriptionType.equals(DescriptionType.OPENAPI3)) {
             return RestServiceType.OPENAPI;
         } else {
             throw new UnsupportedOperationException("The given parameter is not a REST service type!");

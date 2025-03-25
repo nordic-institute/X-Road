@@ -170,7 +170,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
                 .findFirst().get();
 
         assertTrue(endpointEntity.getMethod().equals("*"));
-        assertTrue(endpointEntity.getPath().equals("/test"));
+        assertEquals("/test", endpointEntity.getPath());
     }
 
     @Test(expected = NotFoundException.class)

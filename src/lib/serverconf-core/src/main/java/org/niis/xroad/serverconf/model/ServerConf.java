@@ -43,5 +43,4 @@ public class ServerConf {
     private Client owner;
     private final List<Client> clients = new ArrayList<>();
     private final List<TimestampingService> timestampingServices = new ArrayList<>();
-
 }

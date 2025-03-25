@@ -36,7 +36,7 @@ import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.entity.CertificateEntity;
 import org.niis.xroad.serverconf.entity.ClientEntity;
 import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -163,7 +163,7 @@ public class AuditDataHelper {
     /**
      * put service description url and type
      */
-    public void putServiceDescriptionUrl(String url, Description type) {
+    public void putServiceDescriptionUrl(String url, DescriptionType type) {
         put(RestApiAuditProperty.URL, url);
         put(RestApiAuditProperty.SERVICE_TYPE, type);
     }

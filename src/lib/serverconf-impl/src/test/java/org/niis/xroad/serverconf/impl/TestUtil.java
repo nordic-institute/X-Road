@@ -46,7 +46,7 @@ import org.niis.xroad.serverconf.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.entity.XRoadIdEntity;
 import org.niis.xroad.serverconf.mapper.XRoadIdMapper;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.Date;
 
@@ -189,7 +189,7 @@ public final class TestUtil {
                 ServiceDescriptionEntity serviceDescription = new ServiceDescriptionEntity();
                 serviceDescription.setClient(client);
                 serviceDescription.setUrl(SERVICEDESCRIPTION_URL + j);
-                serviceDescription.setType(Description.WSDL);
+                serviceDescription.setType(DescriptionType.WSDL);
 
                 for (int k = 0; k < NUM_SERVICES; k++) {
                     ServiceEntity service = new ServiceEntity();
@@ -244,7 +244,7 @@ public final class TestUtil {
             ServiceDescriptionEntity serviceDescription = new ServiceDescriptionEntity();
             serviceDescription.setClient(client);
             serviceDescription.setUrl(SERVICEDESCRIPTION_URL + "rest");
-            serviceDescription.setType(Description.REST);
+            serviceDescription.setType(DescriptionType.REST);
 
             ServiceEntity service = new ServiceEntity();
             service.setServiceDescription(serviceDescription);

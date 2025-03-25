@@ -29,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,24 +41,24 @@ import java.util.stream.Stream;
 @Getter
 @RequiredArgsConstructor
 public enum ServiceTypeMapping {
-    WSDL(Description.WSDL, ServiceTypeDto.WSDL),
-    OPENAPI3(Description.OPENAPI3, ServiceTypeDto.OPENAPI3),
-    REST(Description.REST, ServiceTypeDto.REST);
+    WSDL(DescriptionType.WSDL, ServiceTypeDto.WSDL),
+    OPENAPI3(DescriptionType.OPENAPI3, ServiceTypeDto.OPENAPI3),
+    REST(DescriptionType.REST, ServiceTypeDto.REST);
 
-    private final Description description;
+    private final DescriptionType descriptionType;
     private final ServiceTypeDto serviceTypeDto;
 
-    private static final Map<Description, ServiceTypeDto> DESCRIPTION_TO_SERVICE_MAP =
-            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getDescription, ServiceTypeMapping::getServiceTypeDto));
+    private static final Map<DescriptionType, ServiceTypeDto> DESCRIPTION_TO_SERVICE_MAP =
+            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getDescriptionType, ServiceTypeMapping::getServiceTypeDto));
 
-    private static final Map<ServiceTypeDto, Description> SERVICE_TO_DESCRIPTION_MAP =
-            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getServiceTypeDto, ServiceTypeMapping::getDescription));
+    private static final Map<ServiceTypeDto, DescriptionType> SERVICE_TO_DESCRIPTION_MAP =
+            Stream.of(values()).collect(Collectors.toMap(ServiceTypeMapping::getServiceTypeDto, ServiceTypeMapping::getDescriptionType));
 
-    public static ServiceTypeDto map(Description description) {
-        return DESCRIPTION_TO_SERVICE_MAP.get(description);
+    public static ServiceTypeDto map(DescriptionType descriptionType) {
+        return DESCRIPTION_TO_SERVICE_MAP.get(descriptionType);
     }
 
-    public static Description map(ServiceTypeDto serviceType) {
+    public static DescriptionType map(ServiceTypeDto serviceType) {
         return SERVICE_TO_DESCRIPTION_MAP.get(serviceType);
     }
 }

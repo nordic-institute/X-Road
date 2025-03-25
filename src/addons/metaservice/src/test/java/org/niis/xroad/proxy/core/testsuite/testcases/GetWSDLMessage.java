@@ -41,7 +41,7 @@ import org.niis.xroad.serverconf.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.entity.ServiceEntity;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.xml.sax.InputSource;
 
 import javax.wsdl.Definition;
@@ -154,7 +154,7 @@ public class GetWSDLMessage extends MessageTestCase {
         ServiceDescriptionEntity wsdl = new ServiceDescriptionEntity();
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
-        wsdl.setType(Description.WSDL);
+        wsdl.setType(DescriptionType.WSDL);
 
         ServiceEntity service = new ServiceEntity();
         service.setServiceDescription(wsdl);

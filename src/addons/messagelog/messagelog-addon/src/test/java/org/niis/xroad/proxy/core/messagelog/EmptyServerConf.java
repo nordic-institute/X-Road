@@ -35,7 +35,7 @@ import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -116,7 +116,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Description getDescription(ServiceId service) {
+    public DescriptionType getDescription(ServiceId service) {
         return null;
     }
 
@@ -146,7 +146,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType) {
         return emptyList();
     }
 
@@ -157,7 +157,8 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
+                                                                DescriptionType descriptionType) {
         return emptyList();
     }
 

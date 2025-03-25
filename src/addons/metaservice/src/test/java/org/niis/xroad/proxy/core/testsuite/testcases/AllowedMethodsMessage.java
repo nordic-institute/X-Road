@@ -36,7 +36,7 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -101,7 +101,7 @@ public class AllowedMethodsMessage extends MessageTestCase {
 
             @Override
             public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
-                                                                            Description description) {
+                                                                            DescriptionType descriptionType) {
 
                 assertThat("Wrong client in query", client, is(expectedClientQuery));
 

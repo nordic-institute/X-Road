@@ -33,7 +33,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -97,7 +97,7 @@ public interface ServerConfProvider {
      * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description);
+    List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType);
 
     /**
      * @param serviceProvider the service provider identifier
@@ -113,7 +113,7 @@ public interface ServerConfProvider {
      * @return all the services by a service provider that the caller
      * has permission to invoke filtered by description
      */
-    List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description);
+    List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, DescriptionType descriptionType);
 
     /**
      * @param client the client identifier
@@ -186,9 +186,9 @@ public interface ServerConfProvider {
 
     /**
      * @param service the service identifier
-     * @return the type of the service as {@link Description}
+     * @return the type of the service as {@link DescriptionType}
      */
-    Description getDescription(ServiceId service);
+    DescriptionType getDescription(ServiceId service);
 
     /**
      * @param service the service identifier

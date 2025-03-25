@@ -34,7 +34,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.Description;
+import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.test.serverconf.EmptyServerConf;
 
 import java.util.ArrayList;
@@ -97,31 +97,32 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, Description description) {
+    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType) {
         List<ServiceId.Conf> list = new ArrayList<>();
-        if (description == Description.REST) {
+        if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
         }
-        if (description == Description.OPENAPI3) {
+        if (descriptionType == DescriptionType.OPENAPI3) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         }
-        if (description == Description.WSDL) {
+        if (descriptionType == DescriptionType.WSDL) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client, Description description) {
+    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
+                                                                DescriptionType descriptionType) {
         List<ServiceId.Conf> list = new ArrayList<>();
-        if (description == Description.REST) {
+        if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
         }
-        if (description == Description.OPENAPI3) {
+        if (descriptionType == DescriptionType.OPENAPI3) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE3));
         }
-        if (description == Description.WSDL) {
+        if (descriptionType == DescriptionType.WSDL) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE4));
         }
         return list;
