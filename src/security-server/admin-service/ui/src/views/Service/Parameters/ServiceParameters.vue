@@ -163,7 +163,9 @@
         <tbody>
           <template v-if="serviceClients">
             <tr v-for="sc in serviceClients" :key="sc.id">
-              <td class="identifier-wrap">{{ sc.name }}</td>
+              <td class="identifier-wrap">
+                <client-name :service-client="sc" />
+              </td>
               <td class="identifier-wrap">{{ sc.id }}</td>
               <td>{{ sc.service_client_type }}</td>
               <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
@@ -253,11 +255,13 @@ import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useServices } from '@/store/modules/services';
 import { PublicPathState, useForm } from 'vee-validate';
+import ClientName from '@/components/client/ClientName.vue';
 
 type NullableServiceClient = undefined | ServiceClient;
 
 export default defineComponent({
   components: {
+    ClientName,
     AccessRightsDialog,
     WarningDialog,
   },

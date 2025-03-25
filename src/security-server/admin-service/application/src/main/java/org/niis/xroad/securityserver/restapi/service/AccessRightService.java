@@ -97,17 +97,16 @@ public class AccessRightService {
 
     /**
      * Remove AccessRights from a Service
-     *
+     * <p>
      * Does not really need full service code, and versionless service code would be more logical parameter.
      * But controller cannot currently extract version code from full service code, since we use dot as a separator.
-     *
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
      * @throws AccessRightNotFoundException if tried to remove access rights that did not exist for the service
-     * @throws ClientNotFoundException if client with given id was not found
-     * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
-     * was not found
+     * @throws ClientNotFoundException      if client with given id was not found
+     * @throws ServiceNotFoundException     if service with given fullServicecode, or the base endpoint for it,
+     *                                      was not found
      */
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException,
@@ -145,11 +144,10 @@ public class AccessRightService {
 
     /**
      * Remove access rights from endpoint
-     *
-     * @param endpointId endpointId
-     * @param subjectIds subjectIds
-     * @throws EndpointNotFoundException if endpoint by given id is not found
-     * @throws ClientNotFoundException if client attached to endpoint is not found
+     * @param endpointId
+     * @param subjectIds
+     * @throws EndpointNotFoundException    if endpoint by given id is not found
+     * @throws ClientNotFoundException      if client attached to endpoint is not found
      * @throws AccessRightNotFoundException if at least one access right expected is not found
      */
     public void deleteEndpointAccessRights(Long endpointId, Set<? extends XRoadId> subjectIds)
@@ -162,7 +160,6 @@ public class AccessRightService {
 
     /**
      * Remove access rights from one endpoint
-     *
      * @param clientEntity clientEntity
      * @param endpointEntity endpointEntity
      * @param subjectIds subjectIds
@@ -179,11 +176,10 @@ public class AccessRightService {
     /**
      * delete access rights of multiple subjectIds from one endpoint, or multiple endpoints for one subject,
      * or multiple-for-multiple.
-     *
+     * <p>
      * Deleting access rights to multiple endpoints from multiple
      * subjects will probably not be used, but if it is, all endpoints have to exist for all subjects, otherwise
      * exception is thrown.
-     *
      * @param clientEntity clientEntity
      * @param endpointEntities endpointEntities
      * @param subjectIds subjectIds
@@ -213,10 +209,9 @@ public class AccessRightService {
      * Adds access rights to SOAP services. If the provided {@code subjectIds} do not exist in the serverconf db
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
-     *
+     * <p>
      * Does not really need full service code, and versionless service code would be more logical parameter.
      * But controller cannot currently extract version code from full service code, since we use dot as a separator.
-     *
      * @param clientId
      * @param fullServiceCode
      * @param subjectIds
@@ -250,15 +245,14 @@ public class AccessRightService {
      * Adds access rights to endpoint. If the provided {@code subjectIds} do not exist in the serverconf db
      * they will first be validated (that they exist in global conf) and then saved into the serverconf db.
      * LocalGroup ids will also be verified and if they don't exist in the serverconf db they will be saved
-     *
-     * @param endpointId endpointId
-     * @param subjectIds subjectIds
-     * @return List<ServiceClient>
-     * @throws EndpointNotFoundException endpoint is not found with given id
-     * @throws ClientNotFoundException client for the endpoint is not found (shouldn't happen)
+     * @param endpointId
+     * @param subjectIds
+     * @return
+     * @throws EndpointNotFoundException      endpoint is not found with given id
+     * @throws ClientNotFoundException        client for the endpoint is not found (shouldn't happen)
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
-     * @throws DuplicateAccessRightException Trying to add duplicate access rights
+     *                                        subjectId did not exist
+     * @throws DuplicateAccessRightException  Trying to add duplicate access rights
      */
     public List<ServiceClient> addEndpointAccessRights(Long endpointId, Set<XRoadId.Conf> subjectIds)
             throws EndpointNotFoundException, ClientNotFoundException, ServiceClientNotFoundException, DuplicateAccessRightException {
@@ -273,7 +267,7 @@ public class AccessRightService {
     /**
      * Add access rights for (possibly) multiple subjects, to a single endpoint.
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
+     *                                        subjectId did not exist
      * @throws DuplicateAccessRightException
      */
     private List<ServiceClient> addEndpointAccessRights(
@@ -300,18 +294,17 @@ public class AccessRightService {
     /**
      * Add access rights for one subject (service client) to multiple services (serviceCodes)
      * of a client (clientType). Access rights are added only to the base endpoint of given service.
-     *
-     * @param clientId id of the client who owns the services
+     * @param clientId     id of the client who owns the services
      * @param serviceCodes serviceCodes of the services to add access rights to (without version numbers)
-     * @param subjectId subject (service client) to add access rights for. Can be a local group,
-     *                  global group, or a subsystem
+     * @param subjectId    subject (service client) to add access rights for. Can be a local group,
+     *                     global group, or a subsystem
      * @return ServiceClientAccessRightDtos that were added for this service client
-     * @throws ServiceNotFoundException if serviceCodes had any codes that were not client's services
-     * (did not have base endpoints)
-     * @throws ClientNotFoundException if client matching clientId was not found
-     * @throws DuplicateAccessRightException if trying to add existing access right
+     * @throws ServiceNotFoundException       if serviceCodes had any codes that were not client's services
+     *                                        (did not have base endpoints)
+     * @throws ClientNotFoundException        if client matching clientId was not found
+     * @throws DuplicateAccessRightException  if trying to add existing access right
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
+     *                                        subjectId did not exist
      */
     public List<ServiceClientAccessRightDto> addServiceClientAccessRights(
             ClientId clientId,
@@ -351,14 +344,13 @@ public class AccessRightService {
      * Removes access rights from one subject (service client) to multiple services (serviceCodes)
      * of a client. Access rights are removed from base endpoint and also from non-base endpoints with
      * given serviceCode.
-     *
-     * @param clientId id of the client who owns the services
+     * @param clientId     id of the client who owns the services
      * @param serviceCodes serviceCodes of the services to remove access rights to (without version numbers)
-     * @param subjectId subject (service client) to remove access rights from. Can be a local group,
-     *                  global group, or a subsystem
+     * @param subjectId    subject (service client) to remove access rights from. Can be a local group,
+     *                     global group, or a subsystem
      * @throws AccessRightNotFoundException if trying to remove (any) access rights that did not exist
-     * @throws ClientNotFoundException if client matching clientId was not found
-     * @throws ServiceNotFoundException if given client did not have services with given serviceCodes
+     * @throws ClientNotFoundException      if client matching clientId was not found
+     * @throws ServiceNotFoundException     if given client did not have services with given serviceCodes
      */
     public void deleteServiceClientAccessRights(ClientId clientId,
                                                 Set<String> serviceCodes,
@@ -429,7 +421,6 @@ public class AccessRightService {
 
     /**
      * Get access right holders (serviceClients) for endpoint
-     *
      * @param clientEntity clientEntity
      * @param accessRightEntities accessRightEntities
      * @return List<ServiceClient>
@@ -450,29 +441,35 @@ public class AccessRightService {
      * their corresponding {@link LocalGroup#getGroupCode()}
      * @return ServiceClient
      */
-    private ServiceClient accessRightEntityToServiceClientDto(AccessRightEntity accessRightEntity,
-                                                            Map<String, LocalGroupEntity> localGroupMap) {
+    ServiceClient accessRightEntityToServiceClientDto(AccessRightEntity accessRightEntity,
+                                                       Map<String, LocalGroupEntity> localGroupMap) {
         ServiceClient serviceClient = new ServiceClient();
         XRoadId subjectId = accessRightEntity.getSubjectId();
         serviceClient.setRightsGiven(
                 FormatUtils.fromDateToOffsetDateTime(accessRightEntity.getRightsGiven()));
         serviceClient.setSubjectId(subjectId);
-        if (subjectId.getObjectType() == XRoadObjectType.LOCALGROUP) {
-            LocalGroupId localGroupId = (LocalGroupId) subjectId;
-            LocalGroupEntity localGroupEntity = localGroupMap.get(localGroupId.getGroupCode());
-            serviceClient.setLocalGroupId(localGroupEntity.getId().toString());
-            serviceClient.setLocalGroupCode(localGroupEntity.getGroupCode());
-            serviceClient.setLocalGroupDescription(localGroupEntity.getDescription());
-        } else if (subjectId.getObjectType() == XRoadObjectType.GLOBALGROUP) {
-            GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-            serviceClient.setGlobalGroupDescription(globalConfProvider.getGlobalGroupDescription(globalGroupId));
+        switch (subjectId.getObjectType()) {
+            case XRoadObjectType.LOCALGROUP -> {
+                LocalGroupId localGroupId = (LocalGroupId) subjectId;
+                LocalGroupEntity localGroupEntity = localGroupMap.get(localGroupId.getGroupCode());
+                serviceClient.setLocalGroupId(localGroupEntity.getId().toString());
+                serviceClient.setLocalGroupCode(localGroupEntity.getGroupCode());
+                serviceClient.setLocalGroupDescription(localGroupEntity.getDescription());
+            }
+            case XRoadObjectType.GLOBALGROUP -> {
+                GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
+                serviceClient.setGlobalGroupDescription(globalConfProvider.getGlobalGroupDescription(globalGroupId));
+            }
+            case XRoadObjectType.SUBSYSTEM -> serviceClient.setSubsystemName(globalConfProvider.getSubsystemName((ClientId) subjectId));
+            case XRoadObjectType.MEMBER -> serviceClient.setMemberName(globalConfProvider.getMemberName((ClientId) subjectId));
+            case null, default -> {
+            }
         }
         return serviceClient;
     }
 
     /**
      * Get access rights of an endpoint
-     *
      * @param clientEntity clientEntity
      * @param endpointEntity endpointEntity
      * @return List<AccessRightEntity>
@@ -485,11 +482,10 @@ public class AccessRightService {
 
     /**
      * Add access rights for (possibly) multiple subjects, to (possibly) multiple endpoints.
-     *
+     * <p>
      * This method is not intended for use from outside, but is package protected for tests.
-     *
+     * <p>
      * Note that subjectIds need to be managed entities.
-     *
      * @param subjectIds *managed* access rights subjects to grant access for, "service clients"
      * @param clientEntity endpoint owner
      * @param endpoints endpoints to add access rights to
@@ -602,16 +598,16 @@ public class AccessRightService {
 
     /**
      * Find access right holder (serviceClient) candidates by search terms
-     * @param clientId clientId
-     * @param subjectType search term for subjectType. Null or empty value is considered a match
+     * @param clientId
+     * @param subjectType                  search term for subjectType. Null or empty value is considered a match
      * @param memberNameOrGroupDescription search term for memberName or groupDescription (depending on subject's type).
-     * Null or empty value is considered a match
-     * @param instance search term for instance. Null or empty value is considered a match
-     * @param memberClass search term for memberClass. Null or empty value is considered a match
-     * @param memberGroupCode search term for memberCode or groupCode (depending on subject's type).
-     * Null or empty value is considered a match
-     * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
-     * @return A List of {@link ServiceClient serviceClientDtos} or an empty List if nothing is found
+     *                                     Null or empty value is considered a match
+     * @param instance                     search term for instance. Null or empty value is considered a match
+     * @param memberClass                  search term for memberClass. Null or empty value is considered a match
+     * @param memberGroupCode              search term for memberCode or groupCode (depending on subject's type).
+     *                                     Null or empty value is considered a match
+     * @param subsystemCode                search term for subsystemCode. Null or empty value is considered a match
+     * @return A List of {@link ServiceClient serviceClients} or an empty List if nothing is found
      * @throws ClientNotFoundException if client with given id was not found
      */
     public List<ServiceClient> findAccessRightHolderCandidates(ClientId clientId,
@@ -670,6 +666,7 @@ public class AccessRightService {
                     ServiceClient serviceClient = new ServiceClient();
                     serviceClient.setSubjectId(memberInfo.id());
                     serviceClient.setMemberName(memberInfo.name());
+                    serviceClient.setSubsystemName(memberInfo.subsystemName());
                     return serviceClient;
                 })
                 .collect(Collectors.toList());
@@ -707,19 +704,19 @@ public class AccessRightService {
     }
 
     /**
-     * Composes a {@link Predicate} that will be used to filter {@link ServiceClient ServiceClientDtos}
+     * Composes a {@link Predicate} that will be used to filter {@link ServiceClient ServiceClients}
      * against the given search terms. The given ServiceClientDto has a {@link ServiceClient#getSubjectId()}
      * which can be of type {@link GlobalGroupId}, {@link LocalGroupId} or {@link ClientId}. When evaluating the
      * Predicate the type of the Subject will be taken in account for example when testing if the search term
      * {@code memberGroupCode} matches
-     * @param subjectType search term for subjectType. Null or empty value is considered a match
+     * @param subjectType                  search term for subjectType. Null or empty value is considered a match
      * @param memberNameOrGroupDescription search term for memberName or groupDescription (depending on subject's type).
-     * Null or empty value is considered a match
-     * @param instance search term for instance. Null or empty value is considered a match
-     * @param memberClass search term for memberClass. Null or empty value is considered a match
-     * @param memberGroupCode search term for memberCode or groupCode (depending on subject's type).
-     * Null or empty value is considered a match
-     * @param subsystemCode search term for subsystemCode. Null or empty value is considered a match
+     *                                     Null or empty value is considered a match
+     * @param instance                     search term for instance. Null or empty value is considered a match
+     * @param memberClass                  search term for memberClass. Null or empty value is considered a match
+     * @param memberGroupCode              search term for memberCode or groupCode (depending on subject's type).
+     *                                     Null or empty value is considered a match
+     * @param subsystemCode                search term for subsystemCode. Null or empty value is considered a match
      * @return Predicate
      */
     private Predicate<ServiceClient> buildSubjectSearchPredicate(XRoadObjectType subjectType,
@@ -820,9 +817,11 @@ public class AccessRightService {
     private Predicate<ServiceClient> getMemberNameOrGroupDescriptionPredicate(String memberNameOrGroupDescription) {
         return dto -> {
             String memberName = dto.getMemberName();
+            String subsystemName = dto.getSubsystemName();
             String localGroupDescription = dto.getLocalGroupDescription();
             String globalGroupDescription = dto.getGlobalGroupDescription();
             return StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
+                    || StringUtils.containsIgnoreCase(subsystemName, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
         };

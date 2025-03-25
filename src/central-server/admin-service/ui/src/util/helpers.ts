@@ -205,6 +205,8 @@ export function managementTypeToText(
       return t('managementRequests.addClient') as string;
     case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
       return t('managementRequests.changeAddress') as string;
+    case ManagementRequestType.CLIENT_RENAME_REQUEST:
+      return t('managementRequests.renameClient') as string;
     default:
       return '';
   }

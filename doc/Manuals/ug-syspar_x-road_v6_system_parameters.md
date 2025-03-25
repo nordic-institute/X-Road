@@ -601,7 +601,7 @@ For instructions on how to change the parameter values, see section [Changing th
 
 ### 4.2 System Parameters in the Database
 
-This section describes the system parameters used by the X-Road central server. For instructions on how to change the parameter values, see section [Changing the System Parameter Values in the Central Server Database](#changing-the-system-parameter-values-in-the-central-server-database).
+This section describes the system parameters used by the X-Road central server. For instructions on how to change the parameter values, see section [Changing the System Parameter Values in the Central Server Database](#22-changing-the-system-parameter-values-in-the-central-server-database).
 
 | **Name**                    | **Value type** | **Default value**                       | **Description**                                                                                                                                                                                                                                 |
 |-----------------------------|----------------|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

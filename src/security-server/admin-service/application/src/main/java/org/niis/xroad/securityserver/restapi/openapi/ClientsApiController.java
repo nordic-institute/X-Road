@@ -61,6 +61,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.AccessRightsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAddDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeWrapperDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
@@ -116,6 +117,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_CLIE
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RENAME_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_CLIENT;
@@ -162,20 +164,20 @@ public class ClientsApiController implements ClientsApi {
      * @param memberClass
      * @param memberCode
      * @param subsystemCode
-     * @param showMembers include members (without subsystemCode) in the results
+     * @param showMembers        include members (without subsystemCode) in the results
      * @param localValidSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
-     *                              false = include only clients who don't have a local valid sign cert
-     *                              null = don't care whether client has a local valid sign cert
-     *                              NOTE: parameter does not have an effect on whether local or global clients are
-     *                              searched
-     * @param internalSearch search only in the local clients
+     *                           false = include only clients who don't have a local valid sign cert
+     *                           null = don't care whether client has a local valid sign cert
+     *                           NOTE: parameter does not have an effect on whether local or global clients are
+     *                           searched
+     * @param internalSearch     search only in the local clients
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<Set<ClientDto>> findClients(String name, String instance, String memberClass,
-                                                      String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-                                                      Boolean localValidSignCert, Boolean excludeLocal) {
+                                                   String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
+                                                   Boolean localValidSignCert, Boolean excludeLocal) {
         ClientService.SearchParameters searchParams = ClientService.SearchParameters.builder()
                 .name(name)
                 .instance(instance)
@@ -205,7 +207,7 @@ public class ClientsApiController implements ClientsApi {
      * encoding
      * @return Client
      * @throws ResourceNotFoundException if client does not exist
-     * @throws BadRequestException if encodedId was not proper encoded client ID
+     * @throws BadRequestException       if encodedId was not proper encoded client ID
      */
     private Client getClientFromDb(String encodedId) {
         ClientId clientId = clientIdConverter.convertId(encodedId);
@@ -429,6 +431,7 @@ public class ClientsApiController implements ClientsApi {
             added = clientService.addLocalClient(clientAddDto.getClient().getMemberClass(),
                     clientAddDto.getClient().getMemberCode(),
                     clientAddDto.getClient().getSubsystemCode(),
+                    clientAddDto.getClient().getSubsystemName(),
                     isAuthentication, ignoreWarnings);
         } catch (ClientService.ClientAlreadyExistsException
                  | ClientService.AdditionalMemberAlreadyExistsException e) {
@@ -563,6 +566,21 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         } catch (GlobalConfOutdatedException | ActionNotPossibleException
                  | ClientService.CannotUnregisterOwnerException e) {
+            throw new ConflictException(e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('RENAME_SUBSYSTEM')")
+    @AuditEventMethod(event = RENAME_SUBSYSTEM)
+    public ResponseEntity<Void> renameClient(String encodedClientId, ClientNameDto clientNameDto) {
+        ClientId.Conf clientId = clientIdConverter.convertId(encodedClientId);
+        try {
+            clientService.renameClient(clientId, clientNameDto.getClientName());
+        } catch (ClientNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

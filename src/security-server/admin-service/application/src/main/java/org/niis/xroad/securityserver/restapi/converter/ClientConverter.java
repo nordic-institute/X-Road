@@ -35,17 +35,16 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.RenameStatusDto;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,31 +60,42 @@ public class ClientConverter {
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     private final ClientSortingComparator clientSortingComparator;
+    private final SubsystemNameStatus subsystemNameStatus;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     *
      * @param client
      * @return
      */
     public ClientDto convert(Client client) {
-        ClientDto clientDto = new ClientDto();
-        clientDto.setId(clientIdConverter.convertId(client.getIdentifier()));
-        clientDto.setInstanceId(client.getIdentifier().getXRoadInstance());
-        clientDto.setMemberClass(client.getIdentifier().getMemberClass());
-        clientDto.setMemberCode(client.getIdentifier().getMemberCode());
-        clientDto.setSubsystemCode(client.getIdentifier().getSubsystemCode());
-        clientDto.setMemberName(globalConfProvider.getMemberName(client.getIdentifier()));
-        clientDto.setOwner(client.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
-        clientDto.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(client.getIdentifier(),
+        var clientId = client.getIdentifier();
+        var clientDto = new ClientDto();
+        clientDto.setId(clientIdConverter.convertId(clientId));
+        clientDto.setInstanceId(clientId.getXRoadInstance());
+        clientDto.setMemberClass(clientId.getMemberClass());
+        clientDto.setMemberCode(clientId.getMemberCode());
+        clientDto.setSubsystemCode(clientId.getSubsystemCode());
+        clientDto.setMemberName(globalConfProvider.getMemberName(clientId));
+        clientDto.setSubsystemName(globalConfProvider.getSubsystemName(clientId));
+        clientDto.setOwner(clientId.equals(securityServerOwner.getServerId().getOwner()));
+        clientDto.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientId,
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));
-        Optional<ClientStatusDto> status = ClientStatusMapping.map(client.getClientStatus());
-        clientDto.setStatus(status.orElse(null));
-        Optional<ConnectionTypeDto> connectionTypeEnum =
-                ConnectionTypeMapping.map(client.getIsAuthentication());
-        clientDto.setConnectionType(connectionTypeEnum.orElse(null));
+        clientDto.setStatus(ClientStatusMapping.map(client.getClientStatus()).orElse(null));
+        clientDto.setConnectionType(ConnectionTypeMapping.map(client.getIsAuthentication()).orElse(null));
+        clientDto.setRenameStatus(mapRenameStatus(clientId));
         return clientDto;
+    }
+
+    private RenameStatusDto mapRenameStatus(ClientId clientId) {
+        if (clientId.isSubsystem()) {
+            if (subsystemNameStatus.isSubmitted(clientId)) {
+                return RenameStatusDto.NAME_SUBMITTED;
+            } else if (subsystemNameStatus.isSet(clientId)) {
+                return RenameStatusDto.NAME_SET;
+            }
+        }
+        return null;
     }
 
     /**
@@ -99,7 +109,6 @@ public class ClientConverter {
                 .sorted(clientSortingComparator)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
-
 
     /**
      * Convert MemberInfo into ClientDto

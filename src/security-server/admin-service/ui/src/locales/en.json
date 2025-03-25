@@ -115,12 +115,18 @@
         "confirmTitle": "Key and certificate deletion",
         "success": "Certificate deleted"
       },
+      "renameSubsystem": {
+        "title": "Edit subsystem name",
+        "changeSubmitted": "Subsystem name change successfully submitted",
+        "changeAdded": "Subsystem name change successfully added and will be applied on client registration"
+      },
       "unregister": {
         "confirmText": "Do you want to unregister this client?",
         "confirmTitle": "Unregister client",
         "success": "Client unregistered"
       }
     },
+    "defaultSubsystemNameTooltip": "Subsystem name is not defined",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -135,11 +141,14 @@
       "disablingInProgress": "DISABLING IN PROGRESS",
       "enablingInProgress": "ENABLING IN PROGRESS",
       "globalError": "GLOBAL ERROR",
+      "nameSet": "Name change will be applied on client registration",
+      "nameSubmitted": "Name change is submitted",
       "registered": "REGISTERED",
       "registrationInProgress": "REGISTRATION IN PROGRESS",
       "saved": "SAVED"
     },
     "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name",
     "unknownMember": "unknown member"
   },
   "clients": {
@@ -446,7 +455,8 @@
     "addClient": {
       "memberClass": "Member Class",
       "memberCode": "Member Code",
-      "subsystemCode": "Subsystem Code"
+      "subsystemCode": "Subsystem Code",
+      "subsystemName": "Subsystem Name"
     },
     "certificationService": "Certification Service",
     "clientAdd": {
@@ -668,13 +678,14 @@
     "id": "Id",
     "localGroup": "Local group",
     "localGroupAdded": "Local group added",
-    "name": "Member Name",
+    "memberName": "Member Name",
     "noResults": "Your search found no results.",
     "removeAllText": "Are you sure you want to remove all members of this group?",
     "removeAllTitle": "Remove all members?",
     "removeText": "Are you sure you want to remove this member?",
     "removeTitle": "Remove member?",
-    "searchOptions": "Search options"
+    "searchOptions": "Search options",
+    "subsystemName": "Subsystem Name"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -707,7 +718,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Member/Group code",
     "memberGroupStep": "Member / Group",
-    "name": "Member name / Group description",
+    "name": "Member(Subsystem) name / Group description",
     "noAccessRights": "No access rights to this client",
     "noAvailableServices": "No available services",
     "removeAll": "Remove all",
@@ -952,7 +963,8 @@
       "memberNameTooltip": "Name of the member organization.",
       "register": "Register client",
       "searchLabel": "Client",
-      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member."
+      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member.",
+      "subsystemNameTooltip": "Name of an information system owned by the Member."
     },
     "clientDetails": "Client details",
     "clientInfo1": "Specify the details of the Client you want to add.",
@@ -998,6 +1010,7 @@
       "subsystemExists": "Subsystem already exists"
     },
     "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name",
     "token": {
       "info": "Please select the token where you want to add the SIGN key for the new Client. Note: the token must be in Logged in state.",
       "loggedIn": "Logged in",

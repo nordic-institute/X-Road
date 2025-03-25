@@ -89,6 +89,10 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
         this.identifier = identifier;
     }
 
+
+    public abstract String getName();
+
+    public abstract void setName(String name);
 }
 
 

@@ -51,6 +51,11 @@
               v-if="type === 'CLIENT_ENABLE_REQUEST'"
               :color="colors.Success100"
             />
+            <xrd-icon-edit
+              v-if="type === 'CLIENT_RENAME_REQUEST'"
+              icon="mdi-rename"
+              :color="colors.Success100"
+            />
           </xrd-icon-base>
         </div>
       </template>
@@ -68,6 +73,7 @@ import {
   XrdIconRemoveCertificate,
   XrdIconAddCertificate,
   XrdIconSecurityServer,
+  XrdIconEdit,
   XrdIconError,
   XrdIconChecked,
 } from '@niis/shared-ui';
@@ -79,6 +85,7 @@ import { Colors } from '@/global';
 export default defineComponent({
   components: {
     XrdIconChecked,
+    XrdIconEdit,
     XrdIconError,
     XrdIconAddCertificate,
     XrdIconRemoveCertificate,

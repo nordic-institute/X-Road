@@ -125,6 +125,7 @@ export default defineComponent({
       'memberClass',
       'memberCode',
       'subsystemCode',
+      'subsystemName',
       'tokens',
     ]),
     ...mapState(useUser, ['currentSecurityServer']),

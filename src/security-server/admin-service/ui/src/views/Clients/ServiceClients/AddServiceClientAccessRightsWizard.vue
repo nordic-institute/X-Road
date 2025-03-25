@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-sheet class="view-wrap" data-test="add-subject-view">
+  <v-sheet class="view-wrap mx-auto" data-test="add-subject-view">
     <xrd-sub-view-title :title="$t('serviceClients.addServiceClientTitle')" :show-close="false"
       data-test="add-subject-title" class="pa-4" />
     <!-- eslint-disable-next-line vuetify/no-deprecated-components -->

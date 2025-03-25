@@ -24,27 +24,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container fluid class="xrd-view-common mt-7">
-      <v-row class="title-action mx-0">
-        <div v-if="clientLoading" class="xrd-view-title mb-3">
-          {{ $t('noData.loading') }}
-        </div>
+  <XrdTitledView>
+    <template #title>
+      <subsystem-name :name="title" />
+      <template v-if="!clientLoading">
+        &nbsp;({{ $t('general.subsystem') }})
+      </template>
+    </template>
+    <template #header-buttons>
+      <DisableClientButton v-if="showDisable" class="ml-5" :id="id" @done="fetchData" />
+      <EnableClientButton v-if="showEnable" class="ml-5" :id="id" @done="fetchData" />
+      <DeleteClientButton v-if="showDelete" class="ml-5" :id="id" />
+      <UnregisterClientButton v-if="showUnregister" class="ml-5" :id="id" @done="fetchData" />
+      <RenameClientButton v-if="showRename" class="pl-5" :id="id" :subsystem-name="subsystemName" :client-status="client?.status" @done="fetchData" />
+    </template>
 
-        <div v-else-if="client" class="xrd-view-title mb-3">
-          {{ `${client.subsystem_code} (${$t('general.subsystem')})` }}
-        </div>
-        <div>
-          <DisableClientButton v-if="showDisable" :id="id" @done="fetchData" />
-          <EnableClientButton v-if="showEnable" :id="id" @done="fetchData" />
-          <DeleteClientButton v-if="showDelete" :id="id" />
-          <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchData" />
-        </div>
-      </v-row>
-
-      <router-view />
-    </v-container>
-  </div>
+    <router-view />
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -58,10 +54,17 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { ClientStatus } from '@/openapi-types';
+import { ClientStatus, RenameStatus } from '@/openapi-types';
+import { XrdTitledView } from '@niis/shared-ui';
+import RenameClientButton from '@/components/client/RenameClientButton.vue';
+import { useSystem } from '@/store/modules/system';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
+    RenameClientButton,
+    XrdTitledView,
     EnableClientButton,
     DisableClientButton,
     UnregisterClientButton,
@@ -82,6 +85,18 @@ export default defineComponent({
   computed: {
     ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
+    title(): string | undefined {
+      if (this.clientLoading) {
+        return this.$t('noData.loading');
+      } else if (this.client) {
+        return this.client.subsystem_name;
+      }
+      return '';
+    },
+    subsystemName(): string {
+      return this.client?.subsystem_name || '';
+    },
     showUnregister(): boolean {
       if (!this.client) return false;
       return (
@@ -92,6 +107,13 @@ export default defineComponent({
           ClientStatus.DISABLED,
         ].includes(this.client.status)
       );
+    },
+    showRename(): boolean {
+      return this.client &&
+        this.doesSupportSubsystemNames &&
+        this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
+        RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
+        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status);
     },
 
     showDelete(): boolean {
@@ -143,9 +165,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.title-action {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
+
 </style>

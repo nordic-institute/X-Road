@@ -26,14 +26,18 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.ClientRegRequestType;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 @Slf4j
 public class ClientRegRequestCallback extends BaseClientRequestCallback<ClientRegRequestType> {
@@ -42,6 +46,15 @@ public class ClientRegRequestCallback extends BaseClientRequestCallback<ClientRe
         super(globalConfProvider, rootCallback, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
     }
 
+    @Override
+    protected void verifyMessage() throws Exception {
+        super.verifyMessage();
+
+        if (StringUtils.isNotEmpty(getRequest().getSubsystemName()) && !getRequest().getClient().isSubsystem()) {
+            throw new CodedException(X_INVALID_REQUEST, "Only name of subsystem can be changed");
+        }
+
+    }
 
     @Override
     protected SecurityServerId getServer() {

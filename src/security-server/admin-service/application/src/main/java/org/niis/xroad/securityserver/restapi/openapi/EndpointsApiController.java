@@ -129,7 +129,7 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (EndpointAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ClientNotFoundException e) {
-                throw new ConflictException("Client not found for the given endpoint with id: " + id);
+            throw new ConflictException("Client not found for the given endpoint with id: " + id);
         }
 
         return new ResponseEntity<>(endpointDto, HttpStatus.OK);

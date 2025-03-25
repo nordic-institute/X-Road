@@ -142,7 +142,9 @@ public class LocalGroupConverter {
         GroupMemberDto groupMemberDto = new GroupMemberDto();
         groupMemberDto.setId(clientIdConverter.convertId(groupMember.getGroupMemberId()));
         groupMemberDto.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMember.getAdded()));
-        groupMemberDto.setName(globalConfProvider.getMemberName(groupMember.getGroupMemberId()));
+        groupMemberDto.setMemberName(globalConfProvider.getMemberName(groupMember.getGroupMemberId()));
+        groupMemberDto.setSubsystemName(globalConfProvider.getSubsystemName(groupMember.getGroupMemberId()));
+
         return groupMemberDto;
     }
 

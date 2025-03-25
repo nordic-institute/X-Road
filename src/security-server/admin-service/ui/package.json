@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev-ss0": "vite --host --mode ss0",
+    "dev-ss1": "vite --host --mode ss1",
     "build": "pnpm run generate-types && vitest --run && vite build",
     "preview": "vite preview",
     "build-only": "vite build",

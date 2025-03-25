@@ -10,6 +10,7 @@
     "decline": "Decline",
     "generateCsr": "Generate CSR",
     "rename": "Rename",
+    "addName": "Add subsystem name",
     "select": "Select"
   },
   "apiKey": {
@@ -347,6 +348,7 @@
     "certificateformation": "Authentication Certificate Submitted for Registration",
     "clientDisableInformation": "Disabled client",
     "clientEnableInformation": "Enabled client",
+    "clientRenameInformation": "Renamed client",
     "clientInformation": "Client Submitted for Registration",
     "comments": "Comments",
     "expires": "Expires",
@@ -363,7 +365,8 @@
     "source": "Source",
     "status": "Status",
     "subject": "Subject",
-    "subsystemCode": "Subsystem Code"
+    "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name"
   },
   "managementRequests": {
     "addCertificate": "Add Certificate",
@@ -390,6 +393,7 @@
     "rejected": "Rejected",
     "removeCertificate": "Remove Certificate",
     "removeClient": "Remove Client",
+    "renameClient": "Rename client",
     "revoked": "Revoked",
     "securityServerId": "Server Identifier",
     "securityServerOwnerName": "Server Owner Name",

@@ -158,7 +158,6 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId with given params
-     *
      * @param instance
      * @param memberClass
      * @param memberCode
@@ -171,7 +170,6 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId "FI:GOV:M1:SS1"
-     *
      * @return ClientId
      */
     public static ClientId.Conf getM1Ss1ClientId() {
@@ -180,7 +178,6 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId "FI:GOV:M1:SS2"
-     *
      * @return ClientId
      */
     public static ClientId.Conf getM1Ss2ClientId() {
@@ -190,7 +187,6 @@ public final class TestUtils {
     /**
      * Returns a new ClientId which has been built from encoded client id string,
      * such as "FI:GOV:M1:SS1"
-     *
      * @param encodedId
      * @return
      */
@@ -204,7 +200,6 @@ public final class TestUtils {
 
     /**
      * Returns a new MemberInfo with given parameters
-     *
      * @param instance
      * @param memberClass
      * @param memberCode
@@ -213,12 +208,12 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? NAME_FOR + subsystem : NAME_FOR + memberCode);
+                NAME_FOR + memberCode,
+                subsystem == null ? null : NAME_FOR + subsystem);
     }
 
     /**
      * Returns a new GlobalGroupInfo object
-     *
      * @param instance
      * @param groupCode
      * @return
@@ -229,7 +224,6 @@ public final class TestUtils {
 
     /**
      * Finds warning with matching code, or returns null
-     *
      * @param code
      * @param warningDeviations
      * @return
@@ -247,7 +241,6 @@ public final class TestUtils {
     /**
      * assert that path <code>http://http://localhost</code> + endpointPathEnd
      * exists in header <code>Location</code> (true for our integration tests)
-     *
      * @param endpointPath for example "/api/service-descriptions/12"
      * @param response
      */
@@ -260,7 +253,6 @@ public final class TestUtils {
 
     /**
      * assert that request does not have <code>Location</code> headers
-     *
      * @param response
      */
     public static <T> void assertMissingLocationHeader(ResponseEntity<T> response) {
@@ -274,7 +266,6 @@ public final class TestUtils {
 
     /**
      * Add Authentication header for API key with all roles
-     *
      * @param testRestTemplate
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate) {
@@ -283,9 +274,8 @@ public final class TestUtils {
 
     /**
      * Add Authentication header for specific API key
-     *
      * @param testRestTemplate
-     * @param apiKeyToken API key token
+     * @param apiKeyToken      API key token
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate,
                                                     String apiKeyToken) {
@@ -300,7 +290,6 @@ public final class TestUtils {
 
     /**
      * Creates a new TspType using the given url and name
-     *
      * @param url
      * @param name
      * @return
@@ -321,7 +310,6 @@ public final class TestUtils {
 
     /**
      * Creates a new ApprovedTSAType with the given url and name
-     *
      * @param url
      * @param name
      * @return
@@ -335,7 +323,6 @@ public final class TestUtils {
 
     /**
      * Creates a new TimestampingService using the given url and name
-     *
      * @param url
      * @param name
      * @return
@@ -349,7 +336,6 @@ public final class TestUtils {
 
     /**
      * Returns a file from classpath
-     *
      * @param pathToFile
      * @return
      */

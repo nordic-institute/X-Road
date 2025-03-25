@@ -662,7 +662,7 @@
     "id": "ID",
     "localGroup": "Lokaalne rühm",
     "localGroupAdded": "Lokaalne rühm lisatud",
-    "name": "Liikme nimi",
+    "memberName": "Liikme nimi",
     "noResults": "Otsing ei andnud tulemusi.",
     "removeAllText": "Kas olete kindel, et soovite kõik selle rühma liikmed eemaldada?",
     "removeAllTitle": "Eemalda kõik liikmed?",
