@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.stream.Stream;
 
 @Slf4j
 public class SignerStepDefs extends BaseUiStepDefs {
@@ -102,17 +103,15 @@ public class SignerStepDefs extends BaseUiStepDefs {
                     Paths.get("build/signer-volume").toFile());
 
             if (SystemUtils.IS_OS_UNIX) {
-                Files.walk(Paths.get("build/signer-volume"))
-                        .forEach(path -> {
-                            try {
-                                Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxrwxrwx"));
-                            } catch (IOException e) {
-                                log.error("Failed to set permissions for: {}", path);
-                            }
-                        });
-
-//                Files.setPosixFilePermissions(Paths.get("build/signer-volume"), PosixFilePermissions.fromString("rwxrwxrwx"));
-//                Files.setPosixFilePermissions(Paths.get("build/signer-volume/softtoken"), PosixFilePermissions.fromString("rwxrwxrwx"));
+                try (Stream<Path> fileStream = Files.walk(Paths.get("build/signer-volume"))) {
+                    fileStream.forEach(path -> {
+                        try {
+                            Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxrwxrwx"));
+                        } catch (IOException e) {
+                            log.error("Failed to set permissions for: {}", path);
+                        }
+                    });
+                }
             }
         } catch (Exception e) {
             log.error("Failed to modify keyconf.xml file", e);
