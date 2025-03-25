@@ -325,6 +325,11 @@ public class ConfigurationDownloaderTest {
             ConfigurationParser getParser() {
                 return parser;
             }
+
+            @Override
+            boolean versionLocationExists(URL url) {
+                return List.of(successfulLocationUrls).contains(url.toString());
+            }
         };
     }
 
@@ -337,6 +342,11 @@ public class ConfigurationDownloaderTest {
             @Override
             ConfigurationParser getParser() {
                 return parser;
+            }
+
+            @Override
+            boolean versionLocationExists(URL url) {
+                return List.of(successfulLocationUrls).contains(url.toString());
             }
         };
     }

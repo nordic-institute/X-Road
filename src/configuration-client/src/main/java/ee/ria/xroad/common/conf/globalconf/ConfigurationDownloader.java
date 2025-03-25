@@ -381,17 +381,27 @@ class ConfigurationDownloader {
         log.info("Determining whether global conf version {} is available for {}", CURRENT_GLOBAL_CONFIGURATION_VERSION, uriBuilder);
         uriBuilder.addParameter(VERSION_QUERY_PARAMETER, String.valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION));
         URL url = new URL(uriBuilder.toString());
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        ConfigurationHttpUrlConnectionConfig.apply(connection);
-        if (connection.getResponseCode() == HttpStatus.SC_NOT_FOUND) {
+        if (!versionLocationExists(url)) {
             int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1;
             log.info("Global conf version {} query resulted in HTTP {}, defaulting back to version {}.",
                     CURRENT_GLOBAL_CONFIGURATION_VERSION, HttpStatus.SC_NOT_FOUND, fallBackVersion);
-            uriBuilder.setParameter(VERSION_QUERY_PARAMETER, String.valueOf(fallBackVersion));
+            uriBuilder.setParameter(VERSION_QUERY_PARAMETER, valueOf(fallBackVersion));
         } else {
             log.info("Using Global conf version {}", CURRENT_GLOBAL_CONFIGURATION_VERSION);
         }
-        connection.disconnect();
+    }
+
+    boolean versionLocationExists(URL url) throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            ConfigurationHttpUrlConnectionConfig.apply(connection);
+            return connection.getResponseCode() != HttpStatus.SC_NOT_FOUND;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 
     byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {
