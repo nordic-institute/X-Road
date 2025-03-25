@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -99,9 +100,19 @@ public class SignerStepDefs extends BaseUiStepDefs {
             FileUtils.copyDirectory(
                     tempDir.toFile(),
                     Paths.get("build/signer-volume").toFile());
+
             if (SystemUtils.IS_OS_UNIX) {
-                Files.setPosixFilePermissions(Paths.get("build/signer-volume"), PosixFilePermissions.fromString("rwxrwxrwx"));
-                Files.setPosixFilePermissions(Paths.get("build/signer-volume/softtoken"), PosixFilePermissions.fromString("rwxrwxrwx"));
+                Files.walk(Paths.get("build/signer-volume"))
+                        .forEach(path -> {
+                            try {
+                                Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxrwxrwx"));
+                            } catch (IOException e) {
+                                log.error("Failed to set permissions for: {}", path);
+                            }
+                        });
+
+//                Files.setPosixFilePermissions(Paths.get("build/signer-volume"), PosixFilePermissions.fromString("rwxrwxrwx"));
+//                Files.setPosixFilePermissions(Paths.get("build/signer-volume/softtoken"), PosixFilePermissions.fromString("rwxrwxrwx"));
             }
         } catch (Exception e) {
             log.error("Failed to modify keyconf.xml file", e);
