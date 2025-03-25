@@ -1,13 +1,14 @@
 # Security Token Extension for the X-Road Message Protocol
 
-Version: 1.2  
+Version: 1.3  
 Doc. ID: PR-SECTOKEN
 
 | Date       | Version | Description                                      | Author           |
 |------------|---------|--------------------------------------------------|------------------|
 | 20.10.2017 | 1.0     | Initial version                                  | Olli Lindgren    |
-| 06.03.2018 | 1.1     | Added terms section, term doc reference and link | Tatu Repo        | 
-| 17.06.2022 | 1.2     | Update document title                            | Petteri Kivimäki | 
+| 06.03.2018 | 1.1     | Added terms section, term doc reference and link | Tatu Repo        |
+| 17.06.2022 | 1.2     | Update document title                            | Petteri Kivimäki |
+| 26.03.2025 | 1.3     | Syntax and styling                               | Pauline Dimmek   |
 
 ## Table of Contents
 
@@ -129,7 +130,7 @@ read more about the SOAP body logging options in the [Message log add-on paramet
 Guide \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ## 4 XML Schema for the extension
-The XML Schema for the extension is below. It can also be found at [`http://x-road.eu/xsd/security-token.xsd`](http://x-road.eu/xsd/security-token.xsd) and locally [here](./security-token.xsd).
+The XML Schema for the extension is below. It can also be found at [`http://x-road.eu/xsd/security-token.xsd`](http://x-road.eu/xsd/security-token.xsd).
  ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema elementFormDefault="qualified"
