@@ -46,8 +46,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientsDto;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 

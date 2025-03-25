@@ -38,9 +38,9 @@ import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 

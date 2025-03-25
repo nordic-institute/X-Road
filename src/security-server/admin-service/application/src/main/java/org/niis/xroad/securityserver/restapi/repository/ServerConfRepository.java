@@ -29,8 +29,8 @@ package org.niis.xroad.securityserver.restapi.repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.stereotype.Repository;
 
 /**

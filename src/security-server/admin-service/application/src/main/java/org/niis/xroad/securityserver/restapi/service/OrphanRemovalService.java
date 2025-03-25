@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.NotFoundException;
-import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;

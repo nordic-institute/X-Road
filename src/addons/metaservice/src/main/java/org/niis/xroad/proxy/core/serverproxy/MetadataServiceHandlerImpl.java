@@ -65,7 +65,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
-import org.niis.xroad.serverconf.mapper.ServiceDescriptionMapper;
+import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.w3c.dom.Node;

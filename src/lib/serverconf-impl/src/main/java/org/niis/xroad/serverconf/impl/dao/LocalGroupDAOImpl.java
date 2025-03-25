@@ -27,7 +27,7 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 
 /**
  * LocalGroupDAO

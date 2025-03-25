@@ -37,12 +37,12 @@ import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointNotFoundException;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupEntity;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

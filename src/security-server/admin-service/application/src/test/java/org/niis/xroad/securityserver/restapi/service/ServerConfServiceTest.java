@@ -31,8 +31,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

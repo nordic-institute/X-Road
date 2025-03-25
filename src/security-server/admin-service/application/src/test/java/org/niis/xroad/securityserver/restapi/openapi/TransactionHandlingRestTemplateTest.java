@@ -36,7 +36,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MembersDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;

@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 

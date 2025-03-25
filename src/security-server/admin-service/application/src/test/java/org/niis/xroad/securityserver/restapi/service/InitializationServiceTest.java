@@ -45,8 +45,8 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
-import org.niis.xroad.serverconf.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 

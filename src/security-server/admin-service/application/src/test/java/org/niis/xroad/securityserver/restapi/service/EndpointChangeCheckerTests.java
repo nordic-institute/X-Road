@@ -28,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.serverconf.entity.AccessRightEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 
 import java.util.ArrayList;
 import java.util.HashSet;

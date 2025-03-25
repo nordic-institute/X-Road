@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;

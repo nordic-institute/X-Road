@@ -36,11 +36,11 @@ import org.niis.xroad.proxy.core.test.Message;
 import org.niis.xroad.proxy.core.test.MessageTestCase;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.xml.sax.InputSource;
 

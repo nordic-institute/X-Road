@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;

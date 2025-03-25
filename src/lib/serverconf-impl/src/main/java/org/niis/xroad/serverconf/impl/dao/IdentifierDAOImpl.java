@@ -37,12 +37,12 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.entity.GlobalGroupIdEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupIdEntity;
-import org.niis.xroad.serverconf.entity.SecurityServerIdEntity;
-import org.niis.xroad.serverconf.entity.ServiceIdEntity;
-import org.niis.xroad.serverconf.entity.XRoadIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.GlobalGroupIdEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;
+import org.niis.xroad.serverconf.impl.entity.SecurityServerIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
+import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 
 import java.util.List;
 

@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.entity.CertificateEntity;
+import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

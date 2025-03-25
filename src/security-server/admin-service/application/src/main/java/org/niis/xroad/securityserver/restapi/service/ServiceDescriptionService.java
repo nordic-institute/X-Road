@@ -56,12 +56,12 @@ import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
-import org.niis.xroad.serverconf.mapper.EndpointMapper;
-import org.niis.xroad.serverconf.mapper.ServiceDescriptionMapper;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.EndpointMapper;
+import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
 import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -489,7 +489,7 @@ public class ServiceDescriptionService {
                 .filter(candidateService -> {
                     String candidateFullServiceCode = ServiceFormatter.getServiceFullName(candidateService);
                     boolean existsByServiceCode = existingServices.stream()
-                            .map(org.niis.xroad.serverconf.entity.ServiceEntity::getServiceCode)
+                            .map(ServiceEntity::getServiceCode)
                             .anyMatch(serviceCode -> serviceCode.equalsIgnoreCase(candidateService.getServiceCode()));
                     boolean existsByFullServiceCode = existingServices.stream()
                             .map(ServiceFormatter::getServiceFullName)
@@ -1053,13 +1053,13 @@ public class ServiceDescriptionService {
 
         List<String> newServiceCodes = newServices
                 .stream()
-                .map(org.niis.xroad.serverconf.entity.ServiceEntity::getServiceCode)
+                .map(ServiceEntity::getServiceCode)
                 .toList();
 
         // service codes that will be REMOVED
         List<String> removedServiceCodes = serviceChanges.getRemovedServices()
                 .stream()
-                .map(org.niis.xroad.serverconf.entity.ServiceEntity::getServiceCode)
+                .map(ServiceEntity::getServiceCode)
                 .toList();
 
         // replace all old services with the new ones

@@ -36,11 +36,11 @@ import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.serverconf.entity.AccessRightEntity;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
-import org.niis.xroad.serverconf.mapper.AccessRightMapper;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.AccessRightMapper;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 

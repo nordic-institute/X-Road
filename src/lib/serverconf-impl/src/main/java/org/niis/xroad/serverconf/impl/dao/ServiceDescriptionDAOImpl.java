@@ -29,8 +29,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.MultiIdentifierLoadAccess;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 
 import java.util.List;
 

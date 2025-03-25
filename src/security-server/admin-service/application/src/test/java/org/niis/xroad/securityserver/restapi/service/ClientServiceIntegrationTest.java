@@ -42,7 +42,7 @@ import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.beans.factory.annotation.Autowired;

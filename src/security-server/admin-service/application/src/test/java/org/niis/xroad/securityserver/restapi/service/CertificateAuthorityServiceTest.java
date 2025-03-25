@@ -38,7 +38,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
-import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;

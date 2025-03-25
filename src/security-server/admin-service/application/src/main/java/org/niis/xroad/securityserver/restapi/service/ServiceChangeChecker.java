@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.Data;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 

@@ -52,8 +52,8 @@ import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.TimestampingServiceEntity;
-import org.niis.xroad.serverconf.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
 import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.nio.file.NoSuchFileException;

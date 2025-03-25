@@ -45,7 +45,7 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;

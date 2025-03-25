@@ -39,11 +39,11 @@ import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionReposi
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.serverconf.entity.AccessRightEntity;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -391,7 +391,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     private void assertServiceCodes(ServiceDescriptionEntity serviceDescriptionEntity, String... expectedCodes) {
         List<String> serviceCodes = serviceDescriptionEntity.getServices()
                 .stream()
-                .map(org.niis.xroad.serverconf.entity.ServiceEntity::getServiceCode)
+                .map(ServiceEntity::getServiceCode)
                 .collect(Collectors.toList());
         assertEquals(Arrays.asList(expectedCodes), serviceCodes);
     }
@@ -816,7 +816,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionEntity serviceDescription,
                                                                      String serviceCode) {
         return serviceDescription.getServices().stream()
-                .map(org.niis.xroad.serverconf.entity.ServiceEntity::getServiceCode)
+                .map(ServiceEntity::getServiceCode)
                 .toList()
                 .contains(serviceCode);
     }

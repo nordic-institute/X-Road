@@ -37,10 +37,10 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
-import org.niis.xroad.serverconf.entity.ServiceEntity;
-import org.niis.xroad.serverconf.entity.ServiceIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.ArrayList;

@@ -33,12 +33,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.niis.xroad.serverconf.entity.ClientIdEntity;
-import org.niis.xroad.serverconf.entity.GlobalGroupIdEntity;
-import org.niis.xroad.serverconf.entity.LocalGroupIdEntity;
-import org.niis.xroad.serverconf.entity.SecurityServerIdEntity;
-import org.niis.xroad.serverconf.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.GlobalGroupIdEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;
+import org.niis.xroad.serverconf.impl.entity.SecurityServerIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
 
 import static org.junit.Assert.assertEquals;
 

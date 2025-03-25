@@ -28,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.entity.ClientEntity;
-import org.niis.xroad.serverconf.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;

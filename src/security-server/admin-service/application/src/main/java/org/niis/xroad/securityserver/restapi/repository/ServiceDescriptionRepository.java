@@ -30,8 +30,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.niis.xroad.serverconf.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
