@@ -35,6 +35,7 @@ import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 
 @Slf4j
 public class SignerStepDefs extends BaseUiStepDefs {
@@ -99,7 +100,8 @@ public class SignerStepDefs extends BaseUiStepDefs {
                     tempDir.toFile(),
                     Paths.get("build/signer-volume").toFile());
             if (SystemUtils.IS_OS_UNIX) {
-                envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
+                Files.setPosixFilePermissions(Paths.get("build/signer-volume"), PosixFilePermissions.fromString("rwxrwxrwx"));
+                Files.setPosixFilePermissions(Paths.get("build/signer-volume/softtoken"), PosixFilePermissions.fromString("rwxrwxrwx"));
             }
         } catch (Exception e) {
             log.error("Failed to modify keyconf.xml file", e);
