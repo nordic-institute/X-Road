@@ -68,9 +68,8 @@ import { computed, PropType, ref } from 'vue';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { i18n } from '@/plugins/i18n';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 import { ClientStatus } from '@/openapi-types';
+import { useClient } from '@/store/modules/client';
 
 const props = defineProps({
   id: {
@@ -89,7 +88,7 @@ const emits = defineEmits(['done']);
 
 const { defineField, meta, handleSubmit, resetForm } = useForm({
   validationSchema: { subsystemName: 'required' },
-  initialValues: { subsystemName: props.subsystemName },
+  initialValues: { subsystemName: props.subsystemName || '' },
 });
 
 const { showError, showSuccess } = useNotifications();
@@ -106,6 +105,7 @@ const showDialog = ref(false);
 const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
 
 const { t } = i18n.global;
+const client = useClient();
 
 function openDialog() {
   resetForm();
@@ -114,8 +114,7 @@ function openDialog() {
 
 const rename = handleSubmit((values) => {
   loading.value = true;
-  api
-    .put(`/clients/${encodePathParameter(props.id)}/rename`, { client_name: values.subsystemName })
+  client.renameClient(props.id, values.subsystemName)
     .then(() => {
       if (props.clientStatus === ClientStatus.REGISTERED) {
         showSuccess(t('client.action.renameSubsystem.changeSubmitted'));

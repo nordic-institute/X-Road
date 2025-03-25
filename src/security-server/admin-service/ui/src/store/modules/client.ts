@@ -26,8 +26,8 @@
 
 import { defineStore } from 'pinia';
 import * as api from '@/util/api';
-import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 
 export interface ClientState {
   client: Client | null;
@@ -37,6 +37,7 @@ export interface ClientState {
   ssCertificate: CertificateDetails | null;
   clientLoading: boolean;
 }
+
 export const useClient = defineStore('client', {
   state: (): ClientState => {
     return {
@@ -137,6 +138,10 @@ export const useClient = defineStore('client', {
         .catch((error) => {
           throw error;
         });
+    },
+
+    async renameClient(clientId: string, newName: string) {
+      return api.put(`/clients/${encodePathParameter(clientId)}/rename`, { client_name: newName })
     },
   },
 });

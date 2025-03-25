@@ -259,7 +259,7 @@ public class GlobalConfChecker {
                         updateClientStatus(client, ClientType.STATUS_REGISTERED);
                         break;
                     default:
-                        log.warn("Unexpected status {} for client '{}'", clientId, client.getClientStatus());
+                        log.warn("Unexpected status {} for client '{}'", client.getClientStatus(), clientId);
                 }
             }
 
