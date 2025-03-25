@@ -67,6 +67,7 @@ import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidatorTest;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -112,6 +113,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     ClientSortingComparator clientSortingComparator;
     @Autowired
     ServiceClientSortingComparator serviceClientSortingComparator;
+    @Autowired
+    SignerRpcClient signerRpcClient;
 
     private static final SecurityServerId.Conf OWNER_SERVER_ID = SecurityServerId.Conf.create(TestUtils.getM1Ss1ClientId(),
             "owner");

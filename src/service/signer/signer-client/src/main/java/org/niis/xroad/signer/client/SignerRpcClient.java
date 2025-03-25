@@ -44,6 +44,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
@@ -134,6 +135,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTim
 @Slf4j
 @RequiredArgsConstructor
 @ApplicationScoped
+@Singleton
 public class SignerRpcClient extends AbstractRpcClient {
     public static final String SSL_TOKEN_ID = "0";
 
