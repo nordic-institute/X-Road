@@ -70,7 +70,11 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     @Override
     public void initialize() {
-        prepareDirectories("build/signer-volume", "build/signer-volume/softtoken");
+        prepareDirectories(
+                "build/signer-volume",
+                "build/signer-volume/softtoken",
+                "build/a2c_logs"
+        );
         env = new ComposeContainer("ss-",
                 new File(COMPOSE_SS_FILE), new File(COMPOSE_SYSTEMTEST_FILE))
                 .withLocalCompose(true)
