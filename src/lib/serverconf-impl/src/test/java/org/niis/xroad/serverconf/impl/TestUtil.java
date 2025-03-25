@@ -291,26 +291,22 @@ public final class TestUtil {
         return conf;
     }
 
-    static ServiceId.Conf createTestServiceId(String memberCode,
-                                              String serviceCode) {
+    static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode) {
         return ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode);
     }
 
-    static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode,
-                                              String serviceVerison) {
+    static ServiceId.Conf createTestServiceId(String memberCode, String serviceCode, String serviceVerison) {
         return ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode, serviceVerison);
     }
 
-    static ServiceIdEntity createTestServiceIdEntity(String memberCode, String serviceCode,
-                                                     String serviceVerison) {
+    static ServiceIdEntity createTestServiceIdEntity(String memberCode, String serviceCode, String serviceVerison) {
         return ServiceIdEntity.create(XROAD_INSTANCE, MEMBER_CLASS, memberCode, null,
                 serviceCode, serviceVerison);
     }
 
-    static ServiceId.Conf createTestServiceId(ClientId member, String serviceCode,
-                                              String serviceVersion) {
+    static ServiceId.Conf createTestServiceId(ClientId member, String serviceCode, String serviceVersion) {
         return ServiceId.Conf.create(member, serviceCode, serviceVersion);
     }
 

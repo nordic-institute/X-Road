@@ -78,23 +78,23 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
     /**
      * Returns services of the specified service provider.
      * @param session the session
-     * @param serviceProvider the service provider
+     * @param serviceProviderId the service provider
      * @return services of the specified service provider
      */
-    public List<ServiceIdEntity> getServices(Session session, ClientId serviceProvider) {
-        return getServicesByDescriptionType(session, serviceProvider);
+    public List<ServiceIdEntity> getServices(Session session, ClientId serviceProviderId) {
+        return getServicesByDescriptionType(session, serviceProviderId);
     }
 
     /**
      * Returns the services of the specified service provider filtered by type.
      * @param session the session
-     * @param serviceProvider the service provider
+     * @param serviceProviderId the service provider
      * @param descriptionType filter results by description type
      * @return services of the specified service provider
      */
     @SuppressWarnings("squid:S1192")
     public List<ServiceIdEntity> getServicesByDescriptionType(Session session,
-                                                              ClientId serviceProvider, DescriptionType... descriptionType) {
+                                                              ClientId serviceProviderId, DescriptionType... descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Tuple> tq = builder.createTupleQuery();
         Root<ServiceEntity> root = tq.from(ServiceEntity.class);
@@ -103,16 +103,16 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
         tq.multiselect(root.get("serviceCode"), root.get("serviceVersion"));
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(builder.equal(joinClient.get("identifier").<String>get("xRoadInstance"),
-                serviceProvider.getXRoadInstance()));
+                serviceProviderId.getXRoadInstance()));
         predicates.add(builder.equal(joinClient.get("identifier").<String>get("memberClass"),
-                serviceProvider.getMemberClass()));
+                serviceProviderId.getMemberClass()));
         predicates.add(builder.equal(joinClient.get("identifier").<String>get("memberCode"),
-                serviceProvider.getMemberCode()));
-        if (serviceProvider.getSubsystemCode() == null) {
+                serviceProviderId.getMemberCode()));
+        if (serviceProviderId.getSubsystemCode() == null) {
             predicates.add(builder.isNull(joinClient.get("identifier").<String>get("subsystemCode")));
         } else {
             predicates.add(builder.equal(joinClient.get("identifier").<String>get("subsystemCode"),
-                    serviceProvider.getSubsystemCode()));
+                    serviceProviderId.getSubsystemCode()));
         }
         if (descriptionType != null && descriptionType.length > 0) {
             predicates.add(joinServiceDescription.get("type").in((Object[]) descriptionType));
@@ -121,7 +121,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceEntity> {
         List<Tuple> resultList = session.createQuery(tq).getResultList();
         List<ServiceIdEntity> services = new ArrayList<>();
         for (Tuple tuple : resultList) {
-            services.add(ServiceIdEntity.create(serviceProvider, (String) tuple.get(0),
+            services.add(ServiceIdEntity.create(serviceProviderId, (String) tuple.get(0),
                     (String) tuple.get(1)));
         }
         return services;

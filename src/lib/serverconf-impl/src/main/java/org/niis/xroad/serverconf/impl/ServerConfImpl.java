@@ -117,26 +117,26 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public SecurityServerId.Conf getIdentifier() {
         return tx(session -> {
-            ServerConf confType = getConf(session);
-            Client owner = confType.getOwner();
+            ServerConf serverConf = getConf(session);
+            Client owner = serverConf.getOwner();
             if (owner == null) {
                 throw new CodedException(X_MALFORMED_SERVERCONF, "Owner is not set");
             }
-            return SecurityServerId.Conf.create(owner.getIdentifier(), confType.getServerCode());
+            return SecurityServerId.Conf.create(owner.getIdentifier(), serverConf.getServerCode());
         });
     }
 
     @Override
-    public boolean serviceExists(ServiceId service) {
-        return tx(session -> serviceDao.serviceExists(session, service));
+    public boolean serviceExists(ServiceId serviceId) {
+        return tx(session -> serviceDao.serviceExists(session, serviceId));
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
+    public String getServiceAddress(ServiceId serviceId) {
         return tx(session -> {
-            Service serviceType = getService(session, service);
-            if (serviceType != null) {
-                return serviceType.getUrl();
+            Service service = getService(session, serviceId);
+            if (service != null) {
+                return service.getUrl();
             }
 
             return null;
@@ -144,11 +144,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public int getServiceTimeout(ServiceId service) {
+    public int getServiceTimeout(ServiceId serviceId) {
         return tx(session -> {
-            Service serviceType = getService(session, service);
-            if (serviceType != null) {
-                return serviceType.getTimeout();
+            Service service = getService(session, serviceId);
+            if (service != null) {
+                return service.getTimeout();
             }
 
             return DEFAULT_SERVICE_TIMEOUT;
@@ -156,10 +156,10 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
+    public RestServiceDetailsListType getRestServices(ClientId serviceProviderId) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-            serviceDao.getServicesByDescriptionType(session, XRoadIdMapper.get().toEntity(serviceProvider),
+            serviceDao.getServicesByDescriptionType(session, XRoadIdMapper.get().toEntity(serviceProviderId),
                             DescriptionType.OPENAPI3, DescriptionType.REST)
                     .forEach(serviceId -> {
                         XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
@@ -171,13 +171,13 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
+    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProviderId, ClientId clientId) {
         return tx(session -> {
             RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-            serviceDao.getServicesByDescriptionType(session, serviceProvider, DescriptionType.OPENAPI3,
+            serviceDao.getServicesByDescriptionType(session, serviceProviderId, DescriptionType.OPENAPI3,
                             DescriptionType.REST)
                     .forEach(serviceId -> {
-                        final List<Endpoint> acl = getAclEndpoints(session, client, serviceId);
+                        final List<Endpoint> acl = getAclEndpoints(session, clientId, serviceId);
                         if (!acl.isEmpty()) {
                             final List<ee.ria.xroad.common.metadata.Endpoint> endpoints = getServiceEndpoints(serviceId);
                             XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
@@ -214,53 +214,53 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
-        return tx(session -> XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProvider)));
+    public List<ServiceId.Conf> getAllServices(ClientId serviceProviderId) {
+        return tx(session -> XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProviderId)));
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProviderId, DescriptionType descriptionType) {
         return tx(session -> XRoadIdMapper.get().toServices(
-                serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
+                serviceDao.getServicesByDescriptionType(session, serviceProviderId, descriptionType)
         ));
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider, ClientId client) {
+    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProviderId, ClientId clientId) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
-                    XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProvider));
+                    XRoadIdMapper.get().toServices(serviceDao.getServices(session, serviceProviderId));
             return allServices.stream()
-                    .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
+                    .filter(s -> !getAclEndpoints(session, clientId, s).isEmpty())
                     .collect(Collectors.toList());
         });
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
                                                                 DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
                     XRoadIdMapper.get().toServices(
-                            serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
+                            serviceDao.getServicesByDescriptionType(session, serviceProviderId, descriptionType)
                     );
             return allServices.stream()
-                    .filter(s -> !getAclEndpoints(session, client, s).isEmpty())
+                    .filter(s -> !getAclEndpoints(session, clientId, s).isEmpty())
                     .collect(Collectors.toList());
         });
     }
 
     @Override
-    public boolean isSslAuthentication(ServiceId service) {
+    public boolean isSslAuthentication(ServiceId serviceId) {
         return tx(session -> {
-            Service serviceType = getService(session, service);
-            if (serviceType != null) {
+            Service service = getService(session, serviceId);
+            if (service != null) {
                 return ObjectUtils.defaultIfNull(
-                        serviceType.getSslAuthentication(), true);
+                        service.getSslAuthentication(), true);
             }
 
             throw new CodedException(X_UNKNOWN_SERVICE,
-                    "Service '%s' not found", service);
+                    "Service '%s' not found", serviceId);
         });
     }
 
@@ -284,9 +284,9 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
+    public IsAuthentication getIsAuthentication(ClientId clientId) {
         return tx(session -> {
-            Client clientType = getClient(session, client);
+            Client clientType = getClient(session, clientId);
             if (clientType != null) {
                 String isAuth = clientType.getIsAuthentication();
                 if (isAuth == null) {
@@ -301,8 +301,8 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-        return tx(session -> CertificateMapper.get().toTargets(clientDao.getIsCerts(session, client)).stream()
+    public List<X509Certificate> getIsCerts(ClientId clientId) throws Exception {
+        return tx(session -> CertificateMapper.get().toTargets(clientDao.getIsCerts(session, clientId)).stream()
                 .map(Certificate::getData)
                 .map(CryptoUtils::readCertificate)
                 .toList());
@@ -317,12 +317,12 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
+    public String getDisabledNotice(ServiceId serviceId) {
         return tx(session -> {
-            ServiceDescription serviceDescription = getServiceDescription(session, service);
+            ServiceDescription serviceDescription = getServiceDescription(session, serviceId);
             if (serviceDescription != null && serviceDescription.isDisabled()) {
                 if (serviceDescription.getDisabledNotice() == null) {
-                    return String.format("Service '%s' is disabled", service);
+                    return String.format("Service '%s' is disabled", serviceId);
                 }
 
                 return serviceDescription.getDisabledNotice();
@@ -338,13 +338,13 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-        return isQueryAllowed(sender, service, null, null);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId) {
+        return isQueryAllowed(senderId, serviceId, null, null);
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId client, ServiceId service, String method, String path) {
-        return tx(session -> internalIsQueryAllowed(session, client, service, method, path));
+    public boolean isQueryAllowed(ClientId clientId, ServiceId serviceId, String method, String path) {
+        return tx(session -> internalIsQueryAllowed(session, clientId, serviceId, method, path));
     }
 
     @Override
@@ -356,11 +356,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
         return tx(session -> {
-            Service serviceType = getService(session, service);
-            if (serviceType != null && serviceType.getServiceDescription() != null) {
-                return serviceType.getServiceDescription().getType();
+            Service service = getService(session, serviceId);
+            if (service != null && service.getServiceDescription() != null) {
+                return service.getServiceDescription().getType();
             }
 
             return null;
@@ -368,11 +368,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public String getServiceDescriptionURL(ServiceId service) {
+    public String getServiceDescriptionURL(ServiceId serviceId) {
         return tx(session -> {
-            Service serviceType = getService(session, service);
-            if (serviceType != null && serviceType.getServiceDescription() != null) {
-                return serviceType.getServiceDescription().getUrl();
+            Service service = getService(session, serviceId);
+            if (service != null && service.getServiceDescription() != null) {
+                return service.getServiceDescription().getUrl();
             }
             return null;
         });
@@ -411,37 +411,37 @@ public class ServerConfImpl implements ServerConfProvider {
         return ServerConfMapper.get().toTarget(serverConfDao.getConf(session));
     }
 
-    protected Client getClient(Session session, ClientId c) {
-        return ClientMapper.get().toTarget(clientDao.getClient(session, c));
+    protected Client getClient(Session session, ClientId clientId) {
+        return ClientMapper.get().toTarget(clientDao.getClient(session, clientId));
     }
 
-    protected Service getService(Session session, ServiceId s) {
-        return ServiceMapper.get().toTarget(serviceDao.getService(session, s));
+    protected Service getService(Session session, ServiceId serviceId) {
+        return ServiceMapper.get().toTarget(serviceDao.getService(session, serviceId));
     }
 
-    protected ServiceDescription getServiceDescription(Session session, ServiceId service) {
-        return ServiceDescriptionMapper.get().toTarget(serviceDescriptionDao.getServiceDescription(session, service));
+    protected ServiceDescription getServiceDescription(Session session, ServiceId serviceId) {
+        return ServiceDescriptionMapper.get().toTarget(serviceDescriptionDao.getServiceDescription(session, serviceId));
     }
 
-    private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
+    private boolean internalIsQueryAllowed(Session session, ClientId clientId, ServiceId serviceId, String method,
                                            String path) {
 
-        if (client == null) {
+        if (clientId == null) {
             return false;
         }
 
-        return checkAccessRights(session, client, service, method, path);
+        return checkAccessRights(session, clientId, serviceId, method, path);
     }
 
     @SuppressWarnings("squid:S3776")
-    private boolean checkAccessRights(Session session, ClientId client, ServiceId service, String method, String path) {
+    private boolean checkAccessRights(Session session, ClientId clientId, ServiceId serviceId, String method, String path) {
         final String normalizedPath;
         if (path == null) {
             normalizedPath = null;
         } else {
             normalizedPath = UriUtils.uriPathPercentDecode(URI.create(path).normalize().getRawPath(), true);
         }
-        return getAclEndpoints(session, client, service).stream()
+        return getAclEndpoints(session, clientId, serviceId).stream()
                 .anyMatch(ep -> ep.matches(method, normalizedPath));
     }
 
@@ -450,18 +450,18 @@ public class ServerConfImpl implements ServerConfProvider {
      * <p>
      * Includes only endpoints the client has a direct acl entry for, does not check for implicitly allowed endpoints.
      */
-    protected List<Endpoint> getAclEndpoints(Session session, ClientId client, ServiceId service) {
+    protected List<Endpoint> getAclEndpoints(Session session, ClientId clientId, ServiceId serviceId) {
         log.debug("getAcl, session = {}", session);
 
-        final ClientEntity serviceOwner = clientDao.getClient(session, service.getClientId());
+        final ClientEntity serviceOwner = clientDao.getClient(session, serviceId.getClientId());
 
         if (serviceOwner == null) {
             // should not normally happen, but possible if service and acl caches are in inconsistent state
             // (see CachingServerConfImpl))
-            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' owner not found", service);
+            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' owner not found", serviceId);
         }
 
-        final ClientIdEntity localClientId = identifierDao.findClientId(session, client);
+        final ClientIdEntity localClientId = identifierDao.findClientId(session, clientId);
         // localClientId can be null if the permissions are defined by a global group
 
         final CriteriaBuilder cb = session.getCriteriaBuilder();
@@ -481,32 +481,32 @@ public class ServerConfImpl implements ServerConfProvider {
 
         query.select(acl).where(cb.and(
                         cb.equal(root, serviceOwner),
-                        cb.equal(endpoint.get("serviceCode"), service.getServiceCode())),
+                        cb.equal(endpoint.get("serviceCode"), serviceId.getServiceCode())),
                 cb.or(orPredicates.toArray(new Predicate[0])));
         var accessRights = session.createQuery(query).setReadOnly(true).list();
         return EndpointMapper.get().toTargets(
                 accessRights.stream()
-                .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), client))
+                .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), clientId))
                 .map(AccessRightEntity::getEndpoint)
                 .toList()
         );
     }
 
-    private boolean subjectMatches(ClientEntity serviceOwner, XRoadId aclSubject, ClientId client) {
-        if (aclSubject instanceof GlobalGroupId globalGroupId) {
-            return globalConfProvider.isSubjectInGlobalGroup(client, globalGroupId);
-        } else if (aclSubject instanceof LocalGroupId localGroupId) {
-            return isMemberInLocalGroup(client, localGroupId, serviceOwner);
+    private boolean subjectMatches(ClientEntity serviceOwner, XRoadId aclSubjectId, ClientId clientId) {
+        if (aclSubjectId instanceof GlobalGroupId globalGroupId) {
+            return globalConfProvider.isSubjectInGlobalGroup(clientId, globalGroupId);
+        } else if (aclSubjectId instanceof LocalGroupId localGroupId) {
+            return isMemberInLocalGroup(clientId, localGroupId, serviceOwner);
         } else {
-            return client.equals(aclSubject);
+            return clientId.equals(aclSubjectId);
         }
     }
 
-    private boolean isMemberInLocalGroup(ClientId member, LocalGroupId groupId, ClientEntity groupOwner) {
+    private boolean isMemberInLocalGroup(ClientId memberId, LocalGroupId groupId, ClientEntity groupOwner) {
         return groupOwner.getLocalGroups().stream()
                 .filter(g -> Objects.equals(groupId.getGroupCode(), g.getGroupCode()))
                 .flatMap(g -> g.getGroupMembers().stream())
-                .anyMatch(m -> m.getGroupMemberId().equals(member));
+                .anyMatch(m -> m.getGroupMemberId().equals(memberId));
     }
 
     /**

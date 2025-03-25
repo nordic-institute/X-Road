@@ -210,7 +210,7 @@ public class ServerConfTest {
     public void getDisabledNotice() {
         ServiceId existingService = createTestServiceId(client(1),
                 service(NUM_SERVICEDESCRIPTIONS - 1, NUM_SERVICES - 1), SERVICE_VERSION);
-        ServiceId nonExistingService = createTestServiceId("foo", "bar", "sub");
+        ServiceId nonExistingService = createTestServiceId("foo", "bar");
 
         assertNotNull(serverConfProvider.getDisabledNotice(existingService));
         assertNull(serverConfProvider.getDisabledNotice(nonExistingService));
@@ -358,9 +358,9 @@ public class ServerConfTest {
         assertEquals(NUM_SERVICEDESCRIPTIONS * NUM_SERVICES, allServices.size());
     }
 
-    private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
+    private static List<ServiceId.Conf> getServices(ClientId serviceProviderId) {
         return XRoadIdMapper.get().toServices(new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(),
-                XRoadIdMapper.get().toEntity(serviceProvider)));
+                ServerConfDatabaseCtx.get().getSession(), serviceProviderId)
+        );
     }
 }

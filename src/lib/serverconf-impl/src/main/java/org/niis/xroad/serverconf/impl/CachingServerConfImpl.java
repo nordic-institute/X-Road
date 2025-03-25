@@ -232,15 +232,15 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    protected List<Endpoint> getAclEndpoints(Session session, ClientId client, ServiceId serviceId) {
-        final AclCacheKey key = new AclCacheKey(client, serviceId);
+    protected List<Endpoint> getAclEndpoints(Session session, ClientId clientId, ServiceId serviceId) {
+        final AclCacheKey key = new AclCacheKey(clientId, serviceId);
         try {
             /*
              * Implementation note. It seems that the loader function is executed in the same thread, in which case the
              * transaction simply joins the current one. However, this is not explicitly promised by the API,
              * so we start a transaction if necessary.
              */
-            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, client, serviceId)));
+            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, clientId, serviceId)));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
                 throw (CodedException) e.getCause();
@@ -296,6 +296,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
         internalKeyCache.invalidateAll();
     }
 
-    private record AclCacheKey(ClientId client, ServiceId serviceId) {
+    private record AclCacheKey(ClientId clientId, ServiceId serviceId) {
     }
 }

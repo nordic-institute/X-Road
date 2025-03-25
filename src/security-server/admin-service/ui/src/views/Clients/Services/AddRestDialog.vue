@@ -34,10 +34,10 @@
   >
     <template #content>
       <div class="dlg-edit-row">
-        <div class="dlg-row-title pb-8">{{ $t('services.service') }}</div>
+        <div class="dlg-row-title pb-8">{{ $t('services.serviceType') }}</div>
         <v-radio-group
           v-bind="serviceTypeRef"
-          name="service"
+          name="serviceType"
           inline
           class="dlg-row-input"
         >
@@ -95,7 +95,7 @@ export default defineComponent({
   setup() {
     const { meta, resetForm, values, defineComponentBinds } = useForm({
       validationSchema: {
-        service: 'required',
+        serviceType: 'required',
         serviceUrl: 'required|max:255|restUrl',
         serviceCode: 'required|max:255|xrdIdentifier',
       },
@@ -105,7 +105,7 @@ export default defineComponent({
         'error-messages': state.errors,
       },
     });
-    const serviceTypeRef = defineComponentBinds('service', componentConfig);
+    const serviceTypeRef = defineComponentBinds('serviceType', componentConfig);
     const serviceUrlRef = defineComponentBinds('serviceUrl', componentConfig);
     const serviceCodeRef = defineComponentBinds('serviceCode', componentConfig);
     return {
@@ -125,7 +125,7 @@ export default defineComponent({
     save(): void {
       this.$emit(
         'save',
-        this.values.service,
+        this.values.serviceType,
         this.values.serviceUrl,
         this.values.serviceCode,
       );

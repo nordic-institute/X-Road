@@ -357,9 +357,9 @@ public class CachingServerConfTest {
         assertEquals(NUM_SERVICEDESCRIPTIONS * NUM_SERVICES, allServices.size());
     }
 
-    private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
+    private static List<ServiceId.Conf> getServices(ClientId serviceProviderId) {
         return XRoadIdMapper.get().toServices(new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(),
-                XRoadIdMapper.get().toEntity(serviceProvider)));
+                ServerConfDatabaseCtx.get().getSession(), serviceProviderId)
+        );
     }
 }

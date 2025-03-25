@@ -44,7 +44,7 @@ public enum ConnectionTypeMapping {
     SSLNOAUTH(IsAuthentication.SSLNOAUTH, ConnectionTypeDto.HTTPS_NO_AUTH),
     SSLAUTH(IsAuthentication.SSLAUTH, ConnectionTypeDto.HTTPS);
 
-    private final IsAuthentication isAuthentication; // ClientType isAuthentication values (from DB)
+    private final IsAuthentication isAuthentication; // Client isAuthentication values (from DB)
     private final ConnectionTypeDto connectionTypeDto;
 
     /**
@@ -67,7 +67,7 @@ public enum ConnectionTypeMapping {
     }
 
     /**
-     * Return matching client type isAuthentication, if any
+     * Return matching client isAuthentication, if any
      * @param connectionTypeDto
      * @return
      */
@@ -76,7 +76,7 @@ public enum ConnectionTypeMapping {
     }
 
     /**
-     * return item matching ClientType isAuthentication, if any
+     * return item matching Client isAuthentication, if any
      * @param isAuthentication
      * @return
      */
@@ -87,7 +87,7 @@ public enum ConnectionTypeMapping {
     }
 
     /**
-     * return item matching ClientType isAuthenticationString, if any
+     * return item matching Client isAuthenticationString, if any
      * @param isAuthenticationString
      * @return
      */
@@ -98,7 +98,7 @@ public enum ConnectionTypeMapping {
     }
 
     /**
-     * return item matching ClientType connectionTypeDto, if any
+     * return item matching Client connectionTypeDto, if any
      * @param connectionTypeDto
      * @return
      */
