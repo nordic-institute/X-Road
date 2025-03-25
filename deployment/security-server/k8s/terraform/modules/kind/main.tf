@@ -23,28 +23,3 @@ resource "kind_cluster" "xroad-cluster" {
     ]
   }
 }
-
-/*
-resource "null_resource" "load_images" {
-  depends_on = [kind_cluster.xroad-cluster]
-
-  triggers = {
-    cluster_id = kind_cluster.xroad-cluster.id
-    image_list = join(",", var.images)  # Triggers on image list changes
-    always_run = timestamp()  # WARNING: This will run image refresh on every apply
-  }
-
-  # TODO: mirror localhost registry to the kind cluster instead of caching them locally & loading into cluster
-  provisioner "local-exec" {
-    command = <<EOF
-      echo "Loading images into Kind cluster..."
-      %{for image in var.images~}
-      echo "Loading ${image}..."
-      docker pull --platform linux/arm64 ${var.images_registry}/${image} || exit 1
-      kind load docker-image ${var.images_registry}/${image} --name ${var.kind_cluster_name} --nodes ${var.kind_cluster_name}-worker || exit 1
-      %{endfor~}
-      echo "All images loaded successfully"
-    EOF
-  }
-}
-*/
