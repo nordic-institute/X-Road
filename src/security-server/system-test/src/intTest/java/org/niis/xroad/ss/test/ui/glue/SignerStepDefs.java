@@ -32,14 +32,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.util.Set;
 
 @Slf4j
 public class SignerStepDefs extends BaseUiStepDefs {
@@ -48,7 +43,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
-        envSetup.restartContainer("signer");
+        envSetup.restartContainer(EnvSetup.SIGNER);
     }
 
     @SneakyThrows
@@ -97,40 +92,22 @@ public class SignerStepDefs extends BaseUiStepDefs {
             FileUtils.copyDirectory(Paths.get("build/signer-volume/softtoken").toFile(),
                     tempDir.resolve("softtoken").toFile());
 
-            Path keyconfFile = tempDir.resolve("keyconf.xml");
-            Files.writeString(keyconfFile, updatedKeyConf);
+            Files.writeString(tempDir.resolve("keyconf.xml"), updatedKeyConf);
 
             FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
             FileUtils.copyDirectory(
                     tempDir.toFile(),
                     Paths.get("build/signer-volume").toFile());
-
-//            logFileInfo(keyconfPath);
-//            logFileInfo(Paths.get("build/signer-volume"));
-//
-//            String content = Files.readString(keyconfPath);
-//            content = content.replaceFirst("</device>", deviceEntry);
-//            Files.writeString(keyconfPath, content);
+            if (SystemUtils.IS_OS_UNIX) {
+                envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
+            }
         } catch (Exception e) {
             log.error("Failed to modify keyconf.xml file", e);
             throw e;
-//            testReportService.attachText(, e.getMessage());
         } finally {
             envSetup.start(EnvSetup.SIGNER);
         }
 
-    }
-
-    private void logFileInfo(Path path) throws IOException {
-        PosixFileAttributes attrs = Files.readAttributes(path, PosixFileAttributes.class);
-        log.info("----------------");
-        log.info(path.toString());
-        log.info("Owner: " + attrs.owner().getName());
-        log.info("Group: " + attrs.group().getName());
-
-        Set<PosixFilePermission> permissions = attrs.permissions();
-        log.info("Permissions: " + PosixFilePermissions.toString(permissions));
-        log.info("================");
     }
 
 }
