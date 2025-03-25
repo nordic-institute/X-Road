@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.16  
+Version: 1.17  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -24,6 +24,7 @@ Doc. ID: UG-SS-SIDECAR
 | 23.09.2024 | 1.14    | Changing System Parameter Values in Configuration Files | Eneli Reimets             |
 | 23.12.2024 | 1.15    | Minor documentation updates                             | Eneli Reimets             |
 | 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service          | Ovidijus Narkevičius      |
+| 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
 
 ## License
 
@@ -156,7 +157,7 @@ See also [Docker Networking](https://docs.docker.com/network/)
 ### 2.4 Running the Sidecar Container
 
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
-Alternatively, you can build container images locally using the [docker-build.sh script](../../sidecar/docker-build.sh).
+Alternatively, you can build container images locally using the [docker-build.sh script](https://github.com/nordic-institute/X-Road/blob/2834322c62363e845b6030511e6e52fdacd9a8e0/sidecar/docker-build.sh).
 
 ```bash
 docker run --detach \
@@ -178,7 +179,7 @@ docker run --detach \
   -e XROAD_DB_PORT=<database-port> \
   -e XROAD_DB_PWD=<postgres password> \
   # Optional parameters - END
-  niis/xroad-security-server-sidecar:<version[-type[-variant]>
+  niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
 
 Note! This command persists all configuration inside the Sidecar container which means that state is lost when the container is destroyed.

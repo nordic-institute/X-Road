@@ -19,7 +19,7 @@ Doc. ID: PR-OPMON
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
-| 13.03.2025 | 1.6     | Syntax and styling                                                   | Pauline Dimmek   |
+| 26.03.2025 | 1.6     | Syntax and styling                                                   | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -60,7 +60,7 @@ This protocol builds on existing transport and message encoding mechanisms. Ther
 
 The low-level technical details of the operational monitoring services are specified using the WSDL \[[WSDL](#WSDL)\] syntax. See \[[Annex A](#AnnexA)\] for operational monitoring services WSDL file.
 
-Chapters 2 and 3 together with annexes \[[Annex A](#AnnexA)\] and \[[Annex B](AnnexB)\] contain normative information. All the other sections are informative in nature. All the references are normative.
+Chapters 2 and 3 together with annexes \[[Annex A](#AnnexA)\] and \[[Annex B](#AnnexB)\] contain normative information. All the other sections are informative in nature. All the references are normative.
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
