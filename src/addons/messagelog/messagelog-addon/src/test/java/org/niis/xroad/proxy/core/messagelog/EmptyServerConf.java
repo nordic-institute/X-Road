@@ -168,8 +168,8 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId serviceId) {
-        return isQueryAllowed(sender, serviceId, null, null);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId) {
+        return isQueryAllowed(senderId, serviceId, null, null);
     }
 
 }
