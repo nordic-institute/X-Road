@@ -201,7 +201,7 @@ public class ServerConfImpl implements ServerConfProvider {
         serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
         serviceDetails.setServiceCode(serviceId.getServiceCode());
         serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-        serviceDetails.setServiceType(getRestServiceType(getDescription(serviceId)));
+        serviceDetails.setServiceType(getRestServiceType(getDescriptionType(serviceId)));
         return serviceDetails;
     }
 
@@ -219,7 +219,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescription(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
         return tx(session -> XRoadIdMapper.get().toServices(
                 serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType)
         ));
@@ -237,7 +237,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescription(ClientId serviceProvider, ClientId client,
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
                                                                 DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
@@ -356,7 +356,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescription(ServiceId service) {
+    public DescriptionType getDescriptionType(ServiceId service) {
         return tx(session -> {
             Service serviceType = getService(session, service);
             if (serviceType != null && serviceType.getServiceDescription() != null) {

@@ -57,7 +57,7 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public DescriptionType getDescription(ServiceId service) {
+    public DescriptionType getDescriptionType(ServiceId service) {
         return DescriptionType.REST;
     }
 }

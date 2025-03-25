@@ -205,7 +205,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public DescriptionType getDescription(ServiceId serviceId) {
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
         return getService(serviceId).map(it -> it.getServiceDescription().getType()).orElse(null);
     }
 

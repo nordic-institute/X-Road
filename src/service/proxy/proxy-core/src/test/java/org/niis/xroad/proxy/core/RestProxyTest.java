@@ -243,7 +243,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     public void shouldNotAllowCallingWSDLServices() {
         TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
-            public DescriptionType getDescription(ServiceId service) {
+            public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
                     return DescriptionType.WSDL;
                 }
@@ -316,7 +316,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
         TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
-            public DescriptionType getDescription(ServiceId service) {
+            public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
                     return DescriptionType.WSDL;
                 }

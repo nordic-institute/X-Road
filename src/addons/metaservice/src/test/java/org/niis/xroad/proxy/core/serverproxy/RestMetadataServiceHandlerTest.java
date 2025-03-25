@@ -116,7 +116,7 @@ public class RestMetadataServiceHandlerTest {
     public void init() {
         serverConfProvider = new TestSuiteServerConf() {
             @Override
-            public DescriptionType getDescription(ServiceId service) {
+            public DescriptionType getDescriptionType(ServiceId service) {
                 return DescriptionType.OPENAPI3;
             }
 
