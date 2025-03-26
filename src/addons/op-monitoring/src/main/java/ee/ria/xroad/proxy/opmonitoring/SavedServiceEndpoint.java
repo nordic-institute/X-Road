@@ -47,7 +47,7 @@ class SavedServiceEndpoint {
                 var endpointTypes = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
                         .map(v -> new EndpointType(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
                         .filter(ep -> ep.matches(data.getRestMethod(), data.getRestPath()))
-                        // sort by path and method before finding first
+                        // we should sort by path and method before finding first
                         // because [* /pets/*] and [GET /pets/first] also matches, but we want [GET /pets/first] is returned
                         .min(Comparator.comparing(EndpointType::getPath).reversed()
                                 .thenComparing(EndpointType::getMethod, Comparator.reverseOrder()));

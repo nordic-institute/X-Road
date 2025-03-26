@@ -15,7 +15,7 @@ Document ID: ARC-OPMOND
 | 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
 | 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
-| 19.03.2025 | 1.5     | Added field xRoadVersion and example for producer side REST request | Eneli Reimets    |
+| 26.03.2025 | 1.5     | Added field xRoadVersion and example for producer side REST request | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -171,7 +171,7 @@ The schema is located in the file *src/op-monitor-daemon/core/src/main/resources
 
 ### A.2 Example Store Operational Monitoring Data Request
 
-The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST client request and third REST request on the producer side and the fourth one unsuccessfully mediated request.
+The first record of the store request reflects successfully mediated SOAP request, the second and the third one successfully mediated REST client and producer side requests and the fourth one unsuccessfully mediated request.
 
 ```json
 {
