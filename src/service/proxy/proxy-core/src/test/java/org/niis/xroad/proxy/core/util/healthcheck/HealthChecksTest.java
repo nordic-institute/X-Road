@@ -175,16 +175,16 @@ public class HealthChecksTest {
     public void checkHSMOperationalShouldFailWhenNotValid() {
 
         // prepare
-            when(signerRpcClient.isHSMOperational()).thenReturn(false);
+        when(signerRpcClient.isHSMOperational()).thenReturn(false);
 
-            // execute
-            HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
-            HealthCheckResult checkedResult = testedProvider.get();
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
+        HealthCheckResult checkedResult = testedProvider.get();
 
-            // verify
-            assertFalse("health check result should be a failure", checkedResult.isOk());
-            assertThat(checkedResult.getErrorMessage(),
-                    containsString("At least one HSM are non operational"));
+        // verify
+        assertFalse("health check result should be a failure", checkedResult.isOk());
+        assertThat(checkedResult.getErrorMessage(),
+                containsString("At least one HSM are non operational"));
     }
 
     @Test

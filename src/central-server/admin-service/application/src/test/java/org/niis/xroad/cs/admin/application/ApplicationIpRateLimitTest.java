@@ -28,26 +28,33 @@ package org.niis.xroad.cs.admin.application;
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.API_V1_PREFIX;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -69,7 +76,7 @@ class ApplicationIpRateLimitTest {
     @Autowired
     private MockMvc mvc;
 
-    @MockBean
+    @MockitoBean
     private SignerRpcClient signerRpcClient;
 
     @PostConstruct
@@ -98,10 +105,15 @@ class ApplicationIpRateLimitTest {
         @Test
         @WithMockUser(authorities = {"VIEW_VERSION"})
         void shouldTriggerRateLimitPerSec() throws Exception {
-            for (int i = 1; i <= RUNS_PER_SECOND; i++) {
-                var expectedStatus = i == RUNS_PER_SECOND
-                        ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
-                mvc.perform(get(API_V1_PREFIX + "/test")).andExpect(expectedStatus).andReturn();
+            try (var executor = new ParallelMockMvcExecutor(mvc)) {
+                executor.run(() -> (get(API_V1_PREFIX + "/test")), RUNS_PER_SECOND);
+
+                List<Integer> result = executor.getExecuted().stream()
+                        .map(MvcResult::getResponse)
+                        .map(MockHttpServletResponse::getStatus)
+                        .collect(Collectors.toList());
+
+                assertThat(result).asInstanceOf(LIST).containsOnlyOnce(TOO_MANY_REQUESTS.value());
             }
         }
     }

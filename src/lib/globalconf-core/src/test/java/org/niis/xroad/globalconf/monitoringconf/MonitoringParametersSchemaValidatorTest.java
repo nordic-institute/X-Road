@@ -28,19 +28,17 @@ package org.niis.xroad.globalconf.monitoringconf;
 import ee.ria.xroad.common.util.ResourceUtils;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.File;
 import java.net.URL;
+
+import static org.junit.Assert.assertThrows;
 
 /**
  * Created by janne on 25.11.2015.
  */
 public class MonitoringParametersSchemaValidatorTest {
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     private static final String VALID_FILE = "valid-monitoring-params.xml";
     private static final String VALID_EMPTY_FILE = "empty-monitoring-params.xml";
@@ -65,9 +63,8 @@ public class MonitoringParametersSchemaValidatorTest {
     }
 
     @Test
-    public void testInvalidConfiguration() throws Exception {
+    public void testInvalidConfiguration() {
         MonitoringParametersSchemaValidator validator = new MonitoringParametersSchemaValidator();
-        exception.expect(Exception.class);
-        validator.validateFile(getClasspathFilename(INVALID_FILE));
+        assertThrows(Exception.class, () -> validator.validateFile(getClasspathFilename(INVALID_FILE)));
     }
 }

@@ -85,7 +85,7 @@ abstract class LocationVersionResolver {
                 log.debug("Determining whether global conf version {} is available for {}", version, uriBuilder);
                 uriBuilder.setParameter(VERSION_QUERY_PARAMETER, String.valueOf(version));
                 if (version > minVersion) {
-                    var locationExists = checkVersionLocationExists(new URL(uriBuilder.toString()));
+                    var locationExists = checkVersionLocationExists(uriBuilder.build().toURL());
                     if (locationExists) {
                         log.info("Using Global conf version {}", version);
                         return uriBuilder.toString();
