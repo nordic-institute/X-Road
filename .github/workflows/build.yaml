@@ -227,26 +227,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#        with:
-#          driver-opts: network=host
-#      - name: Initialize docker setup
-#        working-directory: ./Docker/securityserver
-#        run: ./init_context.sh
-#      - name: Download debian packages
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: debian-packages
-#          path: ./Docker/securityserver/build/packages/
-#      - name: Build SS docker image
-#        uses: docker/build-push-action@v6
-#        with:
-#          context: ./Docker/securityserver/
-#          push: true
-#          build-args: |
-#            PACKAGE_SOURCE=internal
-#          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Download SS docker images
         uses: actions/download-artifact@v4
         with:
@@ -265,7 +245,6 @@ jobs:
           mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           docker network create xroad-network
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest 
-#                  -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -275,9 +254,6 @@ jobs:
           name: Security Server system tests
           path: src/security-server/system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
-#      - name: Fix system-test build dir permissions
-#        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
-#        if: failure()
       - name: Upload SS report
         uses: actions/upload-artifact@v4
         if: failure()
@@ -331,20 +307,6 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
-      # Build Security Server
-#      - name: Initialize SS docker setup
-#        working-directory: ./Docker/securityserver
-#        run: ./init_context.sh
-#      - name: Copy debian packages for SS
-#        run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
-#      - name: Build SS docker image
-#        uses: docker/build-push-action@v6
-#        with:
-#          context: ./Docker/securityserver/
-#          push: true
-#          build-args: |
-#            PACKAGE_SOURCE=internal
-#          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Download SS docker images
         uses: actions/download-artifact@v4
         with:
@@ -364,7 +326,6 @@ jobs:
           mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           docker network create xroad-network
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }}
-#          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
