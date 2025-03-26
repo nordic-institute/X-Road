@@ -119,22 +119,27 @@ jobs:
           docker pull localhost:5000/ss-proxy:latest
           docker pull localhost:5000/ss-signer:latest
           docker pull localhost:5000/ss-monitor:latest
+          docker pull localhost:5000/ss-op-monitor:latest
           docker pull localhost:5000/ss-proxy-ui-api:latest
           docker pull localhost:5000/ss-db-serverconf-init:latest
           docker pull localhost:5000/ss-db-messagelog-init:latest
+          docker pull localhost:5000/ss-db-opmonitor-init:latest
 
           docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5000/ss-db-serverconf-init:latest
           docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5000/ss-db-messagelog-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5000/ss-db-opmonitor-init:latest
       - name: Store docker images for other jobs
         uses: actions/upload-artifact@v4
         with:
           name: docker-images
           path: ${{ runner.temp }}/docker-images
+
   RunCSSystemTests:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
@@ -199,7 +204,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: SS System Test report
+          name: CS System Test report
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
   RunSSSystemTests:
@@ -222,29 +227,24 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: network=host
-      - name: Initialize docker setup
-        working-directory: ./Docker/securityserver
-        run: ./init_context.sh
-      - name: Download debian packages
+      - name: Download SS docker images
         uses: actions/download-artifact@v4
         with:
-          name: debian-packages
-          path: ./Docker/securityserver/build/packages/
-      - name: Build SS docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./Docker/securityserver/
-          push: true
-          build-args: |
-            PACKAGE_SOURCE=internal
-          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
+      - name: Load SS docker images into registry
+        run: |
+          for tar in ${{ runner.temp }}/docker-images/*.tar; do
+            echo "Processing $tar..."
+            IMAGE_ID=$(docker load -i "$tar" | awk '/Loaded image:/ {print $NF}')
+            docker push "$IMAGE_ID"
+          done
       - name: Run Security Server system tests
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
+        run: |
+          mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
+          docker network create xroad-network
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest 
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -254,19 +254,17 @@ jobs:
           name: Security Server system tests
           path: src/security-server/system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
-      - name: Fix system-test build dir permissions
-        run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
-        if: failure()
       - name: Upload SS report
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: SS System Test report
           path: |
+            src/security-server/system-test/build/a2c_logs/
             src/security-server/system-test/build/allure-report/
-            src/security-server/system-test/build/ss-container-logs/
-            src/security-server/system-test/build/ca-container-logs/
+            src/security-server/system-test/build/container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+
   RunE2ETests:
     name: Run E2E tests
     needs: BuildAndPackageWithUnitTests
@@ -309,20 +307,6 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
-      # Build Security Server
-#      - name: Initialize SS docker setup
-#        working-directory: ./Docker/securityserver
-#        run: ./init_context.sh
-#      - name: Copy debian packages for SS
-#        run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
-#      - name: Build SS docker image
-#        uses: docker/build-push-action@v6
-#        with:
-#          context: ./Docker/securityserver/
-#          push: true
-#          build-args: |
-#            PACKAGE_SOURCE=internal
-#          tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Download SS docker images
         uses: actions/download-artifact@v4
         with:
@@ -342,7 +326,6 @@ jobs:
           mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
           docker network create xroad-network
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }}
-#          -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

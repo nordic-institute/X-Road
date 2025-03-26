@@ -28,6 +28,7 @@ package org.niis.xroad.e2e.container;
 import com.nortal.test.testcontainers.TestableContainerInitializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
 import org.niis.xroad.e2e.CustomProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Primary;

@@ -26,15 +26,15 @@
 
 package org.niis.xroad.ss.test.ui.container.service;
 
-import com.nortal.test.testcontainers.TestContainerService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Service;
-import org.testcontainers.containers.Container;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -43,34 +43,30 @@ import java.sql.DriverManager;
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private final TestContainerService testContainerService;
-
     private Connection messagelogConnection;
     private NamedParameterJdbcTemplate messagelogNamedParameterJdbcTemplate;
+
+    @Autowired
+    private EnvSetup envSetup;
 
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate() {
         if (messagelogNamedParameterJdbcTemplate == null) {
-            messagelogConnection = DriverManager.getConnection(getJdbcUrl("messagelog"),
-                    getParamValue("messagelog.hibernate.connection.username"), getParamValue("messagelog.hibernate.connection.password"));
+            messagelogConnection = DriverManager.getConnection(
+                    getJdbcUrl(EnvSetup.DB_MESSAGELOG, "messagelog"),
+                    "messagelog", "secret");
             final SingleConnectionDataSource dataSource = new SingleConnectionDataSource(messagelogConnection, true);
             messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         }
         return messagelogNamedParameterJdbcTemplate;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private String getJdbcUrl(String database) {
+    private String getJdbcUrl(String service, String database) {
+        var mapping = envSetup.getContainerMapping(service, Port.DB);
         return String.format("jdbc:postgresql://%s:%d/%s",
-                testContainerService.getHost(),
-                testContainerService.getMappedPort(Port.DB),
+                mapping.host(),
+                mapping.port(),
                 database);
-    }
-
-    @SneakyThrows
-    private String getParamValue(String param) {
-        final Container.ExecResult result = testContainerService.getContainer().execInContainer("grep", param, "/etc/xroad/db.properties");
-        return result.getStdout().split("=")[1].trim();
     }
 
     @Override

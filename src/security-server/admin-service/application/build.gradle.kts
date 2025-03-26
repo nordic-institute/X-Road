@@ -119,6 +119,7 @@ tasks.assemble {
 
 tasks.named("jib") {
   dependsOn("bootJar")
+  dependsOn(":addons:wsdlvalidator:build")
 }
 
 jib {
@@ -139,12 +140,18 @@ jib {
       path {
         setFrom(project.file("src/main/jib").toPath())
         into = "/"
-        permissions = mapOf(
-          "/opt/app/scripts/generate_certificate.sh" to "755",
-          "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755"
-        )
+      }
+      path {
+        setFrom(project(":addons:wsdlvalidator").layout.buildDirectory.dir("libs"))
+        into = "/usr/share/xroad/wsdlvalidator/jlib"
+        includes = listOf("wsdlvalidator-*.jar")
       }
     }
+    permissions = mapOf(
+      "/opt/app/scripts/generate_certificate.sh" to "755",
+      "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755",
+      "/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh" to "755"
+    )
   }
 }
 

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 
 import static java.nio.file.Files.move;
-import static org.niis.xroad.e2e.container.ComposeLoggerFactory.CONTAINER_LOGS_DIR;
+import static org.niis.xroad.common.test.logging.ComposeLoggerFactory.CONTAINER_LOGS_DIR;
 
 @Slf4j
 @Component
