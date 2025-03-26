@@ -36,10 +36,10 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,7 +68,7 @@ public class ExampleJpaTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @MockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 
     @Test

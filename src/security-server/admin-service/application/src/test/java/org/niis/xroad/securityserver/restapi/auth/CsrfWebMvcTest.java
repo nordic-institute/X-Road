@@ -46,8 +46,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -57,6 +55,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -96,20 +96,20 @@ public class CsrfWebMvcTest {
     @Autowired
     private GrantedAuthorityMapper grantedAuthorityMapper;
 
-    @SpyBean
+    @MockitoSpyBean
     @Qualifier(PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION)
     private PamAuthenticationProvider pamAuthenticationProvider;
 
-    @SpyBean
+    @MockitoSpyBean
     private ApiKeyAuthenticationManager apiKeyAuthenticationManager;
 
-    @MockBean
+    @MockitoBean
     private ConfClientRpcClient confClientRpcClient;
 
-    @MockBean
+    @MockitoBean
     private ProxyRpcClient proxyRpcClient;
 
-    @MockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 
     @Before
@@ -131,7 +131,6 @@ public class CsrfWebMvcTest {
 
     /**
      * Test login with mocked authentication. Should return 200 with a valid CSRF token in a cookie
-     *
      * @throws Exception
      */
     @Test
@@ -147,7 +146,6 @@ public class CsrfWebMvcTest {
 
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
-     *
      * @throws Exception
      */
     @Test
@@ -170,7 +168,6 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
      * XSRF header value should not match
-     *
      * @throws Exception
      */
     @Test
@@ -187,7 +184,6 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. Uses mocked authentication in a mock session.
      * XSRF cookie value should not match
-     *
      * @throws Exception
      */
     @Test
@@ -204,7 +200,6 @@ public class CsrfWebMvcTest {
     /**
      * Test getting user data for the currently logged in user. This mimics an api user request so no cookies
      * should be returned
-     *
      * @throws Exception
      */
     @Test

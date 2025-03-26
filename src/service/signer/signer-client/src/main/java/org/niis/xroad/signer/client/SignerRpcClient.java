@@ -224,7 +224,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Initialize the software token with the given password.
-     *
      * @param password software token password
      * @throws SignerException if any errors occur
      */
@@ -239,7 +238,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Gets information about all configured tokens.
-     *
      * @return a List of TokenInfo objects
      * @throws SignerException if any errors occur
      */
@@ -254,7 +252,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Gets information about the token with the specified token ID.
-     *
      * @param tokenId ID of the token
      * @return TokenInfo
      * @throws SignerException if any errors occur
@@ -269,7 +266,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Activates the token with the given ID using the provided password.
-     *
      * @param tokenId  ID of the token
      * @param password token password
      * @throws SignerException if any errors occur
@@ -291,7 +287,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Updates the token pin with the provided new one
-     *
      * @param tokenId ID of the token
      * @param oldPin  the old (current) pin of the token
      * @param newPin  the new pin
@@ -311,7 +306,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Deactivates the token with the given ID.
-     *
      * @param tokenId ID of the token
      * @throws SignerException if any errors occur
      */
@@ -328,7 +322,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Delete the token with the given ID.
-     *
      * @param tokenId ID of the token
      * @throws SignerException if any errors occur
      */
@@ -345,7 +338,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Sets the friendly name of the token with the given ID.
-     *
      * @param tokenId      ID of the token
      * @param friendlyName new friendly name of the token
      * @throws SignerException if any errors occur
@@ -363,7 +355,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Sets the friendly name of the key with the given ID.
-     *
      * @param keyId        ID of the key
      * @param friendlyName new friendly name of the key
      * @throws SignerException if any errors occur
@@ -381,7 +372,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Generate a new key for the token with the given ID.
-     *
      * @param tokenId   ID of the token
      * @param keyLabel  label of the key
      * @param algorithm algorithm to use, RSA or EC
@@ -413,7 +403,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Generate a self-signed certificate for the key with the given ID.
-     *
      * @param keyId      ID of the key
      * @param memberId   client ID of the certificate owner
      * @param keyUsage   specifies whether the certificate is for signing or authentication
@@ -454,7 +443,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Imports the given byte array as a new certificate with the provided initial status and owner client ID.
-     *
      * @param certBytes     byte content of the new certificate
      * @param initialStatus initial status of the certificate
      * @param clientId      client ID of the certificate owner
@@ -491,7 +479,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Activates the certificate with the given ID.
-     *
      * @param certId ID of the certificate
      * @throws SignerException if any errors occur
      */
@@ -508,7 +495,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Deactivates the certificate with the given ID.
-     *
      * @param certId ID of the certificate
      * @throws SignerException if any errors occur
      */
@@ -525,7 +511,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Generates a certificate request for the given key and with provided parameters.
-     *
      * @param keyId       ID of the key
      * @param memberId    client ID of the certificate owner
      * @param keyUsage    specifies whether the certificate is for signing or authentication
@@ -544,7 +529,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Generates a certificate request for the given key and with provided parameters.
-     *
      * @param keyId          ID of the key
      * @param memberId       client ID of the certificate owner
      * @param keyUsage       specifies whether the certificate is for signing or authentication
@@ -598,7 +582,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Regenerates a certificate request for the given csr id
-     *
      * @param certRequestId csr ID
      * @param format        the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
@@ -629,7 +612,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Delete the certificate request with the given ID.
-     *
      * @param certRequestId ID of the certificate request
      * @throws SignerException if any errors occur
      */
@@ -644,7 +626,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Delete the certificate with the given ID.
-     *
      * @param certId ID of the certificate
      * @throws SignerException if any errors occur
      */
@@ -660,7 +641,6 @@ public class SignerRpcClient extends AbstractRpcClient {
     /**
      * Delete the key with the given ID from the signer database. Optionally,
      * deletes it from the token as well.
-     *
      * @param keyId           ID of the certificate request
      * @param deleteFromToken whether the key should be deleted from the token
      * @throws SignerException if any errors occur
@@ -677,7 +657,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Sets the status of the certificate with the given ID.
-     *
      * @param certId ID of the certificate
      * @param status new status of the certificate
      * @throws SignerException if any errors occur
@@ -694,7 +673,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Sets the hash of the renewed certificate with the given old cert ID.
-     *
      * @param certId ID of the old certificate
      * @param hash   new hash of the renewed certificate
      * @throws SignerException if any errors occur
@@ -711,7 +689,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Sets the error of the certificate renewal process.
-     *
      * @param certId       ID of the certificate to be renewed
      * @param errorMessage message of the error that was thrown when trying to renew the given certificate
      * @throws SignerException if any errors occur
@@ -728,7 +705,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Sets the error of the certificate renewal process.
-     *
      * @param certId          ID of the certificate to be renewed
      * @param nextRenewalTime message of the error that was thrown when trying to renew the given certificate
      * @throws SignerException if any errors occur
@@ -749,7 +725,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get a cert by it's hash
-     *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return CertificateInfo
      * @throws SignerException if any error occur
@@ -773,7 +748,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get key for a given cert hash
-     *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return Key id and sign mechanism
      * @throws SignerException
@@ -796,7 +770,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get TokenInfoAndKeyId for a given cert hash
-     *
      * @param hash cert hash. Will be converted to lowercase, which is what signer uses internally
      * @return TokenInfoAndKeyId
      * @throws SignerException
@@ -819,7 +792,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get OCSP responses for certs with given hashes. Hashes are converted to lowercase
-     *
      * @param certHashes cert hashes to find OCSP responses for
      * @return base64 encoded OCSP responses. Each array item is OCSP response for
      * corresponding cert in {@code certHashes}
@@ -862,7 +834,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get Security Server auth key certificate.
-     *
      * @param serverId securityServerId
      * @return authKeyInfo
      * @throws Exception
@@ -882,7 +853,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get Security Server auth key
-     *
      * @param serverId securityServerId
      * @return authKeyInfo
      * @throws SignerException
@@ -911,7 +881,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Get TokenInfoAndKeyId for a given cert hash
-     *
      * @param certRequestId
      * @return TokenInfoAndKeyId
      * @throws SignerException
@@ -932,7 +901,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * Gets information about the token which has the specified key.
-     *
      * @param keyId id of the key
      * @return TokenInfo
      * @throws SignerException if any errors occur
@@ -1017,7 +985,6 @@ public class SignerRpcClient extends AbstractRpcClient {
 
     /**
      * DTO since we don't want to leak signer message objects out
-     *
      * @param certReqId
      * @param certRequest
      * @param format

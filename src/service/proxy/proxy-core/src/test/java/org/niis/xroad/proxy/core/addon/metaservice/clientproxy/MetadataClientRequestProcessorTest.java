@@ -39,9 +39,7 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -63,12 +61,12 @@ import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -84,9 +82,6 @@ public class MetadataClientRequestProcessorTest {
     private static final String EXPECTED_XR_INSTANCE = "EE";
 
     private static Unmarshaller unmarshaller;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     private RequestWrapper mockRequest;
     private RequestWrapper mockJsonRequest;

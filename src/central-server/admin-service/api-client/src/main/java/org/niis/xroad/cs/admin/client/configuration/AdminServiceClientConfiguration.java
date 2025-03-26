@@ -40,8 +40,8 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.niis.xroad.cs.admin.client.AuthFeignClientInterceptor;
 import org.niis.xroad.cs.admin.client.FeignManagementRequestsApi;
@@ -121,10 +121,7 @@ public class AdminServiceClientConfiguration {
                         propertyProvider.getApiTrustStorePassword().toCharArray())
                 .build();
 
-        final var sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
-                .setHostnameVerifier(new NoopHostnameVerifier())
-                .setSslContext(sslcontext)
-                .build();
+        final var tlsStrategy = new DefaultClientTlsStrategy(sslcontext, new NoopHostnameVerifier());
 
         return PoolingHttpClientConnectionManagerBuilder.create()
                 .setDefaultConnectionConfig(ConnectionConfig.custom()
@@ -133,7 +130,7 @@ public class AdminServiceClientConfiguration {
                 )
                 .setMaxConnPerRoute(propertyProvider.getHttpClientProperties().getMaxConnectionsPerRoute())
                 .setMaxConnTotal(propertyProvider.getHttpClientProperties().getMaxConnectionsTotal())
-                .setSSLSocketFactory(sslSocketFactory)
+                .setTlsSocketStrategy(tlsStrategy)
                 .build();
     }
 }

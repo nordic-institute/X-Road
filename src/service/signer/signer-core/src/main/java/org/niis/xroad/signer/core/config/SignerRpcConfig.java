@@ -81,6 +81,6 @@ public class SignerRpcConfig {
     }
 
     public void cleanup(@Disposes RpcServer rpcServer) throws Exception {
-       rpcServer.destroy();
+        rpcServer.destroy();
     }
 }

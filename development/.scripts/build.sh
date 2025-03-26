@@ -10,6 +10,9 @@ case $1 in
 "proxy")
   gradleModule="service/proxy/proxy-application"
   ;;
+"addon-messagelog")
+  gradleModule="addons/messagelog/messagelog-addon"
+  ;;
 "configuration-client")
   gradleModule="service/configuration-client/configuration-client-application"
   ;;

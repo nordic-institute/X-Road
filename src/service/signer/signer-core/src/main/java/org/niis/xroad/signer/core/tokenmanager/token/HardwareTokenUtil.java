@@ -68,7 +68,6 @@ public final class HardwareTokenUtil {
     /**
      * Returns the module instance. The module provider class can be specified
      * by system parameter 'xroad.signer.module-instance-provider'.
-     *
      * @param libraryPath the pkcs11 library path
      * @param providerClass provider class
      * @return the module instance
@@ -79,7 +78,7 @@ public final class HardwareTokenUtil {
             Class<?> cl = Class.forName(providerClass);
 
             if (ModuleInstanceProvider.class.isAssignableFrom(cl)) {
-                ModuleInstanceProvider provider = (ModuleInstanceProvider) cl.newInstance();
+                ModuleInstanceProvider provider = (ModuleInstanceProvider) cl.getDeclaredConstructor().newInstance();
 
                 return provider.getInstance(libraryPath);
             } else {
@@ -93,7 +92,7 @@ public final class HardwareTokenUtil {
 
     static void login(Session session, char[] password) throws Exception {
         try {
-            session.login(Session.UserType.USER, password);
+            session.login(Session.CKUserType.USER, password);
         } catch (PKCS11Exception ex) {
             if (ex.getErrorCode() != PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
                 throw ex;

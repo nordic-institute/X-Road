@@ -55,12 +55,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -98,7 +97,6 @@ public class TokenManagerMergeTest {
 
     /**
      * Set up the original key conf file for testing and init the {@link TokenManager}
-     *
      * @throws Exception
      */
     @Before
@@ -154,7 +152,6 @@ public class TokenManagerMergeTest {
 
     /**
      * Test that a key added in the file appears in tokens after merge.
-     *
      * @throws IOException
      */
     @Test
@@ -172,7 +169,8 @@ public class TokenManagerMergeTest {
 
         assertEquals("cert amount should be original + 1", beforeCertCount + 1, TokenManager.getAllCerts().size());
         verify(listenerMock, times(1)).mergeDone(certListArgumentCaptor.capture());
-        assertThat("Added certs count mismatch", certListArgumentCaptor.getValue().size(), is(1));
+        assertThat(certListArgumentCaptor.getValue())
+                .hasSize(1);
 
     }
 

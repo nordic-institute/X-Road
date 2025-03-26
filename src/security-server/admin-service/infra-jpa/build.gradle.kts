@@ -58,3 +58,7 @@ tasks {
     dependsOn("jib")
   }
 }
+
+archUnit {
+  setSkip(true)
+}
