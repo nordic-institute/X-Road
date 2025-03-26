@@ -3,8 +3,6 @@
   "skip-dev": false,
   "package-manager": "auto",
   "allowlist": [
-    "GHSA-9crc-q9x8-hgqq|* > vitest*",
-    "GHSA-jr5f-v2jv-69x6|* > axios*",
-    "GHSA-p2ph-7g93-hw3m|*"
+    "GHSA-9crc-q9x8-hgqq|* > vitest*"
   ]
 }
