@@ -1,6 +1,11 @@
 ---
 - name: Install IS payloadgen
   block:
+    - name: Create payloadgen directory
+      file:
+        path: /opt/payloadgen
+        state: directory
+        mode: '0755'
     - name: Download example-adapter
       get_url:
         url: "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-{{ ansible_architecture }}"
