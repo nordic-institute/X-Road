@@ -32,7 +32,7 @@
 - name: Download example-restapi
   get_url:
     url: "https://artifactory.niis.org/xroad-maven-releases/org/niis/example-restapi/{{ latest_version.stdout }}/{{ artifact_filename.stdout }}"
-    dest: /example-restapi.jar
+    dest: /opt/example-restapi.jar
     mode: '0644'
 
 - name: Create systemd service
