@@ -25,7 +25,7 @@ services:
 
   ui:
     environment:
-      - JAVA_TOOL_OPTIONS=-Dserver.servlet.session.timeout=1m
+      - SERVER_SERVLET_SESSION_TIMEOUT=1m
     volumes:
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
     depends_on:
@@ -36,7 +36,7 @@ services:
     image: postgres:17
     environment:
       - POSTGRES_DB=op-monitor
-      - POSTGRES_PASSWORD=secret #TODO use separate users
+      - POSTGRES_PASSWORD=secret
       - POSTGRES_USER=opmonitor
     networks:
       - xrd-ss-network
