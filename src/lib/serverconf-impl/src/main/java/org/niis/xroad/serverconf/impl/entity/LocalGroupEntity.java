@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,23 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dto;
+package org.niis.xroad.serverconf.impl.entity;
 
-import lombok.Data;
+import jakarta.persistence.Access;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-public class VersionInfoDto {
-    private String info;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-    private int javaVersion;
+import static jakarta.persistence.AccessType.FIELD;
 
-    private int minJavaVersion;
+@Getter
+@Setter
+@Entity
+@Table(name = LocalGroupEntity.TABLE_NAME)
+@Access(FIELD)
+public class LocalGroupEntity {
 
-    private int maxJavaVersion;
+    public static final String TABLE_NAME = "localgroup";
 
-    private boolean usingSupportedJavaVersion;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", unique = true, nullable = false)
+    private Long id;
 
-    private String javaVendor;
+    @Column(name = "groupcode", nullable = false)
+    private String groupCode;
 
-    private String javaRuntimeVersion;
+    @Column(name = "description", nullable = false)
+    private String description;
+
+    @Column(name = "updated", nullable = false)
+    private Date updated;
+
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "localgroup_id")
+    private Set<GroupMemberEntity> groupMembers = new HashSet<>();
 }
+

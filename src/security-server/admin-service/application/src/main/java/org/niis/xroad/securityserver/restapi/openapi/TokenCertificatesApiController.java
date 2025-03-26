@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -40,9 +41,9 @@ import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.converter.PossibleActionConverter;
 import org.niis.xroad.securityserver.restapi.converter.TokenCertificateConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateDto;
 import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.CertificateNotFoundException;
@@ -113,7 +114,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.IMPORT_CERT_FILE)
-    public ResponseEntity<TokenCertificate> importCertificate(Resource certificateResource) {
+    public ResponseEntity<TokenCertificateDto> importCertificate(Resource certificateResource) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
         String filename = certificateResource.getFilename();
@@ -131,14 +132,14 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (GlobalConfOutdatedException | CertificateAlreadyExistsException | CsrNotFoundException e) {
             throw new ConflictException(e);
         }
-        TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
+        TokenCertificateDto tokenCertificate = tokenCertificateConverter.convert(certificate);
         return ControllerUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
                 tokenCertificate.getCertificateDetails().getHash());
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_AUTH_CERT', 'VIEW_SIGN_CERT', 'VIEW_UNKNOWN_CERT')")
-    public ResponseEntity<TokenCertificate> getCertificate(String hash) {
+    public ResponseEntity<TokenCertificateDto> getCertificate(String hash) {
         CertificateInfo certificateInfo;
         try {
             certificateInfo = tokenCertificateService.getCertificateInfo(hash);
@@ -163,14 +164,14 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         }
         securityHelper.verifyAuthority(requiredAuthority);
 
-        TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificateInfo);
+        TokenCertificateDto tokenCertificate = tokenCertificateConverter.convert(certificateInfo);
         return new ResponseEntity<>(tokenCertificate, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT', 'IMPORT_UNKNOWN_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.IMPORT_CERT_TOKEN)
-    public ResponseEntity<TokenCertificate> importCertificateFromToken(String hash) {
+    public ResponseEntity<TokenCertificateDto> importCertificateFromToken(String hash) {
         CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificateFromToken(hash);
@@ -185,7 +186,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
+        TokenCertificateDto tokenCertificate = tokenCertificateConverter.convert(certificate);
         return ControllerUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
                 tokenCertificate.getCertificateDetails().getHash());
     }
@@ -206,7 +207,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_KEYS','VIEW_SIGN_CERT','VIEW_AUTH_CERT','VIEW_UNKNOWN_CERT')")
-    public ResponseEntity<List<PossibleAction>> getPossibleActionsForCertificate(String hash) {
+    public ResponseEntity<List<PossibleActionDto>> getPossibleActionsForCertificate(String hash) {
         try {
             EnumSet<PossibleActionEnum> actions = tokenCertificateService
                     .getPossibleActionsForCertificate(hash);
@@ -219,9 +220,9 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     @Override
     @PreAuthorize("hasAuthority('SEND_AUTH_CERT_REG_REQ')")
     @AuditEventMethod(event = RestApiAuditEvent.REGISTER_AUTH_CERT)
-    public ResponseEntity<Void> registerCertificate(String hash, SecurityServerAddress securityServerAddress) {
+    public ResponseEntity<Void> registerCertificate(String hash, SecurityServerAddressDto securityServerAddressDto) {
         try {
-            tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
+            tokenCertificateService.registerAuthCert(hash, securityServerAddressDto.getAddress());
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (InvalidCertificateException

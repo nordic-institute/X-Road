@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,83 +27,82 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.Data;
-import org.niis.xroad.serverconf.model.AccessRightType;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Util class for comparing collections of EndpointType
+ * Util class for comparing collections of EndpointEntity
  */
 @Component
-public class EndpointTypeChangeChecker {
+public class EndpointEntityChangeChecker {
 
     /**
      * Create lists of full service codes, ones that were added and ones that were removed,
-     * by comparing collections of {@link EndpointType}s. Also retain the lists as List<EndpointType>
+     * by comparing collections of {@link EndpointEntity}s. Also retain the lists as List<EndpointEntity>
      *
-     * @param serviceClientEndpoints
-     * @param oldEndpoints
-     * @param newEndpoints
-     * @param serviceClientAcls
-     * @return
+     * @param serviceClientEndpoints serviceClientEndpoints
+     * @param oldEndpoints oldEndpoints
+     * @param newEndpoints newEndpoints
+     * @param serviceClientAcls serviceClientAcls
+     * @return ServiceChanges
      */
-    public ServiceChanges check(List<EndpointType> serviceClientEndpoints,
-                                List<EndpointType> oldEndpoints,
-                                List<EndpointType> newEndpoints,
-                                List<AccessRightType> serviceClientAcls) {
+    ServiceChanges check(List<EndpointEntity> serviceClientEndpoints,
+                                List<EndpointEntity> oldEndpoints,
+                                List<EndpointEntity> newEndpoints,
+                                List<AccessRightEntity> serviceClientAcls) {
 
-        List<EndpointType> removedEndpoints = oldEndpoints.stream()
-                .filter(EndpointType::isGenerated)
+        List<EndpointEntity> removedEndpoints = oldEndpoints.stream()
+                .filter(EndpointEntity::isGenerated)
                 .filter(ep -> newEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(ep)))
                 .toList();
 
-        List<EndpointType> addedEndpoints = newEndpoints.stream()
+        List<EndpointEntity> addedEndpoints = newEndpoints.stream()
                 .filter(parsedEp -> serviceClientEndpoints.stream().noneMatch(ep -> ep.isEquivalent(parsedEp)))
-                .collect(Collectors.toList());
+                .toList();
 
-        List<AccessRightType> removedAcls = serviceClientAcls.stream()
+        List<AccessRightEntity> removedAcls = serviceClientAcls.stream()
                 .filter(acl -> isAclRemoved(acl, addedEndpoints, removedEndpoints))
                 .toList();
 
         return new ServiceChanges(addedEndpoints, removedEndpoints, removedAcls);
     }
 
-    private boolean isAclRemoved(AccessRightType accessRightType,
-                                 List<EndpointType> addedEndpoints,
-                                 List<EndpointType> removedEndpoints) {
-        EndpointType endpoint = accessRightType.getEndpoint();
-        return removedEndpoints.contains(endpoint)
-                && addedEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(endpoint));
+    private boolean isAclRemoved(AccessRightEntity accessRightEntity,
+                                 List<EndpointEntity> addedEndpoints,
+                                 List<EndpointEntity> removedEndpoints) {
+        EndpointEntity endpointEntity = accessRightEntity.getEndpoint();
+        return removedEndpoints.contains(endpointEntity)
+                && addedEndpoints.stream().noneMatch(parsedEp -> parsedEp.isEquivalent(endpointEntity));
     }
 
-    private List<String> toFullEndpointCodes(List<EndpointType> endpoints) {
+    private List<String> toFullEndpointCodes(List<EndpointEntity> endpoints) {
         return endpoints.stream()
                 .map(this::toFullEndpointCode)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    private String toFullEndpointCode(EndpointType endpointType) {
-        return endpointType.getMethod() + " " + endpointType.getPath();
+    private String toFullEndpointCode(EndpointEntity endpointEntity) {
+        return endpointEntity.getMethod() + " " + endpointEntity.getPath();
     }
 
     /**
-     * List of EndpointType of added and removed endpoints
+     * List of EndpointEntity of added and removed endpoints
      */
     @Data
     public class ServiceChanges {
-        private List<EndpointType> addedEndpoints;
-        private List<EndpointType> removedEndpoints;
-        private List<AccessRightType> removedAcls;
+        private List<EndpointEntity> addedEndpoints;
+        private List<EndpointEntity> removedEndpoints;
+        private List<AccessRightEntity> removedAcls;
         private List<String> addedEndpointsCodes;
         private List<String> removedEndpointsCodes;
 
-        public ServiceChanges(List<EndpointType> addedEndpoints,
-                              List<EndpointType> removedEndpoints,
-                              List<AccessRightType> removedAcls) {
+        public ServiceChanges(List<EndpointEntity> addedEndpoints,
+                              List<EndpointEntity> removedEndpoints,
+                              List<AccessRightEntity> removedAcls) {
             this.addedEndpoints = addedEndpoints;
             this.removedEndpoints = removedEndpoints;
             this.removedAcls = removedAcls;

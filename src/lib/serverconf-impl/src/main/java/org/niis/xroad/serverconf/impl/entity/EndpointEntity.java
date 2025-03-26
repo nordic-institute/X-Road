@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,68 +24,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.model;
+package org.niis.xroad.serverconf.impl.entity;
 
-import lombok.AccessLevel;
+import jakarta.persistence.Access;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.niis.xroad.serverconf.PathGlob;
+import org.niis.xroad.serverconf.model.BaseEndpoint;
 
-/**
- * Endpoint
- */
+import static jakarta.persistence.AccessType.FIELD;
+
 @Getter
 @Setter
-public class EndpointType {
-    public static final String ANY_METHOD = "*";
-    public static final String ANY_PATH = "**";
+@Entity
+@Table(name = EndpointEntity.TABLE_NAME)
+@Access(FIELD)
+public class EndpointEntity implements BaseEndpoint {
 
-    @Setter(AccessLevel.NONE)
+    public static final String TABLE_NAME = "endpoint";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Column(name = "id", unique = true, nullable = false)
     private Long id;
+
+    @Column(name = "servicecode", nullable = false)
     private String serviceCode;
+
+    @Column(name = "method", nullable = false)
     private String method;
+
+    @Column(name = "path", nullable = false)
     private String path;
+
+    @Column(name = "generated", nullable = false)
     private boolean generated;
 
-    protected EndpointType() {
-        //JPA
+    public EndpointEntity() {
     }
 
-    /**
-     * Create an endpoint
-     * @param serviceCode
-     * @param method
-     * @param path
-     */
-    public EndpointType(String serviceCode, String method, String path, boolean generated) {
-        if (serviceCode == null || method == null || path == null) {
-            throw new IllegalArgumentException("Endpoint parts can not be null");
-        }
+    private EndpointEntity(String serviceCode, String method, String path, boolean generated) {
         this.serviceCode = serviceCode;
         this.method = method;
         this.path = path;
         this.generated = generated;
+
+        validateArguments();
     }
 
-    public final boolean matches(String anotherMethod, String anotherPath) {
-        return (ANY_METHOD.equals(method) || method.equalsIgnoreCase(anotherMethod))
-                && (ANY_PATH.equals(path) || PathGlob.matches(path, anotherPath));
-    }
-
-    public final boolean isEquivalent(EndpointType other) {
-        return other.getServiceCode().equals(serviceCode)
-                && other.getMethod().equals(method)
-                && other.getPath().equals(path);
-    }
-
-    /**
-     * Return true is this endpoint is base endpoint and false otherwise.
-     *
-     * Base endpoint is in other words service (code) level endpoint.
-     * Each service has one base endpoint.
-     * Base endpoint has method '*' and path '**'.
-     */
-    public final boolean isBaseEndpoint() {
-        return this.method.equals(ANY_METHOD) && this.path.equals(ANY_PATH);
+    public static EndpointEntity create(String serviceCode, String method, String path, boolean generated) {
+        return new EndpointEntity(serviceCode, method, path, generated);
     }
 }

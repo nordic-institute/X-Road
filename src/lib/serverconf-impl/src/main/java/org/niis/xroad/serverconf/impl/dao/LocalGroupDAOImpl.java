@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,11 +26,8 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 
 /**
  * LocalGroupDAO
@@ -37,25 +35,12 @@ import org.niis.xroad.serverconf.model.LocalGroupType;
 public class LocalGroupDAOImpl {
 
     /**
-     * Return the local group by groupcode and client id
-     * @param session
-     * @param groupCode
-     * @param groupOwnerId
-     * @return LocalGroupType
-     */
-    public LocalGroupType findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
-        return new ClientDAOImpl().getClient(session, groupOwnerId).getLocalGroup().stream()
-                .filter(g -> StringUtils.equals(groupCode, g.getGroupCode()))
-                .findFirst().orElse(null);
-    }
-
-    /**
-     * Returns the LocalGroupType for the given LocalGroupType id.
+     * Returns the LocalGroupEntity for the given LocalGroupEntity id.
      * @param session the session
-     * @param id the LocalGroupType id
-     * @return the LocalGroupType, or null if not found
+     * @param id the LocalGroupEntity id
+     * @return the LocalGroupEntity, or null if not found
      */
-    public LocalGroupType getLocalGroup(Session session, Long id) {
-        return session.get(LocalGroupType.class, id);
+    public LocalGroupEntity getLocalGroup(Session session, Long id) {
+        return session.get(LocalGroupEntity.class, id);
     }
 }

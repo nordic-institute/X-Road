@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,35 +24,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.model;
+package org.niis.xroad.serverconf.impl.entity;
 
+import jakarta.persistence.Access;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Service description such as WSDL or OpenAPI
- */
+import static jakarta.persistence.AccessType.FIELD;
+
 @Getter
 @Setter
-public class ServiceDescriptionType {
+@Entity
+@Table(name = ServiceDescriptionEntity.TABLE_NAME)
+@Access(FIELD)
+public class ServiceDescriptionEntity {
 
-    private final List<ServiceType> service = new ArrayList<>();
+    public static final String TABLE_NAME = "servicedescription";
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    private ClientType client;
-
+    @Column(name = "url", nullable = false)
     private String url;
 
+    @Column(name = "disabled", nullable = false)
     private boolean disabled;
 
+    @Column(name = "disablednotice")
     private String disabledNotice;
 
+    @Column(name = "refresheddate")
     private Date refreshedDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
     private DescriptionType type;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "client_id", nullable = false)
+    private ClientEntity client;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "serviceDescription", orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<ServiceEntity> services = new ArrayList<>();
 }

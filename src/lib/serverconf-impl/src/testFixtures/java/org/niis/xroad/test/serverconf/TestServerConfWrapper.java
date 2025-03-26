@@ -54,43 +54,43 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public boolean serviceExists(ServiceId service) {
-        return serverConfProvider.serviceExists(service);
+    public boolean serviceExists(ServiceId serviceId) {
+        return serverConfProvider.serviceExists(serviceId);
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
-        return serverConfProvider.getDisabledNotice(service);
+    public String getDisabledNotice(ServiceId serviceId) {
+        return serverConfProvider.getDisabledNotice(serviceId);
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
-        return serverConfProvider.getServiceAddress(service);
+    public String getServiceAddress(ServiceId serviceId) {
+        return serverConfProvider.getServiceAddress(serviceId);
     }
 
     @Override
-    public int getServiceTimeout(ServiceId service) {
-        return serverConfProvider.getServiceTimeout(service);
+    public int getServiceTimeout(ServiceId serviceId) {
+        return serverConfProvider.getServiceTimeout(serviceId);
     }
 
     @Override
-    public RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
-        return serverConfProvider.getRestServices(serviceProvider);
+    public RestServiceDetailsListType getRestServices(ClientId serviceProviderId) {
+        return serverConfProvider.getRestServices(serviceProviderId);
     }
 
     @Override
-    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
-        return serverConfProvider.getAllowedRestServices(serviceProvider, client);
+    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProviderId, ClientId clientId) {
+        return serverConfProvider.getAllowedRestServices(serviceProviderId, clientId);
     }
 
     @Override
-    public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
-        return serverConfProvider.getAllServices(serviceProvider);
+    public List<ServiceId.Conf> getAllServices(ClientId serviceProviderId) {
+        return serverConfProvider.getAllServices(serviceProviderId);
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
-        return serverConfProvider.getServicesByDescriptionType(serviceProvider, descriptionType);
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProviderId, DescriptionType descriptionType) {
+        return serverConfProvider.getServicesByDescriptionType(serviceProviderId, descriptionType);
     }
 
     @Override
@@ -99,19 +99,19 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                    DescriptionType descriptionType) {
-        return serverConfProvider.getAllowedServicesByDescriptionType(serviceProvider, client, descriptionType);
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
+                                                                DescriptionType descriptionType) {
+        return serverConfProvider.getAllowedServicesByDescriptionType(serviceProviderId, clientId, descriptionType);
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
-        return serverConfProvider.getIsAuthentication(client);
+    public IsAuthentication getIsAuthentication(ClientId clientId) {
+        return serverConfProvider.getIsAuthentication(clientId);
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
-        return serverConfProvider.getIsCerts(client);
+    public List<X509Certificate> getIsCerts(ClientId clientId) throws Exception {
+        return serverConfProvider.getIsCerts(clientId);
     }
 
     @Override
@@ -125,8 +125,8 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public boolean isSslAuthentication(ServiceId service) {
-        return serverConfProvider.isSslAuthentication(service);
+    public boolean isSslAuthentication(ServiceId serviceId) {
+        return serverConfProvider.isSslAuthentication(serviceId);
     }
 
     @Override
@@ -140,13 +140,13 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-        return serverConfProvider.isQueryAllowed(sender, service);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId) {
+        return serverConfProvider.isQueryAllowed(senderId, serviceId);
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
-        return serverConfProvider.isQueryAllowed(sender, service, method, path);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId, String method, String path) {
+        return serverConfProvider.isQueryAllowed(senderId, serviceId, method, path);
     }
 
     @Override
@@ -155,17 +155,17 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
-        return serverConfProvider.getDescriptionType(service);
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
+        return serverConfProvider.getDescriptionType(serviceId);
     }
 
     @Override
-    public String getServiceDescriptionURL(ServiceId service) {
-        return serverConfProvider.getServiceDescriptionURL(service);
+    public String getServiceDescriptionURL(ServiceId serviceId) {
+        return serverConfProvider.getServiceDescriptionURL(serviceId);
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId service) {
-        return serverConfProvider.getServiceEndpoints(service);
+    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
+        return serverConfProvider.getServiceEndpoints(serviceId);
     }
 }

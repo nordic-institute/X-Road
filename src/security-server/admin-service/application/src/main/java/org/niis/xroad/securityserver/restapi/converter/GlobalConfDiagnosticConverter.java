@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,9 +27,9 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -39,12 +40,12 @@ import java.util.Optional;
 @Component
 public class GlobalConfDiagnosticConverter {
 
-    public GlobalConfDiagnostics convert(DiagnosticsStatus diagnosticsStatus) {
-        GlobalConfDiagnostics globalConfDiagnostics = new GlobalConfDiagnostics();
-        Optional<ConfigurationStatus> statusCode = ConfigurationStatusMapping.map(
+    public GlobalConfDiagnosticsDto convert(DiagnosticsStatus diagnosticsStatus) {
+        GlobalConfDiagnosticsDto globalConfDiagnostics = new GlobalConfDiagnosticsDto();
+        Optional<ConfigurationStatusDto> statusCode = ConfigurationStatusMapping.map(
                 diagnosticsStatus.getReturnCode());
         globalConfDiagnostics.setStatusCode(statusCode.orElse(null));
-        Optional<DiagnosticStatusClass> statusClass = DiagnosticStatusClassMapping.map(
+        Optional<DiagnosticStatusClassDto> statusClass = DiagnosticStatusClassMapping.map(
                 diagnosticsStatus.getReturnCode());
         globalConfDiagnostics.setStatusClass(statusClass.orElse(null));
         globalConfDiagnostics.setPrevUpdateAt(diagnosticsStatus.getPrevUpdate());

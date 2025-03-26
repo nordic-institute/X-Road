@@ -70,11 +70,13 @@ import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteServerConf;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
 import org.niis.xroad.test.serverconf.TestServerConfWrapper;
 import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
@@ -289,8 +291,7 @@ public class MetadataServiceHandlerTest {
 
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                     DescriptionType descriptionType) {
+            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClient));
                 return expectedServices;
             }
@@ -630,7 +631,7 @@ public class MetadataServiceHandlerTest {
 
         doAnswer(copyStream(soapContentInputStream)).when(mockProxyMessage).writeSoapContent(any());
 
-        setUpDatabase(requestingWsdlForService, isRest);
+        setUpDatabase(XRoadIdMapper.get().toEntity(requestingWsdlForService), isRest);
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withBodyFile("wsdl.wsdl")));
@@ -652,18 +653,18 @@ public class MetadataServiceHandlerTest {
         );
     }
 
-    private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
-        ServerConfType conf = new ServerConfType();
+    private void setUpDatabase(ServiceIdEntity serviceId, boolean isRest) throws Exception {
+        ServerConfEntity conf = new ServerConfEntity();
         conf.setServerCode("TestServer");
 
-        ClientType client = new ClientType();
+        ClientEntity client = new ClientEntity();
         client.setConf(conf);
 
-        conf.getClient().add(client);
+        conf.getClients().add(client);
 
         client.setIdentifier(serviceId.getClientId());
 
-        ServiceDescriptionType wsdl = new ServiceDescriptionType();
+        ServiceDescriptionEntity wsdl = new ServiceDescriptionEntity();
         wsdl.setClient(client);
         wsdl.setUrl(MOCK_SERVER_WSDL_URL);
         if (isRest) {
@@ -672,14 +673,14 @@ public class MetadataServiceHandlerTest {
             wsdl.setType(DescriptionType.WSDL);
         }
 
-        ServiceType service = new ServiceType();
+        ServiceEntity service = new ServiceEntity();
         service.setServiceDescription(wsdl);
         service.setTitle("someTitle");
         service.setServiceCode(serviceId.getServiceCode());
 
-        wsdl.getService().add(service);
+        wsdl.getServices().add(service);
 
-        client.getServiceDescription().add(wsdl);
+        client.getServiceDescriptions().add(wsdl);
 
         doInTransaction(session -> {
             session.persist(conf);
@@ -689,7 +690,7 @@ public class MetadataServiceHandlerTest {
     }
 
     private void setUpDatabase(ServiceId.Conf serviceId) throws Exception {
-        setUpDatabase(serviceId, false);
+        setUpDatabase(XRoadIdMapper.get().toEntity(serviceId), false);
     }
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)

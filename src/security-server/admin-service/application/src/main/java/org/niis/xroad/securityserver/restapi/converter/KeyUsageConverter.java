@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,12 +26,13 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsage;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageDto;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Convert X598Certificate's public abstract boolean[] getKeyUsage()
@@ -39,30 +41,30 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber") // index numbers are most clear way here to represent the issue
 public class KeyUsageConverter {
     // maps a X509Certificate.getKeyUsage bit index to corresponding KeyUsagesEnum value
-    private static final Map<Integer, KeyUsage> BIT_TO_USAGE =
+    private static final Map<Integer, KeyUsageDto> BIT_TO_USAGE =
             new HashMap<>();
 
     static {
-        BIT_TO_USAGE.put(0, KeyUsage.DIGITAL_SIGNATURE);
-        BIT_TO_USAGE.put(1, KeyUsage.NON_REPUDIATION);
-        BIT_TO_USAGE.put(2, KeyUsage.KEY_ENCIPHERMENT);
-        BIT_TO_USAGE.put(3, KeyUsage.DATA_ENCIPHERMENT);
-        BIT_TO_USAGE.put(4, KeyUsage.KEY_AGREEMENT);
-        BIT_TO_USAGE.put(5, KeyUsage.KEY_CERT_SIGN);
-        BIT_TO_USAGE.put(6, KeyUsage.CRL_SIGN);
-        BIT_TO_USAGE.put(7, KeyUsage.ENCIPHER_ONLY);
-        BIT_TO_USAGE.put(8, KeyUsage.DECIPHER_ONLY);
+        BIT_TO_USAGE.put(0, KeyUsageDto.DIGITAL_SIGNATURE);
+        BIT_TO_USAGE.put(1, KeyUsageDto.NON_REPUDIATION);
+        BIT_TO_USAGE.put(2, KeyUsageDto.KEY_ENCIPHERMENT);
+        BIT_TO_USAGE.put(3, KeyUsageDto.DATA_ENCIPHERMENT);
+        BIT_TO_USAGE.put(4, KeyUsageDto.KEY_AGREEMENT);
+        BIT_TO_USAGE.put(5, KeyUsageDto.KEY_CERT_SIGN);
+        BIT_TO_USAGE.put(6, KeyUsageDto.CRL_SIGN);
+        BIT_TO_USAGE.put(7, KeyUsageDto.ENCIPHER_ONLY);
+        BIT_TO_USAGE.put(8, KeyUsageDto.DECIPHER_ONLY);
     }
 
     /**
      * Convert boolean array of key usage bits as returned by
-     * https://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Certificate.html#getKeyUsage--
+     * <a href="https://docs.oracle.com/javase/8/docs/api/java/security/cert/X509Certificate.html#getKeyUsage--">...</a>
      * into an EnumSet
-     * @param keyUsageBits
-     * @return
+     * @param keyUsageBits keyUsageBits
+     * @return Set<KeyUsageDto>
      */
-    public EnumSet<KeyUsage> convert(boolean[] keyUsageBits) {
-        EnumSet<KeyUsage> usages = EnumSet.noneOf(KeyUsage.class);
+    public Set<KeyUsageDto> convert(boolean[] keyUsageBits) {
+        EnumSet<KeyUsageDto> usages = EnumSet.noneOf(KeyUsageDto.class);
         if (keyUsageBits != null) {
             for (int i = 0; i < Math.min(BIT_TO_USAGE.size(), keyUsageBits.length); i++) {
                 if (keyUsageBits[i]) {

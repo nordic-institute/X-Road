@@ -30,10 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipient;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponse;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponseDto;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,9 +58,9 @@ public class MailApiController implements MailApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<MailNotificationStatus> getMailNotificationStatus() {
+    public ResponseEntity<MailNotificationStatusDto> getMailNotificationStatus() {
         MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
-        MailNotificationStatus mailNotificationStatusDto = new MailNotificationStatus();
+        MailNotificationStatusDto mailNotificationStatusDto = new MailNotificationStatusDto();
         mailNotificationStatusDto.acmeSuccessStatus(mailNotificationStatus.acmeSuccessStatus());
         mailNotificationStatusDto.acmeFailureStatus(mailNotificationStatus.acmeFailureStatus());
         mailNotificationStatusDto.authCertRegisteredStatus(mailNotificationStatus.authCertRegisteredStatus());
@@ -73,14 +73,14 @@ public class MailApiController implements MailApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<TestMailResponse> sendTestMail(MailRecipient mailRecipient) {
+    public ResponseEntity<TestMailResponseDto> sendTestMail(MailRecipientDto mailRecipientDto) {
         try {
-            mailNotificationHelper.sendTestMail(mailRecipient.getMailAddress(), currentSecurityServerId.getServerId().asEncodedId());
+            mailNotificationHelper.sendTestMail(mailRecipientDto.getMailAddress(), currentSecurityServerId.getServerId().asEncodedId());
         } catch (MailException e) {
             log.error("Failed to send test mail", e);
-            return new ResponseEntity<>(new TestMailResponse(MailStatus.ERROR, "Error: " + e.getMessage()), HttpStatus.OK);
+            return new ResponseEntity<>(new TestMailResponseDto(MailStatusDto.ERROR, "Error: " + e.getMessage()), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new TestMailResponse(MailStatus.SUCCESS, "Success!"), HttpStatus.OK);
+        return new ResponseEntity<>(new TestMailResponseDto(MailStatusDto.SUCCESS, "Success!"), HttpStatus.OK);
     }
 
 }

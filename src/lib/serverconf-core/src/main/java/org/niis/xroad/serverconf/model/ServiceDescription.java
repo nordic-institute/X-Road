@@ -28,27 +28,15 @@ package org.niis.xroad.serverconf.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Service.
+ * Service description such as WSDL or OpenAPI
  */
 @Getter
 @Setter
-public class ServiceType {
+public class ServiceDescription extends ServiceDescriptionBase {
 
-    private Long id;
-
-    private ServiceDescriptionType serviceDescription;
-
-    private String serviceCode;
-
-    private String serviceVersion;
-
-    private String title;
-
-    private String url;
-
-    private Boolean sslAuthentication;
-
-    private int timeout;
-
+    private final List<Service> services = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,40 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.dto;
+package org.niis.xroad.serverconf.impl.mapper;
 
-import ee.ria.xroad.common.identifier.XRoadId;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.model.AccessRight;
 
-import lombok.Data;
+import java.util.List;
 
-import java.time.OffsetDateTime;
+@Mapper(uses = {XRoadIdMapper.class, EndpointMapper.class})
+public interface AccessRightMapper extends GenericUniDirectionalMapper<AccessRightEntity, AccessRight> {
+    AccessRightMapper INSTANCE = Mappers.getMapper(AccessRightMapper.class);
+    static AccessRightMapper get() {
+        return INSTANCE;
+    }
 
-/**
- * DTO for ServiceClient data
- */
-@Data
-public class ServiceClientDto {
-    /**
-     * primary key of a LocalGroup - NULL if not a LOCALGROUP
-     */
-    private String localGroupId;
-    /**
-     * localGroupCode - NULL if not a LOCALGROUP
-     */
-    private String localGroupCode;
-    /**
-     * localGroupDescription - NULL if not a LOCALGROUP
-     */
-    private String localGroupDescription;
-    /**
-     * globalGroupDescription - NULL if not a GLOBALGROUP
-     */
-    private String globalGroupDescription;
-    /**
-     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
-     */
-    private String memberName;
-    private String subsystemName;
-    private XRoadId subjectId;
-    private OffsetDateTime rightsGiven;
+    @Override
+    AccessRight toTarget(AccessRightEntity entity);
+
+    List<AccessRight> toTargets(List<AccessRightEntity> entities);
+
+    AccessRightEntity toEntity(AccessRight domain);
+
+    List<AccessRightEntity> toEntities(List<AccessRight> domains);
 }

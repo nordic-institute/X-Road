@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,9 +32,9 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -76,23 +77,23 @@ public class TokenCertificateConverterTest extends AbstractConverterTestContext 
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .key(keyInfo)
                 .build();
-        TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo, keyInfo, tokenInfo);
-        Collection<PossibleAction> actions = certificate.getPossibleActions();
-        assertTrue(actions.contains(PossibleAction.ACTIVATE));
+        TokenCertificateDto certificate = tokenCertificateConverter.convert(certificateInfo, keyInfo, tokenInfo);
+        Collection<PossibleActionDto> actions = certificate.getPossibleActions();
+        assertTrue(actions.contains(PossibleActionDto.ACTIVATE));
         assertEquals(1, actions.size());
     }
 
     @Test
     public void convert() throws Exception {
         CertificateInfo certificateInfo = new CertificateTestUtils.CertificateInfoBuilder().build();
-        TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo);
+        TokenCertificateDto certificate = tokenCertificateConverter.convert(certificateInfo);
         assertEquals(true, certificate.getActive());
         assertEquals("N/A", certificate.getCertificateDetails().getSubjectCommonName());
         assertEquals(2038, certificate.getCertificateDetails().getNotAfter().getYear());
-        assertEquals(CertificateOcspStatus.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
+        assertEquals(CertificateOcspStatusDto.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
         assertEquals("a:b:c", certificate.getOwnerId());
         assertEquals(true, certificate.getSavedToConfiguration());
-        assertEquals(org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatus.REGISTERED,
+        assertEquals(org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatusDto.REGISTERED,
                 certificate.getStatus());
     }
 
@@ -110,15 +111,15 @@ public class TokenCertificateConverterTest extends AbstractConverterTestContext 
         CertificateInfo certificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
                 .certificate(cert)
                 .build();
-        TokenCertificate certificate = tokenCertificateConverter.convert(certificateInfo);
-        assertEquals(CertificateOcspStatus.EXPIRED, certificate.getOcspStatus());
+        TokenCertificateDto certificate = tokenCertificateConverter.convert(certificateInfo);
+        assertEquals(CertificateOcspStatusDto.EXPIRED, certificate.getOcspStatus());
 
         // Not After : Jan  1 00:00:00 2038 GMT
         cert = CertificateTestUtils.getMockCertificate();
         certificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
                 .certificate(cert).build();
         certificate = tokenCertificateConverter.convert(certificateInfo);
-        assertEquals(CertificateOcspStatus.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
+        assertEquals(CertificateOcspStatusDto.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
 
         RevokedStatus revokedStatus = new RevokedStatus(new Date(), CRLReason.certificateHold);
         certificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
@@ -127,7 +128,7 @@ public class TokenCertificateConverterTest extends AbstractConverterTestContext 
                 .build();
 
         certificate = tokenCertificateConverter.convert(certificateInfo);
-        assertEquals(CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED, certificate.getOcspStatus());
+        assertEquals(CertificateOcspStatusDto.OCSP_RESPONSE_SUSPENDED, certificate.getOcspStatus());
 
         revokedStatus = new RevokedStatus(new Date(), CRLReason.unspecified);
         certificateInfo = new CertificateTestUtils.CertificateInfoBuilder()
@@ -135,6 +136,6 @@ public class TokenCertificateConverterTest extends AbstractConverterTestContext 
                 .ocspStatus(revokedStatus)
                 .build();
         certificate = tokenCertificateConverter.convert(certificateInfo);
-        assertEquals(CertificateOcspStatus.OCSP_RESPONSE_REVOKED, certificate.getOcspStatus());
+        assertEquals(CertificateOcspStatusDto.OCSP_RESPONSE_REVOKED, certificate.getOcspStatus());
     }
 }

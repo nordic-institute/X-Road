@@ -222,7 +222,7 @@ public abstract class AbstractProxyIntegrationTest {
     public static class TestServiceServerConf extends TestServerConf {
 
         @Override
-        public String getServiceAddress(ServiceId service) {
+        public String getServiceAddress(ServiceId serviceId) {
             return "http://127.0.0.1:" + testServiceExtension.getService().getPort();
         }
     }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,7 +32,6 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.metadata.Endpoint;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -40,10 +40,10 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.model.Endpoint;
+import org.niis.xroad.serverconf.model.Service;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,10 +64,10 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
     private volatile SecurityServerId.Conf serverId;
     private final Cache<Object, List<String>> tspCache;
-    private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
-    private final Cache<AclCacheKey, List<EndpointType>> aclCache;
-    private final Cache<ServiceId, List<Endpoint>> serviceEndpointsCache;
-    private final Cache<ClientId, Optional<ClientType>> clientCache;
+    private final Cache<ServiceId, Optional<Service>> serviceCache;
+    private final Cache<AclCacheKey, List<Endpoint>> aclCache;
+    private final Cache<ServiceId, List<ee.ria.xroad.common.metadata.Endpoint>> serviceEndpointsCache;
+    private final Cache<ClientId, Optional<Client>> clientCache;
     private final Cache<String, InternalSSLKey> internalKeyCache;
 
     /**
@@ -101,14 +101,14 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         aclCache = CacheBuilder.newBuilder()
-                .weigher((AclCacheKey k, List<EndpointType> v) -> v.size() + 1)
+                .weigher((AclCacheKey k, List<Endpoint> v) -> v.size() + 1)
                 .maximumWeight(SystemProperties.getServerConfAclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
 
         serviceEndpointsCache = CacheBuilder.newBuilder()
-                .weigher((ServiceId k, List<Endpoint> v) -> v.size() + 1)
+                .weigher((ServiceId k, List<ee.ria.xroad.common.metadata.Endpoint> v) -> v.size() + 1)
                 .maximumWeight(SystemProperties.getServerConfServiceEndpointsCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
@@ -167,11 +167,11 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
     @Override
     public String getMemberStatus(ClientId clientId) {
-        return getClient(clientId).map(ClientType::getClientStatus).orElse(null);
+        return getClient(clientId).map(Client::getClientStatus).orElse(null);
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
+    public List<ee.ria.xroad.common.metadata.Endpoint> getServiceEndpoints(ServiceId serviceId) {
         try {
             return serviceEndpointsCache.get(serviceId, () -> super.getServiceEndpoints(serviceId));
         } catch (ExecutionException e) {
@@ -190,57 +190,57 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public boolean serviceExists(ServiceId service) {
-        return getService(service).isPresent();
+    public boolean serviceExists(ServiceId serviceId) {
+        return getService(serviceId).isPresent();
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
-        return getService(service).map(ServiceType::getUrl).orElse(null);
+    public String getServiceAddress(ServiceId serviceId) {
+        return getService(serviceId).map(Service::getUrl).orElse(null);
     }
 
     @Override
-    public String getServiceDescriptionURL(ServiceId service) {
-        return getService(service).map(it -> it.getServiceDescription().getUrl()).orElse(null);
+    public String getServiceDescriptionURL(ServiceId serviceId) {
+        return getService(serviceId).map(it -> it.getServiceDescription().getUrl()).orElse(null);
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
-        return getService(service).map(it -> it.getServiceDescription().getType()).orElse(null);
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
+        return getService(serviceId).map(it -> it.getServiceDescription().getType()).orElse(null);
     }
 
     @Override
-    public boolean isSslAuthentication(ServiceId service) {
-        Optional<ServiceType> serviceTypeOptional = getService(service);
-        if (!serviceTypeOptional.isPresent()) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service);
+    public boolean isSslAuthentication(ServiceId serviceId) {
+        Optional<Service> serviceOptional = getService(serviceId);
+        if (serviceOptional.isEmpty()) {
+            throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", serviceId);
         }
-        ServiceType serviceType = serviceTypeOptional.get();
-        return (boolean) ObjectUtils.defaultIfNull(serviceType.getSslAuthentication(), true);
+        Service service = serviceOptional.get();
+        return (boolean) ObjectUtils.defaultIfNull(service.getSslAuthentication(), true);
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
-        return getService(service).map(it ->
-                it.getServiceDescription().isDisabled() ? it.getServiceDescription().getDisabledNotice() : null
+    public String getDisabledNotice(ServiceId serviceId) {
+        return getService(serviceId)
+                .map(it -> it.getServiceDescription().isDisabled() ? it.getServiceDescription().getDisabledNotice() : null
         ).orElse(null);
     }
 
     @Override
-    public int getServiceTimeout(ServiceId service) {
-        return getService(service).map(ServiceType::getTimeout).orElse(DEFAULT_SERVICE_TIMEOUT);
+    public int getServiceTimeout(ServiceId serviceId) {
+        return getService(serviceId).map(Service::getTimeout).orElse(DEFAULT_SERVICE_TIMEOUT);
     }
 
     @Override
-    protected List<EndpointType> getAclEndpoints(Session session, ClientId client, ServiceId service) {
-        final AclCacheKey key = new AclCacheKey(client, service);
+    protected List<Endpoint> getAclEndpoints(Session session, ClientId clientId, ServiceId serviceId) {
+        final AclCacheKey key = new AclCacheKey(clientId, serviceId);
         try {
             /*
              * Implementation note. It seems that the loader function is executed in the same thread, in which case the
              * transaction simply joins the current one. However, this is not explicitly promised by the API,
              * so we start a transaction if necessary.
              */
-            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, client, service)));
+            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, clientId, serviceId)));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
                 throw (CodedException) e.getCause();
@@ -250,7 +250,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
         }
     }
 
-    private Optional<ServiceType> getService(ServiceId serviceId) {
+    private Optional<Service> getService(ServiceId serviceId) {
         try {
             return serviceCache
                     .get(serviceId, () -> tx(session -> Optional.ofNullable(super.getService(session, serviceId))));
@@ -263,7 +263,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
         }
     }
 
-    private Optional<ClientType> getClient(ClientId clientId) {
+    private Optional<Client> getClient(ClientId clientId) {
         try {
             return clientCache.get(clientId,
                     () -> tx(session -> Optional.ofNullable(super.getClient(session, clientId))));
@@ -296,6 +296,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
         internalKeyCache.invalidateAll();
     }
 
-    private record AclCacheKey(ClientId client, ServiceId serviceId) {
+    private record AclCacheKey(ClientId clientId, ServiceId serviceId) {
     }
 }

@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +54,8 @@ public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTes
 
     @Test
     public void checkedExceptionRollsBackTransaction() throws Exception {
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        String originalDescription = localGroupType.getDescription();
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        String originalDescription = localGroup.getDescription();
         try {
             dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,
                     originalDescription + "_UPDATED",
@@ -64,14 +64,14 @@ public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTes
         } catch (Exception expected) {
         }
 
-        LocalGroupType updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
+        LocalGroup updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(originalDescription, updatedGroup.getDescription());
     }
 
     @Test
     public void checkedServiceExceptionRollsBackTransaction() throws Exception {
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        String originalDescription = localGroupType.getDescription();
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        String originalDescription = localGroup.getDescription();
         try {
             dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,
                     originalDescription + "_UPDATED",
@@ -80,14 +80,14 @@ public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTes
         } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
         }
 
-        LocalGroupType updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
+        LocalGroup updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(originalDescription, updatedGroup.getDescription());
     }
 
     @Test
     public void uncheckedExceptionRollsBackTransaction() throws Exception {
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        String originalDescription = localGroupType.getDescription();
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        String originalDescription = localGroup.getDescription();
         try {
             dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,
                     originalDescription + "_UPDATED",
@@ -97,19 +97,19 @@ public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTes
         } catch (RuntimeException expected) {
         }
 
-        LocalGroupType updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
+        LocalGroup updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(originalDescription, updatedGroup.getDescription());
     }
 
     @Test
     public void transactionCommitsIfNoExceptions() throws Exception {
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        String originalDescription = localGroupType.getDescription();
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        String originalDescription = localGroup.getDescription();
         dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,
                 originalDescription + "_UPDATED",
                 DummyTransactionRollingbackService.ExceptionType.NONE);
 
-        LocalGroupType updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
+        LocalGroup updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(originalDescription + "_UPDATED", updatedGroup.getDescription());
         // fix it back
         dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,

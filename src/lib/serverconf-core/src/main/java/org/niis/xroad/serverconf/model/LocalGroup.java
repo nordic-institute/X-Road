@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,15 +38,11 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class LocalGroupType {
+public class LocalGroup {
 
     private Long id;
-
     private String groupCode;
-
     private String description;
-
-    private final List<GroupMemberType> groupMember = new ArrayList<>();
-
+    private final List<GroupMember> groupMembers = new ArrayList<>();
     private Date updated;
 }

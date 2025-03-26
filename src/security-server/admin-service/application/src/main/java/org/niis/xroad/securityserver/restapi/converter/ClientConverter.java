@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -36,10 +37,10 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.RenameStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.RenameStatusDto;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.Client;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
@@ -64,45 +65,45 @@ public class ClientConverter {
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * @param clientType
+     * @param client
      * @return
      */
-    public Client convert(ClientType clientType) {
-        var clientId = clientType.getIdentifier();
-        var client = new Client();
-        client.setId(clientIdConverter.convertId(clientId));
-        client.setInstanceId(clientId.getXRoadInstance());
-        client.setMemberClass(clientId.getMemberClass());
-        client.setMemberCode(clientId.getMemberCode());
-        client.setSubsystemCode(clientId.getSubsystemCode());
-        client.setMemberName(globalConfProvider.getMemberName(clientId));
-        client.setSubsystemName(globalConfProvider.getSubsystemName(clientId));
-        client.setOwner(clientId.equals(securityServerOwner.getServerId().getOwner()));
-        client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientId,
+    public ClientDto convert(Client client) {
+        var clientId = client.getIdentifier();
+        var clientDto = new ClientDto();
+        clientDto.setId(clientIdConverter.convertId(clientId));
+        clientDto.setInstanceId(clientId.getXRoadInstance());
+        clientDto.setMemberClass(clientId.getMemberClass());
+        clientDto.setMemberCode(clientId.getMemberCode());
+        clientDto.setSubsystemCode(clientId.getSubsystemCode());
+        clientDto.setMemberName(globalConfProvider.getMemberName(clientId));
+        clientDto.setSubsystemName(globalConfProvider.getSubsystemName(clientId));
+        clientDto.setOwner(clientId.equals(securityServerOwner.getServerId().getOwner()));
+        clientDto.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientId,
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));
-        client.setStatus(ClientStatusMapping.map(clientType.getClientStatus()).orElse(null));
-        client.setConnectionType(ConnectionTypeMapping.map(clientType.getIsAuthentication()).orElse(null));
-        client.setRenameStatus(mapRenameStatus(clientId));
-        return client;
+        clientDto.setStatus(ClientStatusMapping.map(client.getClientStatus()).orElse(null));
+        clientDto.setConnectionType(ConnectionTypeMapping.map(client.getIsAuthentication()).orElse(null));
+        clientDto.setRenameStatus(mapRenameStatus(clientId));
+        return clientDto;
     }
 
-    private RenameStatus mapRenameStatus(ClientId clientId) {
+    private RenameStatusDto mapRenameStatus(ClientId clientId) {
         if (clientId.isSubsystem()) {
             if (subsystemNameStatus.isSubmitted(clientId)) {
-                return RenameStatus.NAME_SUBMITTED;
+                return RenameStatusDto.NAME_SUBMITTED;
             } else if (subsystemNameStatus.isSet(clientId)) {
-                return RenameStatus.NAME_SET;
+                return RenameStatusDto.NAME_SET;
             }
         }
         return null;
     }
 
     /**
-     * Convert a group of ClientType into a list of openapi Client class
+     * Convert a group of ClientType into a list of openapi ClientDto class
      * @param clientTypes
      * @return
      */
-    public Set<Client> convert(Iterable<ClientType> clientTypes) {
+    public Set<ClientDto> convert(Iterable<Client> clientTypes) {
         return Streams.stream(clientTypes)
                 .map(this::convert)
                 .sorted(clientSortingComparator)
@@ -110,27 +111,27 @@ public class ClientConverter {
     }
 
     /**
-     * Convert MemberInfo into Client
+     * Convert MemberInfo into ClientDto
      * @param memberInfo
-     * @return Client
+     * @return ClientDto
      */
-    public Client convertMemberInfoToClient(MemberInfo memberInfo) {
+    public ClientDto convertMemberInfoToClient(MemberInfo memberInfo) {
         ClientId clientId = memberInfo.id();
-        Client client = new Client();
-        client.setId(clientIdConverter.convertId(clientId));
-        client.setMemberClass(clientId.getMemberClass());
-        client.setMemberCode(clientId.getMemberCode());
-        client.setSubsystemCode(clientId.getSubsystemCode());
-        client.setMemberName(memberInfo.name());
-        return client;
+        ClientDto clientDto = new ClientDto();
+        clientDto.setId(clientIdConverter.convertId(clientId));
+        clientDto.setMemberClass(clientId.getMemberClass());
+        clientDto.setMemberCode(clientId.getMemberCode());
+        clientDto.setSubsystemCode(clientId.getSubsystemCode());
+        clientDto.setMemberName(memberInfo.name());
+        return clientDto;
     }
 
     /**
-     * Convert MemberInfo list into Client list
+     * Convert MemberInfo list into ClientDto list
      * @param memberInfos
-     * @return List of Clients
+     * @return List of ClientDto
      */
-    public List<Client> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
+    public List<ClientDto> convertMemberInfosToClients(List<MemberInfo> memberInfos) {
         return memberInfos.stream().map(this::convertMemberInfoToClient).collect(Collectors.toList());
     }
 

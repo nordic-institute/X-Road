@@ -25,24 +25,22 @@
  */
 package org.niis.xroad.serverconf.model;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Group member.
+ * Server conf.
  */
 @Getter
 @Setter
-public class GroupMemberType {
+public class ServerConf {
 
     private Long id;
-
-    private ClientId groupMemberId;
-
-    private Date added;
-
+    private String serverCode;
+    private Client owner;
+    private final List<Client> clients = new ArrayList<>();
+    private final List<TimestampingService> timestampingServices = new ArrayList<>();
 }

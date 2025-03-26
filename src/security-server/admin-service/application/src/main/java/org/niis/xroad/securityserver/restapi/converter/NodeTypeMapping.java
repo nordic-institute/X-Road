@@ -29,40 +29,40 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.NodeType;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between NodeType in api (enum) and model (SystemProperties.NodeType)
+ * Mapping between NodeTypeDto in api (enum) and model (SystemProperties.NodeType)
  */
 @Getter
 @RequiredArgsConstructor
 public enum NodeTypeMapping {
-    PRIMARY(SystemProperties.NodeType.MASTER, NodeType.PRIMARY),
-    SECONDARY(SystemProperties.NodeType.SLAVE, NodeType.SECONDARY),
-    STANDALONE(SystemProperties.NodeType.STANDALONE, NodeType.STANDALONE);
+    PRIMARY(SystemProperties.NodeType.MASTER, NodeTypeDto.PRIMARY),
+    SECONDARY(SystemProperties.NodeType.SLAVE, NodeTypeDto.SECONDARY),
+    STANDALONE(SystemProperties.NodeType.STANDALONE, NodeTypeDto.STANDALONE);
 
     private final SystemProperties.NodeType nodeTypeCore;
-    private final NodeType nodeTypeApi;
+    private final NodeTypeDto nodeTypeDto;
 
     /**
-     * Return matching NodeType, if any
+     * Return matching NodeTypeDto, if any
      * @param nodeTypeCore
      * @return
      */
-    public static Optional<NodeType> map(SystemProperties.NodeType nodeTypeCore) {
-        return getFor(nodeTypeCore).map(NodeTypeMapping::getNodeTypeApi);
+    public static Optional<NodeTypeDto> map(SystemProperties.NodeType nodeTypeCore) {
+        return getFor(nodeTypeCore).map(NodeTypeMapping::getNodeTypeDto);
     }
 
     /**
      * Return matching SystemProperties.NodeType, if any
-     * @param nodeTypeApi
+     * @param nodeTypeDto
      * @return
      */
-    public static Optional<SystemProperties.NodeType> map(NodeType nodeTypeApi) {
-        return getFor(nodeTypeApi).map(NodeTypeMapping::getNodeTypeCore);
+    public static Optional<SystemProperties.NodeType> map(NodeTypeDto nodeTypeDto) {
+        return getFor(nodeTypeDto).map(NodeTypeMapping::getNodeTypeCore);
     }
 
     /**
@@ -77,14 +77,13 @@ public enum NodeTypeMapping {
     }
 
     /**
-     * return NodeTypeMapping matching the given nodeTypeApi, if any
-     * @param nodeTypeApi
+     * return NodeTypeMapping matching the given nodeTypeDto, if any
+     * @param nodeTypeDto
      * @return
      */
-    public static Optional<NodeTypeMapping> getFor(NodeType nodeTypeApi) {
+    public static Optional<NodeTypeMapping> getFor(NodeTypeDto nodeTypeDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.nodeTypeApi.equals(nodeTypeApi))
+                .filter(mapping -> mapping.nodeTypeDto.equals(nodeTypeDto))
                 .findFirst();
     }
-
 }

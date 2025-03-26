@@ -23,24 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.model;
+package org.niis.xroad.securityserver.restapi.dto;
 
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 /**
- * Access right.
+ * DTO for ServiceClient data
  */
-@Getter
-@Setter
-public class AccessRightType {
-
-    private Long id;
+@Data
+public class ServiceClient {
+    /**
+     * primary key of a LocalGroup - NULL if not a LOCALGROUP
+     */
+    private String localGroupId;
+    /**
+     * localGroupCode - NULL if not a LOCALGROUP
+     */
+    private String localGroupCode;
+    /**
+     * localGroupDescription - NULL if not a LOCALGROUP
+     */
+    private String localGroupDescription;
+    /**
+     * globalGroupDescription - NULL if not a GLOBALGROUP
+     */
+    private String globalGroupDescription;
+    /**
+     * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
+     */
+    private String memberName;
+    private String subsystemName;
     private XRoadId subjectId;
-    private EndpointType endpoint;
-    private Date rightsGiven;
+    private OffsetDateTime rightsGiven;
 }

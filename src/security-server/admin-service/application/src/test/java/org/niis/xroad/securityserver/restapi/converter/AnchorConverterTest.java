@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
+import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -59,9 +60,9 @@ public class AnchorConverterTest {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
 
-        Anchor anchor = anchorConverter.convert(anchorFile);
+        AnchorDto anchor = anchorConverter.convert(anchorFile);
 
-        assertEquals(ANCHOR_HASH, anchorFile.getHash());
-        assertEquals(CREATED_AT, anchorFile.getCreatedAt().toString());
+        assertEquals(ANCHOR_HASH, anchor.getHash());
+        assertEquals(CREATED_AT, anchor.getCreatedAt().toString());
     }
 }

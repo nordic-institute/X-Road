@@ -323,7 +323,7 @@ public class TokenCertificateService {
      * to be used for signing messages.
      *
      * @param hash cert hash of an existing cert
-     * @return CertificateType
+     * @return CertificateInfo
      * @throws CertificateNotFoundException
      * @throws InvalidCertificateException          other general import failure
      * @throws GlobalConfOutdatedException
@@ -580,7 +580,7 @@ public class TokenCertificateService {
      * {@link #importCertificateFromToken(String hash)}
      *
      * @param certificateBytes
-     * @return CertificateType
+     * @return CertificateInfo
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
      * @throws KeyNotFoundException

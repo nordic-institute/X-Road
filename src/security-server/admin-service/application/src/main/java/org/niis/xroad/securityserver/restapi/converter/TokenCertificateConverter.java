@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,9 +31,9 @@ import ee.ria.xroad.common.util.TimeUtils;
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -59,13 +60,13 @@ public class TokenCertificateConverter {
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Convert {@link CertificateInfo} to {@link TokenCertificate}
+     * Convert {@link CertificateInfo} to {@link TokenCertificateDto}
      * and populate possibleActions
      */
-    public TokenCertificate convert(CertificateInfo certificateInfo,
-                                    KeyInfo keyInfo,
-                                    TokenInfo tokenInfo) {
-        TokenCertificate tokenCertificate = convert(certificateInfo);
+    public TokenCertificateDto convert(CertificateInfo certificateInfo,
+                                       KeyInfo keyInfo,
+                                       TokenInfo tokenInfo) {
+        TokenCertificateDto tokenCertificate = convert(certificateInfo);
         tokenCertificate.setPossibleActions(possibleActionConverter.convert(
                 possibleActionsRuleEngine.getPossibleCertificateActions(
                         tokenInfo, keyInfo, certificateInfo)));
@@ -73,12 +74,12 @@ public class TokenCertificateConverter {
     }
 
     /**
-     * Convert {@link CertificateInfo} to {@link TokenCertificate}
+     * Convert {@link CertificateInfo} to {@link TokenCertificateDto}
      * @param certificateInfo
-     * @return {@link TokenCertificate}
+     * @return {@link TokenCertificateDto}
      */
-    public TokenCertificate convert(CertificateInfo certificateInfo) {
-        TokenCertificate tokenCertificate = new TokenCertificate();
+    public TokenCertificateDto convert(CertificateInfo certificateInfo) {
+        TokenCertificateDto tokenCertificate = new TokenCertificateDto();
 
         tokenCertificate.setActive(certificateInfo.isActive());
         tokenCertificate.setCertificateDetails(certificateDetailsConverter.convert(certificateInfo));
@@ -100,25 +101,25 @@ public class TokenCertificateConverter {
     }
 
     /**
-     * Logic for determining CertificateOcspStatus, based on
+     * Logic for determining CertificateOcspStatusDto, based on
      * token_renderer.rb#cert_ocsp_response
      * @param info
      * @return
      */
-    private CertificateOcspStatus getOcspStatus(CertificateInfo info,
-                                                CertificateDetails details) {
+    private CertificateOcspStatusDto getOcspStatus(CertificateInfo info,
+                                                   CertificateDetailsDto details) {
         if (!info.isActive()) {
-            return CertificateOcspStatus.DISABLED;
+            return CertificateOcspStatusDto.DISABLED;
         }
         OffsetDateTime now = TimeUtils.offsetDateTimeNow();
         if (now.isAfter(details.getNotAfter())) {
-            return CertificateOcspStatus.EXPIRED;
+            return CertificateOcspStatusDto.EXPIRED;
         }
         if (!info.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
             return null;
         }
         if (info.getOcspBytes() == null || info.getOcspBytes().length == 0) {
-            return CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
+            return CertificateOcspStatusDto.OCSP_RESPONSE_UNKNOWN;
         }
         String ocspResponseStatus = null;
         try {
@@ -127,21 +128,21 @@ public class TokenCertificateConverter {
             throw new RuntimeException("extracting OCSP status failed", e);
         }
         return switch (ocspResponseStatus) {
-            case CertificateInfo.OCSP_RESPONSE_GOOD -> CertificateOcspStatus.OCSP_RESPONSE_GOOD;
-            case CertificateInfo.OCSP_RESPONSE_SUSPENDED -> CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED;
-            case CertificateInfo.OCSP_RESPONSE_REVOKED -> CertificateOcspStatus.OCSP_RESPONSE_REVOKED;
-            case CertificateInfo.OCSP_RESPONSE_UNKNOWN -> CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
+            case CertificateInfo.OCSP_RESPONSE_GOOD -> CertificateOcspStatusDto.OCSP_RESPONSE_GOOD;
+            case CertificateInfo.OCSP_RESPONSE_SUSPENDED -> CertificateOcspStatusDto.OCSP_RESPONSE_SUSPENDED;
+            case CertificateInfo.OCSP_RESPONSE_REVOKED -> CertificateOcspStatusDto.OCSP_RESPONSE_REVOKED;
+            case CertificateInfo.OCSP_RESPONSE_UNKNOWN -> CertificateOcspStatusDto.OCSP_RESPONSE_UNKNOWN;
             default -> throw new AssertionError("unexpected ocsp response status: " + ocspResponseStatus);
         };
     }
 
     /**
      * Convert a group of {@link CertificateInfo certificateInfos} to a list of
-     * {@link TokenCertificate token certificates}
+     * {@link TokenCertificateDto token certificates}
      * @param certificateInfos
-     * @return List of {@link TokenCertificate token certificates}
+     * @return List of {@link TokenCertificateDto token certificates}
      */
-    public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos) {
+    public List<TokenCertificateDto> convert(Iterable<CertificateInfo> certificateInfos) {
         return Streams.stream(certificateInfos)
                 .map(c -> convert(c))
                 .collect(Collectors.toList());
@@ -149,13 +150,13 @@ public class TokenCertificateConverter {
 
     /**
      * Convert a group of {@link CertificateInfo certificateInfos} to a list of
-     * {@link TokenCertificate token certificates}, while populating possibleActions.
+     * {@link TokenCertificateDto token certificates}, while populating possibleActions.
      * @param keyInfo all certificates need to belong to the same key
      * @param tokenInfo all certificates need to belong to the same token
      * @param certificateInfos
-     * @return List of {@link TokenCertificate token certificates}
+     * @return List of {@link TokenCertificateDto token certificates}
      */
-    public List<TokenCertificate> convert(Iterable<CertificateInfo> certificateInfos,
+    public List<TokenCertificateDto> convert(Iterable<CertificateInfo> certificateInfos,
                                           KeyInfo keyInfo,
                                           TokenInfo tokenInfo) {
         return Streams.stream(certificateInfos)

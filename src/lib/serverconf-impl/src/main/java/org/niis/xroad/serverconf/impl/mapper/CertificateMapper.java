@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,31 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl.dao;
+package org.niis.xroad.serverconf.impl.mapper;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
-import org.hibernate.Session;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.model.UiUserType;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
+import org.niis.xroad.serverconf.model.Certificate;
 
-/**
- * UiUser data access object implementation.
- */
-public class UiUserDAOImpl extends AbstractDAOImpl<UiUserType> {
+import java.util.List;
 
-    /**
-     * Returns the UiUser object for the given user name or null.
-     * @param username the user name
-     * @return the UiUser object for the given user name or null
-     */
-    public static UiUserType getUiUser(String username) {
-        Session session = ServerConfDatabaseCtx.getSession();
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<UiUserType> q = cb.createQuery(UiUserType.class);
-        final Root<UiUserType> root = q.from(UiUserType.class);
-        q.select(root).where(cb.equal(root.get("username"), username));
-        return session.createQuery(q).uniqueResult();
+@Mapper
+public interface CertificateMapper extends GenericUniDirectionalMapper<CertificateEntity, Certificate> {
+    CertificateMapper INSTANCE = Mappers.getMapper(CertificateMapper.class);
+    static CertificateMapper get() {
+        return INSTANCE;
     }
+
+    @Override
+    Certificate toTarget(CertificateEntity entity);
+
+    List<Certificate> toTargets(List<CertificateEntity> entities);
+
+    CertificateEntity toEntity(Certificate domain);
+
+    List<CertificateEntity> toEntities(List<Certificate> domains);
 }

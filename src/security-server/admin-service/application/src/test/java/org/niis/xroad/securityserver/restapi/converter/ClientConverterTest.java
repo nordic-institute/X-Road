@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -36,9 +37,9 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatusDto;
+import org.niis.xroad.serverconf.model.Client;
 
 import java.util.ArrayList;
 
@@ -78,18 +79,18 @@ public class ClientConverterTest {
 
     @Test
     public void convert() throws Exception {
-        ClientType clientType = new ClientType();
-        clientType.setClientStatus("registered");
-        clientType.setIsAuthentication("SSLNOAUTH");
-        clientType.setIdentifier(ClientId.Conf.create("XRD2", "GOV", "M4", "SS1"));
-        Client converted = clientConverter.convert(clientType);
+        Client client = new Client();
+        client.setClientStatus("registered");
+        client.setIsAuthentication("SSLNOAUTH");
+        client.setIdentifier(ClientId.Conf.create("XRD2", "GOV", "M4", "SS1"));
+        ClientDto converted = clientConverter.convert(client);
         assertEquals("XRD2:GOV:M4:SS1", converted.getId());
-        assertEquals(ClientStatus.REGISTERED, converted.getStatus());
+        assertEquals(ClientStatusDto.REGISTERED, converted.getStatus());
         assertEquals("XRD2", converted.getInstanceId());
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());
-        assertEquals(org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH,
+        assertEquals(org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeDto.HTTPS_NO_AUTH,
                 converted.getConnectionType());
         assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberName());
     }

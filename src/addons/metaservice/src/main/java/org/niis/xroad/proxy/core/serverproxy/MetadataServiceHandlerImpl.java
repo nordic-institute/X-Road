@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -64,8 +65,9 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -228,8 +230,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                serverConfProvider.getServicesByDescriptionType(
-                        request.getService().getClientId(), DescriptionType.WSDL));
+                serverConfProvider.getServicesByDescriptionType(request.getService().getClientId(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
@@ -287,8 +288,11 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 // ------------------------------------------------------------------------
 
     private String getWsdlUrl(ServiceId service) throws Exception {
-        ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
-                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
+        ServiceDescription wsdl = ServerConfDatabaseCtx.doInTransaction(
+                session -> ServiceDescriptionMapper.get().toTarget(
+                        new ServiceDescriptionDAOImpl().getServiceDescription(session, service)
+                )
+        );
         if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");

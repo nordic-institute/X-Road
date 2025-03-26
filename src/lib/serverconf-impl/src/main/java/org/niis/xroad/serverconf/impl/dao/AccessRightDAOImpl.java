@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,14 +26,13 @@
  */
 package org.niis.xroad.serverconf.impl.dao;
 
-import ee.ria.xroad.common.identifier.XRoadId;
-
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 
 public class AccessRightDAOImpl {
 
-    public void deleteBySubjectId(Session session, XRoadId subjectId) {
-        var query = session.createMutationQuery("delete from AccessRightType where subjectId = :subjectId");
+    public void deleteBySubjectId(Session session, XRoadIdEntity subjectId) {
+        var query = session.createMutationQuery("delete from AccessRightEntity where subjectId = :subjectId");
         query.setParameter("subjectId", subjectId);
         query.executeUpdate();
     }

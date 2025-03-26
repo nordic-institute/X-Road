@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,13 +28,19 @@ package org.niis.xroad.securityserver.restapi.dto;
 
 import lombok.Data;
 
-/**
- * DTO for security server initialization status
- */
 @Data
-public class InitializationStatusDto {
-    private boolean isAnchorImported;
-    private boolean isServerCodeInitialized;
-    private boolean isServerOwnerInitialized;
-    private TokenInitStatusInfo softwareTokenInitStatusInfo = TokenInitStatusInfo.UNKNOWN;
+public class VersionInfo {
+    private String info;
+
+    private int javaVersion;
+
+    private int minJavaVersion;
+
+    private int maxJavaVersion;
+
+    private boolean usingSupportedJavaVersion;
+
+    private String javaVendor;
+
+    private String javaRuntimeVersion;
 }

@@ -100,7 +100,7 @@
                 <subsystem-name :name="groupMember.subsystem_name" />
               </td>
               <td data-test="client-id">{{ groupMember.id }}</td>
-              <td>{{ groupMember.created_at }}</td>
+              <td>{{ $filters.formatDateTime(groupMember.created_at) }}</td>
 
               <td>
                 <div class="button-wrap">

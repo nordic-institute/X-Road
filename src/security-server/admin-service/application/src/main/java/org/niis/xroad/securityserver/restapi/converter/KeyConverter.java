@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,9 +30,9 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyAlgorithm;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyAlgorithmDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -42,7 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Convert Key related data between openapi and service domain classes
+ * Convert KeyDto related data between openapi and service domain classes
  */
 @Component
 @RequiredArgsConstructor
@@ -54,19 +55,19 @@ public class KeyConverter {
     private final PossibleActionConverter possibleActionConverter;
 
     /**
-     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * Convert {@link KeyInfo} to openapi {@link KeyDto} object
      * @param keyInfo
      */
-    public Key convert(KeyInfo keyInfo) {
+    public KeyDto convert(KeyInfo keyInfo) {
         return convertInternal(keyInfo, null);
     }
 
     /**
-     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * Convert {@link KeyInfo} to openapi {@link KeyDto} object
      * and populate possibleActions
      * @param keyInfo
      */
-    public Key convert(KeyInfo keyInfo, TokenInfo tokenInfo) {
+    public KeyDto convert(KeyInfo keyInfo, TokenInfo tokenInfo) {
         if (tokenInfo == null) {
             throw new IllegalArgumentException("tokenInfo is mandatory to populate possibleActions");
         }
@@ -74,69 +75,69 @@ public class KeyConverter {
     }
 
     /**
-     * Convert {@link KeyInfo} to openapi {@link Key} object
+     * Convert {@link KeyInfo} to openapi {@link KeyDto} object
      * and populate possibleActions if TokenInfo param was given
      * @param keyInfo
      */
-    private Key convertInternal(KeyInfo keyInfo, TokenInfo tokenInfo) {
-        Key key = new Key();
-        key.setId(keyInfo.getId());
-        key.setName(keyInfo.getFriendlyName());
-        key.setLabel(keyInfo.getLabel());
-        key.setKeyAlgorithm(mapKeyAlgorithm(keyInfo.getSignMechanismName()));
+    private KeyDto convertInternal(KeyInfo keyInfo, TokenInfo tokenInfo) {
+        KeyDto keyDto = new KeyDto();
+        keyDto.setId(keyInfo.getId());
+        keyDto.setName(keyInfo.getFriendlyName());
+        keyDto.setLabel(keyInfo.getLabel());
+        keyDto.setKeyAlgorithm(mapKeyAlgorithm(keyInfo.getSignMechanismName()));
         if (keyInfo.getUsage() != null) {
             if (keyInfo.isForSigning()) {
-                key.setUsage(KeyUsageType.SIGNING);
+                keyDto.setUsage(KeyUsageTypeDto.SIGNING);
             } else {
-                key.setUsage(KeyUsageType.AUTHENTICATION);
+                keyDto.setUsage(KeyUsageTypeDto.AUTHENTICATION);
             }
         }
 
-        key.setAvailable(keyInfo.isAvailable());
-        key.setSavedToConfiguration(keyInfo.isSavedToConfiguration());
+        keyDto.setAvailable(keyInfo.isAvailable());
+        keyDto.setSavedToConfiguration(keyInfo.isSavedToConfiguration());
 
         if (tokenInfo == null) {
             // without possibleactions
-            key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts()));
-            key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests()));
+            keyDto.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts()));
+            keyDto.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests()));
         } else {
             // with possibleactions
-            key.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts(), keyInfo, tokenInfo));
-            key.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests(), keyInfo, tokenInfo));
+            keyDto.setCertificates(tokenCertificateConverter.convert(keyInfo.getCerts(), keyInfo, tokenInfo));
+            keyDto.setCertificateSigningRequests(tokenCsrConverter.convert(keyInfo.getCertRequests(), keyInfo, tokenInfo));
 
-            key.setPossibleActions(possibleActionConverter.convert(
+            keyDto.setPossibleActions(possibleActionConverter.convert(
                     possibleActionsRuleEngine.getPossibleKeyActions(
                             tokenInfo, keyInfo)));
         }
 
-        return key;
+        return keyDto;
     }
 
-    private KeyAlgorithm mapKeyAlgorithm(String signMechanismName) {
+    private KeyAlgorithmDto mapKeyAlgorithm(String signMechanismName) {
         return switch (SignMechanism.valueOf(signMechanismName).keyAlgorithm()) {
-            case RSA -> KeyAlgorithm.RSA;
-            case EC -> KeyAlgorithm.EC;
+            case RSA -> KeyAlgorithmDto.RSA;
+            case EC -> KeyAlgorithmDto.EC;
         };
     }
 
     /**
-     * Convert a group of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos}
+     * Convert a group of {@link KeyInfo keyInfos} to a list of {@link KeyDto keyInfos}
      * @param keyInfos
      * @return List of {@link KeyInfo keyInfos}
      */
-    public List<Key> convert(Iterable<KeyInfo> keyInfos) {
+    public List<KeyDto> convert(Iterable<KeyInfo> keyInfos) {
         return Streams.stream(keyInfos)
                 .map(this::convert)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Convert a group of {@link KeyInfo keyInfos} to a list of {@link Key keyInfos},
+     * Convert a group of {@link KeyInfo keyInfos} to a list of {@link KeyDto keyInfos},
      * populating possibleActions
      * @param keyInfos
      * @return List of {@link KeyInfo keyInfos}
      */
-    public Set<Key> convert(Iterable<KeyInfo> keyInfos, TokenInfo tokenInfo) {
+    public Set<KeyDto> convert(Iterable<KeyInfo> keyInfos, TokenInfo tokenInfo) {
         return Streams.stream(keyInfos)
                 .map(k -> convert(k, tokenInfo))
                 .collect(Collectors.toSet());

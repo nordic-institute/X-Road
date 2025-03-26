@@ -1,5 +1,6 @@
 /*
  *  The MIT License
+ *
  *  Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  *  Copyright (c) 2018 Estonian Information System Authority (RIA),
  *  Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,8 +32,8 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import org.junit.Test;
+import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
-import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,7 +70,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
     public void getObsoleteClientServiceClientsByClient() throws Exception {
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
 
-        List<ServiceClientDto> scs = serviceClientService.getServiceClientsByClient(serviceOwner);
+        List<ServiceClient> scs = serviceClientService.getServiceClientsByClient(serviceOwner);
         assertEquals(SS1_SERVICE_CLIENTS, scs.size());
         Set<XRoadId> scIds = scs.stream()
                 .map(dto -> dto.getSubjectId())
@@ -80,7 +81,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
 
     @Test
     public void getObsoleteClientServiceClientsByEndpoint() throws Exception {
-        List<ServiceClientDto> scs = serviceClientService.getServiceClientsByEndpoint(
+        List<ServiceClient> scs = serviceClientService.getServiceClientsByEndpoint(
                 TestUtils.OBSOLETE_SCS_BASE_ENDPOINT_ID);
         assertEquals(2, scs.size());
         Set<XRoadId> scIds = scs.stream()
@@ -94,7 +95,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
     public void getObsoleteClientServiceClientsByService() throws Exception {
         ClientId serviceOwner = TestUtils.getM1Ss1ClientId();
 
-        List<ServiceClientDto> scs = serviceClientService.getServiceClientsByService(serviceOwner,
+        List<ServiceClient> scs = serviceClientService.getServiceClientsByService(serviceOwner,
                 TestUtils.OBSOLETE_SCS_FULL_SERVICE_CODE);
         assertEquals(2, scs.size());
         Set<XRoadId> scIds = scs.stream()
@@ -169,10 +170,10 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
     @Test
     public void getClientServiceClients() throws Exception {
         ClientId.Conf clientId1 = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
-        List<ServiceClientDto> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
+        List<ServiceClient> serviceClients1 = serviceClientService.getServiceClientsByClient(clientId1);
         assertTrue(serviceClients1.size() == 1);
 
-        ServiceClientDto arh1 = serviceClients1.get(0);
+        ServiceClient arh1 = serviceClients1.get(0);
         assertTrue(arh1.getSubjectId().getObjectType().equals(XRoadObjectType.SUBSYSTEM));
         assertNull(arh1.getLocalGroupCode());
         assertNull(arh1.getLocalGroupDescription());
@@ -183,7 +184,7 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
         assertTrue(serviceClientService.getServiceClientsByClient(clientId2).isEmpty());
 
         ClientId.Conf clientId3 = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
-        List<ServiceClientDto> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
+        List<ServiceClient> serviceClients3 = serviceClientService.getServiceClientsByClient(clientId3);
         assertEquals(6, serviceClients3.size());
         assertTrue(serviceClients3.stream().anyMatch(arh -> arh.getSubjectId()
                 .getObjectType().equals(XRoadObjectType.GLOBALGROUP)));
@@ -198,9 +199,9 @@ public class ServiceClientServiceIntegrationTest extends AbstractServiceIntegrat
     @Test
     public void getClientServiceClientsHasCorrectRightsGiven() throws Exception {
         ClientId clientId = ClientId.Conf.create("FI", "GOV", "M1", "SS1");
-        List<ServiceClientDto> serviceClients = serviceClientService.getServiceClientsByClient(clientId);
+        List<ServiceClient> serviceClients = serviceClientService.getServiceClientsByClient(clientId);
         XRoadId globalGroupId = GlobalGroupId.Conf.create("FI", "test-globalgroup");
-        Optional<ServiceClientDto> groupServiceClient = serviceClients.stream()
+        Optional<ServiceClient> groupServiceClient = serviceClients.stream()
                 .filter(dto -> dto.getSubjectId().equals(globalGroupId))
                 .findFirst();
         assertTrue(groupServiceClient.isPresent());

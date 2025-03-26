@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,8 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,19 +37,19 @@ import org.springframework.stereotype.Component;
 public class VersionConverter {
 
     /**
-     * Copies VersionInfoDto object to VersionInfo object
-     * @param versionInfoDto - source object
+     * Copies VersionInfo object to VersionInfoDto object
+     * @param versionInfo - source object
      * @return copied object
      */
-    public VersionInfo convert(VersionInfoDto versionInfoDto) {
-        VersionInfo result = new VersionInfo();
-        result.setInfo(versionInfoDto.getInfo());
-        result.setJavaVersion(versionInfoDto.getJavaVersion());
-        result.setMinJavaVersion(versionInfoDto.getMinJavaVersion());
-        result.setMaxJavaVersion(versionInfoDto.getMaxJavaVersion());
-        result.setUsingSupportedJavaVersion(versionInfoDto.isUsingSupportedJavaVersion());
-        result.setJavaVendor(versionInfoDto.getJavaVendor());
-        result.setJavaRuntimeVersion(versionInfoDto.getJavaRuntimeVersion());
+    public VersionInfoDto convert(VersionInfo versionInfo) {
+        VersionInfoDto result = new VersionInfoDto();
+        result.setInfo(versionInfo.getInfo());
+        result.setJavaVersion(versionInfo.getJavaVersion());
+        result.setMinJavaVersion(versionInfo.getMinJavaVersion());
+        result.setMaxJavaVersion(versionInfo.getMaxJavaVersion());
+        result.setUsingSupportedJavaVersion(versionInfo.isUsingSupportedJavaVersion());
+        result.setJavaVendor(versionInfo.getJavaVendor());
+        result.setJavaRuntimeVersion(versionInfo.getJavaRuntimeVersion());
         return result;
     }
 }

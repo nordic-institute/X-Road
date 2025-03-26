@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,27 +26,43 @@
  */
 package org.niis.xroad.serverconf.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.serverconf.PathGlob;
 
-import java.util.ArrayList;
-import java.util.List;
+public interface BaseEndpoint {
+    String ANY_METHOD = "*";
+    String ANY_PATH = "**";
 
-/**
- * Server conf.
- */
-@Getter
-@Setter
-public class ServerConfType {
+    String getMethod();
 
-    private Long id;
+    String getPath();
 
-    private String serverCode;
+    String getServiceCode();
 
-    private ClientType owner;
+    default void validateArguments() {
+        if (getServiceCode() == null || getMethod() == null || getPath() == null) {
+            throw new IllegalArgumentException("Endpoint parts can not be null");
+        }
+    }
 
-    private final List<ClientType> client = new ArrayList<>();
+    default boolean matches(String anotherMethod, String anotherPath) {
+        return (ANY_METHOD.equals(getMethod()) || getMethod().equalsIgnoreCase(anotherMethod))
+                && (ANY_PATH.equals(getPath()) || PathGlob.matches(getPath(), anotherPath));
+    }
 
-    private final List<TspType> tsp = new ArrayList<>();
 
+    default boolean isEquivalent(BaseEndpoint other) {
+        return other.getServiceCode().equals(getServiceCode())
+                && other.getMethod().equals(getMethod())
+                && other.getPath().equals(getPath());
+    }
+
+    /**
+     * Return true is this endpoint is base endpoint and false otherwise.
+     * Base endpoint is in other words service (code) level endpoint.
+     * Each service has one base endpoint.
+     * Base endpoint has method '*' and path '**'.
+     */
+    default boolean isBaseEndpoint() {
+        return getMethod().equals(ANY_METHOD) && getPath().equals(ANY_PATH);
+    }
 }

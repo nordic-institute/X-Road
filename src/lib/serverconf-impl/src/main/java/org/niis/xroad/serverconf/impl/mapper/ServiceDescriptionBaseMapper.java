@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.model;
+package org.niis.xroad.serverconf.impl.mapper;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.model.ServiceDescriptionBase;
 
-/**
- * Time stamping provider.
- */
-@Getter
-@Setter
-public class TspType {
+@Mapper(uses = {ClientMapper.class})
+public interface ServiceDescriptionBaseMapper
+        extends GenericUniDirectionalMapper<ServiceDescriptionEntity, ServiceDescriptionBase> {
+    ServiceDescriptionBaseMapper INSTANCE = Mappers.getMapper(ServiceDescriptionBaseMapper.class);
+    static ServiceDescriptionBaseMapper get() {
+        return INSTANCE;
+    }
 
-    private Long id;
-
-    private String name;
-
-    private String url;
+    @Override
+    ServiceDescriptionBase toTarget(ServiceDescriptionEntity source);
 }

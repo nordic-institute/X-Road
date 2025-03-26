@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -42,12 +43,12 @@ import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticCo
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.exception.ErrorMessage;
-import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.core.io.Resource;
@@ -87,21 +88,21 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<GlobalConfDiagnostics> getGlobalConfDiagnostics() {
+    public ResponseEntity<GlobalConfDiagnosticsDto> getGlobalConfDiagnostics() {
         DiagnosticsStatus status = diagnosticService.queryGlobalConfStatus();
         return new ResponseEntity<>(globalConfDiagnosticConverter.convert(status), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<Set<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
+    public ResponseEntity<Set<TimestampingServiceDiagnosticsDto>> getTimestampingServicesDiagnostics() {
         Set<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
         return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<Set<OcspResponderDiagnostics>> getOcspRespondersDiagnostics() {
+    public ResponseEntity<Set<OcspResponderDiagnosticsDto>> getOcspRespondersDiagnostics() {
         List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
         return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
@@ -120,14 +121,14 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('DIAGNOSTICS', 'VIEW_TSPS')")
-    public ResponseEntity<AddOnStatus> getAddOnDiagnostics() {
+    public ResponseEntity<AddOnStatusDto> getAddOnDiagnostics() {
         AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddOnStatus();
         return new ResponseEntity<>(addOnStatusConverter.convert(addOnStatus), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<BackupEncryptionStatus> getBackupEncryptionDiagnostics() {
+    public ResponseEntity<BackupEncryptionStatusDto> getBackupEncryptionDiagnostics() {
         BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics =
                 diagnosticService.queryBackupEncryptionStatus();
         return new ResponseEntity<>(backupEncryptionStatusConverter
@@ -136,7 +137,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<MessageLogEncryptionStatus> getMessageLogEncryptionDiagnostics() {
+    public ResponseEntity<MessageLogEncryptionStatusDto> getMessageLogEncryptionDiagnostics() {
         MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics =
                 diagnosticService.queryMessageLogEncryptionStatus();
         return new ResponseEntity<>(messageLogEncryptionStatusConverter

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,45 +28,45 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatusDto;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between {@link TokenStatus} in api (enum) and model {@link TokenStatusInfo}
+ * Mapping between {@link TokenStatusDto} in api (enum) and model {@link TokenStatusInfo}
  */
 @Getter
 @RequiredArgsConstructor
 public enum TokenStatusMapping {
-    OK(TokenStatusInfo.OK, TokenStatus.OK),
-    USER_PIN_LOCKED(TokenStatusInfo.USER_PIN_LOCKED, TokenStatus.USER_PIN_LOCKED),
-    USER_PIN_INCORRECT(TokenStatusInfo.USER_PIN_INCORRECT, TokenStatus.USER_PIN_INCORRECT),
-    USER_PIN_INVALID(TokenStatusInfo.USER_PIN_INVALID, TokenStatus.USER_PIN_INVALID),
-    USER_PIN_EXPIRED(TokenStatusInfo.USER_PIN_EXPIRED, TokenStatus.USER_PIN_EXPIRED),
-    USER_PIN_COUNT_LOW(TokenStatusInfo.USER_PIN_COUNT_LOW, TokenStatus.USER_PIN_COUNT_LOW),
-    USER_PIN_FINAL_TRY(TokenStatusInfo.USER_PIN_FINAL_TRY, TokenStatus.USER_PIN_FINAL_TRY);
+    OK(TokenStatusInfo.OK, TokenStatusDto.OK),
+    USER_PIN_LOCKED(TokenStatusInfo.USER_PIN_LOCKED, TokenStatusDto.USER_PIN_LOCKED),
+    USER_PIN_INCORRECT(TokenStatusInfo.USER_PIN_INCORRECT, TokenStatusDto.USER_PIN_INCORRECT),
+    USER_PIN_INVALID(TokenStatusInfo.USER_PIN_INVALID, TokenStatusDto.USER_PIN_INVALID),
+    USER_PIN_EXPIRED(TokenStatusInfo.USER_PIN_EXPIRED, TokenStatusDto.USER_PIN_EXPIRED),
+    USER_PIN_COUNT_LOW(TokenStatusInfo.USER_PIN_COUNT_LOW, TokenStatusDto.USER_PIN_COUNT_LOW),
+    USER_PIN_FINAL_TRY(TokenStatusInfo.USER_PIN_FINAL_TRY, TokenStatusDto.USER_PIN_FINAL_TRY);
 
     private final TokenStatusInfo tokenStatusInfo;
-    private final TokenStatus tokenStatus;
+    private final TokenStatusDto tokenStatusDto;
 
     /**
      * Return matching {@link TokenStatusInfo}, if any
      *
-     * @param tokenStatus
+     * @param tokenStatusDto
      */
-    public static Optional<TokenStatusInfo> map(TokenStatus tokenStatus) {
-        return getFor(tokenStatus).map(TokenStatusMapping::getTokenStatusInfo);
+    public static Optional<TokenStatusInfo> map(TokenStatusDto tokenStatusDto) {
+        return getFor(tokenStatusDto).map(TokenStatusMapping::getTokenStatusInfo);
     }
 
     /**
-     * Return matching {@link TokenStatus}, if any
+     * Return matching {@link TokenStatusDto}, if any
      *
      * @param tokenStatusInfo
      */
-    public static Optional<TokenStatus> map(TokenStatusInfo tokenStatusInfo) {
-        return getFor(tokenStatusInfo).map(TokenStatusMapping::getTokenStatus);
+    public static Optional<TokenStatusDto> map(TokenStatusInfo tokenStatusInfo) {
+        return getFor(tokenStatusInfo).map(TokenStatusMapping::getTokenStatusDto);
     }
 
     /**
@@ -82,11 +83,11 @@ public enum TokenStatusMapping {
     /**
      * Return matching {@link TokenStatusMapping}, if any
      *
-     * @param tokenStatus
+     * @param tokenStatusDto
      */
-    public static Optional<TokenStatusMapping> getFor(TokenStatus tokenStatus) {
+    public static Optional<TokenStatusMapping> getFor(TokenStatusDto tokenStatusDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.tokenStatus.equals(tokenStatus))
+                .filter(mapping -> mapping.tokenStatusDto.equals(tokenStatusDto))
                 .findFirst();
     }
 
