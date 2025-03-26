@@ -170,7 +170,7 @@ public class ServiceDescriptionService {
             serviceDescriptionEntity.setDisabledNotice(disabledNotice);
         }
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
     }
 
     private ServiceDescriptionNotFoundException createServiceDescriptionNotFoundException(long serviceDescriptionId) {
@@ -189,7 +189,7 @@ public class ServiceDescriptionService {
         if (serviceDescriptionEntity == null) {
             throw createServiceDescriptionNotFoundException(id);
         }
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
         ClientEntity clientEntity = serviceDescriptionEntity.getClient();
         auditDataHelper.put(clientEntity.getIdentifier());
         cleanAccessRights(clientEntity, serviceDescriptionEntity);
@@ -639,7 +639,7 @@ public class ServiceDescriptionService {
         }
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
 
         if (serviceDescriptionEntity.getType().equals(DescriptionType.WSDL)) {
             serviceDescriptionEntity = refreshWSDLServiceDescription(serviceDescriptionEntity, ignoreWarnings);
@@ -755,7 +755,7 @@ public class ServiceDescriptionService {
         }
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
         auditDataHelper.put(RestApiAuditProperty.URL_NEW, url);
         if (!serviceDescriptionEntity.getType().equals(DescriptionType.REST)) {
             throw new WrongServiceDescriptionException("Expected description type REST");
@@ -777,6 +777,12 @@ public class ServiceDescriptionService {
         checkDuplicateUrl(serviceDescriptionEntity);
 
         return ServiceDescriptionMapper.get().toTarget(serviceDescriptionEntity);
+    }
+
+    private void putServiceDescriptionUrlAndTypeToAudit(ServiceDescriptionEntity serviceDescriptionEntity) {
+        if (serviceDescriptionEntity != null) {
+            auditDataHelper.putServiceDescriptionUrlAndType(serviceDescriptionEntity.getUrl(), serviceDescriptionEntity.getType());
+        }
     }
 
     /**
@@ -811,7 +817,7 @@ public class ServiceDescriptionService {
         }
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
         auditDataHelper.put(RestApiAuditProperty.URL_NEW, url);
 
         if (!serviceDescriptionEntity.getType().equals(DescriptionType.OPENAPI3)) {
@@ -1005,7 +1011,7 @@ public class ServiceDescriptionService {
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(RestApiAuditProperty.WSDL);
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
 
         if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION)) {
             auditDataHelper.put(RestApiAuditProperty.URL_NEW, url);

@@ -17,7 +17,7 @@ dependencies {
     api(project(":common:common-domain"))
     implementation(project(":common:common-core"))
     implementation(project(":service:signer:signer-api"))
-    implementation(project(":lib:serverconf-impl"))
+    implementation(project(":lib:serverconf-core"))
 
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)

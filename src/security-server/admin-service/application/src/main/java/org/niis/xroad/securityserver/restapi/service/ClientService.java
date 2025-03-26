@@ -312,7 +312,7 @@ public class ClientService {
             // client cannot do anything about this
             throw new RuntimeException(ex);
         }
-        auditDataHelper.put(certificateEntity);
+        putCertificateHashToAudit(certificateEntity);
 
         ClientEntity clientEntity = getLocalClientEntityOrThrowNotFound(id);
         Optional<CertificateEntity> duplicate = clientEntity.getCertificates().stream()
@@ -324,6 +324,12 @@ public class ClientService {
 
         clientEntity.getCertificates().add(certificateEntity);
         return CertificateMapper.get().toTarget(certificateEntity);
+    }
+
+    private void putCertificateHashToAudit(CertificateEntity certificateEntity) {
+        if (certificateEntity != null) {
+            auditDataHelper.putCertificateHashAndAlgorithm(certificateEntity.getData());
+        }
     }
 
     /**
@@ -366,11 +372,11 @@ public class ClientService {
         Optional<CertificateEntity> certificateEntity = clientEntity.getCertificates().stream()
                 .filter(certificate -> calculateCertHexHash(certificate.getData()).equalsIgnoreCase(certificateHash))
                 .findAny();
-        if (!certificateEntity.isPresent()) {
+        if (certificateEntity.isEmpty()) {
             throw new CertificateNotFoundException();
         }
 
-        auditDataHelper.put(certificateEntity.get());
+        putCertificateHashToAudit(certificateEntity.get());
 
         clientEntity.getCertificates().remove(certificateEntity.get());
     }
@@ -509,11 +515,15 @@ public class ClientService {
             Integer requestId = managementRequestSenderService.sendClientRegisterRequest(clientId, subsystemName);
             subsystemNameStatus.submit(clientId);
             client.setClientStatus(Client.STATUS_REGINPROG);
-            auditDataHelper.putClientStatus(client);
+            putClientStatusToAudit(client);
             auditDataHelper.putManagementRequestId(requestId);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
+    }
+
+    private void putClientStatusToAudit(ClientEntity clientEntity) {
+        auditDataHelper.putClientStatus(clientEntity != null ? clientEntity.getClientStatus() : null);
     }
 
     private ClientIdEntity getCurrentSecurityServerOwnerIdEntity() {
@@ -544,7 +554,7 @@ public class ClientService {
         }
         try {
             Integer requestId = managementRequestSenderService.sendClientUnregisterRequest(clientId);
-            auditDataHelper.putClientStatus(client);
+            putClientStatusToAudit(client);
             auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DELINPROG);
         } catch (ManagementRequestSendingFailedException e) {
@@ -571,7 +581,7 @@ public class ClientService {
                 ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), memberClass, memberCode);
         auditDataHelper.put(clientId);
         ClientEntity client = getLocalClientEntityOrThrowNotFound(clientId);
-        auditDataHelper.putClientStatus(client);
+        putClientStatusToAudit(client);
         ClientIdEntity ownerId = getCurrentSecurityServerOwnerIdEntity();
         if (ownerId.equals(client.getIdentifier())) {
             throw new MemberAlreadyOwnerException();
@@ -606,7 +616,7 @@ public class ClientService {
         }
         try {
             Integer requestId = managementRequestSenderService.sendClientDisableRequest(clientId);
-            auditDataHelper.putClientStatus(client);
+            putClientStatusToAudit(client);
             auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DISABLING_INPROG);
         } catch (ManagementRequestSendingFailedException e) {
@@ -632,7 +642,7 @@ public class ClientService {
         }
         try {
             Integer requestId = managementRequestSenderService.sendClientEnableRequest(clientId);
-            auditDataHelper.putClientStatus(client);
+            putClientStatusToAudit(client);
             auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_ENABLING_INPROG);
         } catch (ManagementRequestSendingFailedException e) {
@@ -800,7 +810,7 @@ public class ClientService {
         } else {
             client.setClientStatus(Client.STATUS_SAVED);
         }
-        auditDataHelper.putClientStatus(client);
+        putClientStatusToAudit(client);
 
         client.setIsAuthentication(isAuthentication.name());
         ServerConfEntity serverConfEntity = serverConfService.getServerConfEntity();

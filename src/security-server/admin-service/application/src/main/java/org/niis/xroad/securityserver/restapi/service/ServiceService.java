@@ -179,7 +179,7 @@ public class ServiceService {
             checkDuplicateUrl(serviceDescriptionEntity);
         }
 
-        auditDataHelper.putServiceDescriptionUrl(serviceDescriptionEntity);
+        putServiceDescriptionUrlAndTypeToAudit(serviceDescriptionEntity);
 
         serviceDescriptionEntity.getServices().forEach(service ->
                 updateServiceFromSameDefinition(url, urlAll, timeout,
@@ -188,6 +188,12 @@ public class ServiceService {
         );
 
         return ServiceMapper.get().toTarget(serviceEntity);
+    }
+
+    private void putServiceDescriptionUrlAndTypeToAudit(ServiceDescriptionEntity serviceDescriptionEntity) {
+        if (serviceDescriptionEntity != null) {
+            auditDataHelper.putServiceDescriptionUrlAndType(serviceDescriptionEntity.getUrl(), serviceDescriptionEntity.getType());
+        }
     }
 
     private void checkDuplicateUrl(
