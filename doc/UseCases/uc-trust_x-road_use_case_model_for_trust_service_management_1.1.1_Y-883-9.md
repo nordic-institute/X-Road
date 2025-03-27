@@ -125,7 +125,7 @@ includes the following actor.
 Relationships between the actor, system and use cases are described in
 Figure 1.
 
-![](img/central_server_admin.png)
+![](img/central_server_admin.PNG)
 
 Figure 1. Use case diagram for trust service management
 

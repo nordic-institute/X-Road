@@ -184,7 +184,7 @@ the following actors:
 The relationships between the actor, system and use cases are described
 in Figure 1.
 
-![](img/use_case_diagram_for_right_management_in_ss.png)
+![](img/use_case_diagram_for_right_management_in_ss.PNG)
 
 Figure 1. Use case diagram for service and access rights management in the security server
 
@@ -1852,7 +1852,7 @@ following actor:
 The relationships between the actor, system and use cases are described
 in Figure 2.
 
-![](img/central_server_use_case_diagram_for_service_and_access_right_management.png)
+![](img/central_server_use_case_diagram_for_service_and_access_right_management.PNG)
 
 Figure 2. Central server use case diagram for service and access rights management
 

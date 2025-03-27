@@ -126,7 +126,7 @@ actor.
 Relationships between the actor, the system and the use cases are
 described in Figure 1.
 
-![](img/use_case_diagram_for_central_server_manangement.png)
+![](img/use_case_diagram_for_central_server_manangement.PNG)
 
 Figure 1. Use case diagram for central server management
 
