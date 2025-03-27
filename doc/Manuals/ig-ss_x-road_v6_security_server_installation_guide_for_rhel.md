@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.34  
+Version: 1.35  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -46,7 +46,8 @@ Doc. ID: IG-SS-RHEL
 | 16.12.2024 | 1.31    | Instructions to install PostgreSQL packages                                                                                                                                                                          | Justas Samuolis      |
 | 14.01.2025 | 1.32    | Adding extra check for remote database setup                                                                                                                                                                         | Eneli Reimets        |
 | 18.02.2025 | 1.33    | Configuring memory allocation fo proxy service                                                                                                                                                                       | Ovidijus Narkevičius |
-| 10.03.2025 | 1.34    | Update required connections and other minor updates                                                                                                                                                    | Petteri Kivimäki     |
+| 10.03.2025 | 1.34    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
+| 21.03.2025 | 1.35    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
 
 ## License
 

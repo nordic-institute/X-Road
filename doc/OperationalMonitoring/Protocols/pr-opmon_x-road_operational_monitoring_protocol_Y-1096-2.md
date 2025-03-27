@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.5  
+Version: 1.6  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -19,6 +19,7 @@ Doc. ID: PR-OPMON
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
+| 26.03.2025 | 1.6     | Syntax and styling                                                   | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -59,7 +60,7 @@ This protocol builds on existing transport and message encoding mechanisms. Ther
 
 The low-level technical details of the operational monitoring services are specified using the WSDL \[[WSDL](#WSDL)\] syntax. See \[[Annex A](#AnnexA)\] for operational monitoring services WSDL file.
 
-Chapters 2 and 3 together with annexes \[[Annex A](#AnnexA)\] and \[[Annex B](AnnexB)\] contain normative information. All the other sections are informative in nature. All the references are normative.
+Chapters 2 and 3 together with annexes \[[Annex A](#AnnexA)\] and \[[Annex B](#AnnexB)\] contain normative information. All the other sections are informative in nature. All the references are normative.
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
@@ -71,12 +72,12 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-<a name="PR-MESS"></a>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
-<a name="WSDL"></a>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
-<a name="SWAREF"></a>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
-<a name="RFC1952"></a>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  
-<a name="RFC2119"></a>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt  
-<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
+<a name="PR-MESS"/>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
+<a name="WSDL"/>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
+<a name="SWAREF"/>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
+<a name="RFC1952"/>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  
+<a name="RFC2119"/>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt  
+<a name="Ref_TERMS" class="anchor"/>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Retrieving Operational Data of Security Server
 
@@ -285,7 +286,7 @@ The XML schema fragment of the health data response body is shown below. For cla
 
 The example response message is presented in \[[Annex C.4](#AnnexC.4)\].
 
-<a name="AnnexA"/></a>
+<a name="AnnexA"/>
 # Annex A WSDL for Operational Monitoring Messages
 
 The XML-schema for operational monitoring messages is located in the file *src/op-monitor-daemon/core/src/main/resources/op-monitoring.xsd* of the X-Road source code.
@@ -950,7 +951,7 @@ The WSDL is located in the file *src/op-monitor-daemon/core/src/main/resources/o
 </wsdl:definitions>
 ```
 
-<a name="AnnexB"/></a>
+<a name="AnnexB"/>
 ## Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
 
 The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
@@ -1123,10 +1124,10 @@ required:
 - records
 ```
 
-<a name="AnnexC"/></a>
+<a name="AnnexC"/>
 ## Annex C Example Messages
 
-<a name="AnnexC.1"/></a>
+<a name="AnnexC.1"/>
 ### C.1 getSecurityServerOperationalData Request
 
 ```xml
@@ -1169,7 +1170,7 @@ required:
 </SOAP-ENV:Envelope>
 ```
 
-<a name="AnnexC.2"/></a>
+<a name="AnnexC.2"/>
 ### C.2 getSecurityServerOperationalData Response
 
 ```xml
@@ -1269,7 +1270,7 @@ content-id: <operational-monitoring-data.json.gz>
   ]
 }
 ```
-<a name="AnnexC.3"/></a>
+<a name="AnnexC.3"/>
 ### C.3 getSecurityServerHealthData Request
 
 ```xml
@@ -1316,7 +1317,7 @@ content-id: <operational-monitoring-data.json.gz>
 </SOAP-ENV:Envelope>
 ```
 
-<a name="AnnexC.3"/></a>
+<a name="AnnexC.3"/>
 ### C.4 getSecurityServerHealthData Response
 
 ```xml
