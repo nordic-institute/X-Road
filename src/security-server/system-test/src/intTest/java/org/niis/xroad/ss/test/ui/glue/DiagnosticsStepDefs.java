@@ -174,6 +174,15 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                         partialText("not sent yet")));
     }
 
+    @Step("Proxy memory usage should be ok")
+    public void proxyMemoryUsageStatus() {
+        diagnosticsPage.proxyMemoryUsageMessage()
+                .scrollIntoView(false)
+                .shouldHave(partialText("ok"));
+        diagnosticsPage.proxyMemoryUsageMax().shouldHave(partialText("512.0MB"));
+        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
+    }
+
     @Step("download diagnostic report button is clicked")
     public void clickDiagnosticReportButton() {
         var file = diagnosticsPage.btnDownloadDiagnoticsReport()
