@@ -57,7 +57,6 @@
     "intermediate_ca_not_found": "CA intermedia no encontrada",
     "internal_error": "Error interno. Consulte los registros del servidor para más detalles",
     "invalid_address_char": "El campo de la dirección contiene caracteres no válidos",
-    "invalid_certificate": "Certificado X.509 no válido",
     "invalid_encoded_id": "El ID codificado no es válido",
     "invalid_file_content_type": "Tipo de contenido no válido en el archivo o fichero cargado",
     "invalid_file_extension": "Extensión de archivo o fichero no válida",
@@ -120,7 +119,7 @@
     "token_invalid_characters": "El código PIN proporcionado contiene caracteres no válidos",
     "token_pin_final_try": "Intentos restantes: 1",
     "token_pin_locked": "PIN de token bloqueado",
-    "token_weak_pin": "El código PIN proporcionado era demasiado débil",
+    "tr": {},
     "trusted_anchor_not_found": "Ancla de confianza no encontrada",
     "trusted_anchor_verification_failed": "La verificación del Ancla de confianza falló",
     "unknown_configuration_part": "Parte de configuración desconocida"
@@ -616,11 +615,6 @@
     }
   },
   "tokens": {
-    "errors": {
-      "Signer": {
-        "PinIncorrect": "PIN no válido"
-      }
-    },
     "keysInfoMessage": "Se permite un máximo de dos claves de firma de origen de configuración en un token de seguridad.",
     "logIn": "Acceso",
     "loginDialog": {

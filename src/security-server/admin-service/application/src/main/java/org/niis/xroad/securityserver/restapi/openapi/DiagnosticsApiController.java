@@ -33,7 +33,7 @@ import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
@@ -44,7 +44,6 @@ import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticCo
 import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.exception.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
@@ -65,6 +64,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FAILED_COLLECT_SYSTEM_INFORMATION;
 
 /**
  * diagnostics api
@@ -116,7 +117,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
             return ControllerUtil.createAttachmentResourceResponse(diagnosticReportService.collectSystemInformation(),
                     systemInformationFilename());
         } catch (Exception e) {
-            throw new ServiceException(ErrorMessage.FAILED_COLLECT_SYSTEM_INFORMATION, e);
+            throw new InternalServerErrorException(e, FAILED_COLLECT_SYSTEM_INFORMATION.build());
         }
 
     }

@@ -28,13 +28,12 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
@@ -85,7 +84,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initSecurityServerFail() throws Exception {
         InitialServerConfDto initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
-        Mockito.doThrow(new AnchorNotFoundException(""))
+        Mockito.doThrow(new InitializationService.AnchorNotFoundException("err"))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
         try {
             initializationApiController.initSecurityServer(initialServerConf);

@@ -1,20 +1,19 @@
 /*
  * The MIT License
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,23 +22,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.common.exception;
 
+import lombok.NonNull;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-/**
- * Service layer exception, which is thrown if some item is not found
- */
-public class NotFoundException extends ServiceException {
-    public NotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
+public abstract class ServerErrorException extends DeviationAwareRuntimeException {
 
-    public NotFoundException(ErrorDeviation errorDeviation) {
+    public ServerErrorException(@NonNull ErrorDeviation errorDeviation) {
         super(errorDeviation);
     }
 
-    public NotFoundException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public ServerErrorException(String message, @NonNull final ErrorDeviation errorDeviation) {
+        super(message, errorDeviation);
     }
+
+    public ServerErrorException(Throwable cause, @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
+    }
+
+    public ServerErrorException(String message, Throwable cause, @NonNull final ErrorDeviation errorDeviation) {
+        super(message, cause, errorDeviation);
+    }
+
+    public <DE extends Exception & DeviationAware> ServerErrorException(@NonNull final DE exception) {
+        super(exception);
+    }
+
 }

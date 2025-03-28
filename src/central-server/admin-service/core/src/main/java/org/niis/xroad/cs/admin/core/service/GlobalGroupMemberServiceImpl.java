@@ -114,7 +114,7 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
         final var globalGroupMemberEntity = globalGroup.getGlobalGroupMembers().stream()
                 .filter(groupMember -> groupMember.getIdentifier().asEncodedId().equals(memberId))
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND, memberId));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build("memberId", memberId)));
 
         auditDataHelper.put(RestApiAuditProperty.CODE, globalGroup.getGroupCode());
         auditDataHelper.put(RestApiAuditProperty.DESCRIPTION, globalGroup.getDescription());
@@ -145,12 +145,12 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
 
     private XRoadMemberEntity getMemberIdEntity(MemberId memberId) {
         return xRoadMemberRepository.findMember(memberId)
-                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
     }
 
     private GlobalGroupEntity getGlobalGroupEntity(String groupCode) {
         return globalGroupRepository.getByGroupCode(groupCode)
-                .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND.build()));
     }
 
     private boolean isMemberAlreadyInGroup(GlobalGroupEntity globalGroupEntity, XRoadMemberEntity memberEntity) {

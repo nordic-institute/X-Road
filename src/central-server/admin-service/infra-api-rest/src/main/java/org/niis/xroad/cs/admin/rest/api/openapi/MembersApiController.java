@@ -29,9 +29,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
@@ -62,6 +61,7 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_ID;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
@@ -118,7 +118,7 @@ public class MembersApiController implements MembersApi {
                 .flatMap(memberService::findMember)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
     }
 
     @Override
@@ -189,12 +189,12 @@ public class MembersApiController implements MembersApi {
                 .flatMap(clientId -> memberService.updateMemberName(clientId, memberName.getMemberName()))
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
     }
 
     private void verifyMemberId(String id) {
         if (!clientIdConverter.isEncodedMemberId(id)) {
-            throw new ValidationFailureException(INVALID_MEMBER_ID, id);
+            throw new BadRequestException(INVALID_MEMBER_ID.build(id));
         }
     }
 }

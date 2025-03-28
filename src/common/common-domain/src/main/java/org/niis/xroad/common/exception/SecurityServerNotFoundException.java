@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.common.exception;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.SECURITY_SERVER_NOT_FOUND;
 
 /**
@@ -36,23 +38,10 @@ public class SecurityServerNotFoundException extends NotFoundException {
 
     /**
      * Creates new exception with a message.
-     *
-     * @param metadata metadata which is used for Deviation message creation.
-     *                 Values are converted to strings using toString() method.
+     * @param serverId security server id
      */
-    public SecurityServerNotFoundException(final Object... metadata) {
-        super(SECURITY_SERVER_NOT_FOUND, metadata);
+    public SecurityServerNotFoundException(final SecurityServerId serverId) {
+        super(SECURITY_SERVER_NOT_FOUND.build(serverId));
     }
 
-    /**
-     * Creates new exception with a message.
-     *
-     * @param cause    root cause for this exception
-     * @param metadata metadata which is used for Deviation message creation.
-     *                 Values are converted to strings using toString() method.
-     */
-    public SecurityServerNotFoundException(final Throwable cause,
-                                           final Object... metadata) {
-        super(SECURITY_SERVER_NOT_FOUND, cause, metadata);
-    }
 }

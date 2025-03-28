@@ -59,7 +59,6 @@
     "intermediate_ca_not_found": "Intermediate CA not found",
     "internal_error": "Internal error. See server logs for more details",
     "invalid_address_char": "Address field contains invalid characters",
-    "invalid_certificate": "Invalid X.509 certificate",
     "invalid_encoded_id": "Invalid encoded id",
     "invalid_file_content_type": "Invalid content type of uploaded file",
     "invalid_file_extension": "Invalid file extension",
@@ -122,7 +121,7 @@
     "token_invalid_characters": "The provided pin code contains invalid characters",
     "token_pin_final_try": "Tries left: 1",
     "token_pin_locked": "Token PIN locked",
-    "token_weak_pin": "The provided pin code was too weak",
+    "tr": {},
     "trusted_anchor_not_found": "Trusted anchor not found",
     "trusted_anchor_verification_failed": "Trusted anchor verification failed",
     "unknown_configuration_part": "Unknown configuration part"
@@ -624,11 +623,6 @@
     }
   },
   "tokens": {
-    "errors": {
-      "Signer": {
-        "PinIncorrect": "Invalid PIN"
-      }
-    },
     "keysInfoMessage": "A maximum of two configuration source signing keys is allowed on a security token",
     "logIn": "Log in",
     "loginDialog": {

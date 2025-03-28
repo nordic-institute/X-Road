@@ -30,10 +30,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.SecurityServerConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
@@ -69,7 +69,7 @@ public class SecurityServersApiController implements SecurityServersApi {
     public ResponseEntity<SecurityServerDto> getSecurityServer(String encodedSecurityServerId) {
         SecurityServerId securityServerId = securityServerIdConverter.convertId(encodedSecurityServerId);
         if (!globalConfService.securityServerExists(securityServerId)) {
-            throw new ResourceNotFoundException("Security server " + encodedSecurityServerId + " not found");
+            throw new SecurityServerNotFoundException(securityServerId);
         }
         SecurityServerDto securityServerDto = securityServerConverter.convert(securityServerId);
         return new ResponseEntity<>(securityServerDto, HttpStatus.OK);

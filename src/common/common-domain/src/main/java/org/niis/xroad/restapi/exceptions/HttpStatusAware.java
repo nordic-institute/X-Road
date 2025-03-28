@@ -22,16 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.exception;
+package org.niis.xroad.restapi.exceptions;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
-
-@Getter
-@RequiredArgsConstructor
-public enum ErrorMessage implements DeviationProvider {
-    FAILED_COLLECT_SYSTEM_INFORMATION("failed_collect_system_information", "Failed to collect system information.");
-    private final String code;
-    private final String description;
+public interface HttpStatusAware {
+    int getHttpStatus();
 }

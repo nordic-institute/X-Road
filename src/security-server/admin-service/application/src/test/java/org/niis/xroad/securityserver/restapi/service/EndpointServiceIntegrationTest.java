@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
@@ -60,17 +60,11 @@ public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTe
         assertEquals(expectedIds, ids);
 
         Set<String> wrongServiceCodes = new HashSet<>(Arrays.asList("getRandom", "openapi-servicecode", "wrong"));
-        try {
-            endpointService.getServiceBaseEndpointEntities(owner, wrongServiceCodes);
-            fail("should throw exception");
-        } catch (EndpointNotFoundException expected) {
-        }
+        assertThrows(EndpointNotFoundException.class, () ->
+                endpointService.getServiceBaseEndpointEntities(owner, wrongServiceCodes));
 
         ClientEntity wrongOwner = clientService.getLocalClientEntity(TestUtils.getClientId("FI:GOV:M1:SS2"));
-        try {
-            endpointService.getServiceBaseEndpointEntities(wrongOwner, serviceCodes);
-            fail("should throw exception");
-        } catch (EndpointNotFoundException expected) {
-        }
+        assertThrows(EndpointNotFoundException.class, () ->
+                endpointService.getServiceBaseEndpointEntities(wrongOwner, serviceCodes));
     }
 }

@@ -26,7 +26,7 @@
 package org.niis.xroad.cs.admin.rest.api.converter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
 import org.springframework.stereotype.Component;
@@ -53,17 +53,16 @@ public class PageRequestConverter {
 
             return builder.build();
         } catch (NullPointerException e) {
-            throw new ValidationFailureException(INVALID_PAGINATION_PROPERTIES, e.getMessage());
+            throw new BadRequestException(e, INVALID_PAGINATION_PROPERTIES.build(e.getMessage()));
         }
     }
 
     public interface SortParameterConverter {
         /**
          * Convert an API-level sort parameter to service-level property name that JPA Data can sort by
-         *
-         * @throws ValidationFailureException if parameter value cannot be converted
+         * @throws BadRequestException if parameter value cannot be converted
          */
-        String convertToSortProperty(String sortParameter) throws ValidationFailureException;
+        String convertToSortProperty(String sortParameter) throws BadRequestException;
     }
 
     /**
@@ -78,10 +77,10 @@ public class PageRequestConverter {
         }
 
         @Override
-        public String convertToSortProperty(final String sortParameter) throws ValidationFailureException {
+        public String convertToSortProperty(final String sortParameter) throws BadRequestException {
             String sortProperty = conversionMapping.get(sortParameter);
             if (sortProperty == null) {
-                throw new ValidationFailureException(INVALID_SORTING_PROPERTIES, sortParameter);
+                throw new BadRequestException(INVALID_SORTING_PROPERTIES.build(sortParameter));
             }
             return sortProperty;
         }

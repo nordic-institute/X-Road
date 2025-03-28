@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientEnableRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientEnableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
@@ -66,8 +66,8 @@ class ClientEnableRequestHandler implements RequestHandler<ClientEnableRequest> 
         final var serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final var clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
         var serverClient = findServerClient(serverId, clientId)
-                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_CLIENT_NOT_FOUND,
-                        request.getSecurityServerId().toString(), request.getClientId().toString()));
+                .orElseThrow(() -> new ConflictException(MR_SERVER_CLIENT_NOT_FOUND.build(
+                        request.getSecurityServerId(), request.getClientId())));
 
         serverClient.setEnabled(true);
 

@@ -32,12 +32,12 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_SERVICE_CLIENT_ID;
 
 /**
  * Converter for ServiceClient identifiers
@@ -84,28 +84,13 @@ public class ServiceClientIdentifierConverter {
         return dto;
     }
 
-    public static class BadServiceClientIdentifierException extends Exception {
-        @Getter
-        private String serviceClientIdentifier;
+    @Getter
+    public static class BadServiceClientIdentifierException extends BadRequestException {
+        private static final String MESSAGE_TPL = "Invalid service client id: ";
 
         public BadServiceClientIdentifierException(String serviceClientIdentifier) {
-            super();
-            this.serviceClientIdentifier = serviceClientIdentifier;
+            super(MESSAGE_TPL + serviceClientIdentifier, INVALID_SERVICE_CLIENT_ID.build());
         }
-    }
-
-    /**
-     * Convert collection of encoded service client ids into ServiceClientIdentifierDtos
-     * See {@link #convertId(String)} for details.
-     * @throws BadServiceClientIdentifierException if encoded service client id was badly formatted
-     */
-    public List<ServiceClientIdentifierDto> convertIds(Iterable<String> encodedServiceClientIdentifiers)
-            throws BadServiceClientIdentifierException {
-        List<ServiceClientIdentifierDto> dtos = new ArrayList<>();
-        for (String encodedIdentifier : encodedServiceClientIdentifiers) {
-            dtos.add(convertId(encodedIdentifier));
-        }
-        return dtos;
     }
 
 }

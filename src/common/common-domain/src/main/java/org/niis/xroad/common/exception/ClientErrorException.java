@@ -1,7 +1,5 @@
 /*
  * The MIT License
- * <p>
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,21 +22,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.exceptions;
+package org.niis.xroad.common.exception;
 
-import java.util.Arrays;
+import lombok.NonNull;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.HttpStatusAware;
 
-public interface DeviationProvider {
+public abstract class ClientErrorException extends DeviationAwareRuntimeException implements HttpStatusAware {
+    public ClientErrorException(String message, @NonNull ErrorDeviation errorDeviation) {
+        super(message, errorDeviation);
+    }
 
-    String getCode();
+    public ClientErrorException(Throwable cause, @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
+    }
 
-    String getDescription();
+    public ClientErrorException(String message,
+                                Throwable cause,
+                                @NonNull final ErrorDeviation errorDeviation) {
+        super(message, cause, errorDeviation);
+    }
 
-    default ErrorDeviation asDeviation(String... metadataItem) {
-        if (metadataItem != null && metadataItem.length > 0) {
-            return new ErrorDeviation(getCode().toLowerCase(), Arrays.asList(metadataItem));
-        } else {
-            return new ErrorDeviation(getCode().toLowerCase());
-        }
+    public ClientErrorException(@NonNull final ErrorDeviation errorDeviation) {
+        super(errorDeviation);
+    }
+
+    public <DE extends Exception & DeviationAware> ClientErrorException(@NonNull final DE exception) {
+        super(exception);
     }
 }

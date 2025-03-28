@@ -26,68 +26,86 @@
  */
 package org.niis.xroad.common.exception.util;
 
-import lombok.Getter;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.exceptions.DeviationBuilder;
 
-public enum CommonDeviationMessage implements DeviationProvider {
-    INTERNAL_ERROR("internal_error", "Internal error. See server logs for more details"),
-    ACTION_NOT_POSSIBLE("action_not_possible", "Action not possible"),
-    GENERIC_VALIDATION_FAILURE("invalid_parameters", "Validation failure"),
-    SECURITY_SERVER_NOT_FOUND("security_server_not_found", "Security server not found"),
-    INVALID_ENCODED_ID("invalid_encoded_id", "Invalid encoded id"),
-    ERROR_ID_NOT_A_NUMBER("id_not_a_number", "Id is not a number"),
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 
-    API_KEY_NOT_FOUND("api_key_not_found", "Api key not found"),
-    API_KEY_INVALID_ROLE("invalid_role", "Invalid role"),
-    INVALID_FILENAME("invalid_filename", "Invalid filename"),
-    INVALID_FILE_CONTENT_TYPE("invalid_file_content_type", "Invalid file content type"),
-    INVALID_FILE_EXTENSION("invalid_file_extension", "Invalid file extension"),
-    DOUBLE_FILE_EXTENSION("double_file_extension", "Double file extension"),
-    INVALID_BACKUP_FILE("invalid_backup_file", "Invalid backup file"),
+@RequiredArgsConstructor
+public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
+    INTERNAL_ERROR("internal_error"),
+    ACTION_NOT_POSSIBLE("action_not_possible"),
+    GENERIC_VALIDATION_FAILURE("invalid_parameters"),
+    SECURITY_SERVER_NOT_FOUND("security_server_not_found"),
+    INVALID_ENCODED_ID("invalid_encoded_id"),
+    ERROR_ID_NOT_A_NUMBER("id_not_a_number"),
 
-    BACKUP_FILE_NOT_FOUND("backup_file_not_found", "Backup was not found"),
-    BACKUP_GENERATION_FAILED("backup_generation_failed", "Failed to generate backup"),
-    BACKUP_GENERATION_INTERRUPTED("generate_backup_interrupted", "Backup generation has been interrupted"),
-    BACKUP_RESTORATION_FAILED("restore_process_failed", "Failed to generate backup"),
-    BACKUP_RESTORATION_INTERRUPTED("backup_restore_interrupted", "Backup restoration has been interrupted"),
-    BACKUP_DELETION_FAILED("backup_deletion_failed", "Failed to delete backup"),
+    API_KEY_NOT_FOUND("api_key_not_found"),
+    API_KEY_INVALID_ROLE("invalid_role"),
+    INVALID_FILENAME("invalid_filename"),
+    INVALID_FILE_CONTENT_TYPE("invalid_file_content_type"),
+    INVALID_FILE_EXTENSION("invalid_file_extension"),
+    DOUBLE_FILE_EXTENSION("double_file_extension"),
+    INVALID_BACKUP_FILE("invalid_backup_file"),
 
-    ERROR_RESOURCE_READ("resource_read_failed", "Failed to read resource"),
-    ERROR_INVALID_ADDRESS_CHAR("invalid_address_char", "Address contains invalid characters"),
-    INVALID_URL("invalid_url", "Invalid url"),
+    BACKUP_FILE_NOT_FOUND("backup_file_not_found"),
+    BACKUP_GENERATION_FAILED("backup_generation_failed"),
+    BACKUP_GENERATION_INTERRUPTED("generate_backup_interrupted"),
+    BACKUP_RESTORATION_FAILED("restore_process_failed"),
+    BACKUP_RESTORATION_INTERRUPTED("backup_restore_interrupted"),
+    BACKUP_DELETION_FAILED("backup_deletion_failed"),
 
-    ANCHOR_NOT_FOR_EXTERNAL_SOURCE("conf_verification.anchor_not_for_external_source",
-            "Configuration verification failed: anchor_not_for_external_source"),
-    MISSING_PRIVATE_PARAMS("conf_verification.missing_private_params",
-            "Configuration verification failed: missing_private_params"),
-    CONF_VERIFICATION_OTHER("conf_verification.other",
-            "Configuration verification failed: other"),
-    CONF_VERIFICATION_OUTDATED("conf_verification.outdated",
-            "Configuration verification failed: outdated"),
-    CONF_VERIFICATION_SIGNATURE("conf_verification.signature_invalid",
-            "Configuration verification failed: signature_invalid"),
-    CONF_VERIFICATION_UNREACHABLE("conf_verification.unreachable",
-            "Configuration verification failed: unreachable"),
-    INVALID_DOWNLOAD_URL_FORMAT("conf_download.invalid_download_url_format",
-            "Error reading locations from shared parameters: not supported format of download url"),
+    ERROR_RESOURCE_READ("resource_read_failed"),
+    ERROR_INVALID_ADDRESS_CHAR("invalid_address_char"),
+    INVALID_URL("invalid_url"),
 
-    ERROR_READING_OPENAPI_FILE("openapi_file_error", "Error reading open api definition file"),
-    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted"),
-    EMAIL_SENDING_FAILED("email_sending_error", "Failed to send email"),
+    MALFORMED_ANCHOR("malformed_anchor"),
+    ANCHOR_NOT_FOR_EXTERNAL_SOURCE("conf_verification.anchor_not_for_external_source"),
+    MISSING_PRIVATE_PARAMS("conf_verification.missing_private_params"),
+    CONF_VERIFICATION_OTHER("conf_verification.other"),
+    CONF_VERIFICATION_OUTDATED("conf_verification.outdated"),
+    CONF_VERIFICATION_SIGNATURE("conf_verification.signature_invalid"),
+    CONF_VERIFICATION_UNREACHABLE("conf_verification.unreachable"),
+    INVALID_DOWNLOAD_URL_FORMAT("conf_download.invalid_download_url_format"),
+    CONF_DOWNLOAD_FAILED("conf_download_failed"),
+    OUTDATED_GLOBAL_CONF("global_conf_outdated"),
 
-    TOKEN_FETCH_FAILED("token_fetch_failed", "Error getting tokens"),
-    TOKEN_PIN_INCORRECT("pin_incorrect", "Entered PIN was incorrect"),
-    TOKEN_NOT_ACTIVE("token_not_active", "Token is not active"),
-    TOKEN_NOT_FOUND("token_not_found", "Token not found");
 
-    @Getter
+    ERROR_READING_OPENAPI_FILE("openapi_file_error"),
+    INITIALIZATION_INTERRUPTED("initialization_interrupted"),
+    EMAIL_SENDING_FAILED("email_sending_error"),
+
+    TOKEN_FETCH_FAILED("token_fetch_failed"),
+    TOKEN_PIN_INCORRECT("pin_incorrect"),
+    TOKEN_NOT_ACTIVE("token_not_active"),
+    TOKEN_NOT_FOUND("token_not_found"),
+    TOKEN_WEAK_PIN("token_weak_pin"),
+
+    CLIENT_NOT_FOUND("client_not_found"),
+    INVALID_CLIENT_NAME("invalid_client_name"),
+
+    ANCHOR_FILE_NOT_FOUND("anchor_file_not_found"),
+
+    INVALID_DISTINGUISHED_NAME("invalid_distinguished_name"),
+
+    MANAGEMENT_REQUEST_SENDING_FAILED("management_request_sending_failed"),
+
+    TIMESTAMPING_SERVICE_NOT_FOUND("timestamping_service_not_found"),
+
+    GPG_KEY_GENERATION_FAILED("gpg_key_generation_failed"),
+
+    KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),
+    INVALID_CERTIFICATE("invalid_certificate"),
+
+    MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS);
+
     private final String code;
-    @Getter
-    private final String description;
 
-    CommonDeviationMessage(final String code, final String description) {
-        this.code = code;
-        this.description = description;
+
+    @Override
+    public String code() {
+        return code;
     }
+
 
 }

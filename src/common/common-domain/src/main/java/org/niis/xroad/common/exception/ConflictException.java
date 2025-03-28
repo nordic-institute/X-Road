@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,46 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.common.exception;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import ee.ria.xroad.common.HttpStatus;
+
+import lombok.NonNull;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-
-import java.util.Collection;
 
 /**
- * Root class for all checked service layer exceptions
+ * Data integrity exception It has an error message which optionally can be thrown to api layer.
+ * Note: Usually if used within rest API this exception leads to http code 409.
  */
-public abstract class ServiceException extends DeviationAwareException {
-
-    protected ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        super(msg, t, errorDeviation);
+public class ConflictException extends ClientErrorException {
+    public ConflictException(String message, @NonNull ErrorDeviation errorDeviation) {
+        super(message, errorDeviation);
     }
 
-    protected ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
-                               Collection<WarningDeviation> warningDeviations) {
-        super(msg, t, errorDeviation, warningDeviations);
+    public ConflictException(Throwable cause, @NonNull ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
 
-    protected ServiceException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    protected ServiceException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
-    protected ServiceException(Throwable t, ErrorDeviation errorDeviation,
-                               Collection<WarningDeviation> warningDeviations) {
-        super(t, errorDeviation, warningDeviations);
-    }
-
-    protected ServiceException(ErrorDeviation errorDeviation) {
+    public ConflictException(@NonNull ErrorDeviation errorDeviation) {
         super(errorDeviation);
     }
 
-    protected ServiceException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public <DE extends Exception & DeviationAware> ConflictException(@NonNull DE exception) {
+        super(exception);
+    }
+
+    @Override
+    public int getHttpStatus() {
+        return HttpStatus.SC_CONFLICT;
     }
 }

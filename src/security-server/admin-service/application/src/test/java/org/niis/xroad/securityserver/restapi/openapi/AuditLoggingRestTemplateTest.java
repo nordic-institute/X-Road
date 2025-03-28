@@ -43,6 +43,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Map;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -144,8 +145,8 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
                 authCaptor.capture(), urlCaptor.capture());
         Assert.assertEquals(RestApiAuditEvent.SET_CONNECTION_TYPE, eventCaptor.getValue());
         assertEquals("api-key-1", userNameCaptor.getValue());
-        assertTrue(reasonCaptor.getValue().startsWith(
-                "org.niis.xroad.securityserver.restapi.service.ClientNotFoundException"));
+        assertThat(reasonCaptor.getValue())
+                .isEqualTo("client with id SUBSYSTEM:FI/GOV/MFOOBAR/SS555 not found");
         // in 7.x this has to be, for some reason:
         //        assertTrue(reasonCaptor.getValue().startsWith("ClientNotFoundException"));
         Map<String, Object> data = dataCaptor.getValue();

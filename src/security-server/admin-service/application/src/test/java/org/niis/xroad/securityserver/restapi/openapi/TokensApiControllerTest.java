@@ -30,8 +30,8 @@ import ee.ria.xroad.common.CodedException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
@@ -153,7 +153,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
         try {
             tokensApiController.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
             fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
         ResponseEntity<TokenDto> response = tokensApiController.getToken(GOOD_TOKEN_ID);
@@ -171,7 +171,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
         try {
             tokensApiController.addKey(TOKEN_NOT_FOUND_TOKEN_ID, new KeyLabelDto().label(KEY_LABEL));
             fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
         try {

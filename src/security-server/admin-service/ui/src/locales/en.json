@@ -370,14 +370,6 @@
           },
           "UnknownService": "Unknown service"
         }
-      },
-      "Signer": {
-        "CertNotFound": "Certification is not found",
-        "KeyNotFound": "Key is not found",
-        "NetworkError": "Signer is not currently reachable.",
-        "TokenNotAvailable": "Token is not available",
-        "TokenNotFound": "Token is not found",
-        "UnknownMember": "X-Road core - signer: Unknown member"
       }
     },
     "csr_not_found": "CSR not found",
@@ -396,7 +388,6 @@
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
     "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
-    "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
     "invalid_dn_parameter": "Invalid DN parameter",
     "invalid_https_url": "URL does not use HTTPS",
@@ -427,8 +418,6 @@
     "pin_code_exists": "PIN code exists",
     "pin_code_not_provided": "PIN code is not provided",
     "pin_incorrect": "Incorrect PIN. Please try again.",
-    "pin_min_char_classes_count": "PIN minimum character classes count",
-    "pin_min_length": "PIN minimum length",
     "process_failed": "Process failed",
     "process_not_executable": "Process is not executable",
     "server_already_fully_initialized": "Server is already fully initialised",
@@ -448,10 +437,10 @@
       "malformed_csr": "CSR data is malformed"
     },
     "token_not_active": "Token is not active",
+    "tr": {},
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "warnings_detected": "Warnings detected",
-    "weak_pin": "Weak PIN",
     "wrong_key_usage": "Wrong key usage",
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",

@@ -347,13 +347,6 @@
           },
           "UnknownService": "Tundmatu teenus"
         }
-      },
-      "Signer": {
-        "CertNotFound": "Sertifikaati ei leitud",
-        "KeyNotFound": "Võtit ei leitud",
-        "TokenNotAvailable": "Krüptomoodul pole saadaval",
-        "TokenNotFound": " Krüptomoodulit ei leitud",
-        "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
       }
     },
     "csr_not_found": "CSR-i ei leitud",
@@ -372,7 +365,6 @@
     "import_internal_cert_failed": "Sisemise sertifikaadi import ebaõnnestus",
     "internal_anchor_upload_invalid_instance_id": "Ankrul on kehtetu juhtumi ID",
     "internal_key_cert_interrupted": "Sisemise võtme sertifikaat katkestatud",
-    "invalid_cert": "Kehtetu sertifikaat",
     "invalid_characters_pin": "PIN-kood sisaldab kehtetuid märke",
     "invalid_dn_parameter": "Kehtetu DN parameeter",
     "invalid_https_url": "URL ei kasuta HTTPS-i",
@@ -403,8 +395,6 @@
     "pin_code_exists": "PIN-kood on olemas",
     "pin_code_not_provided": "PIN-kood puudub",
     "pin_incorrect": "Vale PIN-kood. Proovige uuesti.",
-    "pin_min_char_classes_count": "PIN-koodi minimaalne tähemärgiklasside arv",
-    "pin_min_length": "PIN-koodi minimaalne pikkus",
     "process_failed": "Protsess ebaõnnestus",
     "process_not_executable": "Protsess pole teostatav",
     "server_already_fully_initialized": "Server on juba täielikult lähtestatud",
@@ -425,10 +415,10 @@
       "malformed_csr": "CSR andmete vorming on vale"
     },
     "token_not_active": "Krüptomoodul pole aktiivne",
+    "tr": {},
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
     "url_already_exists": "URL on juba olemas",
     "warnings_detected": "Tuvastati hoiatused",
-    "weak_pin": "Nõrk PIN",
     "wrong_key_usage": "Vale võtme kasutus",
     "wrong_servicedescription_type": "Vale teenuse kirjelduse tüüp",
     "wsdl_download_failed": "WSDL-i allalaadimine ebaõnnestus",
