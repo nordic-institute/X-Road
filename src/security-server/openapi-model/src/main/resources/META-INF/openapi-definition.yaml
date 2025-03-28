@@ -2364,6 +2364,32 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/proxy-memory-usage-status:
+    get:
+      tags:
+        - diagnostics
+      summary: view proxy memory usage information
+      operationId: getProxyMemoryUsage
+      description: <h3>Administrator views the proxy memory usage information.</h3>
+      responses:
+        '200':
+          description: proxy memory usage information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProxyMemoryUsageStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /initialization:
     post:
       tags:
@@ -5771,6 +5797,40 @@ components:
           type: boolean
           readOnly: true
           description: default key used
+    ProxyMemoryUsageStatus:
+      type: object
+      description: proxy memory usage status
+      required:
+        - max_memory
+        - total_memory
+        - used_memory
+        - usage_percent
+        - is_used_over_threshold
+      properties:
+        max_memory:
+          type: number
+          readOnly: true
+          description: Proxy's maximum memory
+        total_memory:
+          type: number
+          readOnly: true
+          description: Proxy's total allocated memory
+        used_memory:
+          type: number
+          readOnly: true
+          description: Proxy's used memory
+        threshold:
+          type: number
+          readOnly: true
+          description: Proxy memory usage alert threshold
+        usage_percent:
+          type: number
+          readOnly: true
+          description: Proxy's used memory percentage
+        is_used_over_threshold:
+          type: boolean
+          readOnly: true
+          description: Is usage over threshold
     MailNotificationStatus:
       type: object
       description: automatic e-mail notification status
