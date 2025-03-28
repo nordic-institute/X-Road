@@ -102,7 +102,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 | Document Id    |  Document                                                                                |
 |:--------------:|:-----------------------------------------------------------------------------------------|
-| \[SS-CLUSTER\] | [Readme: Security server cluster setup with Ansible](../../../ansible/ss_cluster/README.md) |
+| \[SS-CLUSTER\] | [Readme: Security server cluster setup with Ansible](https://github.com/nordic-institute/X-Road/blob/release-7.4/ansible/ss_cluster/README.md) |
 | \[IG-SS\] | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md) |
 | \[UG-SS\] | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md) |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)
