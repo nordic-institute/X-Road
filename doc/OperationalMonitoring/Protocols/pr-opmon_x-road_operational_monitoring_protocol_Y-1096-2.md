@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.6  
+Version: 1.5 
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -19,7 +19,6 @@ Doc. ID: PR-OPMON
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
-| 26.03.2025 | 1.6     | Syntax and styling                                                   | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 

@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.5  
+Version: 1.4  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                         | Author           |
@@ -15,7 +15,6 @@ Document ID: ARC-OPMOND
 | 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
 | 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
-| 17.03.2025 | 1.5     | Syntax and styling                                                  | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 

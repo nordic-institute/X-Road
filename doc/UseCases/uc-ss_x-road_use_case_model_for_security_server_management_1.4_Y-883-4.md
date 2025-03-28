@@ -1,7 +1,7 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.14
+Version: 1.13
 09.11.2021
 <!-- 49 pages -->
 Doc. ID: UC-SS
@@ -33,7 +33,6 @@ Date       | Version | Description                                              
 01.04.2020 | 1.11    | Added notes about IP whitelists for REST API | Janne Mattila
 25.08.2021 | 1.12    | Update X-Road references from version 6 to 7 | Caro Hautamäki
 09.11.2021 | 1.13    | Update key deletion use cases to match current implementation | Janne Mattila
-17.03.2025 | 1.14    | Syntax and styling | Pauline Dimmek
 
 <!-- tocstop -->
 

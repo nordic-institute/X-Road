@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.26
+Version: 1.25
 Doc. ID: IG-XLB
 
 
@@ -32,7 +32,6 @@ Doc. ID: IG-XLB
 | 16.08.2024 | 1.23    | Added assumption that the load balancer supports TLS passthrough                                                         | Petteri Kivimäki            |
 | 06.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
 | 17.12.2024 | 1.25    | When adding user xroad-slave, the home directory must be explicitly added for Ubuntu                                     | Eneli Reimets               |
-| 17.03.2025 | 1.26    | Syntax and styling                                                                                                       | Pauline Dimmek              |
 
 ## Table of Contents
 
