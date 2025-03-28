@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.6
+Version: 1.5
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -13,7 +13,6 @@ Doc. ID: UG-K-SS-SEC-SIDECAR
 | 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute           |
 | 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets             |
 | 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
-| 26.03.2025 | 1.6     | Syntax and styling                           | Pauline Dimmek            |
 
 ## License
 

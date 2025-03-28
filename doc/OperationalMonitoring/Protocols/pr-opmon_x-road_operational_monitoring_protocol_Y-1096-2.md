@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.3  
+Version: 1.2  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author            |
@@ -16,7 +16,6 @@ Doc. ID: PR-OPMON
 | 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä     |
 | 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis   |
 | 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki  |
-| 27.03.2025 | 1.3     | Syntax and styling                                                   | Pauline Dimmek    |
 
 ## Table of Contents <!-- omit in toc -->
 

@@ -1,6 +1,6 @@
 # Audit log events
 
-Version: 1.13
+Version: 1.12
 
 Doc. ID: SPEC-AL
 
@@ -24,7 +24,6 @@ Doc. ID: SPEC-AL
 | 17.04.2023 | 1.10    | Remove central services support                                                                                                                           | Justas Samuolis    |
 | 05.06.2023 | 1.11    | New Central Server                                                                                                                                        | Eneli Reimets      |
 | 09.12.2023 | 1.12    | Management service TLS certificate                                                                                                                        | Eneli Reimets      |
-| 17.03.2025 | 1.13    | Syntax and styling                                                                                                                                        | Pauline Dimmek     |
 
 ## Table of Contents
 

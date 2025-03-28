@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.14  
+Version: 1.13  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -21,7 +21,6 @@ Doc. ID: UG-SS-SIDECAR
 | 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets             |
 | 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5          | Ovidijus Narkevicius      |
 | 22.08.2024 | 1.13    | Add a section about enabling ACME support               | Eneli Reimets             |
-| 26.03.2025 | 1.14    | Syntax and styling                                      | Pauline Dimmek            |
 
 ## License
 

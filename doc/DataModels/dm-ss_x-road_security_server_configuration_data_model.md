@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.11 
+Version: 1.10 
 Doc. ID: DM-SS
 
 ## Version history
@@ -21,7 +21,6 @@ Doc. ID: DM-SS
 | 10.05.2023 | 1.8     | Security Categories removed.                                        | Justas Samuolis                 |
 | 08.12.2023 | 1.9     | Added "Disabled" and related "in progress" client states            | Madis Loitmaa                   |
 | 26.01.2024 | 1.10    | When client is deleted, respective identifier is deleted as well    | Eneli Reimets                   |
-| 21.03.2025 | 1.11    | Syntax and styling                               								   | Pauline Dimmek		               |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->

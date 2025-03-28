@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.88
+Version: 2.87
 Doc. ID: UG-SYSPAR
 
 
@@ -98,7 +98,7 @@ Doc. ID: UG-SYSPAR
 | 08.12.2023 | 2.85    | Update security server proxy client http and https default ports                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann         |
 | 16.04.2024 | 2.86    | Default value of the parameter *acceptable-timestamp-failure-period* set to 172800 for FI-package                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius       |
 | 26.04.2024 | 2.87    | Added ACME related parameters                                                                                                                                                                                                                                                                                                                                                                                  | Mikk-Erik Bachmann         |
-| 27.03.2025 | 2.88    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                             | Pauline Dimmek             |
+
 
 ## Table of Contents
 

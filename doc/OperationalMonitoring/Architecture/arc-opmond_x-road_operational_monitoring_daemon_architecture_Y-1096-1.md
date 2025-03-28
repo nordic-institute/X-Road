@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.3  
+Version: 1.2  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                         | Author           |
@@ -13,7 +13,6 @@ Document ID: ARC-OPMOND
 | 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                         | Ilkka Seppälä    |
 | 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX          | Petteri Kivimäki |
 | 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
-| 17.03.2025 | 1.3     | Syntax and styling                                                  | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 
