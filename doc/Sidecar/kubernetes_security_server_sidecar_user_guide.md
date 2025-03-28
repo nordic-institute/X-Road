@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.11  
+Version: 1.10  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -18,7 +18,6 @@ Doc. ID: UG-K-SS-SIDECAR
 | 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
 | 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
 | 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5        | Ovidijus Narkevicius      |
-| 21.03.2025 | 1.11    | Syntax and styling                                    | Pauline Dimmek            |
 
 ## License
 

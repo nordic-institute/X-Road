@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.86 
+Version: 2.85  
 Doc. ID: UG-SS
 
 ---
@@ -114,7 +114,6 @@ Doc. ID: UG-SS
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
-| 26.03.2025 | 2.86    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 

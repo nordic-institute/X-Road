@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.45  
+Version: 2.44  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -70,8 +70,6 @@ Doc. ID: UG-CS
 | 26.03.2024 | 2.42    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
 | 08.04.2024 | 2.43    | Taking configuration download url from shared parameters                                                                                                                                                                                                                                                                                                                                                                                | Eneli Reimets        |
 | 09.06.2024 | 2.44    | Added ACME information for Approved CAs                                                                                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
-| 21.03.2025 | 2.45    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                                                      | Pauline Dimmek       |
-
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
