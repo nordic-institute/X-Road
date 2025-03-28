@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -51,6 +52,8 @@ public class ProxyAdminPortConfig {
 
         adminPort.init();
 
+        addMemoryUsageHandler(adminPort);
+
         return adminPort;
     }
 
@@ -60,6 +63,16 @@ public class ProxyAdminPortConfig {
         } catch (Exception e) {
             log.error("Error while stopping admin port", e);
         }
+    }
+
+    private void addMemoryUsageHandler(AdminPort adminPort) {
+        adminPort.addHandler("/memory-usage", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(RequestWrapper request, ResponseWrapper response) {
+                ProxyMemory proxyMemory = ProxyMemory.get();
+                writeJsonResponse(proxyMemory, response);
+            }
+        });
     }
 
     private void addMaintenanceHandler(AdminPort adminPort, HealthCheckPort healthCheckPort) {
