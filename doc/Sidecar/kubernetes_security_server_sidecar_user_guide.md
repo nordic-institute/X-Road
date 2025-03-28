@@ -98,9 +98,7 @@ This option enables scaling the number of Nodes and Pods on the cluster. The opt
 * *Load Balancer*: Redirects traffic from external Security Servers to the Secondary Pods.
 * *External database*: PostgreSQL instance that contains the Security Server configuration, message log, and operational monitoring database.
 
-<p align="center">
-  <img src="img/ig-load_balancer_deploy.svg" />
-</p>
+![](img/ig-load_balancer_deploy.svg)
 
 ## 3 X-Road Security Server Sidecar images for Kubernetes
 
