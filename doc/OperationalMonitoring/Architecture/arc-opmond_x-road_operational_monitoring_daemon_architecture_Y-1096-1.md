@@ -162,6 +162,7 @@ Figure 2 shows the deployment diagram.
 
 
 <a name="AppendixA"/>
+
 ## Appendix A Store Operational Monitoring Data Messages
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
