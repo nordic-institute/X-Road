@@ -60,7 +60,6 @@ Doc. ID: IG-CS
 | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki     |
 | 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA Configuration signing keys                                                                   | Ovidijus Narkevicius |
 
-
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->

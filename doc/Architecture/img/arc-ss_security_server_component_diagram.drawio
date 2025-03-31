@@ -1,6 +1,6 @@
-<mxfile host="drawio-plugin" modified="2024-09-18T16:16:54.125Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" etag="HEeHwx9gA61ZFLRZ8D99" version="22.1.22" type="embed">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.1.1 Chrome/132.0.6834.210 Electron/34.3.3 Safari/537.36" version="26.1.1">
   <diagram id="MPKiU4DPRB_LrO_i-kwA" name="Page-1">
-    <mxGraphModel dx="1583" dy="512" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2261" dy="870" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#FFFFFF" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -411,7 +411,7 @@
         <mxCell id="zraR45x122oeGObyfcJb-22" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;rounded=1;shadow=0;strokeWidth=2;fontSize=15;fontColor=#FFFFFF;arcSize=5;strokeColor=#948DA8;fillColor=#C9C6D3;" parent="1" vertex="1">
           <mxGeometry x="253.0000000000001" y="350" width="45" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;fontColor=#663CDC;endArrow=block;endFill=1;strokeColor=#663CDC;dashed=1;endSize=10;fontStyle=1;startSize=10;exitX=0.067;exitY=-0.044;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="Tkom-iHvt6IjRhjPuWIv-153" target="5">
+        <mxCell id="3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;fontColor=#663CDC;endArrow=block;endFill=1;strokeColor=#663CDC;dashed=1;endSize=10;fontStyle=1;startSize=10;exitX=0.067;exitY=-0.044;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="Tkom-iHvt6IjRhjPuWIv-153" target="5" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="119.95999999999992" y="396.00000000000006" as="sourcePoint" />
             <mxPoint y="310" as="targetPoint" />
@@ -421,10 +421,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="5" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;rounded=1;shadow=0;strokeWidth=2;fontSize=15;fontColor=#FFFFFF;arcSize=5;strokeColor=#948DA8;fillColor=#C9C6D3;size=0.2222222222222222;" vertex="1" parent="1">
+        <mxCell id="5" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;rounded=1;shadow=0;strokeWidth=2;fontSize=15;fontColor=#FFFFFF;arcSize=5;strokeColor=#948DA8;fillColor=#C9C6D3;size=0.2222222222222222;" parent="1" vertex="1">
           <mxGeometry x="128.0000000000001" y="350" width="45" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="11" value="Mail Server" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#663CDC;fontStyle=1" vertex="1" parent="1">
+        <mxCell id="11" value="Mail Server" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#663CDC;fontStyle=1" parent="1" vertex="1">
           <mxGeometry x="77" y="350" width="50" height="25" as="geometry" />
         </mxCell>
       </root>

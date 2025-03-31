@@ -154,7 +154,7 @@ See also [Docker Networking](https://docs.docker.com/network/)
 ### 2.4 Running the Sidecar Container
 
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
-Alternatively, you can build container images locally using the [docker-build.sh script](../../sidecar/docker-build.sh).
+Alternatively, you can build container images locally using the [docker-build.sh script](https://github.com/nordic-institute/X-Road/blob/2834322c62363e845b6030511e6e52fdacd9a8e0/sidecar/docker-build.sh).
 
 ```bash
 docker run --detach \
@@ -176,7 +176,7 @@ docker run --detach \
   -e XROAD_DB_PORT=<database-port> \
   -e XROAD_DB_PWD=<postgres password> \
   # Optional parameters - END
-  niis/xroad-security-server-sidecar:<version[-type[-variant]>
+  niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
 
 Note! This command persists all configuration inside the Sidecar container which means that state is lost when the container is destroyed.

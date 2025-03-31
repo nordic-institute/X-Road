@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 0.10  
+Version: 0.10
 01.06.2023
 
 Doc. ID: ARC-SEC
@@ -23,6 +23,7 @@ Doc. ID: ARC-SEC
  01.06.2023 | 0.8     | Update references                                | Petteri Kivimäki
  24.08.2023 | 0.9     | Minimum supported client Security Server version | Eneli Reimets
  12.06.2024 | 0.10    | Update with the new ACME features                | Petteri Kivimäki
+
 ## Table of Contents
 
 <!-- toc -->
