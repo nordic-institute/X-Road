@@ -281,6 +281,7 @@ The XML schema fragment of the health data response body is shown below. For cla
 The example response message is presented in \[[Annex C.4](#AnnexC.4)\].
 
 <a name="AnnexA"/>
+
 # Annex A WSDL for Operational Monitoring Messages
 
 The XML-schema for operational monitoring messages is located in the file *src/op-monitor-daemon/src/main/resources/op-monitoring.xsd* of the X-Road source code.
@@ -946,6 +947,7 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
 ```
 
 <a name="AnnexB"/>
+
 # Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
 
 The schema is located in the file *src/op-monitor-daemon/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
@@ -1111,9 +1113,11 @@ required:
 ```
 
 <a name="AnnexC"/>
+
 # Annex C Example Messages
 
 <a name="AnnexC.1"/>
+
 ## C.1 getSecurityServerOperationalData Request
 
 ```xml
@@ -1157,6 +1161,7 @@ required:
 ```
 
 <a name="AnnexC.2"/>
+
 ## C.2 getSecurityServerOperationalData Response
 
 ```xml
@@ -1258,6 +1263,7 @@ content-id: <operational-monitoring-data.json.gz>
 
 ```
 <a name="AnnexC.3"/>
+
 ## C.3 getSecurityServerHealthData Request
 
 ```xml
@@ -1305,6 +1311,7 @@ content-id: <operational-monitoring-data.json.gz>
 ```
 
 <a name="AnnexC.3"/>
+
 ## C.4 getSecurityServerHealthData Response
 
 ```xml
