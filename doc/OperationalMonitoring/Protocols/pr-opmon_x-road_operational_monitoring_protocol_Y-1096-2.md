@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.5 
+Version: 1.6 
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -19,6 +19,7 @@ Doc. ID: PR-OPMON
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
+| 19.03.2025 | 1.6     | Added new optional field: xRoadVersion                               | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -129,6 +130,7 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *faultCode*
  * *faultString*
  * *statusCode*
+ * *xRoadVersion*
  
 
 The fields are described in the JSON-schema of the response payload \[[Annex B](#AnnexB)\].
@@ -1040,6 +1042,10 @@ properties:
           maxLength: 255
         restPath:
           description: Path of the rest
+          type: string
+          maxLength: 255
+        xRoadVersion:
+          description: Version of the X-Road
           type: string
           maxLength: 255
         serviceVersion:

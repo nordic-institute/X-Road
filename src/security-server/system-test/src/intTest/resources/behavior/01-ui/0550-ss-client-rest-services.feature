@@ -122,12 +122,17 @@ Feature: 0550 - SS: Client REST with base path services
     When Service endpoint with HTTP request method "PATCH" and path "/new/path/edited" is deleted
     And Service endpoint with HTTP request method "PATCH" and path "/new/path/edited" is missing in the list
 
-  Scenario: Newly added services are enabled and one of them disabled
+  Scenario: Newly added one service is disabled and the second is enabled with one added endpoint
     Given Client "TestService" is opened
     And Services sub-tab is selected
-    When Service "REST (http://example2.com)" is enabled
-    And Service "REST (http://example.com/v2)" is enabled
+    When Service "REST (http://example.com/v2)" is enabled
     Then Service "REST (http://example.com/v2)" is disabled with notice "just disabled."
+    When Service "REST (http://example2.com)" is enabled
+    And Service "REST (http://example2.com)" is expanded
+    And Service with code "s3c2" is opened
+    Then Service endpoints view is opened
+    When Service endpoint with HTTP request method "GET" and path "/*/pets/*" is added
+    Then Service endpoint with HTTP request method "GET" and path "/*/pets/*" is present in the list
 
   Scenario: Newly added service is edited
     Given Client "TestService" is opened
@@ -142,6 +147,3 @@ Feature: 0550 - SS: Client REST with base path services
     And Services sub-tab is selected
     When Service "REST (http://example.com/v3)" is deleted
     Then Service "REST (http://example.com/v3)" is missing in the list
-
-  Scenario: Call REST listMethod
-    Given Security Server REST listMethod was sent for client "DEV/COM/1234/TestService"
