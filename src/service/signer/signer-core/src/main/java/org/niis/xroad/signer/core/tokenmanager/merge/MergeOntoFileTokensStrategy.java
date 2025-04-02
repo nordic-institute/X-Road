@@ -42,7 +42,6 @@ import static java.util.stream.Collectors.toMap;
 /**
  * A {@link TokenMergeStrategy} for merging an in-memory token list to tokens from a key conf xml file.
  * This strategy merges existing memory data onto new file based data.
- *
  */
 @Slf4j
 public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
@@ -67,9 +66,9 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
                 // except inactive and unavailable and deleted from file tokens we will not merge back from memory
                 .filter(token -> token.isActive() || token.isAvailable() || isTokenExistsInFile(token, fileTokens))
                 .forEach(
-                // add any missing tokens from memory to file, match tokens based on token id
-                memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
-                        this::mergeToken));
+                        // add any missing tokens from memory to file, match tokens based on token id
+                        memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
+                                this::mergeToken));
 
         return new MergeResult(new ArrayList<>(fileTokensMap.values()), this.newCertsFromFile);
     }
@@ -140,7 +139,9 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
         return fileTokenInfo;
     }
 
-    /** Merge key memoryKey onto fileKey
+    /**
+     * Merge key memoryKey onto fileKey
+     *
      * @param fileKey
      * @param memoryKey
      */

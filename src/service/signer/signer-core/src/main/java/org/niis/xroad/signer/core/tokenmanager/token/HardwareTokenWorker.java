@@ -82,7 +82,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKey;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
 import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPublicKey;
@@ -109,7 +108,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
     private final Map<String, List<X509PublicKeyCertificate>> certs = new HashMap<>();
 
-    private Session activeSession;
+    private PooledSession activeSession;
 
     /**
      * @param tokenInfo the token info
@@ -158,7 +157,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         super.destroy();
 
         try {
-            closeActiveSession();
+            activeSession.destroy();
         } catch (Exception e) {
             log.warn("Failed to close active session", e);
         }
@@ -223,34 +222,36 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         assertTokenWritable();
         assertActiveSession();
 
-        var keyPairHelper = KeyPairHelper.of(mapAlgorithm(message.getAlgorithm()));
-        var generatedKP = keyPairHelper.createKeypair(
-                activeSession,
-                message.getKeyLabel(),
-                tokenType.getPubKeyAttributes(),
-                tokenType.getPrivKeyAttributes());
+        return activeSession.executeWithSession(session -> {
+            var keyPairHelper = KeyPairHelper.of(mapAlgorithm(message.getAlgorithm()));
+            var generatedKP = keyPairHelper.createKeypair(
+                    session,
+                    message.getKeyLabel(),
+                    tokenType.getPubKeyAttributes(),
+                    tokenType.getPrivKeyAttributes());
 
-        var privateKey = generatedKP.getPrivateKey();
+            var privateKey = generatedKP.getPrivateKey();
 
-        if (privateKey == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Could not generate private key");
-        }
+            if (privateKey == null) {
+                throw new CodedException(X_INTERNAL_ERROR, "Could not generate private key");
+            }
 
-        var publicKey = generatedKP.getPublicKey();
+            var publicKey = generatedKP.getPublicKey();
 
-        if (publicKey == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Could not generate public key");
-        }
+            if (publicKey == null) {
+                throw new CodedException(X_INTERNAL_ERROR, "Could not generate public key");
+            }
 
-        byte[] keyIdBytes = privateKey.getId().getByteArrayValue();
-        String keyId = DatatypeConverter.printHexBinary(keyIdBytes);
-        byte[] publicKeyBytes = keyPairHelper.generateX509PublicKey(publicKey);
+            byte[] keyIdBytes = privateKey.getId().getByteArrayValue();
+            String keyId = DatatypeConverter.printHexBinary(keyIdBytes);
+            byte[] publicKeyBytes = keyPairHelper.generateX509PublicKey(publicKey);
 
-        String publicKeyBase64 = encodeBase64(publicKeyBytes);
+            String publicKeyBase64 = encodeBase64(publicKeyBytes);
 
-        privateKeys.put(keyId, privateKey);
+            privateKeys.put(keyId, privateKey);
 
-        return new GenerateKeyResult(keyId, publicKeyBase64);
+            return new GenerateKeyResult(keyId, publicKeyBase64);
+        });
     }
 
     @Override
@@ -260,48 +261,50 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         assertTokenWritable();
         assertActiveSession();
 
-        PrivateKey privateKey = getPrivateKey(keyId);
+        activeSession.executeWithSession(session -> {
+            PrivateKey privateKey = getPrivateKey(session, keyId);
 
-        if (privateKey != null) {
-            log.info("Deleting private key '{}' on token '{}'", keyId, getWorkerId());
+            if (privateKey != null) {
+                log.info("Deleting private key '{}' on token '{}'", keyId, getWorkerId());
 
-            try {
-                activeSession.destroyObject(privateKey);
-                privateKeys.remove(keyId);
-            } catch (Exception e) {
-                throw new CodedException(X_INTERNAL_ERROR, "Failed to delete private key '%s' on token '%s': %s",
-                        keyId, getWorkerId(), e);
+                try {
+                    session.destroyObject(privateKey);
+                    privateKeys.remove(keyId);
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, "Failed to delete private key '%s' on token '%s': %s",
+                            keyId, getWorkerId(), e);
+                }
+            } else {
+                log.warn("Could not find private key '{}' on token '{}'", keyId, getWorkerId());
             }
-        } else {
-            log.warn("Could not find private key '{}' on token '{}'", keyId, getWorkerId());
-        }
 
-        var publicKey = findPublicKey(activeSession, keyId,
-                tokenType.getPubKeyAttributes().getAllowedMechanisms());
+            var publicKey = findPublicKey(session, keyId,
+                    tokenType.getPubKeyAttributes().getAllowedMechanisms());
 
-        if (publicKey != null) {
-            log.info("Deleting public key '{}' on token '{}'", keyId, getWorkerId());
+            if (publicKey != null) {
+                log.info("Deleting public key '{}' on token '{}'", keyId, getWorkerId());
 
-            try {
-                activeSession.destroyObject(publicKey);
-            } catch (Exception e) {
-                throw new CodedException(X_INTERNAL_ERROR, "Failed to delete public key '%s' on token '%s': %s",
-                        keyId, getWorkerId(), e);
+                try {
+                    session.destroyObject(publicKey);
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, "Failed to delete public key '%s' on token '%s': %s",
+                            keyId, getWorkerId(), e);
+                }
+            } else {
+                log.warn("Could not find public key '{}' on token '{}'", keyId, getWorkerId());
             }
-        } else {
-            log.warn("Could not find public key '{}' on token '{}'", keyId, getWorkerId());
-        }
 
-        if (!certs.containsKey(keyId)) {
-            return;
-        }
+            if (!certs.containsKey(keyId)) {
+                return;
+            }
 
-        certs.get(keyId).forEach(this::destroyCert);
-        certs.remove(keyId);
+            certs.get(keyId).forEach(cert -> destroyCert(session, cert));
+            certs.remove(keyId);
+        });
     }
 
     @Override
-    protected void deleteCert(String certId) {
+    protected void deleteCert(String certId) throws Exception {
         log.trace("deleteCert({})", certId);
 
         assertTokenWritable();
@@ -317,23 +320,24 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             return;
         }
 
-        for (CertificateInfo certInfo : keyInfo.getCerts()) {
-            if (certInfo.getId().equals(certId)) {
-                List<X509PublicKeyCertificate> certsOnModule = certs.get(keyInfo.getId());
+        activeSession.executeWithSession(session -> {
+            for (CertificateInfo certInfo : keyInfo.getCerts()) {
+                if (certInfo.getId().equals(certId)) {
+                    List<X509PublicKeyCertificate> certsOnModule = certs.get(keyInfo.getId());
 
-                for (X509PublicKeyCertificate cert : certsOnModule) {
-                    if (Arrays.equals(certInfo.getCertificateBytes(), cert.getValue().getByteArrayValue())) {
-                        destroyCert(cert);
-                        certsOnModule.remove(cert);
-                        tokenManager.removeCert(certId);
-
-                        break;
+                    for (X509PublicKeyCertificate cert : certsOnModule) {
+                        if (Arrays.equals(certInfo.getCertificateBytes(), cert.getValue().getByteArrayValue())) {
+                            destroyCert(session, cert);
+                            certsOnModule.remove(cert);
+                            tokenManager.removeCert(certId);
+                            break;
+                        }
                     }
-                }
 
-                return;
+                    return;
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -344,21 +348,23 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         pinVerificationPerSigningLogin();
         assertKeyAvailable(keyId);
 
-        PrivateKey key = getPrivateKey(keyId);
-        if (key == null) {
-            throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
-                    keyId, tokenId);
-        }
+        return activeSession.executeWithSession(session -> {
+            PrivateKey key = getPrivateKey(session, keyId);
+            if (key == null) {
+                throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
+                        keyId, tokenId);
+            }
 
-        log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
-        try {
-            Mechanism signMechanism = verifyAndReturnSignMechanism(signatureAlgorithmId, KeyAlgorithm.valueOf(key.getKeyType().toString()));
+            log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
+            try {
+                var signMechanism = verifyAndReturnSignMechanism(signatureAlgorithmId, KeyAlgorithm.valueOf(key.getKeyType().toString()));
 
-            activeSession.signInit(signMechanism, key);
-            return activeSession.sign(data);
-        } finally {
-            pinVerificationPerSigningLogout();
-        }
+                session.signInit(signMechanism, key);
+                return session.sign(data);
+            } finally {
+                pinVerificationPerSigningLogout();
+            }
+        });
     }
 
     private Mechanism verifyAndReturnSignMechanism(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
@@ -386,16 +392,18 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
 
-        ContentSigner contentSigner = new HardwareTokenContentSigner(keyId, signatureAlgorithmId);
+        return activeSession.executeWithSession(session -> {
+            ContentSigner contentSigner = new HardwareTokenContentSigner(session, keyId, signatureAlgorithmId);
 
-        JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
-                issuerX509Certificate);
-        X509CertificateHolder certHolder = certificateBuilder.build(contentSigner);
-        X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
+            JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
+                    issuerX509Certificate);
+            X509CertificateHolder certHolder = certificateBuilder.build(contentSigner);
+            X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
 
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BOUNCY_CASTLE);
-        CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
-        return certPath.getEncoded("PEM");
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BOUNCY_CASTLE);
+            CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
+            return certPath.getEncoded("PEM");
+        });
     }
 
     @Override
@@ -411,37 +419,39 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("findKeysNotInConf()");
 
         try {
-            var keysOnToken = findPublicKeys(activeSession, tokenType.getPubKeyAttributes().getAllowedMechanisms());
+            activeSession.executeWithSession(session -> {
+                var keysOnToken = findPublicKeys(session, tokenType.getPubKeyAttributes().getAllowedMechanisms());
 
-            for (var keyOnToken : keysOnToken) {
-                String keyId = keyId(keyOnToken);
+                for (var keyOnToken : keysOnToken) {
+                    String keyId = keyId(keyOnToken);
 
-                if (keyId == null) {
-                    log.debug("Ignoring public key with no ID");
+                    if (keyId == null) {
+                        log.debug("Ignoring public key with no ID");
 
-                    continue;
+                        continue;
+                    }
+
+                    KeyInfo key = tokenManager.getKeyInfo(keyId);
+
+                    if (key == null) {
+                        key = tokenManager.addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
+                        tokenManager.setKeyAvailable(keyId, true);
+
+                        log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
+                    }
+
+                    // update the key label
+                    char[] label = keyOnToken.getLabel().getCharArrayValue();
+
+                    if (label != null) {
+                        tokenManager.setKeyLabel(keyId, new String(label));
+                    }
+
+                    if (key.getPublicKey() == null) {
+                        updatePublicKey(keyId);
+                    }
                 }
-
-                KeyInfo key = tokenManager.getKeyInfo(keyId);
-
-                if (key == null) {
-                    key = tokenManager.addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
-                    tokenManager.setKeyAvailable(keyId, true);
-
-                    log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
-                }
-
-                // update the key label
-                char[] label = keyOnToken.getLabel().getCharArrayValue();
-
-                if (label != null) {
-                    tokenManager.setKeyLabel(keyId, new String(label));
-                }
-
-                if (key.getPublicKey() == null) {
-                    updatePublicKey(keyId);
-                }
-            }
+            });
         } catch (PKCS11Exception e) {
             throw e;
         } catch (Exception e) {
@@ -449,11 +459,11 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private PrivateKey getPrivateKey(String keyId) throws Exception {
+    private PrivateKey getPrivateKey(Session session, String keyId) throws Exception {
         PrivateKey privateKey = privateKeys.get(keyId);
         if (privateKey == null) {
             log.debug("Key {} not found in cache, trying to find it from hardware token", keyId);
-            privateKey = findPrivateKey(activeSession, keyId, tokenType.getPrivKeyAttributes().getAllowedMechanisms());
+            privateKey = findPrivateKey(session, keyId, tokenType.getPrivKeyAttributes().getAllowedMechanisms());
             privateKeys.put(keyId, privateKey);
         }
         return privateKey;
@@ -473,21 +483,23 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("findCertificatesNotInConf()");
 
         try {
-            List<X509PublicKeyCertificate> certsOnModule = findPublicKeyCertificates(activeSession);
-            List<KeyInfo> existingKeys = tokenManager.listKeys(tokenId);
+            activeSession.executeWithSession(session -> {
+                List<X509PublicKeyCertificate> certsOnModule = findPublicKeyCertificates(session);
+                List<KeyInfo> existingKeys = tokenManager.listKeys(tokenId);
 
-            for (X509PublicKeyCertificate certOnModule : certsOnModule) {
-                byte[] certBytes = certOnModule.getValue().getByteArrayValue();
+                for (X509PublicKeyCertificate certOnModule : certsOnModule) {
+                    byte[] certBytes = certOnModule.getValue().getByteArrayValue();
 
-                for (KeyInfo key : existingKeys) {
-                    if (key.getId().equals(keyId(certOnModule)) && !hasCert(key, certBytes)) {
-                        log.debug("Found new certificate for key '{}'", key.getId());
+                    for (KeyInfo key : existingKeys) {
+                        if (key.getId().equals(keyId(certOnModule)) && !hasCert(key, certBytes)) {
+                            log.debug("Found new certificate for key '{}'", key.getId());
 
-                        tokenManager.addCert(key.getId(), certBytes);
-                        putCert(key.getId(), certOnModule);
+                            tokenManager.addCert(key.getId(), certBytes);
+                            putCert(key.getId(), certOnModule);
+                        }
                     }
                 }
-            }
+            });
         } catch (PKCS11Exception e) {
             throw e;
         } catch (Exception e) {
@@ -499,31 +511,33 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("updatePublicKey({})", keyId);
 
         try {
-            String publicKeyBase64 = null;
+            activeSession.executeWithSession(session -> {
+                String publicKeyBase64;
 
-            var publicKey = findPublicKey(activeSession, keyId, tokenType.getPubKeyAttributes().getAllowedMechanisms());
+                var publicKey = findPublicKey(session, keyId, tokenType.getPubKeyAttributes().getAllowedMechanisms());
 
-            switch (publicKey) {
-                case RSAPublicKey rsaPublicKey -> {
-                    publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(KeyAlgorithm.RSA).generateX509PublicKey(rsaPublicKey));
+                switch (publicKey) {
+                    case RSAPublicKey rsaPublicKey -> {
+                        publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(KeyAlgorithm.RSA).generateX509PublicKey(rsaPublicKey));
+                        tokenManager.setPublicKey(keyId, publicKeyBase64);
+                    }
+                    case ECDSAPublicKey ecPublicKey -> {
+                        publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(KeyAlgorithm.EC).generateX509PublicKey(ecPublicKey));
+                        tokenManager.setPublicKey(keyId, publicKeyBase64);
+                    }
+                    case null, default -> {
+                        X509PublicKeyCertificate first = certs.get(keyId).getFirst();
+                        X509Certificate cert = CryptoUtils.readCertificate(first.getValue().getByteArrayValue());
+                        publicKeyBase64 = encodeBase64(cert.getPublicKey().getEncoded());
+                    }
+                }
+
+                if (publicKeyBase64 != null) {
+                    log.debug("Found public key for key '{}'...", keyId);
+
                     tokenManager.setPublicKey(keyId, publicKeyBase64);
                 }
-                case ECDSAPublicKey ecPublicKey -> {
-                    publicKeyBase64 = EncoderUtils.encodeBase64(KeyPairHelper.of(KeyAlgorithm.EC).generateX509PublicKey(ecPublicKey));
-                    tokenManager.setPublicKey(keyId, publicKeyBase64);
-                }
-                case null, default -> {
-                    X509PublicKeyCertificate first = certs.get(keyId).getFirst();
-                    X509Certificate cert = CryptoUtils.readCertificate(first.getValue().getByteArrayValue());
-                    publicKeyBase64 = encodeBase64(cert.getPublicKey().getEncoded());
-                }
-            }
-
-            if (publicKeyBase64 != null) {
-                log.debug("Found public key for key '{}'...", keyId);
-
-                tokenManager.setPublicKey(keyId, publicKeyBase64);
-            }
+            });
         } catch (PKCS11Exception e) {
             throw e;
         } catch (Exception e) {
@@ -554,13 +568,15 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("login()");
 
         try {
-            HardwareTokenUtil.login(activeSession, password);
+            activeSession.executeWithSession(session -> {
+                HardwareTokenUtil.login(session, password);
 
-            log.info("User successfully logged in");
+                log.info("User successfully logged in");
 
-            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
-            tokenManager.setTokenActive(tokenId, true);
-            loadPrivateKeys();
+                tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
+                tokenManager.setTokenActive(tokenId, true);
+                loadPrivateKeys(session);
+            });
         } catch (PKCS11Exception e) {
             setTokenStatusFromErrorCode(e.getErrorCode());
 
@@ -578,11 +594,13 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         log.trace("logout()");
 
         try {
-            HardwareTokenUtil.logout(activeSession);
+            activeSession.executeWithSession(session -> {
+                HardwareTokenUtil.logout(session);
 
-            log.info("User successfully logged out");
+                log.info("User successfully logged out");
 
-            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
+                tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
+            });
         } catch (PKCS11Exception e) {
             setTokenStatusFromErrorCode(e.getErrorCode());
 
@@ -619,18 +637,20 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         closeActiveSession();
 
         if (getToken() != null) {
-            activeSession = getToken().openSession(SERIAL_SESSION, true, null, null);
+            activeSession = new PooledSession(getToken(), tokenId,
+                    signerProperties.addon().hwTokenPoolSize(),
+                    signerProperties.addon().hwTokenSessionAcquireTimeoutMillis());
         }
     }
 
-    private void loadPrivateKeys() throws Exception {
+    private void loadPrivateKeys(Session session) throws Exception {
         if (activeSession == null) {
             return;
         }
 
         privateKeys.clear();
 
-        List<PrivateKey> keysOnToken = findPrivateKeys(activeSession, tokenType.getPrivKeyAttributes().getAllowedMechanisms());
+        List<PrivateKey> keysOnToken = findPrivateKeys(session, tokenType.getPrivKeyAttributes().getAllowedMechanisms());
 
         log.trace("Found {} private key(s) on token '{}'", keysOnToken.size(), getWorkerId());
 
@@ -691,7 +711,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             try {
                 logout();
             } finally {
-                activeSession.closeSession();
+                activeSession.destroy();
                 activeSession = null;
             }
         }
@@ -731,9 +751,9 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private void destroyCert(X509PublicKeyCertificate cert) {
+    private void destroyCert(Session session, X509PublicKeyCertificate cert) {
         try {
-            activeSession.destroyObject(cert);
+            session.destroyObject(cert);
         } catch (Exception e) {
             log.error("Failed to delete certificate on token '{}'", getWorkerId(), e);
         }
@@ -767,10 +787,12 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     private class HardwareTokenContentSigner implements ContentSigner {
 
         private final ByteArrayOutputStream out;
+        private final Session session;
         private final String keyId;
         private final SignAlgorithm signatureAlgorithmId;
 
-        HardwareTokenContentSigner(String keyId, SignAlgorithm signatureAlgorithmId) {
+        HardwareTokenContentSigner(Session session, String keyId, SignAlgorithm signatureAlgorithmId) {
+            this.session = session;
             this.keyId = keyId;
             this.signatureAlgorithmId = signatureAlgorithmId;
             out = new ByteArrayOutputStream();
@@ -782,7 +804,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 assertActiveSession();
                 pinVerificationPerSigningLogin();
                 byte[] dataToSign = out.toByteArray();
-                PrivateKey privateKey = getPrivateKey(keyId);
+                PrivateKey privateKey = getPrivateKey(session, keyId);
                 if (privateKey == null) {
                     throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
                             keyId, tokenId);
@@ -790,10 +812,10 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
                 Mechanism signatureMechanism = verifyAndReturnSignMechanism(signatureAlgorithmId,
                         KeyAlgorithm.valueOf(privateKey.getKeyType().toString()));
-                activeSession.signInit(signatureMechanism, privateKey);
+                session.signInit(signatureMechanism, privateKey);
                 byte[] digest = calculateDigest(signatureAlgorithmId.digest(), dataToSign);
                 byte[] dataDigestToSign = SignDataPreparer.of(signatureAlgorithmId).prepare(digest);
-                return activeSession.sign(dataDigestToSign);
+                return session.sign(dataDigestToSign);
             } catch (Exception e) {
                 log.error(e.getMessage());
                 throw translateException(e);
