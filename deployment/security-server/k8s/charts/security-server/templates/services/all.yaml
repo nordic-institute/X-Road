@@ -1,4 +1,6 @@
 {{- range $service, $config := .Values.services }}
+
+{{- if or (ne $service "op-monitor") $config.enabled }} # Skip when service is op-monitor and it's not enabled
 ---
 {{- include "xroad.serviceaccount" (dict "root" $ "service" $service "config" $config) }}
 ---
@@ -7,4 +9,6 @@
 {{- include "xroad.service" (dict "root" $ "service" $service "config" $config) }}
 ---
 {{- include "xroad.deployment" (dict "root" $ "service" $service "config" $config) }}
+{{- end }}
+
 {{- end }}

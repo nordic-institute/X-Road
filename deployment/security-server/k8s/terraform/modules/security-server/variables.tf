@@ -39,8 +39,32 @@ variable "messagelog_db_user_password" {
   sensitive   = true
 }
 
+variable "op_monitor_enabled" {
+  description = "Configuration client update interval"
+  type        = bool
+  default     = false
+}
+
+variable "opmonitor_db_postgres_password" {
+  description = "Postgres superuser's password for opmonitor DB"
+  type        = string
+  sensitive   = true
+}
+
+variable "opmonitor_db_user" {
+  description = "Opmonitor DB user"
+  type        = string
+  default     = "opmonitor"
+}
+
+variable "opmonitor_db_user_password" {
+  description = "Opmonitor's DB user's password"
+  type        = string
+  sensitive   = true
+}
+
 variable "configuration_client_update_interval" {
   description = "Configuration client update interval"
-  type        = string
-  default     = "60"
+  type        = number
+  default     = 60
 }

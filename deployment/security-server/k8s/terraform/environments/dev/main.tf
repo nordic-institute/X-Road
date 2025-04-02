@@ -1,23 +1,27 @@
+provider "helm" {
+  kubernetes {
+    config_path = var.kubeconfig_path
+  }
+}
 
-module "kind-cluster" {
+module "kind_cluster" {
   source       = "../../modules/kind"
 
   kind_cluster_name = "xroad-cluster"
-  kube_config_path = var.kube_config_path
-  images_registry = "localhost:5555"
+  kubeconfig_path = var.kubeconfig_path
 }
 
 module "openbao" {
   source      = "../../modules/openbao"
 
   depends_on = [
-    module.kind-cluster
+    module.kind_cluster
   ]
 
   openbao_dev = false
 }
 
-module "cs-service-bridge" {
+module "cs_service_bridge" {
   source        = "../../modules/external-service-bridge"
   name          = "xrd-cs"
   external_host = "host.docker.internal"
@@ -45,11 +49,11 @@ module "cs-service-bridge" {
   ]
 
   depends_on = [
-    module.kind-cluster
+    module.kind_cluster
   ]
 }
 
-module "ca-service-bridge" {
+module "ca_service_bridge" {
   source        = "../../modules/external-service-bridge"
   name          = "xrd-ca"
   external_host = "host.docker.internal"
@@ -67,11 +71,11 @@ module "ca-service-bridge" {
   ]
 
   depends_on = [
-    module.kind-cluster
+    module.kind_cluster
   ]
 }
 
-module "ss0-service-bridge" {
+module "ss0_service_bridge" {
   source        = "../../modules/external-service-bridge"
   name          = "xrd-ss0"
   external_host = "host.docker.internal"
@@ -89,7 +93,7 @@ module "ss0-service-bridge" {
   ]
 
   depends_on = [
-    module.kind-cluster
+    module.kind_cluster
   ]
 }
 
@@ -98,9 +102,9 @@ module "security-server" {
 
   depends_on = [
     module.openbao,
-    module.cs-service-bridge,
-    module.ca-service-bridge,
-    module.ss0-service-bridge
+    module.cs_service_bridge,
+    module.ca_service_bridge,
+    module.ss0_service_bridge
   ]
 
   serverconf_db_postgres_password = "secret"
@@ -108,4 +112,7 @@ module "security-server" {
   serverconf_db_user_password="secret"
   messagelog_db_user_password="secret"
   configuration_client_update_interval = "10"
+  op_monitor_enabled = true
+  opmonitor_db_postgres_password="secret"
+  opmonitor_db_user_password="secret"
 }

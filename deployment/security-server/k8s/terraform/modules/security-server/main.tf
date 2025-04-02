@@ -66,12 +66,48 @@ resource "helm_release" "postgresql_messagelog" {
   ]
 }
 
+resource "helm_release" "postgresql_opmonitor" {
+  count = var.op_monitor_enabled ? 1 : 0
+
+  name      = "security-server-opmonitor-db"
+  namespace = var.namespace
+  create_namespace = true
+
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "postgresql"
+  version    = "15.1.0"
+
+  values = [
+    yamlencode({
+      fullnameOverride = "db-opmonitor"
+      auth = {
+        database           = "op-monitor"
+        username           = var.opmonitor_db_user
+        password           = var.opmonitor_db_user_password
+        //admin user for setup
+        enablePostgresUser = true
+        postgresPassword   = var.opmonitor_db_postgres_password
+      }
+      primary = {
+        resources = {
+          requests = {
+            memory = "64Mi"
+          }
+          limits = {
+            memory = "256Mi"
+          }
+        }
+      }
+    })
+  ]
+}
+
 resource "helm_release" "security_server" {
   name      = "security-server"
   namespace = var.namespace
   create_namespace = true
 
-  chart = "${path.module}/../../../charts/security_server"
+  chart = "${path.module}/../../../charts/security-server"
   timeout = 90 # TODO make it configurable
 
   wait = true
@@ -80,19 +116,28 @@ resource "helm_release" "security_server" {
     yamlencode({
       init = {
         serverconf = {
-          postgres_password = var.serverconf_db_postgres_password
-          db_username       = var.serverconf_db_user
+          dbUsername       = var.serverconf_db_user
         }
         messagelog = {
-          postgres_password = var.messagelog_db_postgres_password
-          db_username       = var.messagelog_db_user
+          dbUsername       = var.messagelog_db_user
+        }
+        opmonitor = {
+          dbUsername       = var.opmonitor_db_user
         }
       }
       services = {
         configuration-client = {
           env = {
-            XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL = var.configuration_client_update_interval
+            XROAD_CONFIGURATION_CLIENT_UPDATE_INTERVAL = tostring(var.configuration_client_update_interval)
           }
+        }
+        proxy = {
+          env = {
+            XROAD_PROXY_ADDON_OP_MONITOR_ENABLED = tostring(var.op_monitor_enabled)
+          }
+        }
+        op-monitor = {
+          enabled = tostring(var.op_monitor_enabled)
         }
       }
     })

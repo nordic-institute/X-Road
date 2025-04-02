@@ -13,4 +13,4 @@ docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --tag "$REGISTRY_URL"/init-runner \
   --push \
-  charts/openbao_init/init_runner
+  charts/openbao-init/init-runner
