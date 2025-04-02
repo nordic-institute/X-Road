@@ -1,17 +1,80 @@
- #!/bin/bash
+#!/bin/bash
 
-export PATH={{ hurl_install_dir }}/{{ hurl_dirname }}/bin:$PATH
+# Define scenario directory
+SCENARIO_DIR="/opt/hurl/scenario"
+VARS_FILE="${SCENARIO_DIR}/hurl.env"
+CA_DIR="${SCENARIO_DIR}/ca"
+# Create a reports directory in the same location as the script
+REPORT_DIR="$(dirname "${BASH_SOURCE[0]}")/hurl-reports"
 
-echo "Downloading CA certs.."
-mkdir scenario/ca
-wget http://xrd-ca:8888/testca/certs/ca.cert.pem -O scenario/ca/ca.pem
-wget http://xrd-ca:8888/testca/certs/tsa.cert.pem -O scenario/ca/tsa.pem
-wget http://xrd-ca:8888/testca/certs/ocsp.cert.pem -O scenario/ca/ocsp.pem
+# Function to download a certificate
+download_cert() {
+  local cert_name=$1
+  local output_file=$2
 
-echo "Running Hurl scenario..."
-hurl scenario/setup.hurl \
-    --variables-file=hurl.env \
-    --insecure \
-    --very-verbose \
-    --retry 12 \
-    --retry-interval 8000
+  curl -s "http://${ca_host}:8888/testca/certs/${cert_name}.cert.pem" -o "${output_file}"
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to download ${cert_name} certificate"
+    return 1
+  fi
+  return 0
+}
+
+# Load variables from vars.env
+if [ -f "${VARS_FILE}" ]; then
+  source <(grep -v '^#' "${VARS_FILE}" | sed 's/^/export /')
+else
+  echo "Error: env file not found at ${VARS_FILE}"
+  exit 1
+fi
+
+# Create ca directory if it doesn't exist
+mkdir -p "${CA_DIR}"
+# Create reports directory if it doesn't exist
+mkdir -p "${REPORT_DIR}"
+
+# Download certificate files
+echo "Downloading certificates..."
+download_cert "ca" "${CA_DIR}/ca.pem" &&
+  download_cert "tsa" "${CA_DIR}/tsa.pem" &&
+  download_cert "ocsp" "${CA_DIR}/ocsp.pem" &&
+  echo "Certificates downloaded successfully" || exit 1
+
+# Create a temporary file
+TEMP_FILE=$(mktemp)
+
+# Add a header comment to the temp file
+echo "# Combined Hurl file generated on $(date)" >"${TEMP_FILE}"
+echo "" >>"${TEMP_FILE}"
+
+# Find all .hurl files in the script directory, sort them alphabetically, and concatenate
+find "$(dirname "${BASH_SOURCE[0]}")" -maxdepth 1 -name "*.hurl" | sort | while read -r file; do
+  echo "# Including file: $(basename "$file")" >>"${TEMP_FILE}"
+  cat "$file" >>"${TEMP_FILE}"
+  echo "" >>"${TEMP_FILE}"
+  echo "" >>"${TEMP_FILE}"
+done
+
+# Execute the combined Hurl file
+echo "Executing combined Hurl file..."
+hurl "${TEMP_FILE}" "$@" \
+  --variables-file="${VARS_FILE}" \
+  --file-root="${SCENARIO_DIR}" \
+  --connect-timeout 15s \
+  --insecure \
+  --very-verbose \
+  --retry 12 \
+  --retry-interval 8000 \
+  --report-html "${REPORT_DIR}"
+
+RESULT=$?
+
+# Display report location if successful
+if [ $RESULT -eq 0 ]; then
+  echo "HTML report generated successfully at: ${REPORT_DIR}"
+fi
+
+# Clean up
+rm "${TEMP_FILE}"
+
+exit $RESULT

@@ -1,11 +1,5 @@
 - name: Install Hurl
   block:
-    - name: Set Hurl facts
-      set_fact:
-        hurl_version: "5.0.1"
-        hurl_install_dir: "/opt/hurl"
-        hurl_files: "{{ playbook_dir }}/../development/hurl/scenarios/"
-
     - name: Set package name
       set_fact:
         hurl_dirname: "hurl-{{ hurl_version }}-{{ ansible_architecture }}-unknown-linux-gnu"
@@ -40,9 +34,10 @@
 
     - name: Copy Hurl env file
       copy:
-        src: "files/hurl.env"
-        dest: "{{ hurl_install_dir }}/"
+        src: "{{ hurl_env_file }}"
+        dest: "{{ hurl_install_dir }}/scenario"
         group: "root"
         owner: "root"
         mode: "0644"
+        overwrite: yes
         directory_mode: "0755"

@@ -33,7 +33,7 @@
 - name: Download example-adapter
   get_url:
     url: "https://artifactory.niis.org/xroad-maven-snapshots/org/niis/example-adapter/{{ latest_version.stdout }}/{{ artifact_filename.stdout }}"
-    dest: /example-adapter.war
+    dest: /opt/example-adapter.war
     mode: '0644'
 
 - name: Create systemd service
@@ -45,6 +45,24 @@
 - name: Start and enable example-adapter service
   systemd:
     name: example-adapter
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Download test-service
+  get_url:
+    url: "https://artifactory.niis.org/xroad-maven-snapshots/org/niis/test-service/0.0.4-SNAPSHOT/test-service-0.0.4-20250326.073629-1.war"
+    dest: /opt/test-service.war
+    mode: '0644'
+- name: Create test-service systemd service
+  template:
+    src: templates/test-service.service.j2
+    dest: /etc/systemd/system/test-service.service
+    mode: '0644'
+
+- name: Start and enable test-service service
+  systemd:
+    name: test-service
     state: started
     enabled: yes
     daemon_reload: yes
