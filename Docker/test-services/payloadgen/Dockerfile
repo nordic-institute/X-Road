@@ -1,5 +1,5 @@
 ################################################################################
-FROM rust:1.79-alpine AS build
+FROM rust:1.85-alpine AS build
 
 RUN apk add --no-cache musl-dev #clang lld
 

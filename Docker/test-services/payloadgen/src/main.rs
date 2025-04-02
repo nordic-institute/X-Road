@@ -66,9 +66,9 @@ async fn put(data: Data<'_>) -> (Status, io::Result<String>) {
 }
 
 #[rocket::main]
-async fn main() -> Result<(), rocket::Error> {
-    rocket::build()
+async fn main() {
+    let _ = rocket::build()
         .mount("/", routes![generate, upload, put])
         .launch()
-        .await
+        .await;
 }
