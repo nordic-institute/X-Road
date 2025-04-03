@@ -33,6 +33,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
@@ -41,6 +42,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +73,8 @@ public abstract class AbstractFacadeMockingTestContext {
     protected SignerRpcClient signerRpcClient;
     @MockitoBean
     protected AcmeService acmeService;
+    @MockitoSpyBean
+    protected SubsystemNameStatus subsystemNameStatus;
     @MockitoBean
     MonitorRpcClient monitorClient;
     @MockitoBean
@@ -79,5 +83,4 @@ public abstract class AbstractFacadeMockingTestContext {
     protected ConfClientRpcClient confClientRpcClient;
     @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
-
 }

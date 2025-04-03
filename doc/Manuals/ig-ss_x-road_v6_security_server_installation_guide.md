@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.56  
+Version: 2.57  
 Doc. ID: IG-SS
 
 ---
@@ -76,6 +76,7 @@ Doc. ID: IG-SS
 | 08.11.2024 | 2.54    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
 | 13.02.2025 | 2.55    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
 | 10.03.2025 | 2.56    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
+| 21.03.2025 | 2.57    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
 
 ## License
 

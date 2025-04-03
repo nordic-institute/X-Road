@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,53 +28,53 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between KeyUsageType in api (enum) and model (KeyUsageInfo)
+ * Mapping between KeyUsageTypeDto in api (enum) and model (KeyUsageInfo)
  */
 @Getter
 @RequiredArgsConstructor
 public enum KeyUsageTypeMapping {
-    SIGNING(KeyUsageType.SIGNING, KeyUsageInfo.SIGNING),
-    AUTHENTICATION(KeyUsageType.AUTHENTICATION, KeyUsageInfo.AUTHENTICATION);
+    SIGNING(KeyUsageTypeDto.SIGNING, KeyUsageInfo.SIGNING),
+    AUTHENTICATION(KeyUsageTypeDto.AUTHENTICATION, KeyUsageInfo.AUTHENTICATION);
 
-    private final KeyUsageType keyUsageType;
+    private final KeyUsageTypeDto keyUsageTypeDto;
     private final KeyUsageInfo keyUsageInfo;
 
     /**
      * Return matching KeyUsageInfo, if any
      *
-     * @param keyUsageType
+     * @param keyUsageTypeDto
      * @return
      */
-    public static Optional<KeyUsageInfo> map(KeyUsageType keyUsageType) {
-        return getFor(keyUsageType).map(KeyUsageTypeMapping::getKeyUsageInfo);
+    public static Optional<KeyUsageInfo> map(KeyUsageTypeDto keyUsageTypeDto) {
+        return getFor(keyUsageTypeDto).map(KeyUsageTypeMapping::getKeyUsageInfo);
     }
 
     /**
-     * Return matching KeyUsageType, if any
+     * Return matching KeyUsageTypeDto, if any
      *
      * @param keyUsageInfo
      * @return
      */
-    public static Optional<KeyUsageType> map(KeyUsageInfo keyUsageInfo) {
-        return getFor(keyUsageInfo).map(KeyUsageTypeMapping::getKeyUsageType);
+    public static Optional<KeyUsageTypeDto> map(KeyUsageInfo keyUsageInfo) {
+        return getFor(keyUsageInfo).map(KeyUsageTypeMapping::getKeyUsageTypeDto);
     }
 
     /**
-     * return KeyUsageInfoMapping matching the given KeyUsageType, if any
+     * return KeyUsageInfoMapping matching the given KeyUsageTypeDto, if any
      *
-     * @param keyUsageType
+     * @param keyUsageTypeDto
      * @return
      */
-    public static Optional<KeyUsageTypeMapping> getFor(KeyUsageType keyUsageType) {
+    public static Optional<KeyUsageTypeMapping> getFor(KeyUsageTypeDto keyUsageTypeDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.keyUsageType.equals(keyUsageType))
+                .filter(mapping -> mapping.keyUsageTypeDto.equals(keyUsageTypeDto))
                 .findFirst();
     }
 

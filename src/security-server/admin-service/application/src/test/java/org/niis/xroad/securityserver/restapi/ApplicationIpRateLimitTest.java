@@ -34,6 +34,7 @@ import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.api.throttle.test.ParallelMockMvcExecutor;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +88,9 @@ class ApplicationIpRateLimitTest {
 
     @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
+
+    @MockitoBean
+    GlobalConfProvider globalConfProvider;
 
     @PostConstruct
     void setGlobalSecurityContext() {

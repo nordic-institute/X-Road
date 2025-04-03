@@ -24,11 +24,7 @@
  * THE SOFTWARE.
  */
 
-import {
-  NodeType,
-  NodeTypeResponse,
-  VersionInfo
-} from "@/openapi-types";
+import { NodeType, NodeTypeResponse, VersionInfo } from "@/openapi-types";
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
@@ -50,6 +46,12 @@ export const useSystem = defineStore('system', {
   getters: {
     isSecondaryNode(state) {
       return state.securityServerNodeType === NodeType.SECONDARY;
+    },
+    globalConfigurationVersion(state): number | undefined {
+      return state.securityServerVersion.global_configuration_version;
+    },
+    doesSupportSubsystemNames(): boolean {
+      return !!this.globalConfigurationVersion && this.globalConfigurationVersion >= 5;
     },
   },
 

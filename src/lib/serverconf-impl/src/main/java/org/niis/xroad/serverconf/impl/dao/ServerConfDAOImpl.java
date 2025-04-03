@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import jakarta.persistence.criteria.CriteriaQuery;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 
@@ -41,8 +41,8 @@ public class ServerConfDAOImpl {
     /**
      * @return the server conf
      */
-    public ServerConfType getConf(Session session) {
-        ServerConfType confType = getFirst(session, ServerConfType.class);
+    public ServerConfEntity getConf(Session session) {
+        ServerConfEntity confType = getFirst(session, ServerConfEntity.class);
         if (confType == null) {
             throw new CodedException(X_MALFORMED_SERVERCONF,
                     "Server conf is not initialized!");

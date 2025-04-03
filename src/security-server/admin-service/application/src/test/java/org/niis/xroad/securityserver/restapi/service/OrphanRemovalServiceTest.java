@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,7 +33,8 @@ import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -213,11 +215,11 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
                 }));
 
         doReturn(Collections.singletonList(tokenInfo)).when(signerRpcClient).getTokens();
-        Map<ClientId, ClientType> localClients = new HashMap<>();
+        Map<ClientId, ClientEntity> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
-            ClientType clientType = new ClientType();
-            clientType.setIdentifier(id);
-            localClients.put(id, clientType);
+            ClientEntity clientEntity = new ClientEntity();
+            clientEntity.setIdentifier(XRoadIdMapper.get().toEntity(id));
+            localClients.put(id, clientEntity);
         });
         doReturn(new ArrayList<>(localClients.values())).when(clientRepository).getAllLocalClients();
         doAnswer(invocation -> {

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,8 +27,8 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 
 import static org.junit.Assert.assertEquals;
 
@@ -40,23 +41,23 @@ public class VersionConverterTest extends AbstractConverterTestContext {
     public void convertVersion() {
         VersionConverter versionConverter = new VersionConverter();
 
-        VersionInfoDto infoDto = new VersionInfoDto();
-        infoDto.setInfo("1.3.33");
-        infoDto.setJavaVersion(9);
-        infoDto.setMinJavaVersion(8);
-        infoDto.setMaxJavaVersion(11);
-        infoDto.setUsingSupportedJavaVersion(true);
-        infoDto.setJavaVendor("Xroad");
-        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
+        VersionInfo versionInfo = new VersionInfo();
+        versionInfo.setInfo("1.3.33");
+        versionInfo.setJavaVersion(9);
+        versionInfo.setMinJavaVersion(8);
+        versionInfo.setMaxJavaVersion(11);
+        versionInfo.setUsingSupportedJavaVersion(true);
+        versionInfo.setJavaVendor("Xroad");
+        versionInfo.setJavaRuntimeVersion("0.0.1 xroad jdk");
 
-        VersionInfo version = versionConverter.convert(infoDto);
+        VersionInfoDto version = versionConverter.convert(versionInfo);
 
-        assertEquals(infoDto.getInfo(), version.getInfo());
-        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
-        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
-        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
-        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
-        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
-        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
+        assertEquals(versionInfo.getInfo(), version.getInfo());
+        assertEquals(versionInfo.getJavaVersion(), (long) version.getJavaVersion());
+        assertEquals(versionInfo.getMinJavaVersion(), (long) version.getMinJavaVersion());
+        assertEquals(versionInfo.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
+        assertEquals(versionInfo.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
+        assertEquals(versionInfo.getJavaVendor(), version.getJavaVendor());
+        assertEquals(versionInfo.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
     }
 }

@@ -1,0 +1,11 @@
+[Unit]
+Description=XRD4J test-service
+After=network.target
+
+[Service]
+Environment="JAVA_HOME={{ java_17_home }}"
+ExecStart={{ java_17_home }}/bin/java -Dserver.port=8082 -jar /opt/test-service.war
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

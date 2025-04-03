@@ -39,7 +39,9 @@
         </thead>
         <tbody>
           <tr>
-            <td class="identifier-wrap">{{ serviceClient.name }}</td>
+            <td class="identifier-wrap">
+              <client-name :service-client="serviceClient" />
+            </td>
             <td class="identifier-wrap">{{ serviceClient.id }}</td>
           </tr>
         </tbody>
@@ -158,6 +160,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useServices } from '@/store/modules/services';
+import ClientName from '@/components/client/ClientName.vue';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
@@ -165,6 +168,7 @@ interface UiAccessRight extends AccessRight {
 
 export default defineComponent({
   components: {
+    ClientName,
     AddServiceClientServiceDialog,
   },
   props: {

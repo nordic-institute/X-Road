@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,9 +31,9 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 
 import java.time.OffsetDateTime;
 
@@ -54,11 +55,11 @@ public class GlobalConfDiagnosticConverterTest {
 
     @Test
     public void convertSingleGlobalConfDiagnostics() {
-        GlobalConfDiagnostics globalConfDiagnostics = globalConfDiagnosticConverter.convert(new DiagnosticsStatus(
+        GlobalConfDiagnosticsDto globalConfDiagnostics = globalConfDiagnosticConverter.convert(new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE, NEXT_UPDATE));
 
-        assertEquals(ConfigurationStatus.SUCCESS, globalConfDiagnostics.getStatusCode());
-        assertEquals(DiagnosticStatusClass.OK, globalConfDiagnostics.getStatusClass());
+        assertEquals(ConfigurationStatusDto.SUCCESS, globalConfDiagnostics.getStatusCode());
+        assertEquals(DiagnosticStatusClassDto.OK, globalConfDiagnostics.getStatusClass());
         assertEquals(PREVIOUS_UPDATE, globalConfDiagnostics.getPrevUpdateAt());
         assertEquals(NEXT_UPDATE, globalConfDiagnostics.getNextUpdateAt());
     }

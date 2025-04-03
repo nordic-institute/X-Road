@@ -24,25 +24,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="mt-10">
+  <v-card variant="flat">
     <table v-if="client && !clientLoading" class="xrd-table detail-table">
       <tbody>
-        <tr>
-          <td>{{ $t('client.memberName') }}</td>
-          <td class="identifier-wrap">{{ client.member_name }}</td>
-        </tr>
-        <tr>
-          <td>{{ $t('client.memberClass') }}</td>
-          <td class="identifier-wrap">{{ client.member_class }}</td>
-        </tr>
-        <tr>
-          <td>{{ $t('client.memberCode') }}</td>
-          <td class="identifier-wrap">{{ client.member_code }}</td>
-        </tr>
-        <tr v-if="client.subsystem_code">
-          <td>{{ $t('client.subsystemCode') }}</td>
-          <td class="identifier-wrap">{{ client.subsystem_code }}</td>
-        </tr>
+      <tr>
+        <td>{{ $t('client.memberName') }}</td>
+        <td colspan="2" class="identifier-wrap">{{ client.member_name }}</td>
+      </tr>
+      <tr>
+        <td>{{ $t('client.memberClass') }}</td>
+        <td colspan="2" class="identifier-wrap">{{ client.member_class }}</td>
+      </tr>
+      <tr>
+        <td>{{ $t('client.memberCode') }}</td>
+        <td colspan="2" class="identifier-wrap">{{ client.member_code }}</td>
+      </tr>
+      <tr v-if="client.subsystem_code">
+        <td>{{ $t('client.subsystemCode') }}</td>
+        <td colspan="2" class="identifier-wrap">{{ client.subsystem_code }}</td>
+      </tr>
+      <tr v-if="client.subsystem_code && doesSupportSubsystemNames">
+        <td>{{ $t('client.subsystemName') }}</td>
+
+        <td class="identifier-wrap">
+          <subsystem-name :name="client.subsystem_name" />
+        </td>
+        <td class="pr-5">
+          <client-status data-test="rename-status" class="float-right" v-if="client.rename_status" style="float: right" :status="client.rename_status" />
+        </td>
+      </tr>
       </tbody>
     </table>
   </v-card>
@@ -50,12 +60,12 @@
   <v-card variant="flat" class="mt-10">
     <table class="xrd-table">
       <thead>
-        <tr>
-          <th>{{ $t('cert.signCertificate') }}</th>
-          <th>{{ $t('cert.serialNumber') }}</th>
-          <th>{{ $t('cert.state') }}</th>
-          <th>{{ $t('cert.expires') }}</th>
-        </tr>
+      <tr>
+        <th>{{ $t('cert.signCertificate') }}</th>
+        <th>{{ $t('cert.serialNumber') }}</th>
+        <th>{{ $t('cert.state') }}</th>
+        <th>{{ $t('cert.expires') }}</th>
+      </tr>
       </thead>
       <tbody>
       <template
@@ -74,7 +84,7 @@
               class="cert-name"
               data-test="cert-name"
               @click="viewCertificate(certificate)"
-              >{{ certificate.certificate_details.issuer_common_name }}</span
+            >{{ certificate.certificate_details.issuer_common_name }}</span
             >
           </td>
           <td>{{ certificate.certificate_details.serial }}</td>
@@ -104,8 +114,14 @@ import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useClient } from '@/store/modules/client';
+import { useUser } from '@/store/modules/user';
+import { XrdIconEdit } from '@niis/shared-ui';
+import ClientStatus from '@/views/Clients/ClientStatus.vue';
+import { useSystem } from '@/store/modules/system';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
+  components: { SubsystemName, ClientStatus, XrdIconEdit },
   props: {
     id: {
       type: String,
@@ -115,10 +131,16 @@ export default defineComponent({
   data() {
     return {
       certificatesLoading: false,
+      showRenameDialog: false,
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     ...mapState(useClient, ['client', 'signCertificates', 'clientLoading']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
+    renameInProgress(): boolean {
+      return !!this.client?.rename_in_progress;
+    },
   },
   created() {
     this.certificatesLoading = true;
@@ -130,7 +152,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClient, ['fetchSignCertificates']),
+    ...mapActions(useClient, ['fetchSignCertificates', 'fetchClient']),
     viewCertificate(cert: TokenCertificate) {
       this.$router.push({
         name: RouteName.Certificate,
@@ -157,5 +179,9 @@ export default defineComponent({
 .cert-name {
   color: colors.$Link;
   cursor: pointer;
+}
+
+.actions {
+  width: 15%;
 }
 </style>

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -48,86 +49,86 @@ public interface ServerConfProvider {
     SecurityServerId.Conf getIdentifier();
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return true, if service with the given identifier exists in
      * the configuration.
      */
-    boolean serviceExists(ServiceId service);
+    boolean serviceExists(ServiceId serviceId);
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return if the service is disabled, returns notice about this event.
      * If the service is enabled, returns null.
      */
-    String getDisabledNotice(ServiceId service);
+    String getDisabledNotice(ServiceId serviceId);
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return URL for corresponding to service provider for given service name.
      */
-    String getServiceAddress(ServiceId service);
+    String getServiceAddress(ServiceId serviceId);
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return the timeout value (in seconds) for the service.
      */
-    int getServiceTimeout(ServiceId service);
+    int getServiceTimeout(ServiceId serviceId);
 
     /**
-     * @param serviceProvider the service provider identifier
+     * @param serviceProviderId the service provider identifier
      * @return RestServiceDetailsListType containing list of REST services
      */
-    RestServiceDetailsListType getRestServices(ClientId serviceProvider);
+    RestServiceDetailsListType getRestServices(ClientId serviceProviderId);
 
     /**
-     * @param serviceProvider the service provider identifier
-     * @param client the client identifier
+     * @param serviceProviderId the service provider identifier
+     * @param clientId the client identifier
      * @return RestServiceDetailsListType containing list of allowed REST services
      */
-    RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client);
+    RestServiceDetailsListType getAllowedRestServices(ClientId serviceProviderId, ClientId clientId);
 
     /**
-     * @param serviceProvider the service provider identifier
+     * @param serviceProviderId the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId.Conf> getAllServices(ClientId serviceProvider);
+    List<ServiceId.Conf> getAllServices(ClientId serviceProviderId);
 
     /**
-     * @param serviceProvider the service provider identifier
+     * @param serviceProviderId the service provider identifier
      * @return all the services offered by a service provider.
      */
-    List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
+    List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProviderId, DescriptionType descriptionType);
 
     /**
-     * @param serviceProvider the service provider identifier
-     * @param client the client identifier
+     * @param serviceProviderId the service provider identifier
+     * @param clientId the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
-    List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider, ClientId client);
+    List<ServiceId.Conf> getAllowedServices(ClientId serviceProviderId, ClientId clientId);
 
     /**
-     * @param serviceProvider the service provider identifier
-     * @param client the client identifier
+     * @param serviceProviderId the service provider identifier
+     * @param clientId the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke filtered by description type
      */
-    List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+    List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
                                                              DescriptionType descriptionType);
 
     /**
-     * @param client the client identifier
+     * @param clientId the client identifier
      * @return the authentication method for the client information system.
      */
-    IsAuthentication getIsAuthentication(ClientId client);
+    IsAuthentication getIsAuthentication(ClientId clientId);
 
     /**
-     * @param client the client identifier
+     * @param clientId the client identifier
      * @return the list of certificates that are allowed to be used to
      * authenticate the client information system.
      * @throws Exception if an error occurs
      */
-    List<X509Certificate> getIsCerts(ClientId client) throws Exception;
+    List<X509Certificate> getIsCerts(ClientId clientId) throws Exception;
 
 
     /**
@@ -143,10 +144,10 @@ public interface ServerConfProvider {
     InternalSSLKey getSSLKey() throws Exception;
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return whether the SSL certificate of the service provider is verified.
      */
-    boolean isSslAuthentication(ServiceId service);
+    boolean isSslAuthentication(ServiceId serviceId);
 
     /**
      * @return all members identifiers
@@ -161,22 +162,22 @@ public interface ServerConfProvider {
     String getMemberStatus(ClientId memberId);
 
     /**
-     * @param sender the sender identifier
-     * @param service the service identifier
+     * @param senderId the sender identifier
+     * @param serviceId the service identifier
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
-    boolean isQueryAllowed(ClientId sender, ServiceId service);
+    boolean isQueryAllowed(ClientId senderId, ServiceId serviceId);
 
     /**
-     * @param sender the sender identifier
-     * @param service the service identifier
+     * @param senderId the sender identifier
+     * @param serviceId the service identifier
      * @param method the request method (can be null)
      * @param path the request path (can be null)
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
-    boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path);
+    boolean isQueryAllowed(ClientId senderId, ServiceId serviceId, String method, String path);
 
     /**
      * @return list of URLs for the Time-stamping providers configured
@@ -185,16 +186,16 @@ public interface ServerConfProvider {
     List<String> getTspUrl();
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return the type of the service as {@link DescriptionType}
      */
-    DescriptionType getDescriptionType(ServiceId service);
+    DescriptionType getDescriptionType(ServiceId serviceId);
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return the service description url
      */
-    String getServiceDescriptionURL(ServiceId service);
+    String getServiceDescriptionURL(ServiceId serviceId);
 
     /**
      * @param serviceId the service identifier

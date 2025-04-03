@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,7 +38,7 @@ import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -159,9 +161,9 @@ public class GlobalConfService {
 
     /**
      * @return approved timestamping services for current instance.
-     * {@link TspType#getId()} is null for all returned items
+     * {@link TimestampingService#getId()} is null for all returned items
      */
-    public List<TspType> getApprovedTspsForThisInstance() {
+    public List<TimestampingService> getApprovedTspsForThisInstance() {
         List<SharedParameters.ApprovedTSA> approvedTspTypes =
                 globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
         return approvedTspTypes.stream()
@@ -170,10 +172,10 @@ public class GlobalConfService {
     }
 
     /**
-     * init TspType DTO with name and url. id will be null
+     * init TimestampingService DTO with name and url. id will be null
      */
-    private TspType createTspType(SharedParameters.ApprovedTSA approvedTSA) {
-        TspType tsp = new TspType();
+    private TimestampingService createTspType(SharedParameters.ApprovedTSA approvedTSA) {
+        TimestampingService tsp = new TimestampingService();
         tsp.setUrl(approvedTSA.getUrl());
         tsp.setName(approvedTSA.getName());
         return tsp;
@@ -197,5 +199,10 @@ public class GlobalConfService {
         String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         ClientId clientId = ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
         return globalConfProvider.getMemberName(clientId);
+    }
+
+
+    public OptionalInt getGlobalConfigurationVersion() {
+        return globalConfProvider.getVersion();
     }
 }

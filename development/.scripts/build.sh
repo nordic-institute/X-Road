@@ -13,6 +13,9 @@ case $1 in
 "addon-messagelog")
   gradleModule="addons/messagelog/messagelog-addon"
   ;;
+"addon-metaservice")
+  gradleModule="addons/metaservice"
+  ;;
 "configuration-client")
   gradleModule="service/configuration-client/configuration-client-application"
   ;;

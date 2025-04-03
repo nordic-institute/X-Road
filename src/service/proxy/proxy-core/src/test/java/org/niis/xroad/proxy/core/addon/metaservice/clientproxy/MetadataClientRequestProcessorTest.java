@@ -189,9 +189,8 @@ public class MetadataClientRequestProcessorTest {
                 .getValue()
                 .getMember()
                 .stream()
-                .map(clientType -> new MemberInfo(clientType.getId(), clientType.getName()))
+                .map(clientType -> new MemberInfo(clientType.getId(), clientType.getName(), clientType.getSubsystemName()))
                 .collect(Collectors.toList());
-
 
         assertThat("Wrong amount of clients",
                 members.size(), is(expectedMembers.size()));
@@ -249,7 +248,8 @@ public class MetadataClientRequestProcessorTest {
                                         "subsystem_code": "subsystem",
                                         "xroad_instance": "EE"
                                     },
-                                    "name": "producer-name"
+                                    "name": "producer-name",
+                                    "subsystem_name": "subsystem-name"
                                 }
                             ]
                         }""");
@@ -285,7 +285,7 @@ public class MetadataClientRequestProcessorTest {
 
     private static MemberInfo createMember(String member, String subsystem) {
         return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
-                member, subsystem), member + "-name");
+                member, subsystem), member + "-name", subsystem == null ? null : (subsystem + "-name"));
     }
 
 

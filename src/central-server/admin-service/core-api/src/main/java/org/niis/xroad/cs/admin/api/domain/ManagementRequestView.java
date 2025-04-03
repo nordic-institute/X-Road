@@ -52,6 +52,7 @@ public class ManagementRequestView {
     private String securityServerOwnerName;
     private SecurityServerId securityServerId;
     private String clientOwnerName;
+    private String clientSubsystemName;
     private ClientId clientId;
     private byte[] authCert;
     private CertificateDetails certificateDetails;

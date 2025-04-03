@@ -1,5 +1,6 @@
 /*
  *  The MIT License
+ *
  *  Copyright (c) 2018 Estonian Information System Authority (RIA),
  *  Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  *  Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -25,13 +26,14 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,31 +52,31 @@ public class IdentifierRepository {
 
     /**
      * Executes a Hibernate persist(XRoadId) for multiple group members
-     * @param identifiers
+     * @param identifiers identifiers
      */
-    public void persist(Collection<XRoadId.Conf> identifiers) {
+    public void persist(Collection<XRoadIdEntity> identifiers) {
         Session session = persistenceUtils.getCurrentSession();
-        for (XRoadId.Conf identifier : identifiers) {
+        for (XRoadIdEntity identifier : identifiers) {
             session.persist(identifier);
         }
     }
 
-    public void remove(XRoadId.Conf identifier) {
+    public void remove(XRoadIdEntity identifier) {
         persistenceUtils.getCurrentSession().remove(identifier);
     }
 
     /**
      * return all identifiers
      */
-    public Collection<XRoadId.Conf> getIdentifiers() {
+    public Collection<XRoadIdEntity> getIdentifiers() {
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
-        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadId.Conf.class);
+        return identifierDao.findAll(persistenceUtils.getCurrentSession(), XRoadIdEntity.class);
     }
 
     /**
      * Finds a (local) client identifier corresponding the example or null if none exits
      */
-    public ClientId.Conf getClientId(ClientId clientId) {
+    public ClientIdEntity getClientId(ClientId clientId) {
         Session session = persistenceUtils.getCurrentSession();
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
         return identifierDao.findClientId(session, clientId);

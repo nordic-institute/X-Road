@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Environment="JAVA_HOME={{ java_17_home }}"
-ExecStart={{ java_17_home }}/bin/java -jar -Dserver.port=8081 /example-restapi.jar
+ExecStart={{ java_17_home }}/bin/java -Dserver.port=8081 -jar /opt/example-restapi.jar
 Restart=always
 
 [Install]

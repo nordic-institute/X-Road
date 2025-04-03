@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,8 +27,8 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -39,23 +40,23 @@ import java.util.stream.Collectors;
 @Component
 public class TimestampingServiceConverter {
 
-    public TimestampingService convert(TspType tsp) {
-        TimestampingService timestampingService = new TimestampingService();
-        timestampingService.setUrl(tsp.getUrl());
-        timestampingService.setName(tsp.getName());
-        return timestampingService;
+    public TimestampingServiceDto convert(TimestampingService tsp) {
+        TimestampingServiceDto timestampingServiceDto = new TimestampingServiceDto();
+        timestampingServiceDto.setUrl(tsp.getUrl());
+        timestampingServiceDto.setName(tsp.getName());
+        return timestampingServiceDto;
     }
 
-    public Set<TimestampingService> convert(Iterable<TspType> tsps) {
+    public Set<TimestampingServiceDto> convert(Iterable<TimestampingService> tsps) {
         return Streams.stream(tsps)
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
-    public TspType convert(TimestampingService timestampingService) {
-        TspType tspType = new TspType();
-        tspType.setUrl(timestampingService.getUrl());
-        tspType.setName(timestampingService.getName());
-        return tspType;
+    public TimestampingService convert(TimestampingServiceDto timestampingServiceDto) {
+        TimestampingService timestampingService = new TimestampingService();
+        timestampingService.setUrl(timestampingServiceDto.getUrl());
+        timestampingService.setName(timestampingServiceDto.getName());
+        return timestampingService;
     }
 }

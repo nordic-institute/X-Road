@@ -39,9 +39,8 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
-import org.niis.xroad.serverconf.model.ServerConfType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -81,7 +80,7 @@ public class AcmeClientWorker {
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
     private final GlobalConfProvider globalConfProvider;
-    private final ServerConfRepository serverConfRepository;
+    private final ServerConfService serverConfService;
     private final MailNotificationHelper mailNotificationHelper;
     private final VaultKeyProvider vaultKeyProvider;
 
@@ -220,7 +219,7 @@ public class AcmeClientWorker {
     private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription) {
         String memberId = cert.getMemberId() != null
                 ? cert.getMemberId().asEncodedId()
-                : serverConfRepository.getServerConf().getOwner().getIdentifier().asEncodedId();
+                : serverConfService.getSecurityServerOwnerId().asEncodedId();
         setRenewalErrorAndSendFailureNotification(cert, errorDescription, memberId);
     }
 
@@ -374,7 +373,7 @@ public class AcmeClientWorker {
     }
 
     ManagementRequestSender createManagementRequestSender() {
-        ClientId sender = serverConfRepository.getServerConf().getOwner().getIdentifier();
+        ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
         return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, sender, receiver, proxyUrl);
     }
@@ -394,8 +393,7 @@ public class AcmeClientWorker {
     }
 
     private SecurityServerId.Conf getSecurityServerId() {
-        ServerConfType serverConf = serverConfRepository.getServerConf();
-        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
+        return serverConfService.getSecurityServerId();
     }
 
     private void rollback(String keyId) {

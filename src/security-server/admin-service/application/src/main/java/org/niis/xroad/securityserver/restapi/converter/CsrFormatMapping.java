@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 
 import lombok.Getter;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormat;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrFormatDto;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.util.Arrays;
@@ -38,46 +39,46 @@ import java.util.Optional;
  */
 @Getter
 public enum CsrFormatMapping {
-    PEM(CertificateRequestFormat.PEM, CsrFormat.PEM),
-    DER(CertificateRequestFormat.DER, CsrFormat.DER);
+    PEM(CertificateRequestFormat.PEM, CsrFormatDto.PEM),
+    DER(CertificateRequestFormat.DER, CsrFormatDto.DER);
 
-    private final CsrFormat csrFormat;
+    private final CsrFormatDto csrFormatDto;
     private final CertificateRequestFormat requestFormat;
 
-    CsrFormatMapping(CertificateRequestFormat requestFormat, CsrFormat csrFormat) {
-        this.csrFormat = csrFormat;
+    CsrFormatMapping(CertificateRequestFormat requestFormat, CsrFormatDto csrFormatDto) {
+        this.csrFormatDto = csrFormatDto;
         this.requestFormat = requestFormat;
     }
 
     /**
      * Return matching CertificateRequestFormat, if any
      *
-     * @param csrFormat
+     * @param csrFormatDto
      * @return
      */
-    public static Optional<CertificateRequestFormat> map(CsrFormat csrFormat) {
-        return getFor(csrFormat).map(CsrFormatMapping::getRequestFormat);
+    public static Optional<CertificateRequestFormat> map(CsrFormatDto csrFormatDto) {
+        return getFor(csrFormatDto).map(CsrFormatMapping::getRequestFormat);
     }
 
     /**
-     * Return matching CsrFormat, if any
+     * Return matching CsrFormatDto, if any
      *
      * @param requestFormat
      * @return
      */
-    public static Optional<CsrFormat> map(CertificateRequestFormat requestFormat) {
-        return getFor(requestFormat).map(CsrFormatMapping::getCsrFormat);
+    public static Optional<CsrFormatDto> map(CertificateRequestFormat requestFormat) {
+        return getFor(requestFormat).map(CsrFormatMapping::getCsrFormatDto);
     }
 
     /**
      * return CsrFormatMapping matching the given CsrFormat, if any
      *
-     * @param csrFormat
+     * @param csrFormatDto
      * @return
      */
-    public static Optional<CsrFormatMapping> getFor(CsrFormat csrFormat) {
+    public static Optional<CsrFormatMapping> getFor(CsrFormatDto csrFormatDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.csrFormat.equals(csrFormat))
+                .filter(mapping -> mapping.csrFormatDto.equals(csrFormatDto))
                 .findFirst();
     }
 

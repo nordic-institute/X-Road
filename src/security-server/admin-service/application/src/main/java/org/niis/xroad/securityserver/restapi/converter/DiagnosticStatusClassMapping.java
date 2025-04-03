@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,37 +30,37 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
+import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between DiagnosticStatusClass in api (enum) and model (DiagnosticsErrorCode)
+ * Mapping between DiagnosticStatusClassDto in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
 @RequiredArgsConstructor
 public enum DiagnosticStatusClassMapping {
-    RETURN_SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS, DiagnosticStatusClass.OK),
+    RETURN_SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS, DiagnosticStatusClassDto.OK),
     ERROR_CODE_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED,
-            DiagnosticStatusClass.WAITING),
+            DiagnosticStatusClassDto.WAITING),
     ERROR_CODE_TIMESTAMP_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
-            DiagnosticStatusClass.WAITING),
+            DiagnosticStatusClassDto.WAITING),
     ERROR_CODE_OCSP_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED,
-            DiagnosticStatusClass.WAITING),
-    UNKNOWN(-1, DiagnosticStatusClass.FAIL);
+            DiagnosticStatusClassDto.WAITING),
+    UNKNOWN(-1, DiagnosticStatusClassDto.FAIL);
 
     private static final int DIAGNOSTICS_ERROR_CODE_FAIL = -1;
     private final Integer diagnosticsErrorCode;
-    private final DiagnosticStatusClass diagnosticStatusClass;
+    private final DiagnosticStatusClassDto diagnosticStatusClassDto;
 
     /**
-     * Return matching DiagnosticStatusClass, if any
+     * Return matching DiagnosticStatusClassDto, if any
      * @param diagnosticsErrorCode
      * @return
      */
-    public static Optional<DiagnosticStatusClass> map(Integer diagnosticsErrorCode) {
-        return getFor(diagnosticsErrorCode).map(DiagnosticStatusClassMapping::getDiagnosticStatusClass);
+    public static Optional<DiagnosticStatusClassDto> map(Integer diagnosticsErrorCode) {
+        return getFor(diagnosticsErrorCode).map(DiagnosticStatusClassMapping::getDiagnosticStatusClassDto);
     }
 
     /**

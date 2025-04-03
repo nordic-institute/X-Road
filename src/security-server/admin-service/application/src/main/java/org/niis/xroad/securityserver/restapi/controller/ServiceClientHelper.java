@@ -32,8 +32,8 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientsDto;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.springframework.stereotype.Component;
@@ -60,11 +60,11 @@ public class ServiceClientHelper {
      * was badly formatted
      * @throws ServiceClientNotFoundException if any local group with given ID (PK) does not exist
      */
-    public Set<XRoadId.Conf> processServiceClientXRoadIds(ServiceClients serviceClients)
+    public Set<XRoadId.Conf> processServiceClientXRoadIds(ServiceClientsDto serviceClients)
             throws ServiceClientNotFoundException,
             ServiceClientIdentifierConverter.BadServiceClientIdentifierException {
         Set<XRoadId.Conf> ids = new HashSet<>();
-        for (ServiceClient serviceClient : serviceClients.getItems()) {
+        for (ServiceClientDto serviceClient : serviceClients.getItems()) {
             ids.add(processServiceClientXRoadId(serviceClient.getId()));
         }
         return ids;

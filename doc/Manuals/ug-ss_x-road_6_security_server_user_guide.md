@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.94  
+Version: 2.96  
 Doc. ID: UG-SS
 
 ---
@@ -123,6 +123,8 @@ Doc. ID: UG-SS
 | 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
 | 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
 | 13.02.2025 | 2.94    | Add helper script for allocating memory for proxy service                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
+| 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
+| 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -169,6 +171,7 @@ Doc. ID: UG-SS
   - [4.7 Disabling Client Subsystem Temporarily](#47-disabling-client-subsystem-temporarily)
     - [4.7.1 Disabling Client Subsystem](#471-disabling-client-subsystem)
     - [4.7.2 Enabling Client Subsystem](#472-enabling-client-subsystem)
+  - [4.8 Renaming Client Subsystem](#48-renaming-client-subsystem)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -358,7 +361,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](../../src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -950,7 +953,7 @@ Follow these steps.
 
 2.  In the wizard that opens
 
-    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually and click **NEXT**
+    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field. Click **NEXT**
 
     2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **NEXT**
 
@@ -976,7 +979,7 @@ Follow these steps.
 
 2.  In the wizard that opens
 
-    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually
+    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field
 
     2.2. If you wish to register the new subsystem immediately, check the **Register subsystem** checkbox and then click **ADD SUBSYSTEM**.
 
@@ -1103,6 +1106,21 @@ To enable client subsystem, follow these steps.
 1.  In the **CLIENTS** view click the name of the client you wish to enable.
 
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
+
+
+### 4.8 Renaming Client subsystem
+
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+To rename a client subsystem, follow these steps.
+
+1.  In the **CLIENTS** view click the name of subsystem that you wish to rename
+
+2.  In the window that opens, click **Edit** and then enter name for subsystem and click **Save**. The Security Server automatically sends a client rename request to the X-Road Central Server.
+
+3.  Next, a subsystem is put into "Name change is submitted" state, which doesn't affect the subsystem functionality. Once the name change is propagated through the global configuration, subsystem name is updated.
+
+**Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
 
 
 ## 5 Security Tokens, Keys, and Certificates

@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 
 # ACME
 ARG A2C_VER=0.35
-ADD https://github.com/grindsa/acme2certifier/releases/download/$A2C_VER/acme2certifier_$A2C_VER-1_all.deb /tmp/
+ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -10,7 +10,7 @@ RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends  \
     ca-certificates supervisor nginx-light python3 python3-pip  \
     uwsgi uwsgi-plugin-python3 curl nano \
-  && apt -y install --no-install-recommends /tmp/acme2certifier_$A2C_VER-1_all.deb  \
+  && apt -y install --no-install-recommends /tmp/acme2certifier_${A2C_VER}-1_all.deb  \
   && apt-get -qq clean
 
 #Setup TEST-CA with TSA and OCSP

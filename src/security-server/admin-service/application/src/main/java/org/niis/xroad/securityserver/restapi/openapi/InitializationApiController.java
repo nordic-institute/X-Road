@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,9 +38,9 @@ import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.TokenInitStatusMapping;
-import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
-import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatus;
+import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
@@ -66,26 +67,26 @@ public class InitializationApiController implements InitializationApi {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<InitializationStatus> getInitializationStatus() {
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
-        var status = new InitializationStatus();
-        status.setIsAnchorImported(initStatus.isAnchorImported());
-        status.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
-        status.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
-        status.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
-        status.setEnforceTokenPinPolicy(SystemProperties.shouldEnforceTokenPinPolicy());
-        return new ResponseEntity<>(status, HttpStatus.OK);
+    public ResponseEntity<InitializationStatusDto> getInitializationStatus() {
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
+        var initializationStatusDto = new InitializationStatusDto();
+        initializationStatusDto.setIsAnchorImported(initStatus.isAnchorImported());
+        initializationStatusDto.setIsServerCodeInitialized(initStatus.isServerCodeInitialized());
+        initializationStatusDto.setIsServerOwnerInitialized(initStatus.isServerOwnerInitialized());
+        initializationStatusDto.setSoftwareTokenInitStatus(TokenInitStatusMapping.map(initStatus.getSoftwareTokenInitStatusInfo()));
+        initializationStatusDto.setEnforceTokenPinPolicy(SystemProperties.shouldEnforceTokenPinPolicy());
+        return new ResponseEntity<>(initializationStatusDto, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
     @AuditEventMethod(event = INIT_SERVER_CONFIGURATION)
-    public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
-        String securityServerCode = initialServerConf.getSecurityServerCode();
-        String ownerMemberClass = initialServerConf.getOwnerMemberClass();
-        String ownerMemberCode = initialServerConf.getOwnerMemberCode();
-        String softwareTokenPin = initialServerConf.getSoftwareTokenPin();
-        boolean ignoreWarnings = Boolean.TRUE.equals(initialServerConf.getIgnoreWarnings());
+    public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConfDto initialServerConfDto) {
+        String securityServerCode = initialServerConfDto.getSecurityServerCode();
+        String ownerMemberClass = initialServerConfDto.getOwnerMemberClass();
+        String ownerMemberCode = initialServerConfDto.getOwnerMemberCode();
+        String softwareTokenPin = initialServerConfDto.getSoftwareTokenPin();
+        boolean ignoreWarnings = Boolean.TRUE.equals(initialServerConfDto.getIgnoreWarnings());
         try {
             initializationService.initialize(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                     ignoreWarnings);

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,19 +27,19 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
+import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 import org.springframework.stereotype.Component;
 
 /**
- * Converter for Anchor related data between openapi and service domain classes
+ * Converter for AnchorDto related data between openapi and service domain classes
  */
 @Component
 public class AnchorConverter {
 
-    public Anchor convert(AnchorFile anchorFile) {
-        Anchor anchor = new Anchor();
-        anchor.setHash(anchorFile.getHash());
-        anchor.setCreatedAt(anchorFile.getCreatedAt());
-        return anchor;
+    public AnchorDto convert(AnchorFile anchorFile) {
+        AnchorDto anchorDto = new AnchorDto();
+        anchorDto.setHash(anchorFile.getHash());
+        anchorDto.setCreatedAt(anchorFile.getCreatedAt());
+        return anchorDto;
     }
 }

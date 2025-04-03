@@ -49,22 +49,22 @@ import static java.util.Collections.emptyList;
 public class EmptyServerConf implements ServerConfProvider {
 
     @Override
-    public boolean serviceExists(ServiceId service) {
+    public boolean serviceExists(ServiceId serviceId) {
         return true;
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
+    public boolean isQueryAllowed(ClientId sender, ServiceId serviceId, String method, String path) {
         return true;
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
+    public String getDisabledNotice(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
+    public String getServiceAddress(ServiceId serviceId) {
         return null;
     }
 
@@ -74,7 +74,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public int getServiceTimeout(ServiceId service) {
+    public int getServiceTimeout(ServiceId serviceId) {
         return 300;
     }
 
@@ -116,22 +116,22 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public String getServiceDescriptionURL(ServiceId service) {
+    public String getServiceDescriptionURL(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId service) {
+    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public boolean isSslAuthentication(ServiceId service) {
+    public boolean isSslAuthentication(ServiceId serviceId) {
         return false;
     }
 
@@ -157,8 +157,8 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                                                    ClientId client, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
+                                                                    DescriptionType descriptionType) {
         return emptyList();
     }
 
@@ -168,8 +168,8 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-        return isQueryAllowed(sender, service, null, null);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId) {
+        return isQueryAllowed(senderId, serviceId, null, null);
     }
 
 }

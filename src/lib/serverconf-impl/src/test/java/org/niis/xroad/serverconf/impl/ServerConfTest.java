@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -38,15 +39,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -86,7 +86,6 @@ public class ServerConfTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
-    private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
     private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfDbProperties.hibernate());
@@ -98,8 +97,8 @@ public class ServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        var globalConfProvider = TestGlobalConfFactory.create();
         serverConfProvider = new ServerConfImpl(DATABASE_CTX, globalConfProvider);
-        globalConfProvider = TestGlobalConfFactory.create();
 
         prepareDB(DATABASE_CTX);
     }
@@ -190,7 +189,7 @@ public class ServerConfTest {
         ClientId client1 = createTestClientId(client(1));
         ClientId client2 = createTestClientId(client(2));
 
-        List<ServiceId> expectedServices = Arrays.asList(
+        List<ServiceId> expectedServices = List.of(
                 createTestServiceId(serviceProvider,
                         service(1, 1), SERVICE_VERSION));
 
@@ -282,7 +281,7 @@ public class ServerConfTest {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
-        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.get(0));
+        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.getFirst());
     }
 
     /**
@@ -353,9 +352,9 @@ public class ServerConfTest {
         assertEquals(NUM_SERVICEDESCRIPTIONS * NUM_SERVICES, allServices.size());
     }
 
-    private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
-        return new ServiceDAOImpl().getServices(
-                DATABASE_CTX.getSession(),
-                serviceProvider);
+    private static List<ServiceId.Conf> getServices(ClientId serviceProviderId) {
+        return XRoadIdMapper.get().toServices(new ServiceDAOImpl().getServices(
+                DATABASE_CTX.getSession(), serviceProviderId)
+        );
     }
 }

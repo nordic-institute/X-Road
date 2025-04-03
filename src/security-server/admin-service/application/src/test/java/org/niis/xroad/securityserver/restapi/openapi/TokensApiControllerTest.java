@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,10 +32,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabel;
-import org.niis.xroad.securityserver.restapi.openapi.model.Token;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatusDto;
 import org.niis.xroad.securityserver.restapi.service.TokenNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -137,12 +138,12 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getTokens() {
-        ResponseEntity<Set<Token>> response = tokensApiController.getTokens();
+        ResponseEntity<Set<TokenDto>> response = tokensApiController.getTokens();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<Token> tokens = response.getBody();
+        Set<TokenDto> tokens = response.getBody();
         assertEquals(allTokens.size(), tokens.size());
-        Token token = tokens.iterator().next();
-        assertEquals(TokenStatus.OK, token.getStatus());
+        TokenDto token = tokens.iterator().next();
+        assertEquals(TokenStatusDto.OK, token.getStatus());
         assertEquals("friendly-name", token.getName());
     }
 
@@ -155,7 +156,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
         } catch (ResourceNotFoundException expected) {
         }
 
-        ResponseEntity<Token> response = tokensApiController.getToken(GOOD_TOKEN_ID);
+        ResponseEntity<TokenDto> response = tokensApiController.getToken(GOOD_TOKEN_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(GOOD_TOKEN_ID, response.getBody().getId());
     }
@@ -163,18 +164,18 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"GENERATE_KEY"})
     public void addKey() {
-        ResponseEntity<Key> response = tokensApiController.addKey(GOOD_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+        ResponseEntity<KeyDto> response = tokensApiController.addKey(GOOD_TOKEN_ID, new KeyLabelDto().label(KEY_LABEL));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Key key = response.getBody();
+        KeyDto key = response.getBody();
         assertEquals(KEY_LABEL, key.getLabel());
         try {
-            tokensApiController.addKey(TOKEN_NOT_FOUND_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+            tokensApiController.addKey(TOKEN_NOT_FOUND_TOKEN_ID, new KeyLabelDto().label(KEY_LABEL));
             fail("should have thrown exception");
         } catch (ResourceNotFoundException expected) {
         }
 
         try {
-            tokensApiController.addKey(NOT_ACTIVE_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
+            tokensApiController.addKey(NOT_ACTIVE_TOKEN_ID, new KeyLabelDto().label(KEY_LABEL));
             fail("should have thrown exception");
         } catch (ConflictException expected) {
         }

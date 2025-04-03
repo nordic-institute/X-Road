@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,10 +28,10 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyValuePair;
-import org.niis.xroad.securityserver.restapi.openapi.model.Token;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenType;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyValuePairDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenTypeDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Convert Token related data between openapi and service domain classes
+ * Convert TokenDto related data between openapi and service domain classes
  */
 @Component
 @RequiredArgsConstructor
@@ -52,25 +53,25 @@ public class TokenConverter {
     private final PossibleActionConverter possibleActionConverter;
 
     /**
-     * Convert {@link TokenInfo} to openapi {@link Token} object
+     * Convert {@link TokenInfo} to openapi {@link TokenDto} object
      * @param tokenInfo
      * @return
      */
-    public Token convert(TokenInfo tokenInfo) {
-        Token token = new Token();
+    public TokenDto convert(TokenInfo tokenInfo) {
+        TokenDto token = new TokenDto();
         token.setId(tokenInfo.getId());
         token.setName(tokenInfo.getFriendlyName());
 
         // software module has a magic type string, hardware modules have device UI as type
         if (TokenInfo.SOFTWARE_MODULE_TYPE.equals(tokenInfo.getType())) {
-            token.setType(TokenType.SOFTWARE);
+            token.setType(TokenTypeDto.SOFTWARE);
         } else {
-            token.setType(TokenType.HARDWARE);
+            token.setType(TokenTypeDto.HARDWARE);
         }
 
         token.setKeys(keyConverter.convert(tokenInfo.getKeyInfo(), tokenInfo));
 
-        Optional<TokenStatus> status = TokenStatusMapping.map(tokenInfo.getStatus());
+        Optional<TokenStatusDto> status = TokenStatusMapping.map(tokenInfo.getStatus());
         token.setStatus(status.orElse(null));
 
         token.setLoggedIn(tokenInfo.isActive());
@@ -81,7 +82,7 @@ public class TokenConverter {
         token.setTokenInfos(new ArrayList<>());
 
         for (String key : tokenInfo.getTokenInfo().keySet()) {
-            KeyValuePair keyValuePair = new KeyValuePair();
+            KeyValuePairDto keyValuePair = new KeyValuePairDto();
             keyValuePair.setKey(key);
             keyValuePair.setValue(tokenInfo.getTokenInfo().get(key));
             token.getTokenInfos().add(keyValuePair);
@@ -95,11 +96,11 @@ public class TokenConverter {
     }
 
     /**
-     * Convert a group of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
+     * Convert a group of {@link TokenInfo tokenInfos} to a list of {@link TokenDto tokens}
      * @param tokenInfos
      * @return List of {@link TokenInfo tokenInfos}
      */
-    public Set<Token> convert(Iterable<TokenInfo> tokenInfos) {
+    public Set<TokenDto> convert(Iterable<TokenInfo> tokenInfos) {
         return Streams.stream(tokenInfos)
                 .map(this::convert)
                 .collect(Collectors.toSet());

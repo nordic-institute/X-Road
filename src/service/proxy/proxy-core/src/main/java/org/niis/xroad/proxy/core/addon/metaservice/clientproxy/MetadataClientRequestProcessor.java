@@ -45,6 +45,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 
@@ -103,19 +104,23 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         String instanceIdentifier = getInstanceIdentifierFromRequest();
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
-        list.getMember().addAll(
-                commonBeanProxy.getGlobalConfProvider().getMembers(instanceIdentifier).stream().map(m -> {
-                    ClientType client = OBJECT_FACTORY.createClientType();
-                    client.setId(m.id());
-                    client.setName(m.name());
-                    return client;
-                }).toList());
+        commonBeanProxy.getGlobalConfProvider().getMembers(instanceIdentifier).stream()
+                .map(this::toDto)
+                .forEach(list.getMember()::add);
 
         if (acceptsJson()) {
             writeResponseJson(list);
         } else {
             writeResponseXml(OBJECT_FACTORY.createClientList(list));
         }
+    }
+
+    private ClientType toDto(MemberInfo info) {
+        var client = OBJECT_FACTORY.createClientType();
+        client.setId(info.id());
+        client.setName(info.name());
+        client.setSubsystemName(info.subsystemName());
+        return client;
     }
 
     private boolean acceptsJson() {

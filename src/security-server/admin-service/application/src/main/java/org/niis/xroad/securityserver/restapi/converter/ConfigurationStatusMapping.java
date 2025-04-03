@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,45 +30,45 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatusDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between ConfigurationStatus in api (enum) and model (DiagnosticsErrorCode)
+ * Mapping between ConfigurationStatusDto in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
 @RequiredArgsConstructor
 public enum ConfigurationStatusMapping {
     SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS,
-            ConfigurationStatus.SUCCESS),
+            ConfigurationStatusDto.SUCCESS),
     ERROR_CODE_INTERNAL(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL,
-            ConfigurationStatus.ERROR_CODE_INTERNAL),
+            ConfigurationStatusDto.ERROR_CODE_INTERNAL),
     ERROR_CODE_INVALID_SIGNATURE_VALUE(DiagnosticsErrorCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE,
-            ConfigurationStatus.ERROR_CODE_INVALID_SIGNATURE_VALUE),
+            ConfigurationStatusDto.ERROR_CODE_INVALID_SIGNATURE_VALUE),
     ERROR_CODE_EXPIRED_CONF(DiagnosticsErrorCodes.ERROR_CODE_EXPIRED_CONF,
-            ConfigurationStatus.ERROR_CODE_EXPIRED_CONF),
+            ConfigurationStatusDto.ERROR_CODE_EXPIRED_CONF),
     ERROR_CODE_CANNOT_DOWNLOAD_CONF(DiagnosticsErrorCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF,
-            ConfigurationStatus.ERROR_CODE_CANNOT_DOWNLOAD_CONF),
+            ConfigurationStatusDto.ERROR_CODE_CANNOT_DOWNLOAD_CONF),
     ERROR_CODE_MISSING_PRIVATE_PARAM(DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS,
-            ConfigurationStatus.ERROR_CODE_MISSING_PRIVATE_PARAMS),
+            ConfigurationStatusDto.ERROR_CODE_MISSING_PRIVATE_PARAMS),
     ERROR_CODE_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED,
-            ConfigurationStatus.ERROR_CODE_UNINITIALIZED),
+            ConfigurationStatusDto.ERROR_CODE_UNINITIALIZED),
     UNKNOWN(-1,
-            ConfigurationStatus.UNKNOWN);
+            ConfigurationStatusDto.UNKNOWN);
 
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
-    private final ConfigurationStatus configurationStatus;
+    private final ConfigurationStatusDto configurationStatusDto;
 
     /**
      * Return matching ConfigurationStatus, if any
      * @param diagnosticsErrorCode
      * @return
      */
-    public static Optional<ConfigurationStatus> map(Integer diagnosticsErrorCode) {
-        return getFor(diagnosticsErrorCode).map(ConfigurationStatusMapping::getConfigurationStatus);
+    public static Optional<ConfigurationStatusDto> map(Integer diagnosticsErrorCode) {
+        return getFor(diagnosticsErrorCode).map(ConfigurationStatusMapping::getConfigurationStatusDto);
     }
 
     /**

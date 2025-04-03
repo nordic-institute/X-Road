@@ -37,6 +37,8 @@ public final class ClientUtils {
 
     public static final String ERROR_OCSP_EXTRACT_MSG = "Failed to extract OCSP status for local sign certificate";
 
+    public static final int GLOBAL_CONF_VERSION_WITH_SUBSYSTEM_NAMES = 5;
+
     private ClientUtils() {
         // noop
     }
@@ -64,5 +66,9 @@ public final class ClientUtils {
             }
         }
         return false;
+    }
+
+    public static boolean doesSupportSubsystemNames(int globalConfVersion) {
+        return globalConfVersion >= GLOBAL_CONF_VERSION_WITH_SUBSYSTEM_NAMES;
     }
 }

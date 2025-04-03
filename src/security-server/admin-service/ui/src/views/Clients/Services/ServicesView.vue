@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="wrapper">
-    <div class="search-row">
+    <div class="search-row mb-5"  >
       <v-text-field
         v-model="search"
         :label="$t('services.service')"
@@ -686,7 +686,6 @@ export default defineComponent({
 @use '@/assets/colors';
 
 .wrapper {
-  margin-top: 20px;
 }
 
 .search-row {
@@ -695,8 +694,6 @@ export default defineComponent({
   justify-content: space-between;
   align-items: flex-end;
   width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
 }
 
 .rest-button {

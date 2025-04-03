@@ -49,7 +49,9 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,70 +107,71 @@ public class SystemService {
      *
      * @return
      */
-    public List<TspType> getConfiguredTimestampingServices() {
-        return serverConfService.getConfiguredTimestampingServices();
+    public List<TimestampingService> getConfiguredTimestampingServices() {
+        return TimestampingServiceMapper.get().toTargets(serverConfService.getConfiguredTimestampingServiceEntities());
     }
 
     /**
      * Audit log tsp name and url
      *
-     * @param tspType
+     * @param timestampingService
      */
-    private void auditLog(TspType tspType) {
-        auditDataHelper.put(RestApiAuditProperty.TSP_NAME, tspType.getName());
-        auditDataHelper.put(RestApiAuditProperty.TSP_URL, tspType.getUrl());
+    private void auditLog(TimestampingService timestampingService) {
+        auditDataHelper.put(RestApiAuditProperty.TSP_NAME, timestampingService.getName());
+        auditDataHelper.put(RestApiAuditProperty.TSP_URL, timestampingService.getUrl());
     }
 
-    public void addConfiguredTimestampingService(TspType tspTypeToAdd)
+    public void addConfiguredTimestampingService(TimestampingService timestampingServiceToAdd)
             throws TimestampingServiceNotFoundException, DuplicateConfiguredTimestampingServiceException {
-        auditLog(tspTypeToAdd);
+        auditLog(timestampingServiceToAdd);
 
         // Check that the timestamping service is an approved timestamping service
-        Optional<TspType> match = globalConfService.getApprovedTspsForThisInstance().stream()
-                .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
-                        && tspTypeToAdd.getUrl().equals(tsp.getUrl()))
+        Optional<TimestampingService> match = globalConfService.getApprovedTspsForThisInstance().stream()
+                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
+                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (!match.isPresent()) {
-            throw new TimestampingServiceNotFoundException(getExceptionMessage(tspTypeToAdd.getName(),
-                    tspTypeToAdd.getUrl(), "not found"));
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToAdd.getName(),
+                    timestampingServiceToAdd.getUrl(), "not found"));
         }
 
         // Check that the timestamping service is not already configured
-        Optional<TspType> existingTsp = getConfiguredTimestampingServices().stream()
-                .filter(tsp -> tspTypeToAdd.getName().equals(tsp.getName())
-                        && tspTypeToAdd.getUrl().equals(tsp.getUrl()))
+        Optional<TimestampingService> existingTsp = getConfiguredTimestampingServices().stream()
+                .filter(tsp -> timestampingServiceToAdd.getName().equals(tsp.getName())
+                        && timestampingServiceToAdd.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (existingTsp.isPresent()) {
             throw new DuplicateConfiguredTimestampingServiceException(
-                    getExceptionMessage(tspTypeToAdd.getName(), tspTypeToAdd.getUrl(),
+                    getExceptionMessage(timestampingServiceToAdd.getName(), timestampingServiceToAdd.getUrl(),
                             "is already configured")
             );
         }
-        serverConfService.getConfiguredTimestampingServices().add(tspTypeToAdd);
+        serverConfService.getConfiguredTimestampingServiceEntities()
+                .add(TimestampingServiceMapper.get().toEntity(timestampingServiceToAdd));
     }
 
     /**
      * Deletes a configured timestamping service from serverconf
      *
-     * @param tspTypeToDelete
+     * @param timestampingServiceToDelete
      * @throws TimestampingServiceNotFoundException
      */
-    public void deleteConfiguredTimestampingService(TspType tspTypeToDelete)
+    public void deleteConfiguredTimestampingService(TimestampingService timestampingServiceToDelete)
             throws TimestampingServiceNotFoundException {
-        auditLog(tspTypeToDelete);
+        auditLog(timestampingServiceToDelete);
 
-        List<TspType> configuredTimestampingServices = getConfiguredTimestampingServices();
+        List<TimestampingServiceEntity> configuredTimestampingServices = serverConfService.getConfiguredTimestampingServiceEntities();
 
-        Optional<TspType> delete = configuredTimestampingServices.stream()
-                .filter(tsp -> tspTypeToDelete.getName().equals(tsp.getName())
-                        && tspTypeToDelete.getUrl().equals(tsp.getUrl()))
+        Optional<TimestampingServiceEntity> delete = configuredTimestampingServices.stream()
+                .filter(tsp -> timestampingServiceToDelete.getName().equals(tsp.getName())
+                        && timestampingServiceToDelete.getUrl().equals(tsp.getUrl()))
                 .findFirst();
 
         if (!delete.isPresent()) {
-            throw new TimestampingServiceNotFoundException(getExceptionMessage(tspTypeToDelete.getName(),
-                    tspTypeToDelete.getUrl(), "not found")
+            throw new TimestampingServiceNotFoundException(getExceptionMessage(timestampingServiceToDelete.getName(),
+                    timestampingServiceToDelete.getUrl(), "not found")
             );
         }
 

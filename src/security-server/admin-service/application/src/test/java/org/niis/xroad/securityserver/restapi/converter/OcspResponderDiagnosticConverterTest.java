@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,9 +33,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClassDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatusDto;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -68,13 +69,13 @@ public class OcspResponderDiagnosticConverterTest {
         diagnosticsStatus.setDescription(URL_1);
         status.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus));
 
-        OcspResponderDiagnostics caDiagnostics = ocspResponderDiagnosticConverter.convert(status);
+        OcspResponderDiagnosticsDto caDiagnostics = ocspResponderDiagnosticConverter.convert(status);
 
         assertEquals(1, caDiagnostics.getOcspResponders().size());
 
         assertEquals(CA_NAME_1, caDiagnostics.getDistinguishedName());
-        assertEquals(OcspStatus.SUCCESS, caDiagnostics.getOcspResponders().get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.OK, caDiagnostics.getOcspResponders().get(0).getStatusClass());
+        assertEquals(OcspStatusDto.SUCCESS, caDiagnostics.getOcspResponders().get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClassDto.OK, caDiagnostics.getOcspResponders().get(0).getStatusClass());
         assertEquals(PREVIOUS_UPDATE_1, caDiagnostics.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_1, caDiagnostics.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_1, caDiagnostics.getOcspResponders().get(0).getUrl());
@@ -97,14 +98,14 @@ public class OcspResponderDiagnosticConverterTest {
         diagnosticsStatus3.setDescription(URL_1);
         status2.setOcspResponderStatusMap(Arrays.asList(diagnosticsStatus2, diagnosticsStatus3));
 
-        Set<OcspResponderDiagnostics> diagnostics = ocspResponderDiagnosticConverter.convert(
+        Set<OcspResponderDiagnosticsDto> diagnostics = ocspResponderDiagnosticConverter.convert(
                 Arrays.asList(status1, status2));
-        OcspResponderDiagnostics firstDiagnostic = diagnostics
+        OcspResponderDiagnosticsDto firstDiagnostic = diagnostics
                 .stream()
                 .filter(item -> item.getDistinguishedName().equals(CA_NAME_1))
                 .findFirst()
                 .orElse(null);
-        OcspResponderDiagnostics secondDiagnostic = diagnostics
+        OcspResponderDiagnosticsDto secondDiagnostic = diagnostics
                 .stream()
                 .filter(item -> item.getDistinguishedName().equals(CA_NAME_2))
                 .findFirst()
@@ -114,25 +115,25 @@ public class OcspResponderDiagnosticConverterTest {
         assertEquals(1, firstDiagnostic.getOcspResponders().size());
         assertEquals(2, secondDiagnostic.getOcspResponders().size());
 
-        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, firstDiagnostic.getOcspResponders().get(0)
+        assertEquals(OcspStatusDto.ERROR_CODE_OCSP_RESPONSE_INVALID, firstDiagnostic.getOcspResponders().get(0)
                 .getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, firstDiagnostic.getOcspResponders().get(0).getStatusClass());
+        assertEquals(DiagnosticStatusClassDto.FAIL, firstDiagnostic.getOcspResponders().get(0).getStatusClass());
         assertEquals(PREVIOUS_UPDATE_1, firstDiagnostic.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_1, firstDiagnostic.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_1, firstDiagnostic.getOcspResponders().get(0).getUrl());
 
         assertEquals(CA_NAME_2, secondDiagnostic.getDistinguishedName());
 
-        assertEquals(OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED, secondDiagnostic.getOcspResponders().get(0)
+        assertEquals(OcspStatusDto.ERROR_CODE_OCSP_UNINITIALIZED, secondDiagnostic.getOcspResponders().get(0)
                 .getStatusCode());
-        assertEquals(DiagnosticStatusClass.WAITING, secondDiagnostic.getOcspResponders().get(0).getStatusClass());
+        assertEquals(DiagnosticStatusClassDto.WAITING, secondDiagnostic.getOcspResponders().get(0).getStatusClass());
         assertEquals(null, secondDiagnostic.getOcspResponders().get(0).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_2, secondDiagnostic.getOcspResponders().get(0).getNextUpdateAt());
         assertEquals(URL_2, secondDiagnostic.getOcspResponders().get(0).getUrl());
 
-        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, secondDiagnostic.getOcspResponders()
+        assertEquals(OcspStatusDto.ERROR_CODE_OCSP_RESPONSE_INVALID, secondDiagnostic.getOcspResponders()
                 .get(1).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, secondDiagnostic.getOcspResponders().get(1).getStatusClass());
+        assertEquals(DiagnosticStatusClassDto.FAIL, secondDiagnostic.getOcspResponders().get(1).getStatusClass());
         assertEquals(PREVIOUS_UPDATE_1, secondDiagnostic.getOcspResponders().get(1).getPrevUpdateAt());
         assertEquals(NEXT_UPDATE_1, secondDiagnostic.getOcspResponders().get(1).getNextUpdateAt());
         assertEquals(URL_1, secondDiagnostic.getOcspResponders().get(1).getUrl());

@@ -47,7 +47,7 @@ import {
   XrdIconChecker,
   XrdIconClose,
   XrdIconCopy,
-  XrdIconDeclined,
+  XrdIconDeclined, XrdIconEdit,
   XrdIconError,
   XrdIconFolderOutline,
   XrdIconSortingArrow,
@@ -103,6 +103,7 @@ app.component('XrdIconTooltip', XrdIconTooltip);
 app.component('XrdIconSortingArrow', XrdIconSortingArrow);
 app.component('XrdIconDeclined', XrdIconDeclined);
 app.component('XrdStatusIcon', XrdStatusIcon);
+app.component('XrdIconEdit', XrdIconEdit);
 //components
 app.component('XrdButton', XrdButton);
 app.component('XrdSearch', XrdSearch);

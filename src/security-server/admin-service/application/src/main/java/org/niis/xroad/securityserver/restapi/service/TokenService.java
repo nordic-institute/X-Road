@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -35,7 +36,7 @@ import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -89,33 +90,33 @@ public class TokenService {
     /**
      * get all sign certificates for a given client.
      *
-     * @param clientType client whose member certificates need to be
+     * @param client client whose member certificates need to be
      *                   linked to
      * @return
      */
-    public List<CertificateInfo> getSignCertificates(ClientType clientType) {
-        return getCertificates(clientType, true);
+    public List<CertificateInfo> getSignCertificates(Client client) {
+        return getCertificates(client, true);
     }
 
     /**
      * get all certificates for a given client.
      *
-     * @param clientType client whose member certificates need to be
+     * @param client client whose member certificates need to be
      *                   linked to
      * @return
      */
-    public List<CertificateInfo> getAllCertificates(ClientType clientType) {
-        return getCertificates(clientType, false);
+    public List<CertificateInfo> getAllCertificates(Client client) {
+        return getCertificates(client, false);
     }
 
     /**
      * Get all certificates for a given client
      *
-     * @param clientType
+     * @param client
      * @param onlySignCertificates if true, return only signing certificates
      * @return
      */
-    private List<CertificateInfo> getCertificates(ClientType clientType, boolean onlySignCertificates) {
+    private List<CertificateInfo> getCertificates(Client client, boolean onlySignCertificates) {
         List<TokenInfo> tokenInfos = getAllTokens();
         Predicate<KeyInfo> keyInfoPredicate = keyInfo -> true;
         if (onlySignCertificates) {
@@ -125,7 +126,7 @@ public class TokenService {
                 .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
                 .filter(keyInfoPredicate)
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
-                .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
+                .filter(certificateInfo -> client.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
     }
 

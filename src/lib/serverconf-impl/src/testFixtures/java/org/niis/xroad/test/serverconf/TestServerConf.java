@@ -52,12 +52,12 @@ public class TestServerConf extends EmptyServerConf {
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
+    public IsAuthentication getIsAuthentication(ClientId clientId) {
         return IsAuthentication.NOSSL;
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
         return DescriptionType.REST;
     }
 }
