@@ -76,7 +76,7 @@ public class AuthTrustVerifier {
     private final CertHelper certHelper;
     private final CertChainFactory certChainFactory;
 
-    void verify(HttpContext context, SSLSession sslSession,
+    protected void verify(HttpContext context, SSLSession sslSession,
                 URI selectedAddress) {
         log.debug("verify()");
 

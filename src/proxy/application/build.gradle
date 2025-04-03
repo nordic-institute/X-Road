@@ -27,6 +27,8 @@ dependencies {
     testImplementation(project(':common:common-message'))
     testImplementation(project(':common:common-test'))
     testImplementation(project(':common:common-verifier'))
+    testImplementation(project(":common:common-messagelog"))
+    testImplementation(project(":common:common-scheduler"))
     testImplementation(project(':serverconf'))
     testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
 }

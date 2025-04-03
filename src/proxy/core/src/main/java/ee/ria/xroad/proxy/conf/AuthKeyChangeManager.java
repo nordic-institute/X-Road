@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testutil;
+package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
+import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
+import ee.ria.xroad.proxy.clientproxy.ClientProxy;
+import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 
-/**
- * Test serverconf implementation.
- */
-public class TestServerConf extends EmptyServerConf {
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
-    @Override
-    public SecurityServerId.Conf getIdentifier() {
-        return SecurityServerId.Conf.create("EE", "BUSINESS", "consumer", "proxytest");
+@Slf4j
+public class AuthKeyChangeManager implements InitializingBean, DisposableBean {
+    private final KeyConfProvider keyConfProvider;
+    private final ClientProxy clientProxy;
+    private final ServerProxy serverProxy;
+    private FileWatcherRunner changeWatcher;
+
+    public AuthKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
+        this.keyConfProvider = keyConfProvider;
+        this.clientProxy = clientProxy;
+        this.serverProxy = serverProxy;
     }
 
     @Override
-    public InternalSSLKey getSSLKey() {
-        PKCS12 internal = TestCertUtil.getInternalKey();
-        return new InternalSSLKey(internal.key, internal.certChain);
+    public void afterPropertiesSet() {
+        changeWatcher = CachingKeyConfImpl.createChangeWatcher(this::onAuthKeyChange);
+    }
+
+    private void onAuthKeyChange() {
+        log.debug("Authentication key change detected, reloading key.");
+        if (keyConfProvider instanceof CachingKeyConfImpl cachingKeyConf) {
+            cachingKeyConf.invalidateCaches();
+        }
+        clientProxy.reloadAuthKey();
+        serverProxy.reloadAuthKey();
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
-        return IsAuthentication.NOSSL;
-    }
-
-    @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
-        return DescriptionType.REST;
+    public void destroy() throws Exception {
+        if (changeWatcher != null) {
+            changeWatcher.stop();
+        }
     }
 }

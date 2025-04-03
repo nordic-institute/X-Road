@@ -36,6 +36,7 @@ import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
+import ee.ria.xroad.proxy.conf.AuthKeyChangeManager;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
@@ -109,6 +110,11 @@ public class ProxyConfig {
 
     @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider);
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
+    }
+
+    @Bean
+    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
+        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
     }
 }
