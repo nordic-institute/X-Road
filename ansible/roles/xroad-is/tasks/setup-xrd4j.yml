@@ -49,11 +49,26 @@
     enabled: yes
     daemon_reload: yes
 
+- name: Get latest test-service version
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-snapshots/org/niis/test-service/" | \
+    jq -r '.children[] | select(.uri | contains("SNAPSHOT")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: latest_test_version
+
+- name: Get latest test-service artifact URL
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-snapshots/org/niis/test-service/{{ latest_test_version.stdout }}" | \
+    jq -r '.children[] | select(.uri | endswith(".war")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: test_artifact_filename
+
 - name: Download test-service
   get_url:
-    url: "https://artifactory.niis.org/xroad-maven-snapshots/org/niis/test-service/0.0.4-SNAPSHOT/test-service-0.0.4-20250326.073629-1.war"
+    url: "https://artifactory.niis.org/xroad-maven-snapshots/org/niis/test-service/{{ latest_test_version.stdout }}/{{ test_artifact_filename.stdout }}"
     dest: /opt/test-service.war
     mode: '0644'
+
 - name: Create test-service systemd service
   template:
     src: templates/test-service.service.j2
