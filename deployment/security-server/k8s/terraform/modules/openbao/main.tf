@@ -35,7 +35,7 @@ resource "helm_release" "openbao_secret_store_init" {
   name      = "openbao-initializer"
   namespace = var.namespace
 
-  chart = "${path.module}/../../../charts/openbao_init"
+  chart = "${path.module}/../../../charts/openbao-init"
 
   depends_on = [helm_release.openbao_secret_store]
 }

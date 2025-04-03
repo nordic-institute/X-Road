@@ -40,7 +40,7 @@ spec:
             - name: db_schema
               value: {{ $config.schema | quote }}
             - name: db_user
-              value: {{ $config.db_username | quote }}
+              value: {{ $config.username | quote }}
       initContainers:
         - name: check-db-ready
           image: "postgres:17"
@@ -59,4 +59,8 @@ Generate all DB init jobs
 {{- include "xroad.db.init.job" (dict "root" $root "name" "serverconf" "config" .Values.init.serverconf) }}
 ---
 {{- include "xroad.db.init.job" (dict "root" $root "name" "messagelog" "config" .Values.init.messagelog) }}
+---
+{{- if (index .Values "services" "op-monitor" "enabled") }}
+    {{- include "xroad.db.init.job" (dict "root" $root "name" "opmonitor" "config" .Values.init.opmonitor) }}
+{{- end }}
 {{- end }}

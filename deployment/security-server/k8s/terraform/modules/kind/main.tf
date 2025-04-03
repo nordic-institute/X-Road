@@ -1,18 +1,19 @@
 
-resource "kind_cluster" "xroad-cluster" {
+resource "kind_cluster" "xroad_cluster" {
   name = var.kind_cluster_name
   wait_for_ready = true
-  kubeconfig_path = pathexpand(var.kube_config_path)
+  kubeconfig_path = pathexpand(var.kubeconfig_path)
 
   kind_config {
     kind = "Cluster"
     api_version = "kind.x-k8s.io/v1alpha4"
+
     node {
       role = "control-plane"
     }
+
     node {
       role = "worker"
-
     }
 
     containerd_config_patches = [

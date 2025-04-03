@@ -1,5 +1,5 @@
 apiVersion: v2
-name: security_server
+name: security-server
 description: X-Road Security Server
 version: 0.1.0
-appVersion: "1.0.0"
+appVersion: 1.0.0
