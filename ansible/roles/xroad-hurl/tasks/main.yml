@@ -10,6 +10,12 @@
         state: directory
         mode: '0755'
 
+    - name: Create scenario directory
+      file:
+        path: "{{ hurl_install_dir }}/scenario"
+        state: directory
+        mode: '0755'
+
     - name: Download and extract Hurl
       unarchive:
         src: "https://github.com/Orange-OpenSource/hurl/releases/download/{{ hurl_version }}/{{ hurl_dirname }}.tar.gz"
@@ -26,7 +32,7 @@
     - name: Copy Hurl configuration files
       copy:
         src: "{{ hurl_files }}"
-        dest: "{{ hurl_install_dir }}/scenario"
+        dest: "{{ hurl_files_dest }}"
         group: "root"
         owner: "root"
         mode: "0644"
@@ -35,9 +41,8 @@
     - name: Copy Hurl env file
       copy:
         src: "{{ hurl_env_file }}"
-        dest: "{{ hurl_install_dir }}/scenario"
+        dest: "{{ hurl_install_dir }}/scenario/"
         group: "root"
         owner: "root"
         mode: "0644"
-        overwrite: yes
         directory_mode: "0755"

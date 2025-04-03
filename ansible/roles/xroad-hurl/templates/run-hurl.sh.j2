@@ -1,8 +1,9 @@
 #!/bin/bash
+export PATH={{ hurl_install_dir }}/{{ hurl_dirname }}/bin:$PATH
 
 # Define scenario directory
 SCENARIO_DIR="/opt/hurl/scenario"
-VARS_FILE="${SCENARIO_DIR}/hurl.env"
+VARS_FILE="${SCENARIO_DIR}/vars.env"
 CA_DIR="${SCENARIO_DIR}/ca"
 # Create a reports directory in the same location as the script
 REPORT_DIR="$(dirname "${BASH_SOURCE[0]}")/hurl-reports"
@@ -48,7 +49,7 @@ echo "# Combined Hurl file generated on $(date)" >"${TEMP_FILE}"
 echo "" >>"${TEMP_FILE}"
 
 # Find all .hurl files in the script directory, sort them alphabetically, and concatenate
-find "$(dirname "${BASH_SOURCE[0]}")" -maxdepth 1 -name "*.hurl" | sort | while read -r file; do
+find $SCENARIO_DIR -maxdepth 1 -name "*.hurl" | sort | while read -r file; do
   echo "# Including file: $(basename "$file")" >>"${TEMP_FILE}"
   cat "$file" >>"${TEMP_FILE}"
   echo "" >>"${TEMP_FILE}"

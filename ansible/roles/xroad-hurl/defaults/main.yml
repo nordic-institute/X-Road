@@ -1,5 +1,6 @@
 ---
 hurl_version: "6.1.1"
 hurl_install_dir: "/opt/hurl"
-hurl_files: "{{ playbook_dir }}/../development/hurl/scenarios/"
-hurl_env_file: "files/hurl.env"
+hurl_files: "{{ playbook_dir }}/../development/hurl/scenarios/setup.hurl"
+hurl_files_dest: "{{ hurl_install_dir }}/scenario/setup.hurl"
+hurl_env_file: "files/vars.env"
