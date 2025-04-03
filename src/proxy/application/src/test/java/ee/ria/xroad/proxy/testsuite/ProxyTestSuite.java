@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.proxy.conf.AuthKeyChangeManager;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
@@ -308,6 +309,11 @@ public final class ProxyTestSuite {
         @Bean
         ServerConfProvider serverConfProvider() {
             return new TestServerConfWrapper(new TestSuiteServerConf());
+        }
+
+        @Bean
+        AuthKeyChangeManager authKeyChangeManager() {
+            return null;
         }
     }
 
