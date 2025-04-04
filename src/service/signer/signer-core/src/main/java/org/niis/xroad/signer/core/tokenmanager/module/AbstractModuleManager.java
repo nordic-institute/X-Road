@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,8 @@ import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,6 +57,8 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static java.util.Objects.requireNonNull;
+import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.KEY_DIR_PERMISSIONS;
+import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
 
 /**
  * Module manager base class.
@@ -79,6 +84,8 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     public void start() {
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {
+            initializeDirs();
+
             if (SLAVE.equals(SystemProperties.getServerNodeType())) {
                 // when the key conf file is changed from outside this system (i.e. a new copy from master),
                 // send an update event to the module manager so it knows to load the new config
@@ -91,6 +98,20 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             refresh();
         } catch (Exception e) {
             log.error("Failed to initialize token worker!", e);
+        }
+    }
+
+    private void initializeDirs() throws IOException {
+        var keyConfDir = Paths.get(ResourceUtils.getFullPathFromFileName(SystemProperties.getKeyConfFile()));
+
+        if (!Files.exists(keyConfDir)) {
+            log.info("Creating keyConf directory: {}", keyConfDir);
+            Files.createDirectories(keyConfDir, KEY_DIR_PERMISSIONS);
+        }
+        var softTokenDir = getKeyDir().toPath();
+        if (!Files.exists(softTokenDir)) {
+            log.info("Creating softToken directory: {}", softTokenDir);
+            Files.createDirectories(softTokenDir, KEY_DIR_PERMISSIONS);
         }
     }
 

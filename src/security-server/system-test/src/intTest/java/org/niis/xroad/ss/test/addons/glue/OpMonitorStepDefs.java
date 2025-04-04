@@ -136,7 +136,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                     @SuppressWarnings("checkstyle:MagicNumber")
                     public void soap(SoapMessage message, Map<String, String> headers) {
                         assertEquals("cid:" + OPERATIONAL_DATA_JSON, findOperationalDataRecordsContentId(message, "records"));
-                        assertTrue(Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount")) >= 9);
+                        // backup tests disabled, reduce the number from 9 to 8
+                        assertTrue(Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount")) >= 8);
                     }
 
 

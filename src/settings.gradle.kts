@@ -61,6 +61,7 @@ include("service:monitor:monitor-rpc-client")
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
 include("service:op-monitor:op-monitor-core")
+include("service:op-monitor:op-monitor-db")
 
 include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
@@ -73,6 +74,7 @@ include("service:signer:signer-cli")
 include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
 
+include("service:message-log-archiver:message-log-archiver-core")
 include("service:message-log-archiver:message-log-archiver-application")
 
 // Tool projects

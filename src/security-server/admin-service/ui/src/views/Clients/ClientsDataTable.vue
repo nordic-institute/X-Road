@@ -1,4 +1,4 @@
- <!--
+<!--
    The MIT License
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -75,38 +75,38 @@
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <xrd-icon-base
             class="icon-member icon-size"
-            @click="openClient(item)"
-          >
+            @click="openClient(item)">
             <xrd-icon-folder />
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
-            class="member-name identifier-wrap clickable"
-            @click="openClient(item)"
-          >{{ item.visibleName }}
-            <span class="owner-box">{{ $t('client.owner') }}</span></span
-          >
-          <span v-else class="member-name identifier-wrap owner-box"
-          >{{ item.visibleName }} {{ $t('client.owner') }}</span
-          >
+            class="client-name member-name identifier-wrap clickable"
+            data-test="btn-client-details"
+            @click="openClient(item)">
+            {{ item.visibleName }}
+            <span class="owner-box">{{ $t('client.owner') }}</span>
+          </span>
+          <span v-else class="client-name member-name identifier-wrap owner-box">
+            {{ item.visibleName }} {{ $t('client.owner') }}
+          </span>
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
           <xrd-icon-base
             class="icon-member icon-size"
-            @click="openClient(item)"
-          >
+            @click="openClient(item)">
             <xrd-icon-folder-outline />
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
-            class="member-name identifier-wrap clickable"
-            @click="openClient(item)"
-          >{{ item.visibleName }}</span
-          >
-          <span v-else class="name identifier-wrap">{{
-              item.visibleName
-            }}</span>
+            class="client-name member-name identifier-wrap clickable"
+            data-test="btn-client-details"
+            @click="openClient(item)">
+            {{ item.visibleName }}
+          </span>
+          <span v-else class="client-name name identifier-wrap">
+            {{ item.visibleName }}
+          </span>
         </template>
         <!-- Name - virtual member -->
         <template
@@ -119,19 +119,22 @@
             <xrd-icon-folder-outline />
           </xrd-icon-base>
 
-          <span class="identifier-wrap member-name">{{
-              item.visibleName
-            }}</span>
+          <span class="client-name identifier-wrap member-name">
+            {{ item.visibleName }}
+          </span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
           <span
             v-if="canOpenClient"
             class="name identifier-wrap clickable"
-            @click="openSubsystem(item)"
-          >{{ item.visibleName }}</span
-          >
-          <span v-else class="name">{{ item.visibleName }}</span>
+            data-test="btn-client-details"
+            @click="openSubsystem(item)">
+            <subsystem-name class="client-name" :name="item.visibleName" />
+          </span>
+          <span v-else class="name">
+            <subsystem-name class="client-name" :name="item.visibleName" />
+          </span>
         </template>
       </template>
 
@@ -172,8 +175,8 @@
             "
             text
             :outlined="false"
-            @click="registerClient(item)"
-          >{{ $t('action.register') }}
+            @click="registerClient(item)">
+            {{ $t('action.register') }}
           </xrd-button>
         </div>
       </template>
@@ -219,9 +222,11 @@ import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
 import { XrdIconFolder, XrdIconFolderOutline } from '@niis/shared-ui';
 import { AxiosError } from 'axios';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
     XrdIconFolder,
     XrdIconFolderOutline,
     ClientStatus,
@@ -259,21 +264,25 @@ export default defineComponent({
           title: this.$t('client.name') as string,
           align: 'start',
           key: 'visibleName',
+          cellProps: { 'data-test': 'client-name' },
         },
         {
           title: this.$t('client.id') as string,
           align: 'start',
           key: 'id',
+          cellProps: { 'data-test': 'client-id' },
         },
         {
           title: this.$t('client.status') as string,
           align: 'start',
           key: 'status',
+          cellProps: { 'data-test': 'client-status' },
         },
         {
           title: '',
           key: 'button',
           sortable: false,
+          cellProps: { 'data-test': 'client-actions' },
         },
       ];
     },
@@ -458,6 +467,10 @@ export default defineComponent({
         (client) => client.type === ClientTypes.SUBSYSTEM,
       );
 
+      function orUndefinedStr(name?: string): string {
+        return name || 'undefined';
+      }
+
       // First we order and filter the groups (filtering is based on the isFiltered attribute as well as if subsystems are visible)
       const groups = items
         .filter((client) => client.type !== ClientTypes.SUBSYSTEM)
@@ -476,7 +489,7 @@ export default defineComponent({
             index !== 'visibleName' ? 1 : sortDirection;
 
           return (
-            clientA.visibleName.localeCompare(clientB.visibleName) *
+            orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
             groupSortDirection
           );
         });
@@ -492,7 +505,7 @@ export default defineComponent({
                 switch (index) {
                   case 'visibleName':
                     return (
-                      clientA.visibleName.localeCompare(clientB.visibleName) *
+                      orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
                       sortDirection
                     );
                   case 'id':

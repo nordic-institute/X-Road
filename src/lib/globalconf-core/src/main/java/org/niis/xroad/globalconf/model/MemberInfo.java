@@ -29,9 +29,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 /**
  * Value object containing client identifier and name.
- *
  * @param id   client identifier
  * @param name name of the client
+ * @param subsystemName name of the client's subsystem
  */
-public record MemberInfo(ClientId.Conf id, String name) {
+public record MemberInfo(ClientId.Conf id, String name, String subsystemName) {
 }

@@ -60,29 +60,29 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
-        String serviceAddress = currentTestCase().getServiceAddress(service);
+    public String getServiceAddress(ServiceId serviceId) {
+        String serviceAddress = currentTestCase().getServiceAddress(serviceId);
         if (serviceAddress != null) {
             return serviceAddress;
         }
 
         return "127.0.0.1:" + ProxyTestSuiteHelper.SERVICE_PORT
-                + ((service != null) ? "/" + service.getServiceCode() : "");
+                + ((serviceId != null) ? "/" + serviceId.getServiceCode() : "");
     }
 
     @Override
-    public boolean serviceExists(ServiceId service) {
-        return currentTestCase().serviceExists(service);
+    public boolean serviceExists(ServiceId serviceId) {
+        return currentTestCase().serviceExists(serviceId);
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
-        return currentTestCase().isQueryAllowed(sender, service);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId, String method, String path) {
+        return currentTestCase().isQueryAllowed(senderId, serviceId);
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
-        return currentTestCase().getDisabledNotice(service);
+    public String getDisabledNotice(ServiceId serviceId) {
+        return currentTestCase().getDisabledNotice(serviceId);
     }
 
     @Override
@@ -92,12 +92,12 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
+    public IsAuthentication getIsAuthentication(ClientId clientId) {
         return IsAuthentication.NOSSL;
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProviderId, DescriptionType descriptionType) {
         List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
@@ -113,8 +113,8 @@ public class TestSuiteServerConf extends EmptyServerConf {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                                    DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
+                                                                DescriptionType descriptionType) {
         List<ServiceId.Conf> list = new ArrayList<>();
         if (descriptionType == DescriptionType.REST) {
             list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));

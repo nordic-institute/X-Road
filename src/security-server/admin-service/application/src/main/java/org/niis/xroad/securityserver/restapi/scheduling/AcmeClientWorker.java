@@ -39,9 +39,8 @@ import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
-import org.niis.xroad.serverconf.model.ServerConfType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -50,6 +49,7 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateParsingException;
@@ -82,9 +82,12 @@ public class AcmeClientWorker {
     private final SignerRpcClient signerRpcClient;
     private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
-    private final ServerConfRepository serverConfRepository;
+    private final ServerConfService serverConfService;
     private final MailNotificationHelper mailNotificationHelper;
     private final VaultKeyProvider vaultKeyProvider;
+
+    @Value("${xroad.proxy-ui-api.security-server-url}")
+    private String proxyUrl;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -218,7 +221,7 @@ public class AcmeClientWorker {
     private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription) {
         String memberId = cert.getMemberId() != null
                 ? cert.getMemberId().asEncodedId()
-                : serverConfRepository.getServerConf().getOwner().getIdentifier().asEncodedId();
+                : serverConfService.getSecurityServerOwnerId().asEncodedId();
         setRenewalErrorAndSendFailureNotification(cert, errorDescription, memberId);
     }
 
@@ -372,10 +375,9 @@ public class AcmeClientWorker {
     }
 
     ManagementRequestSender createManagementRequestSender() {
-        ClientId sender = serverConfRepository.getServerConf().getOwner().getIdentifier();
+        ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, signerSignClient, sender, receiver,
-                SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, signerSignClient, sender, receiver, proxyUrl);
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
@@ -393,8 +395,7 @@ public class AcmeClientWorker {
     }
 
     private SecurityServerId.Conf getSecurityServerId() {
-        ServerConfType serverConf = serverConfRepository.getServerConf();
-        return SecurityServerId.Conf.create(serverConf.getOwner().getIdentifier(), serverConf.getServerCode());
+        return serverConfService.getSecurityServerId();
     }
 
     private void rollback(String keyId) {

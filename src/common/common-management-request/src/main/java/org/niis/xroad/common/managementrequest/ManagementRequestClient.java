@@ -36,6 +36,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
@@ -209,8 +210,7 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(keyManagers, trustManagers, new SecureRandom());
 
-        SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(ctx,
-                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE);
 
         sfr.register("https", sf);
 

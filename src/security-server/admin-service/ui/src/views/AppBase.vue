@@ -36,7 +36,9 @@
         </div>
         <v-row align="center" class="base-full-width" no-gutters>
           <v-col class="d-flex justify-center align-center">
-            <router-view />
+            <xrd-sub-view-container>
+              <router-view />
+            </xrd-sub-view-container>
           </v-col>
         </v-row>
       </div>

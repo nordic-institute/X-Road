@@ -25,8 +25,8 @@ Feature: 0300 - SS: Keys and certificates
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
       | $token      | $usage         | $label             | $client      | $dns  | $certService | $certStatus | $ocspStatus |
-      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ss0   | Test CA      | Registered  | Good        |
-      | softToken-0 | AUTHENTICATION | test auth key      |              | ss0   | Test CA      | Saved       | Disabled    |
+      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ui   | Test CA      | Registered  | Good        |
+      | softToken-0 | AUTHENTICATION | test auth key      |              | ui   | Test CA      | Saved       | Disabled    |
 
   Scenario: Token edit page is navigable
     Given Keys and certificates tab is selected
@@ -44,8 +44,8 @@ Feature: 0300 - SS: Keys and certificates
     And Token: <$token> - has <$authKeyAmount> auth keys, <$signKeyAmount> sign keys
     Examples:
       | $token      | $usage         | $label | $client      | $dns | $certService | $authKeyAmount | $signKeyAmount |
-      | softToken-0 | SIGNING        |        | DEV:COM:1234 | ss0  | Test CA      | 1              | 2              |
-      | softToken-0 | AUTHENTICATION |        |              | ss0  | Test CA      | 2              | 2              |
+      | softToken-0 | SIGNING        |        | DEV:COM:1234 | ui  | Test CA      | 1              | 2              |
+      | softToken-0 | AUTHENTICATION |        |              | ui  | Test CA      | 2              | 2              |
 
   Scenario: Add key wizard is navigable
     Given Keys and certificates tab is selected
@@ -72,11 +72,11 @@ Feature: 0300 - SS: Keys and certificates
     When Token: softToken-0 - Add key wizard is opened
     And Key Label is set to "key for multiple csr"
     And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "Test CA" and CSR format "PEM"
-    And Generate "AUTHENTICATION" CSR is set to DNS "ss0" and Organization "ui-test"
+    And Generate "AUTHENTICATION" CSR is set to DNS "ui" and Organization "ui-test"
     And CSR with extension "pem" successfully generated
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ui"
     Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests
 
   Scenario: Token PIN can be changed

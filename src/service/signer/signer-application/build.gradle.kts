@@ -3,11 +3,12 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-jib {
-  to {
-    image = "${project.property("xroadImageRegistry")}/ss-signer"
-    tags = setOf("latest")
-  }
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-signer")
+    }
+  )
 }
 
 dependencies {
@@ -19,6 +20,7 @@ dependencies {
   implementation(project(":lib:bootstrap-quarkus"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
 
   testImplementation(libs.quarkus.junit5)

@@ -4,13 +4,13 @@ plugins {
   id("maven-publish")
 }
 
-jib {
-  to {
-    image = "${project.property("xroadImageRegistry")}/ss-configuration-client"
-    tags = setOf("latest")
-  }
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-configuration-client")
+    }
+  )
 }
-
 
 publishing {
   publications {
@@ -48,6 +48,7 @@ dependencies {
   implementation(project(":service:configuration-client:configuration-client-core"))
 
   implementation(libs.bundles.quarkus.core)
+  implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
   implementation(libs.quarkus.quartz)
 

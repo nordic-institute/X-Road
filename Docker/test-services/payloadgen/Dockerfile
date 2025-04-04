@@ -1,26 +1,31 @@
-################################################################################
-FROM rust:1.85-alpine AS build
+FROM ubuntu:noble
 
-RUN apk add --no-cache musl-dev #clang lld
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN --mount=type=bind,source=src,target=src \
-    --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
-    --mount=type=bind,source=Cargo.lock,target=Cargo.lock \
-    --mount=type=cache,target=/app/target/ \
-   cargo build --release && \
-   cp ./target/release/payloadgen /bin/payloadgen
+RUN apt-get update && \
+    apt-get -qq install wget  && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        ARCH="x86_64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        ARCH="aarch64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    echo "Architecture detected: $ARCH" && \
+    mkdir -p /opt && \
+    wget -O "/opt/payloadgen-${ARCH}" "https://artifactory.niis.org/artifactory/xroad-generic-utils/payloadgen-${ARCH}" || \
+    (echo "Failed to download payloadgen binary for architecture: $ARCH" && exit 1) && \
+    chmod +x "/opt/payloadgen-${ARCH}" && \
+    if [ ! -f "/opt/payloadgen-${ARCH}" ] || [ ! -x "/opt/payloadgen-${ARCH}" ]; then \
+        echo "Downloaded file is not executable or does not exist" && exit 1; \
+    fi && \
+    ln -sf "/opt/payloadgen-${ARCH}" /opt/payloadgen
 
-################################################################################
-FROM alpine:3.18 AS final
-
-# Copy the executable from the "build" stage.
-COPY --from=build /bin/payloadgen /
-
-# Configure rocket to listen on all interfaces.
+# Configure rocket to listen on all interfaces
 ENV ROCKET_ADDRESS=0.0.0.0
-#ENV ROCKET_KEEP_ALIVE=0
 ENV ROCKET_PORT=8080
 
 EXPOSE 8080
 
-CMD ["/payloadgen"]
+CMD ["/bin/sh", "-c", "/opt/payloadgen"]

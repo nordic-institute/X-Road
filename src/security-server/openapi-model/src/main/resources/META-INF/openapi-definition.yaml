@@ -2117,6 +2117,61 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
+  /clients/{id}/rename:
+    put:
+      tags:
+        - clients
+      summary: rename security server client
+      operationId: renameClient
+      description:
+        <h3>Administrator renames client.</h3>
+        <p>This endpoint can also return metadata in the error response if sending the management request fails. The metadata array contains the error details that were generated in core. The message is in plain English.</p>
+      parameters:
+        - in: path
+          name: id
+          description: id of the client
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientName'
+      responses:
+        '204':
+          description: renaming was successful
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
   /diagnostics/info/download:
     get:
       tags:
@@ -6279,6 +6334,14 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+        subsystem_name:
+          type: string
+          format: text
+          description: Subsystem name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          readOnly: true
+          minLength: 0
+          maxLength: 255
         owner:
           type: boolean
           description: if this client is the owner member of this security server
@@ -6289,10 +6352,21 @@ components:
           description: if this client has a valid (registered and with good OCSP response) sign cert stored on this security server
           example: false
           readOnly: true
+        rename_status:
+          $ref: '#/components/schemas/RenameStatus'
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
+    RenameStatus:
+      type: string
+      format: enum
+      description: rename status
+      example: NAME_SET
+      readOnly: true
+      enum:
+        - NAME_SET
+        - NAME_SUBMITTED
     ClientAdd:
       type: object
       description: Request to add client. Carries a Client and ignore warnings parameter
@@ -6649,22 +6723,29 @@ components:
       description: group member
       required:
         - id
-        - name
+        - member_name
         - created_at
       properties:
         id:
           type: string
           format: text
           description: group member id
-          example: FI:GOV:123:SS1
+          example: FI:GOV:123
           minLength: 1
           maxLength: 1023
-        name:
+        member_name:
           type: string
           format: text
           description: group member name
           example: Member123
           minLength: 1
+          maxLength: 255
+        subsystem_name:
+          type: string
+          format: text
+          description: group subsystem name
+          example: Subsystem123
+          minLength: 0
           maxLength: 255
         created_at:
           type: string
@@ -7032,6 +7113,19 @@ components:
           maxLength: 255
       example:
         address: 127.0.0.1
+    ClientName:
+      type: object
+      required:
+        - client_name
+      properties:
+        client_name:
+          type: string
+          description: Client name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        address: Subsystem Name
     SecurityServerAddressStatus:
       type: object
       description: Security Server address with status
@@ -7647,5 +7741,8 @@ components:
         java_runtime_version:
           type: string
           description: java runtime version string from java.runtime.version system property
+        global_configuration_version:
+          type: integer
+          description: global configuration version
 security:
   - ApiKeyAuth: []

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,16 +31,16 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +54,7 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
 @DataJpaTest
 @AutoConfigureTestDatabase
 @Slf4j
-@EntityScan("org.niis.xroad.restapi.entity")
+@EntityScan(basePackages = {"org.niis.xroad.serverconf.impl.entity", "org.niis.xroad.restapi.entity"})
 @Transactional
 @ActiveProfiles("test")
 public class ExampleJpaTest {
@@ -68,21 +69,21 @@ public class ExampleJpaTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @MockBean(name = SERVER_CONF_DB_CTX)
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
     DatabaseCtx databaseCtx;
 
     @Test
     public void testTestEntityManager() {
-        ServerConfType conf2 = new ServerConfType();
+        ServerConfEntity conf2 = new ServerConfEntity();
         conf2.setServerCode("from-test");
         conf2.setId(null);
         conf2.setOwner(null);
-        ServerConfType confPersisted = testEntityManager.persistFlushFind(conf2);
+        ServerConfEntity confPersisted = testEntityManager.persistFlushFind(conf2);
 
-        ServerConfType confLoad1 = testEntityManager.find(ServerConfType.class, 1L);
+        ServerConfEntity confLoad1 = testEntityManager.find(ServerConfEntity.class, 1L);
         assertEquals("TEST-INMEM-SS", confLoad1.getServerCode());
 
-        ServerConfType confLoad2 = testEntityManager.find(ServerConfType.class, confPersisted.getId());
+        ServerConfEntity confLoad2 = testEntityManager.find(ServerConfEntity.class, confPersisted.getId());
         assertEquals("from-test", confLoad2.getServerCode());
     }
 

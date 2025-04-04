@@ -83,7 +83,7 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
                 serverId,
                 subsystem.getIdentifier(),
                 request.getSubsystemName(),
-                formatComment(subsystem.getName(), request.getComments())
+                formatRenameComment(subsystem.getName(), request.getSubsystemName(), request.getComments())
         );
 
         final var persistedRequest = renameRequests.save(requestEntity);
@@ -92,21 +92,24 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
         return requestMapper.toDto(persistedRequest);
     }
 
-    private String formatComment(String oldName, String comment) {
-        String newComment = "Changing from '%s'.".formatted(oldName);
-        if (StringUtils.isNotBlank(comment)) {
-            newComment += " " + comment;
+    protected static String formatRenameComment(String oldName, String newName, String comment) {
+        if (StringUtils.isNotEmpty(newName) && StringUtils.isNotEmpty(oldName) && !StringUtils.equals(oldName, newName)) {
+            var newComment = "Changing subsystem name from '%s' to '%s'.".formatted(oldName, newName);
+            if (StringUtils.isNotBlank(comment)) {
+                newComment += " " + comment;
+            }
+            return newComment;
         }
-        return newComment;
+        return comment;
     }
 
     private void validate(ClientRenameRequest request) {
-        if (StringUtils.isBlank(request.getSubsystemName())) {
-            throw new ValidationFailureException(MR_INVALID_SUBSYSTEM_NAME);
+        if (!request.getClientId().isSubsystem()) {
+            throw new ValidationFailureException(MR_ONLY_SUBSYSTEM_RENAME_ALLOWED);
         }
 
-        if (request.getClientId().getSubsystemCode() == null) {
-            throw new ValidationFailureException(MR_ONLY_SUBSYSTEM_RENAME_ALLOWED);
+        if (StringUtils.isBlank(request.getSubsystemName())) {
+            throw new ValidationFailureException(MR_INVALID_SUBSYSTEM_NAME);
         }
     }
 

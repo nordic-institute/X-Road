@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -33,15 +34,19 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.ServerConfType;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
+import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -75,6 +80,7 @@ public class GlobalConfChecker {
     private final GlobalConfProvider globalConfProvider;
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final SubsystemNameStatus subsystemNameStatus;
     private final MailNotificationHelper mailNotificationHelper;
 
     /**
@@ -85,7 +91,6 @@ public class GlobalConfChecker {
      * next task won't be invoked until the previous one is done. Set an initial delay before running the task
      * for the first time after a startup to be sure that all required components are available, e.g.
      * SignerClient may not be available immediately.
-     *
      * @throws Exception
      */
     @Scheduled(fixedRate = JOB_REPEAT_INTERVAL_MS, initialDelay = INITIAL_DELAY_MS)
@@ -124,7 +129,7 @@ public class GlobalConfChecker {
             return;
         }
 
-        ServerConfType serverConf = globalConfCheckerHelper.getServerConf();
+        ServerConfEntity serverConf = globalConfCheckerHelper.getServerConf();
 
         addressChangeStatus.getAddressChangeRequest()
                 .ifPresent(requestedAddress -> {
@@ -146,7 +151,7 @@ public class GlobalConfChecker {
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
                 updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
                                 globalConfProvider.getInstanceIdentifier()),
-                        serverConf.getTsp()
+                        TimestampingServiceMapper.get().toTargets(serverConf.getTimestampingServices())
                 );
             }
         } catch (Exception e) {
@@ -157,13 +162,12 @@ public class GlobalConfChecker {
     /**
      * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
      * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
-     *
      * @param globalTsps timestamping services from global configuration
      * @param localTsps  timestamping services from local database
      */
-    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TspType> localTsps) {
+    void updateTimestampServiceUrls(List<SharedParameters.ApprovedTSA> globalTsps, List<TimestampingService> localTsps) {
 
-        for (TspType localTsp : localTsps) {
+        for (TimestampingService localTsp : localTsps) {
             List<SharedParameters.ApprovedTSA> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
                     .toList();
@@ -192,14 +196,14 @@ public class GlobalConfChecker {
                 ownerId.getMemberCode(), serverCode);
     }
 
-    private SecurityServerId buildSecurityServerId(ServerConfType serverConf) {
+    private SecurityServerId buildSecurityServerId(ServerConfEntity serverConf) {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
         return buildSecurityServerId(ownerId, serverConf.getServerCode());
     }
 
-    private void updateOwner(ServerConfType serverConf) throws Exception {
+    private void updateOwner(ServerConfEntity serverConf) throws Exception {
         ClientId ownerId = serverConf.getOwner().getIdentifier();
-        for (ClientType client : serverConf.getClient()) {
+        for (ClientEntity client : serverConf.getClients()) {
             // Look for another member that is not the owner
             if (client.getIdentifier().getSubsystemCode() == null
                     && !client.getIdentifier().equals(ownerId)) {
@@ -237,45 +241,47 @@ public class GlobalConfChecker {
         return null;
     }
 
-    private void updateClientStatuses(ServerConfType serverConf, SecurityServerId securityServerId) {
+    private void updateClientStatuses(ServerConfEntity serverConf, SecurityServerId securityServerId) {
         log.debug("Updating client statuses");
 
-        for (ClientType client : serverConf.getClient()) {
-            boolean registered = globalConfProvider.isSecurityServerClient(
-                    client.getIdentifier(), securityServerId);
+        for (ClientEntity client : serverConf.getClients()) {
+            var clientId = client.getIdentifier();
+            boolean registered = globalConfProvider.isSecurityServerClient(clientId, securityServerId);
 
-            log.debug("Client '{}' registered = '{}'", client.getIdentifier(),
-                    registered);
+            log.debug("Client '{}' registered = '{}'", clientId, registered);
 
             if (registered && client.getClientStatus() != null) {
                 switch (client.getClientStatus()) {
-                    case ClientType.STATUS_REGISTERED:
+                    case Client.STATUS_REGISTERED:
                         // do nothing
                         break;
-                    case ClientType.STATUS_SAVED,
-                         ClientType.STATUS_REGINPROG,
-                         ClientType.STATUS_GLOBALERR,
-                         ClientType.STATUS_ENABLING_INPROG:
-                        updateClientStatus(client, ClientType.STATUS_REGISTERED);
+                    case Client.STATUS_SAVED,
+                         Client.STATUS_REGINPROG,
+                         Client.STATUS_GLOBALERR,
+                         Client.STATUS_ENABLING_INPROG:
+                        updateClientStatus(client, Client.STATUS_REGISTERED);
                         break;
                     default:
-                        log.warn("Unexpected status {} for client '{}'",
-                                client.getIdentifier(),
-                                client.getClientStatus());
+                        log.warn("Unexpected status {} for client '{}'", client.getClientStatus(), clientId);
                 }
             }
 
-            if (!registered && ClientType.STATUS_REGISTERED.equals(client.getClientStatus())) {
-                updateClientStatus(client, ClientType.STATUS_GLOBALERR);
+            if (!registered && Client.STATUS_REGISTERED.equals(client.getClientStatus())) {
+                updateClientStatus(client, Client.STATUS_GLOBALERR);
             }
 
-            if (!registered && ClientType.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
-                updateClientStatus(client, ClientType.STATUS_DISABLED);
+            if (!registered && Client.STATUS_DISABLING_INPROG.equals(client.getClientStatus())) {
+                updateClientStatus(client, Client.STATUS_DISABLED);
+            }
+
+            if (clientId.isSubsystem()) {
+                subsystemNameStatus.clearIf(clientId,
+                        (oldName, newName) -> !StringUtils.equals(oldName, globalConfProvider.getSubsystemName(clientId)));
             }
         }
     }
 
-    private void updateClientStatus(ClientType client, String status) {
+    private void updateClientStatus(ClientEntity client, String status) {
         client.setClientStatus(status);
         log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
     }

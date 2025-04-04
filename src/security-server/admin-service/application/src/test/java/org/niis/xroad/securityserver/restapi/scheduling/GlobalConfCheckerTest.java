@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -44,16 +45,17 @@ import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.model.Client;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,8 +70,10 @@ import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
 import static ee.ria.xroad.common.SystemProperties.NodeType.MASTER;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,7 +95,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private ClientService clientService;
     @Autowired
     private GlobalConfService globalConfService;
-    @MockBean
+    @MockitoBean
     private MailNotificationHelper mailNotificationHelper;
 
     private static final ClientId.Conf OWNER_MEMBER =
@@ -131,7 +135,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         });
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
+        when(managementRequestSenderService.sendClientRegisterRequest(any(), anyString())).thenReturn(1);
         when(globalConfProvider.getServerId(any())).thenReturn(SS_ID);
 
         KeyInfo ownerSignKey = new TokenTestUtils.KeyInfoBuilder()
@@ -183,49 +187,62 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     public void updateLocalClientStatus() {
         when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         // Verify initial state
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
-        ClientType owner = clientService.getLocalClient(OWNER_MEMBER);
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
+        ClientEntity owner = clientService.getLocalClientEntity(OWNER_MEMBER);
         log.debug("Owner {}", owner.getIdentifier());
-        assertEquals(ClientType.STATUS_REGISTERED, owner.getClientStatus());
-        ClientType subsystem = clientService.getLocalClient(SUBSYSTEM);
-        assertEquals(ClientType.STATUS_REGISTERED, subsystem.getClientStatus());
+        assertEquals(Client.STATUS_REGISTERED, owner.getClientStatus());
+        ClientEntity subsystem = clientService.getLocalClientEntity(SUBSYSTEM);
+        assertEquals(Client.STATUS_REGISTERED, subsystem.getClientStatus());
 
         // Update serverconf
         globalConfChecker.checkGlobalConf();
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
-        assertEquals(ClientType.STATUS_REGISTERED, owner.getClientStatus());
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
+        assertEquals(Client.STATUS_REGISTERED, owner.getClientStatus());
         // Subsystem status is changed to "GLOBALERR" since it's not recognized as a Security Server client
-        assertEquals(ClientType.STATUS_GLOBALERR, subsystem.getClientStatus());
+        assertEquals(Client.STATUS_GLOBALERR, subsystem.getClientStatus());
 
         // Global conf starts to recognize the subsystem as a Security Server client
         when(globalConfProvider.isSecurityServerClient(SUBSYSTEM, SS_ID)).thenReturn(true);
         // Update serverconf
         globalConfChecker.checkGlobalConf();
         // Subsystem status is changed back to "REGISTERED"
-        assertEquals(ClientType.STATUS_REGISTERED, subsystem.getClientStatus());
+        assertEquals(Client.STATUS_REGISTERED, subsystem.getClientStatus());
+    }
+
+    @Test
+    public void updateRenameStatus() {
+        var originalName = "originalName";
+        var newName = "newName";
+        when(globalConfProvider.getSubsystemName(SUBSYSTEM)).thenReturn(originalName);
+        subsystemNameStatus.submit(SUBSYSTEM, null, newName);
+
+        when(globalConfProvider.getSubsystemName(SUBSYSTEM)).thenReturn(newName);
+        globalConfChecker.checkGlobalConf();
+
+        assertFalse(subsystemNameStatus.getRename(SUBSYSTEM).isPresent());
     }
 
     @Test
     public void registerMemberAndChangeSecurityServerOwner() throws Exception {
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
 
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
 
         // Add new member locally
-        ClientType clientType = clientService.addLocalClient(NEW_OWNER_MEMBER.getMemberClass(),
-                NEW_OWNER_MEMBER.getMemberCode(), NEW_OWNER_MEMBER.getSubsystemCode(),
+        ClientEntity clientEntity = clientService.addLocalClientEntity(NEW_OWNER_MEMBER.getMemberClass(),
+                NEW_OWNER_MEMBER.getMemberCode(), NEW_OWNER_MEMBER.getSubsystemCode(), null,
                 IsAuthentication.SSLAUTH, false);
-        assertEquals(ClientType.STATUS_SAVED, clientType.getClientStatus());
+        assertEquals(Client.STATUS_SAVED, clientEntity.getClientStatus());
 
         // Register new member
         clientService.registerClient(NEW_OWNER_MEMBER);
-        assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
+        assertEquals(Client.STATUS_REGINPROG, clientEntity.getClientStatus());
         when(globalConfProvider.isSecurityServerClient(any(), any())).thenReturn(true);
 
         // Update serverconf
         globalConfChecker.checkGlobalConf();
-        assertEquals(ClientType.STATUS_REGISTERED, clientType.getClientStatus());
-        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(Client.STATUS_REGISTERED, clientEntity.getClientStatus());
+        assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
 
         // Global conf starts to recognize the new member as the Security Server owner
         when(globalConfProvider.getServerOwner(SS_ID)).thenReturn(null);
@@ -234,7 +251,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         // Update serverconf => owner is changed
         globalConfChecker.checkGlobalConf();
-        assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
+        assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerIdEntity().toString());
     }
 
     @Test
@@ -308,13 +325,13 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // test with single matching items
         List<SharedParameters.ApprovedTSA> approvedTSATypes =
                 Collections.singletonList(TestUtils.createApprovedTsaType("http://example.com:8121", "Foo"));
-        List<TspType> tspTypes =
+        List<TimestampingService> timestampingServices =
                 Collections.singletonList(TestUtils.createTspType("http://example.com:8121", "Foo"));
-        globalConfChecker.updateTimestampServiceUrls(approvedTSATypes, tspTypes);
+        globalConfChecker.updateTimestampServiceUrls(approvedTSATypes, timestampingServices);
         assertEquals(1, approvedTSATypes.size());
-        assertEquals(1, tspTypes.size());
-        assertEquals(approvedTSATypes.get(0).getName(), tspTypes.get(0).getName());
-        assertEquals(approvedTSATypes.get(0).getUrl(), tspTypes.get(0).getUrl());
+        assertEquals(1, timestampingServices.size());
+        assertEquals(approvedTSATypes.get(0).getName(), timestampingServices.get(0).getName());
+        assertEquals(approvedTSATypes.get(0).getUrl(), timestampingServices.get(0).getUrl());
 
         // test the normal update case
         // the change in approvedTSAType1 URL should be reflected to tspType1 URL
@@ -322,7 +339,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
                 TestUtils.createApprovedTsaType("http://example.com:9999", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.net", "Bar")
         );
-        List<TspType> tspTypes1 = Arrays.asList(
+        List<TimestampingService> tspTypes1 = Arrays.asList(
                 TestUtils.createTspType("http://example.com:8121", "Foo"),
                 TestUtils.createTspType("http://example.net", "Bar")
         );
@@ -341,7 +358,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
                 TestUtils.createApprovedTsaType("http://example.net", "Foo"),
                 TestUtils.createApprovedTsaType("http://example.org:8080", "Zzz")
         );
-        List<TspType> tspTypes2 = Arrays.asList(
+        List<TimestampingService> tspTypes2 = Arrays.asList(
                 TestUtils.createTspType("http://example.com:8121", "Foo"),
                 TestUtils.createTspType("http://example.net", "Foo"),
                 TestUtils.createTspType("http://example.org:8080", "Zzz")

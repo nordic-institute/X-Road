@@ -2,36 +2,37 @@
 
 **Technical Specification**
 
-Version: 1.17  
+Version: 1.18  
 Doc. ID: PR-MSERV
 
-| Date       | Version | Description                                                                 | Author             |
-|------------|---------|-----------------------------------------------------------------------------|--------------------|
-| 19.08.2015 | 0.1     | Initial version                                                             | Martin Lind        |
-| 28.08.2015 | 0.2     | Added comments and made editorial changes                                   | Margus Freudenthal |
-| 03.09.2015 | 0.3     | Re-structuring and accuracy improvements                                    | Martin Lind        |
-| 13.09.2015 | 0.4     | Made editorial changes                                                      | Margus Freudenthal |
-| 16.09.2015 | 0.5     | Correct example message for authentication certificate registration request | Martin Lind        |
-| 17.09.2015 | 0.6     | Improvements for example messages and referential improvements              | Martin Lind        |
-| 17.09.2015 | 0.7     | Improvements for Schema fragments                                           | Martin Lind        |
-| 18.09.2015 | 0.8     | Updating Schema in the WSDL                                                 | Martin Lind        |
-| 21.09.2015 | 1.0     | Editorial changes made                                                      | Imbi Nõgisto       |
-| 21.09.2015 | 1.1     | Document renamed                                                            | Imbi Nõgisto       |
-| 01.10.2015 | 1.2     | Field *requestId* added and redundant elements removed                      | Martin Lind        |
-| 05.10.2015 | 1.3     | Updated example messages                                                    | Martin Lind        |
-| 06.10.2015 | 1.4     | Correct header fields for WSDL                                              | Martin Lind        |
-| 17.10.2015 | 1.6     | Editorial changes related to *requestId* field                              | Margus Freudenthal |
-| 28.10.2015 | 1.7     | Complete X-Road identifiers schema added                                    | Siim Annuk         |
-| 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL                 | Kristo Heero       |
-| 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                   | Siim Annuk         |
-| 07.06.2017 | 1.10    | Additional signature algorithms supported                                   | Kristo Heero       |
-| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references          | Tatu Repo          |
-| 06.02.2019 | 1.12    | Update *clientReg* message description                                      | Petteri Kivimäki   |
-| 03.06.2019 | 1.13    | Add ownerChange management service                                          | Ilkka Seppälä      |
-| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service     | Petteri Kivimäki   |
-| 10.05.2023 | 1.15    | Security Categories removed.                                                | Justas Samuolis    |
-| 20.11.2023 | 1.16    | Add *addressChange* management service                                      | Justas Samuolis    |
-| 11.12.2023 | 1.17    | *clientDisable* and *clientEnable* services                                 | Madis Loitmaa      |
+| Date       | Version | Description                                                                 | Author               |
+|------------|---------|-----------------------------------------------------------------------------|----------------------|
+| 19.08.2015 | 0.1     | Initial version                                                             | Martin Lind          |
+| 28.08.2015 | 0.2     | Added comments and made editorial changes                                   | Margus Freudenthal   |
+| 03.09.2015 | 0.3     | Re-structuring and accuracy improvements                                    | Martin Lind          |
+| 13.09.2015 | 0.4     | Made editorial changes                                                      | Margus Freudenthal   |
+| 16.09.2015 | 0.5     | Correct example message for authentication certificate registration request | Martin Lind          |
+| 17.09.2015 | 0.6     | Improvements for example messages and referential improvements              | Martin Lind          |
+| 17.09.2015 | 0.7     | Improvements for Schema fragments                                           | Martin Lind          |
+| 18.09.2015 | 0.8     | Updating Schema in the WSDL                                                 | Martin Lind          |
+| 21.09.2015 | 1.0     | Editorial changes made                                                      | Imbi Nõgisto         |
+| 21.09.2015 | 1.1     | Document renamed                                                            | Imbi Nõgisto         |
+| 01.10.2015 | 1.2     | Field *requestId* added and redundant elements removed                      | Martin Lind          |
+| 05.10.2015 | 1.3     | Updated example messages                                                    | Martin Lind          |
+| 06.10.2015 | 1.4     | Correct header fields for WSDL                                              | Martin Lind          |
+| 17.10.2015 | 1.6     | Editorial changes related to *requestId* field                              | Margus Freudenthal   |
+| 28.10.2015 | 1.7     | Complete X-Road identifiers schema added                                    | Siim Annuk           |
+| 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL                 | Kristo Heero         |
+| 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                   | Siim Annuk           |
+| 07.06.2017 | 1.10    | Additional signature algorithms supported                                   | Kristo Heero         |
+| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references          | Tatu Repo            |
+| 06.02.2019 | 1.12    | Update *clientReg* message description                                      | Petteri Kivimäki     |
+| 03.06.2019 | 1.13    | Add ownerChange management service                                          | Ilkka Seppälä        |
+| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service     | Petteri Kivimäki     |
+| 10.05.2023 | 1.15    | Security Categories removed.                                                | Justas Samuolis      |
+| 20.11.2023 | 1.16    | Add *addressChange* management service                                      | Justas Samuolis      |
+| 11.12.2023 | 1.17    | *clientDisable* and *clientEnable* services                                 | Madis Loitmaa        |
+| 07.03.2025 | 1.18    | Add *clientRename* management service and update *clientReg* service        | Ovidijus Narkevičius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -48,6 +49,7 @@ Doc. ID: PR-MSERV
   - [2.6 *addressChange* - Security Server address change](#26-addresschange---security-server-address-change)
   - [2.7 *clientDisable* - Disable Security Server Client Subsystem Temporarily](#27-clientdisable---disable-security-server-client-subsystem-temporarily)
   - [2.8 *clientEnable* - Enable Security Server Client Subsystem](#28-clientenable---enable-security-server-client-subsystem)
+  - [2.9 *clientRename* - Rename Security Server Client Subsystem](#29-clientrename---rename-security-server-client-subsystem)
 - [Annex A. Example messages](#annex-a-example-messages)
   - [A.1 clientReg](#a1-clientreg)
   - [A.2 clientDeletion](#a2-clientdeletion)
@@ -119,6 +121,8 @@ The body of the client registration message (request or response) contains the f
 
 * **client** – identifier of the subsystem to be added to the Security Server;
 
+* **subsystemName** – optional new name of the subsystem if client is subsystem;
+
 * **server** – identifier of the Security Server where the client is added;
 
 * **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
@@ -130,6 +134,7 @@ The XML Schema fragment of the client registration request body is shown below. 
     <xsd:sequence>
         <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
         <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+        <xsd:element name="subsystemName" type="string" minOccurs="0" />
         <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
     </xsd:sequence>
 </xsd:complexType>
@@ -145,7 +150,7 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 4. OCSP response certifying that the signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
 
-The response echoes back the client and the server fields of the request and adds the field *requestId*.
+The response echoes back the subsystemName, the client and the server fields of the request and adds the field *requestId*.
 
 An example of the client registration request and response is given in [Annex A.1](#a1-clientreg).
 
@@ -302,7 +307,7 @@ The body of the address change message (request or response) contains the follow
 * **address** – new Security Server DNS address;
 * **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
 
-The XML Schema fragment of the address cahnge request body is shown below. For clarity, documentation in the schema fragment is omitted.
+The XML Schema fragment of the address change request body is shown below. For clarity, documentation in the schema fragment is omitted.
 
 ```xml
 <xsd:complexType name="AddressChangeRequestType">
@@ -338,7 +343,7 @@ The body of the client disabling message (request or response) contains followin
 * **server** – identifier of the Security Server where the client is disabled;
 * **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
 
-The XML Schema fragment of the client deletion request body shown below.
+The XML Schema fragment of the client disable request body shown below.
 
 ```xml
 <xsd:complexType name="ClientRequestType">
@@ -354,11 +359,11 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
  
-2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+2. Signature of the member that owns the subsystem to be disabled. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
  
-3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
  
-4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
 
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
@@ -375,7 +380,7 @@ The body of the client enabling message (request or response) contains following
 * **server** – identifier of the Security Server where the client is enabled;
 * **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
 
-The XML Schema fragment of the client deletion request body shown below.
+The XML Schema fragment of the client enable request body shown below.
 
 ```xml
 <xsd:complexType name="ClientRequestType">
@@ -391,15 +396,53 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
  
-2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+2. Signature of the member that owns the subsystem to be enabled. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
  
-3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
  
-4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
 
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
 An example of the client enabling request and response is given in [Annex A.8](#a8-clientenable).
+
+### 2.9 *clientRename* - Rename Security Server Client Subsystem
+
+The *clientRename* service is used to rename subsystem registered as Security Server client.
+
+The body of the client rename message (request or response) contains following fields:
+
+* **client** – identifier of the subsystem to be renamed;
+* **subsystemName** – new name for the subsystem;
+* **server** – identifier of the Security Server where the client is registered;
+* **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
+
+The XML Schema fragment of the client rename request body shown below.
+
+```xml
+<xsd:complexType name="ClientRequestType">
+    <xsd:sequence>
+        <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
+        <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+        <xsd:element name="subsystemName" type="string" />
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+    </xsd:sequence>
+</xsd:complexType>
+```
+
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+
+2. Signature of the member that owns the subsystem to be renamed. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+
+3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+
+4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+
+The response echoes back the subsystemName, the client and the server fields of the request and adds the field *requestId*.
+
+An example of the client registration request and response is given in [Annex A.9](#a1-clientrename).
 
 
 ## Annex A. Example messages
@@ -445,6 +488,7 @@ Content-Type: text/xml; charset=UTF-8
                 <id:memberCode>client</id:memberCode>
                 <id:subsystemCode>subsystem</id:subsystemCode>
             </xroad:client>
+            <xroad:subsystemName>subsystem name</xroad:subsystemName>
         </xroad:clientReg>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
@@ -506,6 +550,7 @@ Response message
                 <id:memberCode>client</id:memberCode>
                 <id:subsystemCode>subsystem</id:subsystemCode>
             </xroad:client>
+            <xroad:subsystemName>subsystem name</xroad:subsystemName>
             <xroad:requestId>394</xroad:requestId>
         </xroad:clientRegResponse>
     </SOAP-ENV:Body>
@@ -1268,422 +1313,676 @@ Response message
 </SOAP-ENV:Envelope>
 ```
 
+### A.9 clientRename
+
+Request message
+
+```xml
+--jetty2041213627lpv3ox3x
+Content-Type: text/xml; charset=UTF-8
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>CLASS</id:memberClass>
+            <id:memberCode>MEMBER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember2</id:memberCode>
+            <id:serviceCode>clientRename</id:serviceCode>
+        </xroad:service>
+        <xroad:id>0655793f-9adb-4e57-a0ec-6ea5bf69ce8a</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:clientRename>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:serverCode>SS1</id:serverCode>
+            </xroad:server>
+            <xroad:client id:objectType="SUBSYSTEM">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:subsystemCode>SUBSYSTEM</id:subsystemCode>
+            </xroad:client>
+            <xroad:subsystemName>SUBSYSTEM Name</xroad:subsystemName>
+        </xroad:clientRename>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty2041213627lpv3ox3x
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+
+[OWNER SIGNATURE BYTES]
+--jetty2041213627lpv3ox3x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE BYTES]
+--jetty2041213627lpv3ox3x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty2041213627lpv3ox3x--
+
+```
+
+Response message
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>CLASS</id:memberClass>
+            <id:memberCode>MEMBER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember2</id:memberCode>
+            <id:serviceCode>clientRename</id:serviceCode>
+        </xroad:service>
+        <xroad:id>0655793f-9adb-4e57-a0ec-6ea5bf69ce8a</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:clientRenameResponse>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:serverCode>SS1</id:serverCode>
+            </xroad:server>
+            <xroad:client id:objectType="SUBSYSTEM">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>CLASS</id:memberClass>
+                <id:memberCode>MEMBER</id:memberCode>
+                <id:subsystemCode>SUBSYSTEM</id:subsystemCode>
+            </xroad:client>
+            <xroad:subsystemName>SUBSYSTEM Name</xroad:subsystemName>
+            <xroad:requestId>1122</xroad:requestId>
+        </xroad:clientRenameResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
 ## Annex B WSDL File for Management Services
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://x-road.eu/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="centralservice" targetNamespace="http://x-road.eu/centralservice/">
-    <wsdl:types>
-        <!-- Schema for identifiers (reduced) -->
-        <xsd:schema xmlns="http://x-road.eu/xsd/identifiers" elementFormDefault="qualified" targetNamespace="http://x-road.eu/xsd/identifiers">
-            <xsd:complexType name="XRoadIdentifierType">
-                <xsd:annotation>
-                    <xsd:documentation>Globally unique identifier in the
-                        X-Road system. Identifier consists of object type
-                        specifier and list of hierarchical codes
-                        (starting with code that identifiers the X-Road
-                        instance).
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:sequence>
-                    <xsd:element minOccurs="0" ref="xRoadInstance"/>
-                    <xsd:element minOccurs="0" ref="memberClass"/>
-                    <xsd:element minOccurs="0" ref="memberCode"/>
-                    <xsd:element minOccurs="0" ref="subsystemCode"/>
-                    <xsd:element minOccurs="0" ref="serverCode"/>
-                    <xsd:element minOccurs="0" ref="serviceCode"/>
-                    <xsd:element minOccurs="0" ref="serviceVersion"/>
-                </xsd:sequence>
-                <xsd:attribute ref="objectType" use="required"/>
-            </xsd:complexType>
-            <xsd:simpleType name="XRoadObjectType">
-                <xsd:annotation>
-                    <xsd:documentation>Enumeration for X-Road identifier
-                        types that can be used in requests.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="MEMBER"/>
-                    <xsd:enumeration value="SUBSYSTEM"/>
-                    <xsd:enumeration value="SERVER"/>
-                    <xsd:enumeration value="SERVICE"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-            <xsd:element name="xRoadInstance" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Identifies the X-Road instance.
-                        This field is applicable to all identifier
-                        types.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="memberClass" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Type of the member (company,
-                        government institution, private person, etc.)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="memberCode" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Code that uniquely identifies a
-                        member of given member type.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="subsystemCode" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Code that uniquely identifies a
-                        subsystem of given X-Road member.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="serviceCode" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Code that uniquely identifies a
-                        service offered by given X-Road member or
-                        subsystem.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="serviceVersion" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Version of the service.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="serverCode" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Code that uniquely identifies
-                        Security Server offered by a given X-Road member
-                        or subsystem.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:attribute name="objectType" type="XRoadObjectType"/>
-            <xsd:complexType name="XRoadClientIdentifierType">
-                <xsd:complexContent>
-                    <xsd:restriction base="XRoadIdentifierType">
-                        <xsd:sequence>
-                            <xsd:element ref="xRoadInstance"/>
-                            <xsd:element ref="memberClass"/>
-                            <xsd:element ref="memberCode"/>
-                            <xsd:element minOccurs="0" ref="subsystemCode"/>
-                        </xsd:sequence>
-                    </xsd:restriction>
-                </xsd:complexContent>
-            </xsd:complexType>
-            <xsd:complexType name="XRoadServiceIdentifierType">
-                <xsd:complexContent>
-                    <xsd:restriction base="XRoadIdentifierType">
-                        <xsd:sequence>
-                            <xsd:element ref="xRoadInstance"/>
-                            <xsd:element ref="memberClass"/>
-                            <xsd:element ref="memberCode"/>
-                            <xsd:element minOccurs="0" ref="subsystemCode"/>
-                            <xsd:element ref="serviceCode"/>
-                            <xsd:element minOccurs="0" ref="serviceVersion"/>
-                        </xsd:sequence>
-                    </xsd:restriction>
-                </xsd:complexContent>
-            </xsd:complexType>
-            <xsd:complexType name="XRoadSecurityServerIdentifierType">
-                <xsd:complexContent>
-                    <xsd:restriction base="XRoadIdentifierType">
-                        <xsd:sequence>
-                            <xsd:element ref="xRoadInstance"/>
-                            <xsd:element ref="memberClass"/>
-                            <xsd:element ref="memberCode"/>
-                            <xsd:element ref="serverCode"/>
-                        </xsd:sequence>
-                    </xsd:restriction>
-                </xsd:complexContent>
-            </xsd:complexType>
-        </xsd:schema>
-        <!-- Schema for requests (reduced) -->
-        <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" targetNamespace="http://x-road.eu/xsd/xroad.xsd" elementFormDefault="qualified">
-            <xsd:import namespace="http://x-road.eu/xsd/identifiers" id="id"/>
-            <xsd:element name="clientReg" type="tns:ClientRequestType"/>
-            <xsd:element name="clientRegResponse" type="tns:ClientRequestType"/>
-            <xsd:element name="clientDeletion" type="tns:ClientRequestType"/>
-            <xsd:element name="clientDeletionResponse" type="tns:ClientRequestType"/>
-            <xsd:element name="authCertReg" type="tns:AuthCertRegRequestType"/>
-            <xsd:element name="authCertRegResponse" type="tns:AuthCertRegRequestType"/>
-            <xsd:element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
-            <xsd:element name="authCertDeletionResponse" type="tns:AuthCertDeletionRequestType"/>
-            <xsd:element name="ownerChange" type="tns:ClientRequestType"/>
-            <xsd:element name="ownerChangeResponse" type="tns:ClientRequestType"/>
-            <xsd:element name="addressChange" type="tns:AddressChangeRequestType"/>
-            <xsd:element name="addressChangeResponse" type="tns:AddressChangeRequestType"/>
-            <!-- Header fields -->
-            <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
-            <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
-            <xsd:element name="id" type="xsd:string"/>
-            <xsd:element name="protocolVersion" type="xsd:string"/>
-            <xsd:element name="requestHash" type="xsd:string"/>
-            <xsd:complexType name="AuthCertRegRequestType">
-                <xsd:sequence>
-                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
-                        <xsd:annotation>
-                            <xsd:documentation>Identity of the Security Server the
-                                authentication certificate will be associated with.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="address" type="string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>Address of the Security Server the
-                                authentication certificate will be associated with.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="authCert" type="base64Binary">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Contents (in DER encoding) of
-                                the authentication certificate that will
-                                be added to the list of certificates
-                                authenticating the Security Server.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:complexType name="AuthCertDeletionRequestType">
-                <xsd:sequence>
-                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
-                        <xsd:annotation>
-                            <xsd:documentation>Identity of the Security Server the
-                                authentication certificate will be deleted from.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="authCert" type="base64Binary">
-                        <xsd:annotation>
-                            <xsd:documentation>Contents (in DER encoding) of
-                                the authentication certificate that will
-                                be deleted from the list of certificates
-                                authenticating the Security Server.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:complexType name="ClientRequestType">
-                <xsd:sequence>
-                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
-                        <xsd:annotation>
-                            <xsd:documentation>Identifier of the security
-                                server where the client is added to or removed
-                                from (depending on the request type).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="client" type="id:XRoadClientIdentifierType">
-                        <xsd:annotation>
-                            <xsd:documentation>Identifier of the client
-                                associated with the Security Server. When the
-                                request is for registering client, the client is
-                                added to the Security Server. When the request
-                                is for deleting client, the client is removed
-                                from the clients' list of the Security Server.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:complexType name="AddressChangeRequestType">
-                <xsd:sequence>
-                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
-                        <xsd:annotation>
-                            <xsd:documentation>Identifier of the Security Server the
-                                authentication certificate will be associated with.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="address" type="string">
-                        <xsd:annotation>
-                            <xsd:documentation>New address of the Security Server</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0" />
-                </xsd:sequence>
-            </xsd:complexType>
-            <xsd:simpleType name="RequestIdType">
-                <xsd:annotation>
-                    <xsd:documentation>For responses only, unique identifier
-                        of the request that is stored in the Central Server database.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:restriction base="integer"/>
-            </xsd:simpleType>
-        </xsd:schema>
-    </wsdl:types>
-    <wsdl:message name="requestheader">
-        <wsdl:part name="client" element="xroad:client"/>
-        <wsdl:part name="service" element="xroad:service"/>
-        <wsdl:part name="id" element="xroad:id"/>
-        <wsdl:part name="protocolVersion" element="xroad:protocolVersion"/>
-        <wsdl:part name="requestHash" element="xroad:requestHash"/>
-    </wsdl:message>
-    <wsdl:message name="clientReg">
-        <wsdl:part element="xroad:clientReg" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="clientRegResponse">
-        <wsdl:part element="xroad:clientRegResponse" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="clientDeletion">
-        <wsdl:part element="xroad:clientDeletion" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="clientDeletionResponse">
-        <wsdl:part element="xroad:clientDeletionResponse" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="authCertReg">
-        <wsdl:part element="xroad:authCertReg" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="authCertRegResponse">
-        <wsdl:part element="xroad:authCertRegResponse" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="authCertDeletion">
-        <wsdl:part element="xroad:authCertDeletion" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="authCertDeletionResponse">
-        <wsdl:part element="xroad:authCertDeletionResponse" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="ownerChange">
-        <wsdl:part element="xroad:ownerChange" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="ownerChangeResponse">
-        <wsdl:part element="xroad:ownerChangeResponse" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="addressChange">
-        <wsdl:part element="xroad:addressChange" name="parameters"/>
-    </wsdl:message>
-    <wsdl:message name="addressChangeResponse">
-        <wsdl:part element="xroad:addressChangeResponse" name="parameters"/>
-    </wsdl:message>
-    <wsdl:portType name="centralservice">
-        <wsdl:operation name="clientReg">
-            <wsdl:input message="tns:clientReg"/>
-            <wsdl:output message="tns:clientRegResponse"/>
-        </wsdl:operation>
-        <wsdl:operation name="clientDeletion">
-            <wsdl:input message="tns:clientDeletion"/>
-            <wsdl:output message="tns:clientDeletionResponse"/>
-        </wsdl:operation>
-        <wsdl:operation name="authCertDeletion">
-            <wsdl:input message="tns:authCertDeletion"/>
-            <wsdl:output message="tns:authCertDeletionResponse"/>
-        </wsdl:operation>
-        <wsdl:operation name="ownerChange">
-            <wsdl:input message="tns:ownerChange"/>
-            <wsdl:output message="tns:ownerChangeResponse"/>
-        </wsdl:operation>
-        <wsdl:operation name="addressChange">
-            <wsdl:input message="tns:addressChange"/>
-            <wsdl:output message="tns:addressChangeResponse"/>
-        </wsdl:operation>
-    </wsdl:portType>
-    <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
-        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-        <wsdl:operation name="clientReg">
-            <soap:operation soapAction=""/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="clientDeletion">
-            <soap:operation soapAction=""/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="authCertDeletion">
-            <soap:operation soapAction=""/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="ownerChange">
-            <soap:operation soapAction=""/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="addressChange">
-            <soap:operation soapAction=""/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-                <soap:header message="tns:requestheader" part="client" use="literal"/>
-                <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
-    </wsdl:binding>
-    <wsdl:service name="centralservice">
-        <wsdl:port binding="tns:centralserviceSOAP" name="centralserviceSOAP">
-            <soap:address location="http://INSERT_MANAGEMENT_SERVICE_ADDRESS_HERE"/>
-        </wsdl:port>
-    </wsdl:service>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://x-road.eu/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="centralservice"
+                  targetNamespace="http://x-road.eu/centralservice/">
+  <wsdl:types>
+    <!-- Schema for identifiers (reduced) -->
+    <xsd:schema xmlns="http://x-road.eu/xsd/identifiers" elementFormDefault="qualified" targetNamespace="http://x-road.eu/xsd/identifiers">
+      <xsd:complexType name="XRoadIdentifierType">
+        <xsd:annotation>
+          <xsd:documentation>Globally unique identifier in the
+            X-Road system. Identifier consists of object type
+            specifier and list of hierarchical codes
+            (starting with code that identifiers the X-Road
+            instance).
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+          <xsd:element minOccurs="0" ref="xRoadInstance"/>
+          <xsd:element minOccurs="0" ref="memberClass"/>
+          <xsd:element minOccurs="0" ref="memberCode"/>
+          <xsd:element minOccurs="0" ref="subsystemCode"/>
+          <xsd:element minOccurs="0" ref="serverCode"/>
+          <xsd:element minOccurs="0" ref="serviceCode"/>
+          <xsd:element minOccurs="0" ref="serviceVersion"/>
+        </xsd:sequence>
+        <xsd:attribute ref="objectType" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="XRoadObjectType">
+        <xsd:annotation>
+          <xsd:documentation>Enumeration for X-Road identifier
+            types that can be used in requests.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="MEMBER"/>
+          <xsd:enumeration value="SUBSYSTEM"/>
+          <xsd:enumeration value="SERVER"/>
+          <xsd:enumeration value="SERVICE"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:element name="xRoadInstance" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Identifies the X-Road instance.
+            This field is applicable to all identifier
+            types.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="memberClass" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Type of the member (company,
+            government institution, private person, etc.)
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="memberCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Code that uniquely identifies a
+            member of given member type.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="subsystemCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Code that uniquely identifies a
+            subsystem of given X-Road member.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="serviceCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Code that uniquely identifies a
+            service offered by given X-Road member or
+            subsystem.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="serviceVersion" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Version of the service.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="serverCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>Code that uniquely identifies
+            Security Server offered by a given X-Road member
+            or subsystem.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:attribute name="objectType" type="XRoadObjectType"/>
+      <xsd:complexType name="XRoadClientIdentifierType">
+        <xsd:complexContent>
+          <xsd:restriction base="XRoadIdentifierType">
+            <xsd:sequence>
+              <xsd:element ref="xRoadInstance"/>
+              <xsd:element ref="memberClass"/>
+              <xsd:element ref="memberCode"/>
+              <xsd:element minOccurs="0" ref="subsystemCode"/>
+            </xsd:sequence>
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="XRoadServiceIdentifierType">
+        <xsd:complexContent>
+          <xsd:restriction base="XRoadIdentifierType">
+            <xsd:sequence>
+              <xsd:element ref="xRoadInstance"/>
+              <xsd:element ref="memberClass"/>
+              <xsd:element ref="memberCode"/>
+              <xsd:element minOccurs="0" ref="subsystemCode"/>
+              <xsd:element ref="serviceCode"/>
+              <xsd:element minOccurs="0" ref="serviceVersion"/>
+            </xsd:sequence>
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="XRoadSecurityServerIdentifierType">
+        <xsd:complexContent>
+          <xsd:restriction base="XRoadIdentifierType">
+            <xsd:sequence>
+              <xsd:element ref="xRoadInstance"/>
+              <xsd:element ref="memberClass"/>
+              <xsd:element ref="memberCode"/>
+              <xsd:element ref="serverCode"/>
+            </xsd:sequence>
+          </xsd:restriction>
+        </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:schema>
+    <!-- Schema for requests (reduced) -->
+    <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
+                targetNamespace="http://x-road.eu/xsd/xroad.xsd" elementFormDefault="qualified">
+      <xsd:import namespace="http://x-road.eu/xsd/identifiers" id="id"/>
+      <xsd:element name="clientReg" type="tns:ClientRegRequestType"/>
+      <xsd:element name="clientRegResponse" type="tns:ClientRegRequestType"/>
+      <xsd:element name="clientDeletion" type="tns:ClientRequestType"/>
+      <xsd:element name="clientDeletionResponse" type="tns:ClientRequestType"/>
+      <xsd:element name="clientDisable" type="tns:ClientRequestType"/>
+      <xsd:element name="clientDisableResponse" type="tns:ClientRequestType"/>
+      <xsd:element name="clientEnable" type="tns:ClientRequestType"/>
+      <xsd:element name="clientEnableResponse" type="tns:ClientRequestType"/>
+      <xsd:element name="clientRename" type="tns:ClientRenameRequestType"/>
+      <xsd:element name="clientRenameResponse" type="tns:ClientRenameRequestType"/>
+      <xsd:element name="authCertReg" type="tns:AuthCertRegRequestType"/>
+      <xsd:element name="authCertRegResponse" type="tns:AuthCertRegRequestType"/>
+      <xsd:element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
+      <xsd:element name="authCertDeletionResponse" type="tns:AuthCertDeletionRequestType"/>
+      <xsd:element name="ownerChange" type="tns:ClientRequestType"/>
+      <xsd:element name="ownerChangeResponse" type="tns:ClientRequestType"/>
+      <xsd:element name="addressChange" type="tns:AddressChangeRequestType"/>
+      <xsd:element name="addressChangeResponse" type="tns:AddressChangeRequestType"/>
+      <!-- Header fields -->
+      <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+      <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
+      <xsd:element name="id" type="xsd:string"/>
+      <xsd:element name="protocolVersion" type="xsd:string"/>
+      <xsd:element name="requestHash" type="xsd:string"/>
+      <xsd:complexType name="AuthCertRegRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identity of the Security Server the
+                authentication certificate will be associated with.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="address" type="string" minOccurs="0">
+            <xsd:annotation>
+              <xsd:documentation>Address of the Security Server the
+                authentication certificate will be associated with.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="authCert" type="base64Binary">
+            <xsd:annotation>
+              <xsd:documentation>
+                Contents (in DER encoding) of
+                the authentication certificate that will
+                be added to the list of certificates
+                authenticating the Security Server.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="AuthCertDeletionRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identity of the Security Server the
+                authentication certificate will be deleted from.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="authCert" type="base64Binary">
+            <xsd:annotation>
+              <xsd:documentation>Contents (in DER encoding) of
+                the authentication certificate that will
+                be deleted from the list of certificates
+                authenticating the Security Server.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ClientRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the security
+                server where the client is added to or removed
+                from (depending on the request type).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="client" type="id:XRoadClientIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the client
+                associated with the Security Server. When the
+                request is for registering client, the client is
+                added to the Security Server. When the request
+                is for deleting client, the client is removed
+                from the clients' list of the Security Server.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ClientRegRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the security
+                server where the client is added to or removed
+                from (depending on the request type).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="client" type="id:XRoadClientIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the client
+                associated with the Security Server. When the
+                request is for registering client, the client is
+                added to the Security Server. When the request
+                is for deleting client, the client is removed
+                from the clients' list of the Security Server.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="subsystemName" type="string" minOccurs="0">
+            <xsd:annotation>
+              <xsd:documentation>Optional new name for client subsystem.</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="ClientRenameRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the security
+                server where the client is added to or removed
+                from (depending on the request type).
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="client" type="id:XRoadClientIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the client
+                associated with the Security Server. When the
+                request is for registering client, the client is
+                added to the Security Server. When the request
+                is for deleting client, the client is removed
+                from the clients' list of the Security Server.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="subsystemName" type="string">
+            <xsd:annotation>
+              <xsd:documentation>New name of client subsystem.</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="AddressChangeRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the Security Server the
+                authentication certificate will be associated with.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="address" type="string">
+            <xsd:annotation>
+              <xsd:documentation>New address of the Security Server</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:simpleType name="RequestIdType">
+        <xsd:annotation>
+          <xsd:documentation>For responses only, unique identifier
+            of the request that is stored in the Central Server database.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="integer"/>
+      </xsd:simpleType>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="requestheader">
+    <wsdl:part name="client" element="xroad:client"/>
+    <wsdl:part name="service" element="xroad:service"/>
+    <wsdl:part name="id" element="xroad:id"/>
+    <wsdl:part name="protocolVersion" element="xroad:protocolVersion"/>
+    <wsdl:part name="requestHash" element="xroad:requestHash"/>
+  </wsdl:message>
+  <wsdl:message name="clientReg">
+    <wsdl:part element="xroad:clientReg" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientRegResponse">
+    <wsdl:part element="xroad:clientRegResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientDeletion">
+    <wsdl:part element="xroad:clientDeletion" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientDeletionResponse">
+    <wsdl:part element="xroad:clientDeletionResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientDisable">
+    <wsdl:part element="xroad:clientDisable" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientDisableResponse">
+    <wsdl:part element="xroad:clientDisableResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientEnable">
+    <wsdl:part element="xroad:clientEnable" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientEnableResponse">
+    <wsdl:part element="xroad:clientEnableResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientRename">
+    <wsdl:part element="xroad:clientRename" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientRenameResponse">
+    <wsdl:part element="xroad:clientRenameResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="authCertReg">
+    <wsdl:part element="xroad:authCertReg" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="authCertRegResponse">
+    <wsdl:part element="xroad:authCertRegResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="authCertDeletion">
+    <wsdl:part element="xroad:authCertDeletion" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="authCertDeletionResponse">
+    <wsdl:part element="xroad:authCertDeletionResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="ownerChange">
+    <wsdl:part element="xroad:ownerChange" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="ownerChangeResponse">
+    <wsdl:part element="xroad:ownerChangeResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="addressChange">
+    <wsdl:part element="xroad:addressChange" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="addressChangeResponse">
+    <wsdl:part element="xroad:addressChangeResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:portType name="centralservice">
+    <wsdl:operation name="clientReg">
+      <wsdl:input message="tns:clientReg"/>
+      <wsdl:output message="tns:clientRegResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="clientDeletion">
+      <wsdl:input message="tns:clientDeletion"/>
+      <wsdl:output message="tns:clientDeletionResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="clientDisable">
+      <wsdl:input message="tns:clientDisable"/>
+      <wsdl:output message="tns:clientDisableResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="clientEnable">
+      <wsdl:input message="tns:clientEnable"/>
+      <wsdl:output message="tns:clientEnableResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="clientRename">
+      <wsdl:input message="tns:clientRename"/>
+      <wsdl:output message="tns:clientRenameResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="authCertDeletion">
+      <wsdl:input message="tns:authCertDeletion"/>
+      <wsdl:output message="tns:authCertDeletionResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="ownerChange">
+      <wsdl:input message="tns:ownerChange"/>
+      <wsdl:output message="tns:ownerChangeResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="addressChange">
+      <wsdl:input message="tns:addressChange"/>
+      <wsdl:output message="tns:addressChangeResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="clientReg">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="clientDeletion">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="clientDisable">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="clientEnable">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="clientRename">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="authCertDeletion">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ownerChange">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="addressChange">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="centralservice">
+    <wsdl:port binding="tns:centralserviceSOAP" name="centralserviceSOAP">
+      <soap:address location="http://INSERT_MANAGEMENT_SERVICE_ADDRESS_HERE"/>
+    </wsdl:port>
+  </wsdl:service>
 </wsdl:definitions>
 ```

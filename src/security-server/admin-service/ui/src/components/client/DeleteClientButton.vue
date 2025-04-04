@@ -24,37 +24,39 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    data-test="delete-client-button"
-    outlined
-    @click="confirmDelete = true"
-  >
-    <xrd-icon-base class="xrd-large-button-icon">
-      <xrd-icon-declined />
-    </xrd-icon-base>
-    {{ $t('action.delete') }}
-  </xrd-button>
+  <div class="d-inline-block">
+    <xrd-button
+      data-test="delete-client-button"
+      outlined
+      @click="confirmDelete = true"
+    >
+      <xrd-icon-base class="xrd-large-button-icon">
+        <xrd-icon-declined />
+      </xrd-icon-base>
+      {{ $t('action.delete') }}
+    </xrd-button>
 
-  <!-- Confirm dialog for delete client -->
-  <xrd-confirm-dialog
-    v-if="confirmDelete"
-    :loading="deleteLoading"
-    title="client.action.delete.confirmTitle"
-    text="client.action.delete.confirmText"
-    @cancel="confirmDelete = false"
-    @accept="deleteClient()"
-  />
+    <!-- Confirm dialog for delete client -->
+    <xrd-confirm-dialog
+      v-if="confirmDelete"
+      :loading="deleteLoading"
+      title="client.action.delete.confirmTitle"
+      text="client.action.delete.confirmText"
+      @cancel="confirmDelete = false"
+      @accept="deleteClient()"
+    />
 
-  <!-- Confirm dialog for deleting orphans -->
-  <xrd-confirm-dialog
-    v-if="confirmOrphans"
-    :loading="orphansLoading"
-    title="client.action.removeOrphans.confirmTitle"
-    text="client.action.removeOrphans.confirmText"
-    cancel-button-text="client.action.removeOrphans.cancelButtonText"
-    @cancel="notDeleteOrphans()"
-    @accept="deleteOrphans()"
-  />
+    <!-- Confirm dialog for deleting orphans -->
+    <xrd-confirm-dialog
+      v-if="confirmOrphans"
+      :loading="orphansLoading"
+      title="client.action.removeOrphans.confirmTitle"
+      text="client.action.removeOrphans.confirmText"
+      cancel-button-text="client.action.removeOrphans.cancelButtonText"
+      @cancel="notDeleteOrphans()"
+      @accept="deleteOrphans()"
+    />
+  </div>
 </template>
 
 <script lang="ts">

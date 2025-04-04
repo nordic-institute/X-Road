@@ -1,9 +1,0 @@
-xroad:
-  common:
-    rpc:
-      channel:
-        signer:
-          host: 127.0.0.1
-          port: 5560
-          deadline-after: 60000
-

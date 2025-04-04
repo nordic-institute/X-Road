@@ -1,0 +1,44 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0" version="26.1.1">
+  <diagram id="fbKxAmW0bp7U6ewZdTab" name="Page-1">
+    <mxGraphModel dx="1434" dy="822" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-5" value="last_archive_digest" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;fillColor=#008cff;fontColor=#FFFFFF;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+          <mxGeometry x="580" y="220" width="190" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-6" value="+id&#xa;+digest&#xa;+filename&#xa;+groupname&#xa;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;" parent="VLuW-w9w9vGq2yhylyxa-5" vertex="1">
+          <mxGeometry y="30" width="190" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-7" value="logrecord" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;fillColor=#008cff;fontColor=#FFFFFF;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+          <mxGeometry x="60" y="50" width="190" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-8" value="+id&#xa;+discriminator&#xa;+time&#xa;+archived&#xa;+queryid&#xa;+message&#xa;+signature&#xa;+hashchain&#xa;+hashchainresult&#xa;+signaturehash&#xa;+timestamprecord&#xa;+timestamphashchain&#xa;+response&#xa;+timestamp&#xa;+memberclass&#xa;+membercode&#xa;+subsystemcode&#xa;+attachment&#xa;+xrequestid&#xa;+keyid&#xa;+ciphermessage&#xa;" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;" parent="VLuW-w9w9vGq2yhylyxa-7" vertex="1">
+          <mxGeometry y="30" width="190" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-9" value="" style="edgeStyle=orthogonalEdgeStyle;fontSize=12;html=1;endArrow=ERzeroToMany;startArrow=ERzeroToOne;exitX=0.995;exitY=0.715;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.005;entryY=0.318;entryDx=0;entryDy=0;entryPerimeter=0;" parent="VLuW-w9w9vGq2yhylyxa-7" source="VLuW-w9w9vGq2yhylyxa-8" target="VLuW-w9w9vGq2yhylyxa-8" edge="1">
+          <mxGeometry width="100" height="100" relative="1" as="geometry">
+            <mxPoint y="490" as="sourcePoint" />
+            <mxPoint x="280" y="140" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="260" y="273" />
+              <mxPoint x="260" y="138" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-1" value="databasechangelog" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;fillColor=#008cff;fontColor=#FFFFFF;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+          <mxGeometry x="360" y="50" width="170" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-2" value="+id&#xa;+author&#xa;+filename&#xa;+dateexecuted&#xa;+orderexecuted&#xa;+exectype&#xa;+md5sum&#xa;+description&#xa;+comments&#xa;+tag&#xa;+liquibase&#xa;+contexts&#xa;+labels&#xa;+deployment_id" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;" parent="VLuW-w9w9vGq2yhylyxa-1" vertex="1">
+          <mxGeometry y="30" width="170" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-3" value="databasechangeloglock" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;fillColor=#008cff;fontColor=#FFFFFF;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;" parent="1" vertex="1">
+          <mxGeometry x="580" y="50" width="190" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="VLuW-w9w9vGq2yhylyxa-4" value="+id&#xa;+locked&#xa;+lockgranted&#xa;+lockedby" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;" parent="VLuW-w9w9vGq2yhylyxa-3" vertex="1">
+          <mxGeometry y="30" width="190" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

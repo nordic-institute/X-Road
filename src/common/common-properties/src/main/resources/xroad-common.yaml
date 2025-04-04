@@ -14,7 +14,6 @@ quarkus:
     enabled: false
   http:
     host-enabled: false
-
 spring:
   main:
     banner-mode: log
@@ -27,6 +26,16 @@ spring:
       token: ${XROAD_SECRET_STORE_TOKEN}
       kv:
         enabled: false
+
+"%containerized":
+  quarkus:
+    http:
+      port: 4099
+      host-enabled: true
+  xroad:
+    common:
+      global-conf:
+        source: REMOTE
 
 logging:
   level:

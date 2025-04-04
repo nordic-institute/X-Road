@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,7 +38,7 @@ import org.junit.Test;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -138,7 +139,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 .toList()
                 .toArray(new String[]{});
         doReturn(ocspResponses).when(signerRpcClient).getOcspResponses(any());
-        when(clientRepository.getClient(any())).thenReturn(new ClientType());
+        when(clientRepository.getClient(any())).thenReturn(new ClientEntity());
     }
 
     @Test
@@ -256,7 +257,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING);
         assertEquals(2, caDtos.size());
-        ApprovedCaDto ca = caDtos.get(0);
+        ApprovedCaDto ca = caDtos.getFirst();
         assertEquals("fi-not-auth-only", ca.getName());
         assertFalse(ca.isAuthenticationOnly());
         assertEquals("CN=N/A", ca.getIssuerDistinguishedName());
@@ -316,14 +317,9 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
     @Test
     public void getCertificateProfile() throws Exception {
-        ClientType client = new ClientType();
+        ClientEntity client = new ClientEntity();
         client.setIdentifier(COMMON_OWNER_ID);
         when(clientRepository.getAllLocalClients()).thenReturn(Collections.singletonList(client));
-
-        // test handling of profile info parameters:
-        //        private final SecurityServerId serverId;
-        //        private final ClientId clientId; (sign only)
-        //        private final String memberName;
 
         CertificateProfileInfo profile = certificateAuthorityService.getCertificateProfile("fi-not-auth-only",
                 KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);

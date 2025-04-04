@@ -43,15 +43,17 @@
       label-text-key="managementRequestDetails.subsystemCode"
       :value="managementRequest.client_id?.subsystem_code"
     />
+    <data-line
+      v-if="!isOwnerChange"
+      label-text-key="managementRequestDetails.subsystemName"
+      :value="managementRequest.client_subsystem_name"
+    />
   </data-block>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import {
-  ManagementRequestDetailedView,
-  ManagementRequestType,
-} from '@/openapi-types';
+import { ManagementRequestDetailedView, ManagementRequestType } from '@/openapi-types';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
 
@@ -83,6 +85,11 @@ export default defineComponent({
         ManagementRequestType.CLIENT_ENABLE_REQUEST
       ) {
         return 'managementRequestDetails.clientEnableInformation';
+      } else if (
+        this.managementRequest.type ===
+        ManagementRequestType.CLIENT_RENAME_REQUEST
+      ) {
+        return 'managementRequestDetails.clientRenameInformation';
       }
       return 'managementRequestDetails.clientInformation';
     },

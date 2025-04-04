@@ -60,7 +60,7 @@ public class ClientRenameRequestCallback extends BaseClientRequestCallback<Clien
     protected void verifyMessage() throws Exception {
         super.verifyMessage();
 
-        if (getRequest().getClient().getSubsystemCode() == null) {
+        if (!getRequest().getClient().isSubsystem()) {
             throw new CodedException(X_INVALID_REQUEST, "Only name of subsystem can be changed");
         }
 

@@ -47,9 +47,9 @@ import org.niis.xroad.common.properties.ConfigUtils;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.messagelog.archiver.application.LogArchiver;
-import org.niis.xroad.messagelog.archiver.application.LogArchiverProperties;
-import org.niis.xroad.messagelog.archiver.application.LogCleaner;
+import org.niis.xroad.messagelog.archiver.core.LogArchiver;
+import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
+import org.niis.xroad.messagelog.archiver.core.LogCleaner;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.io.ByteArrayInputStream;

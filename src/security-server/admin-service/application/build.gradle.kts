@@ -70,10 +70,17 @@ dependencies {
   testRuntimeOnly(libs.junit.vintageEngine)
 }
 
-tasks.register<ProcessResources>("copyUi") {
+tasks.register<Copy>("copyUi") {
   dependsOn(configurations["dist"])
   from(configurations["dist"])
-  into(layout.buildDirectory.dir("admin-service/ui/public"))
+  into(layout.buildDirectory.dir("resources/main/public"))
+}
+
+tasks.named("resolveMainClassName") {
+  dependsOn(tasks.named("copyUi"))
+}
+tasks.named("compileTestJava") {
+  dependsOn(tasks.named("copyUi"))
 }
 
 tasks.bootRun {
@@ -89,13 +96,6 @@ tasks.jar {
 
 tasks.bootJar {
   enabled = true
-
-  if (!project.hasProperty("skip-frontend-build")) {
-    dependsOn(tasks.named("copyUi"))
-    classpath(layout.buildDirectory.dir("admin-service/ui"))
-  } else {
-    println("Warning: Excluding frontend from boot jar")
-  }
 
   manifest {
     attributes(
@@ -114,11 +114,17 @@ tasks.register<Copy>("copyDeps") {
 
 tasks.assemble {
   dependsOn(tasks.named("copyDeps"))
+  dependsOn(tasks.named("jib"))
+}
+
+tasks.named("jib") {
+  dependsOn("bootJar")
+  dependsOn(":addons:wsdlvalidator:build")
 }
 
 jib {
   from {
-    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime"
+    image = "${project.property("xroadImageRegistry")}/ss-baseline-ui-runtime"
   }
   to {
     image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"
@@ -132,11 +138,20 @@ jib {
   extraDirectories {
     paths {
       path {
-        setFrom(project.file("src/main/jib/opt/app").toPath())
-        into = "/opt/app"
-        permissions = mapOf("/opt/app/scripts/generate_certificate.sh" to "755")
+        setFrom(project.file("src/main/jib").toPath())
+        into = "/"
+      }
+      path {
+        setFrom(project(":addons:wsdlvalidator").layout.buildDirectory.dir("libs"))
+        into = "/usr/share/xroad/wsdlvalidator/jlib"
+        includes = listOf("wsdlvalidator-*.jar")
       }
     }
+    permissions = mapOf(
+      "/opt/app/scripts/generate_certificate.sh" to "755",
+      "/usr/share/xroad/scripts/generate_gpg_keypair.sh" to "755",
+      "/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh" to "755"
+    )
   }
 }
 

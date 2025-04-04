@@ -1,0 +1,76 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.serviceAccount.name }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      automountServiceAccountToken: true
+      initContainers:
+        - name: wait-for-openbao
+          image: localhost:5555/init-runner:latest
+          imagePullPolicy: IfNotPresent
+          command: [ 'sh', '-c', 'until curl -s $OPENBAO_ADDR/v1/sys/health; do echo waiting for openbao; sleep 5; done' ]
+          env:
+            - name: OPENBAO_ADDR
+              value: {{ .Values.openbao.addr }}
+      containers:
+        - name: openbao-init
+          image: localhost:5555/init-runner:latest
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/sh", "-c" ]
+          args:
+            - |
+              echo "[MAIN] Starting OpenBao initialization process..."
+              /scripts/init.sh
+              if [ $? -eq 0 ]; then
+                echo "[MAIN] Initialization successful, starting unseal..."
+                /scripts/unseal.sh
+                if [ $? -eq 0 ]; then
+                  echo "[MAIN] Unseal successful, starting setup..."
+                  /scripts/setup.sh
+                else
+                  echo "[MAIN] Unseal failed"
+                  exit 1
+                fi
+              else
+                echo "[MAIN] Initialization failed"
+                exit 1
+              fi
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPENBAO_ADDR
+              value: {{ .Values.openbao.addr }}
+            - name: SECRET_NAME
+              value: {{ .Values.serviceAccount.name }}
+            - name: THRESHOLD
+              value: {{ .Values.openbao.threshold | quote }}
+            - name: SHARES
+              value: {{ .Values.openbao.shares | quote }}
+            - name: SERVERCONF_USERNAME
+              value: {{ .Values.databaseCredentials.serverConf.username | quote }}
+            - name: SERVERCONF_PASSWORD
+              value: {{ .Values.databaseCredentials.serverConf.password | quote }}
+            - name: MESSAGELOG_USERNAME
+              value: {{ .Values.databaseCredentials.messageLog.username | quote }}
+            - name: MESSAGELOG_PASSWORD
+              value: {{ .Values.databaseCredentials.messageLog.password | quote }}
+            - name: DS_USERNAME
+              value: {{ .Values.databaseCredentials.ds.username | quote }}
+            - name: DS_PASSWORD
+              value: {{ .Values.databaseCredentials.ds.password | quote }}
+          volumeMounts:
+            - name: init-script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: init-script
+          configMap:
+            name: {{ .Values.serviceAccount.name }}-script
+            defaultMode: 0755
+      restartPolicy: Never

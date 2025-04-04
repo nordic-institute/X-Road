@@ -24,22 +24,25 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    data-test="disable-client-button"
-    outlined
-    @click="confirmDisableClient = true"
-    >{{ $t('action.disable') }}</xrd-button
-  >
+  <div class="d-inline-block">
+    <xrd-button
+      data-test="disable-client-button"
+      outlined
+      @click="confirmDisableClient = true"
+    >{{ $t('action.disable') }}
+    </xrd-button
+    >
 
-  <!-- Confirm dialog for disable client -->
-  <xrd-confirm-dialog
-    v-if="confirmDisableClient"
-    :loading="isLoading"
-    title="client.action.disable.confirmTitle"
-    text="client.action.disable.confirmText"
-    @cancel="confirmDisableClient = false"
-    @accept="disableClient()"
-  />
+    <!-- Confirm dialog for disable client -->
+    <xrd-confirm-dialog
+      v-if="confirmDisableClient"
+      :loading="isLoading"
+      title="client.action.disable.confirmTitle"
+      text="client.action.disable.confirmText"
+      @cancel="confirmDisableClient = false"
+      @accept="disableClient()"
+    />
+  </div>
 </template>
 
 <script lang="ts">
@@ -48,10 +51,10 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import {XrdButton} from "@niis/shared-ui";
+import { XrdButton } from "@niis/shared-ui";
 
 export default defineComponent({
-  components: {XrdButton},
+  components: { XrdButton },
   props: {
     id: {
       type: String,
@@ -90,8 +93,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-button {
-  margin-right: 20px;
-}
 </style>
 

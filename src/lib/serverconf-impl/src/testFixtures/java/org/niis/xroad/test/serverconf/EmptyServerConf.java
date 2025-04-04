@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -37,7 +38,7 @@ import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 
 import org.niis.xroad.serverconf.IsAuthentication;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.security.cert.X509Certificate;
@@ -61,22 +62,22 @@ public class EmptyServerConf implements ServerConfProvider {
     private static final String SERVICE3 = "SERVICE3";
 
     @Override
-    public boolean serviceExists(ServiceId service) {
+    public boolean serviceExists(ServiceId serviceId) {
         return true;
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId, String method, String path) {
         return true;
     }
 
     @Override
-    public String getDisabledNotice(ServiceId service) {
+    public String getDisabledNotice(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public String getServiceAddress(ServiceId service) {
+    public String getServiceAddress(ServiceId serviceId) {
         return null;
     }
 
@@ -86,13 +87,12 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public int getServiceTimeout(ServiceId service) {
+    public int getServiceTimeout(ServiceId serviceId) {
         return SERVICE_TIMEOUT;
     }
 
     @Override
-    public RestServiceDetailsListType getRestServices(
-            ClientId serviceProvider) {
+    public RestServiceDetailsListType getRestServices(ClientId serviceProviderId) {
         RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
 
         ServiceId serviceId1 = ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1);
@@ -114,18 +114,17 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider,
-                                                             ClientId client) {
-        return getRestServices(serviceProvider);
+    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProviderId, ClientId clientId) {
+        return getRestServices(serviceProviderId);
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
+    public IsAuthentication getIsAuthentication(ClientId clientId) {
         return null;
     }
 
     @Override
-    public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
+    public List<X509Certificate> getIsCerts(ClientId clientId) throws Exception {
         return emptyList();
     }
 
@@ -145,17 +144,17 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public DescriptionType getDescriptionType(ServiceId service) {
+    public DescriptionType getDescriptionType(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public String getServiceDescriptionURL(ServiceId service) {
+    public String getServiceDescriptionURL(ServiceId serviceId) {
         return null;
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId service) {
+    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         ArrayList<Endpoint> endpoints = new ArrayList<>();
         Endpoint e = new Endpoint();
         e.setMethod("*");
@@ -165,7 +164,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public boolean isSslAuthentication(ServiceId service) {
+    public boolean isSslAuthentication(ServiceId serviceId) {
         return false;
     }
 
@@ -175,7 +174,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
+    public List<ServiceId.Conf> getAllServices(ClientId serviceProviderId) {
         List<ServiceId.Conf> list = new ArrayList<>();
         list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
         list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
@@ -184,13 +183,12 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProviderId, DescriptionType descriptionType) {
         return emptyList();
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider,
-                                                   ClientId client) {
+    public List<ServiceId.Conf> getAllowedServices(ClientId serviceProviderId, ClientId clientId) {
         List<ServiceId.Conf> list = new ArrayList<>();
         list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE1));
         list.add(ServiceId.Conf.create(DEFAULT_CLIENT, SERVICE2));
@@ -199,19 +197,19 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                                                    ClientId client, DescriptionType descriptionType) {
+    public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
+                                                                DescriptionType descriptionType) {
         return emptyList();
     }
 
     @Override
     public String getMemberStatus(ClientId memberId) {
-        return ClientType.STATUS_REGISTERED;
+        return Client.STATUS_REGISTERED;
     }
 
     @Override
-    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
-        return isQueryAllowed(sender, service, null, null);
+    public boolean isQueryAllowed(ClientId senderId, ServiceId serviceId) {
+        return isQueryAllowed(senderId, serviceId, null, null);
     }
 
     private XRoadRestServiceDetailsType createRestServiceDetails(ServiceId serviceId) {

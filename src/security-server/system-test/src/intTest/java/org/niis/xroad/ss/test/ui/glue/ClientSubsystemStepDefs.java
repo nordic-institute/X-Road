@@ -53,6 +53,11 @@ public class ClientSubsystemStepDefs extends BaseUiStepDefs {
         vTextField(clientPageObj.subsystem.inputSubsystem()).setValue(subsystem);
     }
 
+    @Step("Subsystem name is set to {string}")
+    public void setSubsystemName(String subsystem) {
+        vTextField(clientPageObj.subsystem.inputSubsystemName()).setValue(subsystem);
+    }
+
     @Step("Register subsystem is unchecked")
     public void checkRegisterSubsystem() {
         vCheckbox(clientPageObj.subsystem.inputRegisterSubsystem()).click();

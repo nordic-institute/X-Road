@@ -4,11 +4,13 @@ plugins {
   id("xroad.quarkus-application-conventions")
 }
 
-jib {
-  to {
-    image = "${project.property("xroadImageRegistry")}/ss-proxy"
-    tags = setOf("latest")
-  }
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-proxy")
+      put("quarkus.jib.jvm-entrypoint", "/bin/sh,/opt/app/entrypoint.sh")
+    }
+  )
 }
 
 configurations.configureEach {
@@ -16,9 +18,12 @@ configurations.configureEach {
 }
 
 dependencies {
+  implementation(platform(libs.quarkus.bom))
+
   implementation(project(":lib:bootstrap-quarkus"))
   implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))
+  implementation(libs.bundles.quarkus.containerized)
 
   implementation(libs.quarkus.extension.systemd.notify)
 

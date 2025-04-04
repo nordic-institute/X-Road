@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,17 +27,17 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 
 import java.util.List;
 
 /**
  * Certificate data access object implementation.
  */
-public class CertificateDAOImpl extends AbstractDAOImpl<CertificateType> {
+public class CertificateDAOImpl extends AbstractDAOImpl<CertificateEntity> {
 
-    public List<CertificateType> findAll(Session session) {
-        return findAll(session, CertificateType.class);
+    public List<CertificateEntity> findAll(Session session) {
+        return findAll(session, CertificateEntity.class);
     }
 
 }

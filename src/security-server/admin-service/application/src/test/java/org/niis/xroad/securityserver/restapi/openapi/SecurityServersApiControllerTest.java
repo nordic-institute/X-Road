@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,7 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServer;
+import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,10 +76,10 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void getSecurityServerFindsOne() {
-        ResponseEntity<SecurityServer> response = securityServersApiController.getSecurityServer(
+        ResponseEntity<SecurityServerDto> response = securityServersApiController.getSecurityServer(
                 "XRD2:GOV:M4:server1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        SecurityServer securityServer = response.getBody();
+        SecurityServerDto securityServer = response.getBody();
         assertEquals("XRD2:GOV:M4:server1", securityServer.getId());
         assertEquals("XRD2", securityServer.getInstanceId());
         assertEquals("GOV", securityServer.getMemberClass());
@@ -102,20 +103,20 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void getAllSecurityServers() {
-        ResponseEntity<Set<SecurityServer>> response = securityServersApiController
+        ResponseEntity<Set<SecurityServerDto>> response = securityServersApiController
                 .getSecurityServers(false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<SecurityServer> securityServers = response.getBody();
+        Set<SecurityServerDto> securityServers = response.getBody();
         assertEquals(2, securityServers.size());
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
     public void getCurrentSecurityServer() {
-        ResponseEntity<Set<SecurityServer>> response = securityServersApiController
+        ResponseEntity<Set<SecurityServerDto>> response = securityServersApiController
                 .getSecurityServers(true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<SecurityServer> securityServers = response.getBody();
+        Set<SecurityServerDto> securityServers = response.getBody();
         assertEquals(1, securityServers.size());
     }
 }

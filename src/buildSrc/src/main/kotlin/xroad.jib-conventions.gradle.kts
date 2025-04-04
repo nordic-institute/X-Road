@@ -24,7 +24,7 @@ jib {
   }
 
   container {
-    appRoot = "/app"
+    appRoot = "/opt/app"
     creationTime.set("USE_CURRENT_TIMESTAMP")
     user = "xroad"
   }

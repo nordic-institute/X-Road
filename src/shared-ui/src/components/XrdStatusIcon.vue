@@ -63,6 +63,18 @@
       icon="icon-Cancel"
     />
     <v-icon
+      v-else-if="status === 'name-set'"
+      size="small"
+      color="#211E1E"
+      icon="icon-Edit"
+    />
+    <v-icon
+      v-else-if="status === 'name-submitted'"
+      size="small"
+      color="#0CC177"
+      icon="icon-Edit"
+    />
+    <v-icon
       v-else-if="status === 'error'"
       size="small"
       color="#EC4040"
@@ -114,6 +126,8 @@ export default defineComponent({
           'error-disabled',
           'pending',
           'pending-disabled',
+          'name-set',
+          'name-submitted'
         ].includes(val),
     },
   },

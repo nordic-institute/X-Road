@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -39,10 +40,14 @@ import org.niis.xroad.restapi.service.NotFoundException;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
-import org.niis.xroad.serverconf.model.AccessRightType;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.GroupMemberType;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
+import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
+import org.niis.xroad.serverconf.impl.mapper.LocalGroupMapper;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,42 +86,46 @@ public class LocalGroupService {
     /**
      * Return local group.
      * Local group members are always loaded with Hibernate.init()
-     * @param groupId
-     * @return the LocalGroupType, or null if not found
+     * @param groupId groupId
+     * @return the LocalGroup, or null if not found
      */
-    public LocalGroupType getLocalGroup(Long groupId) {
-        LocalGroupType localGroupType = localGroupRepository.getLocalGroup(groupId);
-        if (localGroupType != null) {
-            Hibernate.initialize(localGroupType.getGroupMember());
+    public LocalGroup getLocalGroup(Long groupId) {
+        return LocalGroupMapper.get().toTarget(getLocalGroupEntity(groupId));
+    }
+
+    private LocalGroupEntity getLocalGroupEntity(Long groupId) {
+        LocalGroupEntity localGroupEntity = localGroupRepository.getLocalGroup(groupId);
+        if (localGroupEntity != null) {
+            Hibernate.initialize(localGroupEntity.getGroupMembers());
         }
-        return localGroupType;
+        return localGroupEntity;
     }
 
     /**
      * Edit local group description
-     * @return LocalGroupType
+     * @return LocalGroup
      * @throws LocalGroupNotFoundException if local group with given id was not found
      */
-    public LocalGroupType updateDescription(Long groupId, String description) throws LocalGroupNotFoundException {
-        LocalGroupType localGroupType = getLocalGroup(groupId);
+    public LocalGroup updateDescription(Long groupId, String description) throws LocalGroupNotFoundException {
+        LocalGroupEntity localGroupEntity = getLocalGroupEntity(groupId);
 
-        if (localGroupType == null) {
+        if (localGroupEntity == null) {
             throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
         }
-        auditLog(localGroupType, description);
+        auditLog(localGroupEntity, description);
 
-        localGroupType.setDescription(description);
-        localGroupType.setUpdated(new Date());
-        return localGroupType;
+        localGroupEntity.setDescription(description);
+        localGroupEntity.setUpdated(new Date());
+        return LocalGroupMapper.get().toTarget(localGroupEntity);
     }
 
     /**
      * audit log client id, group code, group description
      */
-    private void auditLog(LocalGroupType localGroupType, String description) {
-        if (localGroupType != null) {
-            auditLogOwnerClientId(localGroupType);
-            auditDataHelper.put(RestApiAuditProperty.GROUP_CODE, localGroupType.getGroupCode());
+    private void auditLog(LocalGroupEntity localGroupEntity, String description) {
+        if (localGroupEntity != null) {
+            auditLogOwnerClientId(localGroupEntity);
+            auditDataHelper.put(RestApiAuditProperty.GROUP_CODE, localGroupEntity.getGroupCode());
         }
         auditDataHelper.put(RestApiAuditProperty.GROUP_DESCRIPTION, description);
     }
@@ -124,9 +133,9 @@ public class LocalGroupService {
     /**
      * audit log client id. Does lookup query based on local group.
      */
-    private void auditLogOwnerClientId(LocalGroupType localGroupType) {
+    private void auditLogOwnerClientId(LocalGroupEntity localGroupEntity) {
         try {
-            auditDataHelper.put(clientRepository.getClientByLocalGroup(localGroupType).getIdentifier());
+            auditDataHelper.put(clientRepository.getClientByLocalGroup(localGroupEntity).getIdentifier());
         } catch (ClientNotFoundException e) {
             // unexpected
             throw new RuntimeException("local group was not attached to client", e);
@@ -135,107 +144,107 @@ public class LocalGroupService {
 
     /**
      * Adds a local group to a client
-     * @param id
-     * @param localGroupTypeToAdd
+     * @param id id
+     * @param localGroupToAdd localGroupToAdd
      * @throws DuplicateLocalGroupCodeException if local group with given code already exists
      * @throws ClientNotFoundException if client with given id was not found
      */
-    public LocalGroupType addLocalGroup(ClientId id, LocalGroupType localGroupTypeToAdd)
+    public LocalGroup addLocalGroup(ClientId id, LocalGroup localGroupToAdd)
             throws DuplicateLocalGroupCodeException, ClientNotFoundException {
+        LocalGroupEntity localGroupToAddEntity = LocalGroupMapper.get().toEntity(localGroupToAdd);
 
         auditDataHelper.put(id);
-        auditDataHelper.put(RestApiAuditProperty.GROUP_CODE, localGroupTypeToAdd.getGroupCode());
-        auditDataHelper.put(RestApiAuditProperty.GROUP_DESCRIPTION, localGroupTypeToAdd.getDescription());
+        auditDataHelper.put(RestApiAuditProperty.GROUP_CODE, localGroupToAddEntity.getGroupCode());
+        auditDataHelper.put(RestApiAuditProperty.GROUP_DESCRIPTION, localGroupToAddEntity.getDescription());
 
-        ClientType clientType = clientRepository.getClient(id);
-        if (clientType == null) {
+        ClientEntity clientEntity = clientRepository.getClient(id);
+        if (clientEntity == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + id + NOT_FOUND);
         }
-        Optional<LocalGroupType> existingLocalGroupType = clientType.getLocalGroup().stream()
-                .filter(localGroupType -> localGroupType.getGroupCode().equals(
-                        localGroupTypeToAdd.getGroupCode())).findFirst();
-        if (existingLocalGroupType.isPresent()) {
+        Optional<LocalGroupEntity> existingLocalGroupEntity = clientEntity.getLocalGroups().stream()
+                .filter(localGroupEntity -> localGroupEntity.getGroupCode().equals(localGroupToAddEntity.getGroupCode())).findFirst();
+        if (existingLocalGroupEntity.isPresent()) {
             throw new DuplicateLocalGroupCodeException(
-                    "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
+                    "local group with code " + localGroupToAddEntity.getGroupCode() + " already added");
         }
-        localGroupRepository.persist(localGroupTypeToAdd); // explicit persist to get the id to the return value
-        clientType.getLocalGroup().add(localGroupTypeToAdd);
-        return localGroupTypeToAdd;
+        localGroupRepository.persist(localGroupToAddEntity); // explicit persist to get the id to the return value
+        clientEntity.getLocalGroups().add(localGroupToAddEntity);
+        return LocalGroupMapper.get().toTarget(localGroupToAddEntity);
     }
 
     /**
      * Adds a members to LocalGroup
-     * @param memberIds
+     * @param memberIds memberIds
      * @throws MemberAlreadyExistsException if given member already exists in the group
      * @throws LocalGroupNotFoundException if local group with given id was not found
      * @throws LocalGroupMemberNotFoundException if local group member was not found
      */
     public void addLocalGroupMembers(Long groupId, List<ClientId> memberIds) throws MemberAlreadyExistsException,
             LocalGroupNotFoundException, LocalGroupMemberNotFoundException {
-        LocalGroupType localGroupType = getLocalGroup(groupId);
-        if (localGroupType == null) {
+        LocalGroupEntity localGroupEntity = getLocalGroupEntity(groupId);
+        if (localGroupEntity == null) {
             throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
         }
 
-        auditLog(memberIds, localGroupType);
+        auditLog(memberIds, localGroupEntity);
 
-        List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
+        List<GroupMemberEntity> membersToBeAdded = new ArrayList<>(memberIds.size());
         for (ClientId memberId : memberIds) {
-            Optional<ClientType> foundMember = clientService.findByClientId(memberId);
+            Optional<ClientEntity> foundMember = clientService.findEntityByClientId(memberId);
             if (!foundMember.isPresent()) {
                 throw new LocalGroupMemberNotFoundException(CLIENT_WITH_ID
                         + memberId.toShortString() + NOT_FOUND);
             }
             ClientId clientIdToBeAdded = foundMember.get().getIdentifier();
-            boolean isAdded = localGroupType.getGroupMember().stream()
-                    .anyMatch(groupMemberType -> groupMemberType.getGroupMemberId().toShortString().trim()
+            boolean isAdded = localGroupEntity.getGroupMembers().stream()
+                    .anyMatch(groupMemberEntity -> groupMemberEntity.getGroupMemberId().toShortString().trim()
                             .equals(clientIdToBeAdded.toShortString().trim()));
             if (isAdded) {
                 throw new MemberAlreadyExistsException("local group member already exists in group");
             }
-            GroupMemberType groupMemberType = new GroupMemberType();
-            groupMemberType.setAdded(new Date());
-            groupMemberType.setGroupMemberId(clientIdToBeAdded);
-            membersToBeAdded.add(groupMemberType);
+            GroupMemberEntity groupMemberEntity = new GroupMemberEntity();
+            groupMemberEntity.setAdded(new Date());
+            groupMemberEntity.setGroupMemberId(XRoadIdMapper.get().toEntity(clientIdToBeAdded));
+            membersToBeAdded.add(groupMemberEntity);
         }
         // do not remove this saveOrUpdateAll - contrary to expectations hibernate does not cascade such
         // one-to-many + many-to-one construct properly
         localGroupRepository.saveOrUpdateAll(membersToBeAdded);
-        localGroupType.getGroupMember().addAll(membersToBeAdded);
+        localGroupEntity.getGroupMembers().addAll(membersToBeAdded);
     }
 
     /**
      * Deletes a local group
-     * @param groupId
+     * @param groupId groupId
      * @throws LocalGroupNotFoundException if local group with given id was not found
      * @throws ClientNotFoundException if client containing local group was not found
      */
     public void deleteLocalGroup(Long groupId) throws LocalGroupNotFoundException, ClientNotFoundException {
-        LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
+        LocalGroupEntity existingLocalGroupEntity = getLocalGroupEntity(groupId);
 
-        if (existingLocalGroupType == null) {
+        if (existingLocalGroupEntity == null) {
             throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
         }
-        auditLog(existingLocalGroupType, existingLocalGroupType.getDescription());
+        auditLog(existingLocalGroupEntity, existingLocalGroupEntity.getDescription());
 
-        XRoadId xRoadId = getLocalGroupIdAsXroadId(groupId);
-        ClientType clientType = clientRepository.getClientByLocalGroup(existingLocalGroupType);
+        XRoadIdEntity xRoadId = XRoadIdMapper.get().toEntity(getLocalGroupIdAsXroadId(groupId));
+        ClientEntity clientEntity = clientRepository.getClientByLocalGroup(existingLocalGroupEntity);
 
-        deleteAccessRightsByXRoadId(clientType, xRoadId);
-        localGroupRepository.delete(existingLocalGroupType);
+        deleteAccessRightsByXRoadId(clientEntity, xRoadId);
+        localGroupRepository.delete(existingLocalGroupEntity);
     }
 
     /**
      * Removes access rights by XRoadId
      *
-     * @param clientType
-     * @param xRoadId
+     * @param clientEntity clientEntity
+     * @param xRoadId xRoadId
      */
-    private void deleteAccessRightsByXRoadId(ClientType clientType, XRoadId xRoadId) {
-        List<AccessRightType> acls = clientType.getAcl().stream()
+    private void deleteAccessRightsByXRoadId(ClientEntity clientEntity, XRoadIdEntity xRoadId) {
+        List<AccessRightEntity> acls = clientEntity.getAccessRights().stream()
                 .filter(acl -> acl.getSubjectId().equals(xRoadId))
                 .toList();
-        clientType.getAcl().removeAll(acls);
+        clientEntity.getAccessRights().removeAll(acls);
     }
 
     /**
@@ -243,14 +252,19 @@ public class LocalGroupService {
      * @param groupId local group id
      * @param items
      * @throws LocalGroupMemberNotFoundException if local group member was not found in the group
+     * @throws LocalGroupNotFoundException if local group was not found
      */
     public void deleteGroupMembers(long groupId, List<ClientId> items)
-            throws LocalGroupMemberNotFoundException {
-        LocalGroupType managedLocalGroup = getLocalGroup(groupId);
+            throws LocalGroupMemberNotFoundException, LocalGroupNotFoundException {
+        LocalGroupEntity managedLocalGroup = getLocalGroupEntity(groupId);
+
+        if (managedLocalGroup == null) {
+            throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
+        }
 
         auditLog(items, managedLocalGroup);
 
-        List<GroupMemberType> membersToBeRemoved = managedLocalGroup.getGroupMember().stream()
+        List<GroupMemberEntity> membersToBeRemoved = managedLocalGroup.getGroupMembers().stream()
                 .filter(member -> items.stream()
                         .anyMatch(item -> item.toShortString().trim()
                                 .equals(member.getGroupMemberId().toShortString().trim())))
@@ -260,7 +274,7 @@ public class LocalGroupService {
         if (membersToBeRemoved.isEmpty() || items.size() != membersToBeRemoved.size()) {
             throw new LocalGroupMemberNotFoundException("the requested group member was not found in local group");
         }
-        managedLocalGroup.getGroupMember().removeAll(membersToBeRemoved);
+        managedLocalGroup.getGroupMembers().removeAll(membersToBeRemoved);
     }
 
     /**
@@ -268,7 +282,7 @@ public class LocalGroupService {
      * @param memberIds
      * @param managedLocalGroup
      */
-    private void auditLog(List<ClientId> memberIds, LocalGroupType managedLocalGroup) {
+    private void auditLog(List<ClientId> memberIds, LocalGroupEntity managedLocalGroup) {
         auditLogOwnerClientId(managedLocalGroup);
         auditDataHelper.put(RestApiAuditProperty.GROUP_CODE, managedLocalGroup.getGroupCode());
         List<String> auditLogFormatMemberIds = memberIds.stream()
@@ -286,7 +300,7 @@ public class LocalGroupService {
     public Set<XRoadId.Conf> getLocalGroupIdsAsXroadIds(Set<Long> localGroupIds) throws LocalGroupNotFoundException {
         Set<XRoadId.Conf> localGroupXRoadIds = new HashSet<>();
         for (Long groupId : localGroupIds) {
-            LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
+            LocalGroupEntity localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
             if (localGroup == null) {
                 throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
             }
@@ -308,13 +322,13 @@ public class LocalGroupService {
     }
 
     /**
-     * @param clientType local group owner
+     * @param clientEntity local group owner
      * @param identifiers identifiers to check
      * @return whether all the local groups exist in LOCALGROUP table for the given client.
      * Entry in IDENTIFIER table may or may not exist
      */
-    public boolean localGroupsExist(ClientType clientType, List<? extends XRoadId> identifiers) {
-        Set<LocalGroupId> clientsLocalGroupIds = clientType.getLocalGroup().stream()
+    public boolean localGroupsExist(ClientEntity clientEntity, List<? extends XRoadId> identifiers) {
+        Set<LocalGroupId> clientsLocalGroupIds = clientEntity.getLocalGroups().stream()
                 .map(localGroup -> LocalGroupId.Conf.create(localGroup.getGroupCode()))
                 .collect(Collectors.toSet());
         return clientsLocalGroupIds.containsAll(identifiers);

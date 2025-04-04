@@ -65,7 +65,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "OS version",
             "OCSP responders",
             "Global configuration",
-            "Configuration overrides from local.ini",
+            "Configuration overrides from local.yaml",
             "Authentication certificates"
     };
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();

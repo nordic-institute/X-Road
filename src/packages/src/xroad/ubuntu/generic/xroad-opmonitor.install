@@ -1,5 +1,6 @@
 ../../../../src/xroad/common/op-monitor/etc/* etc
 ../../../../src/xroad/common/op-monitor/usr/* usr
+../../../../../service/op-monitor/op-monitor-db/src/main/resources/liquibase/* usr/share/xroad/db/
 
 ../../../../../service/op-monitor/op-monitor-application/build/quarkus-app/* usr/share/xroad/jlib/op-monitor/
 ../../../../src/xroad/common/op-monitor/generate-opmonitor-certificate.sh usr/share/xroad/scripts

@@ -42,9 +42,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.isIn;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.in;
 import static org.niis.xroad.proxy.core.test.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
 
 /**
@@ -87,7 +87,7 @@ public class ListMethodsMessage extends MessageTestCase {
 
         assertThat("Wrong services", resultServices, containsInAnyOrder(expectedServices.toArray()));
 
-        assertThat("Wrong content type", receivedResponse.getContentType(), isIn(expectedContentTypes));
+        assertThat("Wrong content type", receivedResponse.getContentType(), is(in(expectedContentTypes)));
     }
 
     @Override
@@ -96,8 +96,7 @@ public class ListMethodsMessage extends MessageTestCase {
 
         serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
-            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                     DescriptionType descriptionType) {
+            public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));
                 return expectedServices;
             }

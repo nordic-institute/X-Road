@@ -47,6 +47,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -238,6 +239,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public String getSubsystemName(ClientId clientId) {
+        return null;
+    }
+
+    @Override
     public List<String> getApprovedTspUrls(String instanceIdentifier) {
         return null;
     }
@@ -307,5 +313,10 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public GlobalConfExtensions getGlobalConfExtensions() {
         return globalConfExtensions;
+    }
+
+    @Override
+    public OptionalInt getVersion() {
+        return OptionalInt.empty();
     }
 }

@@ -307,7 +307,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
      * Applies the given function to all files belonging to the configuration directory.
      * @param consumer the function instance that should be applied to all files belonging to the
      *         configuration directory.
-     * @throws Exception if an error occurs
+     * @throws IOException if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws IOException {
         eachFile(filepath -> {
@@ -319,17 +319,17 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                 try {
                     metadata = getMetadata(filepath);
                 } catch (IOException e) {
-                    log.error("Could not open configuration file '{}' metadata: {}", filepath, e);
+                    log.error("Could not open configuration file '{}' metadata: {}", filepath, e, e);
                     throw e;
                 }
 
                 consumer.consume(metadata, is);
             } catch (RuntimeException e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e);
+                log.error("Error processing configuration file '{}': {}", filepath, e, e);
 
                 throw e;
             } catch (Exception e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e);
+                log.error("Error processing configuration file '{}': {}", filepath, e, e);
 
                 throw new RuntimeException(e);
             }
@@ -340,7 +340,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
      * Gets the metadata for the given file.
      * @param fileName the file name
      * @return the metadata for the given file or null if metadata file does not exist.
-     * @throws Exception if the metadata cannot be loaded
+     * @throws IOException if the metadata cannot be loaded
      */
     public static ConfigurationPartMetadata getMetadata(Path fileName) throws IOException {
         File file = new File(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA);

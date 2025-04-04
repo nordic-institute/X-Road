@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.14
+Version: 1.15
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                      | Author               |
@@ -28,6 +28,8 @@ Doc. ID: DM-CS
 | 14.06.2023 | 1.12    | New Central Server updates                                                       | Eneli Reimets        |
 | 08.12.2023 | 1.13    | Added enabled field to server_clients table                                      | Madis Loitmaa        |
 | 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform        | Raido Kaju           |
+| 21.03.2025 | 1.15    | Syntax and styling fixes                         								  | Pauline Dimmek		 |
+
 
 ## Table of Contents
 
