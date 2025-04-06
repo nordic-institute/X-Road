@@ -17,6 +17,8 @@ on:
       - '.github/**'
       - 'ansible/**'
       - 'Docker/**'
+env:
+  REGISTRY: ghcr.io
 permissions:
   contents: write # Required for https://github.com/gradle/actions/tree/main/setup-gradle#github-dependency-graph-support
   pull-requests: write # https://github.com/gradle/actions/tree/main/setup-gradle#adding-job-summary-as-a-pull-request-comment
@@ -75,6 +77,25 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Store files for arm packaging
+        uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        with:
+          name: workspace-for-arm
+          include-hidden-files: true
+          path: |
+            **
+            !**/src/lib/**
+            !**/src/test/**
+            !**/build/classes/**
+            !**/build/tmp/**
+            !**/build/allure-**
+            !**/build/test-results/**
+            !**/build/reports/**
+            !**/.git/**
+            !**/.pnpm-store/**
+            !**/pnpm-node/**
+            !**/node_modules/**
+            !**/executionHistory/**
       - name: Build RHEL8 packages
         run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
       - name: Build RHEL9 packages
@@ -93,6 +114,50 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debian-packages
+          path: src/packages/build/ubuntu22.04/*.deb
+          compression-level: 0 #No point in compressing these
+  BuildAndPackageWithUnitTestsOnArm:
+    name: Build, test and package code for arm architecture
+    needs: BuildAndPackageWithUnitTests
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Ensure required packages
+        env:
+          DEBIAN_FRONTEND: noninteractive # Less output to log
+        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
+          dependency-graph: generate-and-submit
+          add-job-summary-as-pr-comment: always
+      - name: Download workspace
+        uses: pyTooling/download-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        with:
+          name: workspace-for-arm
+      - name: Build native dependencies
+        working-directory: ./src
+        run: ./gradlew :service:signer:signer-api:make
+      - name: Build 22.04 (Jammy) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./src/packages/build-deb.sh jammy -release
+      - name: Build 24.04 (Noble) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./src/packages/build-deb.sh noble -release
+      - name: Store deb files for system tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-packages-arm
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
   RunCSSystemTests:
@@ -306,3 +371,177 @@ jobs:
           name: E2E report
           path: |
             src/security-server/e2e-test/build/allure-report/
+  PublishCS:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            architecture: amd64
+          - os: ubuntu-22.04-arm
+            architecture: arm64
+    name: Publish Central Server image for ${{ matrix.architecture }}
+    needs: BuildAndPackageWithUnitTestsOnArm
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ${{ github.workspace }}/Docker/centralserver
+        run: ./init_context.sh
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+      - name: Download Debian packages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: `${process.env.GITHUB_RUN_ID}`,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == ('${{ matrix.architecture }}' == 'amd64' ? "debian-packages" : "debian-packages-arm")
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
+      - name: Unzip Debian packages
+        run: mkdir -p ${{ github.workspace }}/Docker/centralserver/build/packages && unzip -d ${{ github.workspace }}/Docker/centralserver/build/packages debian-packages.zip
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}/Docker/centralserver
+          build-args: |
+            PACKAGE_SOURCE=internal
+          push: true
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-central-server:arm-latest' || 'ghcr.io/nordic-institute/xrddev-central-server:amd-latest' }}
+  PublishMultiArchCS:
+    runs-on: ubuntu-22.04
+    needs: PublishCS
+    name: Publish Central Server multi-arch manifest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/nordic-institute/xrddev-central-server:latest \
+            --amend ghcr.io/nordic-institute/xrddev-central-server:amd-latest \
+            --amend ghcr.io/nordic-institute/xrddev-central-server:arm-latest
+          docker manifest push ghcr.io/nordic-institute/xrddev-central-server:latest
+      - name: Clean old CS images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-central-server
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
+  PublishSS:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            architecture: amd64
+          - os: ubuntu-22.04-arm
+            architecture: arm64
+    name: Publish Security Server image for ${{ matrix.architecture }}
+    needs: BuildAndPackageWithUnitTestsOnArm
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize docker setup
+        working-directory: ${{ github.workspace }}/Docker/securityserver
+        run: ./init_context.sh
+      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
+      - name: Download Debian packages
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: `${process.env.GITHUB_RUN_ID}`,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == ('${{ matrix.architecture }}' == 'amd64' ? "debian-packages" : "debian-packages-arm")
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/debian-packages.zip`, Buffer.from(download.data));
+      - name: Unzip Debian packages
+        run: mkdir -p ${{ github.workspace }}/Docker/securityserver/build/packages && unzip -d ${{ github.workspace }}/Docker/securityserver/build/packages debian-packages.zip
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}/Docker/securityserver
+          build-args: |
+            PACKAGE_SOURCE=internal
+          push: true
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server:arm-latest' || 'ghcr.io/nordic-institute/xrddev-security-server:amd-latest' }}
+  PublishMultiArchSS:
+    runs-on: ubuntu-22.04
+    needs: PublishSS
+    name: Publish Security Server multi-arch manifest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/nordic-institute/xrddev-security-server:latest \
+            --amend ghcr.io/nordic-institute/xrddev-security-server:amd-latest \
+            --amend ghcr.io/nordic-institute/xrddev-security-server:arm-latest
+          docker manifest push ghcr.io/nordic-institute/xrddev-security-server:latest
+      - name: Clean old SS images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-security-server
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}

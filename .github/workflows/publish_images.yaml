@@ -9,9 +9,16 @@ env:
   XROAD_HOME: ${{ github.workspace }}
 jobs:
   PublishCS:
-    name: Publish Central Server image
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            architecture: amd64
+          - os: ubuntu-22.04-arm
+            architecture: arm64
+    name: Publish Central Server image for ${{ matrix.architecture }}
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
       packages: write
@@ -31,7 +38,7 @@ jobs:
                run_id: context.payload.workflow_run.id,
             });
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "debian-packages"
+              return artifact.name == ('${{ matrix.architecture }}' == 'amd64' ? "debian-packages" : "debian-packages-arm")
             })[0];
             let download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
@@ -56,11 +63,11 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           push: true
-          tags: ghcr.io/nordic-institute/xrddev-central-server:latest
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-central-server-arm:latest' || 'ghcr.io/nordic-institute/xrddev-central-server:latest' }}
       - name: Clean old CS images
         uses: snok/container-retention-policy@v2
         with:
-          image-names: xrddev-central-server
+          image-names: ${{ matrix.architecture == 'arm64' && 'xrddev-central-server-arm' || 'xrddev-central-server' }}
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
           account-type: org
@@ -69,9 +76,16 @@ jobs:
           token-type: github-token
           token: ${{ secrets.GITHUB_TOKEN }}
   PublishSS:
-    name: Publish Security Server image
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            architecture: amd64
+          - os: ubuntu-22.04-arm
+            architecture: arm64
+    name: Publish Security Server image for ${{ matrix.architecture }}
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
       packages: write
@@ -91,7 +105,7 @@ jobs:
                run_id: context.payload.workflow_run.id,
             });
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "debian-packages"
+              return artifact.name == ('${{ matrix.architecture }}' == 'amd64' ? "debian-packages" : "debian-packages-arm")
             })[0];
             let download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
@@ -116,11 +130,11 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           push: true
-          tags: ghcr.io/nordic-institute/xrddev-security-server:latest
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server-arm:latest' || 'ghcr.io/nordic-institute/xrddev-security-server:latest' }}
       - name: Clean old SS images
         uses: snok/container-retention-policy@v2
         with:
-          image-names: xrddev-security-server
+          image-names: ${{ matrix.architecture == 'arm64' && 'xrddev-security-server-arm' || 'xrddev-security-server' }}
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
           account-type: org
