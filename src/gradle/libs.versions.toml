@@ -8,7 +8,7 @@
 metrics = "4.2.30"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.11.Final"
+hibernate = "6.6.13.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.3"
 mockito = "5.16.1"
@@ -144,7 +144,7 @@ wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-hikariCP = { module = "com.zaxxer:HikariCP", version = "6.2.1" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "6.3.0" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
