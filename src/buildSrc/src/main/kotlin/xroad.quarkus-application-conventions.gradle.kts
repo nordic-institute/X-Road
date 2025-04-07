@@ -10,15 +10,16 @@ dependencies {
 }
 
 val buildEnv: String = project.findProperty("buildEnv")?.toString() ?: "dev" //TODO default to prod later
+val buildImages: String = project.findProperty("buildImages")?.toString() ?: "false"
 
 quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
       put("quarkus.package.jar.type", "fast-jar")
-      put("quarkus.container-image.build", "true")
+      put("quarkus.container-image.build", buildImages)
       put("quarkus.container-image.registry", "${project.property("xroadImageRegistry")}")
       put("quarkus.container-image.insecure", "true")
-      put("quarkus.container-image.push", "true")
+      put("quarkus.container-image.push", buildImages)
       put("quarkus.container-image.builder", "jib")
       put("quarkus.jib.working-directory", "/opt/app")
 
