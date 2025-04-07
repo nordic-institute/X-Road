@@ -11,9 +11,9 @@ jaxb = "4.0.5"
 hibernate = "6.6.11.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.3"
-mockito = "5.16.1"
+mockito = "5.17.0"
 springBoot = "3.4.4"
-junitJupiter = "5.11.4"
+junitJupiter = "5.12.1"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
 slf4j = "2.0.17"
@@ -122,7 +122,7 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.38" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
