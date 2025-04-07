@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="004-configuration-anchor">
+        <createTable tableName="configuration_anchor">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="content" type="text">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON configuration_anchor;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON configuration_anchor
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

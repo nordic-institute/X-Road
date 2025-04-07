@@ -4,6 +4,7 @@ quarkus:
   config:
     locations:
       - /etc/xroad/conf.d/local.yaml
+      - /etc/xroad/db.properties
       - xroad-common.yaml
       - xroad-logging.yaml
   scheduler:
@@ -11,6 +12,14 @@ quarkus:
     enabled: true
   quartz:
     thread-count: 3
+  datasource:
+    jdbc:
+      min-size: 0
+      max-size: 1
+      url: ${xroad.db.serverconf.hibernate.connection.url}
+    db-kind: postgresql
+    username: ${xroad.db.serverconf.hibernate.connection.username}
+    password: ${xroad.db.serverconf.hibernate.connection.password}
 
 "%containerized":
   xroad:

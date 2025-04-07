@@ -26,30 +26,20 @@
  */
 package org.niis.xroad.confclient.core.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.AtomicSave;
-
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationClientActionExecutor;
-import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
 import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
 import org.niis.xroad.confclient.proto.VerificationResult;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.rpc.common.Empty;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
@@ -59,10 +49,10 @@ import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_
 @Slf4j
 @ApplicationScoped
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
-    private final ConfigurationClientProperties confClientProperties;
     private final ConfigurationClient configurationClient;
     private final ConfigurationClientActionExecutor configurationClientActionExecutor;
     private final GlobalConfRpcCache globalConfRpcCache;
+    private final ConfigurationAnchorProvider configurationAnchorProvider;
 
     @Override
     public void verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage request, StreamObserver<VerificationResult> responseObserver) {
@@ -75,24 +65,19 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     }
 
     private VerificationResult verifyAndSaveConfigurationAnchor(byte[] anchorBytes) throws Exception {
-        File anchorTempFile = null;
-        try {
-            anchorTempFile = createTemporaryAnchorFile(anchorBytes);
-            var configurationAnchor = new ConfigurationAnchor(anchorTempFile.getAbsolutePath());
-            var paramsValidator = new ConfigurationClientActionExecutor
-                    .ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
-            var result = configurationClientActionExecutor.validate(configurationAnchor, paramsValidator);
-            if (result == RETURN_SUCCESS) {
-                AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), confClientProperties.configurationAnchorFile());
-                configurationClient.execute();
-                globalConfRpcCache.refreshCache();
-            }
-            return VerificationResult.newBuilder()
-                    .setReturnCode(result)
-                    .build();
-        } finally {
-            FileUtils.deleteQuietly(anchorTempFile);
+        var configurationAnchor = new ConfigurationAnchor(anchorBytes);
+        var paramsValidator = new ConfigurationClientActionExecutor
+                .ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
+        var result = configurationClientActionExecutor.validate(configurationAnchor, paramsValidator);
+        if (result == RETURN_SUCCESS) {
+            configurationAnchorProvider.save(anchorBytes);
+
+            configurationClient.execute();
+            globalConfRpcCache.refreshCache();
         }
+        return VerificationResult.newBuilder()
+                .setReturnCode(result)
+                .build();
     }
 
     @Override
@@ -106,30 +91,11 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     }
 
     private ConfigurationAnchorMessage getConfigurationAnchorFromFile() throws Exception {
-        Path anchorPath = Paths.get(confClientProperties.configurationAnchorFile());
-        if (!Files.exists(anchorPath)) {
-            log.error("Configuration anchor file {} does not exist.", anchorPath);
-            throw new FileNotFoundException(anchorPath.toAbsolutePath().toString());
-        }
-        byte[] anchorBytes = Files.readAllBytes(anchorPath);
-        return ConfigurationAnchorMessage.newBuilder()
-                .setConfigurationAnchor(ByteString.copyFrom(anchorBytes))
-                .build();
-    }
-
-    private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
-        String tempFilesPath = SystemProperties.getTempFilesPath();
-        try {
-            String tempAnchorPrefix = "temp-internal-anchor-";
-            String tempAnchorSuffix = ".xml";
-            File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
-            File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
-            FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
-            return tempAnchor;
-        } catch (Exception e) {
-            log.error("Creating temporary anchor file failed", e);
-            throw e;
-        }
+        return configurationAnchorProvider.get()
+                .map(bytes -> ConfigurationAnchorMessage.newBuilder()
+                        .setConfigurationAnchor(ByteString.copyFrom(bytes))
+                        .build())
+                .orElseThrow(() -> new FileNotFoundException("Configuration anchor does not exist."));
     }
 
 }

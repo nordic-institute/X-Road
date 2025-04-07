@@ -36,6 +36,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
+import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
@@ -196,7 +197,7 @@ class ConfigurationClientTest {
             }
 
             @Override
-            boolean shouldDownload(ConfigurationFile file, Path p) throws Exception {
+            boolean shouldDownload(ConfigurationFile file, Path p) {
                 return true;
             }
 
@@ -207,7 +208,7 @@ class ConfigurationClientTest {
             }
 
             @Override
-            void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
+            void updateExpirationDate(Path destination, ConfigurationFile file) {
             }
 
             @Override
@@ -219,6 +220,7 @@ class ConfigurationClientTest {
             }
         };
 
-        return new ConfigurationClient("", tempDir.getAbsolutePath(), configurations, configurationAnchor);
+        return new ConfigurationClient(
+                null, tempDir.getAbsolutePath(), configurations, configurationAnchor);
     }
 }

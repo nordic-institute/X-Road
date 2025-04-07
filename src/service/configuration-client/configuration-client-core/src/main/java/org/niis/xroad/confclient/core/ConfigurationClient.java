@@ -26,9 +26,9 @@
 package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
@@ -40,7 +40,6 @@ import org.niis.xroad.globalconf.model.PrivateParameters;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -55,20 +54,22 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
  */
 @Slf4j
 public class ConfigurationClient {
-    private final String configurationAnchorFilePath;
+    private final ConfigurationAnchorProvider configurationAnchorProvider;
     private final String globalConfigurationDir;
 
     private final ConfigurationDownloader downloader;
 
     private ConfigurationSource configurationAnchor;
 
-    public ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, ConfigurationDownloader downloader) {
-        this(configurationAnchorFilePath, globalConfigurationDir, downloader, null);
+    public ConfigurationClient(ConfigurationAnchorProvider configurationAnchorProvider, String globalConfigurationDir,
+                               ConfigurationDownloader downloader) {
+        this(configurationAnchorProvider, globalConfigurationDir, downloader, null);
     }
 
-    ConfigurationClient(String configurationAnchorFilePath, String globalConfigurationDir, ConfigurationDownloader downloader,
+    ConfigurationClient(ConfigurationAnchorProvider configurationAnchorProvider, String globalConfigurationDir,
+                        ConfigurationDownloader downloader,
                         ConfigurationSource configurationAnchor) {
-        this.configurationAnchorFilePath = configurationAnchorFilePath;
+        this.configurationAnchorProvider = configurationAnchorProvider;
         this.globalConfigurationDir = globalConfigurationDir;
         this.downloader = downloader;
         this.configurationAnchor = configurationAnchor;
@@ -77,7 +78,7 @@ public class ConfigurationClient {
     public synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
-        if (configurationAnchor == null || (configurationAnchor instanceof ConfProvider cp && cp.hasChanged())) {
+        if (configurationAnchor == null) {
             log.debug("Initializing configuration anchor");
 
             initConfigurationAnchor();
@@ -102,16 +103,16 @@ public class ConfigurationClient {
     private void initConfigurationAnchor() throws Exception {
         log.trace("initConfigurationAnchor()");
 
-        if (!Files.exists(Paths.get(configurationAnchorFilePath))) {
-            log.warn("Cannot download configuration, anchor file {} does not exist", configurationAnchorFilePath);
+        if (configurationAnchorProvider == null || !configurationAnchorProvider.isAnchorPresent()) {
+            log.warn("Cannot download configuration, configuration anchor does not exist ({})", configurationAnchorProvider.source());
 
-            throw new FileNotFoundException(configurationAnchorFilePath);
+            throw new FileNotFoundException();
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchor(configurationAnchorFilePath);
+            configurationAnchor = new ConfigurationAnchor(configurationAnchorProvider.get().get());
         } catch (Exception e) {
-            String message = String.format("Failed to load configuration anchor from file %s", configurationAnchorFilePath);
+            String message = String.format("Failed to load configuration anchor from %s", configurationAnchorProvider.source());
 
             log.error(message, e);
 
@@ -119,7 +120,6 @@ public class ConfigurationClient {
         }
 
         saveInstanceIdentifier();
-
     }
 
     void saveInstanceIdentifier() throws Exception {
