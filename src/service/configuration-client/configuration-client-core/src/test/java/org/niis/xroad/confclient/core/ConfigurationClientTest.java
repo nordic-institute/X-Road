@@ -207,6 +207,7 @@ class ConfigurationClientTest {
             }
 
             @Override
+            @SuppressWarnings("java:S1186")
             void updateExpirationDate(Path destination, ConfigurationFile file) {
             }
 

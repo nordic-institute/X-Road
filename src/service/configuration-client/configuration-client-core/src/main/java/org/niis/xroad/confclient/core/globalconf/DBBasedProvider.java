@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Optional;
 
 @Slf4j
@@ -50,8 +51,9 @@ public class DBBasedProvider implements ConfigurationAnchorProvider {
 
     @Override
     public Optional<byte[]> get() throws Exception {
-        try (Connection connection = dataSource.getConnection()) {
-            ResultSet resultSet = connection.createStatement().executeQuery(SELECT_SQL);
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(SELECT_SQL);
             if (resultSet.next()) {
                 return Optional.of(resultSet.getString("content").getBytes(StandardCharsets.UTF_8));
             }
