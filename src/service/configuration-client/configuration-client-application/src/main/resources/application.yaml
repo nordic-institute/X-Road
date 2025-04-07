@@ -36,6 +36,8 @@ quarkus:
 
 "%cli":
   quarkus:
+    datasource:
+      active: false
     scheduler:
       enabled: false
       start-mode: halted

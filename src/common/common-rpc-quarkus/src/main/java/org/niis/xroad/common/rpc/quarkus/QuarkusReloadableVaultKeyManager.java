@@ -72,13 +72,17 @@ public class QuarkusReloadableVaultKeyManager implements VaultKeyProvider {
 
     @PostConstruct
     public void init() throws Exception {
-        log.info("Scheduling certificate reload job");
-        scheduler.newJob(getClass().getSimpleName())
-                .setInterval("%sm".formatted(rpcProperties.certificateProvisioning().refreshIntervalMinutes()))
-                .setDelayed("0s")
-                .setTask(this::reload)
-                .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                .schedule();
+        if (scheduler.isStarted()) {
+            log.info("Scheduling certificate reload job");
+            scheduler.newJob(getClass().getSimpleName())
+                    .setInterval("%sm".formatted(rpcProperties.certificateProvisioning().refreshIntervalMinutes()))
+                    .setDelayed("0s")
+                    .setTask(this::reload)
+                    .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                    .schedule();
+        } else {
+            log.warn("Scheduler is not started, certificate reload job is not scheduled!");
+        }
     }
 
     @Override
