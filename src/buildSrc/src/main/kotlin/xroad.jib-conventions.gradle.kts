@@ -29,3 +29,10 @@ jib {
     user = "xroad"
   }
 }
+
+val buildImages: String = project.findProperty("buildImages")?.toString() ?: "false"
+if (!buildImages.toBoolean()) {
+  tasks.withType<com.google.cloud.tools.jib.gradle.JibTask>().configureEach {
+    enabled = false
+  }
+}
