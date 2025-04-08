@@ -104,7 +104,11 @@ public class ConfigurationClient {
         log.trace("initConfigurationAnchor()");
 
         if (configurationAnchorProvider == null || !configurationAnchorProvider.isAnchorPresent()) {
-            log.warn("Cannot download configuration, configuration anchor does not exist ({})", configurationAnchorProvider.source());
+            if (configurationAnchorProvider == null) {
+                log.warn("Cannot download configuration, no configuration anchor present.");
+            } else {
+                log.warn("Cannot download configuration, configuration anchor does not exist ({})", configurationAnchorProvider.source());
+            }
 
             throw new FileNotFoundException();
         }

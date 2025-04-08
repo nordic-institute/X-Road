@@ -23,7 +23,7 @@ Doc. ID: DM-SS
 | 26.01.2024 | 1.10    | When client is deleted, respective identifier is deleted as well                      | Eneli Reimets                   |
 | 12.03.2025 | 1.11    | Minor fixes                                                                           | Eneli Reimets                   |
 | 21.03.2025 | 1.12    | Syntax and styling                                                                    | Pauline Dimmek                  |
-| 07.04.2025 | 1.13    | Table "configuration_anchor" added, "service_securitycategories" removed from diagram | Justas Samuolis                 |
+| 07.04.2025 | 1.13    | Table "configuration_client" added, "service_securitycategories" removed from diagram | Justas Samuolis                 |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -82,7 +82,7 @@ Doc. ID: DM-SS
   * [2.17 ENDPOINT](#217-endpoint)
     * [2.17.1 Indexes](#2171-indexes)
     * [2.17.2 Attributes](#2172-attributes)
-  * [2.18 CONFIGURATION_ANCHOR](#218-configuration_anchor)
+  * [2.18 CONFIGURATION_CLIENT](#218-configuration_client)
     * [2.18.1 Indexes](#2181-indexes) 
     * [2.18.2 Attributes](#2182-attributes)  
 
@@ -458,21 +458,21 @@ Pointer to a SERVICEDESCRIPTION containing the descriptions of services provided
 | path           | character varying(2048) | NOT NULL | Allowed URL path (REST services) |
 | generated      | boolean        | NOT NULL | Is the endpoint automatically generated (true) or manually added (false) |
 
-### 2.18 CONFIGURATION_ANCHOR
+### 2.18 CONFIGURATION_CLIENT
 
-Table to store configuration anchor file contents.
+Table to store configuration client data.
 
 #### 2.18.1 Indexes
 
 | Name                                   | Columns |
 |:---------------------------------------|:-------:|
-| configuration_anchor_pkey              |   id    |
-| configuration_anchor_name_key (unique) |  name   |
+| configuration_client_pkey              |   id    |
+| configuration_client_name_key (unique) |  name   |
 
 #### 2.18.2 Attributes
 
-| Name      |          Type          | Modifiers | Description                   |
-|:----------|:----------------------:|:----------|:------------------------------|
-| id [PK]   |         serial         | NOT NULL  | Primary key.                  |
-| name      | character varying(255) | NOT NULL  | Configuration anchor name.    |
-| content   |          text          | NOT NULL  | Configuration anchor content. |
+| Name      |          Type          | Modifiers | Description       |
+|:----------|:----------------------:|:----------|:------------------|
+| id [PK]   |         serial         | NOT NULL  | Primary key.      |
+| name      | character varying(255) | NOT NULL  | Property name.    |
+| content   |          text          | NOT NULL  | Property content. |

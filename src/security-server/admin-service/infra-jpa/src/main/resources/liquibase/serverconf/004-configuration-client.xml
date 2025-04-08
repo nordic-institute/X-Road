@@ -5,8 +5,8 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
-    <changeSet author="niis" id="004-configuration-anchor">
-        <createTable tableName="configuration_anchor">
+    <changeSet author="niis" id="004-configuration-client">
+        <createTable tableName="configuration_client">
             <column name="id" autoIncrement="true" type="SERIAL">
                 <constraints primaryKey="true"/>
             </column>
@@ -18,8 +18,8 @@
             </column>
         </createTable>
         <sql splitStatements="false"><![CDATA[
-            DROP TRIGGER IF EXISTS update_history ON configuration_anchor;
-            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON configuration_anchor
+            DROP TRIGGER IF EXISTS update_history ON configuration_client;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON configuration_client
                 FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
             ]]></sql>
     </changeSet>

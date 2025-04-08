@@ -43,8 +43,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DBBasedProvider implements ConfigurationAnchorProvider {
 
-    private static final String SELECT_SQL = "SELECT content FROM configuration_anchor WHERE name = 'configuration-anchor'";
-    private static final String INSERT_SQL = "INSERT INTO configuration_anchor (name, content) VALUES ('configuration-anchor', ?) "
+    private static final String SELECT_SQL = "SELECT content FROM configuration_client WHERE name = 'configuration-anchor'";
+    private static final String INSERT_SQL = "INSERT INTO configuration_client (name, content) VALUES ('configuration-anchor', ?) "
             + " ON CONFLICT (name) DO UPDATE SET content = EXCLUDED.content";
 
     private final DataSource dataSource;
