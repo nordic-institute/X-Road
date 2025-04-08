@@ -23,20 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.healthcheck;
+package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.ProxyMemory;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
+import org.springframework.stereotype.Component;
 
-/**
- * A common interface that implements health checks somehow to produce a single {@link HealthCheckResult}
- */
-@FunctionalInterface
-public interface HealthCheckProvider extends Supplier<HealthCheckResult> {
+import java.math.BigDecimal;
 
-    default HealthCheckProvider map(Function<HealthCheckProvider, HealthCheckProvider> mapper) {
-        return mapper.apply(this);
+@Component
+public class ProxyMemoryUsageStatusConverter {
+
+    public ProxyMemoryUsageStatusDto convert(
+            ProxyMemory proxyMemory) {
+        ProxyMemoryUsageStatusDto proxyMemoryUsageStatus = new ProxyMemoryUsageStatusDto()
+                .maxMemory(BigDecimal.valueOf(proxyMemory.maxMemory()))
+                .totalMemory(BigDecimal.valueOf(proxyMemory.totalMemory()))
+                .usedMemory(BigDecimal.valueOf(proxyMemory.usedMemory()))
+                .usagePercent(BigDecimal.valueOf(proxyMemory.usedPercent()))
+                .isUsedOverThreshold(proxyMemory.isUsedAboveThreshold());
+        if (proxyMemory.threshold() != null) {
+            proxyMemoryUsageStatus.threshold(BigDecimal.valueOf(proxyMemory.threshold()));
+        }
+        return proxyMemoryUsageStatus;
+
     }
 
 }

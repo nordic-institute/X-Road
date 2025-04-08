@@ -23,20 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.healthcheck;
+package ee.ria.xroad.common;
 
+public record ProxyMemory(long totalMemory, long freeMemory, long maxMemory, long usedMemory, Long threshold, long usedPercent) {
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+    public static ProxyMemory get() {
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemory = runtime.maxMemory();
+        long totalMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        long usedMemory = totalMemory - freeMemory;
+        Long threshold = SystemProperties.getProxyMemoryUsageThreshold();
+        long usedPercent = (usedMemory * 100) / maxMemory;
+        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
+    }
 
-/**
- * A common interface that implements health checks somehow to produce a single {@link HealthCheckResult}
- */
-@FunctionalInterface
-public interface HealthCheckProvider extends Supplier<HealthCheckResult> {
-
-    default HealthCheckProvider map(Function<HealthCheckProvider, HealthCheckProvider> mapper) {
-        return mapper.apply(this);
+    public boolean isUsedAboveThreshold() {
+        return threshold != null && usedPercent > threshold;
     }
 
 }

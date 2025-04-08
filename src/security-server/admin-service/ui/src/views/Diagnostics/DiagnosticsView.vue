@@ -51,6 +51,9 @@
       <DiagnosticsMessageLogDatabaseCard
         :message-log-encryption-loading="messageLogEncryptionLoading"
       />
+
+      <DiagnosticsProxyMemoryUsageCard />
+
     </XrdTitledView>
 </template>
 
@@ -67,6 +70,7 @@ import DiagnosticsOcspRespondersCard from '@/views/Diagnostics/DiagnosticsOcspRe
 import DiagnosticsBackupEncryptionCard from '@/views/Diagnostics/DiagonsticsBackupEncryptionCard.vue';
 import DiagnosticsMessageLogArchiveCard from '@/views/Diagnostics/DiagnosticsMessageLogArchiveCard.vue';
 import DiagnosticsMessageLogDatabaseCard from '@/views/Diagnostics/DiagnosticsMessageLogDatabaseCard.vue';
+import DiagnosticsProxyMemoryUsageCard from "@/views/Diagnostics/DiagnosticsProxyMemoryUsageCard.vue";
 import DiagnosticsDownloadSystemInfoBtn from '@/views/Diagnostics/DiagnosticsDownloadSystemInfoBtn.vue';
 import { XrdSubViewContainer, XrdTitledView } from '@niis/shared-ui';
 
@@ -83,6 +87,7 @@ export default defineComponent({
     DiagnosticsBackupEncryptionCard,
     DiagnosticsMessageLogArchiveCard,
     DiagnosticsMessageLogDatabaseCard,
+    DiagnosticsProxyMemoryUsageCard,
   },
   data: () => ({
     addonStatusLoading: false,
