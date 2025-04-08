@@ -111,7 +111,7 @@
             <mxPoint x="980" y="370" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="3" value="configuration_anchor" style="strokeWidth=2;whiteSpace=wrap;html=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+        <mxCell id="3" value="configuration_client" style="strokeWidth=2;whiteSpace=wrap;html=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="880" y="480" width="200" height="40" as="geometry" />
         </mxCell>
       </root>
