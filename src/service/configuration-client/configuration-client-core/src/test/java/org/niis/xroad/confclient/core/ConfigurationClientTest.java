@@ -196,7 +196,7 @@ class ConfigurationClientTest {
             }
 
             @Override
-            boolean shouldDownload(ConfigurationFile file, Path p) throws Exception {
+            boolean shouldDownload(ConfigurationFile file, Path p) {
                 return true;
             }
 
@@ -207,7 +207,8 @@ class ConfigurationClientTest {
             }
 
             @Override
-            void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
+            @SuppressWarnings("java:S1186")
+            void updateExpirationDate(Path destination, ConfigurationFile file) {
             }
 
             @Override
@@ -219,6 +220,7 @@ class ConfigurationClientTest {
             }
         };
 
-        return new ConfigurationClient("", tempDir.getAbsolutePath(), configurations, configurationAnchor);
+        return new ConfigurationClient(
+                null, tempDir.getAbsolutePath(), configurations, configurationAnchor);
     }
 }

@@ -30,7 +30,7 @@ protobufPlugin = "0.9.4"
 checkstyle = "10.22.0"
 jacoco = "0.8.12"
 
-quarkus = "3.19.1"
+quarkus = "3.21.1"
 quarkus-vault = "4.1.0"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.11.2"
@@ -64,6 +64,7 @@ quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", vers
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
 quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
 quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "quarkus" }
+quarkus-jdbc-postgresql = { group = "io.quarkus", name = "quarkus-jdbc-postgresql", version.ref = "quarkus" }
 quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "quarkus" }
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }

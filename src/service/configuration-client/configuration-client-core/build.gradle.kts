@@ -12,6 +12,7 @@ dependencies {
 
   implementation(libs.quarkus.arc)
   implementation(libs.commons.cli)
+  implementation(libs.quarkus.jdbc.postgresql)
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.wiremock.standalone)

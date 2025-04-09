@@ -26,19 +26,35 @@
 package org.niis.xroad.confclient.core.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Provider;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationDownloader;
 import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
+import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
+import org.niis.xroad.confclient.core.globalconf.DBBasedProvider;
+import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
 import org.niis.xroad.globalconf.util.FSGlobalConfValidator;
+
+import javax.sql.DataSource;
 
 public class ConfClientRootConfig {
 
     @ApplicationScoped
+    ConfigurationAnchorProvider configurationAnchorProvider(ConfigurationClientProperties configurationClientProperties,
+                                                            Provider<DataSource> dataSource) {
+        return switch (configurationClientProperties.configurationAnchorStorage()) {
+            case FILE -> new FileBasedProvider(configurationClientProperties.configurationAnchorFile());
+            case DB -> new DBBasedProvider(dataSource.get());
+        };
+    }
+
+    @ApplicationScoped
     ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties,
+                                            ConfigurationAnchorProvider configurationAnchorProvider,
                                             HttpUrlConnectionConfigurer connectionConfigurer) {
         var downloader = new ConfigurationDownloader(connectionConfigurer, configurationClientProperties.globalConfDir());
         return new ConfigurationClient(
-                configurationClientProperties.configurationAnchorFile(),
+                configurationAnchorProvider,
                 configurationClientProperties.globalConfDir(), downloader);
     }
 
@@ -46,4 +62,5 @@ public class ConfClientRootConfig {
     FSGlobalConfValidator fsGlobalConfValidator() {
         return new FSGlobalConfValidator();
     }
+
 }
