@@ -201,15 +201,10 @@ public class DiagnosticService {
 
     /**
      * Query proxy memory usage from admin port over HTTP.
-     *
      * @return ProxyMemory
      */
     public ProxyMemory queryProxyMemoryUsage() {
-        try {
-            return sendGetRequest(proxyMemoryUsageUrl, ProxyMemory.class).getBody();
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+        return sendGetRequest(proxyMemoryUsageUrl, ProxyMemory.class).getBody();
     }
 
     /**
