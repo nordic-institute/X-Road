@@ -26,161 +26,35 @@
     "title": "Права доступа"
   },
   "action": {
-    "activate": "Активировать",
-    "add": "Добавить",
-    "addClient": "Добавить клиента",
-    "addMember": "Добавить участника",
-    "addSubsystem": "Добавить подсистему",
-    "cancel": "Отмена",
-    "close": "Закрыть",
-    "confirm": "Подтвердить",
-    "continue": "Продолжить",
-    "copy": "Копировать",
-    "copyId": "Копировать ID",
-    "deactivate": "Отключить",
-    "delete": "Удалить",
     "disable": "Отключить",
-    "done": "Готово",
-    "download": "Скачать",
-    "edit": "Редактировать",
-    "emptySearch": "Ваш поиск по {msg} не дал результатов.",
     "enable": "Включить",
-    "export": "Экспортировать",
-    "finish": "Завершить",
-    "goToFront": "Перейти на главную страницу",
-    "next": "Следующий",
-    "noData": "Нет данных",
-    "ok": "Ок",
-    "order": "Заказать",
-    "previous": "Предыдущий",
-    "refresh": "Обновить",
-    "register": "Зарегистрировать",
-    "remove": "Удалить",
-    "removeAll": "Удалить все",
-    "restore": "Восстановить",
-    "save": "Сохранить",
-    "search": "Поиск",
-    "searching": "Поиск...",
-    "submit": "Отправить",
-    "unregister": "Отменить регистрацию",
-    "yes": "Да"
+    "order": "Заказать"
   },
   "alert": {
-    "count": "Количество одинаковых ошибок:",
-    "warningCount": "Количество одинаковых предупреждений",
-    "id": "ID"
+    "warningCount": "Количество одинаковых предупреждений"
   },
   "apiKey": {
-    "createApiKey": {
-      "button": "СОЗДАТЬ API КЛЮЧ",
-      "step": {
-        "keyDetails": {
-          "apiKey": "API ключ",
-          "apiKeyID": "ID API ключа",
-          "assignedRoles": "Назначенные роли",
-          "createKeyButton": "Создать ключ",
-          "name": "Подробности ключа",
-          "note": "ПРИМЕЧАНИЕ: сохраните API ключ в безопасном месте. API ключ виден только во время его создания. Он не будет показан снова и не может быть восстановлен позже."
-        },
-        "roles": {
-          "description": "Пожалуйста, выберите роли, связанные с API ключом. Роли определяют права, предоставляемые API ключу.",
-          "name": "Роли",
-          "selectRoles": "Выбрать роли"
-        }
-      },
-      "success": "API ключ успешно создан",
-      "title": "Создать API ключ"
-    },
     "role": {
-      "XROAD_REGISTRATION_OFFICER": "Регистратор",
       "XROAD_SECURITYSERVER_OBSERVER": "Наблюдатель сервера",
-      "XROAD_SECURITY_OFFICER": "Офицер безопасности",
-      "XROAD_SERVICE_ADMINISTRATOR": "Администратор службы",
-      "XROAD_SYSTEM_ADMINISTRATOR": "Системный администратор"
-    },
-    "edit": {
-      "roleRemoveOnly": "(только удаление)"
-    },
-    "table": {
-      "action": {
-        "edit": {
-          "button": "Редактировать",
-          "dialog": {
-            "message": "Роли, связанные с API ключом:",
-            "title": "Редактировать API ключ (ID: {id})"
-          },
-          "success": "API ключ с ID {id} сохранен"
-        },
-        "revoke": {
-          "button": "Отозвать ключ",
-          "confirmationDialog": {
-            "message": "Вы уверены, что хотите отозвать API ключ с ID {id}?",
-            "title": "Вы уверены?"
-          },
-          "success": "API ключ с ID {id} успешно отозван"
-        }
-      },
-      "header": {
-        "id": "ID",
-        "roles": "Роли"
-      }
+      "XROAD_SERVICE_ADMINISTRATOR": "Администратор службы"
     }
   },
   "backup": {
-    "deleteBackup": {
-      "dialog": {
-        "confirmation": "Вы уверены, что хотите удалить резервную копию {file}?",
-        "title": "Вы уверены?"
-      },
-      "success": "Резервная копия {file} удалена"
-    },
-    "restoreFromBackup": {
-      "dialog": {
-        "confirmation": "Вы уверены, что хотите восстановить из {file}?",
-        "title": "Вы уверены?"
-      },
-      "success": "Конфигурация восстановлена из {file}"
-    },
     "createBackup": {
-      "button": "Создать резервную копию",
       "messages": {
-        "success": "Резервная копия {file} успешно создана",
         "localConfWarning": "Предупреждение! Файл “/etc/xroad/services/local.conf”, используемый для переопределения конфигураций, устарел и больше не включается в резервные копии. Вместо него следует использовать файл “/etc/xroad/services/local.properties”."
       }
-    },
-    "uploadBackup": {
-      "button": "Загрузить резервную копию",
-      "confirmationDialog": {
-        "confirmation": "Файл {name} уже существует, вы уверены, что хотите перезаписать его?",
-        "title": "Файл уже существует"
-      },
-      "success": "Резервная копия {file} успешно загружена"
     }
   },
   "cert": {
     "activateSuccess": "Сертификат активирован",
     "certDeleted": "Сертификат удален",
-    "certificate": "Сертификат",
     "deleteCertConfirm": "Вы уверены, что хотите удалить этот сертификат?",
     "deleteCertTitle": "Удалить сертификат?",
     "disableSuccess": "Сертификат отключен",
     "disabled": "отключено",
     "expires": "Истекает",
-    "hashInfo": "Хэш (SHA-256)",
     "inUse": "используется",
-    "keyUsage": {
-      "CRL_SIGN": "Подпись CRL",
-      "DATA_ENCIPHERMENT": "Шифрование данных",
-      "DECIPHER_ONLY": "Только расшифровка",
-      "DIGITAL_SIGNATURE": "Цифровая подпись",
-      "ENCIPHER_ONLY": "Только шифрование",
-      "KEY_AGREEMENT": "Согласование ключей",
-      "KEY_CERT_SIGN": "Подпись сертификата",
-      "KEY_ENCIPHERMENT": "Шифрование ключей",
-      "NON_REPUDIATION": "Отказ от ответственности"
-    },
-    "rsaExp": "Экспонента открытого RSA ключа",
-    "rsaModulus": "Модуль открытого RSA ключа",
     "serialNumber": "Серийный номер",
     "signCertificate": "Подписать сертификат",
     "state": "Состояние"
@@ -210,6 +84,16 @@
         "confirmTitle": "Удалить клиента",
         "success": "Клиент удален"
       },
+      "disable": {
+        "confirmText": "Хотите отключить этого клиента?",
+        "confirmTitle": "Отключить клиента",
+        "success": "Выполняется отключение клиента"
+      },
+      "enable": {
+        "confirmText": "Хотите включить этого клиента?",
+        "confirmTitle": "Включить клиента",
+        "success": "Выполняется включение клиента"
+      },
       "makeOwner": {
         "button": "Сделать владельцем",
         "confirmText1": "Вы хотите сделать участника ниже новым владельцем этого сервера безопасности?",
@@ -227,16 +111,6 @@
         "confirmText": "Хотите отменить регистрацию этого клиента?",
         "confirmTitle": "Отменить регистрацию клиента",
         "success": "Клиент не зарегистрирован"
-      },
-      "disable": {
-        "confirmText": "Хотите отключить этого клиента?",
-        "confirmTitle": "Отключить клиента",
-        "success": "Выполняется отключение клиента"
-      },
-      "enable": {
-        "confirmText": "Хотите включить этого клиента?",
-        "confirmTitle": "Включить клиента",
-        "success": "Выполняется включение клиента"
       }
     },
     "id": "ID",
@@ -249,13 +123,13 @@
     "status": "Статус",
     "statusText": {
       "deletionInProgress": "УДАЛЕНИЕ В ПРОЦЕССЕ",
+      "disabled": "ОТКЛЮЧЕНО",
+      "disablingInProgress": "ОТКЛЮЧЕНИЕ В ПРОЦЕССЕ",
+      "enablingInProgress": "ВКЛЮЧЕНИЕ В ПРОЦЕССЕ",
       "globalError": "ГЛОБАЛЬНАЯ ОШИБКА",
       "registered": "ЗАРЕГИСТРИРОВАН",
       "registrationInProgress": "РЕГИСТРАЦИЯ В ПРОЦЕССЕ",
-      "saved": "СОХРАНЕНО",
-      "disabled": "ОТКЛЮЧЕНО",
-      "disablingInProgress": "ОТКЛЮЧЕНИЕ В ПРОЦЕССЕ",
-      "enablingInProgress": "ВКЛЮЧЕНИЕ В ПРОЦЕССЕ"
+      "saved": "СОХРАНЕНО"
     },
     "subsystemCode": "Код подсистемы",
     "unknownMember": "неизвестный участник"
@@ -284,9 +158,9 @@
     "helpClient": "Участник X-Road, для которого будет выдан сертификат.",
     "helpCsrFormat": "Формат запроса на подпись сертификата в соответствии с требованиями CA.",
     "helpUsage": "Политика использования сертификата: подписание сообщений или аутентификация сервера безопасности.",
+    "orderAcmeCertificate": "Закажите сертификат у сервера ACME с помощью сгенерированного CSR и импортируйте возвращенный сертификат в токен.",
     "saveInfo": "Сгенерируйте новый CSR и сохраните его в надежном месте.",
-    "usage": "Использование",
-    "orderAcmeCertificate": "Закажите сертификат у сервера ACME с помощью сгенерированного CSR и импортируйте возвращенный сертификат в токен."
+    "usage": "Использование"
   },
   "customValidation": {
     "invalidEndpoint": "Конечная точка содержит недопустимые символы",
@@ -297,6 +171,29 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Отключено конфигурацией"
+    },
+    "encryption": {
+      "backup": {
+        "configuredKeyId": "Настроенный идентификатор ключа",
+        "title": "Шифрование резервных копий"
+      },
+      "messageLog": {
+        "archive": {
+          "defaultKeyNote": "Этот участник настроен на использование ключа шифрования по умолчанию сервера. Для дополнительной безопасности рассмотрите возможность определения конкретного ключа.",
+          "groupingTitle": "Правило группировки:",
+          "keyId": "Идентификатор ключа",
+          "memberIdentifier": "Идентификатор участника",
+          "title": "Шифрование архива журналов сообщений"
+        },
+        "database": {
+          "title": "Шифрование базы данных журнала сообщений"
+        }
+      },
+      "status": {
+        "false": "Отключено",
+        "true": "Включено"
+      },
+      "statusTitle": "Статус шифрования:"
     },
     "globalConfiguration": {
       "configurationStatus": {
@@ -347,29 +244,6 @@
         "UNKNOWN": "Неизвестно"
       },
       "title": "Метки времени"
-    },
-    "encryption": {
-      "status": {
-        "false": "Отключено",
-        "true": "Включено"
-      },
-      "statusTitle": "Статус шифрования:",
-      "backup": {
-        "title": "Шифрование резервных копий",
-        "configuredKeyId": "Настроенный идентификатор ключа"
-      },
-      "messageLog": {
-        "archive": {
-          "title": "Шифрование архива журналов сообщений",
-          "groupingTitle": "Правило группировки:",
-          "memberIdentifier": "Идентификатор участника",
-          "keyId": "Идентификатор ключа",
-          "defaultKeyNote": "Этот участник настроен на использование ключа шифрования по умолчанию сервера. Для дополнительной безопасности рассмотрите возможность определения конкретного ключа."
-        },
-        "database": {
-          "title": "Шифрование базы данных журнала сообщений"
-        }
-      }
     }
   },
   "endpoints": {
@@ -391,21 +265,21 @@
   "error_code": {
     "accessright_not_found": "Права доступа не найдены",
     "acme": {
-      "eab_credentials_missing": "Отсутствуют учетные данные внешней привязки аккаунта, но они требуются",
-      "eab_secret_length": "Недопустимая длина секрета base64 для привязки внешней учетной записи",
-      "account_key_pair_error": "Не удалось получить пару ключей для аккаунта ACME-сервера",
-      "fetching_metadata_error": "Не удалось получить метаданные сервера ACME. Сервер ACME может быть недоступен",
       "account_creation_failure": "Не удалось создать аккаунт на сервере ACME. Если требуется внешняя привязка аккаунта, проверьте, что в acme.yml указаны правильные учетные данные",
-      "order_creation_failure": "Не удалось создать новый заказ на сервере ACME",
-      "order_finalization_failure": "Не удалось завершить заказ на сервере ACME",
-      "http_challenge_file_creation": "Не удалось создать файл HTTP-запроса для ACME",
-      "http_challenge_file_deletion": "Не удалось удалить файл HTTP-запроса для ACME",
-      "http_challenge_missing": "В данный момент X-Road поддерживает только HTTP-запрос, но он отсутствует в возможных опциях ACME сервера",
-      "challenge_trigger_failure": "Не удалось запросить проверку запроса у сервера ACME",
+      "account_key_pair_error": "Не удалось получить пару ключей для аккаунта ACME-сервера",
       "authorization_failure": "Ошибка авторизации. Обычно связано с неудачной проверкой запроса, необходимой для подтверждения владения доменом",
       "authorization_wait_failure": "Не удалось дождаться завершения авторизации",
       "certificate_failure": "Не удалось получить сертификат от сервера ACME",
-      "certificate_wait_failure": "Не удалось дождаться создания нового сертификата"
+      "certificate_wait_failure": "Не удалось дождаться создания нового сертификата",
+      "challenge_trigger_failure": "Не удалось запросить проверку запроса у сервера ACME",
+      "eab_credentials_missing": "Отсутствуют учетные данные внешней привязки аккаунта, но они требуются",
+      "eab_secret_length": "Недопустимая длина секрета base64 для привязки внешней учетной записи",
+      "fetching_metadata_error": "Не удалось получить метаданные сервера ACME. Сервер ACME может быть недоступен",
+      "http_challenge_file_creation": "Не удалось создать файл HTTP-запроса для ACME",
+      "http_challenge_file_deletion": "Не удалось удалить файл HTTP-запроса для ACME",
+      "http_challenge_missing": "В данный момент X-Road поддерживает только HTTP-запрос, но он отсутствует в возможных опциях ACME сервера",
+      "order_creation_failure": "Не удалось создать новый заказ на сервере ACME",
+      "order_finalization_failure": "Не удалось завершить заказ на сервере ACME"
     },
     "action_not_possible": "Действие невозможно",
     "additional_member_already_exists": "Дополнительный участник уже существует",
@@ -465,7 +339,6 @@
     "duplicate_accessright": "Дублирование прав доступа",
     "endpoint_already_exists": "Конечная точка уже существует",
     "endpoint_not_found": "Конечная точка не найдена",
-    "generate_backup_interrupted": "Создание резервной копии прервано",
     "global_conf_download_request_failed": "Запрос на загрузку глобальной конфигурации не удался",
     "global_conf_outdated": "Глобальная конфигурация устарела",
     "gpg_key_generation_failed": "Не удалось создать пару ключей GPG",
@@ -476,12 +349,8 @@
     "import_internal_cert_failed": "Импорт внутреннего сертификата не удался",
     "internal_anchor_upload_invalid_instance_id": "Якорь имеет недопустимый идентификатор экземпляра",
     "internal_key_cert_interrupted": "Внутренний сертификат ключа прерван",
-    "invalid_backup_file": "Недопустимый файл резервной копии",
-    "invalid_cert": "Недопустимый сертификат",
     "invalid_characters_pin": "PIN содержит недопустимые символы",
-    "invalid_distinguished_name": "Недопустимое отличительное имя",
     "invalid_dn_parameter": "Недопустимый параметр DN",
-    "invalid_filename": "Недопустимое имя файла",
     "invalid_https_url": "URL не использует HTTPS",
     "invalid_init_params": "Недопустимые параметры инициализации",
     "invalid_instance_identifier": "Недопустимый идентификатор экземпляра",
@@ -510,12 +379,8 @@
     "pin_code_exists": "PIN-код существует",
     "pin_code_not_provided": "PIN-код не указан",
     "pin_incorrect": "Неверный PIN. Попробуйте еще раз.",
-    "pin_min_char_classes_count": "Минимальное количество классов символов PIN-кода",
-    "pin_min_length": "Минимальная длина PIN-кода",
     "process_failed": "Процесс не выполнен",
     "process_not_executable": "Процесс не может быть выполнен",
-    "resource_read_failed": "Не удалось прочитать ресурс",
-    "restore_process_failed": "Не удалось восстановить процесс",
     "server_already_fully_initialized": "Сервер уже полностью инициализирован",
     "server_code_exists": "Код сервера существует",
     "server_code_not_provided": "Код сервера не указан",
@@ -533,12 +398,9 @@
       "malformed_csr": "Данные CSR повреждены"
     },
     "token_not_active": "Токен не активен",
-    "token_not_found": "Токен не найден",
     "unsupported_openapi_version": "Неподдерживаемая версия OpenAPI. Поддерживаются только версии 3.0.x и 3.1.0.",
     "url_already_exists": "URL уже существует",
-    "validation_failure": "Ошибка проверки",
     "warnings_detected": "Обнаружены предупреждения",
-    "weak_pin": "Слабый PIN",
     "wrong_key_usage": "Неверное использование ключа",
     "wrong_servicedescription_type": "Неверный тип описания сервиса",
     "wsdl_download_failed": "Не удалось загрузить WSDL",
@@ -547,38 +409,36 @@
     "wsdl_validator_not_executable": "Валидатор WSDL не является исполняемым"
   },
   "fields": {
+    "C": "Код страны",
+    "CN": "DNS-имя сервера",
+    "O": "Название организации",
     "addClient": {
       "memberClass": "Класс участника",
       "memberCode": "Код участника",
       "subsystemCode": "Код подсистемы"
     },
-    "C": "Код страны",
+    "certificationService": "Сертификационная служба",
     "clientAdd": {
       "client": {
         "memberCode": "Код участника",
         "subsystemCode": "Код подсистемы"
       }
     },
-    "CN": "DNS-имя сервера",
     "confirmPin": "Подтвердите PIN",
     "csr": {
       "certService": "Сертификационная служба",
+      "certificationService": "Сертификационная служба",
       "client": "Клиент",
       "csrFormat": "Формат CSR",
-      "usage": "Использование",
-      "certificationService": "Сертификационная служба"
+      "usage": "Использование"
     },
     "dns": "DNS",
     "keys": {
       "name": "Имя"
     },
-    "O": "Название организации",
-    "password": "Пароль",
+    "memberCode": "Код участника",
     "path": "Путь",
     "pin": "PIN",
-    "memberClass": "Класс участника",
-    "memberCode": "Код участника",
-    "securityServerCode": "Код сервера безопасности",
     "securityServerAddress": "Адрес сервера безопасности",
     "serialNumber": "Серийный номер",
     "serviceCode": "Код сервиса",
@@ -600,24 +460,7 @@
     },
     "tokenPin": "PIN-код токена",
     "url": "URL",
-    "username": "Имя пользователя",
-    "certificationService": "Сертификационная служба"
-  },
-  "footer": {
-    "copyright": {
-      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Информация о лицензии",
-      "title": "Авторские права"
-    },
-    "software": {
-      "feedback": "Обратная связь",
-      "title": "Программное обеспечение",
-      "versionPrefix": "X-Road"
-    }
-  },
-  "global": {
-    "name": "Имя",
-    "appTitle": "Сервер безопасности X-Road"
+    "username": "Имя пользователя"
   },
   "general": {
     "instance": "Экземпляр",
@@ -627,6 +470,9 @@
     "subsystem": "Подсистема",
     "subsystemCode": "Код подсистемы",
     "type": "Тип"
+  },
+  "global": {
+    "appTitle": "Сервер безопасности X-Road"
   },
   "globalAlert": {
     "backupRestoreInProgress": "Конфигурация сервера безопасности восстанавливается из резервной копии. Процесс начат в {startTime}",
@@ -676,6 +522,7 @@
     "tlsTitle": "Сертификат TLS информационной системы"
   },
   "keys": {
+    "acmeCertOrdered": "Сертификат успешно заказан",
     "addKey": "Добавить ключ",
     "authDetailsTitle": "Сведения AUTH ключа",
     "authKeyCert": "AUTH ключи и сертификаты",
@@ -738,19 +585,19 @@
       "unknown": "Неизвестно"
     },
     "orderAcmeCertificate": "Заказать сертификат",
-    "acmeCertOrdered": "Сертификат успешно заказан",
     "readOnly": "Только для чтения:",
     "registrationRequest": "Запрос на регистрацию",
     "request": "Запрос",
     "signDetailsTitle": "Детали SIGN ключа",
     "signKeyCert": "SIGN ключи и сертификаты",
     "status": "Статус",
-    "token": "Токен:",
-    "tokenDetails": "Детали токена",
-    "tokenId": "ID токена:",
-    "tokenInfo": "Информация о токене",
-    "tokenPin": "PIN-код токена",
-    "tokenSaved": "Токен сохранен",
+    "token": {
+      "label": "Токен:",
+      "details": "Детали токена",
+      "id": "ID токена:",
+      "info": "Информация о токене",
+      "saved": "Токен сохранен"
+    },
     "tokenStatus": {
       "active": "",
       "available": "",
@@ -779,7 +626,7 @@
     "id": "ID",
     "localGroup": "Локальная группа",
     "localGroupAdded": "Локальная группа добавлена",
-    "name": "Имя участника",
+    "memberName": "Имя участника",
     "noResults": "По вашему запросу ничего не найдено.",
     "removeAllText": "Вы уверены, что хотите удалить всех участников этой группы?",
     "removeAllTitle": "Удалить всех участников?",
@@ -794,31 +641,13 @@
     "memberCount": "Количество участников",
     "updated": "Обновлено"
   },
-  "login": {
-    "errorMsg401": "Неверное имя пользователя или пароль",
-    "generalError": "Не удалось войти. Пожалуйста, попробуйте еще раз.",
-    "logIn": "Войти",
-    "logOut": "Выйти"
-  },
-  "logout": {
-    "idleWarning": "Вы были неактивны в течение 30 минут, и ваша сессия истекла. По соображениям безопасности вы будете автоматически выведены из системы.",
-    "sessionExpired": "Сессия истекла"
-  },
   "noData": {
-    "loading": "Загрузка... Пожалуйста, подождите",
     "noBackUpEncryptionKeys": "Нет настроенных ключей шифрования резервных копий",
-    "noBackups": "Резервные копии отсутствуют",
-    "noCertificate": "Нет сертификата",
-    "noCertificates": "Нет сертификатов",
-    "noClientData": "Нет данных клиента",
     "noCertificateAuthorities": "Нет центров сертификации",
-    "noData": "Нет данных",
+    "noClientData": "Нет данных клиента",
     "noLocalGroups": "Нет локальных групп",
-    "noMatches": "Нет элементов, соответствующих критериям",
-    "noServices": "Нет служб",
     "noServiceClients": "Нет клиентов служб",
-    "noTimestampingServices": "Нет служб временных меток",
-    "noTokens": "Нет токенов"
+    "noTimestampingServices": "Нет служб временных меток"
   },
   "serviceClientType": {
     "globalGroup": "ГЛОБАЛЬНАЯГРУППА",
@@ -891,16 +720,16 @@
     "url": "URL",
     "urlPlaceholder": "Вставить URL",
     "urlTooltip": "URL-адрес, на который направляются запросы, нацеленные на службу",
+    "verifyTls": "Проверить сертификат TLS",
     "warning": "Предупреждение",
     "warningCode": {
       "adding_endpoints": "Добавление конечных точек:",
       "adding_services": "Добавление служб:",
       "deleting_endpoints": "Удаление конечных точек:",
       "deleting_services": "Удаление служб:",
-      "wsdl_validation_warnings": "Предупреждения проверки:",
-      "openapi_validation_warnings": "Предупреждения проверки:"
+      "openapi_validation_warnings": "Предупреждения проверки:",
+      "wsdl_validation_warnings": "Предупреждения проверки:"
     },
-    "verifyTls": "Проверить сертификат TLS",
     "wsdlAdded": "WSDL добавлен",
     "wsdlDescription": "Описание WSDL",
     "wsdlDetails": "Сведения о WSDL"
@@ -943,10 +772,10 @@
     "approvedCertificateAuthorities": {
       "table": {
         "header": {
+          "acmeIpAddresses": "IP-адрес сервера ACME",
           "distinguishedName": "Отличительное имя",
           "expires": "Истекает",
-          "ocspResponse": "Ответ OCSP",
-          "acmeIpAddresses": "IP-адрес сервера ACME"
+          "ocspResponse": "Ответ OCSP"
         },
         "notAvailable": "Не доступно",
         "ocspResponse": {
@@ -984,6 +813,15 @@
       },
       "title": "Якорь конфигурации"
     },
+    "securityServer": {
+      "addressChangeInProgress": "ИЗМЕНЕНИЕ В ПРОЦЕССЕ",
+      "editDialog": {
+        "title": "Изменить адрес сервера безопасности"
+      },
+      "securityServer": "Сервер безопасности",
+      "serverAddress": "Адрес сервера",
+      "updateSubmitted": "Изменение адреса сервера безопасности успешно отправлено"
+    },
     "timestampingServices": {
       "action": {
         "add": {
@@ -1012,15 +850,6 @@
         }
       },
       "title": "Службы временных меток"
-    },
-    "securityServer": {
-      "securityServer": "Сервер безопасности",
-      "serverAddress": "Адрес сервера",
-      "editDialog": {
-        "title": "Изменить адрес сервера безопасности"
-      },
-      "addressChangeInProgress": "ИЗМЕНЕНИЕ В ПРОЦЕССЕ",
-      "updateSubmitted": "Изменение адреса сервера безопасности успешно отправлено"
     },
     "title": "Системные параметры"
   },
@@ -1055,45 +884,17 @@
   "token": {
     "changePin": "Изменить PIN",
     "pinChanged": "PIN токена был изменен – пожалуйста, войдите в токен с новым PIN",
-    "tokenPinPolicyHeader": "Политика PIN токена активирована.",
-    "tokenPinPolicy": "PIN программного токена должен содержать не менее 10 ASCII символов из не менее трех классов символов (строчные буквы, заглавные буквы, цифры, специальные символы)."
+    "tokenPinPolicy": "PIN программного токена должен содержать не менее 10 ASCII символов из не менее трех классов символов (строчные буквы, заглавные буквы, цифры, специальные символы).",
+    "tokenPinPolicyHeader": "Политика PIN токена активирована."
   },
   "toolbar": {
     "securityServerNodeType": {
-      "undefined": "",
       "PRIMARY": "Основной узел",
-      "SECONDARY": "Вторичный узел"
+      "SECONDARY": "Вторичный узел",
+      "undefined": ""
     }
   },
   "validationError": {
-    "AssertFalse": "значение должно быть 'false'",
-    "AssertTrue": "значение должно быть 'true'",
-    "DecimalMax": "числовое значение превышает допустимый максимум",
-    "DecimalMin": "числовое значение ниже допустимого минимума",
-    "Digits": "значение должно содержать только цифры",
-    "Email": "значение не соответствует формату электронной почты",
-    "Future": "значение даты и времени должно быть в будущем",
-    "FutureOrPresent": "значение даты и времени должно быть в настоящем или будущем",
-    "Max": "числовое значение превышает допустимый максимум",
-    "Min": "числовое значение ниже допустимого минимума",
-    "Negative": "числовое значение должно быть меньше нуля",
-    "NegativeOrZero": "числовое значение должно быть меньше или равно нулю",
-    "NoBackslashes": "значение не должно содержать обратные слэши (\\)",
-    "NoColons": "значение не должно содержать двоеточия (:)",
-    "NoForwardslashes": "значение не должно содержать прямые слэши (/)",
-    "NoPercents": "значение не должно содержать символы процента (%)",
-    "NoSemicolons": "значение не должно содержать точки с запятой (;)",
-    "Normalized": "значение должно быть нормализовано",
-    "NotBlank": "значение не должно быть не заполненным",
-    "NotEmpty": "значение не должно быть пустым",
-    "NotNull": "значение обязательно",
-    "Null": "значение не должно быть установлено",
-    "Past": "значение даты и времени должно быть в прошлом",
-    "PastOrPresent": "значение даты и времени должно быть в настоящем или прошлом",
-    "Pattern": "значение не соответствует требуемому формату",
-    "Positive": "числовое значение должно быть больше нуля",
-    "PositiveOrZero": "числовое значение должно быть больше или равно нулю",
-    "Size": "значение не соответствует требованиям по длине",
     "IdentifierChars": "недопустимые символы идентификатора"
   },
   "wizard": {

@@ -151,7 +151,7 @@
     "backup_file_not_found": "Varufaili ei leitud",
     "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
     "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
-    "core" : {
+    "core": {
       "Signer": {
         "CertNotFound": "Sertifikaati ei leitud",
         "KeyNotFound": "Võtit ei leitud",
@@ -172,6 +172,7 @@
     "token_weak_pin": "Nõrk PIN",
     "tr": {
       "check_signer_logs": "Vt täpsemalt vt signeerija logi.",
+      "code": "Kood: {0}",
       "pin_min_char_classes_count": "PIN-koodi minimaalne tähemärgiklasside arv: {0}",
       "pin_min_length": "PIN-koodi minimaalne pikkus: {0}"
     },

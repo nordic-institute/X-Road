@@ -26,8 +26,6 @@
     "title": "Pääsuõigused"
   },
   "action": {
-    "cancel": "Tühista",
-    "delete": "Kustuta",
     "disable": "Blokeeri",
     "enable": "Aktiveeri",
     "order": "Telli"
@@ -354,7 +352,6 @@
     "duplicate_accessright": "Dubleeri pääsuõigus",
     "endpoint_already_exists": "Otspunkt on juba olemas",
     "endpoint_not_found": "Otspunkti ei leitud",
-    "generate_backup_interrupted": "Varukoopia loomine katkestatud",
     "global_conf_download_request_failed": "Globaalse konfiguratsiooni allalaadimise päring ebaõnnestus",
     "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
     "gpg_key_generation_failed": "GPG võtmepaari loomine ebaõnnestus",
@@ -415,7 +412,6 @@
       "malformed_csr": "CSR andmete vorming on vale"
     },
     "token_not_active": "Krüptomoodul pole aktiivne",
-    "tr": {},
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
     "url_already_exists": "URL on juba olemas",
     "warnings_detected": "Tuvastati hoiatused",
@@ -619,7 +615,6 @@
       "details": "Krüptomooduli detailid",
       "id": "Krüptomooduli ID:",
       "info": "Krüptomooduli teave",
-      "pin": "Krüptomooduli PIN",
       "saved": "Krüptomoodul salvestatud",
       "deleteText": "Kas olete kindel, et soovite selle krüptomooduli ja kõik seotud informatsiooni serveri konfiguratsioonist kustutada?",
       "deleteTitle": "Kustuta krüptomoodul?",

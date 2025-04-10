@@ -26,8 +26,6 @@
     "title": "Access Rights"
   },
   "action": {
-    "cancel": "Cancel",
-    "delete": "Delete",
     "disable": "Disable",
     "enable": "Enable",
     "order": "Order"
@@ -116,9 +114,9 @@
         "success": "Certificate deleted"
       },
       "renameSubsystem": {
-        "title": "Edit subsystem name",
+        "changeAdded": "Subsystem name change successfully added and will be applied on client registration",
         "changeSubmitted": "Subsystem name change successfully submitted",
-        "changeAdded": "Subsystem name change successfully added and will be applied on client registration"
+        "title": "Edit subsystem name"
       },
       "unregister": {
         "confirmText": "Do you want to unregister this client?",
@@ -271,14 +269,14 @@
     },
     "previousUpdate": "Previous Update",
     "proxyMemoryUsage": {
-      "title": "Proxy memory usage",
+      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold",
       "max": "Maximum memory",
-      "total": "Total allocated memory",
-      "used": "Used memory",
-      "threshold": "Threshold",
-      "usagePercent": "Used memory (%)",
       "ok": "Everything ok",
-      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold"
+      "threshold": "Threshold",
+      "title": "Proxy memory usage",
+      "total": "Total allocated memory",
+      "usagePercent": "Used memory (%)",
+      "used": "Used memory"
     },
     "serviceUrl": "Service URL",
     "status": "Status",
@@ -386,7 +384,6 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
-    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
     "invalid_characters_pin": "PIN has invalid characters",
     "invalid_dn_parameter": "Invalid DN parameter",
@@ -437,7 +434,6 @@
       "malformed_csr": "CSR data is malformed"
     },
     "token_not_active": "Token is not active",
-    "tr": {},
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "warnings_detected": "Warnings detected",
@@ -605,8 +601,8 @@
     "helpTitleSS": "Security Server TLS Certificate",
     "id": "ID",
     "importCert": "Import cert.",
-    "importCertSuccess": "Uploading certificate succeeded",
     "importCertOcspVerifyWarning": "Could not activate certificate, because OCSP Responses could not be verified. Error message: {errorMessage}",
+    "importCertSuccess": "Uploading certificate succeeded",
     "incorrectPin": "Incorrect PIN. Please try again.",
     "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Key deleted",
@@ -644,7 +640,6 @@
       "details": "Token details",
       "id": "Token ID:",
       "info": "Token information",
-      "pin": "Token PIN",
       "saved": "Token saved",
       "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
       "deleteTitle": "Delete token?",

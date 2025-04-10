@@ -26,8 +26,6 @@
     "title": "Permisos de acceso"
   },
   "action": {
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
     "disable": "Desactivar",
     "enable": "Permitir",
     "order": "Orden"
@@ -415,7 +413,6 @@
       "malformed_csr": "Los datos de CSR están malformados"
     },
     "token_not_active": "El token no está activo",
-    "tr": {},
     "unsupported_openapi_version": "Versión OpenAPI no soportada. Solo las versiones 3.0.x y 3.1.0 son actualmente compatibles.",
     "url_already_exists": "URL ya existe",
     "warnings_detected": "Advertencias detectadas",
@@ -620,7 +617,6 @@
       "details": "Detalles del token",
       "id": "ID de token:",
       "info": "Información del token",
-      "pin": "PIN",
       "saved": "Token guardado",
       "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
       "deleteTitle": "¿Eliminar token?",

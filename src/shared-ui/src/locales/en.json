@@ -188,8 +188,8 @@
     "password": "Password",
     "securityServerCode": "Security Server Code",
     "shared": "sharedlib",
-    "username": "LIB-Username",
-    "subsystemName": "Subsystem Name"
+    "subsystemName": "Subsystem Name",
+    "username": "LIB-Username"
   },
   "footer": {
     "copyright": {
