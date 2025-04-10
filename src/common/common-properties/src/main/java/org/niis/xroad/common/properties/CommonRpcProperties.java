@@ -55,6 +55,7 @@ public interface CommonRpcProperties {
         String DEFAULT_RETRY_DELAY = "5S";
         String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
         String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
+
         @WithName("issuance-role-name")
         @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
         String issuanceRoleName();
