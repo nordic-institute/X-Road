@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
+import org.niis.xroad.confclient.core.globalconf.FileBasedProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
@@ -65,7 +66,7 @@ public class ConfigurationClientActionExecutor {
                 configurationVersion);
 
         var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath, configurationVersion);
-        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, downloader) {
+        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -82,7 +83,7 @@ public class ConfigurationClientActionExecutor {
                 configurationAnchorFile, configurationPath);
 
         var downloader = new ConfigurationDownloader(httpUrlConnectionConfigurer, configurationPath);
-        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, downloader) {
+        var client = new ConfigurationClient(new FileBasedProvider(configurationAnchorFile), configurationPath, downloader) {
             @Override
             protected void deleteExtraConfigurationDirectories(
                     List<? extends ConfigurationSource> configurationSources,
@@ -126,7 +127,7 @@ public class ConfigurationClientActionExecutor {
         };
 
         var client = new ConfigurationClient(
-                confClientProperties.configurationAnchorFile(),
+                null,
                 confClientProperties.globalConfDir(), configurationDownloader, configurationAnchor) {
             @Override
             protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
