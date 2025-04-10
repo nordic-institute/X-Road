@@ -53,9 +53,9 @@ public class QuarkusRpcConfig extends RpcConfig {
         }
     }
 
-    public void dispose(@Disposes VaultKeyProvider adminPort) {
+    public void dispose(@Disposes VaultKeyProvider vaultKeyProvider) {
         try {
-            adminPort.shutdown();
+            vaultKeyProvider.shutdown();
         } catch (Exception e) {
             log.error("Error while stopping VaultKeyProvider", e);
         }

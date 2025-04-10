@@ -83,7 +83,7 @@ public class QuarkusVaultKeyClient implements VaultKeyClient {
 
     private GenerateCertificateOptions buildVaultCertificateRequest() {
         var request = new GenerateCertificateOptions();
-        request.setTimeToLive("%dm".formatted(certificateProvisionProperties.ttlMinutes()));
+        request.setTimeToLive("%ds".formatted(certificateProvisionProperties.ttl().toSeconds()));
         request.setFormat(DataFormat.valueOf(CERTIFICATE_FORMAT.toUpperCase()));
         request.setPrivateKeyEncoding(PrivateKeyEncoding.valueOf(PKCS8_FORMAT.toUpperCase()));
 

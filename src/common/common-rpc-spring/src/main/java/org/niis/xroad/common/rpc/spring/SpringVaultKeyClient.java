@@ -38,7 +38,6 @@ import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
 
 import java.io.ByteArrayInputStream;
-import java.time.Duration;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -73,7 +72,7 @@ public class SpringVaultKeyClient implements VaultKeyClient {
 
     private VaultCertificateRequest buildVaultCertificateRequest() {
         var builder = VaultCertificateRequest.builder()
-                .ttl(Duration.ofMinutes(certificateProvisionProperties.ttlMinutes()))
+                .ttl(certificateProvisionProperties.ttl())
                 .format(CERTIFICATE_FORMAT)
                 .privateKeyFormat(PKCS8_FORMAT);
 

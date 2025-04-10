@@ -47,10 +47,20 @@ public interface CommonRpcProperties {
     CertificateProvisionProperties certificateProvisioning();
 
     interface CertificateProvisionProperties {
+        String DEFAULT_ISSUANCE_ROLE_NAME = "xrd-internal";
+        String DEFAULT_COMMON_NAME = "localhost";
+        String DEFAULT_SECRET_STORE_PKI_PATH = "xrd-pki";
+        String DEFAULT_TTL = "12H";
+        String DEFAULT_REFRESH_INTERVAL = "5H";
+        String DEFAULT_RETRY_DELAY = "5S";
+        String DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER = "1.5";
+        String DEFAULT_RETRY_MAX_ATTEMPTS = "10";
         @WithName("issuance-role-name")
+        @WithDefault(DEFAULT_ISSUANCE_ROLE_NAME)
         String issuanceRoleName();
 
         @WithName("common-name")
+        @WithDefault(DEFAULT_COMMON_NAME)
         String commonName();
 
         @WithName("alt-names")
@@ -61,25 +71,28 @@ public interface CommonRpcProperties {
         @WithDefault("[]")
         List<String> ipSubjectAltNames();
 
-        @WithName("ttl-minutes")
-        int ttlMinutes();
+        @WithName("ttl")
+        @WithDefault(DEFAULT_TTL)
+        Duration ttl();
 
-        @WithName("refresh-interval-minutes")
-        int refreshIntervalMinutes();
+        @WithName("refresh-interval")
+        @WithDefault(DEFAULT_REFRESH_INTERVAL)
+        Duration refreshInterval();
 
         @WithName("secret-store-pki-path")
+        @WithDefault(DEFAULT_SECRET_STORE_PKI_PATH)
         String secretStorePkiPath();
 
         @WithName("retry-base-delay")
-        @WithDefault("5s")
+        @WithDefault(DEFAULT_RETRY_DELAY)
         Duration retryDelay();
 
         @WithName("retry-exponential-backoff-multiplier")
-        @WithDefault("1.5")
+        @WithDefault(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER)
         Double retryExponentialBackoffMultiplier();
 
         @WithName("retry-max-attempts")
-        @WithDefault("10")
+        @WithDefault(DEFAULT_RETRY_MAX_ATTEMPTS)
         int retryMaxAttempts();
     }
 }

@@ -95,8 +95,8 @@ public class ReloadableVaultKeyManager implements VaultKeyProvider {
         } catch (Throwable e) {
             log.error("Error while reloading vault key manager", e);
         } finally {
-            log.debug("Scheduling next reload in {} minutes", certificateProvisionProperties.refreshIntervalMinutes());
-            scheduler.schedule(this::reload, certificateProvisionProperties.refreshIntervalMinutes(), TimeUnit.MINUTES);
+            log.debug("Scheduling next reload in {}", certificateProvisionProperties.refreshInterval());
+            scheduler.schedule(this::reload, certificateProvisionProperties.refreshInterval().toSeconds(), TimeUnit.SECONDS);
         }
     }
 

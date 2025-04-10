@@ -55,19 +55,19 @@ public class GlobalConfRefreshJob implements Runnable {
     }
 
     public void init() {
-        if (globalConfProperties.refreshRateSeconds() > 0) {
+        var refreshRateSeconds = globalConfProperties.refreshRate().getSeconds();
+        if (refreshRateSeconds > 0) {
             executor = Executors.newSingleThreadScheduledExecutor();
             executor.scheduleAtFixedRate(this,
-                    globalConfProperties.refreshRateSeconds(),
-                    globalConfProperties.refreshRateSeconds(),
+                    refreshRateSeconds,
+                    refreshRateSeconds,
                     TimeUnit.SECONDS);
+            log.info("{} initialized with refresh rate of {} seconds",
+                    getClass().getSimpleName(),
+                    refreshRateSeconds);
         } else {
             log.debug("GlobalConf refresh is disabled");
         }
-
-        log.info("{} initialized with refresh rate of {} seconds",
-                getClass().getSimpleName(),
-                globalConfProperties.refreshRateSeconds());
     }
 
     @Override

@@ -95,12 +95,8 @@ class ReloadableVaultKeyManagerTest {
         certificateProvisionProperties = ConfigUtils.initConfiguration(CommonRpcProperties.class,
                 Map.of("xroad.common.rpc.certificate-provisioning.retry-max-attempts", "2",
                         "xroad.common.rpc.certificate-provisioning.retry-base-delay", "1s",
-                        "xroad.common.rpc.certificate-provisioning.refresh-interval-minutes", "60",
-                        "xroad.common.rpc.certificate-provisioning.retry-exponential-backoff-multiplier", "1.0",
-                        "xroad.common.rpc.certificate-provisioning.secret-store-pki-path", "/",
-                        "xroad.common.rpc.certificate-provisioning.common-name", "cn",
-                        "xroad.common.rpc.certificate-provisioning.ttl-minutes", "1",
-                        "xroad.common.rpc.certificate-provisioning.issuance-role-name", "xrd")
+                        "xroad.common.rpc.certificate-provisioning.refresh-interval", "60s",
+                        "xroad.common.rpc.certificate-provisioning.retry-exponential-backoff-multiplier", "1.0")
         ).certificateProvisioning();
 
         trustManager = spy(AdvancedTlsX509TrustManager.newBuilder()
@@ -145,7 +141,7 @@ class ReloadableVaultKeyManagerTest {
         // Verify the next reload is scheduled
         verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
         assertThat(delayCaptor.getValue()).isEqualTo(60L);
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.MINUTES);
+        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
     }
 
     @Test
@@ -183,7 +179,7 @@ class ReloadableVaultKeyManagerTest {
         // Verify the next reload is scheduled
         verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
         assertThat(delayCaptor.getValue()).isEqualTo(60L);
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.MINUTES);
+        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
 
 
         // Verify the retry metrics (optional but good)
@@ -218,7 +214,7 @@ class ReloadableVaultKeyManagerTest {
         // Verify the next reload is scheduled even after failure
         verify(scheduler).schedule(runnableCaptor.capture(), delayCaptor.capture(), timeUnitCaptor.capture());
         assertThat(delayCaptor.getValue()).isEqualTo(60L); // Still schedules the next attempt
-        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.MINUTES);
+        assertThat(timeUnitCaptor.getValue()).isEqualTo(TimeUnit.SECONDS);
 
         assertThat(retryInstance.getMetrics().getNumberOfSuccessfulCallsWithoutRetryAttempt()).isZero();
         assertThat(retryInstance.getMetrics().getNumberOfSuccessfulCallsWithRetryAttempt()).isZero();
