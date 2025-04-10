@@ -29,11 +29,12 @@ archUnitPlugin = "4.0.0"
 protobufPlugin = "0.9.4"
 checkstyle = "10.22.0"
 jacoco = "0.8.12"
-
+resilience4j = "2.3.0"
 quarkus = "3.21.1"
-quarkus-vault = "4.1.0"
+quarkus-vault = "4.2.1"
 quarkus-systemd-notify = "1.0.2"
-smallryeConfig = "3.11.2"
+smallryeConfig = "3.12.4"
+
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -53,6 +54,7 @@ springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter
 springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.1" }
 
 quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-core = { group = "io.quarkus", name = "quarkus-core", version.ref = "quarkus" }
 quarkus-arc = { group = "io.quarkus", name = "quarkus-arc", version.ref = "quarkus" }
 quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "quarkus" }
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
@@ -72,6 +74,8 @@ quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vaul
 quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify"}
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
+
+resilience4j-retry = { module = "io.github.resilience4j:resilience4j-retry", version.ref = "resilience4j" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }

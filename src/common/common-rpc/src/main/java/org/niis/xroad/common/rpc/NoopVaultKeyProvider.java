@@ -27,14 +27,20 @@
 
 package org.niis.xroad.common.rpc;
 
-import lombok.extern.slf4j.Slf4j;
-
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
-
-@Slf4j
 public class NoopVaultKeyProvider implements VaultKeyProvider {
+
+    @Override
+    public void init() {
+        // No operation
+    }
+
+    @Override
+    public void shutdown() {
+        // No operation
+    }
 
     @Override
     public KeyManager getKeyManager() {

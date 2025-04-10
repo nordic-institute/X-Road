@@ -24,33 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.rpc.vault;
 
-package org.niis.xroad.common.rpc;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
-import io.quarkus.test.Mock;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+public interface VaultKeyClient {
+    String CERTIFICATE_FORMAT = "pem";
+    String PKCS8_FORMAT = "pkcs8";
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
+    VaultKeyData provisionNewCerts() throws Exception;
 
+    record VaultKeyData(
+            X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,
+            X509Certificate[] trustCerts
+    ) {
 
-@Slf4j
-@Mock
-public class NoopVaultKeyProvider implements VaultKeyProvider {
-
-    @PostConstruct
-    public void init() {
-        log.info("NoopVaultKeyProvider init");
-    }
-
-    @Override
-    public KeyManager getKeyManager() {
-        return null;
-    }
-
-    @Override
-    public TrustManager getTrustManager() {
-        return null;
     }
 }

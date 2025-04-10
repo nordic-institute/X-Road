@@ -28,6 +28,7 @@ package org.niis.xroad.globalconf.spring;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.util.DurationConverter;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
@@ -39,6 +40,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.MAPPING_PREFIX;
@@ -70,7 +72,7 @@ public class SpringGlobalConfConfig extends GlobalConfConfig {
     public static class SpringCommonGlobalConfProperties implements GlobalConfProperties {
         private GlobalConfSource source = GlobalConfSource.valueOf(DEFAULT_SOURCE);
 
-        private int refreshRateSeconds = Integer.parseInt(DEFAULT_RATE_INTERVAL);
+        private Duration refreshRate = DurationConverter.parseDuration(DEFAULT_RATE_INTERVAL);
 
         @Override
         public GlobalConfSource source() {
@@ -78,8 +80,8 @@ public class SpringGlobalConfConfig extends GlobalConfConfig {
         }
 
         @Override
-        public int refreshRateSeconds() {
-            return refreshRateSeconds;
+        public Duration refreshRate() {
+            return refreshRate;
         }
     }
 

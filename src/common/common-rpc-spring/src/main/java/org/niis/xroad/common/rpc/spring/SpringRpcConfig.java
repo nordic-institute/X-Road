@@ -32,11 +32,11 @@ import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.vault.core.VaultTemplate;
 
 import java.util.Optional;
@@ -47,13 +47,13 @@ import java.util.Optional;
         SpringCommonRpcProperties.class
 })
 public class SpringRpcConfig extends RpcConfig {
-    public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
 
-    @Bean
+    @Bean(initMethod = "init", destroyMethod = "shutdown")
     VaultKeyProvider reloadableVaultKeyManager(Optional<VaultTemplate> vaultTemplate,
                                                CommonRpcProperties rpcProperties) throws Exception {
         if (rpcProperties.useTls()) {
-            return new SpringReloadableVaultKeyManager(rpcProperties.certificateProvisioning(), vaultTemplate.get());
+            var vaultKeyClient = new SpringVaultKeyClient(rpcProperties.certificateProvisioning(), vaultTemplate.get());
+            return ReloadableVaultKeyManager.withDefaults(rpcProperties.certificateProvisioning(), vaultKeyClient);
         } else {
             return new NoopVaultKeyProvider();
         }
@@ -65,10 +65,6 @@ public class SpringRpcConfig extends RpcConfig {
         return super.rpcCredentialsConfigurer(vaultKeyProvider::get, rpcCommonProperties);
     }
 
-    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
-    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
-        return new SimpleAsyncTaskScheduler();
-    }
 
     @Bean
     RpcChannelFactory rpcChannelFactory(RpcCredentialsConfigurer credentialsConfigurer) {
