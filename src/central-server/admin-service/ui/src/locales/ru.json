@@ -1,0 +1,968 @@
+{
+  "403": {
+    "goBack": "Вернуться назад",
+    "mainTitle": "Доступ запрещён",
+    "text": "Похоже, у вас нет разрешения для просмотра этой страницы. Если вы считаете, что это ошибка, проверьте, вошли ли вы в правильную учетную запись, или свяжитесь с вашим администратором, чтобы узнать о ваших разрешениях.",
+    "topTitle": "Запрещено"
+  },
+  "action": {
+    "activate": "Активировать",
+    "addClient": "Добавить клиента",
+    "addMember": "Добавить участника",
+    "addSubsystem": "Добавить подсистему",
+    "approve": "Одобрить",
+    "close": "Закрыть",
+    "confirm": "Подтвердить",
+    "continue": "Продолжить",
+    "copy": "Копировать",
+    "copyId": "Скопировать ID",
+    "deactivate": "Отключить",
+    "decline": "Отклонить",
+    "done": "Готово",
+    "edit": "Редактировать",
+    "emptySearch": "По вашему запросу {msg} результатов не найдено.",
+    "export": "Экспортировать",
+    "finish": "Завершить",
+    "goToFront": "Перейти на главную страницу",
+    "next": "Следующий",
+    "no": "Нет",
+    "noData": "Нет данных",
+    "ok": "ОК",
+    "previous": "Предыдущий",
+    "refresh": "Обновить",
+    "register": "Регистрация",
+    "remove": "Удалить",
+    "removeAll": "Удалить всё",
+    "save": "Сохранить",
+    "search": "Поиск",
+    "searching": "Поиск...",
+    "submit": "Отправить",
+    "unregister": "Отменить регистрацию",
+    "select": "Выбрать",
+    "generateCsr": "Сгенерировать CSR"
+  },
+  "alert": {
+    "count": "Количество одинаковых ошибок:",
+    "id": "ID"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "СОЗДАТЬ API КЛЮЧ",
+      "step": {
+        "keyDetails": {
+          "apiKey": "API ключ",
+          "apiKeyID": "ID API ключа",
+          "assignedRoles": "Назначенные роли",
+          "createKeyButton": "Создать ключ",
+          "name": "Сведения о ключе",
+          "note": "ПРИМЕЧАНИЕ: сохраните API ключ в безопасном месте. API ключ виден только во время его генерации. Он больше не будет представлен и не может быть восстановлен позже."
+        },
+        "roles": {
+          "description": "Пожалуйста, выберите роли, связанные с API ключом. Роли определяют права, предоставленные API ключу.",
+          "name": "Роли",
+          "selectRoles": "Выберите роли"
+        }
+      },
+      "success": "API ключ успешно создан",
+      "title": "Создать API ключ"
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Сотрудник по регистрации",
+      "XROAD_SECURITY_OFFICER": "Офицер по безопасности",
+      "XROAD_SYSTEM_ADMINISTRATOR": "Системный администратор",
+      "XROAD_MANAGEMENT_SERVICE": "Управляющие службы"
+    },
+    "edit": {
+      "roleRemoveOnly": "(только удаление)"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Редактировать",
+          "dialog": {
+            "message": "Роли, связанные с API ключом:",
+            "title": "Редактировать API ключ (ID: {id})"
+          },
+          "success": "API ключ с ID {id} сохранен"
+        },
+        "revoke": {
+          "button": "Отозвать ключ",
+          "confirmationDialog": {
+            "message": "Вы уверены, что хотите отозвать API ключ с ID {id}?",
+            "title": "Вы уверены?"
+          },
+          "success": "API ключ с ID {id} успешно отозван"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Роли"
+      }
+    }
+  },
+  "backup": {
+    "createBackup": {
+      "button": "Создать резервную копию",
+      "messages": {
+        "success": "Резервная копия {file} успешно создана"
+      }
+    },
+    "uploadBackup": {
+      "button": "Загрузить резервную копию",
+      "confirmationDialog": {
+        "confirmation": "Файл {name} уже существует. Вы уверены, что хотите перезаписать его?",
+        "title": "Файл уже существует"
+      },
+      "success": "Резервная копия {file} успешно загружена"
+    },
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Вы уверены, что хотите удалить резервную копию {file}?",
+        "title": "Вы уверены?"
+      },
+      "success": "Резервная копия {file} удалена"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Вы уверены, что хотите восстановить из {file}?",
+        "title": "Вы уверены?"
+      },
+      "success": "Конфигурация восстановлена из {file}"
+    }
+  },
+  "customValidation": {
+    "invalidUrl": "URL недействителен. Примеры действительных форматов URL: 'http://www.example.com', 'https://www.example.com'",
+    "invalidIpAddress": "Поле должно содержать IP-адрес или несколько адресов, разделённых запятой"
+  },
+  "error_code": {
+    "certificate_profile_info_class_not_found": "Класс информации профиля сертификата не найден",
+    "certification_service_not_found": "Служба сертификации не найдена.",
+    "configuration_not_found": "Источник конфигурации не найден",
+    "configuration_part_file_not_found": "Файл части конфигурации не найден",
+    "configuration_part_validation_failed": "Проверка части конфигурации не удалась",
+    "configuration_part_validator_not_found": "Проверка части конфигурации не найдена",
+    "error_activating_signing_key": "Ошибка активации ключа подписи",
+    "error_deleting_signing_key": "Ошибка удаления ключа подписи",
+    "error_recreating_anchor": "Ошибка повторного создания файла якоря",
+    "global_group_exists": "Глобальная группа с таким же кодом уже существует.",
+    "global_group_not_found": "Глобальная группа с указанным кодом не существует",
+    "init_already_initialized": "Инициализация центрального сервера не удалась, уже полностью инициализирован",
+    "init_invalid_params": "Пустые, отсутствующие или избыточные параметры, предоставленные для инициализации",
+    "init_signer_pin_policy_failed": "Ошибка политики PIN-кода токена у Подписанта",
+    "init_software_token_failed": "Не удалось инициализировать программный токен",
+    "instance_identifier_not_set": "Системный параметр для идентификатора экземпляра не установлен",
+    "intermediate_ca_not_found": "Промежуточный CA не найден",
+    "invalid_certificate": "Недействительный сертификат X.509",
+    "invalid_member_id": "Недействительный ID участника",
+    "invalid_pagination_properties": "Недействительный свойства пагинации",
+    "invalid_service_provider_id": "Недействительный ID поставщика услуг",
+    "invalid_sort_properties": "Недействительный параметр сортировки",
+    "invalid_subsystem_id": "Недействительный ID подсистемы",
+    "invalid_url": "Недействительный URL",
+    "invalid_ip_address": "Недействительный IP-адрес",
+    "key_generation_failed": "Не удалось сгенерировать ключ подписи",
+    "management_request_cannot_register_owner": "Невозможно зарегистрировать владельца в качестве клиента",
+    "management_request_client_already_owner": "Клиент уже является владельцем сервера безопасности",
+    "management_request_client_already_registered": "Клиент уже зарегистрирован на сервере",
+    "management_request_client_registration_not_found": "Регистрация клиента не существует",
+    "management_request_exists": "Ожидающий запрос управления уже существует.",
+    "management_request_invalid_auth_certificate": "Неверный сертификат аутентификации",
+    "management_request_invalid_state": "Запрашиваемая операция не может быть выполнена в данном состоянии",
+    "management_request_invalid_state_for_approval": "Запрос управления не может быть одобрен",
+    "management_request_member_not_found": "Участник не существует",
+    "management_request_not_found": "Запрос управления с указанным ID не найден.",
+    "management_request_not_supported": "Неизвестный тип запроса управления",
+    "management_request_owner_must_be_client": "Владелец не зарегистрирован как клиент на сервере безопасности",
+    "management_request_owner_must_be_member": "Владелец должен быть участником",
+    "management_request_security_server_exists": "Сертификат уже зарегистрирован.",
+    "management_request_server_code_exists": "Участник уже владеет сервером безопасности с кодом сервера",
+    "management_request_server_not_found": "Сервер безопасности не найден",
+    "management_request_server_owner_not_found": "Владелец сервера безопасности не найден",
+    "management_request_unknown_type": "Неизвестный тип запроса",
+    "management_service_provider_not_set": "Поставщик управляющих услуг не установлен",
+    "member_class_exists": "Класс участника с таким же кодом уже существует.",
+    "member_class_is_in_use": "Невозможно удалить класс участника: найдены X-Road участники, принадлежащие к этому классу. Удалить можно только классы без зарегистрированных участников.",
+    "member_class_not_found": "Класс участника с указанным кодом не найден.",
+    "member_exists": "Участник с таким же кодом уже существует.",
+    "member_not_found": "Участник с указанным кодом/идентификатором не найден.",
+    "no_configuration_signing_keys_configured": "Не настроены ключи подписи конфигурации",
+    "ocsp_responder_not_found": "OCSP-ответчик не найден",
+    "owners_global_group_cannot_be_deleted": "Невозможно выполнить действие удаления для группы владельцев сервера",
+    "owners_global_group_member_cannot_be_deleted": "Невозможно выполнить действие удаления для члена группы владельцев сервера",
+    "signer_proxy_error": "Ошибка прокси-подписчика",
+    "signing_key_action_not_possible": "Действие с ключом подписи невозможно",
+    "signing_key_not_found": "Ключ подписи не найден",
+    "ss_auth_certificate_not_found": "Сертификат аутентификации не найден",
+    "subsystem_already_registered_to_security_server": "Подсистема уже зарегистрирована в сервере безопасности",
+    "subsystem_exists": "Подсистема с таким кодом уже существует.",
+    "subsystem_not_found": "Подсистема с указанным кодом не найдена.",
+    "subsystem_not_registered_to_security_server": "Подсистема не зарегистрирована в указанном сервере безопасности.",
+    "subsystem_registered_and_cannot_be_deleted": "Невозможно удалить уже зарегистрированную подсистему.",
+    "timestamping_authority_not_found": "Орган по установлению времени не найден",
+    "token_action_not_possible": "Действие с токеном невозможно",
+    "token_activation_failed": "Не удалось активировать токен",
+    "token_deactivation_failed": "Не удалось деактивировать токен",
+    "token_fetch_failed": "Ошибка получения токенов",
+    "token_incorrect_pin_format": "Неверный формат PIN-кода",
+    "token_invalid_characters": "Предоставленный PIN-код содержит недопустимые символы",
+    "token_not_found": "Токен не найден",
+    "token_pin_final_try": "Осталось попыток: 1",
+    "token_pin_locked": "PIN-код токена заблокирован",
+    "token_weak_pin": "Предоставленный PIN-код слишком слаб",
+    "unknown_configuration_part": "Неизвестная часть конфигурации",
+    "malformed_anchor": "Некорректный файл якоря",
+    "trusted_anchor_verification_failed": "Не удалось проверить доверенный якорь",
+    "trusted_anchor_not_found": "Доверенный якорь не найден",
+    "internal_error": "Внутренняя ошибка. См. журналы сервера для получения дополнительной информации",
+    "invalid_parameters": "Ошибка проверки данных",
+    "security_server_not_found": "Сервер безопасности не найден",
+    "invalid_encoded_id": "Недопустимый закодированный ID",
+    "id_not_a_number": "ID не является числом",
+    "api_key_not_found": "API ключ не найден",
+    "invalid_role": "Недопустимая роль",
+    "invalid_file_content_type": "Недопустимый тип содержимого загруженного файла",
+    "invalid_file_extension": "Недопустимое расширение файла",
+    "double_file_extension": "Двойное расширение файла не допускается",
+    "invalid_filename": "Недопустимое имя файла",
+    "invalid_backup_file": "Недопустимый файл резервной копии",
+    "backup_file_not_found": "Резервная копия не найдена",
+    "backup_generation_failed": "Не удалось создать резервную копию",
+    "generate_backup_interrupted": "Создание резервной копии было прервано",
+    "restore_process_failed": "Процесс восстановления не удался",
+    "backup_restore_interrupted": "Восстановление резервной копии было прервано",
+    "backup_deletion_failed": "Не удалось удалить резервную копию",
+    "resource_read_failed": "Не удалось прочитать ресурс",
+    "conf_verification.anchor_not_for_external_source": "Проверка конфигурации не удалась: anchor_not_for_external_source",
+    "conf_verification.missing_private_params": "Проверка конфигурации не удалась: missing_private_params",
+    "conf_verification.other": "Проверка конфигурации не удалась: other",
+    "conf_verification.outdated": "Проверка конфигурации не удалась: outdated",
+    "conf_verification.signature_invalid": "Проверка конфигурации не удалась: signature_invalid",
+    "conf_verification.unreachable": "Проверка конфигурации не удалась: unreachable",
+    "cannot_add_member_to_owners_group": "Невозможно добавить участников в группу владельцев сервера",
+    "validation_failure": "Ошибка проверки данных",
+    "invalid_distinguished_name": "Неверное отличительное имя",
+    "generate_key_cert_interrupted": "Создание ключа и сертификата было прервано",
+    "key_and_cert_generation_failed": "Не удалось создать TLS-ключ и сертификат",
+    "csr_generation_failed": "Не удалось создать CSR",
+    "cannot_convert_bytes_to_certificate": "Не удалось преобразовать байты в сертификат",
+    "certificate_writing_failed": "Не удалось записать сертификат в файл",
+    "cannot_read_certificate": "Не удалось прочитать TLS сертификат",
+    "key_not_found": "Импортированный сертификат не соответствует TLS-ключу",
+    "certificate_already_exists": "Импортированный сертификат уже существует",
+    "certificate_import_failed": "Не удалось импортировать TLS сертификат",
+    "invalid_address_char": "Поле адреса содержит недопустимые символы"
+  },
+  "fields": {
+    "init": {
+      "address": "Адрес центрального сервера",
+      "confirmPin": "Повторите PIN-код",
+      "identifier": "Идентификатор экземпляра",
+      "pin": "PIN",
+      "repeatPin": "Повторите PIN-код"
+    },
+    "initialServerConf": {
+      "centralServerAddress": "Адрес центрального сервера",
+      "instanceIdentifier": "Идентификатор экземпляра"
+    },
+    "password": "Пароль",
+    "username": "Имя пользователя",
+    "url": "URL",
+    "tokenPin": "PIN-код токена",
+    "keyLabel": "Удобное имя ключа",
+    "subsystemCode": "Код подсистемы",
+    "memberCode": "Код участника",
+    "memberName": "Имя участника",
+    "memberClass": "Класс участника",
+    "securityServerAddress": "Адрес сервера безопасности",
+    "serverCode": "Код сервера",
+    "securityServerCode": "Код сервера безопасности",
+    "serviceAddress": "Адрес центрального сервера",
+    "certProfile": "Информация о профиле сертификата",
+    "certFile": "Файл сертификата",
+    "distinguishedName": "Отличительное имя",
+    "acmeServerDirectoryUrl": "URL каталога сервера ACME",
+    "acmeServerIpAddress": "IP-адрес(а) сервера ACME",
+    "authenticationCertificateProfileId": "ID профиля сертификата аутентификации",
+    "signingCertificateProfileId": "ID профиля сертификата подписи"
+  },
+  "filters": {
+    "apply": "Применить",
+    "chooseFilters": "Выберите фильтры",
+    "clearFields": "Очистить поля",
+    "groupMembers": {
+      "byClass": "По классу",
+      "byCode": "По коду",
+      "byInstance": "По экземпляру",
+      "bySubsystem": "По подсистеме",
+      "byType": "По типу",
+      "class": "Класс",
+      "instance": "Экземпляр",
+      "member": "Участник",
+      "subsystem": "Подсистема"
+    },
+    "managementRequests": {
+      "byCreationDate": "По дате создания",
+      "byRequestType": "По типу запроса",
+      "byServerCode": "По коду сервера",
+      "byServerOwnerClass": "По классу владельца сервера",
+      "byServerOwnerCode": "По коду владельца сервера",
+      "byServerOwnerName": "По имени владельца сервера",
+      "bySource": "По источнику",
+      "byStatus": "По статусу"
+    }
+  },
+  "footer": {
+    "copyright": {
+      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "licenceInfo": "Информация о лицензии",
+      "title": "Авторские права"
+    },
+    "software": {
+      "feedback": "Отзывы",
+      "title": "Программное обеспечение",
+      "versionPrefix": "X-Road"
+    }
+  },
+  "global": {
+    "appTitle": "Центральный сервер X-Road",
+    "pageNotFound": "упс, страница не найдена",
+    "approve": "Одобрить",
+    "class": "Класс",
+    "code": "Код",
+    "created": "Создано",
+    "delete": "Удалить",
+    "id": "ID",
+    "instance": "Экземпляр",
+    "memberClass": "Класс участника",
+    "memberCode": "Код участника",
+    "memberName": "Имя участника",
+    "name": "Имя",
+    "navigation": {
+      "back": "Назад"
+    },
+    "register": "Зарегистрироваться",
+    "search": "Поиск",
+    "server": "Сервер",
+    "status": "Статус",
+    "subsystem": "Подсистема",
+    "type": "Тип"
+  },
+  "globalConf": {
+    "globalConf": "Глобальная конфигурация",
+    "internalConf": "Внутренняя конфигурация",
+    "trustedAnchors": "Доверенные якоря",
+    "cfgParts": {
+      "title": "Части конфигурации",
+      "file": "Файл",
+      "contentIdentifier": "Идентификатор содержимого",
+      "version": "Версия",
+      "allVersions": "Все версии",
+      "updated": "Обновлено",
+      "dialog": {
+        "upload": {
+          "title": "Загрузка части конфигурации",
+          "uploadConfigurationPart": "Загрузите файл конфигурации с вашего компьютера",
+          "success": "Часть конфигурации успешно загружена."
+        }
+      }
+    },
+    "anchor": {
+      "title": "Якорь",
+      "certificateHash": "Хэш сертификата (SHA-224)",
+      "created": "Создано",
+      "download": "Скачать",
+      "recreate": "Повторно создать",
+      "recreateSuccess": "Якорь конфигурации {configurationType} успешно сгенерирован"
+    },
+    "downloadUrl": {
+      "title": "URL загрузки",
+      "urlAddress": "URL адрес"
+    },
+    "trustedAnchor": {
+      "dialog": {
+        "upload": {
+          "confirmation": "Продолжить загрузку?",
+          "field": {
+            "generated": "Сгенерировано",
+            "hash": "Хэш (SHA-224)"
+          },
+          "info": "Сведения о доверенном якоре:",
+          "success": "Доверенный якорь успешно загружен",
+          "title": "Подтвердите данные доверенного якоря"
+        },
+        "delete": {
+          "confirmation": "Удалить якорь {identifier} с Хэшем (SHA-224) {hash}?",
+          "success": "Доверенный якорь успешно удален",
+          "title": "Удалить якорь"
+        }
+      }
+    }
+  },
+  "globalGroup": {
+    "added": "Добавлено",
+    "addMembers": "Добавить участников",
+    "areYouSure": "Вы уверены, что хотите удалить глобальную группу {group}?",
+    "code": "Код",
+    "class": "Класс",
+    "deleteGroup": "Удалить группу",
+    "description": "Описание",
+    "descriptionSaved": "Описание успешно сохранено.",
+    "editDescription": "Изменить описание",
+    "groupDeletedSuccessfully": "Глобальная группа успешно удалена.",
+    "groupMembers": "Участники группы  ({memberCount})",
+    "instance": "Экземпляр",
+    "memberName": "Имя участника",
+    "subsystem": "Подсистема",
+    "type": "Тип",
+    "dialog": {
+      "addMembers": {
+        "title": "Добавить участников",
+        "success": "Участники с идентификаторами: {identifiers} добавлены в эту глобальную группу"
+      },
+      "deleteMember": {
+        "title": "Удалить участника",
+        "confirmation": "Вы уверены, что хотите удалить участника с идентификатором \"{identifier}\" из этой глобальной группы? Введите код участника для подтверждения.",
+        "placeholder": "Введите код участника",
+        "success": "Участник с идентификатором \"{identifier}\" удален из этой глобальной группы"
+      }
+    }
+  },
+  "globalResources": {
+    "addGlobalGroup": "Добавить глобальную группу",
+    "globalGroupSuccessfullyAdded": "Глобальная группа успешно добавлена.",
+    "code": "Код",
+    "description": "Описание",
+    "globalGroups": "Глобальные группы",
+    "memberCount": "Количество участников",
+    "updated": "Обновлено"
+  },
+  "init": {
+    "address": {
+      "info": "Публичное DNS-имя центрального сервера или внешний IP-адрес. Используется для входящих соединений из внешней сети к центральному серверу."
+    },
+    "csIdentification": "Идентификация центрального сервера",
+    "initialConfiguration": "Начальная конфигурация",
+    "instanceIdentifier": {
+      "info": "Код экземпляра X-Road, уникально идентифицирующий этот экземпляр X-Road."
+    },
+    "notification": "Центральный сервер инициализирован! Теперь продолжите полную конфигурацию.",
+    "pin": {
+      "info": "PIN для доступа к программному токену.",
+      "pinMatchError": "Подтверждение пароля не совпадает",
+      "repeat": "Повторите PIN"
+    },
+    "softwareToken": "Программный токен"
+  },
+  "keys": {
+    "title": "Ключи подписи",
+    "addKey": "Добавить ключ",
+    "created": "Создано",
+    "logIn": "Войти",
+    "logOut": "Выйти",
+    "signKey": "Ключ подписи",
+    "token": "Токен:",
+    "dialog": {
+      "delete": {
+        "title": "Удалить ключ",
+        "text": "Удалить ключ '{label}'?",
+        "confirmButton": "Удалить",
+        "success": "Ключ подписи успешно удален"
+      },
+      "add": {
+        "title": "Добавить ключ",
+        "labelField": "Удобное имя ключа",
+        "confirmButton": "Добавить",
+        "success": "Ключ подписи '{label}' успешно добавлен. Пожалуйста, не активируйте ключ немедленно. Ознакомьтесь с руководством пользователя Центрального сервера перед активацией ключа."
+      },
+      "activate": {
+        "title": "Активировать ключ",
+        "text": "Активировать ключ '{label}'?",
+        "confirmButton": "Активировать",
+        "success": "Ключ подписи '{label}' успешно активирован"
+      }
+    }
+  },
+  "tokens": {
+    "keysInfoMessage": "На одном токене конфигурации может быть не более двух ключей для подписи источника конфигурации",
+    "logIn": "Войти",
+    "pin": "PIN токена",
+    "loginDialog": {
+      "title": "Вход",
+      "success": "Вход в токен"
+    },
+    "logout": {
+      "title": "Выход",
+      "confirmButton": "Выйти",
+      "text": "Вы уверены, что хотите выйти из токена?",
+      "success": "Выход из токена выполнен"
+    },
+    "errors": {
+      "Signer": {
+        "PinIncorrect": "Неверный PIN-код"
+      }
+    }
+  },
+  "cert": {
+    "certificate": "Сертификат",
+    "hashInfo": "Хэш (SHA-256)",
+    "rsaExp": "Экспонент публичного ключа RSA",
+    "rsaModulus": "Модуль публичного ключа RSA",
+    "keyUsage": {
+      "CRL_SIGN": "Подпись CRL",
+      "DATA_ENCIPHERMENT": "Шифрование данных",
+      "DECIPHER_ONLY": "Только расшифрование",
+      "DIGITAL_SIGNATURE": "Цифровая подпись",
+      "ENCIPHER_ONLY": "Только шифрование",
+      "KEY_AGREEMENT": "Согласование ключей",
+      "KEY_CERT_SIGN": "Подпись сертификата",
+      "KEY_ENCIPHERMENT": "Шифрование ключей",
+      "NON_REPUDIATION": "Неотказуемость"
+    }
+  },
+  "login": {
+    "errorMsg401": "Неверное имя пользователя или пароль",
+    "generalError": "Не удалось войти. Пожалуйста, попробуйте снова.",
+    "logIn": "Войти",
+    "logOut": "Выйти"
+  },
+  "logout": {
+    "idleWarning": "Вы бездействовали в течение 30 минут, и ваша сессия истекла. По соображениям безопасности вы будете автоматически выведены из системы.",
+    "sessionExpired": "Данная сессия истекла"
+  },
+  "managementRequests": {
+    "addCertificate": "Добавить сертификат",
+    "addClient": "Добавить клиента",
+    "approved": "Одобрено",
+    "submitted": "Отправлено на одобрение",
+    "changeOwner": "Изменить владельца",
+    "changeAddress": "Изменить адрес",
+    "clientEnable": "Включить клиента",
+    "clientDisable": "Отключить клиента",
+    "pending": "Ожидает",
+    "rejected": "Отклонено",
+    "revoked": "Отозвано",
+    "unknown": "Неизвестно",
+    "removeCertificate": "Удалить сертификат",
+    "removeClient": "Удалить клиента",
+    "securityServerId": "Идентификатор сервера",
+    "securityServerOwnerName": "Имя владельца сервера",
+    "showOnlyPending": "Показать только ожидающие запросы",
+    "dialog": {
+      "approve": {
+        "title": "Одобрить запрос на управление",
+        "bodyMessage": "Вы уверены, что хотите одобрить запрос на управление с ID {id} от сервера {serverId}?",
+        "successMessage": "Запрос на управление с ID {id} от {serverId} одобрен",
+        "newMemberWarning": "Указанный участник в настоящее время не существует. Он будет создан автоматически при одобрении этого запроса."
+      },
+      "decline": {
+        "title": "Отклонить запрос на управление",
+        "bodyMessage": "Вы уверены, что хотите отклонить запрос на управление с ID {id} от сервера {serverId}?",
+        "successMessage": "Запрос на управление с ID {id} от {serverId} отклонен"
+      }
+    }
+  },
+  "managementRequestDetails": {
+    "requestInformation": "Запрос информации",
+    "requestId": "ID запроса",
+    "received": "Получено",
+    "source": "Источник",
+    "status": "Статус",
+    "comments": "Комментарии",
+    "securityServerInformation": "Информация о затронутом сервере безопасности",
+    "ownerName": "Имя владельца",
+    "ownerClass": "Класс владельца",
+    "ownerCode": "Код владельца",
+    "serverCode": "Код сервера",
+    "address": "Адрес",
+    "clientInformation": "Клиент отправлен на регистрацию",
+    "ownerChangeInformation": "Новый владелец отправлен на регистрацию",
+    "clientDisableInformation": "Отключенный клиент",
+    "clientEnableInformation": "Включенный клиент",
+    "subsystemCode": "Код подсистемы",
+    "certificateformation": "Сертификат аутентификации отправлен на регистрацию",
+    "ca": "CA",
+    "serialNumber": "Серийный номер",
+    "subject": "Тема",
+    "expires": "Истекает"
+  },
+  "members": {
+    "addMember": "Добавить участника",
+    "header": "Участники",
+    "member": {
+      "details": {
+        "addedToGroup": "Добавлено в группу",
+        "globalGroups": "Глобальные группы",
+        "group": "Группа",
+        "ownedServers": "Собственные серверы",
+        "server": "Сервер",
+        "enterCode": "Введите код участника",
+        "deleteMember": "Удалить участника",
+        "confirmDelete": "Вы уверены, что хотите удалить участника {member} из конфигурации системы? Введите код участника для подтверждения.",
+        "editMemberName": "Изменить имя участника",
+        "memberNameSaved": "Имя участника успешно сохранено",
+        "memberDeleted": "Участник успешно удален"
+      },
+      "managementRequests": {
+        "created": "Создано",
+        "id": "ID запроса",
+        "showOnlyWaiting": "Показать только ожидающие запросы",
+        "status": "Статус",
+        "type": "Тип запроса"
+      },
+      "pagenavigation": {
+        "details": "Детали",
+        "managementRequests": "Запросы на управление",
+        "subsystems": "Подсистемы"
+      },
+      "subsystems": {
+        "addClient": "Добавить подсистему",
+        "deleteSubsystem": "Удалить подсистему",
+        "serverOwner": "Владелец сервера",
+        "servercode": "Код сервера",
+        "status": "Статус",
+        "subsystemcode": "Код подсистемы",
+        "subsystemSuccessfullyAdded": "Подсистема {subsystemCode} добавлена в конфигурацию системы",
+        "areYouSureDelete": "Вы уверены, что хотите удалить подсистему {subsystemCode} из конфигурации системы X-Road для участника {memberId}?",
+        "subsystemSuccessfullyDeleted": "Подсистема {subsystemCode} была удалена из конфигурации системы",
+        "areYouSureUnregister": "Вы уверены, что хотите удалить подсистему {subsystemCode} из сервера {serverCode} из конфигурации системы?",
+        "subsystemSuccessfullyUnregistered": "Подсистема {subsystemCode} из сервера {serverCode} была удалена"
+      }
+    },
+    "memberSuccessfullyAdded": "Участник {memberName} добавлен в конфигурацию системы."
+  },
+  "noData": {
+    "loading": "Загрузка... Пожалуйста, подождите",
+    "noBackups": "Резервных копий пока нет",
+    "noCertificate": "Нет сертификата",
+    "noCertificates": "Нет сертификатов",
+    "noData": "Нет данных",
+    "noMatches": "Нет элементов, соответствующих критериям",
+    "noMemberClasses": "Нет классов участников",
+    "noServices": "Нет сервисов",
+    "noTokens": "Нет токенов",
+    "noSecurityServers": "Нет серверов безопасности"
+  },
+  "securityServers": {
+    "address": "Адрес",
+    "ownerClass": "Класс владельца",
+    "ownerCode": "Код владельца",
+    "ownerName": "Имя владельца",
+    "registered": "Зарегистрировано",
+    "unregistered": "Не зарегистрировано",
+    "pending": "Ожидает одобрения",
+    "disabled": "Временно отключено",
+    "securityServer": {
+      "certificationAuthority": "Сертификационный центр",
+      "deleteServer": "Удалить сервер",
+      "expires": "Истекает",
+      "serialNumber": "Серийный номер",
+      "subject": "Тема",
+      "deleteSecurityServer": "Удалить сервер безопасности",
+      "tabs": {
+        "authCertificates": "Сертификаты аутентификации",
+        "clients": "Клиенты",
+        "details": "Детали",
+        "managementRequests": "Запросы на управление"
+      },
+      "dialog": {
+        "deleteAuthCertificate": {
+          "title": "Удалить сертификат аутентификации",
+          "content": "Вы уверены, что хотите удалить сертификат аутентификации Test CA из конфигурации системы? Введите код сервера для подтверждения.",
+          "securityServerCode": "Введите код сервера безопасности",
+          "success": "Сертификат аутентификации сервера безопасности успешно удален"
+        }
+      }
+    },
+    "dialogs": {
+      "editAddress": {
+        "title": "Изменить адрес сервера безопасности",
+        "addressField": "Адрес сервера безопасности",
+        "success": "Адрес сервера безопасности успешно обновлен"
+      },
+      "deleteAddress": {
+        "title": "Удалить сервер безопасности",
+        "enterCode": "Введите код сервера безопасности",
+        "areYouSure": "Вы уверены, что хотите удалить сервер безопасности {securityServer} из конфигурации системы? Введите код сервера для подтверждения.",
+        "success": "Сервер безопасности удален."
+      }
+    },
+    "serverCode": "Код сервера"
+  },
+  "systemSettings": {
+    "centralServerAddress": "Адрес центрального сервера",
+    "code": "Код",
+    "description": "Описание",
+    "editCentralServerAddressSuccess": "Адрес центрального сервера успешно обновлен",
+    "editCentralServerAddressTitle": "Изменить адрес центрального сервера",
+    "instanceIdentifier": "Идентификатор экземпляра",
+    "managementServices": {
+      "title": "Службы управления",
+      "securityServer": "Сервер безопасности управленческих сервисов"
+    },
+    "selectSubsystem": {
+      "title": "Выбрать подсистему",
+      "search": "Поиск",
+      "name": "Имя",
+      "memberClass": "Класс",
+      "memberCode": "Код",
+      "subsystemCode": "Подсистема",
+      "xroadInstance": "Экземпляр",
+      "type": "Тип"
+    },
+    "selectSecurityServer": {
+      "title": "Выбрать сервер безопасности",
+      "search": "Поиск",
+      "name": "Имя",
+      "memberClass": "Класс",
+      "memberCode": "Код",
+      "subsystemCode": "Подсистема",
+      "xroadInstance": "Экземпляр",
+      "type": "Тип"
+    },
+    "serviceProvider": {
+      "changedSuccess": "Поставщик услуг успешно изменен",
+      "registeredSuccess": "Поставщик услуг управления '{subsystemId}' зарегистрирован как клиент сервера безопасности '{securityServerId}"
+    },
+    "memberClasses": "Классы участника",
+    "securityServerOwnerGroupCode": "Код группы владельцев серверов безопасности",
+    "serviceProviderIdentifier": "Идентификатор поставщика услуг",
+    "serviceProviderName": "Имя поставщика услуг",
+    "systemParameters": "Параметры системы",
+    "wsdlAddress": "Адрес WSDL",
+    "managementServicesAddress": "Адрес служб управления",
+    "editMemberClassTitle": "Изменить класс участника",
+    "addMemberClassTitle": "Добавить класс участника",
+    "deleteMemberClass": "Удалить класс участника?",
+    "memberClassSaved": "Класс участника сохранен.",
+    "memberClassDeleted": "Класс участника удален."
+  },
+  "tlsCertificates": {
+    "managementService": {
+      "title": "TLS сертификат управленческого сервиса",
+      "key": "TLS ключ управленческого сервиса",
+      "downloadCertificate": "Скачать сертификат",
+      "downloadSuccess": "TLS сертификат управленческого сервиса успешно скачан",
+      "generateKey": {
+        "button": "Повторно создать ключ",
+        "title": "TLS ключ управленческого сервиса",
+        "confirmation": "Создать новый TLS ключ и сертификат для управленческого сервиса?",
+        "explanation": "Система создаст новый TLS ключ для управленческого сервиса и самоподписанный сертификат, заменив существующий ключ и сертификат.",
+        "success": "Новый TLS ключ и сертификат для управленческого сервиса успешно созданы"
+      },
+      "generateCsr": {
+        "button": "Создать CSR",
+        "title": "Создать запрос на подписание TLS сертификата",
+        "content": "Сначала укажите отличительное имя. Затем создайте новый CSR и сохраните его в безопасном месте",
+        "distinguishedName": "Введите отличительное имя",
+        "example": "CN=mycentralserver.example.com, O=My Organization, C=EE"
+      },
+      "uploadCertificate": {
+        "button": "Загрузить сертификат",
+        "title": "Загрузить TLS сертификат управленческого сервиса",
+        "label": "Загрузите файл сертификата с вашего компьютера",
+        "success": "TLS сертификат управленческого сервиса успешно загружен"
+      }
+    }
+  },
+  "tab": {
+    "globalConf": {
+      "externalConf": "Внешняя конфигурация",
+      "internalConf": "Внутренняя конфигурация",
+      "trustedAnchors": "Доверенные якоря"
+    },
+    "main": {
+      "globalConfiguration": "Глобальная конфигурация",
+      "managementRequests": "Запросы на управление",
+      "members": "Участники",
+      "securityServers": "Серверы безопасности",
+      "settings": "Настройки",
+      "trustServices": "Услуги доверия"
+    },
+    "settings": {
+      "apiKeys": "API ключи",
+      "backupAndRestore": "Резервное копирование и восстановление",
+      "globalResources": "Глобальные ресурсы",
+      "systemSettings": "Настройки системы",
+      "tlsCertificates": "TLS сертификаты"
+    }
+  },
+  "trustServices": {
+    "addCertificationService": "Добавить сервис сертификации",
+    "addCASettingsCheckbox": "Этот CA может использоваться только для TLS-аутентификации (отметьте, если это верно)",
+    "approvedCertificationService": "Одобренный сервис сертификации",
+    "caSettings": "Настройки CA",
+    "certificationServices": "Сервисы сертификации",
+    "certImportedSuccessfully": "Сертификат успешно импортирован",
+    "certProfileInput": "Информация о профиле сертификата",
+    "certProfileInputExplanation": "Полное имя класса, реализующего интерфейс ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface",
+    "acmeServerDirectoryUrlExplanation": "Используется серверами безопасности для выполнения операций, связанных с сертификатами, через API сервера ACME.",
+    "acmeServerIpAddressExplanation": "Список IP-адресов сервера ACME, используемых для завершения HTTP-вызова ACME с сервером безопасности. Несколько адресов разделяются запятой. Эта информация отображается в UI сервера безопасности.",
+    "acmeServerAuthProfileIdExplanation": "ID профиля, используемый некоторыми серверами ACME для указания типа использования сертификата при заказе сертификата аутентификации.",
+    "acmeServerSignProfileIdExplanation": "ID профиля, используемый некоторыми серверами ACME для указания типа использования сертификата при заказе сертификата подписи.",
+    "timestampingServices": "Службы временных меток",
+    "validFrom": "Действителен с",
+    "validTo": "Действителен до",
+    "viewCertificate": "Просмотреть сертификат",
+    "uploadCertificate": "Загрузите файл сертификата с вашего компьютера",
+    "timestampingService": {
+      "url": "URL",
+      "dialog": {
+        "add": {
+          "title": "Добавить службу временных меток",
+          "success": "Служба временных меток успешно добавлена"
+        },
+        "edit": {
+          "title": "Изменить службу временных меток",
+          "uploadCertificate": "Загрузите новый сертификат",
+          "success": "Служба временных меток успешно изменена"
+        }
+      },
+      "addedSuccessfully": "Служба временных меток успешно добавлена"
+    },
+    "trustService": {
+      "details": {
+        "subjectDistinguishedName": "Отличительное имя субъекта",
+        "issuerDistinguishedName": "Отличительное имя эмитента"
+      },
+      "delete": {
+        "action": "Удалить службу доверия",
+        "confirmationDialog": {
+          "title": "Вы уверены?",
+          "message": "Вы уверены, что хотите удалить службу доверия \"{name}\"?"
+        },
+        "success": "Служба доверия успешно удалена"
+      },
+      "settings": {
+        "tlsAuth": "Этот CA может использоваться только для TLS-аутентификации",
+        "certProfile": "Информация о профиле сертификата (полное имя класса, реализующего интерфейс ee.ria.xroad.common.CertificateProfileInfoProvider)",
+        "saveSuccess": "Настройки CA успешно сохранены",
+        "acmeCapable": "Этот CA может использоваться для ACME",
+        "acmeNotCapable": "Этот CA не может использоваться для ACME"
+      },
+      "ocspResponders": {
+        "url": "URL",
+        "add": {
+          "dialog": {
+            "title": "Добавить OCSP ответчик"
+          },
+          "success": "OCSP ответчик успешно добавлен"
+        },
+        "edit": {
+          "dialog": {
+            "title": "Изменить OCSP ответчик",
+            "uploadCertificate": "Загрузите новый сертификат"
+          },
+          "success": "OCSP ответчик успешно изменен"
+        },
+        "delete": {
+          "confirmationDialog": {
+            "message": "Вы уверены, что хотите удалить OCSP ответчик с URL {url}?",
+            "title": "Вы уверены?"
+          },
+          "success": "OCSP ответчик успешно удален"
+        }
+      },
+      "intermediateCas": {
+        "intermediateCa": "Промежуточный CA",
+        "add": {
+          "dialog": {
+            "title": "Добавить промежуточные CA"
+          },
+          "success": "Промежуточный CA успешно добавлен"
+        },
+        "delete": {
+          "confirmationDialog": {
+            "message": "Вы уверены, что хотите удалить промежуточный CA {name}?",
+            "title": "Вы уверены?"
+          },
+          "success": "Промежуточный CA успешно удален"
+        }
+      },
+      "timestampingService": {
+        "url": "Url",
+        "timestampingInterval": "Интервал временных меток",
+        "timestampingIntervalMinutes": "{min} минута(ы)",
+        "cost": "Стоимость",
+        "costValues": {
+          "FREE": "Бесплатно",
+          "PAID": "Платно",
+          "UNDEFINED": "Не определено"
+        },
+        "delete": {
+          "dialog": {
+            "title": "Вы уверены?",
+            "message": "Вы уверены, что хотите удалить службу временных меток с URL {url}?"
+          },
+          "success": "Служба временных меток успешно удалена"
+        }
+      },
+      "pagenavigation": {
+        "details": "Детали",
+        "settings": "Настройки CA",
+        "ocspResponders": "OCSP ответчики",
+        "intermediateCas": "Промежуточные CA"
+      }
+    }
+  },
+  "validationError": {
+    "AssertFalse": "значение должно быть 'false'",
+    "AssertTrue": "значение должно быть 'true'",
+    "DecimalMax": "числовое значение превышает максимально допустимое",
+    "DecimalMin": "числовое значение ниже минимально допустимого",
+    "Digits": "значение должно содержать только цифры",
+    "Email": "значение не соответствует формату электронной почты",
+    "Future": "значение даты и времени должно быть в будущем",
+    "FutureOrPresent": "значение даты и времени должно быть сейчас или в будущем",
+    "IdentifierChars": "Идентификатор экземпляра не должен содержать двоеточие (:), точку с запятой (;), косые черты (/) или процентные знаки (%)",
+    "IdentifierCharsField": "Используйте только допустимые символы для идентификатора",
+    "Max": "числовое значение превышает максимально допустимое",
+    "Min": "числовое значение ниже минимально допустимого",
+    "Negative": "числовое значение должно быть меньше нуля",
+    "NegativeOrZero": "числовое значение должно быть меньше или равно нулю",
+    "NoBackslashes": "значение не должно содержать символы обратного слэша (\\)",
+    "NoColons": "значение не должно содержать символы двоеточия (:)",
+    "NoForwardslashes": "значение не должно содержать символы косой черты (/)",
+    "NoPercents": "значение не должно содержать процентные знаки (%)",
+    "NoSemicolons": "значение не должно содержать точки с запятой (;)",
+    "Normalized": "значение должно быть нормализованным",
+    "NotBlank": "значение не должно быть не заполненным",
+    "NotEmpty": "значение не должно быть пустым",
+    "NotNull": "значение обязательно",
+    "Null": "значение не должно быть установлено",
+    "Past": "значение даты и времени должно быть в прошлом",
+    "PastOrPresent": "значение даты и времени должно быть сейчас или в прошлом",
+    "Pattern": "значение не соответствует требуемому формату",
+    "Positive": "числовое значение должно быть больше нуля",
+    "PositiveOrZero": "числовое значение должно быть больше или равно нулю",
+    "Size": "значение не соответствует требованиям длины",
+    "SizeField": "значение не соответствует требованиям длины"
+  },
+
+  "validation": {
+    "messages": {
+      "is": "Поле {field} должно иметь значение \"{other}\""
+    }
+  },
+  "status": {
+    "signer_error": "Ошибка вызова клиента подписчика",
+    "global_conf_generation": {
+      "status_not_found": "Статус генерации глобальной конфигурации неизвестен",
+      "failing": "Создание глобальной конфигурации не удалось с {0}",
+      "global_conf_expired": "Срок действия глобальной конфигурации истек"
+    },
+    "signing_key": {
+      "internal": {
+        "missing": "Не удалось подписать внутреннюю конфигурацию - отсутствует активный ключ",
+        "token_not_found": "Не удалось подписать внутреннюю конфигурацию - активный ключ не найден",
+        "token_not_active": "Не удалось подписать внутреннюю конфигурацию - PIN активного ключа не введен",
+        "key_not_available": "Не удалось подписать внутреннюю конфигурацию - активный ключ недоступен"
+      },
+      "external": {
+        "missing": "Не удалось подписать внешнюю конфигурацию - активный ключ отсутствует",
+        "token_not_found": "Не удалось подписать внешнюю конфигурацию - активный ключ не найден",
+        "token_not_active": "Не удалось подписать внешнюю конфигурацию - PIN активного ключа не введен",
+        "key_not_available": "Не удалось подписать внешнюю конфигурацию - активный ключ недоступен"
+      }
+    }
+  }
+}
