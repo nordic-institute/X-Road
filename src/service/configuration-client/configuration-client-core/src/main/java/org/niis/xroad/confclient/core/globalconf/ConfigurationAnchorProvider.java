@@ -25,32 +25,18 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.rpc;
+package org.niis.xroad.confclient.core.globalconf;
 
-import io.quarkus.test.Mock;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
+public interface ConfigurationAnchorProvider {
 
+    boolean isAnchorPresent();
 
-@Slf4j
-@Mock
-public class NoopVaultKeyProvider implements VaultKeyProvider {
+    Optional<byte[]> get() throws Exception;
 
-    @PostConstruct
-    public void init() {
-        log.info("NoopVaultKeyProvider init");
-    }
+    void save(byte[] content) throws Exception;
 
-    @Override
-    public KeyManager getKeyManager() {
-        return null;
-    }
+    String source();
 
-    @Override
-    public TrustManager getTrustManager() {
-        return null;
-    }
 }

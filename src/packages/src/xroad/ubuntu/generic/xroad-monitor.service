@@ -1,8 +1,9 @@
 [Unit]
 Description=X-Road Monitor
-After=network.target xroad-base.service
+After=network.target xroad-base.service xroad-secret-store-local.service xroad-secret-store-remote.service
 Requires=xroad-base.service
 Wants=postgresql.service
+Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
 
 [Service]
 User=xroad

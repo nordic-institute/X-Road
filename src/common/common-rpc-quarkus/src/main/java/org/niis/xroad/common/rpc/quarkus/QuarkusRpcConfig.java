@@ -27,26 +27,38 @@
 
 package org.niis.xroad.common.rpc.quarkus;
 
-import io.quarkus.scheduler.Scheduler;
 import io.quarkus.vault.VaultPKISecretEngineFactory;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
+import org.niis.xroad.common.rpc.vault.ReloadableVaultKeyManager;
 
+@Slf4j
 public class QuarkusRpcConfig extends RpcConfig {
 
     @ApplicationScoped
-    VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties, VaultPKISecretEngineFactory pkiSecretEngineFactory,
-                                      Scheduler scheduler) throws Exception {
+    VaultKeyProvider vaultKeyProvider(CommonRpcProperties rpcProperties,
+                                      VaultPKISecretEngineFactory pkiSecretEngineFactory) throws Exception {
         if (rpcProperties.useTls()) {
-            QuarkusReloadableVaultKeyManager manager = new QuarkusReloadableVaultKeyManager(rpcProperties,
-                    pkiSecretEngineFactory, scheduler);
-            manager.init();
-            return manager;
+            var vaultKeyClient = new QuarkusVaultKeyClient(rpcProperties.certificateProvisioning(), pkiSecretEngineFactory);
+            var keyManager = ReloadableVaultKeyManager.withDefaults(rpcProperties.certificateProvisioning(), vaultKeyClient);
+            keyManager.init();
+            return keyManager;
         } else {
             return new NoopVaultKeyProvider();
         }
     }
+
+    public void dispose(@Disposes VaultKeyProvider vaultKeyProvider) {
+        try {
+            vaultKeyProvider.shutdown();
+        } catch (Exception e) {
+            log.error("Error while stopping VaultKeyProvider", e);
+        }
+    }
+
 }

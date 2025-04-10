@@ -29,8 +29,10 @@ package org.niis.xroad.common.rpc.spring;
 
 import lombok.Setter;
 import org.niis.xroad.common.properties.CommonRpcProperties;
+import org.niis.xroad.common.properties.util.DurationConverter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
 import java.util.List;
 
 
@@ -54,13 +56,16 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
     @Setter
     static class SpringCertificateProvisionProperties implements CertificateProvisionProperties {
 
-        private String issuanceRoleName;
-        private String commonName;
+        private String issuanceRoleName = DEFAULT_ISSUANCE_ROLE_NAME;
+        private String commonName = DEFAULT_COMMON_NAME;
         private List<String> altNames;
         private List<String> ipSubjectAltNames;
-        private int ttlMinutes;
-        private int refreshIntervalMinutes;
-        private String secretStorePkiPath;
+        private Duration ttl = DurationConverter.parseDuration(DEFAULT_TTL);
+        private Duration refreshInterval = DurationConverter.parseDuration(DEFAULT_REFRESH_INTERVAL);
+        private Duration retryDelay = DurationConverter.parseDuration(DEFAULT_RETRY_DELAY);
+        private Double retryExponentialBackoffMultiplier = Double.parseDouble(DEFAULT_RETRY_EXPONENTIAL_BACKOFF_MULTIPLIER);
+        private int retryMaxAttempts = Integer.parseInt(DEFAULT_RETRY_MAX_ATTEMPTS);
+        private String secretStorePkiPath = DEFAULT_SECRET_STORE_PKI_PATH;
 
         @Override
         public String issuanceRoleName() {
@@ -83,18 +88,33 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
         }
 
         @Override
-        public int ttlMinutes() {
-            return ttlMinutes;
+        public Duration ttl() {
+            return ttl;
         }
 
         @Override
-        public int refreshIntervalMinutes() {
-            return refreshIntervalMinutes;
+        public Duration refreshInterval() {
+            return refreshInterval;
         }
 
         @Override
         public String secretStorePkiPath() {
             return secretStorePkiPath;
+        }
+
+        @Override
+        public Duration retryDelay() {
+            return retryDelay;
+        }
+
+        @Override
+        public Double retryExponentialBackoffMultiplier() {
+            return retryExponentialBackoffMultiplier;
+        }
+
+        @Override
+        public int retryMaxAttempts() {
+            return retryMaxAttempts;
         }
     }
 }

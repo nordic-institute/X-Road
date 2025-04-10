@@ -24,45 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.core.config;
+package org.niis.xroad.common.rpc.vault;
 
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
-@ConfigMapping(prefix = "xroad.configuration-client")
-public interface ConfigurationClientProperties {
+public interface VaultKeyClient {
+    String CERTIFICATE_FORMAT = "pem";
+    String PKCS8_FORMAT = "pkcs8";
 
-    @WithName("update-interval")
-    @WithDefault("60")
-    int updateInterval();
+    VaultKeyData provisionNewCerts() throws Exception;
 
-    @WithName("proxy-configuration-backup-cron")
-    @WithDefault("0 15 3 * * ?")
-    String proxyConfigurationBackupCron();
+    record VaultKeyData(
+            X509Certificate[] identityCertChain, PrivateKey identityPrivateKey,
+            X509Certificate[] trustCerts
+    ) {
 
-    @WithName("configuration-anchor-file")
-    @WithDefault("/etc/xroad/configuration-anchor.xml")
-    String configurationAnchorFile();
-
-    @WithName("global-conf-dir")
-    @WithDefault("/etc/xroad/globalconf")
-    String globalConfDir();
-
-    @WithName("global-conf-hostname-verification")
-    @WithDefault("true")
-    boolean globalConfHostnameVerification();
-
-    @WithName("global-conf-tls-cert-verification")
-    @WithDefault("true")
-    boolean globalConfTlsCertVerification();
-
-    @WithName("configuration-anchor-storage")
-    @WithDefault("DB")
-    ConfigurationAnchorStorage configurationAnchorStorage();
-
-    enum ConfigurationAnchorStorage {
-        FILE,
-        DB
     }
 }

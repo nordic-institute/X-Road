@@ -30,7 +30,9 @@ package org.niis.xroad.common.properties;
 import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfigBuilder;
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.common.properties.util.DurationConverter;
 
+import java.time.Duration;
 import java.util.Map;
 
 @UtilityClass
@@ -43,9 +45,10 @@ public class ConfigUtils {
                 .getConfigMapping(clazz);
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     public static <T> T initConfiguration(Class<T> clazz, Map<String, String> properties) {
         return new SmallRyeConfigBuilder()
-                .withMapping(clazz)
+                .withMapping(clazz).withConverter(Duration.class, 200, new DurationConverter())
                 .withSources(new PropertiesConfigSource(properties, "testProperties"))
                 .build()
                 .getConfigMapping(clazz);

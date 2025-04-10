@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,74 +26,31 @@
  */
 package org.niis.xroad.common.rpc.spring;
 
+import ee.ria.xroad.common.CodedException;
 
-import io.grpc.util.AdvancedTlsX509KeyManager;
-import io.grpc.util.AdvancedTlsX509TrustManager;
 import io.grpc.util.CertificateUtils;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.properties.CommonRpcProperties;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.niis.xroad.common.rpc.vault.VaultKeyClient;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultCertificateRequest;
 import org.springframework.vault.support.VaultCertificateResponse;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
-
 import java.io.ByteArrayInputStream;
-import java.security.cert.CertificateException;
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 @Slf4j
 @RequiredArgsConstructor
-public class SpringReloadableVaultKeyManager implements VaultKeyProvider {
-    private static final String CERTIFICATE_FORMAT = "pem";
-    private static final String PRIVATE_KEY_FORMAT = "pkcs8";
-
+public class SpringVaultKeyClient implements VaultKeyClient {
     private final CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties;
     private final VaultTemplate vaultTemplate;
 
-    private final AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
-    private final AdvancedTlsX509TrustManager trustManager;
-
-    public SpringReloadableVaultKeyManager(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
-                                           VaultTemplate vaultTemplate) throws CertificateException {
-        this.certificateProvisionProperties = certificateProvisionProperties;
-        this.vaultTemplate = vaultTemplate;
-
-        this.trustManager = AdvancedTlsX509TrustManager.newBuilder()
-                .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
-                .build();
-    }
-
-    @PostConstruct
-    public void afterPropertiesSet() throws Exception {
-        reload();
-    }
-
     @Override
-    public KeyManager getKeyManager() {
-        return keyManager;
-    }
-
-    @Override
-    public TrustManager getTrustManager() {
-        return trustManager;
-    }
-
-    @Scheduled(fixedRateString = "${xroad.common.rpc.certificate-provisioning.refresh-interval-minutes}", timeUnit = TimeUnit.MINUTES,
-            scheduler = SpringRpcConfig.BEAN_VIRTUAL_THREAD_SCHEDULER)
-    public void reload() throws Exception {
+    public VaultKeyData provisionNewCerts() throws Exception {
         var request = buildVaultCertificateRequest();
-        if (log.isDebugEnabled()) {
-            log.debug("Requesting new certificate from Vault secret-store [{}] with request cn: {}, altNames: {}, ipSubjectAltNames: {}",
-                    certificateProvisionProperties.secretStorePkiPath(),
-                    request.getCommonName(), request.getAltNames(), request.getIpSubjectAltNames());
-        }
+
         VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(certificateProvisionProperties.secretStorePkiPath())
                 .issueCertificate(certificateProvisionProperties.issuanceRoleName(), request);
 
@@ -102,19 +60,21 @@ public class SpringReloadableVaultKeyManager implements VaultKeyProvider {
             var privateKey = CertificateUtils.getPrivateKey(new ByteArrayInputStream(data.getPrivateKey().getBytes()));
             var certTrustChain = CertificateUtils.getX509Certificates(new ByteArrayInputStream(data.getIssuingCaCertificate().getBytes()));
 
-            log.info("Received new certificate from Vault.");
-            keyManager.updateIdentityCredentials(cert, privateKey);
-            trustManager.updateTrustCredentials(certTrustChain);
+            return new VaultKeyData(
+                    cert,
+                    privateKey,
+                    certTrustChain
+            );
         } else {
-            log.error("Failed to get certificate from Vault. Data is null.");
+            throw new CodedException(X_INTERNAL_ERROR, "Failed to get certificate from Vault. Data is null.");
         }
     }
 
     private VaultCertificateRequest buildVaultCertificateRequest() {
         var builder = VaultCertificateRequest.builder()
-                .ttl(Duration.ofMinutes(certificateProvisionProperties.ttlMinutes()))
+                .ttl(certificateProvisionProperties.ttl())
                 .format(CERTIFICATE_FORMAT)
-                .privateKeyFormat(PRIVATE_KEY_FORMAT);
+                .privateKeyFormat(PKCS8_FORMAT);
 
         if (certificateProvisionProperties.commonName() != null) {
             builder.commonName(certificateProvisionProperties.commonName());

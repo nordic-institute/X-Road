@@ -31,21 +31,23 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.time.Duration;
+
 import static org.niis.xroad.globalconf.impl.config.GlobalConfProperties.MAPPING_PREFIX;
 
 @ConfigMapping(prefix = MAPPING_PREFIX)
 public interface GlobalConfProperties {
     String MAPPING_PREFIX = "xroad.common.global-conf";
     String DEFAULT_SOURCE = "FILESYSTEM";
-    String DEFAULT_RATE_INTERVAL = "60";
+    String DEFAULT_RATE_INTERVAL = "60S";
 
     @WithName("source")
     @WithDefault(DEFAULT_SOURCE)
     GlobalConfSource source();
 
-    @WithName("refresh-rate-seconds")
+    @WithName("refresh-rate")
     @WithDefault(DEFAULT_RATE_INTERVAL)
-    int refreshRateSeconds();
+    Duration refreshRate();
 
     enum GlobalConfSource {
         FILESYSTEM,
