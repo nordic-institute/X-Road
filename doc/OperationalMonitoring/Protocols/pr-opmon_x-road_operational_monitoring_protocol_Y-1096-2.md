@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.6  
+Version: 1.7 
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -19,7 +19,8 @@ Doc. ID: PR-OPMON
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 | 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
-| 26.03.2025 | 1.6     | Syntax and styling                                                   | Pauline Dimmek   |
+| 19.03.2025 | 1.6     | Added new optional field: xRoadVersion                               | Eneli Reimets    |
+| 26.03.2025 | 1.7     | Syntax and styling                                                   | Pauline Dimmek   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -130,6 +131,7 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *faultCode*
  * *faultString*
  * *statusCode*
+ * *xRoadVersion*
  
 
 The fields are described in the JSON-schema of the response payload \[[Annex B](#AnnexB)\].
@@ -1043,6 +1045,10 @@ properties:
           description: Path of the rest
           type: string
           maxLength: 255
+        xRoadVersion:
+          description: Version of the X-Road
+          type: string
+          maxLength: 255
         serviceVersion:
           description: Version of the service
           type: string
@@ -1275,8 +1281,8 @@ content-id: <operational-monitoring-data.json.gz>
   ]
 }
 ```
-<a name="AnnexC.3"/>
 
+<a name="AnnexC.3"/>
 ### C.3 getSecurityServerHealthData Request
 
 ```xml
@@ -1323,7 +1329,7 @@ content-id: <operational-monitoring-data.json.gz>
 </SOAP-ENV:Envelope>
 ```
 
-<a name="AnnexC.3"/>
+<a name="AnnexC.4"/>
 
 ### C.4 getSecurityServerHealthData Response
 
