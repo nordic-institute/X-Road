@@ -3,8 +3,8 @@ xroad:
     rpc:
       certificate-provisioning:
         # To ensure vault-powered mTLS certificate rotation
-        ttl-minutes: 2
-        refresh-interval-minutes: 1
+        ttl: 120S
+        refresh-interval: 60S
     global-conf:
       source: "REMOTE"
   configuration-client:
