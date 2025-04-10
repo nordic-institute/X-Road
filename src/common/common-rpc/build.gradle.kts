@@ -5,8 +5,8 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":common:common-domain"))
-  implementation(project(":common:common-properties"))
+  api(project(":common:common-domain"))
+  api(project(":common:common-properties"))
 
   api(libs.slf4j.api)
   api(libs.grpc.protobuf)
@@ -18,6 +18,10 @@ dependencies {
 
   api(libs.jakarta.cdiApi)
   api(libs.smallrye.config.core)
+  api(libs.resilience4j.retry)
 
   testFixturesImplementation(libs.quarkus.junit5)
+  testImplementation(testFixtures(project(":common:common-properties")))
+  testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.assertj.core)
 }

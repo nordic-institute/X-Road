@@ -31,6 +31,7 @@ import lombok.Setter;
 import org.niis.xroad.common.properties.CommonRpcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
 import java.util.List;
 
 
@@ -60,6 +61,9 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
         private List<String> ipSubjectAltNames;
         private int ttlMinutes;
         private int refreshIntervalMinutes;
+        private Duration retryDelay;
+        private Double retryExponentialBackoffMultiplier;
+        private int retryMaxAttempts;
         private String secretStorePkiPath;
 
         @Override
@@ -95,6 +99,21 @@ public class SpringCommonRpcProperties implements CommonRpcProperties {
         @Override
         public String secretStorePkiPath() {
             return secretStorePkiPath;
+        }
+
+        @Override
+        public Duration retryDelay() {
+            return retryDelay;
+        }
+
+        @Override
+        public Double retryExponentialBackoffMultiplier() {
+            return retryExponentialBackoffMultiplier;
+        }
+
+        @Override
+        public int retryMaxAttempts() {
+            return retryMaxAttempts;
         }
     }
 }

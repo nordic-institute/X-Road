@@ -27,11 +27,15 @@
 
 package org.niis.xroad.common.properties;
 
+import io.quarkus.runtime.configuration.DurationConverter;
 import io.smallrye.config.PropertiesConfigSource;
 import io.smallrye.config.SmallRyeConfigBuilder;
 import lombok.experimental.UtilityClass;
 
+import java.time.Duration;
 import java.util.Map;
+
+import static io.quarkus.runtime.configuration.ConverterSupport.DEFAULT_QUARKUS_CONVERTER_PRIORITY;
 
 @UtilityClass
 public class ConfigUtils {
@@ -45,7 +49,7 @@ public class ConfigUtils {
 
     public static <T> T initConfiguration(Class<T> clazz, Map<String, String> properties) {
         return new SmallRyeConfigBuilder()
-                .withMapping(clazz)
+                .withMapping(clazz).withConverter(Duration.class, DEFAULT_QUARKUS_CONVERTER_PRIORITY, new DurationConverter())
                 .withSources(new PropertiesConfigSource(properties, "testProperties"))
                 .build()
                 .getConfigMapping(clazz);

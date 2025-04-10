@@ -8,6 +8,8 @@ quarkus:
     url: "${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
     authentication:
       client-token: "${XROAD_SECRET_STORE_TOKEN}"
+    connection-timeout: 15S
+    read-timeout: 10S
     kv-secret-engine-version: 1
     kv-secret-engine-mount-path: xrd-secret
   live-reload:
@@ -53,3 +55,6 @@ xroad:
           - 127.0.0.1
         ttl-minutes: 720 # 12 hours
         refresh-interval-minutes: 300 # 5 hours
+        retry-base-delay: 5s
+        retry-exponential-backoff-multiplier: 1.5
+        retry-max-attempts: 10

@@ -31,6 +31,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import java.time.Duration;
 import java.util.List;
 
 @ConfigMapping(prefix = CommonRpcProperties.PREFIX)
@@ -68,5 +69,17 @@ public interface CommonRpcProperties {
 
         @WithName("secret-store-pki-path")
         String secretStorePkiPath();
+
+        @WithName("retry-base-delay")
+        @WithDefault("5s")
+        Duration retryDelay();
+
+        @WithName("retry-exponential-backoff-multiplier")
+        @WithDefault("1.5")
+        Double retryExponentialBackoffMultiplier();
+
+        @WithName("retry-max-attempts")
+        @WithDefault("10")
+        int retryMaxAttempts();
     }
 }

@@ -8,4 +8,5 @@ dependencies {
   implementation(libs.smallrye.config.core)
 
   testFixturesImplementation(libs.smallrye.config.core)
+  testFixturesImplementation(libs.quarkus.core)
 }
