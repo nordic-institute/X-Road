@@ -236,7 +236,8 @@ public class ManagementRequestSenderService {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, signerSignClient, sender, receiver, proxyUrl);
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
+                signerSignClient, sender, receiver, proxyUrl);
     }
 
 }

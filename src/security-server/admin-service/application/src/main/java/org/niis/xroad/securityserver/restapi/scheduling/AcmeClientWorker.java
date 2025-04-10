@@ -377,7 +377,8 @@ public class AcmeClientWorker {
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, signerSignClient, sender, receiver, proxyUrl);
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
+                signerSignClient, sender, receiver, proxyUrl);
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
