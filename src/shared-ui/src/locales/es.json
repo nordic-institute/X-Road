@@ -207,7 +207,10 @@
     "name": "Nombre"
   },
   "keys": {
-    "gotIt": "Entiendo"
+    "gotIt": "Entiendo",
+    "token": {
+      "label": "Token:"
+    }
   },
   "locals_demo": "Esto se localiza en la biblioteca",
   "login": {

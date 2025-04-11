@@ -592,7 +592,6 @@
     "signKeyCert": "SIGN açarlar we şahadatnamalar",
     "status": "Status",
     "token": {
-      "label": "Token:",
       "details": "Tokeniň jikme-jikleri",
       "id": "Tokeniň ID-si:",
       "info": "Tokeniň maglumaty",

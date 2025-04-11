@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.List;
 
 
+@SuppressWarnings("javaarchitecture:S7027")
 public sealed interface Deviation extends Serializable permits ErrorDeviation, WarningDeviation {
     String code();
 

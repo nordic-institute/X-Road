@@ -29,6 +29,7 @@ import { createI18n } from 'vue-i18n';
 import merge from 'deepmerge';
 import enSharedMessages from './locales/en.json';
 import enValidationMessages from '@vee-validate/i18n/dist/locale/en.json';
+import { en as enVuetify } from 'vuetify/locale';
 import axios from 'axios';
 
 interface MessageLoader {
@@ -49,9 +50,9 @@ export const defaultFallbackLanguage = import.meta.env.VITE_FALLBACK_LOCALE || d
 export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) {
   const loadedLanguages = new Set(defaultLanguage);
 
-  const _loaders = [loadValidationMessages, loadSharedMessages, ...loaders];
+  const _loaders = [loadValidationMessages, loadVuetifyMessages, loadSharedMessages, ...loaders];
 
-  const enMessages = merge.all([{ validation: enValidationMessages }, enSharedMessages, fallbackMessages]) as any;
+  const enMessages = merge.all([{ validation: enValidationMessages }, { $vuetify: enVuetify }, enSharedMessages, fallbackMessages]) as any;
 
   const missigAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
 
@@ -104,8 +105,8 @@ async function loadSharedMessages(language: string) {
   try {
     const module = await import(`./locales/${language}.json`);
     return module.default;
-  } catch(e) {
-    console.error("Failed to load translations for: " + language);
+  } catch (e) {
+    console.error("Failed to load shared translations for: " + language);
     return {};
   }
 }
@@ -114,8 +115,19 @@ async function loadValidationMessages(language: string) {
   try {
     const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`);
     return { validation: msg.default };
-  } catch(e) {
-    console.error("Failed to load translations for: " + language);
+  } catch (e) {
+    console.error("Failed to load veeValidate translations for: " + language);
+    return {}
+  }
+}
+
+async function loadVuetifyMessages(language: string) {
+  try {
+    const locales = await import('vuetify/locale');
+    return { $vuetify: (locales[language] || {}) };
+  } catch (e) {
+    console.log(e)
+    console.error("Failed to load Vuetify translations for: " + language);
     return {}
   }
 }

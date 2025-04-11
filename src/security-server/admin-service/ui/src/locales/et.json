@@ -611,7 +611,6 @@
     "signKeyCert": "SIGN-võtmed ja sertifikaadid",
     "status": "Olek",
     "token": {
-      "label": "Krüptomoodul:",
       "details": "Krüptomooduli detailid",
       "id": "Krüptomooduli ID:",
       "info": "Krüptomooduli teave",

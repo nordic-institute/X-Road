@@ -636,7 +636,6 @@
     "signKeyCert": "SIGN Keys and Certificates",
     "status": "Status",
     "token": {
-      "label": "Token:",
       "details": "Token details",
       "id": "Token ID:",
       "info": "Token information",

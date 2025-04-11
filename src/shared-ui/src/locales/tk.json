@@ -203,7 +203,10 @@
     "name": "Ady"
   },
   "keys": {
-    "gotIt": "Alyndy"
+    "gotIt": "Alyndy",
+    "token": {
+      "label": "Token:"
+    }
   },
   "locals_demo": "Bu kitaphanada lokallaşdyryldy",
   "login": {

@@ -208,7 +208,10 @@
     "name": "Name"
   },
   "keys": {
-    "gotIt": "Got it"
+    "gotIt": "Got it",
+    "token": {
+      "label": "Token:"
+    }
   },
   "locals_demo": "This is localised in library",
   "login": {

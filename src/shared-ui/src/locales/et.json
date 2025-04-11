@@ -204,7 +204,10 @@
     "name": "Nimi"
   },
   "keys": {
-    "gotIt": "Sain aru"
+    "gotIt": "Sain aru",
+    "token": {
+      "label": "Krüptomoodul:"
+    }
   },
   "locals_demo": "Lokaliseeritakse teegis",
   "login": {

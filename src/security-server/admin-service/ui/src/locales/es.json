@@ -613,7 +613,6 @@
     "signKeyCert": "Firmar claves y certificados",
     "status": "Estado",
     "token": {
-      "label": "Token:",
       "details": "Detalles del token",
       "id": "ID de token:",
       "info": "Información del token",
