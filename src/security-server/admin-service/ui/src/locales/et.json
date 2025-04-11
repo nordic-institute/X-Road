@@ -413,6 +413,7 @@
     "service_already_exists": "Teenus on juba olemas",
     "service_client_not_found": "Teenuse klienti ei leitud",
     "service_code_already_exists": "Teenuse kood on juba olemas",
+    "service_code_reserved": "Teenusekood on reserveeritud süsteemi sisemiseks kasutamiseks ja seda ei saa määrata kohandatud teenustele",    
     "service_description_not_found": "Teenuse kirjeldust ei leitud",
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",

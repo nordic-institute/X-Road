@@ -415,6 +415,7 @@
     "service_already_exists": "El servicio ya existe",
     "service_client_not_found": "No se ha encontrado el Cliente de servicio",
     "service_code_already_exists": "El código de servicio ya existe",
+    "service_code_reserved": "El código de servicio ingresado está reservado para uso interno del sistema",
     "service_description_not_found": "Descripción del servicio no encontrada",
     "service_not_found": "servicio no encontrado",
     "sign_cert_not_supported": "El certificado de firma no es compatible",
