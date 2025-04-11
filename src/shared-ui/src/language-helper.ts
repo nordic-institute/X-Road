@@ -106,7 +106,7 @@ async function loadSharedMessages(language: string) {
     const module = await import(`./locales/${language}.json`);
     return module.default;
   } catch (e) {
-    console.error("Failed to load shared translations for: " + language);
+    console.warn("Failed to load shared translations for: " + language);
     return {};
   }
 }
@@ -116,7 +116,7 @@ async function loadValidationMessages(language: string) {
     const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`);
     return { validation: msg.default };
   } catch (e) {
-    console.error("Failed to load veeValidate translations for: " + language);
+    console.warn("Failed to load veeValidate translations for: " + language);
     return {}
   }
 }
@@ -124,10 +124,12 @@ async function loadValidationMessages(language: string) {
 async function loadVuetifyMessages(language: string) {
   try {
     const locales = await import('vuetify/locale');
+    if(!locales[language]){
+      console.warn("Missing Vuetify translations for: " + language);
+    }
     return { $vuetify: (locales[language] || {}) };
   } catch (e) {
-    console.log(e)
-    console.error("Failed to load Vuetify translations for: " + language);
+    console.warn("Failed to load Vuetify translations for: " + language);
     return {}
   }
 }
