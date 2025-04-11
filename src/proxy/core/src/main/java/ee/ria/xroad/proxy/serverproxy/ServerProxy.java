@@ -88,6 +88,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private String listenAddress;
 
     private CloseableHttpClient opMonitorClient;
+    private SslContextFactory.Server sslContextFactory;
 
     public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
                        CertChainFactory certChainFactory) throws Exception {
@@ -218,17 +219,30 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     }
 
     private ServerConnector createClientProxySslConnector() throws Exception {
-        var cf = new SslContextFactory.Server();
-        cf.setNeedClientAuth(true);
-        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
-        cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
-        cf.setSessionCachingEnabled(true);
-        cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
+        sslContextFactory = new SslContextFactory.Server();
+        sslContextFactory.setNeedClientAuth(true);
+        sslContextFactory.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        sslContextFactory.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
+        sslContextFactory.setSessionCachingEnabled(true);
+        sslContextFactory.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
+        sslContextFactory.setSslContext(
+                SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
 
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT, cf)
-                : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
+                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT, sslContextFactory)
+                : new ServerConnector(server, ACCEPTOR_COUNT, -1, sslContextFactory);
     }
 
+    public void reloadAuthKey() {
+        log.trace("reloadAuthKey()");
+        if (sslContextFactory != null) {
+            try {
+                sslContextFactory.setSslContext(
+                        SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
+                sslContextFactory.reload(cf -> log.debug("Server SSL context reloaded"));
+            } catch (Exception e) {
+                log.error("Failed to reload auth key", e);
+            }
+        }
+    }
 }

@@ -36,13 +36,10 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testsuite.DummySslServerProxy;
-import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
-import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -53,17 +50,14 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.net.ServerSocket;
 import java.net.URI;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -72,6 +66,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -79,8 +74,7 @@ import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocket
  * Fastest connection selecting SSL socket factory test program.
  */
 @Slf4j
-@Category(IntegrationTest.class)
-public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
+class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
@@ -97,14 +91,13 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         }
     };
 
-    private GlobalConfProvider globalConfProvider;
     private KeyConfProvider keyConfProvider;
     private AuthTrustVerifier authTrustVerifier;
     private CloseableHttpClient client;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        globalConfProvider = new TestGlobalConf();
+        GlobalConfProvider globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
         authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
                 new CertChainFactory(globalConfProvider));
@@ -113,14 +106,13 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     }
 
     @Test
-    public void testWithSender() throws Exception {
-        Assume.assumeTrue("OS not supported.", SystemUtils.IS_OS_LINUX);
-
+    void testWithSender() throws Exception {
         createClient();
-        int port1 = getFreePort();
-        int port2 = getFreePort();
-        final URI uri1 = URI.create("https://127.0.0.5:" + port1);
-        final URI uri2 = URI.create("https://127.0.0.5:" + port2);
+        var host = "127.0.0.1";
+        int port1 = findRandomPort();
+        int port2 = findRandomPort();
+        final URI uri1 = URI.create("https://%s:%s".formatted(host, port1));
+        final URI uri2 = URI.create("https://%s:%s".formatted(host, port2));
 
         // try with only valid proxy running
         final DummySslServerProxy proxy = new DummySslServerProxy(port1, validAuthKey);
@@ -190,11 +182,7 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx);
-    }
-
-    private void logFH() {
-        log.info("\nfree fd = {}\n", SystemMetrics.getFreeFileDescriptorCount());
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx.getSocketFactory());
     }
 
     static class NoopTrustManager implements X509TrustManager {
@@ -214,12 +202,5 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         }
     }
 
-    static int getFreePort() {
-        try (ServerSocket ss = new ServerSocket(0)) {
-            return ss.getLocalPort();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }
 

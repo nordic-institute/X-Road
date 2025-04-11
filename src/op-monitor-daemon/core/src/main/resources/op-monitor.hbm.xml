@@ -67,6 +67,8 @@
 
         <property name="restPath" column="rest_path" type="string" />
 
+        <property name="xRoadVersion" column="xroad_version" type="string" />
+
         <property name="serviceVersion" column="service_version"
                   type="string" />
 
