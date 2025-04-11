@@ -33,7 +33,6 @@ import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
-import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -105,6 +104,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connectionMonitor;
+    private ReloadingSSLSocketFactory reloadingSSLSocketFactory;
 
     /**
      * Constructs and configures a new client proxy.
@@ -199,8 +199,8 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     }
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier,
-                SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
+        reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory);
     }
 
     private void createConnectors() throws Exception {
@@ -330,6 +330,11 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         server.stop();
 
         HibernateUtil.closeSessionFactories();
+    }
+
+    public void reloadAuthKey() {
+        log.trace("reloadAuthKey()");
+        reloadingSSLSocketFactory.reload();
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {

@@ -32,13 +32,12 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
-import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -102,7 +101,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldKeepQueryId() {
         final String qid = UUID.randomUUID().toString();
-        service.setHandler((request, response) -> {
+        setServiceHandler((request, response) -> {
             assertEquals(qid, request.getHeaders().get("X-Road-Id"));
         });
 
@@ -123,7 +122,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldHaveContentLengthHeader() {
         String body = "{\"value\" : 42}";
-        service.setHandler((request, response) -> {
+        setServiceHandler((request, response) -> {
             assertEquals(body.getBytes().length,
                     getContentLength(request));
         });
@@ -178,7 +177,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldAcceptPercentEncodedIdentifiers() {
-        service.setHandler((request, response) -> assertEquals("/path%3B/", request.getHttpURI().getPath()));
+        setServiceHandler((request, response) -> assertEquals("/path%3B/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -190,7 +189,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldAcceptEmptyPath() {
-        service.setHandler((request, response) -> assertEquals("/", request.getHttpURI().getPath()));
+        setServiceHandler((request, response) -> assertEquals("/", request.getHttpURI().getPath()));
         given()
                 .baseUri("http://127.0.0.1")
                 .port(proxyClientPort)
@@ -200,7 +199,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldGetLargeBinaryMessage() throws Exception {
-        service.setHandler(LARGE_OBJECT_HANDLER);
+        setServiceHandler(LARGE_OBJECT_HANDLER);
         final int requestedBytes = 13 * 1024 * 1024 + 104729;
 
         final InputStream stream = given()
@@ -224,7 +223,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldNotFollow302Redirects() {
         final String location = PREFIX + "/EE/BUSINESS/producer/sub/notexists";
-        service.setHandler((request, response) -> {
+        setServiceHandler((request, response) -> {
             response.setStatus(302);
             response.getHeaders().put("Location", location);
         });
@@ -241,7 +240,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldNotAllowCallingWSDLServices() {
-        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
@@ -263,7 +262,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldNotAllowPATCH() {
-        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
             public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
                 if ("PATCH".equalsIgnoreCase(method)) return false;
@@ -314,7 +313,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldRespectAcceptHeaderInErrorResponse() {
 
-        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServiceServerConf() {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {

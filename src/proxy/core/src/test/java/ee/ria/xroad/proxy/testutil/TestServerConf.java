@@ -40,30 +40,9 @@ import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
  */
 public class TestServerConf extends EmptyServerConf {
 
-    private int servicePort;
-
-    public TestServerConf(int servicePort) {
-        this.servicePort = servicePort;
-    }
-
     @Override
     public SecurityServerId.Conf getIdentifier() {
         return SecurityServerId.Conf.create("EE", "BUSINESS", "consumer", "proxytest");
-    }
-
-    @Override
-    public String getServiceAddress(ServiceId service) {
-        return "http://127.0.0.1:" + servicePort;
-    }
-
-    @Override
-    public boolean serviceExists(ServiceId service) {
-        return true;
-    }
-
-    @Override
-    public String getDisabledNotice(ServiceId service) {
-        return null;
     }
 
     @Override

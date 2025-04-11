@@ -28,7 +28,7 @@ Doc. ID: ARC-CS
 | 11.08.2021 | 2.5     | Update chapter 5.2 about high-availability setup                                                     | Ilkka Seppälä      |
 | 23.09.2022 | 2.6     | Added new Registration Web Service                                                                   | Eneli Reimets      |
 | 01.06.2023 | 2.7     | Update references                                                                                    | Petteri Kivimäki   |
-| 20.06.2023 | 2.8     | Updated to reflect changes in version 7.3.0                                                          | Madis Loitmaa      | 
+| 20.06.2023 | 2.8     | Updated to reflect changes in version 7.3.0                                                          | Madis Loitmaa      |
 
 ## Table of Contents
 

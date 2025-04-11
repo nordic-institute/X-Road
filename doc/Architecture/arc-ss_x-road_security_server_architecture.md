@@ -39,6 +39,7 @@ Doc. ID: ARC-SS
 | 12.06.2024 | 1.17    | Add information about ACME support                                                                   | Petteri Kivimäki   |
 | 23.09.2024 | 1.18    | Added mail server connection                                                                         | Mikk-Erik Bachmann |
 
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->

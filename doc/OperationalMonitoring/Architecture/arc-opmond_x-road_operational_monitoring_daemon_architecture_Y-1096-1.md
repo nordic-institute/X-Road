@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.4  
+Version: 1.5  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                         | Author           |
@@ -15,6 +15,7 @@ Document ID: ARC-OPMOND
 | 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
 | 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
+| 26.03.2025 | 1.5     | Added field xRoadVersion and example for producer side REST request | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -68,14 +69,14 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-<a name="ARC-G"></a>**ARC-G** -- X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture.md).  
-<a name="PR-GCONF"></a>**PR-GCONF** -- X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
-<a name="PR-MESS"></a>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
-<a name="PR-OPMON"></a>**PR-OPMON** -- X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
-<a name="PSQL"></a>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
-<a name="ARC-TEC"></a>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).  
-<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
+<a name="ARC-G"/>**ARC-G** -- X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture.md).  
+<a name="PR-GCONF"/>**PR-GCONF** -- X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).  
+<a name="PR-MESS"/>**PR-MESS** -- X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol.md).  
+<a name="PR-OPMON"/>**PR-OPMON** -- X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
+<a name="PR-OPMONJMX"/>**PR-OPMONJMX** -- X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
+<a name="PSQL"/>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
+<a name="ARC-TEC"/>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).  
+<a name="Ref_TERMS" class="anchor"/>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 
 ## 2 Component View
@@ -161,7 +162,8 @@ Figure 2 shows the deployment diagram.
 **Figure 2. Operational monitoring daemon deployment**
 
 
-<a name="AppendixA"/></a>
+<a name="AppendixA"/>
+
 ## Appendix A Store Operational Monitoring Data Messages
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
@@ -170,7 +172,7 @@ The schema is located in the file *src/op-monitor-daemon/core/src/main/resources
 
 ### A.2 Example Store Operational Monitoring Data Request
 
-The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST request and the third one unsuccessfully mediated request.
+The first record of the store request reflects successfully mediated SOAP request, the second and the third one successfully mediated REST client and producer side requests and the fourth one unsuccessfully mediated request.
 
 ```json
 {
@@ -205,16 +207,17 @@ The first record of the store request reflects successfully mediated SOAP reques
       "responseAttachmentCount": 0,
       "succeeded": true,
       "xRequestId": "d4490e7f-305e-44c3-b869-beaaeda694e7",
+      "xRoadVersion": "7.6.2",
       "serviceType": "WSDL"
     },
     {
       "monitoringDataTs": 1733404603,
       "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
       "securityServerType": "Client",
-      "requestInTs": 1733404602876,
-      "requestOutTs": 1733404602884,
-      "responseInTs": 1733404602970,
-      "responseOutTs": 1733404603005,
+      "requestInTs": 1742471252081,
+      "requestOutTs": 1742471252151,
+      "responseInTs": 1742471252329,
+      "responseOutTs": 1742471252379,
       "clientXRoadInstance": "FI",
       "clientMemberClass": "COM",
       "clientMemberCode": "111",
@@ -225,7 +228,6 @@ The first record of the store request reflects successfully mediated SOAP reques
       "serviceSubsystemCode": "SERVICE",
       "serviceCode": "pets",
       "restMethod": "GET",
-      "restPath": "/cat",
       "messageId": "1234",
       "messageProtocolVersion": "1",
       "clientSecurityServerAddress": "ss1",
@@ -237,6 +239,40 @@ The first record of the store request reflects successfully mediated SOAP reques
       "succeeded": true,
       "statusCode": 200,
       "xRequestId": "1244d018-9300-4f1b-8c2b-9b7f2bc4e933",
+      "xRoadVersion": "7.6.2",
+      "serviceType": "REST"
+    },
+    {
+      "monitoringDataTs": 1733404603,
+      "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
+      "securityServerType": "Producer",
+      "requestInTs": 1742471252251,
+      "requestOutTs": 1742471252251,
+      "responseInTs": 1742471252364,
+      "responseOutTs": 1742471252364,
+      "clientXRoadInstance": "FI",
+      "clientMemberClass": "COM",
+      "clientMemberCode": "111",
+      "clientSubsystemCode": "CLIENT",
+      "serviceXRoadInstance": "FI",
+      "serviceMemberClass": "COM",
+      "serviceMemberCode": "111",
+      "serviceSubsystemCode": "SERVICE",
+      "serviceCode": "pets",
+      "restMethod": "GET",
+      "restPath": "/cat/*",
+      "messageId": "1234",
+      "messageProtocolVersion": "1",
+      "clientSecurityServerAddress": "ss1",
+      "serviceSecurityServerAddress": "ss1",
+      "requestSize": 214,
+      "responseSize": 462,
+      "requestAttachmentCount": 0,
+      "responseAttachmentCount": 0,
+      "succeeded": true,
+      "statusCode": 200,
+      "xRequestId": "1244d018-9300-4f1b-8c2b-9b7f2bc4e933",
+      "xRoadVersion": "7.6.2",
       "serviceType": "REST"
     },
     {
@@ -265,6 +301,7 @@ The first record of the store request reflects successfully mediated SOAP reques
       "faultCode": "Server.ServerProxy.OpMonitor.InvalidClientIdentifier",
       "faultString": "Missing required subsystem code",
       "xRequestId": "2c51b181-47cd-4ff2-b5df-6463f968fd0c",
+      "xRoadVersion": "7.6.2",
       "serviceType": "WSDL"
     }   
   ]

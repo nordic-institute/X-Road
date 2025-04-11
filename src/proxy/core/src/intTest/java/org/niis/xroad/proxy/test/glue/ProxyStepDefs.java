@@ -205,7 +205,7 @@ public class ProxyStepDefs extends BaseStepDefs {
     private KeyConfProvider createKeyConf() {
         var globalConf = new TestGlobalConfImpl();
         var serverConf = new ServerConfImpl(globalConf);
-        return CachingKeyConfImpl.newInstance(globalConf, serverConf);
+        return new CachingKeyConfImpl(globalConf, serverConf);
     }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)

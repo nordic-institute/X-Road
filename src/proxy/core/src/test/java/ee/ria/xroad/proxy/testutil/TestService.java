@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -35,8 +36,6 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Optional;
 
@@ -52,12 +51,12 @@ import static org.eclipse.jetty.io.Content.Source.asInputStream;
  * Test service
  */
 @Slf4j
-public class TestService implements InitializingBean, DisposableBean {
+public class TestService {
 
     private final Server server = new Server();
 
     private Handler handler;
-    private Throwable exception;
+    private Exception exception;
 
     /**
      * Handler
@@ -70,6 +69,7 @@ public class TestService implements InitializingBean, DisposableBean {
     /**
      * Create a dummy service returning the specified message
      */
+    @SuppressWarnings("checkstyle:MagicNumber")
     public TestService(int port) {
         try {
             setupConnectors(port);
@@ -99,12 +99,14 @@ public class TestService implements InitializingBean, DisposableBean {
         server.addConnector(connector);
     }
 
-    @Override
-    public synchronized void afterPropertiesSet() throws Exception {
+    public int getPort() {
+        return ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+    }
+
+    public synchronized void start() throws Exception {
         server.start();
     }
 
-    @Override
     public synchronized void destroy() throws Exception {
         server.stop();
     }
@@ -124,7 +126,7 @@ public class TestService implements InitializingBean, DisposableBean {
     /**
      * checks if the handler was successful
      */
-    public synchronized void assertOk() throws Throwable {
+    public synchronized void assertOk() throws Exception {
         if (exception != null) {
             throw exception;
         }
@@ -138,12 +140,12 @@ public class TestService implements InitializingBean, DisposableBean {
                 try {
                     handler.handle(request, response);
                     callback.succeeded();
-                } catch (Throwable t) {
-                    exception = t;
-                    log.error("Error when handling request", t);
+                } catch (Exception e) {
+                    exception = e;
+                    log.error("Error when handling request", e);
                     response.setStatus(INTERNAL_SERVER_ERROR_500);
-                    Content.Sink.write(response, true, UTF_8.encode(t.getMessage()));
-                    callback.failed(t);
+                    Content.Sink.write(response, true, UTF_8.encode(e.getMessage()));
+                    callback.failed(e);
                 }
                 return true;
             }

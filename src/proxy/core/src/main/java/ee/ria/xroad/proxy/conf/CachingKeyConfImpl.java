@@ -36,19 +36,21 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
+import ee.ria.xroad.common.util.filewatcher.FileWatchListener;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
+import ee.ria.xroad.common.util.filewatcher.FileWatcherStartupListener;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
 
-import java.lang.ref.WeakReference;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -73,7 +75,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
     private FileWatcherRunner keyConfChangeWatcher;
 
-    CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
         super(globalConfProvider, serverConfProvider);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
@@ -112,7 +114,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Invalidates both auth key and signing info caches
      */
-    protected void invalidateCaches() {
+    public void invalidateCaches() {
         authKeyInfoCache.invalidateAll();
         signingInfoCache.invalidateAll();
     }
@@ -203,51 +205,29 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         return notAfter;
     }
 
-    /**
-     * Create a new CachingKeyConf instance and set up keyconf change watcher.
-     */
-    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider)
-            throws Exception {
-        final FileContentChangeChecker changeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
-        final CachingKeyConfImpl instance = new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
-        // the change watcher can not be created in the constructor, because that would publish the
-        // instance reference to another thread before the constructor finishes.
-        instance.keyConfChangeWatcher = createChangeWatcher(new WeakReference<>(instance), changeChecker);
-        return instance;
+    @SneakyThrows
+    public static FileWatcherRunner createChangeWatcher(FileWatchListener onChange) {
+        return createChangeWatcher(() -> {
+        }, onChange, new FileContentChangeChecker(SystemProperties.getKeyConfFile()));
     }
 
-    /* Implementation note:
-     * Weak reference for the callback is used so that CachingKeyConf instance can be garbage collected
-     * (e.g. after KeyConf reload). Otherwise, the FileWatcher background thread keeps it alive and creates a leak
-     * if one fails to call destroy.
-     */
-    static FileWatcherRunner createChangeWatcher(WeakReference<CachingKeyConfImpl> ref,
+    static FileWatcherRunner createChangeWatcher(FileWatcherStartupListener onStart,
+                                                 FileWatchListener onChange,
                                                  FileContentChangeChecker changeChecker) {
         return FileWatcherRunner.create()
                 .watchForChangesIn(Paths.get(changeChecker.getFileName()))
                 .listenToCreate()
                 .listenToModify()
                 .andOnChangeNotify(() -> {
-                    final CachingKeyConfImpl conf = ref.get();
-                    if (conf == null) {
-                        //stop watcher since the CachingKeyConf has become garbage
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
                     boolean changed = true;
                     try {
                         changed = changeChecker.hasChanged();
                     } catch (Exception e) {
                         log.error("Failed to check if key conf has changed", e);
                     }
-                    if (changed) conf.invalidateCaches();
+                    if (changed) onChange.fileModified();
                 })
-                .andOnStartupNotify(() -> {
-                    final CachingKeyConfImpl conf = ref.get();
-                    if (conf != null) {
-                        conf.watcherStarted();
-                    }
-                })
+                .andOnStartupNotify(onStart)
                 .buildAndStartWatcher();
     }
 }

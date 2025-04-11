@@ -44,7 +44,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -174,9 +173,13 @@ public class CachingKeyConfImplTest {
                 VALID_AUTH_KEY,
                 VALID_SIGNING_INFO,
                 NO_DELAY);
-        try (FileWatcherRunner unused = CachingKeyConfImpl.createChangeWatcher(
-                new WeakReference<>(testCachingKeyConf),
-                new TestChangeChecker(keyConfHasChanged))) {
+        FileWatcherRunner fileWatcherRunner = null;
+        try {
+            fileWatcherRunner = CachingKeyConfImpl.createChangeWatcher(
+                    testCachingKeyConf::watcherStarted,
+                    testCachingKeyConf::invalidateCaches,
+                    new TestChangeChecker(keyConfHasChanged)
+            );
 
             testCachingKeyConf.ready.await();
 
@@ -195,6 +198,10 @@ public class CachingKeyConfImplTest {
 
             expectedCacheHits++;
             assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        } finally {
+            if (fileWatcherRunner != null) {
+                fileWatcherRunner.stop();
+            }
         }
     }
 
@@ -478,7 +485,7 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        protected void invalidateCaches() {
+        public void invalidateCaches() {
             super.invalidateCaches();
             changed.countDown();
         }
