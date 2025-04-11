@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.6.3 - UNRELEASED
+
 ## 7.6.2 - 2025-04-03
 - XRDDEV-2760: Issues with authentication certificate rotation
 - XRDDEV-2840: As an X-Road Operator I want the restPath in operational monitoring data to be more locked down so there is less chance of it leaking information accidentally
