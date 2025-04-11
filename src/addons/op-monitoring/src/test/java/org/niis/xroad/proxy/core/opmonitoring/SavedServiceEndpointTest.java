@@ -52,22 +52,23 @@ public class SavedServiceEndpointTest {
         assertEquals("/pets/*/cat", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/123/cat")));
         assertEquals("/pets/*/cat", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/999/cat")));
         assertEquals("/pets/*/cat/*", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/123/cat/1")));
-        assertEquals("/pets/*/cat/*", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/123/cat/9")));
+        assertEquals("/pets/*/cat/small", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/123/cat/small")));
+        assertEquals("/pets/first/cat/small", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/first/cat/small")));
     }
 
     @Test
-    public void verifyInClientSideThenQueriedEndpointPathIsReturned() {
-        assertEquals("/pets/123/cat", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/123/cat")));
-        assertEquals("/pets/999/cat", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/999/cat")));
-        assertEquals("/pets/123/cat/1", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/123/cat/1")));
-        assertEquals("/pets/123/cat/9", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/123/cat/9")));
+    public void verifyInClientSideThenNullPathIsReturned() {
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/123/cat")));
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/999/cat")));
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/123/cat/1")));
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(CLIENT, "/pets/123/cat/9")));
     }
 
     @Test
-    public void whenSavedEndpointNotExistsThenQueriedPathIsReturned() {
-        assertEquals("/pets", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets")));
-        assertEquals("/pets/cat/1", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/cat/1")));
-        assertEquals("/docs/1", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/docs/1")));
+    public void whenSavedEndpointNotExistsThenNullPathIsReturned() {
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets")));
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/cat/1")));
+        assertNull(savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/docs/1")));
     }
 
     @Test
@@ -76,10 +77,10 @@ public class SavedServiceEndpointTest {
     }
 
     @Test
-    public void whenQueriedPathIsNotNullButExceptionIsCatchedThenQueriedPathIsReturned() {
+    public void whenQueriedPathIsNotNullButExceptionIsCaughtThenNullPathIsReturned() {
         var opMonitoringData = new OpMonitoringData(PRODUCER, 100);
         opMonitoringData.setRestPath("/path");
-        assertEquals("/path", savedServiceEndpoint.getPathIfExists(opMonitoringData));
+        assertNull(savedServiceEndpoint.getPathIfExists(opMonitoringData));
     }
 
     private OpMonitoringData getOpMonitoringData(OpMonitoringData.SecurityServerType type, String restPath) {
@@ -104,6 +105,16 @@ public class SavedServiceEndpointTest {
         var endpoint3 = new Endpoint();
         endpoint3.setMethod("GET");
         endpoint3.setPath("/pets/*/cat");
-        when(serverConfProvider.getServiceEndpoints(opMonitoringData.getServiceId())).thenReturn(List.of(endpoint1, endpoint2, endpoint3));
+        var endpoint4 = new Endpoint();
+        endpoint4.setMethod("GET");
+        endpoint4.setPath("/pets/*/cat/small");
+        var endpoint5 = new Endpoint();
+        endpoint5.setMethod("GET");
+        endpoint5.setPath("/pets/first/cat/small");
+        var endpoint6 = new Endpoint();
+        endpoint6.setMethod("*");
+        endpoint6.setPath("/pets/first/cat/small");
+        when(serverConfProvider.getServiceEndpoints(
+                opMonitoringData.getServiceId())).thenReturn(List.of(endpoint1, endpoint2, endpoint3, endpoint4, endpoint5, endpoint6));
     }
 }

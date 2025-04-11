@@ -2,6 +2,11 @@
 
 ## 7.7.0 - UNRELEASED
 
+## 7.6.2 - 2025-04-03
+- XRDDEV-2760: Issues with authentication certificate rotation
+- XRDDEV-2840: As an X-Road Operator I want the restPath in operational monitoring data to be more locked down so there is less chance of it leaking information accidentally
+- XRDDEV-2848: xroad-opmonitor runs into Out-Of-Memory exceptions
+
 ## 7.6.1 - 2025-01-27
 - XRDDEV-2813: The Central Server is not able to automatically reconnect to a remote database cluster after the cluster leader change when pgBouncer and HAProxy are used to connect the Central Server to the cluster.
 - XRDDEV-2814: The Central Server backup restore failing when using remote database cluster with customized PostgreSQL ports.
