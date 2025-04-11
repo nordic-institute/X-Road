@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.7 
+Version: 1.7  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
