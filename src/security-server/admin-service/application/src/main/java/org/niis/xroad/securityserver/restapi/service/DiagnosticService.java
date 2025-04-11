@@ -29,6 +29,7 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
@@ -82,6 +83,7 @@ public class DiagnosticService {
     private final String diagnosticsAddOnStatusUrl;
     private final String backupEncryptionStatusUrl;
     private final String messageLogEncryptionStatusUrl;
+    private final String proxyMemoryUsageUrl;
 
     @Autowired
     public DiagnosticService(
@@ -91,6 +93,7 @@ public class DiagnosticService {
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
             @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
+            @Value("${url.diagnostics-proxy-memory-usage}") String proxyMemoryUsageUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
@@ -103,6 +106,8 @@ public class DiagnosticService {
         this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
         this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
+                PortNumbers.ADMIN_PORT);
+        this.proxyMemoryUsageUrl = String.format(proxyMemoryUsageUrl,
                 PortNumbers.ADMIN_PORT);
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
@@ -212,6 +217,19 @@ public class DiagnosticService {
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
         try {
             return sendGetRequest(messageLogEncryptionStatusUrl, MessageLogEncryptionStatusDiagnostics.class).getBody();
+        } catch (DiagnosticRequestException e) {
+            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        }
+    }
+
+    /**
+     * Query proxy memory usage from admin port over HTTP.
+     *
+     * @return ProxyMemory
+     */
+    public ProxyMemory queryProxyMemoryUsage() {
+        try {
+            return sendGetRequest(proxyMemoryUsageUrl, ProxyMemory.class).getBody();
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

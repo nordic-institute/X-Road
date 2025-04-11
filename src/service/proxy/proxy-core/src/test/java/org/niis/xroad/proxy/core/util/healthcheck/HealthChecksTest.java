@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.util.healthcheck;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -344,5 +345,47 @@ public class HealthChecksTest {
         when(mockResponse.getStatus()).thenReturn(status);
 
         when(keyConfProvider.getOcspResponse((X509Certificate) notNull())).thenReturn(mockResponse);
+    }
+
+    @Test
+    public void checkProxyMemoryUsageShouldFReturnOkWhenThresholdNotSet() {
+
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkProxyMemoryUsage();
+
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
+    }
+
+    @Test
+    public void checkProxyMemoryUsageShouldFReturnOkWhenMemoryUsageBelowThreshold() {
+
+        // prepare
+        System.setProperty(SystemProperties.PROXY_MEMORY_USAGE_THRESHOLD, "100");
+
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkProxyMemoryUsage();
+
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
+
+        System.clearProperty(SystemProperties.PROXY_MEMORY_USAGE_THRESHOLD);
+    }
+
+    @Test
+    public void checkProxyMemoryUsageShouldFailWhenMemoryUsageOverThreshold() {
+
+        // prepare
+        System.setProperty(SystemProperties.PROXY_MEMORY_USAGE_THRESHOLD, "0");
+
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkProxyMemoryUsage();
+        HealthCheckResult checkedResult = testedProvider.get();
+
+        // verify
+        assertFalse("health check result should be a failure", checkedResult.isOk());
+        assertThat(checkedResult.getErrorMessage(), containsString("Memory usage above threshold"));
+
+        System.clearProperty(SystemProperties.PROXY_MEMORY_USAGE_THRESHOLD);
     }
 }
