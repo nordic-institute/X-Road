@@ -25,11 +25,10 @@
  * THE SOFTWARE.
  */
 import { prepareI18n } from '@niis/shared-ui';
-import enMessages from '@/locales/en.json';
 
 export const availableLanguages = ['en', 'es', 'ru', 'tk'];
 
-export const { i18n, languageHelper } = prepareI18n(enMessages, loadMessages);
+export const { i18n, languageHelper } = prepareI18n(loadMessages);
 
 // Fetches all language-specific messages for the given language
 async function loadMessages(language: string) {
@@ -37,7 +36,7 @@ async function loadMessages(language: string) {
     const module = await import(`@/locales/${language}.json`);
     return module.default;
   } catch {
-    console.error("Failed to load translations for: " + language);
+    console.warn("Failed to load translations for: " + language);
     return {};
   }
 }

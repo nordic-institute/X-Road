@@ -27,10 +27,8 @@
 
 import { createI18n } from 'vue-i18n';
 import merge from 'deepmerge';
-import enSharedMessages from './locales/en.json';
-import enValidationMessages from '@vee-validate/i18n/dist/locale/en.json';
-import { en as enVuetify } from 'vuetify/locale';
 import axios from 'axios';
+import { nextTick } from 'vue';
 
 interface MessageLoader {
   (language: string): Promise<any>
@@ -47,24 +45,23 @@ interface LanguageHelper {
 export const defaultLanguage = import.meta.env.VITE_I18N_LOCALE || 'en';
 export const defaultFallbackLanguage = import.meta.env.VITE_FALLBACK_LOCALE || defaultLanguage;
 
-export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) {
-  const loadedLanguages = new Set(defaultLanguage);
+export function prepareI18n(...loaders: MessageLoader[]) {
+  const loadedLanguages = new Set();
 
   const _loaders = [loadValidationMessages, loadVuetifyMessages, loadSharedMessages, ...loaders];
 
-  const enMessages = merge.all([{ validation: enValidationMessages }, { $vuetify: enVuetify }, enSharedMessages, fallbackMessages]) as any;
-
-  const missigAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
+  const missingAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
 
   const i18n = createI18n({
     legacy: false,
     locale: defaultLanguage,
     fallbackLocale: defaultFallbackLanguage,
-    missingWarn: missigAndFallbackWarn,
-    fallbackWarn: missigAndFallbackWarn,
+    missingWarn: missingAndFallbackWarn,
+    fallbackWarn: missingAndFallbackWarn,
     allowComposition: true,
-    messages: { en: enMessages },
   });
+
+  loadLanguage(defaultLanguage);
 
   async function load(language: string) {
     return Promise.all(_loaders.map(loader => loader(language)))
@@ -80,6 +77,7 @@ export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) 
       i18n.global.setLocaleMessage(language, messages);
       loadedLanguages.add(language)
     }
+    return nextTick();
   }
 
   async function selectLanguage(language: string) {
@@ -87,7 +85,7 @@ export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) 
     i18n.global.locale.value = language;
 
     axios.defaults.headers.common['Accept-Language'] = language
-    document.querySelector('html').setAttribute('lang', language)
+    document.querySelector('html')?.setAttribute('lang', language)
   }
 
   const languageHelper: LanguageHelper = {
@@ -123,8 +121,8 @@ async function loadValidationMessages(language: string) {
 
 async function loadVuetifyMessages(language: string) {
   try {
-    const locales = await import('vuetify/locale');
-    if(!locales[language]){
+    const locales = await import('vuetify/locale') as any;
+    if (!locales[language]) {
       console.warn("Missing Vuetify translations for: " + language);
     }
     return { $vuetify: (locales[language] || {}) };
