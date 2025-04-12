@@ -63,18 +63,7 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           push: true
-          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-central-server-arm:latest' || 'ghcr.io/nordic-institute/xrddev-central-server:latest' }}
-      - name: Clean old CS images
-        uses: snok/container-retention-policy@v2
-        with:
-          image-names: ${{ matrix.architecture == 'arm64' && 'xrddev-central-server-arm' || 'xrddev-central-server' }}
-          cut-off: 1 week ago UTC
-          timestamp-to-use: created_at
-          account-type: org
-          org-name: nordic-institute
-          keep-at-least: 1
-          token-type: github-token
-          token: ${{ secrets.GITHUB_TOKEN }}
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-central-server:arm-latest' || 'ghcr.io/nordic-institute/xrddev-central-server:amd-latest' }}
   PublishSS:
     strategy:
       matrix:
@@ -130,11 +119,62 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           push: true
-          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server-arm:latest' || 'ghcr.io/nordic-institute/xrddev-security-server:latest' }}
+          tags: ${{ matrix.architecture == 'arm64' && 'ghcr.io/nordic-institute/xrddev-security-server:arm-latest' || 'ghcr.io/nordic-institute/xrddev-security-server:amd-latest' }}
+  PublishMultiArchCS:
+    runs-on: ubuntu-22.04
+    needs: PublishCS
+    name: Publish Central Server multi-arch manifest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/nordic-institute/xrddev-central-server:latest \
+            --amend ghcr.io/nordic-institute/xrddev-central-server:amd-latest \
+            --amend ghcr.io/nordic-institute/xrddev-central-server:arm-latest
+          docker manifest push ghcr.io/nordic-institute/xrddev-central-server:latest
+      - name: Clean old CS images
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: xrddev-central-server
+          cut-off: 1 week ago UTC
+          timestamp-to-use: created_at
+          account-type: org
+          org-name: nordic-institute
+          keep-at-least: 1
+          token-type: github-token
+          token: ${{ secrets.GITHUB_TOKEN }}
+  PublishMultiArchSS:
+    runs-on: ubuntu-22.04
+    needs: PublishSS
+    name: Publish Security Server multi-arch manifest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and push manifest
+        run: |
+          docker manifest create ghcr.io/nordic-institute/xrddev-security-server:latest \
+            --amend ghcr.io/nordic-institute/xrddev-security-server:amd-latest \
+            --amend ghcr.io/nordic-institute/xrddev-security-server:arm-latest
+          docker manifest push ghcr.io/nordic-institute/xrddev-security-server:latest
       - name: Clean old SS images
         uses: snok/container-retention-policy@v2
         with:
-          image-names: ${{ matrix.architecture == 'arm64' && 'xrddev-security-server-arm' || 'xrddev-security-server' }}
+          image-names: xrddev-security-server
           cut-off: 1 week ago UTC
           timestamp-to-use: created_at
           account-type: org
