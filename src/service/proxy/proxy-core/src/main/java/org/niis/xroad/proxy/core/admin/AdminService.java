@@ -30,6 +30,7 @@ package org.niis.xroad.proxy.core.admin;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.ProxyMemory;
 
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,6 +42,7 @@ import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.Empty;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
+import org.niis.xroad.proxy.proto.ProxyMemoryStatusResp;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -77,6 +79,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void getTimestampStatus(Empty request, StreamObserver<TimestampStatusResp> responseObserver) {
         handleRequest(responseObserver, timestampStatusHandler::handle);
+    }
+
+    @Override
+    public void getProxyMemoryStatus(Empty request, StreamObserver<ProxyMemoryStatusResp> responseObserver) {
+        handleRequest(responseObserver, this::handleProxyMemoryStatus);
     }
 
     @Override
@@ -120,6 +127,18 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
                 .setMessageLogDatabaseEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogDatabaseEncryptionStatus())
                 .setMessageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
                 .addAllMembers(members)
+                .build();
+    }
+
+    private ProxyMemoryStatusResp handleProxyMemoryStatus() {
+        ProxyMemory proxyMemory = ProxyMemory.get();
+        return ProxyMemoryStatusResp.newBuilder()
+                .setFreeMemory(proxyMemory.freeMemory())
+                .setTotalMemory(proxyMemory.totalMemory())
+                .setMaxMemory(proxyMemory.maxMemory())
+                .setUsedMemory(proxyMemory.usedMemory())
+                .setUsedPercent(proxyMemory.usedPercent())
+                .setThreshold(proxyMemory.threshold())
                 .build();
     }
 
