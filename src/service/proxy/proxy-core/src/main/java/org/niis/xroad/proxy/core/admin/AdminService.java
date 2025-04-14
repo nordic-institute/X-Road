@@ -35,6 +35,7 @@ import ee.ria.xroad.common.ProxyMemory;
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
@@ -53,6 +54,7 @@ import static java.util.Collections.unmodifiableList;
 
 @ApplicationScoped
 @RequiredArgsConstructor
+@Slf4j
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ServerConfProvider serverConfProvider;
@@ -96,6 +98,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
             responseObserver.onNext(handler.get());
             responseObserver.onCompleted();
         } catch (Exception e) {
+            log.error("Error handling request", e);
             responseObserver.onError(e);
         }
     }
@@ -132,14 +135,16 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private ProxyMemoryStatusResp handleProxyMemoryStatus() {
         ProxyMemory proxyMemory = ProxyMemory.get();
-        return ProxyMemoryStatusResp.newBuilder()
+        var responseBuilder = ProxyMemoryStatusResp.newBuilder()
                 .setFreeMemory(proxyMemory.freeMemory())
                 .setTotalMemory(proxyMemory.totalMemory())
                 .setMaxMemory(proxyMemory.maxMemory())
                 .setUsedMemory(proxyMemory.usedMemory())
-                .setUsedPercent(proxyMemory.usedPercent())
-                .setThreshold(proxyMemory.threshold())
-                .build();
+                .setUsedPercent(proxyMemory.usedPercent());
+        if (proxyMemory.threshold() != null) {
+            responseBuilder.setThreshold(proxyMemory.threshold());
+        }
+        return responseBuilder.build();
     }
 
     private Empty handleClearConfCache() {
