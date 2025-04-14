@@ -29,6 +29,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusCon
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.exception.ErrorMessage;
@@ -48,6 +50,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatu
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
@@ -81,10 +84,9 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
     private final AddOnStatusConverter addOnStatusConverter;
-
     private final BackupEncryptionStatusConverter backupEncryptionStatusConverter;
-
     private final MessageLogEncryptionStatusConverter messageLogEncryptionStatusConverter;
+    private final ProxyMemoryUsageStatusConverter proxyMemoryUsageStatusConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -142,6 +144,13 @@ public class DiagnosticsApiController implements DiagnosticsApi {
                 diagnosticService.queryMessageLogEncryptionStatus();
         return new ResponseEntity<>(messageLogEncryptionStatusConverter
                 .convert(messageLogEncryptionStatusDiagnostics), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<ProxyMemoryUsageStatusDto> getProxyMemoryUsage() {
+        ProxyMemory proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
+        return new ResponseEntity<>(proxyMemoryUsageStatusConverter.convert(proxyMemoryUsage), HttpStatus.OK);
     }
 
     private String systemInformationFilename() {

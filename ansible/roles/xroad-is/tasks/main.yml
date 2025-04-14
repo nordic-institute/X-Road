@@ -1,4 +1,13 @@
 ---
 - include_tasks: setup-nginx.yml
+  tags:
+    - setup-is-nginx
 - include_tasks: setup-xrd4j.yml
+  tags:
+    - setup-is-xrd4j-example-adapter
 - include_tasks: setup-restapi.yml
+  tags:
+    - setup-is-restapi
+- include_tasks: setup-payloadgen.yml
+  tags:
+    - setup-is-payloadgen

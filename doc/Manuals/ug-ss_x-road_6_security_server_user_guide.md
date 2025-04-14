@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.95  
+Version: 2.96  
 Doc. ID: UG-SS
 
 ---
@@ -124,6 +124,7 @@ Doc. ID: UG-SS
 | 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
 | 13.02.2025 | 2.94    | Add helper script for allocating memory for proxy service                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
 | 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
+| 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -360,7 +361,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](../../src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 

@@ -2,7 +2,7 @@
 
 **X-Road Architecture**
 
-Version: 1.13  
+Version: 1.14  
 01.06.2023
 <!-- 16 pages -->
 Doc. ID: ARC-G
@@ -33,6 +33,7 @@ Doc. ID: ARC-G
  07.09.2021 | 1.11    | Fix broken link                                                                                               | Ilkka Seppälä
  23.09.2022 | 1.12    | Added new Registration Web Service                                                                            | Eneli Reimets
  01.06.2023 | 1.13    | Update references                                                                                             | Petteri Kivimäki
+ 17.03.2025 | 1.14    | Syntax and styling                                                                                            | Pauline Dimmek
 
 ## Table of Contents
 

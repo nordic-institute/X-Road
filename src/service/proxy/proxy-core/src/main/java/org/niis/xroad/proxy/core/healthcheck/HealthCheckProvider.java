@@ -30,7 +30,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A common inteface that implements health checks somehow to produce a single {@link HealthCheckResult}
+ * A common interface that implements health checks somehow to produce a single {@link HealthCheckResult}
  */
 @FunctionalInterface
 public interface HealthCheckProvider extends Supplier<HealthCheckResult> {

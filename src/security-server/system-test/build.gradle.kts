@@ -6,6 +6,7 @@ plugins {
 dependencies {
   intTestImplementation(project(":security-server:openapi-model"))
   intTestImplementation(project(":addons:proxymonitor-common"))
+  intTestImplementation(project(":service:op-monitor:op-monitor-core"))
 
   intTestImplementation(project(":common:common-int-test"))
   intTestImplementation(libs.testAutomation.assert)

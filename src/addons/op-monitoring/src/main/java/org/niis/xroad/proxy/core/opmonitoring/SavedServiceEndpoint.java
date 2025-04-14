@@ -32,6 +32,8 @@ import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.Endpoint;
 
+import java.util.Comparator;
+
 @Slf4j
 @RequiredArgsConstructor
 class SavedServiceEndpoint {
@@ -41,16 +43,19 @@ class SavedServiceEndpoint {
     String getPathIfExists(OpMonitoringData data) {
         if (data.isProducer() && !StringUtil.isEmpty(data.getRestPath())) {
             try {
-                var endpoint = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
+                var endpoints = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
                         .map(v -> new Endpoint(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
                         .filter(ep -> ep.matches(data.getRestMethod(), data.getRestPath()))
-                        .findFirst();
-
-                return endpoint.map(Endpoint::getPath).orElse(data.getRestPath());
+                        // we should sort by path and method before finding first
+                        // because [* /pets/*] and [GET /pets/first] also matches, but we want [GET /pets/first] is returned
+                        .min(Comparator.comparing(Endpoint::getPath).reversed()
+                                .thenComparing(Endpoint::getMethod, Comparator.reverseOrder()));
+                // the path is logged only if it can be resolved to an endpoint described for the service
+                return endpoints.map(Endpoint::getPath).orElse(null);
             } catch (Exception e) {
                 log.error("Cannot query saved endpoint for: {}", data.getRestPath(), e);
             }
         }
-        return data.getRestPath();
+        return null;
     }
 }

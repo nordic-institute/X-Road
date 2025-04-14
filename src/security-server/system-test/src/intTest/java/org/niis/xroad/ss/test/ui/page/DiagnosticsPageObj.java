@@ -96,6 +96,18 @@ public class DiagnosticsPageObj {
         return $x("//td[@data-test='ocsp-responders-message']");
     }
 
+    public SelenideElement proxyMemoryUsageMessage() {
+        return $x("//td[@data-test='proxy-memory-usage-status-message']");
+    }
+
+    public SelenideElement proxyMemoryUsageMax() {
+        return $x("//td[@data-test='proxy-memory-max']");
+    }
+
+    public SelenideElement proxyMemoryUsageThreshold() {
+        return $x("//td[@data-test='proxy-memory-threshold']");
+    }
+
     public SelenideElement btnDownloadDiagnoticsReport() {
         return $x("//button[@data-test='download-diagnostics-report-button']");
     }

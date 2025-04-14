@@ -26,7 +26,7 @@ if [[ $# -eq 0 ]]; then
   echo "--local: Use .env.local file"
 fi
 
-docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
+docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d --build hurl
 
 if [[ -n "$INITIALIZE" ]]; then
   docker compose $COMPOSE_FILE_ARGS \
