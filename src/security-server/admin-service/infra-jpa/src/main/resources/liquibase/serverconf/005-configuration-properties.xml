@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="005-configuration-properties">
+        <createTable tableName="configuration_properties">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="key" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="VARCHAR(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scope" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql splitStatements="false"><![CDATA[
+            CREATE UNIQUE INDEX uniq_key ON configuration_properties(key)
+                WHERE scope IS NULL;
+            CREATE UNIQUE INDEX uniq_key_scope ON configuration_properties(key, scope)
+                WHERE scope IS NOT NULL;
+        ]]></sql>
+        <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION set_timestamp()
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
+            BEGIN
+                IF TG_OP = 'INSERT' THEN
+                    NEW.created_at := CURRENT_TIMESTAMP;
+                END IF;
+                NEW.updated_at := CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$;
+
+            DROP TRIGGER IF EXISTS trg_set_timestamp ON configuration_properties;
+            CREATE TRIGGER trg_set_timestamp BEFORE INSERT OR UPDATE ON configuration_properties
+                FOR EACH ROW EXECUTE FUNCTION set_timestamp();
+        ]]></sql>
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS update_history ON configuration_properties;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON configuration_properties
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

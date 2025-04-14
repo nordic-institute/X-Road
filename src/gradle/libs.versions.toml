@@ -35,7 +35,6 @@ quarkus-vault = "4.2.1"
 quarkus-systemd-notify = "1.0.2"
 smallryeConfig = "3.12.4"
 
-
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
 metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
@@ -71,7 +70,7 @@ quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "qua
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
 quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
-quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify"}
+quarkus-extension-systemd-notify = { group = "io.quarkiverse.systemd.notify", name = "quarkus-systemd-notify", version.ref = "quarkus-systemd-notify" }
 
 smallrye-config-core = { group = "io.smallrye.config", name = "smallrye-config-core", version.ref = "smallryeConfig" }
 
@@ -163,6 +162,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.0" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.12.1" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
@@ -194,7 +194,7 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
-protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref= "protobufPlugin"}
+protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
 jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.4" }
 jibQuarkusExtension = { module = "com.google.cloud.tools:jib-quarkus-extension-gradle", version = "0.1.2" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }

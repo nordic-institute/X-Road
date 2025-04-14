@@ -5,6 +5,8 @@ plugins {
 }
 
 dependencies {
+  implementation(libs.caffeine)
+  implementation(libs.slf4j.api)
   implementation(libs.smallrye.config.core)
 
   testFixturesImplementation(libs.smallrye.config.core)
