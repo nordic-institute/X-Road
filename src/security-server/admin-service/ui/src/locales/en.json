@@ -437,6 +437,7 @@
     "service_already_exists": "Service already exists",
     "service_client_not_found": "Service client not found",
     "service_code_already_exists": "Service code already exists",
+    "service_code_reserved": "The service code provided is reserved for internal system use and cannot be assigned to custom services.",
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",

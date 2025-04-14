@@ -87,6 +87,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_EXI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESERVED_SERVICE_CODE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_ENDPOINTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_ENDPOINTS;
@@ -111,7 +112,7 @@ public class ServiceDescriptionService {
     public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
     public static final String CLIENT_WITH_ID = "Client with id";
     public static final String NOT_FOUND = " not found";
-
+    
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ServiceChangeChecker serviceChangeChecker;
@@ -124,6 +125,7 @@ public class ServiceDescriptionService {
     private final EndpointHelper endpointHelper;
     private final IdentifierValidator identifierValidator;
     private final WsdlParser wsdlParser;
+    private final ReservedServiceCodesProvider reservedServiceCodesProvider;
 
     /**
      * Disable 1 services
@@ -294,6 +296,7 @@ public class ServiceDescriptionService {
      * @throws InterruptedException             if the thread running the WSDL validator is interrupted. <b>The
      *                                          interrupted thread has already been handled with so you can choose to ignore this exception
      *                                          if you so please.</b>
+     * @throws ReservedServiceCodeException     if a parsed service uses a reserved service code.
      */
     ServiceDescriptionEntity addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
@@ -309,6 +312,10 @@ public class ServiceDescriptionService {
         }
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(clientEntity, url, null);
+
+        for (ServiceType parsedService : wsdlProcessingResult.getParsedServices()) {
+            validateServiceCodeNotReserved(parsedService.getServiceCode());
+        }
 
         validateServiceUrls(wsdlProcessingResult.getParsedServices());
 
@@ -395,6 +402,7 @@ public class ServiceDescriptionService {
      * @throws MissingParameterException          if given ServiceCode is null
      * @throws InvalidUrlException                if url is invalid'
      * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
+     * @throws ReservedServiceCodeException       if a parsed service uses a reserved service code
      */
     @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     ServiceDescriptionEntity addOpenApi3ServiceDescription(ClientId clientId, String url, String serviceCode, boolean ignoreWarnings)
@@ -412,6 +420,10 @@ public class ServiceDescriptionService {
 
         // Parse openapi definition
         OpenApiParser.Result result = openApiParser.parse(url);
+
+        for (Service parsedService : result.getServices()) {
+            validateServiceCodeNotReserved(parsedService.getServiceCode());
+        }
 
         if (!ignoreWarnings && result.hasWarnings()) {
             WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,
@@ -511,6 +523,19 @@ public class ServiceDescriptionService {
 
     }
 
+     /**
+     * Validates that the provided service code is not in the list of reserved codes
+     * used internally by the system (e.g. metaservices).
+     * 
+     * @param serviceCode the service code to validate
+     * @throws ReservedServiceCodeException      if the code is reserved and cannot be used
+     */
+    private void validateServiceCodeNotReserved(String serviceCode){
+        if (reservedServiceCodesProvider.isReserved(serviceCode)) {
+            throw new ReservedServiceCodeException(serviceCode);
+        }
+    }
+
     /**
      * Add a new REST ServiceDescription
      *
@@ -537,13 +562,15 @@ public class ServiceDescriptionService {
             throw new MissingParameterException("Missing ServiceCode");
         }
 
+        validateServiceCodeNotReserved(serviceCode);
+
         validateUrl(url);
 
         ClientEntity client = clientService.getLocalClientEntity(clientId);
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
         }
-
+    
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(client, url,
                 DescriptionType.REST);
 
@@ -625,6 +652,7 @@ public class ServiceDescriptionService {
      * @throws WsdlUrlAlreadyExistsException        url is already in use by this client
      * @throws OpenApiParser.ParsingException       openapi3 description parsing fails
      * @throws UnsupportedOpenApiVersionException   if the openapi version is not supported
+     * @throws ReservedServiceCodeException         if a parsed service uses a reserved service code
      */
     public ServiceDescription refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -668,6 +696,7 @@ public class ServiceDescriptionService {
      * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
      *                                              interrupted thread has already been handled with so you can choose
      *                                              to ignore this exception if you so  please.</b>
+     * @throws ReservedServiceCodeException         if the service code is in the list of reserved codes
      */
     @PreAuthorize("hasAuthority('REFRESH_WSDL')")
     private ServiceDescriptionEntity refreshWSDLServiceDescription(ServiceDescriptionEntity serviceDescriptionEntity,
@@ -697,6 +726,7 @@ public class ServiceDescriptionService {
      * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
      * @throws InvalidUrlException                  if url is invalid
      * @throws UnsupportedOpenApiVersionException   if the openapi version is not supported
+     * @throws ReservedServiceCodeException         if the service code is in the list of reserved codes
      */
     @PreAuthorize("hasAuthority('REFRESH_OPENAPI3')")
     private ServiceDescriptionEntity refreshOpenApi3ServiceDescription(ServiceDescriptionEntity serviceDescriptionEntity,
@@ -715,6 +745,8 @@ public class ServiceDescriptionService {
         }
 
         validateUrl(serviceDescriptionEntity.getUrl());
+
+        validateServiceCodeNotReserved(serviceDescriptionEntity.getServices().getFirst().getServiceCode());
 
         serviceDescriptionEntity.setRefreshedDate(new Date());
 
@@ -1004,6 +1036,7 @@ public class ServiceDescriptionService {
      * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
      *                                              interrupted thread has already been handled with so you can choose
      *                                              to ignore this exception if you so  please.</b>
+     * @throws ReservedServiceCodeException         if a parsed service uses a reserved service code
      */
     private ServiceDescriptionEntity updateWsdlUrl(ServiceDescriptionEntity serviceDescriptionEntity, String url, boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException, WrongServiceDescriptionException, UnhandledWarningsException,
@@ -1030,6 +1063,9 @@ public class ServiceDescriptionService {
                 .stream()
                 .map(serviceInfo -> serviceInfoToServiceEntity(serviceInfo, serviceDescriptionEntity))
                 .collect(Collectors.toList());
+        
+        // validate that the service code is not reserved
+        validateServiceCodeNotReserved(newServices);
 
         // find what services were added or removed
         ServiceChangeChecker.ServiceChanges serviceChanges = serviceChangeChecker.check(
@@ -1386,4 +1422,12 @@ public class ServiceDescriptionService {
             super(new ErrorDeviation(ERROR_EXISTING_SERVICE_CODE, metadata));
         }
     }
+
+    /** 
+     *  If trying to register or update a service using a reserved service code.
+     */
+    public static class ReservedServiceCodeException extends ServiceException {
+        public ReservedServiceCodeException(List<String> metadata) {
+            super(new ErrorDeviation(ERROR_RESERVED_SERVICE_CODE, metadata));
+        }
 }

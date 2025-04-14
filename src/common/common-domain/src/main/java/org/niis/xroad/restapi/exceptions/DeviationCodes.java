@@ -82,6 +82,7 @@ public final class DeviationCodes {
     public static final String ERROR_ENDPOINT_NOT_FOUND = "endpoint_not_found";
     public static final String ERROR_EXISTING_ENDPOINT = "endpoint_already_exists";
     public static final String ERROR_EXISTING_SERVICE_CODE = "service_code_already_exists";
+    public static final String ERROR_RESERVED_SERVICE_CODE = "service_code_reserved";
     public static final String ERROR_EXISTING_URL = "url_already_exists";
     public static final String ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST = "global_conf_download_request_failed";
     public static final String ERROR_GPG_KEY_GENERATION_INTERRUPTED = "gpg_key_generation_interrupted";
