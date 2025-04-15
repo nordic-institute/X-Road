@@ -482,7 +482,6 @@ public class ServiceDescriptionService {
     /**
      * Validates that the provided service code is not in the list of reserved codes
      * used internally by the system (e.g. metaservices).
-     *
      * @param serviceCode the service code to validate
      * @throws ReservedServiceCodeException if the code is reserved and cannot be used
      */
@@ -1365,7 +1364,7 @@ public class ServiceDescriptionService {
     /**
      * If trying to register or update a service using a reserved service code.
      */
-    public static class ReservedServiceCodeException extends DeviationAwareRuntimeException {
+    public static class ReservedServiceCodeException extends InternalServerErrorException {
         public ReservedServiceCodeException(String serviceCode) {
             super(new ErrorDeviation(ERROR_RESERVED_SERVICE_CODE, List.of(serviceCode)));
         }
