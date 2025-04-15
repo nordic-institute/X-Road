@@ -132,7 +132,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
                 response.getFreeMemory(),
                 response.getMaxMemory(),
                 response.getUsedMemory(),
-                response.getThreshold(),
+                response.hasThreshold() ? response.getThreshold() : null,
                 response.getUsedPercent());
     }
 
