@@ -220,6 +220,10 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - XROAD_PROXY_UI_API_SECURITY_SERVER_URL=https://proxy:8443
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     ports:
       - "0:4000" # Frontend
       - "0:9999" # debug port
