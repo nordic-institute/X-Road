@@ -166,6 +166,7 @@ caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.0
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.12.1" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
+h2database = { module = "com.h2database:h2", version = "2.2.224" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.5" }
