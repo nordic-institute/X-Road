@@ -11,10 +11,10 @@
             <column name="id" autoIncrement="true" type="SERIAL">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="key" type="VARCHAR(512)">
+            <column name="property_key" type="VARCHAR(512)">
                 <constraints nullable="false"/>
             </column>
-            <column name="value" type="VARCHAR(512)">
+            <column name="property_value" type="VARCHAR(512)">
                 <constraints nullable="false"/>
             </column>
             <column name="scope" type="VARCHAR(255)"/>
@@ -26,9 +26,9 @@
             </column>
         </createTable>
         <sql splitStatements="false"><![CDATA[
-            CREATE UNIQUE INDEX uniq_key ON configuration_properties(key)
+            CREATE UNIQUE INDEX uniq_key ON configuration_properties(property_key)
                 WHERE scope IS NULL;
-            CREATE UNIQUE INDEX uniq_key_scope ON configuration_properties(key, scope)
+            CREATE UNIQUE INDEX uniq_key_scope ON configuration_properties(property_key, scope)
                 WHERE scope IS NOT NULL;
         ]]></sql>
         <sql splitStatements="false"><![CDATA[
