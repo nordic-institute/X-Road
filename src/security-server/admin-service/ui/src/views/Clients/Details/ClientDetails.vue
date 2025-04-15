@@ -137,10 +137,7 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['hasPermission']),
     ...mapState(useClient, ['client', 'signCertificates', 'clientLoading']),
-    ...mapState(useSystem, ['doesSupportSubsystemNames']),
-    renameInProgress(): boolean {
-      return !!this.client?.rename_in_progress;
-    },
+    ...mapState(useSystem, ['doesSupportSubsystemNames'])
   },
   created() {
     this.certificatesLoading = true;
