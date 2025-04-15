@@ -79,7 +79,7 @@ public class CachedDbConfigSource {
         log.debug("reloadCache()");
         Map<String, String> dbProps = repository.getProperties();
         cache.invalidateAll();
-        dbProps.forEach(cache::put);
+        cache.putAll(dbProps);
     }
 
 }

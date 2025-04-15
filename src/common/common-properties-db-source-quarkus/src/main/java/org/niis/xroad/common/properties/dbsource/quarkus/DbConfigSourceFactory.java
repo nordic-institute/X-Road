@@ -53,7 +53,7 @@ public class DbConfigSourceFactory implements ConfigSourceFactory {
     @Override
     public Iterable<ConfigSource> getConfigSources(ConfigSourceContext context) {
         DbSourceConfig config = DbSourceConfig.loadValues(context.getValue("quarkus.application.name").getValue());
-        if (config.isEnabled()) {
+        if (config.isEnabled() && config.getUrl() != null) {
             log.info("Using DB config source.");
             try {
                 DataSource dataSource = initDataSource(config);
