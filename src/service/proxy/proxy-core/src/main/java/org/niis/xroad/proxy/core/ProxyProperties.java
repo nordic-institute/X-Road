@@ -69,6 +69,9 @@ public interface ProxyProperties {
     @WithDefault("false")
     boolean hsmHealthCheckEnabled();
 
+    @WithName("memory-usage-threshold")
+    Optional<Long> memoryUsageThreshold();
+
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {
         @WithName("connector-host")

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,10 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.proxy.core.admin;
 
-public record ProxyMemory(long totalMemory, long freeMemory, long maxMemory, long usedMemory, Long threshold, long usedPercent) {
-    public boolean isUsedAboveThreshold() {
-        return threshold != null && usedPercent > threshold;
+
+import ee.ria.xroad.common.ProxyMemory;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.proxy.core.ProxyProperties;
+
+
+@RequiredArgsConstructor
+@ApplicationScoped
+public class ProxyMemoryStatusService {
+    private final ProxyProperties proxyProperties;
+
+    public ProxyMemory getMemoryStatus() {
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemory = runtime.maxMemory();
+        long totalMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        long usedMemory = totalMemory - freeMemory;
+        Long threshold = proxyProperties.memoryUsageThreshold().orElse(null);
+        long usedPercent = (usedMemory * 100) / maxMemory;
+        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
     }
+
+
 }

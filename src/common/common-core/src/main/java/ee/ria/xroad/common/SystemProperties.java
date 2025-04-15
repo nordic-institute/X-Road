@@ -243,7 +243,6 @@ public final class SystemProperties {
             PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
-    public static final String PROXY_MEMORY_USAGE_THRESHOLD = PROXY_PREFIX + "memory-usage-threshold";
 
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
@@ -1139,12 +1138,6 @@ public final class SystemProperties {
         return Optional.ofNullable(getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
-    }
-
-    public static Long getProxyMemoryUsageThreshold() {
-        return Optional.ofNullable(System.getProperty(PROXY_MEMORY_USAGE_THRESHOLD))
-                .map(Long::parseLong)
-                .orElse(null);
     }
 
     private static String propertyNameToEnvVariable(String propName) {

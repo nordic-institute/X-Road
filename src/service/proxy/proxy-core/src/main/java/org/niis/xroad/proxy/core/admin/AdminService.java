@@ -62,6 +62,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final TimestampStatusHandler timestampStatusHandler;
+    private final ProxyMemoryStatusService proxyMemoryStatusService;
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
@@ -134,7 +135,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     private ProxyMemoryStatusResp handleProxyMemoryStatus() {
-        ProxyMemory proxyMemory = ProxyMemory.get();
+        ProxyMemory proxyMemory = proxyMemoryStatusService.getMemoryStatus();
         var responseBuilder = ProxyMemoryStatusResp.newBuilder()
                 .setFreeMemory(proxyMemory.freeMemory())
                 .setTotalMemory(proxyMemory.totalMemory())

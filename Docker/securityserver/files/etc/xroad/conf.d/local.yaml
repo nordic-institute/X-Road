@@ -2,10 +2,11 @@ xroad:
   common:
     global-conf:
       source: REMOTE
-    proxy-ui-api:
-      acme-challenge-port-enabled: true
-    proxy:
-      health-check-port: 5558
-      server-conf-cache-period: 10 #default 60
-    configuration-client:
-      update-interval: 10 #default 60
+    server-conf:
+      cache-period: 10 #default 60
+  proxy-ui-api:
+    acme-challenge-port-enabled: true
+  proxy:
+    health-check-port: 5558
+  configuration-client:
+    update-interval: 10 #default 60

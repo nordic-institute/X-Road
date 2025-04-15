@@ -38,6 +38,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.proxy.core.admin.ProxyMemoryStatusService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -61,6 +62,7 @@ public class HealthChecks {
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final SignerRpcClient signerRpcClient;
+    private final ProxyMemoryStatusService proxyMemoryStatusService;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
@@ -161,7 +163,7 @@ public class HealthChecks {
 
     public HealthCheckProvider checkProxyMemoryUsage() {
         return () -> {
-            ProxyMemory proxyMemory = ProxyMemory.get();
+            ProxyMemory proxyMemory = proxyMemoryStatusService.getMemoryStatus();
             log.debug("Max memory: {}", proxyMemory.maxMemory());
             log.debug("Total allocated memory: {}", proxyMemory.totalMemory());
             log.debug("Free memory: {}", proxyMemory.freeMemory());
