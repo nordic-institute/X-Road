@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 
@@ -54,7 +54,7 @@ public interface MemberClassService {
      * Add a new member class
      *
      * @param memberClass member class to add
-     * @throws DataIntegrityException if the member class already exists
+     * @throws ConflictException if the member class already exists
      */
     MemberClass add(MemberClass memberClass);
 
@@ -69,7 +69,7 @@ public interface MemberClassService {
      * Delete member class.
      *
      * @param code member class code
-     * @throws DataIntegrityException if the member class is in use
+     * @throws ConflictException if the member class is in use
      * @throws NotFoundException      if the member class does not exist
      */
     void delete(String code);

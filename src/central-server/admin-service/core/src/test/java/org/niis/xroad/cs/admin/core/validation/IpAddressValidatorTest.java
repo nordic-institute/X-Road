@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.core.validation;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -38,23 +38,23 @@ public class IpAddressValidatorTest {
 
     @Test
     void validateIpAddressThrowsException() {
-        assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("")).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("")).isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.3.4.")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.03.4")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.3.X")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.333.4")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1:2:3:4:5:6:7")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1:2:3:4:5:6:7:8:")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("a:b:c:d:e:f:1:g")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("a:b:c:::1:g")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
     }
 
     @Test
@@ -67,13 +67,13 @@ public class IpAddressValidatorTest {
     @Test
     void validateCommaSeparatedIpAddressesThrowsException() {
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.3.4,,1:2:3:4:5:6:7:8")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.3.4,1:2:3:4:5:6:7:8,")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.a.4,1:2:3:4:5:6:7:8")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
         assertThatThrownBy(() -> ipAddressValidator.validateIpAddress("1.2.3.4,1:2:3:4:5:6:7.8")).isInstanceOf(
-                ValidationFailureException.class);
+                BadRequestException.class);
     }
 
     @Test

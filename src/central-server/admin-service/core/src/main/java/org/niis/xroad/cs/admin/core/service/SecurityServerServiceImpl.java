@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
@@ -74,7 +75,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SS_AUTH_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
@@ -167,13 +167,13 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         return securityServerRepository.findBy(serverId)
                 .map(server -> clientService.find(
                         new ClientService.SearchParameters().setSecurityServerId(server.getId())))
-                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
     }
 
     @Override
     public Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id) {
         return securityServerRepository.findBy(id)
-                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND))
+                .orElseThrow(() -> new SecurityServerNotFoundException(id))
                 .getAuthCerts().stream()
                 .map(certificateConverter::toCertificateDetails)
                 .collect(toSet());
@@ -201,7 +201,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
 
         final SecurityServerEntity securityServerEntity = securityServerRepository.findBy(serverId)
-                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
 
         registerClientDeletionRequests(securityServerEntity);
         registerAuthCertsDeleteRequests(securityServerEntity);
@@ -262,12 +262,12 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         auditDataHelper.put(SERVER_CODE, serverId.getServerCode());
 
         if (!securityServerRepository.existsBy(serverId)) {
-            throw new NotFoundException(SECURITY_SERVER_NOT_FOUND);
+            throw new SecurityServerNotFoundException(serverId);
         }
 
         final AuthCertEntity authCertificate = authCertRepository.findById(certificateId)
                 .filter(authCertEntity -> authCertEntity.getSecurityServer().getServerId().equals(serverId))
-                .orElseThrow(() -> new NotFoundException(SS_AUTH_CERTIFICATE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SS_AUTH_CERTIFICATE_NOT_FOUND.build()));
 
         auditDataHelper.putCertificateHash(authCertificate.getCert());
 
@@ -283,8 +283,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         auditDataHelper.put(CLIENT_IDENTIFIER, clientId);
 
         final var securityServer = securityServerRepository.findBy(securityServerId)
-                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
-
+                .orElseThrow(() -> new SecurityServerNotFoundException(securityServerId));
 
         securityServer.getServerClients().stream()
                 .filter(client -> client.getSecurityServerClient().getIdentifier().equals(clientId))
@@ -295,9 +294,9 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     private NotFoundException throwNotRegistered(ClientId clientId) {
         if (clientId.getSubsystemCode() == null) {
-            return new NotFoundException(MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER);
+            return new NotFoundException(MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER.build());
         } else {
-            return new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER);
+            return new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.build());
         }
     }
 

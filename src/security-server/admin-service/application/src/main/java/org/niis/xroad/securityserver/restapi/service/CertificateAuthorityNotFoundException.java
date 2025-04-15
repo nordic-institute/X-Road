@@ -25,16 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CA_NOT_FOUND;
 
 /**
  * If approved CA was not found
  */
 public class CertificateAuthorityNotFoundException extends NotFoundException {
     public CertificateAuthorityNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_CA_NOT_FOUND));
+        super(s, CA_NOT_FOUND.build());
     }
 }

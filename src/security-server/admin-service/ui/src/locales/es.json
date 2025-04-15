@@ -26,8 +26,6 @@
     "title": "Permisos de acceso"
   },
   "action": {
-    "cancel": "Cancelar",
-    "delete": "Eliminar",
     "disable": "Desactivar",
     "enable": "Permitir",
     "order": "Orden"
@@ -349,14 +347,6 @@
           },
           "UnknownService": "Servicio desconocido"
         }
-      },
-      "Signer": {
-        "CertNotFound": "No se encuentra el certificado",
-        "KeyNotFound": "No se encuentra la clave",
-        "NetworkError": "El firmante no es actualmente accesible.",
-        "TokenNotAvailable": "El token no está disponible",
-        "TokenNotFound": "No se encuentra el token",
-        "UnknownMember": "X -Road Core - Signer: miembro desconocido"
       }
     },
     "csr_not_found": "No se encontró el CSR",
@@ -374,7 +364,6 @@
     "import_internal_cert_failed": "Error al importar el certificado interno",
     "internal_anchor_upload_invalid_instance_id": "El Ancla tiene una identificación de instancia inválida",
     "internal_key_cert_interrupted": "Clave de certificado interna interrumpida",
-    "invalid_cert": "Certificado no válido",
     "invalid_characters_pin": "El PIN tiene caracteres no permitidos",
     "invalid_dn_parameter": "Parámetro DN no es válido",
     "invalid_https_url": "La URL no utiliza HTTPS",
@@ -405,8 +394,6 @@
     "pin_code_exists": "El código PIN ya existe",
     "pin_code_not_provided": "No has proporcionado el código PIN",
     "pin_incorrect": "PIN incorrecto. Por favor intente de nuevo.",
-    "pin_min_char_classes_count": "Cantidad mínima de clases de caracteres para el PIN",
-    "pin_min_length": "Longitud mínima",
     "process_failed": "Falló el proceso",
     "process_not_executable": "El proceso no es ejecutable",
     "server_already_fully_initialized": "El servidor ya está completamente inicializado",
@@ -429,7 +416,6 @@
     "unsupported_openapi_version": "Versión OpenAPI no soportada. Solo las versiones 3.0.x y 3.1.0 son actualmente compatibles.",
     "url_already_exists": "URL ya existe",
     "warnings_detected": "Advertencias detectadas",
-    "weak_pin": "PIN débil",
     "wrong_key_usage": "Uso de la clave incorrecta",
     "wrong_servicedescription_type": "Tipo de descripción del servicio incorrecto",
     "wsdl_download_failed": "Falló la descarga de WSDL",
@@ -627,11 +613,9 @@
     "signKeyCert": "Firmar claves y certificados",
     "status": "Estado",
     "token": {
-      "label": "Token:",
       "details": "Detalles del token",
       "id": "ID de token:",
       "info": "Información del token",
-      "pin": "PIN",
       "saved": "Token guardado",
       "deleteText": "¿Estás seguro que deseas eliminar este token y toda la información asociada de la configuración del servidor?",
       "deleteTitle": "¿Eliminar token?",

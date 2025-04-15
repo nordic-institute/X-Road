@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.exceptions;
 import ee.ria.xroad.common.CodedException;
 
 import jakarta.validation.ConstraintViolationException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
@@ -45,6 +44,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.niis.xroad.restapi.exceptions.DeviationBuilder.TRANSLATABLE_PREFIX;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
 import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
@@ -55,7 +55,6 @@ import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedR
 public class ExceptionTranslator {
 
     public static final String CORE_CODED_EXCEPTION_PREFIX = "core.";
-    public static final String META_PREFIX = "meta.";
 
     private final ValidationErrorHelper validationErrorHelper;
 
@@ -68,7 +67,6 @@ public class ExceptionTranslator {
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
-     *
      * @param e             exception to convert
      * @param defaultStatus status to be used if not specified with method annotation
      * @return ResponseEntity with properly filled ErrorInfo
@@ -91,7 +89,8 @@ public class ExceptionTranslator {
             }
             case CodedException ce -> {
                 // map fault code and string from core CodedException
-                Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(), ce.getFaultString());
+                var deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(),
+                        List.of(ce.getFaultString(), TRANSLATABLE_PREFIX + ce.getTranslationCode()));
                 errorDto.setError(convert(deviation));
             }
             case MethodArgumentNotValidException manve -> errorDto.setError(validationErrorHelper.createError(manve));
@@ -117,9 +116,9 @@ public class ExceptionTranslator {
     private CodeWithDetails convert(Deviation deviation) {
         CodeWithDetails result = new CodeWithDetails();
         if (deviation != null) {
-            result.setCode(deviation.getCode());
-            if (deviation.getMetadata() != null && !deviation.getMetadata().isEmpty()) {
-                result.setMetadata(deviation.getMetadata());
+            result.setCode(deviation.code());
+            if (deviation.metadata() != null && !deviation.metadata().isEmpty()) {
+                result.setMetadata(deviation.metadata());
             }
         }
         return result;
@@ -133,14 +132,14 @@ public class ExceptionTranslator {
         if (isCausedBySignerException(e)) {
             var metadata = errorDto.getError().getMetadata();
             metadata = metadata == null ? new LinkedList<>() : new LinkedList<>(metadata);
-            metadata.add(META_PREFIX + "check_signer_logs");
+            metadata.add(TRANSLATABLE_PREFIX + "check_signer_logs");
             errorDto.getError().setMetadata(metadata);
         }
     }
 
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
-        if (e instanceof ServiceException se) {
-            return HttpStatus.resolve(se.getHttpStatus());
+        if (e instanceof HttpStatusAware hsa) {
+            return HttpStatus.resolve(hsa.getHttpStatus());
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }

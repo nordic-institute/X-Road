@@ -23,23 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.exception.util.CommonDeviationMessage;
 
 /**
- * Service layer exception, which is thrown if some item is not found
+ * If anchor file was not found
  */
-public class NotFoundException extends ServiceException {
-    public NotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
 
-    public NotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public NotFoundException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+public class AnchorFileNotFoundException extends InternalServerErrorException {
+    public AnchorFileNotFoundException(String s, Throwable throwable) {
+        super(s, throwable, CommonDeviationMessage.ANCHOR_FILE_NOT_FOUND.build());
     }
 }

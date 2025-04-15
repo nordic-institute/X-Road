@@ -29,7 +29,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.api.service.ManagementServicesService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
@@ -135,7 +135,7 @@ public class ManagementServicesController implements ManagementServicesApi {
             ServiceProviderIdDto serviceProviderIdDto) {
         var serviceProviderId = serviceProviderIdDto.getServiceProviderId();
         if (!clientIdConverter.isEncodedSubsystemId(serviceProviderId)) {
-            throw new ValidationFailureException(INVALID_SERVICE_PROVIDER_ID, serviceProviderId);
+            throw new BadRequestException(INVALID_SERVICE_PROVIDER_ID.build(serviceProviderId));
         }
 
         var response = managementServicesService.updateManagementServicesProvider(clientIdConverter.convertId(serviceProviderId));

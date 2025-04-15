@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,44 +24,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi;
+package org.niis.xroad.common.exception;
 
+import ee.ria.xroad.common.HttpStatus;
+
+import lombok.NonNull;
 import org.niis.xroad.restapi.exceptions.DeviationAware;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Thrown if item was not found.
- * Results in http 404 NOT_FOUND
- * TODO replaced by org.niis.xroad.common.exception exceptions
+ * Validation exception that usually happens due to user input. It has an error message which optionally can be thrown to api layer.
+ * Note: Usually if used within rest API this exception leads to http code 400.
  */
-@Deprecated
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends DeviationAwareRuntimeException {
-
-    public ResourceNotFoundException() {
+public class BadRequestException extends ClientErrorException {
+    public BadRequestException(String message,
+                               @NonNull final ErrorDeviation errorDeviation) {
+        super(message, errorDeviation);
     }
 
-    public <TD extends Throwable & DeviationAware> ResourceNotFoundException(TD e) {
-        super(e, e.getErrorDeviation(), e.getWarningDeviations());
-    }
-
-    public ResourceNotFoundException(String msg) {
-        super(msg);
-    }
-
-    public ResourceNotFoundException(ErrorDeviation errorDeviation) {
+    public BadRequestException(@NonNull final ErrorDeviation errorDeviation) {
         super(errorDeviation);
     }
 
-    public ResourceNotFoundException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public BadRequestException(Throwable cause,
+                               @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
 
-    public ResourceNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
+    public BadRequestException(String message,
+                               Throwable cause,
+                               @NonNull final ErrorDeviation errorDeviation) {
+        super(message, cause, errorDeviation);
     }
 
+    public <DE extends Exception & DeviationAware> BadRequestException(@NonNull final DE exception) {
+        super(exception);
+    }
+
+    @Override
+    public int getHttpStatus() {
+        return HttpStatus.SC_BAD_REQUEST;
+    }
 }

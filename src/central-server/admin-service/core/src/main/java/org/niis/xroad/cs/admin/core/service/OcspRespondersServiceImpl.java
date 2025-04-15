@@ -66,12 +66,12 @@ public class OcspRespondersServiceImpl implements OcspRespondersService {
         return ocspInfoRepository.findById(id)
                 .map(OcspInfoEntity::getCert)
                 .map(certConverter::toCertificateDetails)
-                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND.build()));
     }
 
     private OcspInfoEntity get(Integer id) {
         return ocspInfoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND.build()));
     }
 
     @Override

@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.core.validation;
 
 import com.google.common.net.InetAddresses;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_IP_ADDRESS;
@@ -38,7 +38,7 @@ public class IpAddressValidator {
 
     public void validateIpAddress(String ipAddress) {
         if (!InetAddresses.isInetAddress(ipAddress)) {
-            throw new ValidationFailureException(INVALID_IP_ADDRESS);
+            throw new BadRequestException(INVALID_IP_ADDRESS.build());
         }
     }
 

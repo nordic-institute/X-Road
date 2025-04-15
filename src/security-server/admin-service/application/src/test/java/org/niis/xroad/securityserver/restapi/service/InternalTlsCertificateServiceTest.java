@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -63,6 +62,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
 
 /**
  * test InternalTlsCertificateService
@@ -149,7 +149,6 @@ public class InternalTlsCertificateServiceTest {
 
     /**
      * read a tar.gz, return each file in a map: filename -> bytes
-     *
      * @param tarBytes
      * @return
      */
@@ -191,7 +190,7 @@ public class InternalTlsCertificateServiceTest {
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
-            Assert.assertEquals(DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
+            Assert.assertEquals(KEY_CERT_GENERATION_FAILED.code(), e.getErrorDeviation().code());
         }
     }
 
@@ -201,7 +200,7 @@ public class InternalTlsCertificateServiceTest {
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (DeviationAwareRuntimeException e) {
-            Assert.assertEquals(DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED, e.getErrorDeviation().getCode());
+            Assert.assertEquals(KEY_CERT_GENERATION_FAILED.code(), e.getErrorDeviation().code());
         }
     }
 
@@ -257,7 +256,6 @@ public class InternalTlsCertificateServiceTest {
 
     /**
      * Creates a random temp folder structure to mimic the real xroad conf path
-     *
      * @throws Exception
      */
     private void prepareTlsImportForTesting() throws Exception {

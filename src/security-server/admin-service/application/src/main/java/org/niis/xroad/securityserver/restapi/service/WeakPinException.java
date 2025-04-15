@@ -25,18 +25,17 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 import java.util.List;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_WEAK_PIN;
 
 /**
  * If the provided pin code is too weak
  */
-public class WeakPinException extends ServiceException {
+public class WeakPinException extends BadRequestException {
     public WeakPinException(String msg, List<String> metadata) {
-        super(msg, new ErrorDeviation(ERROR_WEAK_PIN, metadata));
+        super(msg, TOKEN_WEAK_PIN.build(metadata));
     }
 }

@@ -34,8 +34,8 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
@@ -193,7 +193,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return switch (contentIdentifier) {
             case CONTENT_ID_PRIVATE_PARAMETERS -> FILE_NAME_PRIVATE_PARAMETERS;
             case CONTENT_ID_SHARED_PARAMETERS -> FILE_NAME_SHARED_PARAMETERS;
-            default -> throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
+            default -> throw new InternalServerErrorException(UNKNOWN_CONFIGURATION_PART.build());
         };
     }
 
@@ -202,7 +202,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return distributedFileRepository
                 .findByContentIdAndVersion(contentIdentifier, version, getHaNodeName(contentIdentifier))
                 .map(distributedFileMapper::toFile)
-                .orElseThrow(() -> new NotFoundException(CONFIGURATION_PART_FILE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CONFIGURATION_PART_FILE_NOT_FOUND.build()));
     }
 
     @Override
@@ -249,7 +249,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         auditDataHelper.put(UPLOAD_FILE_NAME, originalFileName);
 
         if (sourceType == EXTERNAL && !contentIdentifier.equals(CONTENT_ID_SHARED_PARAMETERS)) {
-            throw new ServiceException(UNKNOWN_CONFIGURATION_PART);
+            throw new InternalServerErrorException(UNKNOWN_CONFIGURATION_PART.build());
         }
 
         auditDataHelper.put(UPLOAD_FILE_HASH_ALGORITHM, DEFAULT_UPLOAD_FILE_HASH_ALGORITHM);

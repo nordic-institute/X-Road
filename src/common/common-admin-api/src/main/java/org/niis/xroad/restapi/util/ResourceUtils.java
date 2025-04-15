@@ -29,7 +29,7 @@ package org.niis.xroad.restapi.util;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -46,17 +46,16 @@ public final class ResourceUtils {
 
     /**
      * Read bytes from {@link Resource}. Also handles closing the stream.
-     *
      * @param resource resource
      * @return byte array
-     * @throws org.niis.xroad.common.exception.ValidationFailureException
+     * @throws BadRequestException
      */
     public static byte[] springResourceToBytesOrThrowBadRequest(Resource resource) {
         byte[] resourceBytes;
         try (InputStream is = resource.getInputStream()) {
             resourceBytes = IOUtils.toByteArray(is);
         } catch (IOException ex) {
-            throw new ValidationFailureException(ERROR_RESOURCE_READ, ex);
+            throw new BadRequestException(ex, ERROR_RESOURCE_READ.build());
         }
         return resourceBytes;
     }

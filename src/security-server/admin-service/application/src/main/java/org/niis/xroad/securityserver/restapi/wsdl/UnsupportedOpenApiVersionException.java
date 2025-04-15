@@ -25,14 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.UNSUPPORTED_OPENAPI_VERSION;
 
 /**
  * Thrown if the provided OpenAPI document version differs from 3.0.x
  */
-public class UnsupportedOpenApiVersionException extends ServiceException {
-    public UnsupportedOpenApiVersionException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+public class UnsupportedOpenApiVersionException extends BadRequestException {
+    public UnsupportedOpenApiVersionException(String msg) {
+        super(msg, UNSUPPORTED_OPENAPI_VERSION.build());
     }
 }

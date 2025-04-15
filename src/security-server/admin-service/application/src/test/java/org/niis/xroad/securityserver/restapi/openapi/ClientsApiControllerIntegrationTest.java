@@ -29,17 +29,15 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.AccessRightDto;
@@ -90,6 +88,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -167,8 +166,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void getAllClients() {
-        ResponseEntity<Set<ClientDto>> response =
-                clientsApiController.findClients(null, null, null, null, null, true, false, null, false);
+        ResponseEntity<Set<ClientDto>> response = clientsApiController.findClients(null, null, null, null, null, true,
+                false, null, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(12, response.getBody().size());
         // Test sorting order
@@ -179,7 +178,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void ownerMemberFlag() {
         ResponseEntity<Set<ClientDto>> response =
-                clientsApiController.findClients(null, null, null, null, null, true, false, null, false);
+                clientsApiController.findClients(null, null, null, null, null, true,
+                        false, null, false);
         assertEquals(12, response.getBody().size());
         List<ClientDto> owners = response.getBody().stream()
                 .filter(ClientDto::getOwner)
@@ -205,7 +205,6 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals("M1", client.getMemberCode());
     }
 
-    @Test
     @WithMockUser(authorities = "VIEW_CLIENT_DETAILS")
     public void getClient() {
         ResponseEntity<ClientDto> response =
@@ -229,11 +228,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1:SS1", client.getId());
         assertEquals("SS1", client.getSubsystemCode());
-        try {
-            clientsApiController.getClient("FI:GOV:M1:SS3");
-            fail("should throw ResourceNotFoundException to 404");
-        } catch (ResourceNotFoundException expected) {
-        }
+
+        assertThrows(NotFoundException.class, () -> clientsApiController.getClient("FI:GOV:M1:SS3"));
     }
 
     @Test
@@ -289,14 +285,10 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertTrue(onlyCertificate.getCertificateDetails().getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getCertificateDetails().getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
         assertEquals(Integer.valueOf(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
-        assertEquals(new ArrayList<>(
-                        Arrays.asList(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageDto.NON_REPUDIATION)),
+        assertEquals(List.of(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageDto.NON_REPUDIATION),
                 new ArrayList<>(onlyCertificate.getCertificateDetails().getKeyUsages()));
-        try {
-            certificates = clientsApiController.getClientSignCertificates("FI:GOV:M2");
-            fail("should throw ResourceNotFoundException for 404");
-        } catch (ResourceNotFoundException expected) {
-        }
+
+        assertThrows(NotFoundException.class, () -> clientsApiController.getClientSignCertificates("FI:GOV:M2"));
     }
 
     @Test
@@ -351,20 +343,12 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
 
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert already exists
-        try {
-            response = clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                    getResource(CertificateTestUtils.getWidgitsCertificateBytes()));
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
-        }
+        assertThrows(ConflictException.class, () -> clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
+                getResource(CertificateTestUtils.getWidgitsCertificateBytes())));
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert is invalid
-        try {
-            response = clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                    getResource(CertificateTestUtils.getInvalidCertBytes()));
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-        }
+        assertThrows(BadRequestException.class, () -> clientsApiController.addClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
+                getResource(CertificateTestUtils.getInvalidCertBytes())));
         assertEquals(1, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
     }
 
@@ -383,12 +367,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
         assertEquals(0, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
         // cert does not exist
-        try {
-            clientsApiController.deleteClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                    CertificateTestUtils.getWidgitsCertificateHash());
-            fail("should have thrown ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> clientsApiController.deleteClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
+                CertificateTestUtils.getWidgitsCertificateHash()));
         assertEquals(0, clientsApiController.getClientTlsCertificates(TestUtils.CLIENT_ID_SS1).getBody().size());
     }
 
@@ -411,12 +391,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, findResponse.getStatusCode());
         assertEquals(CertificateTestUtils.getWidgitsCertificateHash(), findResponse.getBody().getHash());
         // not found
-        try {
-            clientsApiController.getClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
-                    "63a104b2bac1466");
-            fail("should have thrown ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> clientsApiController.getClientTlsCertificate(TestUtils.CLIENT_ID_SS1,
+                "63a104b2bac1466"));
     }
 
     @Test
@@ -583,17 +559,13 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(1, descriptions.getBody().size());
 
         // client not found
-        try {
-            descriptions = clientsApiController.getClientServiceDescriptions("FI:GOV:M1:NONEXISTENT");
-            fail("should throw ResourceNotFoundException to 404");
-        } catch (ResourceNotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> clientsApiController.getClientServiceDescriptions("FI:GOV:M1:NONEXISTENT"));
 
         // bad client id
         try {
             descriptions = clientsApiController.getClientServiceDescriptions("foobar");
             fail("should throw BadRequestException");
-        } catch (ValidationFailureException expected) {
+        } catch (BadRequestException expected) {
         }
 
         // client with some services
@@ -707,17 +679,13 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         }
 
         // conflict: two additional members
-        clientToAdd = createTestClient("GOV", "ADDITIONAL1", null);
+        var clientToAdd2 = createTestClient("GOV", "ADDITIONAL1", null);
         ResponseEntity<ClientDto> response = clientsApiController.addClient(
-                new ClientAddDto().client(clientToAdd).ignoreWarnings(true));
+                new ClientAddDto().client(clientToAdd2).ignoreWarnings(true));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-        try {
-            clientsApiController.addClient(
-                    new ClientAddDto().client(clientToAdd.memberCode("ADDITIONAL2")).ignoreWarnings(true));
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
-        }
+        assertThrows(ConflictException.class, () -> clientsApiController.addClient(
+                new ClientAddDto().client(clientToAdd2.memberCode("ADDITIONAL2")).ignoreWarnings(true)));
     }
 
     @Test
@@ -726,13 +694,10 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         // warning about unregistered client
         doReturn(null).when(globalConfProvider).getMemberName(any());
         ClientDto clientToAdd = createTestClient(TestUtils.MEMBER_CLASS_GOV, "B", "C");
-        try {
-            clientsApiController.addClient(
-                    new ClientAddDto().client(clientToAdd).ignoreWarnings(false));
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_WARNINGS_DETECTED, expected.getErrorDeviation().getCode());
-        }
+
+        var expected = assertThrows(BadRequestException.class, () -> clientsApiController.addClient(
+                new ClientAddDto().client(clientToAdd).ignoreWarnings(false)));
+        assertEquals(DeviationCodes.ERROR_WARNINGS_DETECTED, expected.getErrorDeviation().code());
 
         ResponseEntity<ClientDto> response = clientsApiController.addClient(
                 new ClientAddDto().client(clientToAdd).ignoreWarnings(true));
@@ -745,13 +710,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         // warning about unregistered client
         doReturn(null).when(globalConfProvider).getMemberName(any());
         ClientDto clientToAdd = createTestClient("INVALID", "B", "C");
-        try {
-            clientsApiController.addClient(
-                    new ClientAddDto().client(clientToAdd).ignoreWarnings(false));
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_MEMBER_CLASS, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(BadRequestException.class, () -> clientsApiController.addClient(
+                new ClientAddDto().client(clientToAdd).ignoreWarnings(false)));
+        assertEquals(DeviationCodes.ERROR_INVALID_MEMBER_CLASS, expected.getErrorDeviation().code());
     }
 
     @Test
@@ -773,23 +734,21 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Set<ServiceDescriptionDto>> descriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1);
         assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT + 1, descriptions.getBody().size());
-        try {
-            serviceDescription.setIgnoreWarnings(true);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_WSDL_EXISTS, expected.getErrorDeviation().getCode());
-        }
-        serviceDescription = new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/testservice.wsdl");
-        serviceDescription.setType(ServiceTypeDto.WSDL);
-        try {
-            serviceDescription.setIgnoreWarnings(false);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown ConflictException");
-        } catch (ConflictException expected) {
-            assertErrorWithMetadata(DeviationCodes.ERROR_SERVICE_EXISTS, expected,
-                    "xroadGetRandom.v1", "file:src/test/resources/wsdl/valid.wsdl");
-        }
+
+        serviceDescription.setIgnoreWarnings(true);
+        var expected = assertThrows(ConflictException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertEquals(DeviationCodes.ERROR_WSDL_EXISTS, expected.getErrorDeviation().code());
+
+        var serviceDescription2 = new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/testservice.wsdl");
+        serviceDescription2.setType(ServiceTypeDto.WSDL);
+
+        serviceDescription2.setIgnoreWarnings(false);
+        expected = assertThrows(ConflictException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription2));
+
+        assertErrorWithMetadata(DeviationCodes.ERROR_SERVICE_EXISTS, expected,
+                "xroadGetRandom.v1", "file:src/test/resources/wsdl/valid.wsdl");
     }
 
     @Test
@@ -798,13 +757,11 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ServiceDescriptionAddDto serviceDescription =
                 new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/invalid.wsdl");
         serviceDescription.setType(ServiceTypeDto.WSDL);
-        try {
-            serviceDescription.setIgnoreWarnings(true);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
-        }
+
+        serviceDescription.setIgnoreWarnings(true);
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().code());
     }
 
     @Test
@@ -813,14 +770,12 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ServiceDescriptionAddDto serviceDescription =
                 new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/invalid-serviceurl.wsdl");
         serviceDescription.setType(ServiceTypeDto.WSDL);
-        try {
-            serviceDescription.setIgnoreWarnings(true);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_SERVICE_URL, expected.getErrorDeviation().getCode());
-            assertFalse(expected.getErrorDeviation().getMetadata().isEmpty());
-        }
+
+        serviceDescription.setIgnoreWarnings(true);
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertEquals(DeviationCodes.ERROR_INVALID_SERVICE_URL, expected.getErrorDeviation().code());
+        assertFalse(expected.getErrorDeviation().metadata().isEmpty());
     }
 
     @Test
@@ -829,17 +784,15 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ServiceDescriptionAddDto serviceDescription =
                 new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/warning.wsdl");
         serviceDescription.setType(ServiceTypeDto.WSDL);
-        try {
-            serviceDescription.setIgnoreWarnings(false);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            assertErrorWithoutMetadata(DeviationCodes.ERROR_WARNINGS_DETECTED,
-                    expected);
-            assertWarning(DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS,
-                    WsdlValidatorTest.MOCK_VALIDATOR_WARNING,
-                    expected);
-        }
+
+        serviceDescription.setIgnoreWarnings(false);
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertErrorWithoutMetadata(DeviationCodes.ERROR_WARNINGS_DETECTED,
+                expected);
+        assertWarning(DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS,
+                WsdlValidatorTest.MOCK_VALIDATOR_WARNING,
+                expected);
 
         // now lets ignore the warningDeviations
         serviceDescription.setIgnoreWarnings(true);
@@ -855,22 +808,17 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ServiceDescriptionAddDto serviceDescription =
                 new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/error.wsdl");
         serviceDescription.setType(ServiceTypeDto.WSDL);
-        try {
-            serviceDescription.setIgnoreWarnings(false);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
-        }
+
+        serviceDescription.setIgnoreWarnings(false);
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().code());
 
         // cannot ignore these fatal errors
-        try {
-            serviceDescription.setIgnoreWarnings(true);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
-        }
+        serviceDescription.setIgnoreWarnings(true);
+        expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().code());
 
     }
 
@@ -880,13 +828,10 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ServiceDescriptionAddDto serviceDescription =
                 new ServiceDescriptionAddDto().url("file:src/test/resources/wsdl/error.wsdl");
         serviceDescription.setType(ServiceTypeDto.WSDL);
-        try {
-            serviceDescription.setIgnoreWarnings(true);
-            clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
-        }
+        serviceDescription.setIgnoreWarnings(true);
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.addClientServiceDescription(TestUtils.CLIENT_ID_SS1, serviceDescription));
+        assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().code());
     }
 
     @Test
@@ -1015,7 +960,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(1, serviceClients.size());
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = {"VIEW_CLIENT_ACL_SUBJECTS"})
     public void findServiceClientCandidatesClientNotFound() {
         clientsApiController.findServiceClientCandidates(TestUtils.CLIENT_ID_SS4, null, null, null, null, null, null);
@@ -1042,16 +987,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @Test
     @WithMockUser(authorities = {"DELETE_CLIENT", "ADD_CLIENT", "VIEW_CLIENT_DETAILS"})
     public void deleteClient() {
-        try {
-            clientsApiController.deleteClient("FI:GOV:M1");
-            fail("should have thrown exception (cant delete owner, or registered)");
-        } catch (ConflictException expected) {
-        }
-        try {
-            clientsApiController.deleteClient("FI:GOV:NOT-EXISTING");
-            fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
-        }
+        assertThrows(ConflictException.class, () -> clientsApiController.deleteClient("FI:GOV:M1"));
+        assertThrows(NotFoundException.class, () -> clientsApiController.deleteClient("FI:GOV:NOT-EXISTING"));
         // create a new client, and then delete it
         ClientDto clientToAdd = createTestClient("GOV", "M3", null);
         ResponseEntity<ClientDto> addResponse = clientsApiController.addClient(
@@ -1061,11 +998,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Void> deleteResponse =
                 clientsApiController.deleteClient("FI:GOV:M3");
         assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
-        try {
-            clientsApiController.getClient("FI:GOV:M3");
-            fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
-        }
+
+        assertThrows(NotFoundException.class, () -> clientsApiController.getClient("FI:GOV:M3"));
+
     }
 
     @Test
@@ -1087,11 +1022,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, orphanResponse.getStatusCode());
         assertEquals(true, orphanResponse.getBody().getOrphansExist());
 
-        try {
-            clientsApiController.getClientOrphans("FI:GOV:M1:SS777");
-            fail("should not find orphans");
-        } catch (ResourceNotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> clientsApiController.getClientOrphans("FI:GOV:M1:SS777"));
     }
 
     @Test
@@ -1119,11 +1050,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         verify(signerRpcClient).deleteKey(orphanKeyId, false);
         verifyNoMoreInteractions(signerRpcClient);
 
-        try {
-            clientsApiController.deleteOrphans("FI:GOV:M1:SS777");
-            fail("should not find orphans");
-        } catch (ResourceNotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> clientsApiController.deleteOrphans("FI:GOV:M1:SS777"));
     }
 
     @Test
@@ -1147,23 +1074,17 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
 
     @WithMockUser(authorities = {"SEND_CLIENT_REG_REQ"})
     public void registerClientWithInvalidInstanceIdentifier() throws Exception {
-        try {
-            clientsApiController.registerClient(TestUtils.CLIENT_ID_INVALID_INSTANCE_IDENTIFIER);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER,
-                    expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.registerClient(TestUtils.CLIENT_ID_INVALID_INSTANCE_IDENTIFIER));
+        assertEquals(DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER,
+                expected.getErrorDeviation().code());
     }
 
     @WithMockUser(authorities = {"SEND_CLIENT_REG_REQ"})
     public void registerClientWithInvalidMemberClass() throws Exception {
-        try {
-            clientsApiController.registerClient(TestUtils.CLIENT_ID_INVALID_MEMBER_CLASS);
-            fail("should have thrown BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_MEMBER_CLASS, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(BadRequestException.class,
+                () -> clientsApiController.registerClient(TestUtils.CLIENT_ID_INVALID_MEMBER_CLASS));
+        assertEquals(DeviationCodes.ERROR_INVALID_MEMBER_CLASS, expected.getErrorDeviation().code());
     }
 
     @Test(expected = ConflictException.class)
@@ -1206,7 +1127,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Void> response = clientsApiController.changeOwner("FI:GOV:M1:SS1");
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = {"SEND_OWNER_CHANGE_REQ"})
     public void changeOwnerClientDoesNotExist() {
         ClientDto client = new ClientDto();
@@ -1222,7 +1143,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         clientsApiController.getServiceClient(TestUtils.CLIENT_ID_SS1, "NoSuchServiceClient");
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = {"VIEW_CLIENT_ACL_SUBJECTS"})
     public void getServiceClientWithClientNotContainingGivenServiceClient() {
         clientsApiController.getServiceClient(TestUtils.CLIENT_ID_SS5, TestUtils.CLIENT_ID_SS1);
@@ -1302,12 +1223,9 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(3, response.getBody().size());
 
-        try {
-            // try to add duplicate
-            clientsApiController.addServiceClientAccessRights(encodedOwnerId, encodedGlobalGroupId, accessRights);
-            fail("should throw exception");
-        } catch (ConflictException expected) {
-        }
+        // try to add duplicate
+        assertThrows(ConflictException.class,
+                () -> clientsApiController.addServiceClientAccessRights(encodedOwnerId, encodedGlobalGroupId, accessRights));
     }
 
     private AccessRightDto findAccessRight(String serviceCode, Set<AccessRightDto> accessRights) {
