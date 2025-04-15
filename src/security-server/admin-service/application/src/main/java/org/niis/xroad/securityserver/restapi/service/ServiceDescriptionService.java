@@ -83,11 +83,11 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_SERVICE_CODE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_URL;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_IDENTIFIER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESERVED_SERVICE_CODE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESERVED_SERVICE_CODE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_ENDPOINTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_ENDPOINTS;
@@ -112,7 +112,7 @@ public class ServiceDescriptionService {
     public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
     public static final String CLIENT_WITH_ID = "Client with id";
     public static final String NOT_FOUND = " not found";
-    
+
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ServiceChangeChecker serviceChangeChecker;
@@ -129,7 +129,6 @@ public class ServiceDescriptionService {
 
     /**
      * Disable 1 services
-     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void disableServices(long serviceDescriptionId,
@@ -139,7 +138,6 @@ public class ServiceDescriptionService {
 
     /**
      * Enable 1 service
-     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void enableServices(long serviceDescriptionId) throws ServiceDescriptionNotFoundException {
@@ -148,10 +146,9 @@ public class ServiceDescriptionService {
 
     /**
      * Change 1-n services to enabled/disabled
-     *
-     * @param toEnabled toEnabled
+     * @param toEnabled            toEnabled
      * @param serviceDescriptionId serviceDescriptionId
-     * @param disabledNotice disabledNotice
+     * @param disabledNotice       disabledNotice
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     private void toggleServices(boolean toEnabled, long serviceDescriptionId, String disabledNotice)
@@ -183,7 +180,6 @@ public class ServiceDescriptionService {
 
     /**
      * Delete one ServiceDescription
-     *
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given id was not found
      */
     public void deleteServiceDescription(Long id) throws ServiceDescriptionNotFoundException {
@@ -280,9 +276,8 @@ public class ServiceDescriptionService {
 
     /**
      * Add a new WSDL ServiceDescriptionEntity
-     *
-     * @param clientId clientId
-     * @param url url
+     * @param clientId       clientId
+     * @param url            url
      * @param ignoreWarnings ignoreWarnings
      * @return created {@link ServiceDescription}, with id populated
      * @throws ClientNotFoundException          if client with id was not found
@@ -300,12 +295,12 @@ public class ServiceDescriptionService {
      */
     ServiceDescriptionEntity addWsdlServiceDescription(ClientId clientId, String url, boolean ignoreWarnings)
             throws InvalidWsdlException,
-            WsdlParser.WsdlNotFoundException,
-            ClientNotFoundException,
-            UnhandledWarningsException,
-            ServiceAlreadyExistsException,
-            InvalidUrlException,
-            WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
+                   WsdlParser.WsdlNotFoundException,
+                   ClientNotFoundException,
+                   UnhandledWarningsException,
+                   ServiceAlreadyExistsException,
+                   InvalidUrlException,
+                   WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
         ClientEntity clientEntity = clientService.getLocalClientEntity(clientId);
         if (clientEntity == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
@@ -313,8 +308,8 @@ public class ServiceDescriptionService {
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(clientEntity, url, null);
 
-        for (ServiceType parsedService : wsdlProcessingResult.getParsedServices()) {
-            validateServiceCodeNotReserved(parsedService.getServiceCode());
+        for (var parsedService : wsdlProcessingResult.getParsedServices()) {
+            validateServiceCodeNotReserved(parsedService.name);
         }
 
         validateServiceUrls(wsdlProcessingResult.getParsedServices());
@@ -339,12 +334,11 @@ public class ServiceDescriptionService {
 
     /**
      * Validate that all service URLs begin with HTTP or HTTPS. This should be checked only when ADDING a new WSDL
-     *
      * @param parsedServices parsedServices
      * @throws InvalidServiceUrlException if one or more URLs do not start with HTTP or HTTPS
      */
     private void validateServiceUrls(Collection<WsdlParser.ServiceInfo> parsedServices) throws
-            InvalidServiceUrlException {
+                                                                                        InvalidServiceUrlException {
         final List<String> invalidUrls = new ArrayList<>();
         parsedServices.forEach(serviceInfo -> {
             if (serviceInfo.url != null && !serviceInfo.url.startsWith(FormatUtils.HTTP_PROTOCOL)
@@ -360,8 +354,7 @@ public class ServiceDescriptionService {
     /**
      * Create a new {@link EndpointEntity} for all Services in the provided {@link ServiceDescriptionEntity}.
      * If an equal EndpointEntity already exists for the provided {@link ClientEntity} it will not be returned
-     *
-     * @param clientEntity clientEntity
+     * @param clientEntity          clientEntity
      * @param newServiceDescription newServiceDescription
      * @return Only the newly created EndpointEntity
      */
@@ -387,10 +380,9 @@ public class ServiceDescriptionService {
 
     /**
      * Add openapi3 ServiceDescriptionEntity
-     *
-     * @param clientId clientId
-     * @param url url
-     * @param serviceCode serviceCode
+     * @param clientId       clientId
+     * @param url            url
+     * @param serviceCode    serviceCode
      * @param ignoreWarnings ignoreWarnings
      * @return ServiceDescriptionEntity
      * @throws OpenApiParser.ParsingException     if parsing openapi3 description results in errors
@@ -407,10 +399,10 @@ public class ServiceDescriptionService {
     @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     ServiceDescriptionEntity addOpenApi3ServiceDescription(ClientId clientId, String url, String serviceCode, boolean ignoreWarnings)
             throws OpenApiParser.ParsingException, ClientNotFoundException,
-            UnhandledWarningsException,
-            UrlAlreadyExistsException,
-            ServiceCodeAlreadyExistsException,
-            MissingParameterException, InvalidUrlException, UnsupportedOpenApiVersionException {
+                   UnhandledWarningsException,
+                   UrlAlreadyExistsException,
+                   ServiceCodeAlreadyExistsException,
+                   MissingParameterException, InvalidUrlException, UnsupportedOpenApiVersionException {
 
         if (serviceCode == null) {
             throw new MissingParameterException("Missing ServiceCode");
@@ -421,9 +413,7 @@ public class ServiceDescriptionService {
         // Parse openapi definition
         OpenApiParser.Result result = openApiParser.parse(url);
 
-        for (Service parsedService : result.getServices()) {
-            validateServiceCodeNotReserved(parsedService.getServiceCode());
-        }
+        validateServiceCodeNotReserved(serviceCode);
 
         if (!ignoreWarnings && result.hasWarnings()) {
             WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,
@@ -471,7 +461,6 @@ public class ServiceDescriptionService {
 
     /**
      * Check whether the ServiceDescriptions url already exists in the linked Client
-     *
      * @param serviceDescriptionEntity serviceDescriptionEntity
      * @throws UrlAlreadyExistsException if trying to add duplicate url
      */
@@ -487,7 +476,6 @@ public class ServiceDescriptionService {
 
     /**
      * Check whether the ServiceDescriptions ServiceCode already exists in the linked Client
-     *
      * @param serviceDescriptionEntity serviceDescriptionEntity
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
      */
@@ -523,14 +511,13 @@ public class ServiceDescriptionService {
 
     }
 
-     /**
+    /**
      * Validates that the provided service code is not in the list of reserved codes
      * used internally by the system (e.g. metaservices).
-     * 
      * @param serviceCode the service code to validate
-     * @throws ReservedServiceCodeException      if the code is reserved and cannot be used
+     * @throws ReservedServiceCodeException if the code is reserved and cannot be used
      */
-    private void validateServiceCodeNotReserved(String serviceCode){
+    private void validateServiceCodeNotReserved(String serviceCode) {
         if (reservedServiceCodesProvider.isReserved(serviceCode)) {
             throw new ReservedServiceCodeException(serviceCode);
         }
@@ -538,9 +525,8 @@ public class ServiceDescriptionService {
 
     /**
      * Add a new REST ServiceDescription
-     *
-     * @param clientId clientId
-     * @param url url
+     * @param clientId    clientId
+     * @param url         url
      * @param serviceCode serviceCode
      * @return ServiceDescriptionEntity
      * @throws ClientNotFoundException           if client not found with given id
@@ -570,7 +556,7 @@ public class ServiceDescriptionService {
         if (client == null) {
             throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
         }
-    
+
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(client, url,
                 DescriptionType.REST);
 
@@ -603,31 +589,30 @@ public class ServiceDescriptionService {
 
     /**
      * Update the WSDL url of the selected ServiceDescription
-     *
      * @param id
      * @param url the new url
      * @return ServiceDescription
-     * @throws WsdlParser.WsdlNotFoundException     if a wsdl was not found at the url
-     * @throws ServiceDescriptionNotFoundException  if SD with given id was not found
-     * @throws WrongServiceDescriptionException     if SD with given id was not a WSDL based one
-     * @throws InvalidWsdlException                 if WSDL at the url was invalid
-     * @throws UnhandledWarningsException           if there were warnings that were not ignored
-     * @throws InvalidUrlException                  if url was empty or invalid
-     * @throws InvalidServiceUrlException           if the WSDL has services with invalid urls
-     * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
-     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
-     *                                              interrupted thread has already been handled with
-     *                                              so you can choose to ignore this exception if you so  please.</b>
+     * @throws WsdlParser.WsdlNotFoundException    if a wsdl was not found at the url
+     * @throws ServiceDescriptionNotFoundException if SD with given id was not found
+     * @throws WrongServiceDescriptionException    if SD with given id was not a WSDL based one
+     * @throws InvalidWsdlException                if WSDL at the url was invalid
+     * @throws UnhandledWarningsException          if there were warnings that were not ignored
+     * @throws InvalidUrlException                 if url was empty or invalid
+     * @throws InvalidServiceUrlException          if the WSDL has services with invalid urls
+     * @throws WsdlUrlAlreadyExistsException       conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException       conflict: same service exists in another SD
+     * @throws InterruptedException                if the thread running the WSDL validator is interrupted. <b>The
+     *                                             interrupted thread has already been handled with
+     *                                             so you can choose to ignore this exception if you so  please.</b>
      */
     public ServiceDescription updateWsdlUrl(Long id, String url, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
-            ServiceDescriptionNotFoundException,
-            WrongServiceDescriptionException,
-            UnhandledWarningsException,
-            InvalidUrlException,
-            ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
+                   ServiceDescriptionNotFoundException,
+                   WrongServiceDescriptionException,
+                   UnhandledWarningsException,
+                   InvalidUrlException,
+                   ServiceAlreadyExistsException,
+                   WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
         if (serviceDescriptionEntity == null) {
             throw createServiceDescriptionNotFoundException(id);
@@ -637,29 +622,28 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh Service Description
-     *
      * @param id
      * @param ignoreWarnings
      * @return
-     * @throws WsdlParser.WsdlNotFoundException     WSDL not found
-     * @throws InvalidWsdlException                 Invalid wsdl
-     * @throws ServiceDescriptionNotFoundException  service description is not found
-     * @throws WrongServiceDescriptionException     wrong type of service description
-     * @throws UnhandledWarningsException           Unhandledwarnings in openapi3 or wsdl description
-     * @throws InvalidUrlException                  invalid url
-     * @throws InvalidServiceUrlException           if the WSDL has services with invalid urls
-     * @throws ServiceAlreadyExistsException        service code already exists if refreshing wsdl
-     * @throws WsdlUrlAlreadyExistsException        url is already in use by this client
-     * @throws OpenApiParser.ParsingException       openapi3 description parsing fails
-     * @throws UnsupportedOpenApiVersionException   if the openapi version is not supported
-     * @throws ReservedServiceCodeException         if a parsed service uses a reserved service code
+     * @throws WsdlParser.WsdlNotFoundException    WSDL not found
+     * @throws InvalidWsdlException                Invalid wsdl
+     * @throws ServiceDescriptionNotFoundException service description is not found
+     * @throws WrongServiceDescriptionException    wrong type of service description
+     * @throws UnhandledWarningsException          Unhandledwarnings in openapi3 or wsdl description
+     * @throws InvalidUrlException                 invalid url
+     * @throws InvalidServiceUrlException          if the WSDL has services with invalid urls
+     * @throws ServiceAlreadyExistsException       service code already exists if refreshing wsdl
+     * @throws WsdlUrlAlreadyExistsException       url is already in use by this client
+     * @throws OpenApiParser.ParsingException      openapi3 description parsing fails
+     * @throws UnsupportedOpenApiVersionException  if the openapi version is not supported
+     * @throws ReservedServiceCodeException        if a parsed service uses a reserved service code
      */
     public ServiceDescription refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
-            ServiceDescriptionNotFoundException, WrongServiceDescriptionException,
-            UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException, InterruptedException,
-            InvalidServiceUrlException, UnsupportedOpenApiVersionException {
+                   ServiceDescriptionNotFoundException, WrongServiceDescriptionException,
+                   UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
+                   WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException, InterruptedException,
+                   InvalidServiceUrlException, UnsupportedOpenApiVersionException {
 
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
         if (serviceDescriptionEntity == null) {
@@ -680,30 +664,29 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh a ServiceDescriptionEntity
-     *
      * @param serviceDescriptionEntity serviceDescriptionEntity
      * @param ignoreWarnings
      * @return {@link ServiceDescription}
-     * @throws WsdlParser.WsdlNotFoundException     if a wsdl was not found at the url
-     * @throws ServiceDescriptionNotFoundException  if SD with given id was not found
-     * @throws WrongServiceDescriptionException     if SD with given id was not a WSDL based one
-     * @throws InvalidWsdlException                 if WSDL at the url was invalid
-     * @throws UnhandledWarningsException           if there were warnings that were not ignored
-     * @throws InvalidUrlException                  if url was empty or invalid
-     * @throws InvalidServiceUrlException           if the WSDL has services with invalid urls
-     * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
-     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
-     *                                              interrupted thread has already been handled with so you can choose
-     *                                              to ignore this exception if you so  please.</b>
-     * @throws ReservedServiceCodeException         if the service code is in the list of reserved codes
+     * @throws WsdlParser.WsdlNotFoundException    if a wsdl was not found at the url
+     * @throws ServiceDescriptionNotFoundException if SD with given id was not found
+     * @throws WrongServiceDescriptionException    if SD with given id was not a WSDL based one
+     * @throws InvalidWsdlException                if WSDL at the url was invalid
+     * @throws UnhandledWarningsException          if there were warnings that were not ignored
+     * @throws InvalidUrlException                 if url was empty or invalid
+     * @throws InvalidServiceUrlException          if the WSDL has services with invalid urls
+     * @throws WsdlUrlAlreadyExistsException       conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException       conflict: same service exists in another SD
+     * @throws InterruptedException                if the thread running the WSDL validator is interrupted. <b>The
+     *                                             interrupted thread has already been handled with so you can choose
+     *                                             to ignore this exception if you so  please.</b>
+     * @throws ReservedServiceCodeException        if the service code is in the list of reserved codes
      */
     @PreAuthorize("hasAuthority('REFRESH_WSDL')")
     private ServiceDescriptionEntity refreshWSDLServiceDescription(ServiceDescriptionEntity serviceDescriptionEntity,
                                                                    boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException, WrongServiceDescriptionException,
-            UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
-            WsdlUrlAlreadyExistsException, InterruptedException {
+                   UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
+                   WsdlUrlAlreadyExistsException, InterruptedException {
 
         if (!serviceDescriptionEntity.getType().equals(DescriptionType.WSDL)) {
             throw new WrongServiceDescriptionException("Expected description type WSDL");
@@ -717,24 +700,23 @@ public class ServiceDescriptionService {
 
     /**
      * Refresh OPENAPI3 ServiceDescription
-     *
      * @param serviceDescriptionEntity serviceDescriptionEntity
-     * @param ignoreWarnings ignoreWarnings
+     * @param ignoreWarnings           ignoreWarnings
      * @return {@link ServiceDescriptionEntity}
-     * @throws WrongServiceDescriptionException     if service type is not openapi3
-     * @throws UnhandledWarningsException           if unhandled warnings are found and ignoreWarnings if false
-     * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
-     * @throws InvalidUrlException                  if url is invalid
-     * @throws UnsupportedOpenApiVersionException   if the openapi version is not supported
-     * @throws ReservedServiceCodeException         if the service code is in the list of reserved codes
+     * @throws WrongServiceDescriptionException   if service type is not openapi3
+     * @throws UnhandledWarningsException         if unhandled warnings are found and ignoreWarnings if false
+     * @throws OpenApiParser.ParsingException     if parsing openapi3 description fails
+     * @throws InvalidUrlException                if url is invalid
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
+     * @throws ReservedServiceCodeException       if the service code is in the list of reserved codes
      */
     @PreAuthorize("hasAuthority('REFRESH_OPENAPI3')")
     private ServiceDescriptionEntity refreshOpenApi3ServiceDescription(ServiceDescriptionEntity serviceDescriptionEntity,
                                                                        boolean ignoreWarnings)
             throws WrongServiceDescriptionException,
-            UnhandledWarningsException,
-            OpenApiParser.ParsingException, InvalidUrlException,
-            UnsupportedOpenApiVersionException {
+                   UnhandledWarningsException,
+                   OpenApiParser.ParsingException, InvalidUrlException,
+                   UnsupportedOpenApiVersionException {
 
         if (!serviceDescriptionEntity.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionException("Expected description type OPENAPI3");
@@ -760,7 +742,6 @@ public class ServiceDescriptionService {
 
     /**
      * Update Rest service description
-     *
      * @param id
      * @param url
      * @param restServiceCode
@@ -775,7 +756,7 @@ public class ServiceDescriptionService {
     public ServiceDescription updateRestServiceDescription(Long id, String url, String restServiceCode,
                                                            String newRestServiceCode)
             throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, ServiceDescriptionNotFoundException,
-            WrongServiceDescriptionException, InvalidUrlException {
+                   WrongServiceDescriptionException, InvalidUrlException {
 
         if (newRestServiceCode == null) {
             newRestServiceCode = restServiceCode;
@@ -819,7 +800,6 @@ public class ServiceDescriptionService {
 
     /**
      * Update OpenApi3 ServiceDescription
-     *
      * @param id
      * @param url
      * @param restServiceCode
@@ -838,9 +818,9 @@ public class ServiceDescriptionService {
     public ServiceDescription updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
                                                                String newRestServiceCode, Boolean ignoreWarnings)
             throws UrlAlreadyExistsException,
-            ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
-            WrongServiceDescriptionException, ServiceDescriptionNotFoundException,
-            InvalidUrlException, UnsupportedOpenApiVersionException {
+                   ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
+                   WrongServiceDescriptionException, ServiceDescriptionNotFoundException,
+                   InvalidUrlException, UnsupportedOpenApiVersionException {
 
         ServiceDescriptionEntity serviceDescriptionEntity = getServiceDescriptionEntity(id);
 
@@ -882,7 +862,6 @@ public class ServiceDescriptionService {
 
     /**
      * Parse OpenApi3 description and update endpoints and acls in ServiceDescription accordingly
-     *
      * @param url
      * @param serviceCode
      * @param ignoreWarnings
@@ -895,8 +874,8 @@ public class ServiceDescriptionService {
                                                    boolean ignoreWarnings,
                                                    ServiceDescriptionEntity serviceDescription)
             throws OpenApiParser.ParsingException,
-            UnhandledWarningsException,
-            UnsupportedOpenApiVersionException {
+                   UnhandledWarningsException,
+                   UnsupportedOpenApiVersionException {
         OpenApiParser.Result result = openApiParser.parse(url);
 
         // Create endpoints from parsed results
@@ -958,7 +937,6 @@ public class ServiceDescriptionService {
 
     /**
      * Updates the ServiceCodes of Endpoints and Service linked to given ServiceDescription
-     *
      * @param serviceCode
      * @param newServiceCode
      * @param serviceDescriptionEntity
@@ -983,7 +961,6 @@ public class ServiceDescriptionService {
      * Return matching ServiceDescription or null.
      * serviceDescription.services and serviceDescription.client are always loaded
      * with Hibernate.init()
-     *
      * @param id id
      * @return ServiceDescription
      */
@@ -1003,9 +980,8 @@ public class ServiceDescriptionService {
     /**
      * Returns title for client's service with specific serviceCode.
      * If there are multiple versions, the method returns the last title based on a inverse alphabetical comparison.
-     *
      * @param clientEntity clientEntity
-     * @param serviceCode serviceCode
+     * @param serviceCode  serviceCode
      * @return title, or null if no title exists.
      */
     String getServiceTitle(ClientEntity clientEntity, String serviceCode) {
@@ -1022,25 +998,24 @@ public class ServiceDescriptionService {
      * Update the WSDL url of the selected ServiceDescriptionEntity.
      * Refreshing a WSDL is also an update of wsdl,
      * it just updates to the same URL value
-     *
      * @param serviceDescriptionEntity serviceDescriptionEntity
-     * @param url                    the new url
+     * @param url                      the new url
      * @return ServiceDescriptionEntity
-     * @throws WsdlParser.WsdlNotFoundException     if a wsdl was not found at the url
-     * @throws WrongServiceDescriptionException     if SD with given id was not a WSDL based one
-     * @throws InvalidWsdlException                 if WSDL at the url was invalid
-     * @throws UnhandledWarningsException           if there were warnings that were not ignored
-     * @throws InvalidUrlException                  if url was empty or invalid
-     * @throws WsdlUrlAlreadyExistsException        conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException        conflict: same service exists in another SD
-     * @throws InterruptedException                 if the thread running the WSDL validator is interrupted. <b>The
-     *                                              interrupted thread has already been handled with so you can choose
-     *                                              to ignore this exception if you so  please.</b>
-     * @throws ReservedServiceCodeException         if a parsed service uses a reserved service code
+     * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
+     * @throws WrongServiceDescriptionException if SD with given id was not a WSDL based one
+     * @throws InvalidWsdlException             if WSDL at the url was invalid
+     * @throws UnhandledWarningsException       if there were warnings that were not ignored
+     * @throws InvalidUrlException              if url was empty or invalid
+     * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
+     * @throws InterruptedException             if the thread running the WSDL validator is interrupted. <b>The
+     *                                          interrupted thread has already been handled with so you can choose
+     *                                          to ignore this exception if you so  please.</b>
+     * @throws ReservedServiceCodeException     if a parsed service uses a reserved service code
      */
     private ServiceDescriptionEntity updateWsdlUrl(ServiceDescriptionEntity serviceDescriptionEntity, String url, boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException, WrongServiceDescriptionException, UnhandledWarningsException,
-            ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
+                   ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException {
 
         auditDataHelper.put(serviceDescriptionEntity.getClient().getIdentifier());
         Map<RestApiAuditProperty, Object> wsdlAuditData = auditDataHelper.putMap(RestApiAuditProperty.WSDL);
@@ -1063,9 +1038,9 @@ public class ServiceDescriptionService {
                 .stream()
                 .map(serviceInfo -> serviceInfoToServiceEntity(serviceInfo, serviceDescriptionEntity))
                 .collect(Collectors.toList());
-        
+
         // validate that the service code is not reserved
-        validateServiceCodeNotReserved(newServices);
+        newServices.forEach(service -> validateServiceCodeNotReserved(service.getServiceCode()));
 
         // find what services were added or removed
         ServiceChangeChecker.ServiceChanges serviceChanges = serviceChangeChecker.check(
@@ -1216,7 +1191,7 @@ public class ServiceDescriptionService {
     }
 
     private ServiceEntity serviceInfoToServiceEntity(WsdlParser.ServiceInfo serviceInfo,
-                                                   ServiceDescriptionEntity serviceDescriptionEntity) {
+                                                     ServiceDescriptionEntity serviceDescriptionEntity) {
         ServiceEntity newService = new ServiceEntity();
         newService.setServiceCode(serviceInfo.name);
         newService.setServiceVersion(serviceInfo.version);
@@ -1228,7 +1203,7 @@ public class ServiceDescriptionService {
     }
 
     private Collection<WsdlParser.ServiceInfo> parseWsdl(String url) throws WsdlParser.WsdlNotFoundException,
-            WsdlParser.WsdlParseException {
+                                                                            WsdlParser.WsdlParseException {
         Collection<WsdlParser.ServiceInfo> parsedServices;
         parsedServices = wsdlParser.parseWSDL(url);
         return parsedServices;
@@ -1237,14 +1212,13 @@ public class ServiceDescriptionService {
     /**
      * Validate a WSDL in given url. If fatal validation errors, throws exception.
      * If non-fatal warnings, return those.
-     *
      * @param url
      * @return list of validation warnings that can be ignored by choice
      * @throws WsdlValidator.WsdlValidationFailedException
      * @throws WsdlValidator.WsdlValidatorNotExecutableException
      */
     private List<String> validateWsdl(String url) throws WsdlValidator.WsdlValidationFailedException,
-            WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
+                                                         WsdlValidator.WsdlValidatorNotExecutableException, InterruptedException {
         return wsdlValidator.executeValidator(url);
     }
 
@@ -1302,8 +1276,7 @@ public class ServiceDescriptionService {
      * Parse and validate a given wsdl and detect problems it may have.
      * Fatal problems result in thrown exception, warnings are returned in
      * WsdlProcessingResult
-     *
-     * @param clientEntity                      client who is associated with the wsdl
+     * @param clientEntity                client who is associated with the wsdl
      * @param url                         url of the wsdl
      * @param updatedServiceDescriptionId id of the service description we
      *                                    will update with this wsdl, or null
@@ -1318,10 +1291,10 @@ public class ServiceDescriptionService {
     private WsdlProcessingResult processWsdl(ClientEntity clientEntity, String url,
                                              Long updatedServiceDescriptionId)
             throws WsdlParser.WsdlNotFoundException,
-            InvalidWsdlException,
-            InvalidUrlException,
-            WsdlUrlAlreadyExistsException,
-            ServiceAlreadyExistsException, InterruptedException {
+                   InvalidWsdlException,
+                   InvalidUrlException,
+                   WsdlUrlAlreadyExistsException,
+                   ServiceAlreadyExistsException, InterruptedException {
 
         WsdlProcessingResult result = new WsdlProcessingResult();
 
@@ -1359,7 +1332,6 @@ public class ServiceDescriptionService {
 
     /**
      * validate that all services have legal service code (name) and version
-     *
      * @throws InvalidServiceIdentifierException if there was at least one
      *                                           invalid service code or version
      */
@@ -1423,11 +1395,12 @@ public class ServiceDescriptionService {
         }
     }
 
-    /** 
-     *  If trying to register or update a service using a reserved service code.
+    /**
+     * If trying to register or update a service using a reserved service code.
      */
-    public static class ReservedServiceCodeException extends ServiceException {
-        public ReservedServiceCodeException(List<String> metadata) {
-            super(new ErrorDeviation(ERROR_RESERVED_SERVICE_CODE, metadata));
+    public static class ReservedServiceCodeException extends DeviationAwareRuntimeException {
+        public ReservedServiceCodeException(String serviceCode) {
+            super(new ErrorDeviation(ERROR_RESERVED_SERVICE_CODE, List.of(serviceCode)));
         }
+    }
 }
