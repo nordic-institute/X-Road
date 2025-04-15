@@ -46,7 +46,7 @@ public class ReservedServiceCodesProvider {
      * @param reservedCodesList List of reserved codes from application configuration
      */
     public ReservedServiceCodesProvider(
-            @Value("${proxy-ui-api.reserved-service-codes:}") List<String> reservedCodesList) {
+            @Value("${xroad.proxy-ui-api.reserved-service-codes:}") List<String> reservedCodesList) {
         if (reservedCodesList != null) {
             this.reservedCodes = new HashSet<>(reservedCodesList);
         } else {
