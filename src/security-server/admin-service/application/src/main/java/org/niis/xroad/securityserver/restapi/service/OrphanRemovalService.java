@@ -31,9 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
@@ -48,7 +47,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ORPHANS_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ORPHANS_NOT_FOUND;
 
 /**
  * orphan cert and csr removal service
@@ -189,14 +188,13 @@ public class OrphanRemovalService {
     /**
      * Deletes orphan keys, certs and csrs for given clientId
      * @param clientId
-     * @throws OrphansNotFoundException if orphans dont exist for this client. Possible reasons
-     * include also that this client is still alive (not deleted).
-     * @throws ActionNotPossibleException if delete-cert or delete-csr was not possible action
-     * @throws GlobalConfOutdatedException
-     * if global conf is outdated. This prevents key deletion.
+     * @throws OrphansNotFoundException    if orphans dont exist for this client. Possible reasons
+     *                                     include also that this client is still alive (not deleted).
+     * @throws ActionNotPossibleException  if delete-cert or delete-csr was not possible action
+     * @throws GlobalConfOutdatedException if global conf is outdated. This prevents key deletion.
      */
     public void deleteOrphans(ClientId clientId) throws OrphansNotFoundException,
-            ActionNotPossibleException, GlobalConfOutdatedException {
+                                                        ActionNotPossibleException, GlobalConfOutdatedException {
 
         auditDataHelper.put(clientId);
 
@@ -217,7 +215,7 @@ public class OrphanRemovalService {
             for (CertRequestInfo certRequestInfo : orphans.getCsrs()) {
                 tokenCertificateService.deleteCsr(certRequestInfo.getId());
             }
-        } catch (KeyNotFoundException | CsrNotFoundException | CertificateNotFoundException e) {
+        } catch (CsrNotFoundException e) {
             // we just internally looked up these items, so them not being found is an internal error
             throw new RuntimeException(e);
         }
@@ -228,7 +226,7 @@ public class OrphanRemovalService {
      */
     public static class OrphansNotFoundException extends NotFoundException {
         public OrphansNotFoundException() {
-            super(new ErrorDeviation(ERROR_ORPHANS_NOT_FOUND));
+            super(ORPHANS_NOT_FOUND.build());
         }
     }
 }

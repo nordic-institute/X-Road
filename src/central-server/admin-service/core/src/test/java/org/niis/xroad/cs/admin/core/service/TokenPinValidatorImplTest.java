@@ -30,12 +30,13 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.core.util.DeviationTestUtils;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_WEAK_PIN;
+import static org.niis.xroad.restapi.exceptions.DeviationBuilder.TRANSLATABLE_PREFIX;
 
 /**
  * test token pin validator
@@ -60,12 +61,12 @@ class TokenPinValidatorImplTest {
 
     @Test
     void validateSoftwareTokenPinWeak() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray()))
                 .satisfies(e -> DeviationTestUtils.assertErrorWithMetadata(
-                        ErrorMessage.TOKEN_WEAK_PIN.getCode(), e, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
+                        TOKEN_WEAK_PIN.code(), e, TRANSLATABLE_PREFIX + DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
                         String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-                        DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
+                        TRANSLATABLE_PREFIX + DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
                         String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)));
     }
 
@@ -77,7 +78,7 @@ class TokenPinValidatorImplTest {
 
     @Test
     void validateSoftwareTokenPinInvalid() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray()));
 
     }

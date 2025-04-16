@@ -31,7 +31,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
@@ -97,7 +97,7 @@ public class MemberServiceImpl implements MemberService {
 
         final boolean exists = xRoadMemberRepository.findOneBy(request.getClientId()).isPresent();
         if (exists) {
-            throw new DataIntegrityException(MEMBER_EXISTS, request.getClientId().toShortString());
+            throw new ConflictException(MEMBER_EXISTS.build(request.getClientId().toShortString()));
         }
 
         return securityServerClientMapper.toDto(saveMember(request));
@@ -106,10 +106,10 @@ public class MemberServiceImpl implements MemberService {
     private XRoadMemberEntity saveMember(MemberCreationRequest request) {
         var memberClass = memberClassRepository.findByCode(request.getMemberClass())
                 .orElseThrow(() -> new NotFoundException(
-                        MEMBER_CLASS_NOT_FOUND,
-                        "code",
-                        request.getMemberClass()
-                ));
+                        MEMBER_CLASS_NOT_FOUND.build(
+                                "code",
+                                request.getMemberClass()
+                        )));
 
         var memberIdEntity = memberIds.findOrCreate(MemberIdEntity.ensure(request.getClientId()));
 
@@ -127,7 +127,7 @@ public class MemberServiceImpl implements MemberService {
         auditData.put(MEMBER_CODE, clientId.getMemberCode());
 
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
-                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
         globalGroupMemberService.removeClientFromGlobalGroups(clientId);
         // other dependant entities are removed by cascading database constraints
         xRoadMemberRepository.delete(member);
@@ -174,12 +174,12 @@ public class MemberServiceImpl implements MemberService {
         auditData.put(CLIENT_IDENTIFIER, memberId);
 
         var member = xRoadMemberRepository.findOneBy(memberId)
-                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()));
 
         ServerClientEntity serverClient = member.getServerClients().stream()
                 .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.build()));
 
         serverClientRepository.delete(serverClient);
     }

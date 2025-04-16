@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
-import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Helper to convert GlobalGroups
@@ -77,7 +78,7 @@ public class GlobalGroupConverter {
      */
     public GlobalGroupId.Conf convertId(String encodedId) {
         if (!isEncodedGlobalGroupId(encodedId)) {
-            throw new BadRequestException("Invalid global group id " + encodedId);
+            throw new BadRequestException("Invalid global group id " + encodedId, INVALID_ENCODED_ID.build());
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);

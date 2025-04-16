@@ -37,9 +37,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 /**
  * Test WSDLValidator
@@ -61,11 +61,8 @@ public class WsdlValidatorTest {
     @Test
     public void validatorNotExecutable() throws Exception {
         ReflectionTestUtils.setField(wsdlValidator, "wsdlValidatorCommand", FOOBAR_VALIDATOR);
-        try {
-            wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
-            fail("should have thrown WsdlValidationException");
-        } catch (WsdlValidator.WsdlValidatorNotExecutableException expected) {
-        }
+        assertThrows(WsdlValidator.WsdlValidatorNotExecutableException.class,
+                () -> wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl"));
     }
 
     @Test
@@ -78,12 +75,9 @@ public class WsdlValidatorTest {
 
     @Test
     public void shouldFailValidation() throws Exception {
-        try {
-            wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl");
-            fail("should have thrown WsdlValidationException");
-        } catch (WsdlValidator.WsdlValidationFailedException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(WsdlValidator.WsdlValidationFailedException.class,
+                () -> wsdlValidator.executeValidator("src/test/resources/wsdl/error.wsdl"));
+        Assert.assertEquals(DeviationCodes.ERROR_INVALID_WSDL, expected.getErrorDeviation().code());
     }
 
     @Test

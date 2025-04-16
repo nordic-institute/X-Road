@@ -36,12 +36,13 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
@@ -56,16 +57,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_FAILED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
@@ -74,13 +73,15 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVERCODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVER_OWNER_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_INIT_PARAMS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVER_ALREADY_FULLY_INITIALIZED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SOFTWARE_TOKEN_INIT_FAILED;
 
 /**
  * service for initializing the security server
@@ -116,7 +117,6 @@ public class InitializationService {
      * 4. software token initialization status - whether or not a software token exists AND
      * it's status != TokenStatusInfo.NOT_INITIALIZED. If an exception is thrown when querying signer, software token
      * init status will be UNKNOWN
-     *
      * @return
      */
     public InitializationStatus getSecurityServerInitializationStatus() {
@@ -136,30 +136,28 @@ public class InitializationService {
      * Initialize a new Security Server with the provided parameters. Supports partial initialization which means
      * that if e.g. software token has already been initialized, it will not get initialized again, therefore the
      * parameter <code>String softwareTokenPin</code> can be <code>null</code>.
-     *
      * @param securityServerCode server code for the new Security Server
-     * @param ownerMemberClass member class of the new owner member
-     * @param ownerMemberCode member code of the new owner member
-     * @param softwareTokenPin pin code for the initial software token (softToken-0)
-     * @param ignoreWarnings whether to skip initialization warnings all in all
-     * @throws AnchorNotFoundException if an anchor has not been imported
-     * @throws UnhandledWarningsException if a server code already initialized
-     * OR server owner already initialized
-     * OR if a software token has already been initialized
-     * OR trying to set unregistered member as an owner
-     * OR provided server code already in use
-     * @throws WeakPinException if the pin does not meet the length and complexity requirements (if token pin policy is
-     * enforced by properties)
-     * @throws InvalidCharactersException if the provided pin code does not follow the TokenPinPolicy (if token pin
-     * policy is enforced by properties). In other words pin code contains invalid characters (not ascii)
-     * @throws SoftwareTokenInitException if something goes wrong with the token init
-     * @throws InvalidInitParamsException if empty or missing or redundant parameters are provided
+     * @param ownerMemberClass   member class of the new owner member
+     * @param ownerMemberCode    member code of the new owner member
+     * @param softwareTokenPin   pin code for the initial software token (softToken-0)
+     * @param ignoreWarnings     whether to skip initialization warnings all in all
+     * @throws AnchorFileNotFoundException            if an anchor has not been imported
+     * @throws UnhandledWarningsException             if a server code already initialized
+     *                                                OR server owner already initialized
+     *                                                OR if a software token has already been initialized
+     *                                                OR trying to set unregistered member as an owner
+     *                                                OR provided server code already in use
+     * @throws WeakPinException                       if the pin does not meet the length and complexity requirements
+     *                                                (if token pin policy is enforced by properties)
+     * @throws InvalidCharactersException             if the provided pin code does not follow the TokenPinPolicy
+     *                                                (if token pin policy is enforced by properties).
+     *                                                In other words pin code contains invalid characters (not ascii)
+     * @throws SoftwareTokenInitException             if something goes wrong with the token init
+     * @throws InvalidInitParamsException             if empty or missing or redundant parameters are provided
      * @throws ServerAlreadyFullyInitializedException if the server has already been fully initialized
      */
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
-                           String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
-            UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException,
-            InvalidInitParamsException, ServerAlreadyFullyInitializedException, InterruptedException {
+                           String softwareTokenPin, boolean ignoreWarnings) throws UnhandledWarningsException, InterruptedException {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
@@ -205,7 +203,6 @@ public class InitializationService {
      * Verify that when initializing a new security server, all required parameters are provided.
      * If old values DO NOT exist -> new values must be provided.
      * If old values DO exists -> new values are not allowed
-     *
      * @param securityServerCode
      * @param ownerMemberClass
      * @param ownerMemberCode
@@ -281,14 +278,13 @@ public class InitializationService {
 
     /**
      * Helper to create a software token
-     *
      * @param softwareTokenPin the pin of the token
      * @throws InvalidCharactersException if the pin includes characters outside of ascii (range 32 - 126)
      * @throws WeakPinException           if the pin does not meet the requirements set in {@link TokenPinPolicy}
      * @throws SoftwareTokenInitException if token init fails
      */
     private void initializeSoftwareToken(String softwareTokenPin) throws InvalidCharactersException, WeakPinException,
-            SoftwareTokenInitException {
+                                                                         SoftwareTokenInitException {
         char[] pin = softwareTokenPin.toCharArray();
         tokenPinValidator.validateSoftwareTokenPin(pin);
         try {
@@ -302,8 +298,7 @@ public class InitializationService {
     /**
      * Helper to create the initial server conf with a new server code and owner. If an existing server conf is found
      * and it already has a server code or an owner -> the existing values will not be overridden
-     *
-     * @param ownerClientId ownerClientId
+     * @param ownerClientId      ownerClientId
      * @param securityServerCode securityServerCode
      * @return ServerConfEntity
      */
@@ -332,7 +327,6 @@ public class InitializationService {
      * - if software token has already been initialized
      * - if trying to add unregistered member as an owner
      * - if the provided server id already exists in global conf
-     *
      * @param ownerClientId
      * @param securityServerCode
      * @throws UnhandledWarningsException
@@ -373,7 +367,6 @@ public class InitializationService {
 
     /**
      * Helper to create an initial client
-     *
      * @param clientId
      * @return
      */
@@ -402,7 +395,7 @@ public class InitializationService {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Generate GPG keypair script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GPG_KEY_GENERATION_FAILED));
+            throw new InternalServerErrorException(e, GPG_KEY_GENERATION_FAILED.build());
         }
         // todo check the keypair is really created? how?
     }
@@ -410,27 +403,34 @@ public class InitializationService {
     /**
      * If missing or empty or redundant params are provided for the init
      */
-    public static class InvalidInitParamsException extends ServiceException {
+    public static class InvalidInitParamsException extends BadRequestException {
         public InvalidInitParamsException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(ERROR_INVALID_INIT_PARAMS, metadata));
+            super(msg, INVALID_INIT_PARAMS.build(metadata));
         }
     }
 
     /**
      * If the software token init fails
      */
-    public static class SoftwareTokenInitException extends ServiceException {
+    public static class SoftwareTokenInitException extends InternalServerErrorException {
         public SoftwareTokenInitException(String msg, Throwable t) {
-            super(msg, t, new ErrorDeviation(ERROR_SOFTWARE_TOKEN_INIT_FAILED));
+            super(msg, t, SOFTWARE_TOKEN_INIT_FAILED.build());
         }
     }
 
     /**
      * If the server has already been fully initialized
      */
-    public static class ServerAlreadyFullyInitializedException extends ServiceException {
+    public static class ServerAlreadyFullyInitializedException extends ConflictException {
         public ServerAlreadyFullyInitializedException(String msg) {
-            super(msg, new ErrorDeviation(ERROR_SERVER_ALREADY_FULLY_INITIALIZED));
+            super(msg, SERVER_ALREADY_FULLY_INITIALIZED.build());
+        }
+    }
+
+    public static class AnchorNotFoundException extends ConflictException {
+
+        public AnchorNotFoundException(String msg) {
+            super(msg, ANCHOR_NOT_FOUND.build());
         }
     }
 }

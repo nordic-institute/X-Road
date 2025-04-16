@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -98,7 +98,7 @@ class ManagementRequestServiceImplTest {
         when(clientDeletionRequestHandler.narrow(any())).thenReturn(Optional.empty());
         when(ownerChangeRequestHandler.narrow(any())).thenReturn(Optional.empty());
 
-        assertThrows(ServiceException.class, () -> service.add(new IncorrectRequest()));
+        assertThrows(InternalServerErrorException.class, () -> service.add(new IncorrectRequest()));
 
         verify(certificateRegistrationRequestHandler, never()).add(any());
         verify(clientRegistrationRequestHandler, never()).add(any());

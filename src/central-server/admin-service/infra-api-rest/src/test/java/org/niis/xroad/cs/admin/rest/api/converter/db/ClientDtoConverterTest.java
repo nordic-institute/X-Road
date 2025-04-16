@@ -59,6 +59,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationBuilder.trMetadata;
 
 @ExtendWith(MockitoExtension.class)
 public class ClientDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
@@ -233,7 +234,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
 
             assertThatThrownBy(testable)
                     .usingRecursiveComparison()
-                    .isEqualTo(new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", MEMBER_CLASS_CODE));
+                    .isEqualTo(new NotFoundException(MEMBER_CLASS_NOT_FOUND.build(trMetadata("code", MEMBER_CLASS_CODE))));
             inOrder().verify(inOrder -> {
                 inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);
@@ -300,7 +301,7 @@ public class ClientDtoConverterTest extends AbstractDtoConverterTest implements 
 
             assertThatThrownBy(testable)
                     .usingRecursiveComparison()
-                    .isEqualTo(new NotFoundException(MEMBER_NOT_FOUND, "code", MEMBER_CODE));
+                    .isEqualTo(new NotFoundException(MEMBER_NOT_FOUND.build(trMetadata("code", MEMBER_CODE))));
             inOrder().verify(inOrder -> {
                 inOrder.verify(clientDto).getClientId();
                 inOrder.verify(clientIdDtoConverter).fromDto(clientIdDto);

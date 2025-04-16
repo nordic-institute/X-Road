@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGenerator;
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
@@ -50,7 +50,7 @@ class BackupsApiControllerTest {
     @Test
     void addBackupShouldHandleInterruptedException() throws InterruptedException {
         when(centralServerConfigurationBackupGenerator.generateBackup()).thenThrow(new InterruptedException());
-        var error = assertThrowsExactly(ServiceException.class, backupsApiController::addBackup);
-        Assertions.assertThat(error.getErrorDeviation().getCode()).isEqualTo(BACKUP_GENERATION_INTERRUPTED.getCode());
+        var error = assertThrowsExactly(InternalServerErrorException.class, backupsApiController::addBackup);
+        Assertions.assertThat(error.getErrorDeviation().code()).isEqualTo(BACKUP_GENERATION_INTERRUPTED.code());
     }
 }

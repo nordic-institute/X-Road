@@ -29,9 +29,9 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.service.BackupValidator;
 import org.springframework.stereotype.Repository;
@@ -69,7 +69,6 @@ public class BackupRepository {
 
     /**
      * Read backup files from configuration backup path
-     *
      * @return list of backup files
      */
     public List<BackupFile> getBackupFiles() {
@@ -106,51 +105,48 @@ public class BackupRepository {
 
     /**
      * Delete a backup file
-     *
      * @param filename backup filename to delete
      */
     public void deleteBackupFile(String filename) throws NotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(filename));
         }
         var path = getAbsoluteBackupFilePath(filename);
         try {
             Files.deleteIfExists(path);
         } catch (IOException ioe) {
             log.error("can't delete backup file ({})", path);
-            throw new NotFoundException(BACKUP_DELETION_FAILED, filename);
+            throw new NotFoundException(BACKUP_DELETION_FAILED.build(filename));
         }
     }
 
     /**
      * Read backup file's content
-     *
      * @param filename backup filename
      * @return backup content
      */
     public byte[] readBackupFile(String filename) throws NotFoundException {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(filename));
         }
         var path = getAbsoluteBackupFilePath(filename);
         try {
             return Files.readAllBytes(path);
         } catch (IOException ioe) {
             log.error("can't read backup file's content ({})", path);
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(filename));
         }
     }
 
     /**
      * Writes backup file's content to disk
-     *
      * @param filename backup filename
      * @param content  backup contents
      * @return backup creation date
      */
     public OffsetDateTime writeBackupFile(String filename, byte[] content) {
         if (!backupValidator.isValidBackupFilename(filename)) {
-            throw new ValidationFailureException(INVALID_FILENAME, filename);
+            throw new BadRequestException(INVALID_FILENAME.build(filename));
         }
         var backupDirectoryPath = new File(getConfigurationBackupPath());
         if (backupDirectoryPath.mkdirs()) {
@@ -163,7 +159,7 @@ public class BackupRepository {
             return getCreatedAt(path);
         } catch (IOException ioe) {
             log.error("can't write backup file's content ({})", path);
-            throw new ServiceException(INVALID_BACKUP_FILE, ioe);
+            throw new InternalServerErrorException(ioe, INVALID_BACKUP_FILE.build());
         }
     }
 
@@ -176,14 +172,13 @@ public class BackupRepository {
 
     /**
      * Return absolute path to (possible) backup file with given filename
-     *
      * @param filename backup filename
      * @return path to the file
      */
     public Path getAbsoluteBackupFilePath(String filename) {
         final var resolved = Paths.get(configurationBackupPath).resolve(filename);
         if (!resolved.normalize().startsWith(Paths.get(configurationBackupPath))) {
-            throw new ServiceException(INVALID_FILENAME, filename);
+            throw new BadRequestException(INVALID_FILENAME.build(filename));
         }
         return resolved;
     }
@@ -191,7 +186,6 @@ public class BackupRepository {
 
     /**
      * Check if a backup file with the given name already exists
-     *
      * @param filename backup filename
      * @return true if file exists
      */

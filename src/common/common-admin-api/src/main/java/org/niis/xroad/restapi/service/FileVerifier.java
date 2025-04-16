@@ -34,7 +34,7 @@ import org.apache.tika.detect.Detector;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.mime.MediaType;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartException;
@@ -98,9 +98,9 @@ public class FileVerifier {
         try (var inputStream = new ByteArrayInputStream(contents)) {
             MediaType mediaType = DETECTOR.detect(inputStream, metadata);
             if (!allowedContentTypes.contains(mediaType.getBaseType().toString())) {
-                throw new ValidationFailureException(INVALID_FILE_CONTENT_TYPE,
+                throw new BadRequestException(INVALID_FILE_CONTENT_TYPE.build(
                         mediaType.getBaseType(),
-                        String.join(", ", allowedContentTypes));
+                        String.join(", ", allowedContentTypes)));
             }
         }
     }
@@ -109,16 +109,16 @@ public class FileVerifier {
         validateDoubleExtension(filename);
         final var extension = FilenameUtils.getExtension(filename);
         if (!allowedExtensions.contains(extension)) {
-            throw new ValidationFailureException(INVALID_FILE_EXTENSION,
+            throw new BadRequestException(INVALID_FILE_EXTENSION.build(
                     extension,
-                    String.join(", ", allowedExtensions));
+                    String.join(", ", allowedExtensions)));
         }
     }
 
     private static void validateDoubleExtension(final String filename) {
         var withoutExtension = FilenameUtils.removeExtension(filename);
         if (!withoutExtension.equals(FilenameUtils.removeExtension(withoutExtension))) {
-            throw new ValidationFailureException(DOUBLE_FILE_EXTENSION);
+            throw new BadRequestException(DOUBLE_FILE_EXTENSION.build());
         }
     }
 }

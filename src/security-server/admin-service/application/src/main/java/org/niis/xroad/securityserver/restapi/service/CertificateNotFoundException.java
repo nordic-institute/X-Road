@@ -25,33 +25,30 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import lombok.NonNull;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 
 public class CertificateNotFoundException extends NotFoundException {
-
-    public CertificateNotFoundException(DeviationProvider deviationProvider) {
-        super(deviationProvider);
-    }
-
-    public CertificateNotFoundException(DeviationProvider deviationProvider, Throwable t, Object...metadata) {
-        super(deviationProvider, t, metadata);
-    }
-
-    public CertificateNotFoundException(String s) {
-        super(ErrorMessage.CERTIFICATE_NOT_FOUND, s);
-    }
-
-    public CertificateNotFoundException(String s, Throwable cause) {
-        super(ErrorMessage.CERTIFICATE_NOT_FOUND, cause, s);
+    public CertificateNotFoundException(Throwable cause, @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
 
     public CertificateNotFoundException() {
-        super(ErrorMessage.CERTIFICATE_NOT_FOUND);
+        super(ErrorMessage.CERTIFICATE_NOT_FOUND.build());
     }
 
-    public CertificateNotFoundException(Throwable t) {
-        super(ErrorMessage.CERTIFICATE_NOT_FOUND, t);
+    public CertificateNotFoundException(String message) {
+        super(ErrorMessage.CERTIFICATE_NOT_FOUND.build(message));
     }
+
+    public CertificateNotFoundException(Throwable cause) {
+        super(cause, ErrorMessage.CERTIFICATE_NOT_FOUND.build());
+    }
+
+    public CertificateNotFoundException(String message, Throwable cause) {
+        super(cause, ErrorMessage.CERTIFICATE_NOT_FOUND.build(message));
+    }
+
 }

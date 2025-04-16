@@ -73,7 +73,6 @@ public class ApiKeyService {
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
      * which is cryptographically secure.
-     *
      * @return pseudo-random "unique" api key.
      */
     private String createApiKey() {
@@ -82,7 +81,6 @@ public class ApiKeyService {
 
     /**
      * create api key with one role
-     *
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
     public PlaintextApiKeyDto create(String roleName) throws InvalidRoleNameException {
@@ -91,7 +89,6 @@ public class ApiKeyService {
 
     /**
      * create api key with collection of roles
-     *
      * @return new PersistentApiKeyType that contains the new key in plain text
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
@@ -146,7 +143,6 @@ public class ApiKeyService {
 
     /**
      * Update api key with one role by key id.
-     *
      * @param id       apiKey id.
      * @param roleName a role name.
      * @return updated {@link  ApiKeyEntity} entity.
@@ -160,7 +156,6 @@ public class ApiKeyService {
 
     /**
      * Update api key with collection of roles by key id.
-     *
      * @param id        apiKey id.
      * @param roleNames a list of role names.
      * @return updated {@link  ApiKeyEntity} entity.
@@ -182,7 +177,6 @@ public class ApiKeyService {
 
     /**
      * Get one API key.
-     *
      * @param id apiKey id.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
@@ -200,7 +194,6 @@ public class ApiKeyService {
 
     /**
      * Encode a plaintext key.
-     *
      * @param key plaintext api key.
      * @return encoded api key.
      */
@@ -210,7 +203,6 @@ public class ApiKeyService {
 
     /**
      * Get matching key.
-     *
      * @param key plaintext api key.
      * @return a {@link  ApiKeyEntity} entity.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
@@ -221,7 +213,6 @@ public class ApiKeyService {
 
     /**
      * Get matching Api key.
-     *
      * @param key encoded api key.
      * @return a {@link  ApiKeyEntity} entity.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found.
@@ -242,7 +233,6 @@ public class ApiKeyService {
 
     /**
      * Remove / revoke one key.
-     *
      * @param key plaintext api key.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found.
      */
@@ -254,7 +244,6 @@ public class ApiKeyService {
 
     /**
      * Remove / revoke one key based on id.
-     *
      * @param id apiKey id.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
@@ -277,7 +266,6 @@ public class ApiKeyService {
 
     /**
      * List all keys.
-     *
      * @return a list of {@link ApiKeyEntity}.
      */
     public List<PersistentApiKeyType> listAll() {
@@ -286,8 +274,12 @@ public class ApiKeyService {
 
     @SuppressWarnings("squid:S110")
     public static class ApiKeyNotFoundException extends NotFoundException {
-        public ApiKeyNotFoundException(final Object... metadata) {
-            super(API_KEY_NOT_FOUND, metadata);
+        public ApiKeyNotFoundException() {
+            super(API_KEY_NOT_FOUND.build());
+        }
+
+        public ApiKeyNotFoundException(long id) {
+            super(API_KEY_NOT_FOUND.build(id));
         }
     }
 }

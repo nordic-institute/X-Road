@@ -77,7 +77,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
     private CaInfoEntity getIntermediateCa(Integer id) {
         return caInfoJpaRepository.findById(id)
                 .filter(this::isIntermediateCa)
-                .orElseThrow(() -> new NotFoundException(INTERMEDIATE_CA_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(INTERMEDIATE_CA_NOT_FOUND.build()));
     }
 
     @Override
@@ -114,7 +114,7 @@ public class IntermediateCasServiceImpl implements IntermediateCasService {
         OcspInfoEntity ocspResponder = intermediateCa.getOcspInfos().stream()
                 .filter(ocspInfo -> ocspResponderId.equals(ocspInfo.getId()))
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(OCSP_RESPONDER_NOT_FOUND.build()));
 
         ocspInfoRepository.delete(ocspResponder);
 

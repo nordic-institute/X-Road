@@ -1,0 +1,752 @@
+{
+  "403": {
+    "goBack": "Yzyňa dolan",
+    "mainTitle": "Rugsat berilmedi",
+    "text": "Bu sahypany görmek üçin rugsadyňyz ýoga meňzeýär.Eger-de siz bu ýalňyş diýip pikir edýän bolsaňyz, onda dogry akkaunda girenligiňizi barlaň ýa-da öz rugsadyňyz barada administratorа ýüzleniň.",
+    "topTitle": "Gadagan"
+  },
+  "action": {
+    "approve": "Tassykla",
+    "decline": "Ret et",
+    "generateCsr": "CSR döret",
+    "select": "Saýla"
+  },
+  "apiKey": {
+    "role": {
+      "XROAD_MANAGEMENT_SERVICE": "Dolandyryş gullugy"
+    }
+  },
+  "customValidation": {
+    "invalidIpAddress": "Meýdançada bir ýa-da otur bilen bölünen birnäçe IP salgylary bolmaly",
+    "invalidUrl": "URL nädogry, dogry URL formatlarynyň nusgalary: 'http://www.example.com', 'https://www.example.com'"
+  },
+  "error_code": {
+    "backup_deletion_failed": "Ätiýaçlyk nusgasyny pozup bolmady",
+    "cannot_add_member_to_owners_group": "Serweriň eýesi toparyna agzalary goşup bolmaýar",
+    "cannot_convert_bytes_to_certificate": "Baýgtlary şahadatnama öwürip bolmaýar",
+    "cannot_read_certificate": "TLS şahadatnamasyny okap bolmaýar",
+    "certificate_already_exists": "Import edilen şahadatnama eýýäm bar",
+    "certificate_import_failed": "TLS şahadatnamasyny import edip bolmaýar",
+    "certificate_profile_info_class_not_found": "Şahadatnamanyň profili barada maglumatyň klassy tapylmady",
+    "certificate_writing_failed": "Şahadatnamany faýla ýazyp bolmaýar",
+    "certification_service_not_found": "Şahadatnama hyzmaty tapylmady.",
+    "conf_verification.anchor_not_for_external_source": "Konfigurasiýanyň barlagy ýerine ýetirilmedi: anchor_not_for_external_source",
+    "conf_verification.missing_private_params": "Konfigurasiýanyň barlagy ýerine ýetirilmedi: missing_private_params",
+    "conf_verification.other": "Konfigurasiýanyň barlagy ýerine ýetirilmedi: other",
+    "conf_verification.outdated": "Konfigurasiýanyň barlagy ýerine ýetirilmedi: outdated",
+    "conf_verification.signature_invalid": "Konfigurasiýanyň barlagy ýerine ýetirilmedi: signature_invalid",
+    "conf_verification.unreachable": "Konfigurasiýanyň barlagy ýerine ýetirilmedi: elýeterli däl",
+    "configuration_not_found": "Konfigurasiýanyň çeşmesi tapylmady",
+    "configuration_part_file_not_found": "Konfigurasiýanyň böleginiň faýly tapylmady",
+    "configuration_part_validation_failed": "Konfigurasiýanyň böleginiň barlagy amala aşmady",
+    "configuration_part_validator_not_found": "Konfigurasiýanyň böleginiň dogrulygyny barlaýjy tapylmady",
+    "csr_generation_failed": "CSR döredip bolmady",
+    "double_file_extension": "Faýly iki esse giňeltmek rugsat berilmeýär",
+    "error_activating_signing_key": "Gol çekme açaryny işe girizmek ýalňyşlygy",
+    "error_deleting_signing_key": "Gol çekme açaryny pozmak ýalňyşlygy",
+    "error_recreating_anchor": "Labyr faýlyny gaýtadan döretmek ýalňyşlygy",
+    "generate_key_cert_interrupted": "Açarlaryň we şahadatnamalaryň döredilmegi bölündi",
+    "global_group_exists": "Şu kodly global topar eýýäm bar.",
+    "global_group_not_found": "Berlen kod boýunça global topar ýok",
+    "id_not_a_number": "Id belgi däl",
+    "init_already_initialized": "Merkezi serweriniň işe taýýarlygynyň näsazlygy, eýýäm doly işe taýýar.",
+    "init_invalid_params": "Işe taýýarlyk üçin boş, gelmedik ýa-da çendenaşa parametrler berildi.",
+    "init_signer_pin_policy_failed": "Gol çekýäniň token pin syýasatynyň ýalňyşlygy",
+    "init_software_token_failed": "Programma tokeniň işe taýýarlygynyň näsazlygy",
+    "instance_identifier_not_set": "Ulgam parametrleri üçin ekzemplýar kesgitleýji gurnalmady",
+    "intermediate_ca_not_found": "Aralyk CA tapylmady",
+    "invalid_address_char": "Salgy meýdançasynda nädogry nyşanlar bar",
+    "invalid_encoded_id": "Nädogra kodlanan id",
+    "invalid_file_content_type": "Ýüklenen faýlyň mazmunyň nädogry görnüşi",
+    "invalid_file_extension": "Nädogry faýl giňeltmesi",
+    "invalid_ip_address": "Nädogry ip salgylary",
+    "invalid_member_id": "Nädogry agza id",
+    "invalid_pagination_properties": "Paginasiýanyň nädogry häsiýetleri bar",
+    "invalid_parameters": "Barlagyň näsazlygy",
+    "invalid_role": "Nädogry rol",
+    "invalid_service_provider_id": "Hyzmat üpjün edijiniň id-si nädogry",
+    "invalid_sort_properties": "Sortlamak parametrleri nädogry",
+    "invalid_subsystem_id": "Kiçi ulgamyň id-si nädogry",
+    "invalid_url": "Nädogry url",
+    "key_and_cert_generation_failed": "TLS açaryny we şahadatnamany döredip bolmady",
+    "key_generation_failed": "Gol çekme açary döredilmedi",
+    "key_not_found": "Import edilen şahadatnama TLS açaryna gabat gelenok",
+    "malformed_anchor": "Labyr nädogry döredildi",
+    "management_request_cannot_register_owner": "Eýesini müşderi hökmünde hasaba alyp bolmaýar",
+    "management_request_client_already_owner": "Müşderi eýýäm howpsuzlyk serweriň eýesi bolup dur",
+    "management_request_client_already_registered": "Müşderi eýýäm serwerde hasaba alyndy",
+    "management_request_client_registration_not_found": "Müşderiniň hasaba alynanlygy ýok ",
+    "management_request_exists": "Seredilmäge garaşýan dolandyryş talaby eýýäm bar.",
+    "management_request_invalid_auth_certificate": "Tassyklama şahadatnamasy nädogry",
+    "management_request_invalid_state": "Talap edilýän amaly bu ýagdaýda ulanyp bolmaýar",
+    "management_request_invalid_state_for_approval": "Dolandyryş haýyşy tassyklap bolmaýar",
+    "management_request_member_not_found": "Agza ýok",
+    "management_request_not_found": "Görkezilen id-li dolandyryş talap tapylmady",
+    "management_request_not_supported": "Dolandyryş talabyň näbelli görnüşi",
+    "management_request_owner_must_be_client": "Eýesi howpsuzlyk serwerinde müşderi hökmünde hasaba alynmady",
+    "management_request_owner_must_be_member": "Eýesi agza bolmaly",
+    "management_request_security_server_exists": "Şahadatnama eýýäm hasaba alyndy.",
+    "management_request_server_code_exists": "Agza eýýäm serwer kody bilen howpsuzlyk serwerine eýelik edýär",
+    "management_request_server_not_found": "Howpsuzlyk serwer tapylmady",
+    "management_request_server_owner_not_found": "Howpsuzlyk serweriniň eýesi tapylmady",
+    "management_request_unknown_type": "Talabyň näbelli görnüşi",
+    "management_service_provider_not_set": "Dolandyryş hyzmatyny üpjün ediji kesgitlenmedi",
+    "member_class_exists": "Şol bir kodly agza klassy eýýäm bar.",
+    "member_class_is_in_use": "Agza klassyny pozup bolmaýar: Klassa degişli X-Road agzalary tapyldy.Diňe hasaba alynmadyk agzalar bolan klasslary pozup bolýar.",
+    "member_class_not_found": "Görkezilen kody bolan synpyň agzasy tapylmady.",
+    "member_exists": "Şol bir kodly agza eýýäm bar.",
+    "member_not_found": "Görkezilen kod/id bilen agza tapylmady.",
+    "no_configuration_signing_keys_configured": "Konfigurasiýanyň gol çekme açarlary sazlanmady",
+    "ocsp_responder_not_found": "OCSP jogap beriji tapylmady",
+    "owners_global_group_cannot_be_deleted": "Serwer eýeleriniň toparyny pozup bolmaýar",
+    "owners_global_group_member_cannot_be_deleted": "Serwer eýeleriniň toparynyň agzasyny pozup bolmaýar",
+    "security_server_not_found": "Howpsuzlyk serweri tapylmady",
+    "signer_proxy_error": "Gol çekijiniň proksi kadadan çykmasy",
+    "signing_key_action_not_possible": "Açara gol çekmek hereketi mümkin däl",
+    "signing_key_not_found": "Gol çekme açary tapylmady",
+    "ss_auth_certificate_not_found": "Hakylylk şahadatnamasy tapylmady",
+    "subsystem_already_registered_to_security_server": "Hopwsuzlyk serwerinde eýýäm kiçi ulgam hasaba alyndy",
+    "subsystem_exists": "Şol bir kodly kiçi ulgam eýýäm bar.",
+    "subsystem_not_found": "Görkezilen kodly kiçi ulgam tapylmady.",
+    "subsystem_not_registered_to_security_server": "Kiçi ulgam bu howpsuzlyk serwerinde hasaba alynmady.",
+    "subsystem_registered_and_cannot_be_deleted": "Eýýäm hasaba alnan  kiçi ulgamy pozup bolmaýar.",
+    "timestamping_authority_not_found": "Wagty bellemäge ygtyýarly tapylmady",
+    "token_action_not_possible": "Tokeniň hereketi mümkin däl",
+    "token_activation_failed": "Tokeni işletmekde ýalňyşlyk ýüze çykdy",
+    "token_deactivation_failed": "Tokeniň işini bes etmekde ýalňyşlyk ýüze çykdy",
+    "token_incorrect_pin_format": "PIN-iň formady nädogry",
+    "token_invalid_characters": "Berlen pin kodda nädogry nyşanlar bar",
+    "token_pin_final_try": "Galan synanyşyklaryň sany: 1",
+    "token_pin_locked": "Tokeniň PIN-i bloklandy",
+    "trusted_anchor_not_found": "Ynamly labyr tapylamdy",
+    "trusted_anchor_verification_failed": "Ynamly labyryň barlagy ýerine ýetirilmedi",
+    "unknown_configuration_part": "Konfigurasiýanyň näbelli bölegi"
+  },
+  "fields": {
+    "acmeServerDirectoryUrl": "ACME serweriň katalogynyň URL-sy",
+    "acmeServerIpAddress": "ACME serweriň IP salgysy(lary)",
+    "authenticationCertificateProfileId": "Hakykylyk şahadatnamasynyň profil id-si",
+    "certFile": "Şahadatnamanyň faýly",
+    "certProfile": "Şahadatnamanyň profiliniň maglumaty",
+    "distinguishedName": "Tapawutly at",
+    "init": {
+      "address": "Merkezi serweriň salgysy",
+      "confirmPin": "PIN gaýtala",
+      "identifier": "Nusgany kesgitleýji",
+      "pin": "PIN",
+      "repeatPin": "PIN gaýtala"
+    },
+    "initialServerConf": {
+      "centralServerAddress": "Merkezi serweriň salgysy",
+      "instanceIdentifier": "Nusgany kesgitleýji"
+    },
+    "keyLabel": "Açaryň düşnükli ady",
+    "memberCode": "Agzanyň kody",
+    "memberName": "Agzanyň ady",
+    "securityServerAddress": "Howpsuzlyk serweriň salgysy",
+    "serverCode": "Serweriň kody",
+    "serviceAddress": "Merkezi serweriň salgysy",
+    "signingCertificateProfileId": "Gol şahadatnamasynyň profil id-si",
+    "subsystemCode": "Kiçi ulgamyň kody",
+    "tokenPin": "PIN tokeny",
+    "url": "URL",
+    "username": "Ulanyjy ady"
+  },
+  "filters": {
+    "apply": "Ýerine ýetir",
+    "chooseFilters": "Filtrleri saýla",
+    "clearFields": "meýdançalary arassala",
+    "groupMembers": {
+      "byClass": "Klass boýunça",
+      "byCode": "Kod boýunça",
+      "byInstance": "Nusga boýunça",
+      "bySubsystem": "Kiçi ulgam boýunça",
+      "byType": "Görnüş boýunça",
+      "class": "Klass",
+      "instance": "Nusga",
+      "member": "Agza",
+      "subsystem": "Kiçi ulgam"
+    },
+    "managementRequests": {
+      "byCreationDate": "Döredilen senesi boýunça",
+      "byRequestType": "Talap görnüşi boýunça",
+      "byServerCode": "Serweriň kody boýunça",
+      "byServerOwnerClass": "Serweriň eýesiniň klassy boýunça",
+      "byServerOwnerCode": "Serweriň eýesiniň kody boýunça",
+      "byServerOwnerName": "Serweriň eýesiniň ady boýunça",
+      "bySource": "Çeşmesi boýunça",
+      "byStatus": "Statusy boýunça"
+    }
+  },
+  "global": {
+    "appTitle": "X-Road Merkezi Serwer",
+    "approve": "Tassykla",
+    "class": "Klass",
+    "code": "Kod",
+    "created": "Döredildi",
+    "delete": "Poz",
+    "id": "Id",
+    "instance": "Nusga",
+    "memberClass": "Agzanyň klassy",
+    "memberCode": "Agzanyň kody",
+    "memberName": "Agzanyň ady",
+    "navigation": {
+      "back": "Yza"
+    },
+    "pageNotFound": "bagyşlaň, sahypa tapylmady",
+    "register": "Hasaba alyş",
+    "search": "Gözleg",
+    "server": "Serwer",
+    "status": "Status",
+    "subsystem": "Kiçi ulgam",
+    "type": "Görnüş"
+  },
+  "globalConf": {
+    "anchor": {
+      "certificateHash": "Heş (SHA-224) şahadatnamasy",
+      "created": "Döredildi",
+      "download": "Ýükle",
+      "recreate": "Gaýtadan döret",
+      "recreateSuccess": "{configurationType} konfigurasiýanyň labyry üstünlikli döredildi",
+      "title": "Labyr"
+    },
+    "cfgParts": {
+      "allVersions": "Ähli wersiýalar",
+      "contentIdentifier": "Kontenti kesgitleýji",
+      "dialog": {
+        "upload": {
+          "success": "Konfigurasiýa bölegi üstünlikli ýüklenildi.",
+          "title": "Konfigurasiýa bölümini ýükle",
+          "uploadConfigurationPart": "Konfigurasiýa faýly öz kompýuteriňizden ýükläň"
+        }
+      },
+      "file": "Faýl",
+      "title": "Konfigurasiýa bölekleri",
+      "updated": "Täzelendi",
+      "version": "Wersiýasy"
+    },
+    "downloadUrl": {
+      "title": "URL ýükle",
+      "urlAddress": "URL salgysy"
+    },
+    "globalConf": "Global konfigurasiýa",
+    "internalConf": "Içki konfigurasiýa",
+    "trustedAnchor": {
+      "dialog": {
+        "delete": {
+          "confirmation": "{hash} heşli (SHA-224) {identifier} labyry pozmalymy?",
+          "success": "Ynamly labyr üstünlikli pozuldy",
+          "title": "Labyry poz"
+        },
+        "upload": {
+          "confirmation": "ýüklemegi dowam etmeilimi?",
+          "field": {
+            "generated": "Döredildi",
+            "hash": "Heş (SHA-224)"
+          },
+          "info": "Ynamly labyryň jikme-jikleri:",
+          "success": "Üstsnlikli ýüklenen Ynamly labyr",
+          "title": "Ynamly labyryň jikme-jiklerini tassykla"
+        }
+      }
+    },
+    "trustedAnchors": "Ynamly labyr"
+  },
+  "globalGroup": {
+    "addMembers": "Agzalary goş",
+    "added": "Goşuldy",
+    "areYouSure": "Dogurdanam {group} global topary aýyrmak isleýärsiňizmi?",
+    "class": "Klass",
+    "code": "Kod",
+    "deleteGroup": "Topary poz",
+    "description": "Beýany",
+    "descriptionSaved": "Beýany üstünlikli ýatda saklanyldy.",
+    "dialog": {
+      "addMembers": {
+        "success": ": {identifiers} Identifikatorly agzalar şu global topara goşuldy",
+        "title": "Agzalary goş"
+      },
+      "deleteMember": {
+        "confirmation": "Siz dogurdanam \"{identifier}\" identifikatorly agzany şu global topardan pozmak isleýärsiňizmi? Tassyklamak üçin agzanyň kodyny giriziň.",
+        "placeholder": "Agzanyň kodyny giriz",
+        "success": "\"{identifier}\" kesgitleýjili agza bu global topardan pozuldy",
+        "title": "Agzany poz"
+      }
+    },
+    "editDescription": "Beýany redaktirle",
+    "groupDeletedSuccessfully": "Global topar üstünlikli pozuldy.",
+    "groupMembers": "({memberCount}) toparyň agzalary",
+    "instance": "Nusga",
+    "memberName": "Agzanyň ady",
+    "subsystem": "Kiçi ulgam",
+    "type": "Görnüşi"
+  },
+  "globalResources": {
+    "addGlobalGroup": "Global topary goş",
+    "code": "Kod",
+    "description": "Beýany",
+    "globalGroupSuccessfullyAdded": "Global topar üstünlikli goşuldy.",
+    "globalGroups": "Global toparlar",
+    "memberCount": "Agzalaryň sany",
+    "updated": "Täzelendi"
+  },
+  "init": {
+    "address": {
+      "info": "Merkezi serweriň açyk DNS ady ýa-da daşky IP salgylary.Daşarky ulgamdan merkezi serwere giriş baglanyşyklary üçin ulanylýar. "
+    },
+    "csIdentification": "Merkezi serweri kesgitlemek",
+    "initialConfiguration": "Başlangyç konfigurasiýa",
+    "instanceIdentifier": {
+      "info": "X-Road-yň nusga kody, bu X-Road nusgasyny ýeke-täk kesgitleýär."
+    },
+    "notification": "Merkezi serwer işe girizildi! Indi doly sazlama işlerini dowam edip bilersiňiz.",
+    "pin": {
+      "info": "Programma tokene girmek üçin PIN.",
+      "pinMatchError": "Açar sözüniň tassyklamasy gabat gelenok",
+      "repeat": "PIN-i gaýatala"
+    },
+    "softwareToken": "Programma tokeni"
+  },
+  "keys": {
+    "addKey": "Açary goş",
+    "created": "Döredildi",
+    "dialog": {
+      "activate": {
+        "confirmButton": "Işe giriz",
+        "success": "'{label}' üstünlikli işe girizildi",
+        "text": "'{label}'açary işe girizmelimi?",
+        "title": "Açary işe giriz"
+      },
+      "add": {
+        "confirmButton": "Goş",
+        "labelField": "Açaryň düşnükli ady",
+        "success": "Sign Key '{label}' added successfully. Please do not activate the key immediately. Please see the Central Server user guide before activating the key.",
+        "title": "Açary goş"
+      },
+      "delete": {
+        "confirmButton": "Poz",
+        "success": "Açarlaryň gol çekilmesi üstünlikli pozuldy",
+        "text": "'{label}' açary pozmalymy?",
+        "title": "Açary poz"
+      }
+    },
+    "logIn": "Ulgama gir",
+    "logOut": "Ulgamdan çyk",
+    "signKey": "Açara gol çek",
+    "title": "Açarlaryň gol çekilmesi"
+  },
+  "managementRequestDetails": {
+    "address": "Salgysy",
+    "ca": "CA",
+    "certificateformation": "Hakykylyk şahdatnamasy hasaba alynmaga ugradyldy",
+    "clientDisableInformation": "Öçürilen müşderi",
+    "clientEnableInformation": "Işe girizilen müşderi",
+    "clientInformation": "Müşderi hasaba alynmaga ugradyldy",
+    "comments": "Teswirler",
+    "expires": "Möhleti tamamlanýar",
+    "ownerChangeInformation": "Täze eýesi hasaba alynmaga ugradyldy",
+    "ownerClass": "Eýesiniň klassy",
+    "ownerCode": "Eýesiniň kody",
+    "ownerName": "Eýesiniň ady",
+    "received": "Kabul edildi",
+    "requestId": "Talabyň ID-si",
+    "requestInformation": "Maglumaty talap et",
+    "securityServerInformation": "Täsiri ýeten howpsuzlyk serweri barada maglumat",
+    "serialNumber": "Tertip belgisi",
+    "serverCode": "Serweriň kody",
+    "source": "Çeşme",
+    "status": "Status",
+    "subject": "Subject",
+    "subsystemCode": "Kiçi ulgamyň kody"
+  },
+  "managementRequests": {
+    "addCertificate": "Şahadatnamany goş",
+    "addClient": "Müşderi goş",
+    "approved": "Tassyklandy",
+    "changeAddress": "Salgysyny üýtget",
+    "changeOwner": "Eýesini üýtget",
+    "clientDisable": "Müşderini öçür",
+    "clientEnable": "Müşderini işe giriz",
+    "dialog": {
+      "approve": {
+        "bodyMessage": "Siz dogurdanam {serverId} serwerden gelen {id} ID-li dolandyryş talaby tassyklamak isleýärsiňizmi?",
+        "newMemberWarning": "Görkezilen agza häzirki wagtda ýok. Bu talap tassyklanwagtynda agza awtomatiki usulda dörediler.",
+        "successMessage": "{serverId} -dan {id} ID-li dolandyryş talap tassyklandy",
+        "title": "Dolandyryş talaby tassykla"
+      },
+      "decline": {
+        "bodyMessage": "Siz dogurdanam {serverId} serwerden gelen {id} ID-li dolandyryş talaby ret etmek isleýärsiňizmi?",
+        "successMessage": "{serverId} serwerden gelen {id} ID-li dolandyryş talaby ret edildi",
+        "title": "Dolandyryş talaby ret et"
+      }
+    },
+    "pending": "Garaşylýar",
+    "rejected": "Ret edildi",
+    "removeCertificate": "Şahadatnamany aýyryň",
+    "removeClient": "Müşderini aýyryň",
+    "revoked": "Ýatyryldy",
+    "securityServerId": "Serwer kesgitleýji",
+    "securityServerOwnerName": "Serweriň eýesiniň ady",
+    "showOnlyPending": "Diňe garaşylýan talaplary görkez",
+    "submitted": "Tassyklamak üçin iberildi",
+    "unknown": "Näbelli"
+  },
+  "members": {
+    "addMember": "Agza goş",
+    "header": "Agzalar",
+    "member": {
+      "details": {
+        "addedToGroup": "Topara goş",
+        "confirmDelete": "Siz dogurdanam {member} agzany ulgamyň konfigurasiýasyndan pozmak isleýärsiňizmi? Tassyklamak üçin agzanyň kodyny giriziň.",
+        "deleteMember": "Agzany poz",
+        "editMemberName": "Agzanyň adyny redaktirle",
+        "enterCode": "Agza kodyny giriz",
+        "globalGroups": "Global toparlar",
+        "group": "Topar",
+        "memberDeleted": "Agza üstünlikli pozuldy",
+        "memberNameSaved": "Agzanyň ady üstünlikli ýatda saklanyldy",
+        "ownedServers": "Eýeli serwerler",
+        "server": "Serwer"
+      },
+      "managementRequests": {
+        "created": "Döredildi",
+        "id": "Talap id",
+        "showOnlyWaiting": "Diňe garaşylýan talaplary görkeziň",
+        "status": "Status",
+        "type": "Talabyň görnüşi"
+      },
+      "pagenavigation": {
+        "details": "Jikme-jikler",
+        "managementRequests": "Dolandyryş talaplary",
+        "subsystems": "Kiçi ulgamlar"
+      },
+      "subsystems": {
+        "addClient": "Kiçi ulgamlary goş",
+        "areYouSureDelete": "Are you sure you want to delete the Subsystem {subsystemCode} from the X-Road member {memberId} from the system configuration?",
+        "areYouSureUnregister": "Are you sure you want to delete the Subsystem {subsystemCode} from server {serverCode} from the system configuration?",
+        "deleteSubsystem": "Kiçi ulgamlary poz",
+        "serverOwner": "Serweriň eýesi",
+        "servercode": "Serweriň kody",
+        "status": "Status",
+        "subsystemSuccessfullyAdded": "{subsystemCode} kiçi ulgamyny ulgamyň konfigurasiýasyna goşuldy",
+        "subsystemSuccessfullyDeleted": "Subsystem {subsystemCode} has been deleted from the system configuration",
+        "subsystemSuccessfullyUnregistered": "Subsystem {subsystemCode} from server {serverCode} has been deleted",
+        "subsystemcode": "Kiçi ulgamyň kody"
+      }
+    },
+    "memberSuccessfullyAdded": "Member {memberName} is added to the system configuration."
+  },
+  "noData": {
+    "noMemberClasses": "Agza klasslary ýok",
+    "noSecurityServers": "Howpsuzlyk serwerler ýok"
+  },
+  "securityServers": {
+    "address": "Salgy",
+    "dialogs": {
+      "deleteAddress": {
+        "areYouSure": "Are you sure you want to delete the Security Server {securityServer} from the system configuration? Enter the server code to confirm.",
+        "enterCode": "Howpsuzlyk serwriň kodyny giriz",
+        "success": "Howpsuzlyk serweri pozuldy.",
+        "title": "Howpsuzlyk serweriň salgysy"
+      },
+      "editAddress": {
+        "addressField": "Howpsuzlyk serweriň salgysy",
+        "success": "Howpsuzlyk serweriň salgysy üstünlikli täzelendi",
+        "title": "Howpsuzlyk serweriň salgysyny üýtget"
+      }
+    },
+    "disabled": "Wagtlaýynça öçürilen",
+    "ownerClass": "Eýesiniň klassy",
+    "ownerCode": "Eýesiniň kody",
+    "ownerName": "Eýesiniň kody",
+    "pending": "Tassyklanmaga garaşýar",
+    "registered": "Hasaba alnan",
+    "securityServer": {
+      "certificationAuthority": "Şahadatnama berýän merkez",
+      "deleteSecurityServer": "Howpsuzlyk serweri poz",
+      "deleteServer": "Serweri poz",
+      "dialog": {
+        "deleteAuthCertificate": {
+          "content": "Siz dogurdanam Are you sure you want to delete the Authentication Certificate Test CA from the system configuration? Enter the server code to confirm.",
+          "securityServerCode": "Howpsuzlyk serweriň kodyny giriz",
+          "success": "Howpsuzlyk serweriň hakykylyk şahadtnamasy üstünlikli pozuldy",
+          "title": "Hakykylyk şahadatnamasyny poz"
+        }
+      },
+      "expires": "Möhleti gutardy",
+      "serialNumber": "Tertip belgisi",
+      "subject": "Mowzuk",
+      "tabs": {
+        "authCertificates": "Hakykylyk şahadatnamalary",
+        "clients": "Müşderiler",
+        "details": "Jikme-jikler",
+        "managementRequests": "Dolandyryş talaplar"
+      }
+    },
+    "serverCode": "Serweriň kody",
+    "unregistered": "Hasaba alynmadyk"
+  },
+  "status": {
+    "global_conf_generation": {
+      "failing": "Global konfigurasiýanyň emele gelmegi amala aşmady, sebäbi {0}",
+      "global_conf_expired": "Global konfigurasiýanyň möhleti tamamlandy",
+      "status_not_found": "Global configuration generations status is unknown"
+    },
+    "signer_error": "Gol çekiji müşderini çagyrmak amala aşmady",
+    "signing_key": {
+      "external": {
+        "key_not_available": "Daşky konfigurasiýa gol çekilmedi - işjeň açar elýeterli däl",
+        "missing": "Daşky konfigurasiýa gol çekilmedi - işjeň açar ýok",
+        "token_not_active": "Daşky konfigurasiýa gol çekilmedi - işjeň açaryň PIN-i girmedi",
+        "token_not_found": "Daşky konfigurasiýa gol çekilmedi - işjeň açar tapylmady"
+      },
+      "internal": {
+        "key_not_available": "Içki konfigurasiýa gol çekilmedi - işjeň açar elýeterli däl",
+        "missing": "Içki konfigurasiýa gol çekilmedi - işjeň açar ýok",
+        "token_not_active": "Içki konfigurasiýa gol çekilmedi - işjeň açaryň PIN-i girmedi",
+        "token_not_found": "Içki konfigurasiýa gol çekilmedi - işjeň açar tapylmady"
+      }
+    }
+  },
+  "systemSettings": {
+    "addMemberClassTitle": "Agzaň klassyny goş",
+    "centralServerAddress": "Merkezi serweriň salgysy",
+    "code": "Kod",
+    "deleteMemberClass": "Agzaň klassyny pozmalymy?",
+    "description": "Beýany",
+    "editCentralServerAddressSuccess": "Merkezi serweriň salgysy üstünlikli täzelendi",
+    "editCentralServerAddressTitle": "Merkezi serweriň salgysyny üýtget",
+    "editMemberClassTitle": "Agzaň klassyny redaktirle",
+    "instanceIdentifier": "Nusganyň identifikatory",
+    "managementServices": {
+      "securityServer": "Howpsuzlyk serweriň dolandyryş gulluklary",
+      "title": "Dolandyryş gulluklary"
+    },
+    "managementServicesAddress": "Dolandyryş gullugynyň salgysy",
+    "memberClassDeleted": "Agzaň klassy pozuldy.",
+    "memberClassSaved": "Agzaň klassy ýatda saklanyldy.",
+    "memberClasses": "Agzanyň klasslary",
+    "securityServerOwnerGroupCode": "Howpsuzlyk serweriň eýeleriniň toparlrynyň kody",
+    "selectSecurityServer": {
+      "memberClass": "klass",
+      "memberCode": "Kod",
+      "name": "Ady",
+      "search": "Gözle",
+      "subsystemCode": "kiçi ulgam",
+      "title": "Howpsuzlyk serweri saýla",
+      "type": "Type",
+      "xroadInstance": "Nusga"
+    },
+    "selectSubsystem": {
+      "memberClass": "KLass",
+      "memberCode": "Kod",
+      "name": "Ady",
+      "search": "Gözle",
+      "subsystemCode": "Subsystem",
+      "title": "Kiçi ulgamy saýla",
+      "type": "Görnüş",
+      "xroadInstance": "Nusga"
+    },
+    "serviceProvider": {
+      "changedSuccess": "Service Provider changed successfully",
+      "registeredSuccess": "Management service provider '{subsystemId}' registered as security server '{securityServerId}' client"
+    },
+    "serviceProviderIdentifier": "Hyzmat üpjün edijiniň identifikatory",
+    "serviceProviderName": "Hyzmat üpjün edijiniň ady",
+    "systemParameters": "Ulgam parametrleri",
+    "wsdlAddress": "WSDL salgy"
+  },
+  "tab": {
+    "globalConf": {
+      "externalConf": "Daşky konfigurasiýa",
+      "internalConf": "Içki konfigurasiýa",
+      "trustedAnchors": "Ynamly labyrlar"
+    },
+    "main": {
+      "globalConfiguration": "Global konfigurasiýa",
+      "managementRequests": "Dolandyryş talaplar",
+      "members": "Agzalar",
+      "securityServers": "Howpsuzlyk serwerleri",
+      "settings": "Sazlamalar",
+      "trustServices": "Ynamly hyzmatlar"
+    },
+    "settings": {
+      "apiKeys": "API Açarlary",
+      "backupAndRestore": "Ätiýaçlyk nusgasy we gaýtadan dikeltmek",
+      "globalResources": "Global resurslary",
+      "systemSettings": "Ulgam sazlamalary",
+      "tlsCertificates": "TLS şahadatnamalary"
+    }
+  },
+  "tlsCertificates": {
+    "managementService": {
+      "downloadCertificate": "Şahadatnamany ýükle",
+      "downloadSuccess": "Dolandyryş hyzmatlarynyň TLS şahadatnamasy üstünlikli ýüklendi",
+      "generateCsr": {
+        "button": "CSR döret",
+        "content": "Ilki bilen tapawutly at ber. Soňra täze CSR döret we howpsuz ýerde sakla",
+        "distinguishedName": "Tapawutly ady giriziň",
+        "example": "CN=mycentralserver.example.com, O=My Organization, C=EE",
+        "title": "TLS şahadatnamasyna gol çekmek talabyny dörediň"
+      },
+      "generateKey": {
+        "button": "Açary gaýtadan döret",
+        "confirmation": "Täze Dolandyryş hyzmatlarynyň TLS açaryny we şahadatnamasyny döretmelimi?",
+        "explanation": "The system will generate a new Management service TLS key and a self-signed certificate, replacing the existing key and certificate.",
+        "success": "Täze Dolandyryş hyzmatlarynyň TLS açaryny we şahadatnamasyny üstünlikli döredildi",
+        "title": "Dolandyryş hyzmatlarynyň TLS açary"
+      },
+      "key": "Dolandyryş hyzmatlarynyň TLS açary",
+      "title": "Dolandyryş hyzmatlarynyň TLS şahadatnamasy",
+      "uploadCertificate": {
+        "button": "Şahadtnamany ýükle",
+        "label": "Şahadatnamanyň faýlyny öz kompýuteriňizden ýükläň",
+        "success": "Dolandyryş hyzmatlarynyň TLS şahadatnamasy üstünlikli ýüklendi",
+        "title": "Dolandyryş hyzmatlarynyň TLS şahadatnamasyny ýükle"
+      }
+    }
+  },
+  "tokens": {
+    "keysInfoMessage": "Howpsuzlyk tokende iň köp iki gol çekme açaryň konfigurasiýa çeşmelerine rugsat berilýär",
+    "logIn": "Ulgama gir",
+    "loginDialog": {
+      "success": "Tokene girdi",
+      "title": "Ulgama gir"
+    },
+    "logout": {
+      "confirmButton": "Ulgamdan çyk",
+      "success": "Tokenden çykdy",
+      "text": "Siz dogurdanam tokenden çykmak ısleýärsiňizmi?",
+      "title": "Ulgamdan çyk"
+    },
+    "pin": "PIN tokeni"
+  },
+  "trustServices": {
+    "acmeServerAuthProfileIdExplanation": "Käbir ACME serwerlerinde hakykylyk şahadatnamasy sargyt edilende şahadatnamanyň ulanylyş görnüşini habar bermek üçin ulanylýan profil ID.",
+    "acmeServerDirectoryUrlExplanation": "Howpsuzlyk Serwerleri tarapyndan ACME Serwer API arkaly şahadatnama bilen baglanyşykly amallary ýerine ýetirmek üçin ulanylýar.",
+    "acmeServerIpAddressExplanation": "Howpsuzlyk Serweri bilen ACME HTTP arasyndaky meselesini tamamlamak üçin ulanylýan ACME Serwer çeşmesiniň IP-leriniň sanawy. Birnäçe salgylar otur bilen bölünýär. Bu maglumatlar Howpsuzlyk Serweriniň UI-da görkezilýär.",
+    "acmeServerSignProfileIdExplanation": "Käbir ACME serwerlerinde gol çekme şahadatnamasy sargyt edilende şahadatnamanyň ulanylyş görnüşini habar bermek üçin ulanylýan profil ID.",
+    "addCASettingsCheckbox": "Bu CA diňe TLS hakykylygyny barlamak üçin ulanylyp bilner (dogry bolsa belläň)",
+    "addCertificationService": "Şahadatnama hyzmatyny goş",
+    "approvedCertificationService": "Tassyklanan şahadatnama hyzmaty",
+    "caSettings": "CA Settings",
+    "certImportedSuccessfully": "Şahdatnama üstünlikli import edildi",
+    "certProfileInput": "Şahadatnamanyň profil maglumatlary",
+    "certProfileInputExplanation": "ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interfeýsi ýerine ýetirýän klassyň doly ady",
+    "certificationServices": "Şahadatnama boýunça hyzmatlary",
+    "timestampingService": {
+      "addedSuccessfully": "Wagt bellemek hyzmaty üstünlikli goşuldy",
+      "dialog": {
+        "add": {
+          "success": "Wagt bellemek hyzmaty üstünlikli goşuldy",
+          "title": "Wagt bellemek hyzmatyny goş"
+        },
+        "edit": {
+          "success": "Wagt bellemek hyzmaty üstünlikli goşuldy",
+          "title": "Wagt bellemek hyzmatyny redaktirle",
+          "uploadCertificate": "Täze şahadatnama ýükle"
+        }
+      },
+      "url": "URL"
+    },
+    "timestampingServices": "Wagt bellemek hyzmatlary",
+    "trustService": {
+      "delete": {
+        "action": "Ynam hyzmatyny poz",
+        "confirmationDialog": {
+          "message": "Siz dogurdanam \"{name}\" ynam hyzmatyny pozmak isleýärsiňizmi?",
+          "title": "Tassyklaýarsyňyzmy?"
+        },
+        "success": "Ynam hyzmaty üstünlikli pozuldy"
+      },
+      "details": {
+        "issuerDistinguishedName": "Şahadatnama berijiniň tapawutly ady",
+        "subjectDistinguishedName": "Subýektiň tapawutly ady"
+      },
+      "intermediateCas": {
+        "add": {
+          "dialog": {
+            "title": "Aralyk CA-lary goş"
+          },
+          "success": "Aralyk CA üstünlikli goşuldy"
+        },
+        "delete": {
+          "confirmationDialog": {
+            "message": "Siz dogurdanam {name} Aralyk CA pozmak isleýärsiňizmi?",
+            "title": "Tassyklaýarsyňyzmy?"
+          },
+          "success": "Aralyk CA üstünlikli pozuldy"
+        },
+        "intermediateCa": "Aralyk CA"
+      },
+      "ocspResponders": {
+        "add": {
+          "dialog": {
+            "title": "OCSP jogap berijini goş"
+          },
+          "success": "OCSP jogap beriji üstünlikli goşuldy"
+        },
+        "delete": {
+          "confirmationDialog": {
+            "message": "Siz dogurdanam {url} URL-li OCSP jogap berijini pozmak isleýärsiňizmi?",
+            "title": "Tassyklaýarsyňyzmy?"
+          },
+          "success": "OCSP Responder deleted successfully"
+        },
+        "edit": {
+          "dialog": {
+            "title": "OCSP jogap berijini redaktirle",
+            "uploadCertificate": "Täze şahadatnamany ýükle"
+          },
+          "success": "OCSP jogap beriji üstünlikli redaktirlendi"
+        },
+        "url": "URL"
+      },
+      "pagenavigation": {
+        "details": "Jikme-jikler",
+        "intermediateCas": "Aralyk CA-lar",
+        "ocspResponders": "OCSP jogap berijiler",
+        "settings": "CA sazlamalary"
+      },
+      "settings": {
+        "acmeCapable": "Bu CA ACME üçin ulanylyp bilner",
+        "acmeNotCapable": "Bu CA ACME üçin ulanylyp bilinmer",
+        "certProfile": "ee.ria.xroad.common.CertificateProfileInfoProvider interfeýsi ýerine ýetiriji şahadatnamanyň (klassyň doly ady) profili barada maglumat",
+        "saveSuccess": "CA sazlamalary üstünlikli ýatda saklanyldy",
+        "tlsAuth": "Bu CA diňe TLS-niň hakykylygyny tassyklamak üçin ulanylyp bilner"
+      },
+      "timestampingService": {
+        "cost": "Bahasy",
+        "costValues": {
+          "FREE": "Mugt",
+          "PAID": "Tölenen",
+          "UNDEFINED": "Kesgitlenmedik"
+        },
+        "delete": {
+          "dialog": {
+            "message": "Siz dogurdanam {url} URL-ly wagty bellemek gullugyny pozmak isleýärsiňizmi?",
+            "title": "Tassyklaýarsyňyzmy?"
+          },
+          "success": "Wagty bellemek gullugy üstünlikli pozuldy"
+        },
+        "timestampingInterval": "Wagt bellemegiň wagt aralygy",
+        "timestampingIntervalMinutes": "{min} minut",
+        "url": "Url"
+      }
+    },
+    "uploadCertificate": "Şahadatnamanyň faýlyny öz kompýuteriňizden ýükläň",
+    "validFrom": "Senesinden güýje girýär",
+    "validTo": "Senesine çenli güýje girýär",
+    "viewCertificate": "Şahadatnamany gör"
+  },
+  "validation": {
+    "messages": {
+      "is": "{Meýdança} meýdançanyň \"{beýleki}\" belgileri bolmaly"
+    }
+  },
+  "validationError": {
+    "IdentifierChars": "Instance identifier should not contain colon (:), semicolon (;), forward or backward slashes (/\\) or percent signs (%)",
+    "IdentifierCharsField": "Belgide diňe dogry nyşanlary ulanyň",
+    "SizeField": "belgi uzynlyk talaplaryna gabat gelmeýär"
+  }
+}

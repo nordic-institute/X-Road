@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
@@ -91,7 +91,7 @@ class TokenActionsResolverImplTest {
         EnumSet<PossibleTokenAction> otherActions = EnumSet.complementOf(possibleActions);
         otherActions.forEach(
                 action -> assertThatThrownBy(() -> tokenActionsResolver.requireAction(action, tokenInfo, List.of()))
-                        .isInstanceOf(ValidationFailureException.class)
+                        .isInstanceOf(BadRequestException.class)
         );
     }
 

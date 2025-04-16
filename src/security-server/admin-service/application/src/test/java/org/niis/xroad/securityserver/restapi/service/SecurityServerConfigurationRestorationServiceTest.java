@@ -30,10 +30,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
-import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -42,6 +41,8 @@ import java.time.OffsetDateTime;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
 
 public class SecurityServerConfigurationRestorationServiceTest extends AbstractServiceTestContext {
     private static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
@@ -85,7 +86,7 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
             configurationRestorationService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
         } catch (NotFoundException e) {
-            Assert.assertEquals(DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
+            Assert.assertEquals(BACKUP_FILE_NOT_FOUND.code(), e.getErrorDeviation().code());
         }
     }
 
@@ -95,8 +96,8 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
         try {
             configurationRestorationService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
-        } catch (ServiceException e) {
-            Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
+        } catch (InternalServerErrorException e) {
+            Assert.assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
         }
     }
 
@@ -106,8 +107,8 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
         try {
             configurationRestorationService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
-        } catch (ServiceException e) {
-            Assert.assertEquals(DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
+        } catch (InternalServerErrorException e) {
+            Assert.assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
         }
     }
 }

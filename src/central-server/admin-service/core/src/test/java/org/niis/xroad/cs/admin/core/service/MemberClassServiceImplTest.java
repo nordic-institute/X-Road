@@ -35,7 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
@@ -63,8 +63,8 @@ import static org.mockito.Mockito.when;
 //@Disabled
 class MemberClassServiceImplTest {
 
-    private static final String CODE = "code";
-    private static final String DESCRIPTION = "description";
+    private static final String CODE = "class-code";
+    private static final String DESCRIPTION = "class-description";
 
     @Mock
     private XRoadMemberRepository members;
@@ -162,8 +162,8 @@ class MemberClassServiceImplTest {
             when(memberClassRepository.findByCode(CODE)).thenReturn(Optional.of(memberClassEntity));
 
             assertThatThrownBy(() -> memberClassService.add(new MemberClass(CODE, DESCRIPTION)))
-                    .isInstanceOf(DataIntegrityException.class)
-                    .hasMessage("Member class with the same code already exists.");
+                    .isInstanceOf(ConflictException.class)
+                    .hasMessage("Error[code=member_class_exists, metadata=[class-code]]");
 
             verifyNoMoreInteractions(memberClassRepository);
             verify(auditData).put(RestApiAuditProperty.CODE, CODE);
@@ -209,7 +209,7 @@ class MemberClassServiceImplTest {
 
             assertThatThrownBy(() -> memberClassService.updateDescription(CODE, DESCRIPTION))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("No member class with the specified code found.");
+                    .hasMessage("Error[code=member_class_not_found, metadata=[tr.code, class-code]]");
 
             verifyNoMoreInteractions(memberClassRepository);
             verify(auditData).put(RestApiAuditProperty.CODE, CODE);
@@ -237,7 +237,7 @@ class MemberClassServiceImplTest {
 
             assertThatThrownBy(() -> memberClassService.delete(CODE))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("No member class with the specified code found.");
+                    .hasMessage("Error[code=member_class_not_found, metadata=[tr.code, class-code]]");
 
             verifyNoMoreInteractions(memberClassRepository);
             verify(auditData).put(RestApiAuditProperty.CODE, CODE);
@@ -249,9 +249,8 @@ class MemberClassServiceImplTest {
             when(members.existsByMemberClass(memberClassEntity)).thenReturn(TRUE);
 
             assertThatThrownBy(() -> memberClassService.delete(CODE))
-                    .isInstanceOf(DataIntegrityException.class)
-                    .hasMessage("Cannot delete member class: Found X-Road members belonging to the class."
-                            + " Only classes with no registered members can be deleted.");
+                    .isInstanceOf(ConflictException.class)
+                    .hasMessage("Error[code=member_class_is_in_use, metadata=[tr.code, class-code]]");
 
             verifyNoMoreInteractions(memberClassRepository);
             verify(auditData).put(RestApiAuditProperty.CODE, CODE);

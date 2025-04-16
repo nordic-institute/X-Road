@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.5  
+Version: 1.6  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                         | Author           |
@@ -16,6 +16,7 @@ Document ID: ARC-OPMOND
 | 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
 | 17.03.2025 | 1.5     | Syntax and styling                                                  | Pauline Dimmek   |
+| 26.03.2025 | 1.6     | Added field xRoadVersion and example for producer side REST request | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -172,7 +173,7 @@ The schema is located in the file *src/op-monitor-daemon/core/src/main/resources
 
 ### A.2 Example Store Operational Monitoring Data Request
 
-The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST request and the third one unsuccessfully mediated request.
+The first record of the store request reflects successfully mediated SOAP request, the second and the third one successfully mediated REST client and producer side requests and the fourth one unsuccessfully mediated request.
 
 ```json
 {
@@ -207,16 +208,17 @@ The first record of the store request reflects successfully mediated SOAP reques
       "responseAttachmentCount": 0,
       "succeeded": true,
       "xRequestId": "d4490e7f-305e-44c3-b869-beaaeda694e7",
+      "xRoadVersion": "7.6.2",
       "serviceType": "WSDL"
     },
     {
       "monitoringDataTs": 1733404603,
       "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
       "securityServerType": "Client",
-      "requestInTs": 1733404602876,
-      "requestOutTs": 1733404602884,
-      "responseInTs": 1733404602970,
-      "responseOutTs": 1733404603005,
+      "requestInTs": 1742471252081,
+      "requestOutTs": 1742471252151,
+      "responseInTs": 1742471252329,
+      "responseOutTs": 1742471252379,
       "clientXRoadInstance": "FI",
       "clientMemberClass": "COM",
       "clientMemberCode": "111",
@@ -227,7 +229,6 @@ The first record of the store request reflects successfully mediated SOAP reques
       "serviceSubsystemCode": "SERVICE",
       "serviceCode": "pets",
       "restMethod": "GET",
-      "restPath": "/cat",
       "messageId": "1234",
       "messageProtocolVersion": "1",
       "clientSecurityServerAddress": "ss1",
@@ -239,6 +240,40 @@ The first record of the store request reflects successfully mediated SOAP reques
       "succeeded": true,
       "statusCode": 200,
       "xRequestId": "1244d018-9300-4f1b-8c2b-9b7f2bc4e933",
+      "xRoadVersion": "7.6.2",
+      "serviceType": "REST"
+    },
+    {
+      "monitoringDataTs": 1733404603,
+      "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
+      "securityServerType": "Producer",
+      "requestInTs": 1742471252251,
+      "requestOutTs": 1742471252251,
+      "responseInTs": 1742471252364,
+      "responseOutTs": 1742471252364,
+      "clientXRoadInstance": "FI",
+      "clientMemberClass": "COM",
+      "clientMemberCode": "111",
+      "clientSubsystemCode": "CLIENT",
+      "serviceXRoadInstance": "FI",
+      "serviceMemberClass": "COM",
+      "serviceMemberCode": "111",
+      "serviceSubsystemCode": "SERVICE",
+      "serviceCode": "pets",
+      "restMethod": "GET",
+      "restPath": "/cat/*",
+      "messageId": "1234",
+      "messageProtocolVersion": "1",
+      "clientSecurityServerAddress": "ss1",
+      "serviceSecurityServerAddress": "ss1",
+      "requestSize": 214,
+      "responseSize": 462,
+      "requestAttachmentCount": 0,
+      "responseAttachmentCount": 0,
+      "succeeded": true,
+      "statusCode": 200,
+      "xRequestId": "1244d018-9300-4f1b-8c2b-9b7f2bc4e933",
+      "xRoadVersion": "7.6.2",
       "serviceType": "REST"
     },
     {
@@ -267,6 +302,7 @@ The first record of the store request reflects successfully mediated SOAP reques
       "faultCode": "Server.ServerProxy.OpMonitor.InvalidClientIdentifier",
       "faultString": "Missing required subsystem code",
       "xRequestId": "2c51b181-47cd-4ff2-b5df-6463f968fd0c",
+      "xRoadVersion": "7.6.2",
       "serviceType": "WSDL"
     }   
   ]

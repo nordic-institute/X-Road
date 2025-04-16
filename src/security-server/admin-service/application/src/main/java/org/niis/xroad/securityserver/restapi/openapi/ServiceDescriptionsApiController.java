@@ -29,13 +29,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
@@ -46,14 +43,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDto
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
-import org.niis.xroad.securityserver.restapi.service.InvalidServiceUrlException;
-import org.niis.xroad.securityserver.restapi.service.InvalidUrlException;
+import org.niis.xroad.securityserver.restapi.service.MissingParameterException;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
-import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
-import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
 import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +61,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_SERV
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERVICE_DESCRIPTION;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.UNKNOWN_SERVICE_DESCRIPTION_TYPE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * service descriptions api
@@ -89,11 +82,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @AuditEventMethod(event = ENABLE_SERVICE_DESCRIPTION)
     public ResponseEntity<Void> enableServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        try {
-            serviceDescriptionService.enableServices(serviceDescriptionId.longValue());
-        } catch (ServiceDescriptionNotFoundException e) {
-            throw new ResourceNotFoundException();
-        }
+        serviceDescriptionService.enableServices(serviceDescriptionId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -107,12 +96,10 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             disabledNotice = serviceDescriptionDisabledNotice.getDisabledNotice();
         }
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        try {
-            serviceDescriptionService.disableServices(serviceDescriptionId.longValue(),
-                    disabledNotice);
-        } catch (ServiceDescriptionNotFoundException e) {
-            throw new ResourceNotFoundException();
-        }
+
+        serviceDescriptionService.disableServices(serviceDescriptionId,
+                disabledNotice);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -121,11 +108,9 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     @AuditEventMethod(event = DELETE_SERVICE_DESCRIPTION)
     public ResponseEntity<Void> deleteServiceDescription(String id) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        try {
-            serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
-        } catch (ServiceDescriptionNotFoundException e) {
-            throw new ResourceNotFoundException();
-        }
+
+        serviceDescriptionService.deleteServiceDescription(serviceDescriptionId);
+
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -145,7 +130,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                         serviceDescriptionUpdate.getIgnoreWarnings());
             } else if (serviceDescriptionUpdate.getType() == ServiceTypeDto.OPENAPI3) {
                 if (serviceDescriptionUpdate.getRestServiceCode() == null) {
-                    throw new BadRequestException("Missing parameter rest_service_code");
+                    throw new MissingParameterException("Missing rest_service_code");
                 }
                 updatedServiceDescription =
                         serviceDescriptionService.updateOpenApi3ServiceDescription(serviceDescriptionId,
@@ -154,28 +139,19 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                                 serviceDescriptionUpdate.getIgnoreWarnings());
             } else if (serviceDescriptionUpdate.getType() == ServiceTypeDto.REST) {
                 if (serviceDescriptionUpdate.getRestServiceCode() == null) {
-                    throw new BadRequestException("Missing parameter rest_service_code");
+                    throw new MissingParameterException("Missing rest_service_code");
                 }
                 updatedServiceDescription = serviceDescriptionService.updateRestServiceDescription(serviceDescriptionId,
                         serviceDescriptionUpdate.getUrl(), serviceDescriptionUpdate.getRestServiceCode(),
                         serviceDescriptionUpdate.getNewRestServiceCode());
             } else {
-                throw new BadRequestException("ServiceType not recognized");
+                throw new BadRequestException(UNKNOWN_SERVICE_DESCRIPTION_TYPE.build());
             }
 
-        } catch (WsdlParser.WsdlNotFoundException | OpenApiParser.ParsingException | UnhandledWarningsException
-                 | InvalidUrlException | ServiceDescriptionService.WrongServiceDescriptionException
-                 | InvalidWsdlException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
+        } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException
-                 | ServiceDescriptionService.UrlAlreadyExistsException
-                 | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
-            throw new ConflictException(e);
-        } catch (ServiceDescriptionNotFoundException e) {
-            throw new ResourceNotFoundException(e);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
+            throw new InternalServerErrorException(e, WSDL_VALIDATOR_INTERRUPTED.build());
         }
 
         ServiceDescriptionDto serviceDescriptionDto = serviceDescriptionConverter.convert(updatedServiceDescription);
@@ -192,17 +168,10 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
             serviceDescriptionDto = serviceDescriptionConverter.convert(
                     serviceDescriptionService.refreshServiceDescription(serviceDescriptionId,
                             ignoreWarnings.getIgnoreWarnings()));
-        } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
-                 | InvalidWsdlException | ServiceDescriptionService.WrongServiceDescriptionException
-                 | OpenApiParser.ParsingException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
+        } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
-        } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
-            throw new ConflictException(e);
-        } catch (ServiceDescriptionNotFoundException e) {
-            throw new ResourceNotFoundException(e);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
+            throw new InternalServerErrorException(e, WSDL_VALIDATOR_INTERRUPTED.build());
         }
         return new ResponseEntity<>(serviceDescriptionDto, HttpStatus.OK);
     }
@@ -210,7 +179,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     /**
      * Returns one service description, using primary key id.
      * {@inheritDoc}
-     *
      * @param id primary key of service description
      */
     @Override
@@ -224,7 +192,6 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
      * Returns services of one service description.
      * Id = primary key of service description.
      * {@inheritDoc}
-     *
      * @param id primary key of service description
      */
     @Override
@@ -245,7 +212,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
         ServiceDescription serviceDescription = serviceDescriptionService.getServiceDescription(serviceDescriptionId);
         if (serviceDescription == null) {
-            throw new ResourceNotFoundException();
+            throw new ServiceDescriptionNotFoundException(serviceDescriptionId);
         }
         return serviceDescription;
     }

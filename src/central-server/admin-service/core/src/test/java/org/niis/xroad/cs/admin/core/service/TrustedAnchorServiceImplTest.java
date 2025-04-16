@@ -34,8 +34,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlCertEntity;
 import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
@@ -115,8 +116,8 @@ class TrustedAnchorServiceImplTest {
         @Test
         void previewShouldThrowValidationFailure() {
             assertThatThrownBy(() -> trustedAnchorService.preview(new byte[0]))
-                    .isInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Malformed anchor file");
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=malformed_anchor]");
         }
     }
 
@@ -153,12 +154,12 @@ class TrustedAnchorServiceImplTest {
         void uploadNewVerificationShouldFail() throws Exception {
             final byte[] bytes = readAllBytes(Paths.get(getSystemResource("trusted-anchor/trusted-anchor.xml").toURI()));
 
-            doThrow(new ConfigurationVerifier.ConfigurationVerificationException(CONF_VERIFICATION_UNREACHABLE))
+            doThrow(new InternalServerErrorException(CONF_VERIFICATION_UNREACHABLE.build()))
                     .when(configurationVerifier).verifyConfiguration(any(), any());
 
             assertThatThrownBy(() -> trustedAnchorService.upload(bytes))
-                    .isInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Trusted anchor file verification failed");
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=trusted_anchor_verification_failed]");
 
             final Date anchorDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").parse("2023-02-15T09:26:34.235Z");
             verify(auditDataHelper).calculateAndPutAnchorHash(bytes);
@@ -199,7 +200,8 @@ class TrustedAnchorServiceImplTest {
 
             assertThatThrownBy(() -> trustedAnchorService.delete(ANCHOR_HASH))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Trusted anchor not found");
+                    .hasMessage("Error[code=trusted_anchor_not_found, "
+                            + "metadata=[40:2A:4F:94:05:D2:9B:ED:C9:EE:A2:6D:EC:EC:11:94:5D:C9:A8:3E:29:1F:B2:92:A6:E4:DF:1D]]");
 
             verifyNoInteractions(auditDataHelper);
             verifyNoMoreInteractions(trustedAnchorRepository);

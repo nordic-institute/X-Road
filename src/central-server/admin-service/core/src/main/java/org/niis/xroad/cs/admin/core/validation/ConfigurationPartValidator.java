@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.validation;
 
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.extension.OcspFetchIntervalSchemaValidator;
 import org.niis.xroad.globalconf.extension.OcspNextUpdateSchemaValidator;
 import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
@@ -50,10 +50,10 @@ public class ConfigurationPartValidator {
                 case CONTENT_ID_MONITORING -> MonitoringParametersSchemaValidator.validate(content);
                 case CONTENT_ID_OCSP_FETCH_INTERVAL -> OcspFetchIntervalSchemaValidator.validate(content);
                 case CONTENT_ID_OCSP_NEXT_UPDATE -> OcspNextUpdateSchemaValidator.validate(content);
-                default -> throw new ValidationFailureException(CONFIGURATION_PART_VALIDATOR_NOT_FOUND);
+                default -> throw new BadRequestException(CONFIGURATION_PART_VALIDATOR_NOT_FOUND.build());
             }
         } catch (Exception e) {
-            throw new ValidationFailureException(CONFIGURATION_PART_VALIDATION_FAILED, e);
+            throw new BadRequestException(e, CONFIGURATION_PART_VALIDATION_FAILED.build());
         }
     }
 

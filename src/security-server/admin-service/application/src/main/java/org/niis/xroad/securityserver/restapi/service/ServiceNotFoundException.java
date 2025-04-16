@@ -25,20 +25,19 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_NOT_FOUND;
 
 /**
  * If service was not found
  */
 public class ServiceNotFoundException extends NotFoundException {
     public ServiceNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
+        super(s, SERVICE_NOT_FOUND.build());
     }
 
     public ServiceNotFoundException(Throwable t) {
-        super(t, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
+        super(t, SERVICE_NOT_FOUND.build());
     }
 }

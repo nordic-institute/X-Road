@@ -61,7 +61,7 @@ public class EndpointHelper {
     }
 
     public List<EndpointEntity> getNewEndpoints(String serviceCode, OpenApiParser.Result result) {
-        List<Endpoint> newEndpoints = result.getOperations().stream()
+        List<Endpoint> newEndpoints = result.operations().stream()
                 .map(operation -> mapOperationToEndpoint(serviceCode, operation))
                 .collect(Collectors.toList());
         newEndpoints.add(new Endpoint(serviceCode, ANY_METHOD, ANY_PATH, true));
@@ -69,6 +69,6 @@ public class EndpointHelper {
     }
 
     private Endpoint mapOperationToEndpoint(String serviceCode, OpenApiParser.Operation operation) {
-        return new Endpoint(serviceCode, operation.getMethod(), operation.getPath(), true);
+        return new Endpoint(serviceCode, operation.method(), operation.path(), true);
     }
 }

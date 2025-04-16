@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.controller;
 
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +47,7 @@ public class AcmeChallengeController {
         String baseDirectory = "/etc/xroad/acme-challenge";
         File file = new File(baseDirectory, token);
         if (!file.getParent().equals(baseDirectory)) {
-            throw new ValidationFailureException(INVALID_URL);
+            throw new BadRequestException(INVALID_URL.build());
         }
         FileSystemResource fileSystemResource = new FileSystemResource(file);
         return new ResponseEntity<>(fileSystemResource.getContentAsString(StandardCharsets.UTF_8), HttpStatus.OK);

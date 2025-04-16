@@ -13,6 +13,7 @@
     <include file="op-monitor/5-field-refactoring.xml" relativeToChangelogFile="true"/>
     <include file="op-monitor/6-restart-sequence.xml" relativeToChangelogFile="true"/>
     <include file="op-monitor/7-add-rest-related-fields-to-operational_data-table.xml" relativeToChangelogFile="true"/>
+    <include file="op-monitor/8-add-xroad-version-to-operational_data-table.xml" relativeToChangelogFile="true"/>
 
   <!-- must be the last one -->
   <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

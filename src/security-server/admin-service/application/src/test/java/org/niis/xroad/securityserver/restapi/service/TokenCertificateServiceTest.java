@@ -90,6 +90,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -429,20 +430,14 @@ public class TokenCertificateServiceTest {
     @Test
     public void generateCertRequest() throws Exception {
         // wrong key usage
-        try {
-            tokenCertificateService.generateCertRequest(AUTH_KEY_ID, client,
-                    KeyUsageInfo.SIGNING, CA_NAME, new HashMap<>(),
-                    null, false);
-            fail("should throw exception");
-        } catch (WrongKeyUsageException expected) {
-        }
-        try {
-            tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
-                    KeyUsageInfo.AUTHENTICATION, CA_NAME, new HashMap<>(),
-                    null, false);
-            fail("should throw exception");
-        } catch (WrongKeyUsageException expected) {
-        }
+        assertThrows(WrongKeyUsageException.class, () -> tokenCertificateService.generateCertRequest(AUTH_KEY_ID, client,
+                KeyUsageInfo.SIGNING, CA_NAME, new HashMap<>(),
+                null, false));
+
+        assertThrows(WrongKeyUsageException.class, () -> tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
+                KeyUsageInfo.AUTHENTICATION, CA_NAME, new HashMap<>(),
+                null, false));
+
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME, ImmutableMap.of("O", "baz", "CN", "common name", "subjectAltName", "subject alt name"),
                 CertificateRequestFormat.DER, false);
@@ -547,15 +542,12 @@ public class TokenCertificateServiceTest {
     @Test
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateSignerIdNotFound() throws Exception {
-        try {
-            tokenCertificateService.deleteCertificate(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH);
-            fail("should have thrown exception");
-        } catch (CertificateNotFoundException expected) {
-            ErrorDeviation errorDeviation = expected.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, errorDeviation.getCode());
-            assertEquals(1, errorDeviation.getMetadata().size());
-            assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.getMetadata().getFirst());
-        }
+        CertificateNotFoundException exception = assertThrows(CertificateNotFoundException.class, () ->
+                tokenCertificateService.deleteCertificate(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH));
+        ErrorDeviation errorDeviation = exception.getErrorDeviation();
+        Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, errorDeviation.code());
+        assertEquals(1, errorDeviation.metadata().size());
+        assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.metadata().getFirst());
     }
 
     @Test(expected = CodedException.class)
@@ -715,21 +707,15 @@ public class TokenCertificateServiceTest {
     @Test
     @WithMockUser(authorities = {"ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT"})
     public void activateMissingCertificate() throws Exception {
-        try {
-            tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
-            fail("should throw CertificateNotFoundException");
-        } catch (CertificateNotFoundException expected) {
-        }
+        assertThrows(CertificateNotFoundException.class, () ->
+                tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH));
     }
 
     @Test
     @WithMockUser(authorities = {"ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT"})
     public void deactivateMissingCertificate() throws Exception {
-        try {
-            tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH);
-            fail("should throw CertificateNotFoundException");
-        } catch (CertificateNotFoundException e) {
-        }
+        assertThrows(CertificateNotFoundException.class, () ->
+                tokenCertificateService.deactivateCertificate(MISSING_CERTIFICATE_HASH));
     }
 
     @Test
@@ -775,12 +761,10 @@ public class TokenCertificateServiceTest {
                 .thenThrow(new ManagementRequestSendingFailedException(
                         new CodedException(X_SSL_AUTH_FAILED, SSL_AUTH_ERROR_MESSAGE)
                                 .withPrefix(SERVER_CLIENTPROXY_X)));
-        try {
-            tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH);
-            fail("Should have thrown ManagementRequestSendingFailedException");
-        } catch (ManagementRequestSendingFailedException e) {
-            assertTrue(e.getErrorDeviation().getMetadata().getFirst().contains(SSL_AUTH_ERROR_MESSAGE));
-        }
+
+        var err = assertThrows(ManagementRequestSendingFailedException.class,
+                () -> tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH));
+        assertTrue(err.getErrorDeviation().metadata().getFirst().contains(SSL_AUTH_ERROR_MESSAGE));
     }
 
     @Test
@@ -789,12 +773,10 @@ public class TokenCertificateServiceTest {
         when(managementRequestSenderService.sendAuthCertDeletionRequest(any()))
                 .thenThrow(new ManagementRequestSendingFailedException(
                         new IOException(IO_EXCEPTION_MSG)));
-        try {
-            tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH);
-            fail("Should have thrown ManagementRequestSendingFailedException");
-        } catch (ManagementRequestSendingFailedException e) {
-            assertTrue(e.getErrorDeviation().getMetadata().contains(IO_EXCEPTION_MSG));
-        }
+
+        var err = assertThrows(ManagementRequestSendingFailedException.class,
+                () -> tokenCertificateService.unregisterAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH));
+        assertTrue(err.getErrorDeviation().metadata().contains(IO_EXCEPTION_MSG));
     }
 
     @Test(expected = TokenCertificateService.SignCertificateNotSupportedException.class)

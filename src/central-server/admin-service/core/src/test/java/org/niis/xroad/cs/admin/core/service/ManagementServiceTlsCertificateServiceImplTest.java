@@ -33,8 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -72,31 +72,31 @@ class ManagementServiceTlsCertificateServiceImplTest {
     void getTlsCertificateShouldThrownValidationFailureException() {
         setupCertificatePathNotExists();
         assertThatThrownBy(() -> service.getTlsCertificate())
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Invalid X.509 certificate");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=invalid_certificate]");
     }
 
     @Test
     void generateCsrShouldThrownValidationFailureException() {
         assertThatThrownBy(() -> service.generateCsr("TEST"))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Invalid distinguished name");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=invalid_distinguished_name]");
     }
 
     @Test
     void importTlsCertificateShouldThrownValidationFailureException() throws CertificateEncodingException {
         var certificateBytes = service.getTlsCertificate().getEncoded();
         assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("The imported certificate already exists");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=certificate_already_exists]");
     }
 
     @Test
     void importTlsCertificateShouldThrownValidationFailureException2() {
         byte[] certificateBytes = new byte[]{1, 2, 3};
         assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Cannot convert bytes to certificate");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=cannot_convert_bytes_to_certificate]");
     }
 
     @Test
@@ -106,15 +106,15 @@ class ManagementServiceTlsCertificateServiceImplTest {
         );
         var certificateBytes = certificate.getEncoded();
         assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("The imported certificate does not match the TLS key");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=key_not_found]");
     }
 
     @Test
     void generateTlsKeyAndCertificateShouldThrownValidationFailureException() {
         assertThatThrownBy(() -> service.generateTlsKeyAndCertificate())
-                .isInstanceOf(ServiceException.class)
-                .hasMessage("Failed to generate TLS key and certificate");
+                .isInstanceOf(InternalServerErrorException.class)
+                .hasMessage("Error[code=key_and_cert_generation_failed]");
     }
 
     private void setupCertificatePathNotExists() {

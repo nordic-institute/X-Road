@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -63,25 +63,25 @@ class SecurityServerIdConverterTest {
 
     @Test
     void convertEncodedIdWithSubsystem() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> securityServerIdConverter.fromDto("XRD2:GOV:M4:SS1:serverCode"));
     }
 
     @Test
     void convertEncodedIdWithMissingMember() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> securityServerIdConverter.fromDto("XRD2:GOV:serverCode"));
     }
 
     @Test
     void convertEncodedIdWithTooManyElements() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> securityServerIdConverter.fromDto("XRD2:GOV:M4:SS1:serverCode::::"));
     }
 
     @Test
     void convertEmptyEncodedId() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> securityServerIdConverter.fromDto(""));
     }
 
@@ -94,7 +94,7 @@ class SecurityServerIdConverterTest {
 
     @Test
     void convertEncodedIdWithoutDelimiter() {
-        assertThatExceptionOfType(ValidationFailureException.class)
+        assertThatExceptionOfType(BadRequestException.class)
                 .isThrownBy(() -> securityServerIdConverter.fromDto(";;;;asdsdas"));
     }
 

@@ -42,7 +42,7 @@
           class="token-status-indicator token-name"
           :class="tokenStatusClass"
         >
-          {{ $t('keys.token') }} {{ token.name }}
+          {{ $t('keys.token.label') }} {{ token.name }}
         </span>
       </div>
     </template>

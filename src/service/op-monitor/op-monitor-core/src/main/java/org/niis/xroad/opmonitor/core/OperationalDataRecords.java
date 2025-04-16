@@ -41,7 +41,7 @@ import java.util.List;
  * Represents a payload of the request getSecurityServerOperationalData.
  */
 @ToString
-class OperationalDataRecords {
+public class OperationalDataRecords {
 
     @Getter
     @JsonProperty("records")

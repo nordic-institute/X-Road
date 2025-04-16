@@ -41,7 +41,7 @@ import java.util.EnumSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.niis.xroad.signer.client.SignerRpcClient.SSL_TOKEN_ID;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
@@ -236,14 +236,12 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
     }
 
     @Test
-    public void requirePossibleAction() throws Exception {
+    public void requirePossibleAction() {
         EnumSet<PossibleActionEnum> actions = EnumSet.of(PossibleActionEnum.ACTIVATE);
         possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.ACTIVATE, actions);
-        try {
-            possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.DELETE, actions);
-            fail("should throw exception");
-        } catch (ActionNotPossibleException expected) {
-        }
+
+        assertThrows(ActionNotPossibleException.class,
+                () -> possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.DELETE, actions));
     }
 
     @Test

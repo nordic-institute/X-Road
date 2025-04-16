@@ -31,6 +31,7 @@ Doc. ID: DM-CS
 | 21.03.2025 | 1.15    | Syntax and styling fixes                         								  | Pauline Dimmek		 |
 
 
+
 ## Table of Contents
 
 - [X-Road: Central Server Configuration Data Model](#x-road-central-server-configuration-data-model)

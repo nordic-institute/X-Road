@@ -25,113 +25,78 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import lombok.Getter;
+import lombok.NonNull;
+
 import java.util.Collection;
+import java.util.List;
 
 /**
  * RuntimeException that (possibly) carries error code.
  * Root of all deviation aware runtimeexceptions
  */
+@Getter
 public class DeviationAwareRuntimeException extends RuntimeException implements DeviationAware {
 
     private final ErrorDeviation errorDeviation;
     private final Collection<WarningDeviation> warningDeviations;
 
-    @Override
-    public ErrorDeviation getErrorDeviation() {
-        return errorDeviation;
-    }
-
-    @Override
-    public Collection<WarningDeviation> getWarningDeviations() {
-        return warningDeviations;
-    }
-
-    /**
-     * no args
-     */
-    @Deprecated
-    public DeviationAwareRuntimeException() {
-        super();
-        this.errorDeviation = null;
-        this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     */
-    @Deprecated
-    public DeviationAwareRuntimeException(String msg) {
-        super(msg);
-        this.errorDeviation = null;
-        this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     * @param errorDeviation
-     */
-    public DeviationAwareRuntimeException(String msg, ErrorDeviation errorDeviation) {
-        super(msg);
-        this.errorDeviation = errorDeviation;
-        this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     * @param t
-     * @param errorDeviation
-     */
-    public DeviationAwareRuntimeException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        this(msg, t, errorDeviation, null);
-    }
-
-    /**
-     * @param msg
-     * @param t
-     * @param errorDeviation
-     * @param warningDeviations
-     */
-    public DeviationAwareRuntimeException(String msg, Throwable t, ErrorDeviation errorDeviation,
+    public DeviationAwareRuntimeException(String msg,
+                                          Throwable t,
+                                          ErrorDeviation errorDeviation,
                                           Collection<WarningDeviation> warningDeviations) {
         super(msg, t);
         this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;
     }
 
-    /**
-     * @param errorDeviation
-     */
-    public DeviationAwareRuntimeException(ErrorDeviation errorDeviation) {
-        this(errorDeviation, null);
+    public DeviationAwareRuntimeException(Throwable t,
+                                          ErrorDeviation errorDeviation,
+                                          Collection<WarningDeviation> warningDeviations) {
+        this(errorDeviation.toString(), t, errorDeviation, warningDeviations);
     }
 
-    /**
-     * @param errorDeviation
-     * @param warningDeviations
-     */
+    public DeviationAwareRuntimeException(String msg,
+                                          Throwable t,
+                                          ErrorDeviation errorDeviation) {
+        this(msg, t, errorDeviation, List.of());
+    }
+
+    public DeviationAwareRuntimeException(Throwable t,
+                                          ErrorDeviation errorDeviation) {
+        this(errorDeviation.toString(), t, errorDeviation, List.of());
+    }
+
+    public DeviationAwareRuntimeException(String msg,
+                                          ErrorDeviation errorDeviation,
+                                          Collection<WarningDeviation> warningDeviations) {
+        super(msg);
+        this.errorDeviation = errorDeviation;
+        this.warningDeviations = warningDeviations;
+    }
+
     public DeviationAwareRuntimeException(ErrorDeviation errorDeviation,
                                           Collection<WarningDeviation> warningDeviations) {
-        this.errorDeviation = errorDeviation;
-        this.warningDeviations = warningDeviations;
+        this(errorDeviation.toString(), errorDeviation, warningDeviations);
     }
 
-    /**
-     * @param t
-     * @param errorDeviation
-     */
-    public DeviationAwareRuntimeException(Throwable t, ErrorDeviation errorDeviation) {
-        this(t, errorDeviation, null);
+    public DeviationAwareRuntimeException(String msg,
+                                          ErrorDeviation errorDeviation) {
+        this(msg, errorDeviation, List.of());
     }
 
-    /**
-     * @param t
-     * @param errorDeviation
-     * @param warningDeviations
-     */
-    public DeviationAwareRuntimeException(Throwable t, ErrorDeviation errorDeviation,
-                                          Collection<WarningDeviation> warningDeviations) {
-        super(t);
-        this.errorDeviation = errorDeviation;
-        this.warningDeviations = warningDeviations;
+    public DeviationAwareRuntimeException(ErrorDeviation errorDeviation) {
+        this(errorDeviation.toString(), errorDeviation, List.of());
     }
+
+
+    public <DE extends Exception & DeviationAware> DeviationAwareRuntimeException(@NonNull final DE exception) {
+        this(exception.getMessage(), exception);
+    }
+
+    public <DE extends Exception & DeviationAware> DeviationAwareRuntimeException(String message,
+                                                                                  @NonNull final DE exception) {
+        this(message, exception, exception.getErrorDeviation(), exception.getWarningDeviations());
+    }
+
 }

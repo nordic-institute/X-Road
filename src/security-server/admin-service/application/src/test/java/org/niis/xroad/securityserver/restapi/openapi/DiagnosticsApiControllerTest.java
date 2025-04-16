@@ -231,7 +231,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         when(confClientRpcClient.getStatus()).thenThrow(new RuntimeException());
         DeviationAwareRuntimeException exception =
                 assertThrows(DeviationAwareRuntimeException.class, diagnosticsApiController::getGlobalConfDiagnostics);
-        assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
+        assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().code());
     }
 
     @Test
@@ -309,7 +309,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         when(proxyRpcClient.getTimestampingStatus()).thenThrow(new Exception());
         DeviationAwareRuntimeException exception = assertThrows(DeviationAwareRuntimeException.class,
                 diagnosticsApiController::getTimestampingServicesDiagnostics);
-        assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
+        assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().code());
     }
 
     @Test
@@ -422,7 +422,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         when(signerRpcClient.getCertificationServiceDiagnostics()).thenThrow(new RuntimeException());
         DeviationAwareRuntimeException exception = assertThrows(DeviationAwareRuntimeException.class,
                 diagnosticsApiController::getOcspRespondersDiagnostics);
-        assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
+        assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().code());
     }
 
     @Test

@@ -31,9 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescriptionDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MembersDto;
@@ -123,7 +122,7 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
         try {
             localGroupsApiController.getLocalGroup(TestUtils.DB_LOCAL_GROUP_ID_1);
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
             // success
         }
         // Local group access right removal is tested in service tests

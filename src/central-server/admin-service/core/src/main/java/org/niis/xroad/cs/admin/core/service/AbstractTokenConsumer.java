@@ -33,8 +33,8 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_NOT_FOUND;
 
 
 public abstract class AbstractTokenConsumer {
@@ -46,11 +46,11 @@ public abstract class AbstractTokenConsumer {
             return getSignerProxyFacade().getToken(tokenId);
         } catch (SignerException signerException) {
             if (signerException.isCausedByTokenNotFound()) {
-                throw new NotFoundException(TOKEN_NOT_FOUND);
+                throw new NotFoundException(TOKEN_NOT_FOUND.build());
             }
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, signerException, signerException.getFaultCode());
+            throw new SignerProxyException(signerException, SIGNER_PROXY_ERROR.build(signerException.getFaultCode()));
         } catch (Exception exception) {
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, exception);
+            throw new SignerProxyException(exception, SIGNER_PROXY_ERROR.build());
         }
     }
 }

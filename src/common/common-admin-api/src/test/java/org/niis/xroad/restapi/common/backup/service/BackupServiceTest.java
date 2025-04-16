@@ -32,8 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -179,7 +179,7 @@ class BackupServiceTest {
     void uploadBackupWithInvalidFilename() {
         assertThatThrownBy(() -> backupService.uploadBackup(true, mockMultipartFile.getOriginalFilename(),
                 mockMultipartFile.getBytes()))
-                .isInstanceOf(ValidationFailureException.class);
+                .isInstanceOf(BadRequestException.class);
     }
 
     @Test
@@ -193,7 +193,7 @@ class BackupServiceTest {
                 .isInstanceOf(UnhandledWarningsException.class)
                 .matches(exception -> {
                     UnhandledWarningsException expected = (UnhandledWarningsException) exception;
-                    return WARNING_FILE_ALREADY_EXISTS.equals(expected.getWarningDeviations().iterator().next().getCode());
+                    return WARNING_FILE_ALREADY_EXISTS.equals(expected.getWarningDeviations().iterator().next().code());
                 });
     }
 

@@ -151,6 +151,11 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
+    @JsonProperty("xRoadVersion")
+    private String xRoadVersion;
+
+    @Getter
+    @Setter
     private String serviceVersion;
 
     @Getter

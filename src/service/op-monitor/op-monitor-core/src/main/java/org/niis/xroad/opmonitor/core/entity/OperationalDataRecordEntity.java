@@ -111,6 +111,9 @@ public class OperationalDataRecordEntity {
     @Column(name = "rest_path")
     private String restPath;
 
+    @Column(name = "xroad_version")
+    private String xRoadVersion;
+
     @Column(name = "service_version")
     private String serviceVersion;
 

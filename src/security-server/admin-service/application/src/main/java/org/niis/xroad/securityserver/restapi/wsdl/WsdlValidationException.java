@@ -25,17 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
 
 /**
  * Thrown if something went wrong in WSDL validation.
  * Root class for all WSDL validation exceptions.
  */
-public class WsdlValidationException extends ServiceException {
-    public WsdlValidationException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
+public class WsdlValidationException extends DeviationAwareRuntimeException {
 
     public WsdlValidationException(Throwable t, ErrorDeviation errorDeviation) {
         super(t, errorDeviation);
@@ -43,5 +40,9 @@ public class WsdlValidationException extends ServiceException {
 
     public WsdlValidationException(String msg, ErrorDeviation errorDeviation) {
         super(msg, errorDeviation);
+    }
+
+    public WsdlValidationException(ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 }

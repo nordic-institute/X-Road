@@ -108,7 +108,7 @@ public class ClientRepository extends AbstractRepository<ClientEntity> {
         EndpointEntity endpointEntity = session.get(EndpointEntity.class, id);
 
         if (endpointEntity == null) {
-            throw new EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id);
         }
 
         ClientDAOImpl clientDAO = new ClientDAOImpl();

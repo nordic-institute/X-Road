@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.securityserver.restapi.config.KeyAlgorithmConfig;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient.GeneratedCertRequestInfo;
@@ -80,7 +80,6 @@ public class KeyAndCertificateRequestService {
 
     /**
      * Add a new key and create a csr for it
-     *
      * @param tokenId
      * @param keyLabel
      * @param memberId
@@ -102,10 +101,10 @@ public class KeyAndCertificateRequestService {
                                                       Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat,
                                                       Boolean isAcmeOrder)
             throws ActionNotPossibleException,
-            ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
-            DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
-            CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
-            TokenCertificateService.AuthCertificateNotSupportedException {
+                   ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
+                   DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
+                   CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
+                   TokenCertificateService.AuthCertificateNotSupportedException {
 
         KeyAlgorithm algorithm = switch (keyUsageInfo) {
             case KEY_USAGE_UNSPECIFIED, UNRECOGNIZED -> KeyAlgorithm.RSA;
@@ -127,7 +126,7 @@ public class KeyAndCertificateRequestService {
             // since we just generated the key, neither of these should happen
             // these should only happen if someone else updated / deleted the key between
             // create key & generateCertRequest
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+            throw new InternalServerErrorException(e);
         } catch (Exception e) {
             csrGenerateException = e;
             throw e;
@@ -142,12 +141,7 @@ public class KeyAndCertificateRequestService {
             }
         }
         // get a new keyInfo that contains the csr
-        KeyInfo refreshedKeyInfo;
-        try {
-            refreshedKeyInfo = keyService.getKey(keyInfo.getId());
-        } catch (KeyNotFoundException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+        KeyInfo refreshedKeyInfo = keyService.getKey(keyInfo.getId());
 
         return new KeyAndCertRequestInfo(refreshedKeyInfo,
                 csrInfo.certReqId(),
@@ -159,7 +153,6 @@ public class KeyAndCertificateRequestService {
 
     /**
      * Rollback key creation by deleting that key
-     *
      * @param rootCause root cause why we rollback, to log in case new exceptions would mask it
      * @param keyId     key id
      */
@@ -169,12 +162,6 @@ public class KeyAndCertificateRequestService {
         try {
             keyService.deleteKeyAndIgnoreWarnings(keyId);
             rollbackSuccess = true;
-        } catch (GlobalConfOutdatedException e) {
-            // should not happen, since only thrown from unregister cert (which wont be done)
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        } catch (KeyNotFoundException | ActionNotPossibleException e) {
-            // this should be rare situations since we just created the key -> not checked exceptions
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         } finally {
             if (!rollbackSuccess) {
                 log.error("csr generate failed, key create rollback also failed."

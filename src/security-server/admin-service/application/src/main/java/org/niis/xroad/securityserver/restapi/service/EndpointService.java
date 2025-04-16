@@ -27,8 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.EndpointRepository;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
@@ -47,9 +46,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BASE_ENDPOINT_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_REMOVE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ILLEGAL_GENERATED_ENDPOINT_REMOVE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ILLEGAL_GENERATED_ENDPOINT_UPDATE;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
 import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
 
@@ -65,10 +63,9 @@ public class EndpointService {
 
     /**
      * Get endpoint by endpoint id
-     *
-     * @param id                            endpoint id
+     * @param id endpoint id
      * @return Endpoint
-     * @throws EndpointNotFoundException    endpoint not found with given id
+     * @throws EndpointNotFoundException endpoint not found with given id
      */
     public Endpoint getEndpoint(Long id) throws EndpointNotFoundException {
         return EndpointMapper.get().toTarget(getEndpointEntity(id));
@@ -77,21 +74,20 @@ public class EndpointService {
     EndpointEntity getEndpointEntity(Long id) throws EndpointNotFoundException {
         EndpointEntity endpoint = endpointRepository.getEndpoint(id);
         if (endpoint == null) {
-            throw new EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id);
         }
         return endpoint;
     }
 
     /**
      * Delete endpoint
-     *
-     * @param id                                        endpoint id
-     * @throws EndpointNotFoundException                endpoint not found with given id
-     * @throws ClientNotFoundException                  client for the endpoint not found
-     * @throws IllegalGeneratedEndpointRemoveException  deleting generated endpoint is not allowed
+     * @param id endpoint id
+     * @throws EndpointNotFoundException               endpoint not found with given id
+     * @throws ClientNotFoundException                 client for the endpoint not found
+     * @throws IllegalGeneratedEndpointRemoveException deleting generated endpoint is not allowed
      */
     public void deleteEndpoint(Long id) throws EndpointNotFoundException, ClientNotFoundException,
-            IllegalGeneratedEndpointRemoveException {
+                                               IllegalGeneratedEndpointRemoveException {
 
         EndpointEntity endpoint = getEndpointEntity(id);
 
@@ -106,20 +102,19 @@ public class EndpointService {
 
     /**
      * Update endpoint details
-     *
-     * @param id for the endpoint to be updated
+     * @param id     for the endpoint to be updated
      * @param method new value for method
-     * @param path new value for path
+     * @param path   new value for path
      * @return Endpoint
-     * @throws EndpointNotFoundException                endpoint not found with given id
-     * @throws IllegalGeneratedEndpointUpdateException  trying to update that is generated automatically
-     * @throws IllegalArgumentException                 passing illegal combination of parameters
-     * @throws ClientNotFoundException                  client for the endpoint not found
-     * @throws EndpointAlreadyExistsException           equivalent endpoint already exists for this client
+     * @throws EndpointNotFoundException               endpoint not found with given id
+     * @throws IllegalGeneratedEndpointUpdateException trying to update that is generated automatically
+     * @throws IllegalArgumentException                passing illegal combination of parameters
+     * @throws ClientNotFoundException                 client for the endpoint not found
+     * @throws EndpointAlreadyExistsException          equivalent endpoint already exists for this client
      */
     public Endpoint updateEndpoint(Long id, String method, String path)
             throws EndpointNotFoundException, IllegalGeneratedEndpointUpdateException, ClientNotFoundException,
-            EndpointAlreadyExistsException {
+                   EndpointAlreadyExistsException {
 
         if ("".equals(path)) {
             throw new IllegalArgumentException("Path can't be empty string when updating an endpoint: "
@@ -135,7 +130,7 @@ public class EndpointService {
         Optional<EndpointEntity> optionalEndpointEntity = clientEntity.getEndpoints().stream()
                 .filter(e -> e.getId().equals(id)).findFirst();
         if (optionalEndpointEntity.isEmpty()) {
-            throw new EndpointNotFoundException(id.toString());
+            throw new EndpointNotFoundException(id);
         }
 
         EndpointEntity endpoint = optionalEndpointEntity.get();
@@ -162,7 +157,6 @@ public class EndpointService {
 
     /**
      * Get matching base-endpoint for the given client and service.
-     *
      * @param serviceEntity serviceEntity
      * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
      */
@@ -176,7 +170,7 @@ public class EndpointService {
     /**
      * Get matching base-endpoint for the given client and service code.
      * @param clientEntity clientEntity
-     * @param serviceCode serviceCode
+     * @param serviceCode  serviceCode
      * @throws EndpointNotFoundException if base endpoint matching given parameters did not exist
      */
     EndpointEntity getServiceBaseEndpointEntity(ClientEntity clientEntity, String serviceCode) throws EndpointNotFoundException {
@@ -185,9 +179,8 @@ public class EndpointService {
                         && endpointEntity.getMethod().equals(ANY_METHOD)
                         && endpointEntity.getPath().equals(ANY_PATH))
                 .findFirst()
-                .orElseThrow(() -> new EndpointNotFoundException(
-                        ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "
-                        + clientEntity.getIdentifier() + " and servicecode " + serviceCode));
+                .orElseThrow(() -> new EndpointNotFoundException("Base endpoint not found for client "
+                        + clientEntity.getIdentifier() + " and servicecode " + serviceCode, true));
     }
 
     /**
@@ -231,19 +224,19 @@ public class EndpointService {
                 .collect(Collectors.toList());
     }
 
-    public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
+    public static class IllegalGeneratedEndpointUpdateException extends BadRequestException {
         private static final String MESSAGE = "Updating generated endpoint is not allowed: %s";
 
         public IllegalGeneratedEndpointUpdateException(String id) {
-            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE, id));
+            super(String.format(MESSAGE, id), ILLEGAL_GENERATED_ENDPOINT_UPDATE.build(id));
         }
     }
 
-    public static class IllegalGeneratedEndpointRemoveException extends ServiceException {
+    public static class IllegalGeneratedEndpointRemoveException extends BadRequestException {
         private static final String MESSAGE = "Removing generated endpoint is not allowed: %s";
 
         public IllegalGeneratedEndpointRemoveException(String id) {
-            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ILLEGAL_GENERATED_ENDPOINT_REMOVE, id));
+            super(String.format(MESSAGE, id), ILLEGAL_GENERATED_ENDPOINT_REMOVE.build(id));
         }
     }
 

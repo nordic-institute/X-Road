@@ -74,6 +74,7 @@ public class ServiceService {
     private final UrlValidator urlValidator;
     private final AuditDataHelper auditDataHelper;
     private final InternalServerTestService internalServerTestService;
+    private final ReservedServiceCodesProvider reservedServiceCodesProvider;
 
     /**
      * get Service by ClientId and service code that includes service version

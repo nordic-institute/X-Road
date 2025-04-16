@@ -29,8 +29,8 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.ApprovedCertificationService;
 import org.niis.xroad.cs.admin.api.dto.CertificateAuthority;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
@@ -64,8 +64,8 @@ import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_I
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATION_SERVICE_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_DIRECTORY_URL;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ACME_IP_ADDRESSES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.AUTHENTICATION_ONLY;
@@ -133,7 +133,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
         try {
             return CertUtils.readCertificateChain(certificate)[0];
         } catch (Exception e) {
-            throw new ValidationFailureException(INVALID_CERTIFICATE);
+            throw new BadRequestException(e, INVALID_CERTIFICATE.build());
         }
     }
 
@@ -184,7 +184,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
 
     private ApprovedCaEntity getById(Integer id) {
         return approvedCaRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND.build()));
     }
 
     @Override
@@ -193,7 +193,7 @@ public class CertificationServicesServiceImpl implements CertificationServicesSe
                 .map(ApprovedCaEntity::getCaInfo)
                 .map(CaInfoEntity::getCert)
                 .map(certConverter::toCertificateDetails)
-                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CERTIFICATION_SERVICE_NOT_FOUND.build()));
     }
 
     @Override

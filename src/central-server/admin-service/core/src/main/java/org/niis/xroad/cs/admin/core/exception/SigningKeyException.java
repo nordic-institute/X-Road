@@ -27,17 +27,13 @@
 
 package org.niis.xroad.cs.admin.core.exception;
 
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class SigningKeyException extends ServiceException {
+public class SigningKeyException extends InternalServerErrorException {
 
-    public SigningKeyException(ErrorMessage code, Object... metadata) {
-        super(code, metadata);
-    }
-
-    public SigningKeyException(ErrorMessage code, Throwable cause, Object... metadata) {
-        super(code, cause, metadata);
+    public SigningKeyException(Throwable cause, ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
 
 }

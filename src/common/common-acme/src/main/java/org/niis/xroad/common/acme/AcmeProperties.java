@@ -71,7 +71,7 @@ public class AcmeProperties {
 
     public AcmeProperties.Credentials getEabCredentials(String caName, String memberId) {
         return getEabCredentialsOptional(caName, memberId)
-                .orElseThrow(() -> new NotFoundException(EAB_CREDENTIALS_MISSING));
+                .orElseThrow(() -> new NotFoundException(EAB_CREDENTIALS_MISSING.build()));
     }
 
     public boolean hasEabCredentials(String caName, String memberId) {

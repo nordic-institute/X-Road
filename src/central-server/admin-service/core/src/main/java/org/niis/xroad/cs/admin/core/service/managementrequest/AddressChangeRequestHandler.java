@@ -30,7 +30,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
@@ -84,7 +84,7 @@ public class AddressChangeRequestHandler implements RequestHandler<AddressChange
 
     private void validate(AddressChangeRequest request) {
         if (StringUtils.isBlank(request.getServerAddress())) {
-            throw new ValidationFailureException(MR_INVALID_SERVER_ADDRESS);
+            throw new BadRequestException(MR_INVALID_SERVER_ADDRESS.build());
         }
     }
 

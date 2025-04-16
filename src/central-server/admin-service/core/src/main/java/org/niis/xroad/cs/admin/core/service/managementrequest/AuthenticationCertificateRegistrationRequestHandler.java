@@ -31,9 +31,9 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
-import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
@@ -95,11 +94,10 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
      * Creates an authentication certificate registration request.
      * In case automatic approval is enabled and prerequisites for approval are met,
      * the request is also fulfilled.
-     *
      * @param request request to add
      * @return information about the added request
-     * @throws ValidationFailureException if request is not acceptable
-     * @throws DataIntegrityException     if request violates data integrity rules
+     * @throws BadRequestException if request is not acceptable
+     * @throws ConflictException   if request violates data integrity rules
      */
     public AuthenticationCertificateRegistrationRequest add(AuthenticationCertificateRegistrationRequest request) {
         final SecurityServerIdEntity serverId = SecurityServerIdEntity.create(request.getSecurityServerId());
@@ -107,14 +105,14 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         if (CENTER.equals(origin)) {
             members.findOneBy(serverId.getOwner())
-                    .orElseThrow(() -> new NotFoundException(MR_SERVER_OWNER_NOT_FOUND));
+                    .orElseThrow(() -> new NotFoundException(MR_SERVER_OWNER_NOT_FOUND.build()));
         }
 
         final byte[] validatedCert;
         try {
             final X509Certificate authCert = CryptoUtils.readCertificate(request.getAuthCert());
             if (!isAuthCert(authCert)) {
-                throw new ValidationFailureException(MR_INVALID_AUTH_CERTIFICATE);
+                throw new BadRequestException(MR_INVALID_AUTH_CERTIFICATE.build());
             }
 
             //verify that certificate is issued by a known CA
@@ -125,11 +123,11 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
             authCert.checkValidity();
             validatedCert = authCert.getEncoded();
         } catch (Exception e) {
-            throw new ValidationFailureException(MR_INVALID_AUTH_CERTIFICATE, e);
+            throw new BadRequestException(e, MR_INVALID_AUTH_CERTIFICATE.build());
         }
 
         if (authCerts.existsByCert(validatedCert)) {
-            throw new DataIntegrityException(MR_SECURITY_SERVER_EXISTS);
+            throw new ConflictException(MR_SECURITY_SERVER_EXISTS.build());
         }
 
         List<AuthenticationCertificateRegistrationRequestEntity> pendingRequests =
@@ -152,9 +150,9 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                     authCertRegRequest.getRequestProcessing().setStatus(SUBMITTED_FOR_APPROVAL);
                     break;
                 }
-                throw new DataIntegrityException(MR_EXISTS, valueOf(existingRequest.getId()));
+                throw new ConflictException(MR_EXISTS.build(existingRequest.getId()));
             default:
-                throw new DataIntegrityException(MR_EXISTS);
+                throw new ConflictException(MR_EXISTS.build());
         }
 
         authCertRegRequest.setAuthCert(validatedCert);
@@ -176,21 +174,19 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
      * <li>The owner member must exist or the approval fails.</li>
      * <li>If the security server does not exist, creates a new one.</li>
      * <li>Adds the certificate as a authentication certificate for the server</li>
-     *
      * @param request request to approve
-     * @throws DataIntegrityException     if request violates data integrity
-     * @throws ValidationFailureException if request can not be approved
+     * @throws ConflictException   if request violates data integrity
+     * @throws BadRequestException if request can not be approved
      */
     @Override
     public AuthenticationCertificateRegistrationRequest approve(AuthenticationCertificateRegistrationRequest request) {
         Integer requestId = request.getId();
         final AuthenticationCertificateRegistrationRequestEntity requestEntity = authCertReqRequests.findById(requestId)
-                .orElseThrow(() -> new ValidationFailureException(MR_NOT_FOUND, valueOf(requestId)));
+                .orElseThrow(() -> new BadRequestException(MR_NOT_FOUND.build(requestId)));
 
         //check state
         if (!EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING).contains(requestEntity.getProcessingStatus())) {
-            throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
-                    valueOf(requestEntity.getId()));
+            throw new BadRequestException(MR_INVALID_STATE_FOR_APPROVAL.build(requestEntity.getId()));
         }
 
         SecurityServerIdEntity serverId = requestEntity.getSecurityServerId();

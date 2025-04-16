@@ -26,13 +26,12 @@
 
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.ConflictException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_ENDPOINT;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.EXISTING_ENDPOINT;
 
-public class EndpointAlreadyExistsException extends ServiceException {
+public class EndpointAlreadyExistsException extends ConflictException {
     public EndpointAlreadyExistsException(String msg) {
-        super(msg, new ErrorDeviation(ERROR_EXISTING_ENDPOINT));
+        super(msg, EXISTING_ENDPOINT.build());
     }
 }

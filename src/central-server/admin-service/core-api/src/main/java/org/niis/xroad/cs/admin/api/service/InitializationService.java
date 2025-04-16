@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
 
@@ -34,7 +34,7 @@ public interface InitializationService {
 
     InitializationStatusDto getInitializationStatus();
 
-    void initialize(InitialServerConfDto configDto) throws ValidationFailureException;
+    void initialize(InitialServerConfDto configDto) throws BadRequestException;
 
 }
 

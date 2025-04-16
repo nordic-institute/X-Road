@@ -34,9 +34,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
@@ -44,9 +44,11 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientTypeDto;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_CLIENT_TYPE;
 
 /**
  * converter for ServiceClient and related objects
@@ -121,25 +123,14 @@ public class ServiceClientConverter {
         return switch (serviceClientType) {
             case SUBSYSTEM -> {
                 if (!clientIdConverter.isEncodedSubsystemId(encodedId)) {
-                    throw new BadRequestException("Invalid subsystem id " + encodedId);
+                    throw new BadRequestException("Invalid subsystem id " + encodedId, INVALID_ENCODED_ID.build());
                 }
                 yield clientIdConverter.convertId(encodedId);
             }
             case GLOBALGROUP -> globalGroupConverter.convertId(encodedId);
             case LOCALGROUP -> LocalGroupId.Conf.create(serviceClientDto.getLocalGroupCode());
-            default -> throw new BadRequestException("Invalid service client type");
+            default -> throw new BadRequestException("Invalid service client type", INVALID_CLIENT_TYPE.build());
         };
-    }
-
-    /**
-     * Convert ServiceClientDto into XroadIds (based on serviceClientType, id and localGroupCode)
-     * @param serviceClientDtos
-     * @return
-     */
-    public List<XRoadId> convertIds(Iterable<ServiceClientDto> serviceClientDtos) {
-        return Streams.stream(serviceClientDtos)
-                .map(this::convertId)
-                .collect(Collectors.toList());
     }
 
 }

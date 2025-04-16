@@ -29,17 +29,15 @@ import java.util.List;
 
 /**
  * A warning that can be ignored
+ * @param code warning code
+ * @param metadata metadata
  */
-public class WarningDeviation extends Deviation {
-    public WarningDeviation(String code, List<String> metadata) {
-        super(code, metadata);
-    }
-
+public record WarningDeviation(String code, List<String> metadata) implements Deviation {
     public WarningDeviation(String code, String metadataItem) {
-        super(code, metadataItem);
+        this(code, List.of(metadataItem));
     }
 
     public WarningDeviation(String code) {
-        super(code);
+        this(code, List.of());
     }
 }

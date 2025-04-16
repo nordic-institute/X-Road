@@ -38,6 +38,8 @@ ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && apt-key add '/tmp/repokey.gpg' \
+    # Do not exclude man pages & other documentation
+    && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
@@ -60,6 +62,8 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
        cp -r /tmp/packages /tmp/repo \
     && cd /tmp/repo && dpkg-scanpackages -m . > Packages \
     && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list \
+    # Do not exclude man pages & other documentation
+    && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \

@@ -33,11 +33,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -58,7 +56,7 @@ public final class DeviationTestUtils {
     public static WarningDeviation findWarning(String code, Collection<WarningDeviation> warningDeviations) {
         if (warningDeviations != null) {
             return warningDeviations.stream()
-                    .filter(warning -> code.equals(warning.getCode()))
+                    .filter(warning -> code.equals(warning.code()))
                     .findFirst()
                     .orElse(null);
         }
@@ -84,8 +82,8 @@ public final class DeviationTestUtils {
      * @param deviationAware
      */
     public static void assertErrorWithoutMetadata(String errorCode, DeviationAware deviationAware) {
-        assertEquals(errorCode, deviationAware.getErrorDeviation().getCode());
-        assertNull(deviationAware.getErrorDeviation().getMetadata());
+        assertEquals(errorCode, deviationAware.getErrorDeviation().code());
+        assertTrue(deviationAware.getErrorDeviation().metadata().isEmpty());
     }
 
     /**
@@ -95,10 +93,10 @@ public final class DeviationTestUtils {
      */
     public static void assertWarningWithoutMetadata(String warningCode, DeviationAware deviationAware) {
         List<String> warningCodes = deviationAware.getWarningDeviations().stream()
-                .map(Deviation::getCode)
-                .collect(Collectors.toList());
+                .map(Deviation::code)
+                .toList();
         deviationAware.getWarningDeviations()
-                .forEach(warningDeviation -> assertNull(warningDeviation.getMetadata()));
+                .forEach(warningDeviation -> assertTrue(warningDeviation.metadata().isEmpty()));
         assertTrue(warningCodes.contains(warningCode));
     }
 
@@ -109,9 +107,9 @@ public final class DeviationTestUtils {
         assertNotNull(deviationAware.getWarningDeviations());
         assertEquals(1, deviationAware.getWarningDeviations().size());
         WarningDeviation warningDeviation = deviationAware.getWarningDeviations().iterator().next();
-        assertEquals(warningCode, warningDeviation.getCode());
-        assertNotNull(warningDeviation.getMetadata());
-        assertEquals(Collections.singletonList(warningMetadata), warningDeviation.getMetadata());
+        assertEquals(warningCode, warningDeviation.code());
+        assertNotNull(warningDeviation.metadata());
+        assertEquals(Collections.singletonList(warningMetadata), warningDeviation.metadata());
     }
 
     /**
@@ -125,10 +123,10 @@ public final class DeviationTestUtils {
         assertNotNull(deviationAware.getWarningDeviations());
         WarningDeviation warningDeviation = findWarning(warningCode, deviationAware);
         assertNotNull(warningDeviation);
-        assertEquals(warningCode, warningDeviation.getCode());
-        assertNotNull(warningDeviation.getMetadata());
+        assertEquals(warningCode, warningDeviation.code());
+        assertNotNull(warningDeviation.metadata());
         List<String> metadatas = Arrays.asList(warningMetadata);
-        assertEquals(metadatas, warningDeviation.getMetadata());
+        assertEquals(metadatas, warningDeviation.metadata());
     }
 
     /**
@@ -138,19 +136,19 @@ public final class DeviationTestUtils {
      * @param deviationAware
      */
     public static void assertErrorWithMetadata(String errorCode, String metadata, DeviationAware deviationAware) {
-        assertEquals(errorCode, deviationAware.getErrorDeviation().getCode());
-        assertNotNull(deviationAware.getErrorDeviation().getMetadata());
+        assertEquals(errorCode, deviationAware.getErrorDeviation().code());
+        assertNotNull(deviationAware.getErrorDeviation().metadata());
         assertEquals(Collections.singletonList(metadata),
-                deviationAware.getErrorDeviation().getMetadata());
+                deviationAware.getErrorDeviation().metadata());
     }
 
     /**
      * multiple error metadata items
      */
     public static void assertErrorWithMetadata(String errorCode, DeviationAware deviationAware, String... metadata) {
-        assertEquals(errorCode, deviationAware.getErrorDeviation().getCode());
-        assertNotNull(deviationAware.getErrorDeviation().getMetadata());
+        assertEquals(errorCode, deviationAware.getErrorDeviation().code());
+        assertNotNull(deviationAware.getErrorDeviation().metadata());
         List<String> metadatas = Arrays.asList(metadata);
-        assertEquals(metadatas, deviationAware.getErrorDeviation().getMetadata());
+        assertEquals(metadatas, deviationAware.getErrorDeviation().metadata());
     }
 }

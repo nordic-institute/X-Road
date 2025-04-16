@@ -30,9 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
@@ -95,7 +95,6 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
 
         var globalGroupEntity = new GlobalGroupEntity(globalGroup.getGroupCode());
         globalGroupEntity.setDescription(globalGroup.getDescription());
-
 
         globalGroupEntity = globalGroupRepository.save(globalGroupEntity);
         addAuditData(globalGroupEntity);
@@ -162,22 +161,22 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     private ClientIdEntity getClientIdEntity(ClientId.Conf clientId) {
         if (clientId.getSubsystemCode() == null) {
             return memberIds.findOpt(MemberIdEntity.ensure(clientId))
-                    .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND, clientId.toString()));
+                    .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build(clientId)));
         } else {
             return subsystemIds.findOpt(SubsystemIdEntity.ensure(clientId))
-                    .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND, clientId.toString()));
+                    .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND.build(clientId)));
         }
     }
 
     private GlobalGroupEntity findGlobalGroupOrThrowException(String groupCode) {
         return globalGroupRepository.getByGroupCode(groupCode)
-                .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(GLOBAL_GROUP_NOT_FOUND.build()));
     }
 
     private void assertGlobalGroupExists(String code) {
         globalGroupRepository.getByGroupCode(code)
                 .ifPresent(globalGroup -> {
-                    throw new DataIntegrityException(GLOBAL_GROUP_EXISTS, code);
+                    throw new ConflictException(GLOBAL_GROUP_EXISTS.build(code));
                 });
     }
 
@@ -200,7 +199,7 @@ public class GlobalGroupServiceImpl implements GlobalGroupService {
     public void verifyCompositionEditability(String groupCode, ErrorMessage errorMessage) {
         List<SystemParameterEntity> ownersGroupCode = systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP);
         if (isOwnersGroup(ownersGroupCode, groupCode)) {
-            throw new ValidationFailureException(errorMessage);
+            throw new BadRequestException(errorMessage.build());
         }
     }
 

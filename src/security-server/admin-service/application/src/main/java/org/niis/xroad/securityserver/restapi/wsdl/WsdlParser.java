@@ -30,8 +30,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -74,7 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLOAD_FAILED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.WSDL_DOWNLOAD_FAILED;
 
 /**
  * Utils for WSDL parsing
@@ -109,7 +108,6 @@ public final class WsdlParser {
 
     /**
      * Extracts the list of services that are described in the given WSDL.
-     *
      * @param wsdlUrl the URL from which the WSDL is available
      * @return collection of ServiceInfo objects
      * @throws WsdlNotFoundException if a WSDL was not found at given URL
@@ -266,7 +264,6 @@ public final class WsdlParser {
 
         /**
          * Constructs a new service info object.
-         *
          * @param name    the name of the service
          * @param title   the title of the service
          * @param url     the URL of the service
@@ -412,9 +409,9 @@ public final class WsdlParser {
     /**
      * Thrown if WSDL file is not found
      */
-    public static class WsdlNotFoundException extends ServiceException {
+    public static class WsdlNotFoundException extends BadRequestException {
         public WsdlNotFoundException(Throwable cause) {
-            super(cause, new ErrorDeviation(ERROR_WSDL_DOWNLOAD_FAILED));
+            super(cause, WSDL_DOWNLOAD_FAILED.build());
         }
     }
 }

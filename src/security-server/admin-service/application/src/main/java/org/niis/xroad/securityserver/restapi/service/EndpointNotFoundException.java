@@ -25,19 +25,20 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ENDPOINT_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.BASE_ENDPOINT_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ENDPOINT_NOT_FOUND;
 
 public class EndpointNotFoundException extends NotFoundException {
     private static final String MESSAGE = "Endpoint not found with id: %s";
 
-    public EndpointNotFoundException(String id) {
-        super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND));
+    public EndpointNotFoundException(long endpointId) {
+        this(MESSAGE.formatted(endpointId), false);
     }
 
-    public EndpointNotFoundException(String errorCode, String msg) {
-        super(msg, new ErrorDeviation(errorCode));
+    public EndpointNotFoundException(String message, boolean isBaseEndpoint) {
+        super(message, isBaseEndpoint ? BASE_ENDPOINT_NOT_FOUND.build() : ENDPOINT_NOT_FOUND.build());
     }
+
 }

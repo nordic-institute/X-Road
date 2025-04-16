@@ -101,6 +101,6 @@
     "member_code": "3000",
     "owner": false,
     "type": "VIRTUAL_MEMBER",
-    "visibleName": "unknown member"
+    "visibleName": "client.unknownMember"
   }
 ]

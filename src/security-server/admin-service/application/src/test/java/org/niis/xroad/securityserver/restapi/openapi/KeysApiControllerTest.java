@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
@@ -116,7 +116,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
         try {
             keysApiController.getKey(KEY_NOT_FOUND_KEY_ID);
             fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
         ResponseEntity<KeyDto> response = keysApiController.getKey(GOOD_SIGN_KEY_ID);
@@ -131,7 +131,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
             // key id is not used
             keysApiController.deleteCsr(GOOD_SIGN_KEY_ID, KEY_NOT_FOUND_CSR_ID);
             fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
         ResponseEntity<Void> response = keysApiController.deleteCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);

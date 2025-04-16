@@ -25,49 +25,13 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import lombok.Getter;
-
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 
-/**
- * Container for a deviation (error or warning).
- * Contains a code (identifier for the deviation)
- * and possible metadata describing the deviation details.
- */
-@Getter
-public abstract class Deviation implements Serializable {
-    private final String code;
-    private final List<String> metadata;
 
-    /**
-     * Create new deviation with metadata
-     * @param code
-     * @param metadata
-     */
-    protected Deviation(String code, List<String> metadata) {
-        this.code = code;
-        this.metadata = metadata;
-    }
+@SuppressWarnings("javaarchitecture:S7027")
+public sealed interface Deviation extends Serializable permits ErrorDeviation, WarningDeviation {
+    String code();
 
-    /**
-     * Create new deviation with a single metadata item
-     * @param code
-     * @param metadataItem
-     */
-    protected Deviation(String code, String metadataItem) {
-        this.code = code;
-        this.metadata = Collections.singletonList(metadataItem);
-    }
-
-
-    /**
-     * Create new deviation without metadata
-     * @param code
-     */
-    protected Deviation(String code) {
-        this.code = code;
-        this.metadata = null;
-    }
+    List<String> metadata();
 }

@@ -37,7 +37,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchor;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationAnchorWithFile;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
@@ -347,8 +347,8 @@ public class ConfigurationAnchorServiceImplTest {
             when(systemParameterService.getInstanceIdentifier()).thenReturn(null);
 
             assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL, true))
-                    .isInstanceOf(ServiceException.class)
-                    .hasMessage("System parameter for instance identifier not set");
+                    .isInstanceOf(InternalServerErrorException.class)
+                    .hasMessage("Error[code=instance_identifier_not_set]");
         }
 
         @Test
@@ -360,8 +360,8 @@ public class ConfigurationAnchorServiceImplTest {
             when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of());
 
             assertThatThrownBy(() -> configurationAnchorService.recreateAnchor(INTERNAL, true))
-                    .isInstanceOf(ServiceException.class)
-                    .hasMessage("No configuration signing keys configured");
+                    .isInstanceOf(InternalServerErrorException.class)
+                    .hasMessage("Error[code=no_configuration_signing_keys_configured]");
         }
 
         private String asString(final Instant instant) {

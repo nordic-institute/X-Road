@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.openapi.OpenapiApi;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.core.io.Resource;
@@ -55,7 +55,7 @@ public class OpenapiApiController implements OpenapiApi {
             byte[] bytes = toByteArray(resourceLoader.getResource(OPENAPI_DEFINITION_PATH).getInputStream());
             return createAttachmentResourceResponse(bytes, "openapi.yaml");
         } catch (Exception e) {
-            throw new ServiceException(ERROR_READING_OPENAPI_FILE, e);
+            throw new InternalServerErrorException(e, ERROR_READING_OPENAPI_FILE.build());
         }
     }
 

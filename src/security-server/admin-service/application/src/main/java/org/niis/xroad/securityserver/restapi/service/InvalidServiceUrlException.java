@@ -25,15 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 import java.util.List;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_URL;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_SERVICE_URL;
 
-public class InvalidServiceUrlException extends ServiceException {
+public class InvalidServiceUrlException extends BadRequestException {
     public InvalidServiceUrlException(List<String> metadata) {
-        super(new ErrorDeviation(ERROR_INVALID_SERVICE_URL, metadata));
+        super(INVALID_SERVICE_URL.build(metadata));
     }
 }

@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 public interface TokenPinValidator {
 
-    void validateSoftwareTokenPin(char[] softwareTokenPin) throws ValidationFailureException;
+    void validateSoftwareTokenPin(char[] softwareTokenPin) throws BadRequestException;
 }

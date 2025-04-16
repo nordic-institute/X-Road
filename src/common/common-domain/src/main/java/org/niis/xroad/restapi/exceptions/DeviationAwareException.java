@@ -25,92 +25,24 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import lombok.Getter;
+
 import java.util.Collection;
 
 /**
  * Checked exception that (possibly) carries error code.
  * Root of all checked deviation aware exceptions
  */
+@Getter
 public class DeviationAwareException extends Exception implements DeviationAware {
 
     private final ErrorDeviation errorDeviation;
     private final Collection<WarningDeviation> warningDeviations;
 
-    @Override
-    public ErrorDeviation getErrorDeviation() {
-        return errorDeviation;
-    }
-
-    @Override
-    public Collection<WarningDeviation> getWarningDeviations() {
-        return warningDeviations;
-    }
-
-    /**
-     * @param msg
-     * @param errorDeviation
-     */
-    public DeviationAwareException(String msg, ErrorDeviation errorDeviation) {
+    public DeviationAwareException(String msg, ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
         super(msg);
         this.errorDeviation = errorDeviation;
-        this.warningDeviations = null;
-    }
-
-    /**
-     * @param msg
-     * @param t
-     * @param errorDeviation
-     */
-    public DeviationAwareException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        this(msg, t, errorDeviation, null);
-    }
-
-    /**
-     * @param msg
-     * @param t
-     * @param errorDeviation
-     * @param warningDeviations
-     */
-    public DeviationAwareException(String msg, Throwable t, ErrorDeviation errorDeviation,
-                                   Collection<WarningDeviation> warningDeviations) {
-        super(msg, t);
-        this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;
     }
 
-    /**
-     * @param errorDeviation
-     */
-    public DeviationAwareException(ErrorDeviation errorDeviation) {
-        this(errorDeviation, null);
-    }
-
-    /**
-     * @param errorDeviation
-     * @param warningDeviations
-     */
-    public DeviationAwareException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        this.errorDeviation = errorDeviation;
-        this.warningDeviations = warningDeviations;
-    }
-
-    /**
-     * @param t
-     * @param errorDeviation
-     */
-    public DeviationAwareException(Throwable t, ErrorDeviation errorDeviation) {
-        this(t, errorDeviation, null);
-    }
-
-    /**
-     * @param t
-     * @param errorDeviation
-     * @param warningDeviations
-     */
-    public DeviationAwareException(Throwable t, ErrorDeviation errorDeviation,
-                                   Collection<WarningDeviation> warningDeviations) {
-        super(t);
-        this.errorDeviation = errorDeviation;
-        this.warningDeviations = warningDeviations;
-    }
 }

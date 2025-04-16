@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.inject.Named;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 
 import java.util.Arrays;
@@ -51,7 +51,6 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
 
     /**
      * Convert ClientId into encoded member id
-     *
      * @return
      */
     public String convertId(ClientId clientId) {
@@ -60,7 +59,6 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
 
     /**
      * Convert ClientId into encoded member id
-     *
      * @param clientId
      * @return
      */
@@ -70,14 +68,13 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
 
     /**
      * Convert encoded member id into ClientId
-     *
      * @param encodedId
      * @return ClientId
-     * @throws ValidationFailureException if encoded id could not be decoded
+     * @throws BadRequestException if encoded id could not be decoded
      */
-    public ClientId.Conf convertId(String encodedId) throws ValidationFailureException {
+    public ClientId.Conf convertId(String encodedId) throws BadRequestException {
         if (!isEncodedClientId(encodedId)) {
-            throw new ValidationFailureException(INVALID_ENCODED_ID, encodedId);
+            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
         }
         List<String> parts = Arrays.asList(encodedId.split(String.valueOf(ENCODED_ID_SEPARATOR)));
         String instance = parts.get(INSTANCE_INDEX);
@@ -86,7 +83,7 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
         String subsystemCode = null;
         if (parts.size() != (MEMBER_CODE_INDEX + 1)
                 && parts.size() != (SUBSYSTEM_CODE_INDEX + 1)) {
-            throw new ValidationFailureException(INVALID_ENCODED_ID, encodedId);
+            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
         }
         if (parts.size() == (SUBSYSTEM_CODE_INDEX + 1)) {
             subsystemCode = parts.get(SUBSYSTEM_CODE_INDEX);
@@ -96,12 +93,11 @@ public class ClientIdConverter extends DtoConverter<ClientId, String> {
 
     /**
      * Convert a list of encoded member ids to ClientIds
-     *
      * @param encodedIds
      * @return List of ClientIds
-     * @throws ValidationFailureException if encoded id could not be decoded
+     * @throws BadRequestException if encoded id could not be decoded
      */
-    public List<ClientId> convertIds(List<String> encodedIds) throws ValidationFailureException {
+    public List<ClientId> convertIds(List<String> encodedIds) throws BadRequestException {
         return encodedIds.stream().map(this::convertId).collect(Collectors.toList());
     }
 

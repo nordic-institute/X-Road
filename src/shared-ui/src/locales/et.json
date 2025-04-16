@@ -151,13 +151,31 @@
     "backup_file_not_found": "Varufaili ei leitud",
     "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
     "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
+    "core": {
+      "Signer": {
+        "CertNotFound": "Sertifikaati ei leitud",
+        "KeyNotFound": "Võtit ei leitud",
+        "PinIncorrect": "Vale PIN-kood",
+        "TokenNotAvailable": "Krüptomoodul pole saadaval",
+        "TokenNotFound": " Krüptomoodulit ei leitud",
+        "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
+      }
+    },
     "generate_backup_interrupted": "Varukoopia loomine katkestatud",
     "invalid_backup_file": "Kehtetu varundusfail",
+    "invalid_certificate": "Vale X.509 sertifikaat",
     "invalid_distinguished_name": "Eristusnimi on kehtetu",
     "invalid_filename": "Kehtetu failinimi",
     "resource_read_failed": "Ressursi lugemine ebaõnnestus",
     "restore_process_failed": "Taastamise protsess ebaõnnestus",
     "token_not_found": "Krüptomoodulit ei leitud",
+    "token_weak_pin": "Nõrk PIN",
+    "tr": {
+      "check_signer_logs": "Vt täpsemalt vt signeerija logi.",
+      "code": "Kood: {0}",
+      "pin_min_char_classes_count": "PIN-koodi minimaalne tähemärgiklasside arv: {0}",
+      "pin_min_length": "PIN-koodi minimaalne pikkus: {0}"
+    },
     "validation_failure": "Valideerimistõrge"
   },
   "fields": {
@@ -186,7 +204,10 @@
     "name": "Nimi"
   },
   "keys": {
-    "gotIt": "Sain aru"
+    "gotIt": "Sain aru",
+    "token": {
+      "label": "Krüptomoodul:"
+    }
   },
   "locals_demo": "Lokaliseeritakse teegis",
   "login": {
@@ -198,9 +219,6 @@
   "logout": {
     "idleWarning": "Olete olnud eemal 30 minutit ja teie seanss on aegunud. Turvapõhjustel logitakse teid välja.",
     "sessionExpired": "Seanss on aegunud"
-  },
-  "meta": {
-    "check_signer_logs": "Vt täpsemalt vt signeerija logi."
   },
   "noData": {
     "loading": "Laadimine... Palun oodake",

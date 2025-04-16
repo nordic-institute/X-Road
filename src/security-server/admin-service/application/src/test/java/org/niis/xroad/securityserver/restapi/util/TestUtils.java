@@ -231,7 +231,7 @@ public final class TestUtils {
     public static WarningDeviation findWarning(String code, Collection<WarningDeviation> warningDeviations) {
         if (warningDeviations != null) {
             return warningDeviations.stream()
-                    .filter(warning -> code.equals(warning.getCode()))
+                    .filter(warning -> code.equals(warning.code()))
                     .findFirst()
                     .orElse(null);
         }

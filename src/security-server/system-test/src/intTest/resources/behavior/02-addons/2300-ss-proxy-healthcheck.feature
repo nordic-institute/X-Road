@@ -1,5 +1,5 @@
 @HealthCheck
-Feature: 2400 - SS Proxy: healthcheck
+Feature: 2300 - SS Proxy: healthcheck
 
   Scenario: Valid and registered AUTH key is forcibly enabled
   Goal of this scenario is to force "valid" AUTH key that is already registered against

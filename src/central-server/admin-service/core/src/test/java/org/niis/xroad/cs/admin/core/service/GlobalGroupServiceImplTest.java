@@ -33,8 +33,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroup;
 import org.niis.xroad.cs.admin.api.dto.GlobalGroupUpdateDto;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
@@ -137,6 +137,6 @@ class GlobalGroupServiceImplTest {
         systemParameter.setValue(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         when(systemParameterRepository.findByKey(SECURITY_SERVER_OWNERS_GROUP)).thenReturn(List.of(systemParameter));
 
-        assertThrows(ValidationFailureException.class, () -> service.deleteGlobalGroupMember("code"));
+        assertThrows(BadRequestException.class, () -> service.deleteGlobalGroupMember("code"));
     }
 }

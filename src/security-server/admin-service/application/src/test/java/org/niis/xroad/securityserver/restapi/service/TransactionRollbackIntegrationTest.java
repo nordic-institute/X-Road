@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 /**
@@ -72,13 +73,10 @@ public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTes
     public void checkedServiceExceptionRollsBackTransaction() throws Exception {
         LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
         String originalDescription = localGroup.getDescription();
-        try {
-            dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,
-                    originalDescription + "_UPDATED",
-                    DummyTransactionRollingbackService.ExceptionType.SERVICE_EXCEPTION);
-            fail("should throw exception");
-        } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
-        }
+
+        assertThrows(LocalGroupService.DuplicateLocalGroupCodeException.class,
+                () -> dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID, originalDescription + "_UPDATED",
+                        DummyTransactionRollingbackService.ExceptionType.SERVICE_EXCEPTION));
 
         LocalGroup updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(originalDescription, updatedGroup.getDescription());

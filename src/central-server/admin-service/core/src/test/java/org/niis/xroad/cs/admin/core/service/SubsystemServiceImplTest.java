@@ -37,9 +37,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerClient;
@@ -147,9 +147,9 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
             Executable testable = () -> subsystemService.add(new SubsystemCreationRequest(memberId, subsystemId, subsystemName));
 
-            DataIntegrityException exception = assertThrows(DataIntegrityException.class, testable);
-            assertEquals(SUBSYSTEM_EXISTS.getDescription(), exception.getMessage());
-            assertThat(exception.getErrorDeviation().getMetadata())
+            ConflictException exception = assertThrows(ConflictException.class, testable);
+            assertEquals(SUBSYSTEM_EXISTS.code(), exception.getErrorDeviation().code());
+            assertThat(exception.getErrorDeviation().metadata())
                     .hasSize(1)
                     .containsExactly(subsystemId.toShortString());
 
@@ -195,7 +195,7 @@ public class SubsystemServiceImplTest implements WithInOrder {
             Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);
 
             NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
+            assertEquals(SUBSYSTEM_NOT_FOUND.code(), actualThrown.getErrorDeviation().code());
             verify(subsystemRepository).findOneBy(subsystemClientId);
 
             verify(auditDataHelper).put(MEMBER_CLASS, subsystemClientId.getMemberClass());
@@ -211,8 +211,8 @@ public class SubsystemServiceImplTest implements WithInOrder {
 
             Executable testable = () -> subsystemService.deleteSubsystem(subsystemClientId);
 
-            ValidationFailureException actualThrown = assertThrows(ValidationFailureException.class, testable);
-            assertEquals(ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED.getDescription(), actualThrown.getMessage());
+            BadRequestException actualThrown = assertThrows(BadRequestException.class, testable);
+            assertEquals(ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED.code(), actualThrown.getErrorDeviation().code());
             verify(subsystemRepository).findOneBy(subsystemClientId);
             verify(subsystem).getServerClients();
             verify(auditDataHelper).put(MEMBER_CLASS, subsystemClientId.getMemberClass());

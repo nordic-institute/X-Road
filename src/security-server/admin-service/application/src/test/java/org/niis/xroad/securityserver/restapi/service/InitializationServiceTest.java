@@ -56,9 +56,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InitializationServiceTest {
@@ -250,8 +252,7 @@ public class InitializationServiceTest {
                     null, false);
             fail("should have failed");
         } catch (UnhandledWarningsException expected) {
-            DeviationTestUtils
-                    .assertWarningWithoutMetadata(DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED, expected);
+            assertWarningWithoutMetadata(DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED, expected);
         }
     }
 
@@ -260,16 +261,15 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(null, null, null, null, true);
-            fail("should have failed");
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(null, null, null, null, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
     }
 
     @Test
@@ -278,13 +278,10 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-            fail("should have failed");
-        } catch (InitializationService.SoftwareTokenInitException expected) {
-            // expected
-        }
+        assertThrows(
+                InitializationService.SoftwareTokenInitException.class, () ->
+                        initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                                SOFTWARE_TOKEN_PIN, true));
     }
 
     @Test
@@ -293,13 +290,9 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         Mockito.doThrow(InvalidCharactersException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_INVALID_PIN, true);
-            fail("should have failed");
-        } catch (InvalidCharactersException expected) {
-            // expected
-        }
+        assertThrows(InvalidCharactersException.class, () ->
+                initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_INVALID_PIN, true));
     }
 
     @Test
@@ -308,13 +301,9 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         Mockito.doThrow(WeakPinException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_WEAK_PIN, true);
-            fail("should have failed");
-        } catch (WeakPinException expected) {
-            // done
-        }
+        assertThrows(WeakPinException.class, () ->
+                initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_WEAK_PIN, true));
     }
 
     @Test
@@ -322,14 +311,13 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-            fail("Should have thrown InvalidInitParamsException");
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS);
     }
 
     @Test
@@ -349,13 +337,13 @@ public class InitializationServiceTest {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         // parts that do get initialized cannot be null - such as ownerMemberClass in this test
-        try {
-            initializationService.initialize(null, null, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(null, null, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
     }
 
     @Test
@@ -363,14 +351,14 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    null, true);
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS, DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        null, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS,
+                DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS, DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
     }
 
     @Test
@@ -378,15 +366,15 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        try {
-            initializationService.initialize(null, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS, DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS,
-                    DeviationCodes.ERROR_METADATA_PIN_EXISTS);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(null, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS, DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS,
+                DeviationCodes.ERROR_METADATA_PIN_EXISTS);
     }
 
     @Test
@@ -394,12 +382,12 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.ServerAlreadyFullyInitializedException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
-                    expected.getErrorDeviation().getCode());
-        }
+        InitializationService.ServerAlreadyFullyInitializedException exception = assertThrows(
+                InitializationService.ServerAlreadyFullyInitializedException.class,
+                () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        Assert.assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
+                exception.getErrorDeviation().code());
     }
 }

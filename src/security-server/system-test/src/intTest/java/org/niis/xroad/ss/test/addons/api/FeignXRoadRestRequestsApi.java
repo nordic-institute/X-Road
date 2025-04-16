@@ -34,6 +34,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "xRoadRestRequestsApi", url = "http://localhost:8080")
 public interface FeignXRoadRestRequestsApi {
 
-    @GetMapping(value = "/r1/DEV/COM/1234/TestService/pets/pets", produces = "application/json")
-    ResponseEntity<String> pets(@RequestHeader("X-Road-Client") String xRoadClient);
+    @GetMapping(value = "/r1/DEV/COM/1234/TestService/s3c2/123/pets/999", produces = "application/json")
+    ResponseEntity<String> s3c2(@RequestHeader("X-Road-Client") String xRoadClient);
+
+    @GetMapping(value = "/r1/DEV/COM/1234/TestService/s4c2/test", produces = "application/json")
+    ResponseEntity<String> s4c2(@RequestHeader("X-Road-Client") String xRoadClient);
+
+    @GetMapping(value = "/r1/DEV/COM/1234/TestService/testOas31/test", produces = "application/json")
+    ResponseEntity<String> testOas31(@RequestHeader("X-Road-Client") String xRoadClient);
 }

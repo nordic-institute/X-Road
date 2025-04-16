@@ -28,7 +28,7 @@
 package org.niis.xroad.cs.admin.core.validation;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -38,12 +38,12 @@ class UrlValidatorTest {
 
     @Test
     void validateUrlThrowsException() {
-        assertThatThrownBy(() -> urlValidator.validateUrl(null)).isInstanceOf(ValidationFailureException.class);
-        assertThatThrownBy(() -> urlValidator.validateUrl("")).isInstanceOf(ValidationFailureException.class);
-        assertThatThrownBy(() -> urlValidator.validateUrl("something")).isInstanceOf(ValidationFailureException.class);
-        assertThatThrownBy(() -> urlValidator.validateUrl("https")).isInstanceOf(ValidationFailureException.class);
-        assertThatThrownBy(() -> urlValidator.validateUrl("https-not-url")).isInstanceOf(ValidationFailureException.class);
-        assertThatThrownBy(() -> urlValidator.validateUrl("http:/not-valid")).isInstanceOf(ValidationFailureException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl(null)).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("")).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("something")).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("https")).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("https-not-url")).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> urlValidator.validateUrl("http:/not-valid")).isInstanceOf(BadRequestException.class);
     }
 
     @Test

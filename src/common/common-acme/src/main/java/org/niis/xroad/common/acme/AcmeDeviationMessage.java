@@ -25,44 +25,36 @@
  */
 package org.niis.xroad.common.acme;
 
-import lombok.Getter;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.exceptions.DeviationBuilder;
 
-public enum AcmeDeviationMessage implements DeviationProvider {
+@RequiredArgsConstructor
+public enum AcmeDeviationMessage implements DeviationBuilder.ErrorDeviationBuilder {
 
-    EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing", "External Account binding credentials missing, but required"),
-    EAB_SECRET_LENGTH("acme.eab_secret_length", "Invalid external account binding base64 secret length"),
-    ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error", "Getting key pair for ACME server account failed"),
-    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing",
-            "ACME account keystore password missing from the acme.yml configuration file"),
-    FETCHING_METADATA_ERROR("acme.fetching_metadata_error", "Fetching ACME server metadata failed. ACME Server might be unreachable"),
-    ACCOUNT_CREATION_FAILURE("acme.account_creation_failure",
-            "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are "
-                    + "configured in acme.yml"),
-    ORDER_CREATION_FAILURE("acme.order_creation_failure", "Creating new Order on ACME server failed"),
-    ORDER_FINALIZATION_FAILURE("acme.order_finalization_failure", "Finalizing the Order on ACME server failed"),
-    HTTP_CHALLENGE_FILE_CREATION("acme.http_challenge_file_creation", "Creating ACME HTTP challenge file failed"),
-    HTTP_CHALLENGE_FILE_DELETION("acme.http_challenge_file_deletion", "Deleting ACME HTTP challenge file failed"),
-    HTTP_CHALLENGE_MISSING("acme.http_challenge_missing",
-            "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server"),
-    CHALLENGE_TRIGGER_FAILURE("acme.challenge_trigger_failure", "Requesting the ACME server to validate the challenge failed"),
-    AUTHORIZATION_FAILURE("acme.authorization_failure",
-            "Authorization failed. Usually related to a challenge validation failure that is required to prove the "
-                    + "ownership of the domain"),
-    AUTHORIZATION_WAIT_FAILURE("acme.authorization_wait_failure", "Waiting for the Authorization to complete failed"),
-    CERTIFICATE_FAILURE("acme.certificate_failure", "Getting the Certificate from the ACME server failed"),
-    CERTIFICATE_WAIT_FAILURE("acme.certificate_wait_failure", "Waiting for the creation of the new Certificate failed"),
-    FETCHING_RENEWAL_INFO_FAILURE("acme.fetching_renewal_info_failure",
-            "Fetching certificate renewal recommendations from ACME server failed");
+    EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing"),
+    EAB_SECRET_LENGTH("acme.eab_secret_length"),
+    ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error"),
+    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing"),
+    FETCHING_METADATA_ERROR("acme.fetching_metadata_error"),
+    ACCOUNT_CREATION_FAILURE("acme.account_creation_failure"),
+    ORDER_CREATION_FAILURE("acme.order_creation_failure"),
+    ORDER_FINALIZATION_FAILURE("acme.order_finalization_failure"),
+    HTTP_CHALLENGE_FILE_CREATION("acme.http_challenge_file_creation"),
+    HTTP_CHALLENGE_FILE_DELETION("acme.http_challenge_file_deletion"),
+    HTTP_CHALLENGE_MISSING("acme.http_challenge_missing"),
+    CHALLENGE_TRIGGER_FAILURE("acme.challenge_trigger_failure"),
+    AUTHORIZATION_FAILURE("acme.authorization_failure"),
+    AUTHORIZATION_WAIT_FAILURE("acme.authorization_wait_failure"),
+    CERTIFICATE_FAILURE("acme.certificate_failure"),
+    CERTIFICATE_WAIT_FAILURE("acme.certificate_wait_failure"),
+    FETCHING_RENEWAL_INFO_FAILURE("acme.fetching_renewal_info_failure");
 
-    @Getter
     private final String code;
-    @Getter
-    private final String description;
 
-    AcmeDeviationMessage(final String code, final String description) {
-        this.code = code;
-        this.description = description;
+    @Override
+    public String code() {
+        return code;
     }
+
 
 }

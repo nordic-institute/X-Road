@@ -55,8 +55,8 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -148,11 +148,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals("ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
                 caInfo.getCertificateProfileInfo());
 
-        try {
-            certificateAuthorityService.getCertificateAuthorityInfo("does-not-exist");
-            fail("should have thrown exception");
-        } catch (CertificateAuthorityNotFoundException expected) {
-        }
+        assertThrows(CertificateAuthorityNotFoundException.class, () ->
+                certificateAuthorityService.getCertificateAuthorityInfo("does-not-exist"));
     }
 
     @Test
@@ -341,19 +338,12 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals(0, profile.getSubjectFields().length);
 
         // exceptions
-        try {
-            certificateAuthorityService.getCertificateProfile("est-auth-only",
-                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
-            fail("should have thrown exception");
-        } catch (WrongKeyUsageException expected) {
-        }
+        assertThrows(WrongKeyUsageException.class, () -> certificateAuthorityService.getCertificateProfile("est-auth-only",
+                KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
 
-        try {
-            certificateAuthorityService.getCertificateProfile("this-does-not-exist",
-                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
-            fail("should have thrown exception");
-        } catch (CertificateAuthorityNotFoundException expected) {
-        }
+        assertThrows(CertificateAuthorityNotFoundException.class, () ->
+                certificateAuthorityService.getCertificateProfile("this-does-not-exist",
+                        KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
 
         // cant instantiate
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
@@ -361,12 +351,9 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null, null, null));
         when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
-        try {
-            certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
-                    KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false);
-            fail("should have thrown exception");
-        } catch (CertificateProfileInstantiationException expected) {
-        }
+        assertThrows(CertificateProfileInstantiationException.class, () ->
+                certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",
+                        KeyUsageInfo.SIGNING, COMMON_OWNER_ID, false));
     }
 
 }

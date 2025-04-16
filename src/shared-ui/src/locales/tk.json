@@ -1,0 +1,271 @@
+{
+  "action": {
+    "activate": "Işe giriz",
+    "add": "Goş",
+    "addClient": "Müşderi goş",
+    "addMember": "Agzany goş",
+    "addSubsystem": "kiçi ulgamy goş",
+    "cancel": "Ýatyr",
+    "close": "Ýap",
+    "confirm": "Tassykla",
+    "continue": "Dowam et",
+    "copy": "Göçür",
+    "copyId": "ID-ni göçür",
+    "deactivate": "Öçür",
+    "delete": "Poz",
+    "done": "Ýerine ýetirilen",
+    "download": "Ýükle",
+    "edit": "Üýtget",
+    "emptySearch": "Siziň {msg} boýunça gözlegiňiz netije bermedi.",
+    "export": "Eksport et",
+    "finish": "Tamamla",
+    "goToFront": "Baş sahypa geç",
+    "next": "Indiki",
+    "no": "Ýok",
+    "noData": "Maglumat ýok",
+    "ok": "Ok",
+    "previous": "Öňündäki",
+    "refresh": "Обновить",
+    "register": "Hasaba al",
+    "remove": "Aýyr",
+    "removeAll": "Ählisini aýyr",
+    "restore": "Dikelt",
+    "save": "Ýatda sakla",
+    "search": "Gözle",
+    "searching": "Gözleýär...",
+    "submit": "Tabşyr",
+    "unregister": "Hasaba alma",
+    "upload": "Internede ýükle",
+    "yes": "Hawa"
+  },
+  "alert": {
+    "count": "Şol bir ýalňyşlyklaryň sany:",
+    "id": "ID"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "API AÇARY DÖRET",
+      "step": {
+        "keyDetails": {
+          "apiKey": "API açary",
+          "apiKeyID": "API açaryň ID-si",
+          "assignedRoles": "Rollar bellenildi",
+          "createKeyButton": "Açary döret",
+          "name": "Açaryň jikme-jikleri",
+          "note": "BELLIK: Api açary ygtybarly ýerde saklaň. API açary diňe açaryň emele gelen wagty görünýär. Ol gaýtadan berilmer we ony soň alyp bolmaýar."
+        },
+        "roles": {
+          "description": "API açary bilen bagly rollary saýlaň. Rollar API açaryna berilýän hukuklary kesgitleýär.",
+          "name": "Rollar",
+          "selectRoles": "Rollary saýla"
+        }
+      },
+      "success": "API açary üstünlikli döredildi",
+      "title": "API açary döret"
+    },
+    "edit": {
+      "roleRemoveOnly": "(diňe aýyr)"
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Hasaba alyş işgär",
+      "XROAD_SECURITY_OFFICER": "Howpsuzlyk işgäri",
+      "XROAD_SYSTEM_ADMINISTRATOR": "Ulgam administratory"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Üýtget",
+          "dialog": {
+            "message": "API açary bilen baglanyşykly rollar:",
+            "title": "(ID: {id}) API açaryny üýtget"
+          },
+          "success": "{id} ID-li API açary ýatda saklanyldy"
+        },
+        "revoke": {
+          "button": "Açary ýatyr",
+          "confirmationDialog": {
+            "message": "Siz dogurdanam {id} ID-li API açary ýatyrmak isleýärsiňizmi?",
+            "title": "Tassyklaýarsyňyzmy?"
+          },
+          "success": "{id} ID-li API açary üstünlikli ýatyryldy"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Rollar"
+      }
+    }
+  },
+  "backup": {
+    "createBackup": {
+      "button": "Konfigurasiýanyň ätiýaçlyk nugasy",
+      "messages": {
+        "localConfWarning": "Duýduryş! Konfigurasiýanyň parametrlerini düzetmek üçin ulanylýan “/etc/xroad/services/local.conf” faýly köneldi we ätiýaçlyk nusgalaryna goşulmaýar.Onuň ýerine “/etc/xroad/services/local.properties” faýly ulanylmaly.",
+        "success": "{file} ätiýaçlyk nusgasy üstünlikli döredildi"
+      }
+    },
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "Siz dogurdanam {file} ätiýaçlyk nusgasyny pozmak isleýärsiňizmi?",
+        "title": "Tassyklaýarsyňyzmy?"
+      },
+      "success": "{file} ätiýaçlyk nusgasy pozuldy"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "Siz dogurdanam {file} ätiýaçlyk nusgasyny dikeltmek isleýärsiňizmi?",
+        "title": "Tassyklaýarsyňyzmy?"
+      },
+      "success": "Konfigurasiýa {file}-dan dikeldildi"
+    },
+    "uploadBackup": {
+      "button": "Ätiýaçlyk nusgasyny ýükle",
+      "confirmationDialog": {
+        "confirmation": "{name} faýl eýýäm bar, siz dogurdanam ony täzeden ýazmak isleýärsiňizmi?",
+        "title": "Faýl eýýäm bar"
+      },
+      "success": "{file} ätiýaçlyk nusgasy üstünlikli ýüklenildi"
+    }
+  },
+  "cert": {
+    "certificate": "Şahadatnama",
+    "hashInfo": "Heş (SHA-256)",
+    "keyUsage": {
+      "CRL_SIGN": "CRL belligi",
+      "DATA_ENCIPHERMENT": "Maglumaty şifrlemek",
+      "DECIPHER_ONLY": "Diňe şifri açmak",
+      "DIGITAL_SIGNATURE": "Sanly gol",
+      "ENCIPHER_ONLY": "Diňe şifrlemek",
+      "KEY_AGREEMENT": "Açar şertnamasy",
+      "KEY_CERT_SIGN": "Şahadatnama belligi",
+      "KEY_ENCIPHERMENT": "Açary şifrlemek",
+      "NON_REPUDIATION": "Ret etmegiň mümkin dälligi"
+    },
+    "rsaExp": "RSA Public Key Exponent",
+    "rsaModulus": "RSA Public Key Modulus"
+  },
+  "error_code": {
+    "api_key_not_found": "API açar tapylmady",
+    "backup_file_not_found": "Äiýaçlyk nusgasynyň faýly tapylmady",
+    "backup_generation_failed": "Äiýaçlyk nusgasy döredilmedi",
+    "backup_restore_interrupted": "Äiýaçlyk nusgasynyň dikeldilmegi bölündi",
+    "core": {
+      "Signer": {
+        "CertNotFound": "Şahadatnama tapylmady",
+        "KeyNotFound": "Açar tapylmady",
+        "PinIncorrect": "Nädogry PIN",
+        "TokenNotAvailable": "Token elýeterli däl",
+        "TokenNotFound": "Token tapylmady",
+        "UnknownMember": "X-Road ýadrody - gol çekiji: Näbelli agza"
+      }
+    },
+    "generate_backup_interrupted": "Ätiýaçlyk nusgasynyň döredilmegi bölündi",
+    "internal_error": "içki ýalňyşlyk.Has giňişleýin maglumat üçin serweriň loglaryna serediň",
+    "invalid_backup_file": "ätiýaçlyk nusgasynyň faýly nädogry",
+    "invalid_certificate": "Nädogry X.509 şahadatnama",
+    "invalid_distinguished_name": "Tapawutly at nädogry",
+    "invalid_filename": "Faýlyň ady nädogry",
+    "resource_read_failed": "Resursy okap bolmady",
+    "restore_process_failed": "Dikletmek amaly ýerine ýetirilmedi",
+    "token_fetch_failed": "Tokenler alnanda ýalňyşlyk ýüze çykdy",
+    "token_not_found": "Token tapylmady",
+    "token_weak_pin": "Berlen pin kod gaty gowşakdy",
+    "tr": {
+      "code": "Kod: {0}",
+      "pin_min_char_classes_count": "PIN nyşanlarynyň klasslarynyň iň az sany: {0}",
+      "pin_min_length": "PIN iň az uzynlygy: {0}"
+    },
+    "validation_failure": "Barlag amala aşmady"
+  },
+  "fields": {
+    "code": "Kod",
+    "description": "Beýany",
+    "memberClass": "Agaznyň klassy",
+    "password": "Açar sözi",
+    "securityServerCode": "Howpsuzlyk serweriň kody",
+    "shared": "sharedlib",
+    "username": "LIB-ulanyjy ady"
+  },
+  "footer": {
+    "copyright": {
+      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "licenceInfo": "Ygtyýarnama barada maglumat",
+      "title": "AWtorlyk hukugy"
+    },
+    "software": {
+      "feedback": "Seslenmeler we teswirler",
+      "title": "Programma üpjünçiligi",
+      "versionPrefix": "X-Road"
+    }
+  },
+  "global": {
+    "all": "Ählisi",
+    "name": "Ady"
+  },
+  "keys": {
+    "gotIt": "Alyndy",
+    "token": {
+      "label": "Token:"
+    }
+  },
+  "locals_demo": "Bu kitaphanada lokallaşdyryldy",
+  "login": {
+    "errorMsg401": "Nädogry ulanyjy ady ýa-da açar sözi",
+    "generalError": "girip bolmady. Gaýatadan synanşmagyňyzy haýyş edýäris.",
+    "logIn": "Gir",
+    "logOut": "Çyk"
+  },
+  "logout": {
+    "idleWarning": "30 minutlap işlemediňiz we siziň sessiýaňyz gutardy. Howpsuzlyk sebäpli, hasapdan çykmaly bolarsyňyz.",
+    "sessionExpired": "Sessiýaň wagty gutardy"
+  },
+  "noData": {
+    "loading": "Ýüklenilýar... Garaşmagyňyzy haýyş edýäris",
+    "noBackups": "Ätiýäçlyk nusgalary entäk ýok",
+    "noCertificate": "Şahadatnama ýok",
+    "noCertificates": "Şahadatnamalar ýok",
+    "noData": "Maglumat ýok",
+    "noMatches": "Kriteriýa gabat gelýän zat ýok",
+    "noServices": "Hyzmatlar ýok",
+    "noTokens": "Tokenler ýok"
+  },
+  "type": "Görnüş",
+  "validation": {
+    "messages": {
+      "address": "{field} meýdançasynda nädogry nyşanlar bar"
+    }
+  },
+  "validationError": {
+    "AssertFalse": "belgi 'ýalňyş' bolmaly",
+    "AssertTrue": "belgi 'dogry' bolmaly",
+    "DecimalMax": "san belgisi rugsat berlen iň ýokary derejeden has geçýär",
+    "DecimalMin": "san belgisi rugsat berlen iň pes derejeden kiçi",
+    "Digits": "belgide diňe san bolmaly",
+    "Email": "belgi elektron poçtanyň formatyna gabat gelenok",
+    "Future": "senesiwagty geljegi görkezmeli",
+    "FutureOrPresent": "senesiwagty şu wagty ýa-da geljegi görkezmeli",
+    "Max": "san belgi rugsat berlen iň ýokary derejeden has geçýär",
+    "Min": "san belgi rugsat berlen iň pes derejeden kiçi",
+    "Negative": "san belgi noldan pes bolmaly",
+    "NegativeOrZero": "san belgi noldan pes ýa-da nola deň bolmaly",
+    "NoBackslashes": "belgide (\\) yza seredýän taýajyklar nyşany bolmaly däl",
+    "NoColons": "belgide (:) iki nokat nyşanlary bolmaly däl",
+    "NoForwardslashes": "belgide (/) öňe seredýän taýajyklar nyşany bolmaly däl",
+    "NoPercents": "belgide (%) göterim nyşany bolmaly däl",
+    "NoSemicolons": "belgide (;) nokatly otur nyşany bolmaly däl",
+    "Normalized": "belgi kadalaşdyrylan bolmaly",
+    "NotBlank": "belgini boş geçirmeli däl",
+    "NotEmpty": "belgini boş goýmaly däl",
+    "NotNull": "belgi hökmany",
+    "Null": "belgi kesgitlenilmeli däl",
+    "Past": "senesiwagty belgisi geçmişi görkezmeli",
+    "PastOrPresent": "senesiwagty belgisi şu wagty ýa-da geçmişi görkezmeli",
+    "Pattern": "belgi talap edilýän formata laýyk gelmedi",
+    "Positive": "san belgisi noldan uly bolmaly",
+    "PositiveOrZero": "san belgisi nola deň ýa-da noldan uly bolmaly",
+    "Size": "belgi uzynlyk talaplaryna gabat gelmeýär",
+    "ValidHostAddress": "Işleýän doly domen ady (mysal üçin host.example.org) ýa-da açyk IP salgysy (mysal üçin 192.168.123.123) zerur",
+    "ValidHostAddressField": "Işleýän IP salgy ýa-da doly domen ady zerur"
+  },
+  "warning": "Duýduryş"
+}

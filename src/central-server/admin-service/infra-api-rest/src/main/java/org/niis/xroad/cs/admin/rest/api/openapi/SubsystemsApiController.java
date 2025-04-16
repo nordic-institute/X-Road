@@ -29,9 +29,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.SubsystemCreationRequestMapper;
@@ -52,6 +51,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.Optional;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_SUBSYSTEM_ID;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SUBSYSTEM;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SUBSYSTEM;
@@ -106,7 +106,7 @@ public class SubsystemsApiController implements SubsystemsApi {
                 .flatMap(clientId -> subsystemService.updateSubsystemName(clientId, subsystemNameDto.getSubsystemName()))
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.SUBSYSTEM_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND.build()));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class SubsystemsApiController implements SubsystemsApi {
 
     private void verifySubsystemId(String clientId) {
         if (!clientIdConverter.isEncodedSubsystemId(clientId)) {
-            throw new ValidationFailureException(INVALID_SUBSYSTEM_ID, clientId);
+            throw new BadRequestException(INVALID_SUBSYSTEM_ID.build(clientId));
         }
     }
 }

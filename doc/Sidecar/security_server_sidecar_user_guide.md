@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.17  
+Version: 1.18  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -25,6 +25,7 @@ Doc. ID: UG-SS-SIDECAR
 | 23.12.2024 | 1.15    | Minor documentation updates                             | Eneli Reimets             |
 | 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service          | Ovidijus Narkevičius      |
 | 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
+| 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
 
 ## License
 
@@ -54,6 +55,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
   * [3.2 Enabling ACME Support](#32-enabling-acme-support)
   * [3.3 Configuring the memory allocation for the Proxy Service](#33-configuring-the-memory-allocation-for-the-proxy-service)
+  * [3.4 Autologin](#34-autologin)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -367,6 +369,11 @@ certificates on the Security Server. More information about the required configu
 
 The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
+### 3.4 Autologin
+
+The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)). 
+
+For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which looks at the environment variable `XROAD_TOKEN_PIN` first. This is set in the above example with a flag `-e XROAD_TOKEN_PIN=<token pin>`. When the Security Server is initialized for the first time, the token pin configured in the third step needs to match this variable. Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded. When the environment variable is not set, autologin might fail because by default the sidecar container doesn't have the token pin in its fallback location `/etc/xroad/autologin`. This file can be manually added with the correct pin if having the pin as plain text in that file is acceptable.
 
 ## 4 Upgrading
 

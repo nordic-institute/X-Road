@@ -29,50 +29,26 @@ import java.util.List;
 
 /**
  * An error that can't be ignored
+ * @param code     error code
+ * @param metadata metadata
  */
-public class ErrorDeviation extends Deviation {
+public record ErrorDeviation(String code, List<String> metadata) implements Deviation {
 
-    public ErrorDeviation(String code, List<String> metadata) {
-        super(code, metadata);
-    }
+    private static final String TO_STRING = "Error[code=%s]";
+    private static final String TO_STRING_WITH_META = "Error[code=%s, metadata=%s]";
 
     public ErrorDeviation(String code, String metadataItem) {
-        super(code, metadataItem);
+        this(code, List.of(metadataItem));
     }
 
     public ErrorDeviation(String code) {
-        super(code);
+        this(code, List.of());
     }
 
-    /**
-     * Creates new error deviation.
-     *
-     * @param code     error code
-     * @param metadata metadata
-     * @return new ErrorDeviation
-     */
-    public static ErrorDeviation newError(String code, List<String> metadata) {
-        return new ErrorDeviation(code, metadata);
-    }
-
-    /**
-     * Creates new error deviation.
-     *
-     * @param code         error code
-     * @param metadataItem metadata
-     * @return new ErrorDeviation
-     */
-    public static ErrorDeviation newError(String code, String metadataItem) {
-        return new ErrorDeviation(code, metadataItem);
-    }
-
-    /**
-     * Creates new error deviation.
-     *
-     * @param code error code
-     * @return new ErrorDeviation
-     */
-    public static ErrorDeviation newError(String code) {
-        return new ErrorDeviation(code);
+    @Override
+    public String toString() {
+        return metadata == null || metadata.isEmpty()
+                ? TO_STRING.formatted(code)
+                : TO_STRING_WITH_META.formatted(code, metadata);
     }
 }

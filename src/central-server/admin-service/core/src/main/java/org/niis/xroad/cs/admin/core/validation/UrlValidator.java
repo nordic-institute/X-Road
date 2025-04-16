@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.validation;
 
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_URL;
@@ -38,7 +38,7 @@ public class UrlValidator {
 
     public void validateUrl(String url) {
         if (!isValidUrl(url)) {
-            throw new ValidationFailureException(INVALID_URL);
+            throw new BadRequestException(INVALID_URL.build());
         }
     }
 

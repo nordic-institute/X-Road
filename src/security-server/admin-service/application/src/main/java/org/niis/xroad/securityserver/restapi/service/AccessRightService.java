@@ -38,13 +38,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
-import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
@@ -72,8 +71,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_ACCESSRIGHT;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ACCESS_RIGHT_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_ACCESS_RIGHT;
 
 /**
  * Service class for handling access rights.
@@ -160,9 +159,9 @@ public class AccessRightService {
 
     /**
      * Remove access rights from one endpoint
-     * @param clientEntity clientEntity
+     * @param clientEntity   clientEntity
      * @param endpointEntity endpointEntity
-     * @param subjectIds subjectIds
+     * @param subjectIds     subjectIds
      * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
     private void deleteEndpointAccessRights(ClientEntity clientEntity,
@@ -180,9 +179,9 @@ public class AccessRightService {
      * Deleting access rights to multiple endpoints from multiple
      * subjects will probably not be used, but if it is, all endpoints have to exist for all subjects, otherwise
      * exception is thrown.
-     * @param clientEntity clientEntity
+     * @param clientEntity     clientEntity
      * @param endpointEntities endpointEntities
-     * @param subjectIds subjectIds
+     * @param subjectIds       subjectIds
      * @throws AccessRightNotFoundException if subjects did not have access rights that were attempted to be deleted
      */
     private void deleteEndpointAccessRights(ClientEntity clientEntity, List<EndpointEntity> endpointEntities,
@@ -216,12 +215,12 @@ public class AccessRightService {
      * @param fullServiceCode
      * @param subjectIds
      * @return List of {@link ServiceClient AccessRightHolderDtos}
-     * @throws ClientNotFoundException exception
-     * @throws ServiceNotFoundException if service with given fullServicecode, or the base endpoint for it,
-     * was not found
-     * @throws DuplicateAccessRightException exception
+     * @throws ClientNotFoundException        exception
+     * @throws ServiceNotFoundException       if service with given fullServicecode, or the base endpoint for it,
+     *                                        was not found
+     * @throws DuplicateAccessRightException  exception
      * @throws ServiceClientNotFoundException if a service client (local group, global group, or system) matching given
-     * subjectId did not exist
+     *                                        subjectId did not exist
      */
     public List<ServiceClient> addSoapServiceAccessRights(
             ClientId clientId,
@@ -421,7 +420,7 @@ public class AccessRightService {
 
     /**
      * Get access right holders (serviceClients) for endpoint
-     * @param clientEntity clientEntity
+     * @param clientEntity        clientEntity
      * @param accessRightEntities accessRightEntities
      * @return List<ServiceClient>
      */
@@ -437,12 +436,12 @@ public class AccessRightService {
     /**
      * Makes an {@link ServiceClient} out of {@link AccessRight}
      * @param accessRightEntity The accessRightEntity to convert from
-     * @param localGroupMap A Map containing {@link LocalGroup LocalGroup} mapped by
-     * their corresponding {@link LocalGroup#getGroupCode()}
+     * @param localGroupMap     A Map containing {@link LocalGroup LocalGroup} mapped by
+     *                          their corresponding {@link LocalGroup#getGroupCode()}
      * @return ServiceClient
      */
     ServiceClient accessRightEntityToServiceClientDto(AccessRightEntity accessRightEntity,
-                                                       Map<String, LocalGroupEntity> localGroupMap) {
+                                                      Map<String, LocalGroupEntity> localGroupMap) {
         ServiceClient serviceClient = new ServiceClient();
         XRoadId subjectId = accessRightEntity.getSubjectId();
         serviceClient.setRightsGiven(
@@ -470,7 +469,7 @@ public class AccessRightService {
 
     /**
      * Get access rights of an endpoint
-     * @param clientEntity clientEntity
+     * @param clientEntity   clientEntity
      * @param endpointEntity endpointEntity
      * @return List<AccessRightEntity>
      */
@@ -486,9 +485,9 @@ public class AccessRightService {
      * This method is not intended for use from outside, but is package protected for tests.
      * <p>
      * Note that subjectIds need to be managed entities.
-     * @param subjectIds *managed* access rights subjects to grant access for, "service clients"
+     * @param subjectIds   *managed* access rights subjects to grant access for, "service clients"
      * @param clientEntity endpoint owner
-     * @param endpoints endpoints to add access rights to
+     * @param endpoints    endpoints to add access rights to
      * @return map, key = subjectId (service client), value = list of access rights added for the subject
      * @throws DuplicateAccessRightException if trying to add existing access right
      */
@@ -522,10 +521,10 @@ public class AccessRightService {
      * Add access right for a single subject (subjectId), to a single endpoint (endpoint)
      * that belongs to client. Assumes parameters are already validated, service client objects
      * for subjectId exist
-     * @param clientEntity clientEntity
-     * @param rightsGiven rightsGiven
+     * @param clientEntity   clientEntity
+     * @param rightsGiven    rightsGiven
      * @param endpointEntity endpointEntity
-     * @param subjectId subjectId
+     * @param subjectId      subjectId
      * @return ServiceClientAccessRightDto
      * @throws DuplicateAccessRightException if access right already exists
      */
@@ -582,16 +581,16 @@ public class AccessRightService {
      */
     public static class AccessRightNotFoundException extends NotFoundException {
         public AccessRightNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
+            super(s, ACCESS_RIGHT_NOT_FOUND.build());
         }
     }
 
     /**
      * If duplicate access right was found
      */
-    public static class DuplicateAccessRightException extends ServiceException {
+    public static class DuplicateAccessRightException extends ConflictException {
         public DuplicateAccessRightException(String msg) {
-            super(msg, new ErrorDeviation(ERROR_DUPLICATE_ACCESSRIGHT));
+            super(msg, DUPLICATE_ACCESS_RIGHT.build());
         }
 
     }

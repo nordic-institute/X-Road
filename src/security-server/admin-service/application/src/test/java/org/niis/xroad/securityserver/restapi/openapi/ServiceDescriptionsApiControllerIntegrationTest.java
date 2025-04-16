@@ -31,9 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.IgnoreWarningsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionDisabledNoticeDto;
@@ -55,8 +54,8 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
@@ -107,21 +106,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         assertEquals("Out of order", serviceDescription.get().getDisabledNotice());
 
         // serviceDescriptions that do not exist
-        try {
-            serviceDescriptionsApiController.enableServiceDescription("10000");
-            fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-        }
-        try {
-            serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
-            fail("should throw ResourceNotFoundException");
-        } catch (NotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.enableServiceDescription("10000"));
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.enableServiceDescription("non-numeric-id"));
 
     }
 
     private Optional<ServiceDescriptionDto> getServiceDescription(Set<ServiceDescriptionDto> serviceDescriptions,
-                                                               String id) {
+                                                                  String id) {
         return serviceDescriptions.stream()
                 .filter(serviceDescription -> serviceDescription.getId().equals(id))
                 .findFirst();
@@ -149,16 +140,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         assertEquals("foo-notice", serviceDescription.get().getDisabledNotice());
 
         // serviceDescriptions that do not exist
-        try {
-            serviceDescriptionsApiController.enableServiceDescription("10000");
-            fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-        }
-        try {
-            serviceDescriptionsApiController.enableServiceDescription("non-numeric-id");
-            fail("should throw ResourceNotFoundException");
-        } catch (NotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.enableServiceDescription("10000"));
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.enableServiceDescription("non-numeric-id"));
 
     }
 
@@ -276,17 +259,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CODE_GET_RANDOM));
         assertTrue(serviceCodes.contains(TestUtils.SERVICE_CODE_GET_RANDOM));
 
-        try {
-            serviceDescriptionsApiController.getServiceDescription("123451");
-            fail("should throw ResourceNotFoundException to 404");
-        } catch (ResourceNotFoundException expected) {
-        }
-
-        try {
-            serviceDescriptionsApiController.getServiceDescription("ugh");
-            fail("should throw ResourceNotFoundException to 404");
-        } catch (NotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.getServiceDescription("123451"));
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.getServiceDescription("ugh"));
     }
 
     @Test
@@ -308,17 +282,8 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(0, response.getBody().size());
 
-        try {
-            serviceDescriptionsApiController.getServiceDescriptionServices("123451");
-            fail("should throw ResourceNotFoundException to 404");
-        } catch (ResourceNotFoundException expected) {
-        }
-
-        try {
-            serviceDescriptionsApiController.getServiceDescriptionServices("ugh");
-            fail("should throw ResourceNotFoundException to 404");
-        } catch (NotFoundException expected) {
-        }
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.getServiceDescription("123451"));
+        assertThrows(NotFoundException.class, () -> serviceDescriptionsApiController.getServiceDescription("ugh"));
     }
 
     private Set<String> getServiceIds(ServiceDescriptionDto serviceDescription) {

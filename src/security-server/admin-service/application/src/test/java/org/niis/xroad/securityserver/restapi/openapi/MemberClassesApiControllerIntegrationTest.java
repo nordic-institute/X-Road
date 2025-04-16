@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,7 +117,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
         try {
             memberClassesApiController.getMemberClassesForInstance("instance which does not exist");
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
             // nothing should be found
         }
     }

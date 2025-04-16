@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -77,7 +77,7 @@ public class ApiKeysController {
             PlaintextApiKeyDto createdKeyData = apiKeyService.create(roles);
             return ResponseEntity.ok(publicApiKeyDataConverter.convert(createdKeyData));
         } catch (InvalidRoleNameException e) {
-            throw new ValidationFailureException(API_KEY_INVALID_ROLE);
+            throw new BadRequestException(e, API_KEY_INVALID_ROLE.build());
         }
     }
 
@@ -93,7 +93,7 @@ public class ApiKeysController {
             PersistentApiKeyType key = apiKeyService.update(id, roles);
             return ResponseEntity.ok(publicApiKeyDataConverter.convert(key));
         } catch (InvalidRoleNameException e) {
-            throw new ValidationFailureException(API_KEY_INVALID_ROLE);
+            throw new BadRequestException(e, API_KEY_INVALID_ROLE.build());
         }
     }
 

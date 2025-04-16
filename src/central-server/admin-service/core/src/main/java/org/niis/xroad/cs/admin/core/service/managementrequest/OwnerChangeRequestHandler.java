@@ -33,8 +33,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.exception.DataIntegrityException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
@@ -61,7 +61,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.WAITING;
@@ -118,29 +117,28 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     private void validateRequest(OwnerChangeRequest request) {
         // New owner cannot be a subsystem
         if (StringUtils.isNotBlank(request.getClientId().getSubsystemCode())) {
-            throw new ValidationFailureException(MR_OWNER_MUST_BE_MEMBER);
+            throw new BadRequestException(MR_OWNER_MUST_BE_MEMBER.build());
         }
 
         final SecurityServerEntity securityServer = servers.findBy(request.getSecurityServerId())
-                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
-                        request.getSecurityServerId().toString()));
+                .orElseThrow(() -> new ConflictException(MR_SERVER_NOT_FOUND.build(request.getSecurityServerId())));
 
         // New owner must be registered as a client on the security server
         final boolean clientRegistered = securityServer.getServerClients().stream()
                 .anyMatch(serverClient -> ClientId.equals(serverClient.getSecurityServerClient().getIdentifier(), request.getClientId()));
         if (!clientRegistered) {
-            throw new ValidationFailureException(MR_OWNER_MUST_BE_CLIENT);
+            throw new BadRequestException(MR_OWNER_MUST_BE_CLIENT.build());
         }
 
         // Client cannot be the current owner of the security server
         if (ClientId.equals(securityServer.getOwner().getIdentifier(), request.getClientId())) {
-            throw new ValidationFailureException(MR_CLIENT_ALREADY_OWNER);
+            throw new BadRequestException(MR_CLIENT_ALREADY_OWNER.build());
         }
 
         // Check that server with the new server id does not exist yet
         final long count = servers.count(SecurityServerId.create(request.getClientId(), securityServer.getServerCode()));
         if (count > 0) {
-            throw new DataIntegrityException(MR_SERVER_CODE_EXISTS);
+            throw new ConflictException(MR_SERVER_CODE_EXISTS.build());
         }
     }
 
@@ -148,7 +146,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         final List<OwnerChangeRequestEntity> pendingRequests =
                 ownerChangeRequestRepository.findBy(serverId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
         if (!pendingRequests.isEmpty()) {
-            throw new DataIntegrityException(MR_EXISTS);
+            throw new ConflictException(MR_EXISTS.build());
         }
     }
 
@@ -157,17 +155,15 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         Integer requestId = request.getId();
 
         final OwnerChangeRequestEntity ownerChangeRequestEntity = ownerChangeRequestRepository.findById(requestId)
-                .orElseThrow(() -> new ValidationFailureException(MR_NOT_FOUND, valueOf(requestId)));
+                .orElseThrow(() -> new BadRequestException(MR_NOT_FOUND.build(requestId)));
 
         validateRequestStatus(ownerChangeRequestEntity, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
 
         final SecurityServerEntity securityServer = servers.findBy(ownerChangeRequestEntity.getSecurityServerId())
-                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
-                        ownerChangeRequestEntity.getSecurityServerId().toString()));
+                .orElseThrow(() -> new ConflictException(MR_SERVER_NOT_FOUND.build(ownerChangeRequestEntity.getSecurityServerId())));
 
         final XRoadMemberEntity newOwner = members.findOneBy(ownerChangeRequestEntity.getClientId())
-                .orElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
-                        ownerChangeRequestEntity.getClientId().toString()));
+                .orElseThrow(() -> new ConflictException(MR_MEMBER_NOT_FOUND.build(ownerChangeRequestEntity.getClientId())));
 
         final var currentOwner = securityServer.getOwner();
 
@@ -186,8 +182,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
     private void validateRequestStatus(OwnerChangeRequestEntity requestEntity, EnumSet<ManagementRequestStatus> allowedStatuses) {
         if (!allowedStatuses.contains(requestEntity.getProcessingStatus())) {
-            throw new ValidationFailureException(MR_INVALID_STATE_FOR_APPROVAL,
-                    valueOf(requestEntity.getId()));
+            throw new BadRequestException(MR_INVALID_STATE_FOR_APPROVAL.build(requestEntity.getId()));
         }
     }
 
@@ -215,7 +210,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
     private void updateGlobalGroups(ClientIdEntity currentOwnerIdentifier, XRoadMemberEntity newOwner) {
         var currentOwner = members.findOneBy(currentOwnerIdentifier)
-                .orElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND, currentOwnerIdentifier));
+                .orElseThrow(() -> new ConflictException(MR_MEMBER_NOT_FOUND.build(currentOwnerIdentifier)));
         if (currentOwner.getOwnedServers().isEmpty()) {
             groupMemberService.removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP,
                     MemberId.create(currentOwner.getIdentifier()));

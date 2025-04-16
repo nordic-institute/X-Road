@@ -29,8 +29,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Convert Service related data between openapi and service domain classes
@@ -80,7 +81,7 @@ public class ServiceConverter {
     /**
      * Convert a Service into Service.
      * This expects that serviceType.serviceDescription.client.endpoints has been fetched
-     * @param service service
+     * @param service  service
      * @param clientId clientId
      * @return ServiceDto
      */
@@ -123,7 +124,6 @@ public class ServiceConverter {
      * parse ClientId from encoded service id
      * @param encodedId
      * @return ClientId
-     * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId parseClientId(String encodedId) {
         validateEncodedString(encodedId);
@@ -136,7 +136,6 @@ public class ServiceConverter {
      * parse service code including version from encoded service id
      * @param encodedId
      * @return ClientId
-     * @throws BadRequestException if encoded id could not be decoded
      */
     public String parseFullServiceCode(String encodedId) {
         validateEncodedString(encodedId);
@@ -150,7 +149,7 @@ public class ServiceConverter {
         int separators = FormatUtils.countOccurences(encodedId,
                 ENCODED_ID_SEPARATOR);
         if (separators != FULL_SERVICE_CODE_INDEX) {
-            throw new BadRequestException("Invalid service id " + encodedId);
+            throw new BadRequestException("Invalid service id " + encodedId, INVALID_ENCODED_ID.build());
         }
     }
 }

@@ -28,16 +28,13 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
@@ -57,18 +54,10 @@ import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
-import org.niis.xroad.securityserver.restapi.service.ConfigurationDownloadException;
-import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
-import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
-import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.ManagementRequestSendingFailedException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
-import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.core.io.Resource;
@@ -82,8 +71,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_FILE_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_KEY_CERT_INTERRUPTED;
 
 /**
  * system api controller
@@ -139,7 +127,7 @@ public class SystemApiController implements SystemApi {
         try {
             internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_INTERNAL_KEY_CERT_INTERRUPTED));
+            throw new InternalServerErrorException(e, INTERNAL_KEY_CERT_INTERRUPTED.build());
         }
         return ControllerUtil.createCreatedResponse("/api/system/certificate", null);
     }
@@ -159,14 +147,9 @@ public class SystemApiController implements SystemApi {
     @AuditEventMethod(event = RestApiAuditEvent.ADD_TSP)
     public ResponseEntity<TimestampingServiceDto> addConfiguredTimestampingService(
             TimestampingServiceDto timestampingServiceToAdd) {
-        try {
-            systemService.addConfiguredTimestampingService(timestampingServiceConverter
-                    .convert(timestampingServiceToAdd));
-        } catch (SystemService.DuplicateConfiguredTimestampingServiceException e) {
-            throw new ConflictException(e);
-        } catch (TimestampingServiceNotFoundException e) {
-            throw new BadRequestException(e);
-        }
+
+        systemService.addConfiguredTimestampingService(timestampingServiceConverter
+                .convert(timestampingServiceToAdd));
         return new ResponseEntity<>(timestampingServiceToAdd, HttpStatus.CREATED);
     }
 
@@ -174,13 +157,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('CHANGE_SS_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS)
     public ResponseEntity<Void> addressChange(SecurityServerAddressDto securityServerAddressDto) {
-        try {
-            systemService.changeSecurityServerAddress(securityServerAddressDto.getAddress());
-        } catch (GlobalConfOutdatedException e) {
-            throw new ConflictException(e);
-        } catch (ManagementRequestSendingFailedException e) {
-            throw new InternalServerErrorException(e);
-        }
+        systemService.changeSecurityServerAddress(securityServerAddressDto.getAddress());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -200,12 +177,9 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('DELETE_TSP')")
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_TSP)
     public ResponseEntity<Void> deleteConfiguredTimestampingService(TimestampingServiceDto timestampingServiceDto) {
-        try {
-            systemService.deleteConfiguredTimestampingService(timestampingServiceConverter
-                    .convert(timestampingServiceDto));
-        } catch (TimestampingServiceNotFoundException e) {
-            throw new BadRequestException(e);
-        }
+
+        systemService.deleteConfiguredTimestampingService(timestampingServiceConverter
+                .convert(timestampingServiceDto));
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -214,12 +188,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_CSR')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_CSR)
     public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedNameDto distinguishedName) {
-        byte[] csrBytes = null;
-        try {
-            csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
-        } catch (InvalidDistinguishedNameException e) {
-            throw new BadRequestException(e);
-        }
+        byte[] csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
         return ControllerUtil.createAttachmentResourceResponse(
                 csrBytes, csrFilenameCreator.createInternalCsrFilename());
     }
@@ -237,7 +206,7 @@ public class SystemApiController implements SystemApi {
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = internalTlsCertificateService.importInternalTlsCertificate(certificateBytes);
-        } catch (InvalidCertificateException | KeyNotFoundException | CertificateAlreadyExistsException e) {
+        } catch (KeyNotFoundException e) {
             throw new BadRequestException(e);
         }
         CertificateDetailsDto certificateDetails = certificateDetailsConverter.convert(x509Certificate);
@@ -247,23 +216,16 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_ANCHOR')")
     public ResponseEntity<AnchorDto> getAnchor() {
-        try {
-            AnchorFile anchorFile = systemService.getAnchorFile();
-            return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
-        } catch (AnchorNotFoundException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_ANCHOR_FILE_NOT_FOUND));
-        }
+        AnchorFile anchorFile = systemService.getAnchorFile();
+        return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DOWNLOAD_ANCHOR')")
     public ResponseEntity<Resource> downloadAnchor() {
-        try {
-            return ControllerUtil.createAttachmentResourceResponse(systemService.readAnchorFile(),
-                    systemService.getAnchorFilenameForDownload());
-        } catch (AnchorNotFoundException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_ANCHOR_FILE_NOT_FOUND));
-        }
+
+        return ControllerUtil.createAttachmentResourceResponse(systemService.readAnchorFile(),
+                systemService.getAnchorFilenameForDownload());
     }
 
     @Override
@@ -271,14 +233,9 @@ public class SystemApiController implements SystemApi {
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_ANCHOR)
     public ResponseEntity<Void> replaceAnchor(Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
-        try {
-            systemService.replaceAnchor(anchorBytes);
-        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
-            throw new BadRequestException(e);
-        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
-                 | ConfigurationVerifier.ConfigurationVerificationException e) {
-            throw new InternalServerErrorException(e, e.getErrorDeviation(), e.getWarningDeviations());
-        }
+
+        systemService.replaceAnchor(anchorBytes);
+
         return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
     }
 
@@ -286,12 +243,8 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('UPLOAD_ANCHOR')")
     public ResponseEntity<AnchorDto> previewAnchor(Boolean verifyInstance, Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
-        AnchorFile anchorFile = null;
-        try {
-            anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, verifyInstance);
-        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
-            throw new BadRequestException(e);
-        }
+        AnchorFile anchorFile = systemService.getAnchorFileFromBytes(anchorBytes, verifyInstance);
+
         return new ResponseEntity<>(anchorConverter.convert(anchorFile), HttpStatus.OK);
     }
 
@@ -306,16 +259,9 @@ public class SystemApiController implements SystemApi {
     @AuditEventMethod(event = RestApiAuditEvent.INIT_ANCHOR)
     public ResponseEntity<Void> uploadInitialAnchor(Resource anchorResource) {
         byte[] anchorBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(anchorResource);
-        try {
-            systemService.uploadInitialAnchor(anchorBytes);
-        } catch (SystemService.InvalidAnchorInstanceException | SystemService.MalformedAnchorException e) {
-            throw new BadRequestException(e);
-        } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
-                 | ConfigurationVerifier.ConfigurationVerificationException e) {
-            throw new InternalServerErrorException(e);
-        } catch (SystemService.AnchorAlreadyExistsException e) {
-            throw new ConflictException(e);
-        }
+
+        systemService.uploadInitialAnchor(anchorBytes);
+
         return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
     }
 

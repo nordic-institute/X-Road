@@ -34,17 +34,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
+import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.repository.AccessRightRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
@@ -86,16 +86,16 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CLIENT_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_DELETE_OWNER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_MAKE_OWNER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_REGISTER_OWNER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_UNREGISTER_OWNER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_ALREADY_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ADDITIONAL_MEMBER_ALREADY_EXISTS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CANNOT_DELETE_OWNER;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CANNOT_MAKE_OWNER;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CANNOT_REGISTER_OWNER;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CANNOT_UNREGISTER_OWNER;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CLIENT_ALREADY_EXISTS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CLIENT_RENAME_ALREADY_SUBMITTED;
 import static org.niis.xroad.securityserver.restapi.util.ClientUtils.doesSupportSubsystemNames;
 import static org.niis.xroad.serverconf.model.Client.STATUS_DELINPROG;
 import static org.niis.xroad.serverconf.model.Client.STATUS_DISABLED;
@@ -291,9 +291,9 @@ public class ClientService {
      * @param id
      * @param certBytes either PEM or DER -encoded certificate
      * @return created Certificate with id populated
-     * @throws CertificateException if certBytes was not a valid PEM or DER encoded certificate
+     * @throws CertificateException              if certBytes was not a valid PEM or DER encoded certificate
      * @throws CertificateAlreadyExistsException if certificate already exists
-     * @throws ClientNotFoundException if client was not found
+     * @throws ClientNotFoundException           if client was not found
      */
     public Certificate addTlsCertificate(ClientId id, byte[] certBytes)
             throws CertificateException, CertificateAlreadyExistsException, ClientNotFoundException {
@@ -460,12 +460,12 @@ public class ClientService {
     private List<Client> subtractLocalFromGlobalClients(List<ClientEntity> globalClients,
                                                         List<ClientEntity> localClients) {
         List<String> localClientIds = localClients.stream().map(localClient ->
-                localClient.getIdentifier().toShortString()).collect(Collectors.toList());
+                localClient.getIdentifier().toShortString()).toList();
 
         return ClientMapper.get().toTargets(
                 globalClients.stream()
-                .filter(globalClient -> !localClientIds.contains(globalClient.getIdentifier().toShortString()))
-                .toList()
+                        .filter(globalClient -> !localClientIds.contains(globalClient.getIdentifier().toShortString()))
+                        .toList()
         );
     }
 
@@ -511,15 +511,12 @@ public class ClientService {
         if (!client.getClientStatus().equals(Client.STATUS_SAVED)) {
             throw new ActionNotPossibleException("Only clients with status 'saved' can be registered");
         }
-        try {
-            Integer requestId = managementRequestSenderService.sendClientRegisterRequest(clientId, subsystemName);
-            subsystemNameStatus.submit(clientId);
-            client.setClientStatus(Client.STATUS_REGINPROG);
-            putClientStatusToAudit(client);
-            auditDataHelper.putManagementRequestId(requestId);
-        } catch (ManagementRequestSendingFailedException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+
+        Integer requestId = managementRequestSenderService.sendClientRegisterRequest(clientId, subsystemName);
+        subsystemNameStatus.submit(clientId);
+        client.setClientStatus(Client.STATUS_REGINPROG);
+        putClientStatusToAudit(client);
+        auditDataHelper.putManagementRequestId(requestId);
     }
 
     private void putClientStatusToAudit(ClientEntity clientEntity) {
@@ -552,14 +549,11 @@ public class ClientService {
         if (clientId.equals(ownerId)) {
             throw new CannotUnregisterOwnerException();
         }
-        try {
-            Integer requestId = managementRequestSenderService.sendClientUnregisterRequest(clientId);
-            putClientStatusToAudit(client);
-            auditDataHelper.putManagementRequestId(requestId);
-            client.setClientStatus(STATUS_DELINPROG);
-        } catch (ManagementRequestSendingFailedException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+
+        Integer requestId = managementRequestSenderService.sendClientUnregisterRequest(clientId);
+        putClientStatusToAudit(client);
+        auditDataHelper.putManagementRequestId(requestId);
+        client.setClientStatus(STATUS_DELINPROG);
     }
 
     /**
@@ -590,12 +584,9 @@ public class ClientService {
             throw new ActionNotPossibleException("Only member with status 'registered' can become owner");
         }
 
-        try {
-            Integer requestId = managementRequestSenderService.sendOwnerChangeRequest(clientId);
-            auditDataHelper.putManagementRequestId(requestId);
-        } catch (ManagementRequestSendingFailedException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+        Integer requestId = managementRequestSenderService.sendOwnerChangeRequest(clientId);
+        auditDataHelper.putManagementRequestId(requestId);
+
     }
 
     /**
@@ -614,14 +605,11 @@ public class ClientService {
         if (!STATUS_REGISTERED.equals(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot disable client with status " + client.getClientStatus());
         }
-        try {
-            Integer requestId = managementRequestSenderService.sendClientDisableRequest(clientId);
-            putClientStatusToAudit(client);
-            auditDataHelper.putManagementRequestId(requestId);
-            client.setClientStatus(STATUS_DISABLING_INPROG);
-        } catch (ManagementRequestSendingFailedException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+
+        Integer requestId = managementRequestSenderService.sendClientDisableRequest(clientId);
+        putClientStatusToAudit(client);
+        auditDataHelper.putManagementRequestId(requestId);
+        client.setClientStatus(STATUS_DISABLING_INPROG);
     }
 
     /**
@@ -640,14 +628,11 @@ public class ClientService {
         if (!STATUS_DISABLED.equals(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot enable client with status " + client.getClientStatus());
         }
-        try {
-            Integer requestId = managementRequestSenderService.sendClientEnableRequest(clientId);
-            putClientStatusToAudit(client);
-            auditDataHelper.putManagementRequestId(requestId);
-            client.setClientStatus(STATUS_ENABLING_INPROG);
-        } catch (ManagementRequestSendingFailedException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
-        }
+
+        Integer requestId = managementRequestSenderService.sendClientEnableRequest(clientId);
+        putClientStatusToAudit(client);
+        auditDataHelper.putManagementRequestId(requestId);
+        client.setClientStatus(STATUS_ENABLING_INPROG);
     }
 
 
@@ -748,7 +733,7 @@ public class ClientService {
                                  String subsystemName,
                                  IsAuthentication isAuthentication,
                                  boolean ignoreWarnings) throws ClientAlreadyExistsException, AdditionalMemberAlreadyExistsException,
-                                                                    UnhandledWarningsException, InvalidMemberClassException {
+                                                                UnhandledWarningsException, InvalidMemberClassException {
 
         return ClientMapper.get().toTarget(
                 addLocalClientEntity(memberClass, memberCode, subsystemCode, subsystemName, isAuthentication, ignoreWarnings));
@@ -760,8 +745,9 @@ public class ClientService {
                                              String subsystemCode,
                                              String subsystemName,
                                              IsAuthentication isAuthentication,
-                                             boolean ignoreWarnings) throws ClientAlreadyExistsException,
-            AdditionalMemberAlreadyExistsException, UnhandledWarningsException, InvalidMemberClassException {
+                                             boolean ignoreWarnings)
+            throws ClientAlreadyExistsException, AdditionalMemberAlreadyExistsException,
+                   UnhandledWarningsException, InvalidMemberClassException {
 
         if (!isValidMemberClass(memberClass)) {
             throw new InvalidMemberClassException(INVALID_MEMBER_CLASS + memberClass);
@@ -905,7 +891,7 @@ public class ClientService {
 
         var currentName = globalConfProvider.getSubsystemName(client.getIdentifier());
         if (StringUtils.equals(subsystemName, currentName)) {
-            throw new ConflictException("Can not change to the same name.");
+            throw new ConflictException("Can not change to the same name.", INVALID_CLIENT_NAME.build());
         }
 
         switch (client.getClientStatus()) {
@@ -913,14 +899,15 @@ public class ClientService {
             case STATUS_REGISTERED -> {
                 try {
                     if (subsystemNameStatus.isSubmitted(client.getIdentifier())) {
-                        throw new ConflictException("Subsystem rename change request already submitted.");
+                        throw new ConflictException("Subsystem rename change request already submitted.",
+                                CLIENT_RENAME_ALREADY_SUBMITTED.build());
                     }
 
                     Integer requestId = managementRequestSenderService.sendClientRenameRequest(clientId, subsystemName);
                     subsystemNameStatus.submit(client.getIdentifier(), currentName, subsystemName);
                     auditDataHelper.putManagementRequestId(requestId);
                 } catch (ManagementRequestSendingFailedException e) {
-                    throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+                    throw new InternalServerErrorException(e);
                 }
             }
             case null, default -> throw new ActionNotPossibleException("Only clients in status save or registered can be renamed.");
@@ -931,18 +918,18 @@ public class ClientService {
      * Thrown when someone attempted to delete client who is this security
      * server's owner member
      */
-    public static class CannotDeleteOwnerException extends ServiceException {
+    public static class CannotDeleteOwnerException extends ConflictException {
         public CannotDeleteOwnerException() {
-            super(new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
+            super(CANNOT_DELETE_OWNER.build());
         }
     }
 
     /**
      * Thrown when client that already exists in server conf was tried to add
      */
-    public static class ClientAlreadyExistsException extends ServiceException {
+    public static class ClientAlreadyExistsException extends ConflictException {
         public ClientAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ERROR_CLIENT_ALREADY_EXISTS));
+            super(s, CLIENT_ALREADY_EXISTS.build());
         }
     }
 
@@ -950,36 +937,36 @@ public class ClientService {
      * Thrown when someone tries to add another member, and an additional member besides
      * the owner member already exists (there can only be owner member + one additional member)
      */
-    public static class AdditionalMemberAlreadyExistsException extends ServiceException {
+    public static class AdditionalMemberAlreadyExistsException extends ConflictException {
         public AdditionalMemberAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS));
+            super(s, ADDITIONAL_MEMBER_ALREADY_EXISTS.build());
         }
     }
 
     /**
      * Thrown when trying to register the owner member
      */
-    public static class CannotRegisterOwnerException extends ServiceException {
+    public static class CannotRegisterOwnerException extends BadRequestException {
         public CannotRegisterOwnerException() {
-            super(new ErrorDeviation(ERROR_CANNOT_REGISTER_OWNER));
+            super(CANNOT_REGISTER_OWNER.build());
         }
     }
 
     /**
      * Thrown when trying to unregister the security server owner
      */
-    public static class CannotUnregisterOwnerException extends ServiceException {
+    public static class CannotUnregisterOwnerException extends ConflictException {
         public CannotUnregisterOwnerException() {
-            super(new ErrorDeviation(ERROR_CANNOT_UNREGISTER_OWNER));
+            super(CANNOT_UNREGISTER_OWNER.build());
         }
     }
 
     /**
      * Thrown when trying to make the current owner the new owner
      */
-    public static class MemberAlreadyOwnerException extends ServiceException {
+    public static class MemberAlreadyOwnerException extends BadRequestException {
         public MemberAlreadyOwnerException() {
-            super(new ErrorDeviation(ERROR_CANNOT_MAKE_OWNER));
+            super(CANNOT_MAKE_OWNER.build());
         }
     }
 
@@ -987,18 +974,18 @@ public class ClientService {
      * Thrown when client has an invalid member class, meaning that the member class that is not defined
      * in this instance's configuration
      */
-    public static class InvalidMemberClassException extends ServiceException {
+    public static class InvalidMemberClassException extends BadRequestException {
         public InvalidMemberClassException(String s) {
-            super(s, new ErrorDeviation(ERROR_INVALID_MEMBER_CLASS));
+            super(s, ErrorMessage.INVALID_MEMBER_CLASS.build());
         }
     }
 
     /**
      * Thrown when client's instance identifier does not match with the current instance identifier'
      */
-    public static class InvalidInstanceIdentifierException extends ServiceException {
+    public static class InvalidInstanceIdentifierException extends BadRequestException {
         public InvalidInstanceIdentifierException(String s) {
-            super(s, new ErrorDeviation(ERROR_INVALID_INSTANCE_IDENTIFIER));
+            super(s, ErrorMessage.INVALID_INSTANCE_IDENTIFIER.build());
         }
     }
 

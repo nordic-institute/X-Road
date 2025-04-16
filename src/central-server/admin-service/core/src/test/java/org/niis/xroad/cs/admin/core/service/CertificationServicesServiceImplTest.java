@@ -176,7 +176,7 @@ class CertificationServicesServiceImplTest {
 
         assertThatThrownBy(() -> service.delete(ID))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Certification service not found.");
+                .hasMessage("Error[code=certification_service_not_found]");
 
         verify(auditDataHelper).put(CA_ID, ID);
     }

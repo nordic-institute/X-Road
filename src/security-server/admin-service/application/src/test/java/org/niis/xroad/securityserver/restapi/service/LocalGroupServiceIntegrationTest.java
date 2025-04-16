@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 /**
  * test LocalGroupService
@@ -82,11 +82,7 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     public void addDuplicateLocalGroup() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
         LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
-        try {
-            localGroupService.addLocalGroup(id, localGroup);
-            fail("should have thrown DuplicateLocalGroupCodeException");
-        } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
-        }
+        assertThrows(LocalGroupService.DuplicateLocalGroupCodeException.class, () -> localGroupService.addLocalGroup(id, localGroup));
     }
 
     @Test

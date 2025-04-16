@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.common.backup.service.BackupValidator;
 
 import java.io.IOException;
@@ -74,9 +74,10 @@ class BackupRepositoryTest {
 
     @Test
     void fileExistsShouldFailOnRelativePathName() throws IOException {
-        assertThatThrownBy(() -> repository.fileExists("../secret/folder/file.txt"))
-                .isInstanceOf(ServiceException.class)
-                .hasMessage("Invalid filename");
+        var filename = "../secret/folder/file.txt";
+        assertThatThrownBy(() -> repository.fileExists(filename))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=invalid_filename, metadata=[%s]]".formatted(filename));
     }
 
 }

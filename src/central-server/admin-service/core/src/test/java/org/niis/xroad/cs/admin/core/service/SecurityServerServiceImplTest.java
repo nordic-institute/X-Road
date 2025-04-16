@@ -219,7 +219,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThatThrownBy(() -> securityServerService.findClients(serverId))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Security server not found");
+                    .hasMessage("Error[code=security_server_not_found, metadata=[serverId]]");
 
             verifyNoInteractions(clientService);
         }
@@ -369,7 +369,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThatThrownBy(() -> securityServerService.delete(id))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Security server not found");
+                    .hasMessage("Error[code=security_server_not_found, metadata=[SERVER:INSTANCE/CLASS/MEMBER/SERVER-CODE]]");
 
             verifyAudit();
             verifyNoMoreInteractions(securityServerRepository);
@@ -407,7 +407,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThatThrownBy(() -> securityServerService.deleteAuthCertificate(securityServerId, certificateId))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Security server not found");
+                    .hasMessage("Error[code=security_server_not_found, metadata=[SERVER:INSTANCE/CLASS/CODE/SERVER-CODE]]");
 
             verify(auditDataHelper).put(OWNER_CLASS, memberClass);
             verify(auditDataHelper).put(OWNER_CODE, memberCode);
@@ -424,7 +424,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThatThrownBy(() -> securityServerService.deleteAuthCertificate(securityServerId, certificateId))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Authentication certificate not found");
+                    .hasMessage("Error[code=ss_auth_certificate_not_found]");
 
             verify(auditDataHelper).put(OWNER_CLASS, memberClass);
             verify(auditDataHelper).put(OWNER_CODE, memberCode);
@@ -442,7 +442,7 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
             assertThatThrownBy(() -> securityServerService.deleteAuthCertificate(securityServerId, certificateId))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Authentication certificate not found");
+                    .hasMessage("Error[code=ss_auth_certificate_not_found]");
 
             verify(auditDataHelper).put(OWNER_CLASS, memberClass);
             verify(auditDataHelper).put(OWNER_CODE, memberCode);

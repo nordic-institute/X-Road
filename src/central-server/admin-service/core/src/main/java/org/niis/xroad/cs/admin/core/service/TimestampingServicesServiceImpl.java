@@ -108,7 +108,7 @@ public class TimestampingServicesServiceImpl implements TimestampingServicesServ
 
     private ApprovedTsaEntity getApprovedTsaEntity(Integer id) {
         return approvedTsaRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(TIMESTAMPING_AUTHORITY_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(TIMESTAMPING_AUTHORITY_NOT_FOUND.build()));
     }
 
     private void addDeleteAuditMessages(ApprovedTsaEntity approvedTsaEntity) {

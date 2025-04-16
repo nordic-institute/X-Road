@@ -30,8 +30,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -88,13 +88,13 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
         assertEquals(SERVER_ADDRESS, securityServer.getServerAddress());
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void getSecurityServerNoMatch() {
         securityServersApiController.getSecurityServer("XRD2:GOV:M4:server-does-not-exist");
     }
 
-    @Test(expected = ValidationFailureException.class)
+    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void getSecurityServerBadRequest() {
         securityServersApiController.getSecurityServer("XRD2:GOV:M4:server:somethingExtra");

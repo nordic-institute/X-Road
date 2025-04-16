@@ -61,7 +61,7 @@ public class ConfigurationSourceAnchorsController implements ConfigurationSource
     public ResponseEntity<Resource> downloadAnchor(ConfigurationTypeDto configurationType) {
         final var sourceType = ConfigurationSourceType.valueOf(configurationType.getValue());
         final var configurationAnchor = configurationAnchorService.getConfigurationAnchorWithFile(sourceType)
-                .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(CONFIGURATION_NOT_FOUND.build()));
 
         return createAttachmentResourceResponse(
                 configurationAnchor.getAnchorFile(),

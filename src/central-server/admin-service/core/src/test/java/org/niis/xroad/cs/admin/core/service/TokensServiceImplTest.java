@@ -34,10 +34,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.common.exception.SignerProxyException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
@@ -109,8 +109,8 @@ class TokensServiceImplTest {
         doThrow(new SignerException("Error")).when(signerProxyFacade).getTokens();
 
         assertThatThrownBy(() -> tokensService.getTokens())
-                .isInstanceOf(ServiceException.class)
-                .hasMessage("Error getting tokens");
+                .isInstanceOf(InternalServerErrorException.class)
+                .hasMessage("Error[code=token_fetch_failed]");
     }
 
     @Test
@@ -119,7 +119,7 @@ class TokensServiceImplTest {
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Token not found");
+                .hasMessage("Error[code=token_not_found]");
     }
 
     @Test
@@ -129,8 +129,8 @@ class TokensServiceImplTest {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(signerTokenInfo);
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Token PIN locked");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=token_pin_locked]");
 
         assertAuditMessages();
     }
@@ -141,8 +141,8 @@ class TokensServiceImplTest {
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Tries left: 1");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=token_pin_final_try]");
         assertAuditMessages();
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
     }
@@ -153,8 +153,8 @@ class TokensServiceImplTest {
         doThrow(new CodedException("")).when(signerProxyFacade).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Token PIN locked");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=token_pin_locked]");
         assertAuditMessages();
         verify(signerProxyFacade, times(2)).getToken(TOKEN_ID);
     }
@@ -166,7 +166,7 @@ class TokensServiceImplTest {
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(SignerProxyException.class)
-                .hasMessage("Token activation failed");
+                .hasMessage("Error[code=token_activation_failed, metadata=[Signer.Error]]");
         assertAuditMessages();
     }
 
@@ -176,8 +176,8 @@ class TokensServiceImplTest {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Incorrect PIN format");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=token_incorrect_pin_format]");
 
         assertAuditMessages();
     }
@@ -188,8 +188,8 @@ class TokensServiceImplTest {
         when(signerProxyFacade.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(tokenParams));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Incorrect PIN format");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=token_incorrect_pin_format]");
 
         assertAuditMessages();
     }
@@ -232,7 +232,7 @@ class TokensServiceImplTest {
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessage("Token not found");
+                .hasMessage("Error[code=token_not_found]");
     }
 
     @Test
@@ -241,7 +241,7 @@ class TokensServiceImplTest {
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(SignerProxyException.class)
-                .hasMessage("Signer proxy exception");
+                .hasMessage("Error[code=signer_proxy_error, metadata=[Signer.Error]]");
     }
 
     @Test
@@ -252,7 +252,7 @@ class TokensServiceImplTest {
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(SignerProxyException.class)
-                .hasMessage("Token deactivation failed");
+                .hasMessage("Error[code=token_deactivation_failed]");
         assertAuditMessages();
     }
 
