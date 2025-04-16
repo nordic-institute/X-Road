@@ -53,7 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.Instant.ofEpochMilli;
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DIAGNOSTIC_REQUEST_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 @Slf4j
@@ -80,7 +80,7 @@ public class DiagnosticService {
                     status.getDescription());
 
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
@@ -91,8 +91,8 @@ public class DiagnosticService {
     public Set<DiagnosticsStatus> queryTimestampingStatus() {
         log.info("Query timestamper status");
 
-        Map<String, DiagnosticsStatus> response = proxyRpcClient.getTimestampingStatus();
-
+        try {
+            Map<String, DiagnosticsStatus> response = proxyRpcClient.getTimestampingStatus();
             return Objects.requireNonNull(response)
                     .entrySet().stream()
                     .map(diagnosticsStatusEntry -> {
@@ -101,7 +101,7 @@ public class DiagnosticService {
                         return diagnosticsStatus;
                     }).collect(Collectors.toSet());
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
@@ -111,8 +111,8 @@ public class DiagnosticService {
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
-
-        CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
+        try {
+            CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
 
             return Objects.requireNonNull(response)
                     .getCertificationServiceStatusMap()
@@ -120,9 +120,9 @@ public class DiagnosticService {
                     .stream()
                     .map(this::parseOcspResponderDiagnosticsStatus)
                     .toList();
-        } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e.getMessage(),
-                    new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+        } catch (
+                Exception e) {
+            throw new DeviationAwareRuntimeException(e.getMessage(), e, buildErrorDiagnosticRequestFailed());
         }
     }
 
@@ -134,7 +134,7 @@ public class DiagnosticService {
         try {
             return proxyRpcClient.getAddOnStatus();
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
@@ -146,7 +146,7 @@ public class DiagnosticService {
         try {
             return proxyRpcClient.getBackupEncryptionStatus();
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
@@ -158,20 +158,19 @@ public class DiagnosticService {
         try {
             return proxyRpcClient.getMessageLogEncryptionStatus();
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
     /**
      * Query proxy memory usage from admin port over HTTP.
-     *
      * @return ProxyMemory
      */
     public ProxyMemory queryProxyMemoryUsage() {
         try {
             return proxyRpcClient.getProxyMemoryStatus();
         } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+            throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
     }
 
@@ -197,6 +196,10 @@ public class DiagnosticService {
         status.setOcspResponderStatusMap(statuses);
 
         return status;
+    }
+
+    private ErrorDeviation buildErrorDiagnosticRequestFailed() {
+        return new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED);
     }
 
 }

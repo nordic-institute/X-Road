@@ -51,8 +51,6 @@ public class ProxyAdminPortConfig {
 
         adminPort.init();
 
-        addMemoryUsageHandler(adminPort);
-
         return adminPort;
     }
 

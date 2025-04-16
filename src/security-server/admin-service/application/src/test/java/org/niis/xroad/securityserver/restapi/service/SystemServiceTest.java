@@ -38,10 +38,11 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
@@ -63,6 +64,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MISSING_PRIVATE_PARAMS;
 import static org.niis.xroad.restapi.service.ConfigurationVerifier.EXIT_STATUS_MISSING_PRIVATE_PARAMS;
 
 @RunWith(MockitoJUnitRunner.class)
