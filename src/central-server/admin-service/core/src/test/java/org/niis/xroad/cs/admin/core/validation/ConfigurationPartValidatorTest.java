@@ -31,7 +31,7 @@ import ee.ria.xroad.common.CodedException;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.extension.OcspFetchIntervalSchemaValidator;
 import org.niis.xroad.globalconf.extension.OcspNextUpdateSchemaValidator;
 import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
@@ -70,8 +70,8 @@ class ConfigurationPartValidatorTest {
                     .thenThrow(new CodedException("code"));
 
             assertThatThrownBy(() -> configurationPartValidator.validate(CONTENT_ID_MONITORING, FILE_DATA))
-                    .isExactlyInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Configuration part validation failed");
+                    .isExactlyInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=configuration_part_validation_failed]");
         }
     }
 
@@ -95,8 +95,8 @@ class ConfigurationPartValidatorTest {
                     .thenThrow(new CodedException("code"));
 
             assertThatThrownBy(() -> configurationPartValidator.validate(CONTENT_ID_MONITORING, FILE_DATA))
-                    .isExactlyInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Configuration part validation failed");
+                    .isExactlyInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=configuration_part_validation_failed]");
         }
     }
 
@@ -119,16 +119,16 @@ class ConfigurationPartValidatorTest {
                     .thenThrow(new CodedException("code"));
 
             assertThatThrownBy(() -> configurationPartValidator.validate(CONTENT_ID_MONITORING, FILE_DATA))
-                    .isExactlyInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Configuration part validation failed");
+                    .isExactlyInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=configuration_part_validation_failed]");
         }
     }
 
     @Test
     void validateUnknownPartShouldFail() {
         assertThatThrownBy(() -> configurationPartValidator.validate("UNKNOWN-CONTENT-ID", FILE_DATA))
-                .isExactlyInstanceOf(ValidationFailureException.class)
-                .hasMessage("Configuration part validation failed");
+                .isExactlyInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=configuration_part_validation_failed]");
     }
 
 }

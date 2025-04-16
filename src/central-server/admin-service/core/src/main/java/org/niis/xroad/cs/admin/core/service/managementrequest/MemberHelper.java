@@ -41,6 +41,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NO
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
+import static org.niis.xroad.restapi.exceptions.DeviationBuilder.trMetadata;
 
 @Component
 @RequiredArgsConstructor
@@ -64,7 +65,7 @@ public class MemberHelper {
 
         var memberId = memberIds.findOrCreate(MemberIdEntity.ensure(clientId));
         var memberClass = memberClassRepository.findByCode(memberId.getMemberClass())
-                .orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberId.getMemberClass()));
+                .orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND.build(trMetadata("code", memberId.getMemberClass()))));
         return xRoadMemberRepository.save(new XRoadMemberEntity(memberId.getMemberCode(), memberId, memberClass));
     }
 }

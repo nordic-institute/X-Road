@@ -53,7 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.Instant.ofEpochMilli;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DIAGNOSTIC_REQUEST_FAILED;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 @Slf4j
@@ -69,7 +69,6 @@ public class DiagnosticService {
 
     /**
      * Query global configuration status.
-     *
      * @return
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
@@ -87,13 +86,12 @@ public class DiagnosticService {
 
     /**
      * Query timestamping services status.
-     *
      * @return
      */
     public Set<DiagnosticsStatus> queryTimestampingStatus() {
         log.info("Query timestamper status");
-        try {
-            Map<String, DiagnosticsStatus> response = proxyRpcClient.getTimestampingStatus();
+
+        Map<String, DiagnosticsStatus> response = proxyRpcClient.getTimestampingStatus();
 
             return Objects.requireNonNull(response)
                     .entrySet().stream()
@@ -109,13 +107,12 @@ public class DiagnosticService {
 
     /**
      * Query ocsp responders status.
-     *
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
-        try {
-            CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
+
+        CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
 
             return Objects.requireNonNull(response)
                     .getCertificationServiceStatusMap()
@@ -131,7 +128,6 @@ public class DiagnosticService {
 
     /**
      * Query proxy addons status.
-     *
      * @return
      */
     public AddOnStatusDiagnostics queryAddOnStatus() {
@@ -144,7 +140,6 @@ public class DiagnosticService {
 
     /**
      * Query proxy backup encryption status.
-     *
      * @return BackupEncryptionStatusDiagnostics
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
@@ -157,7 +152,6 @@ public class DiagnosticService {
 
     /**
      * Query proxy message log encryption status.
-     *
      * @return MessageLogEncryptionStatusDiagnostics
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
@@ -184,7 +178,6 @@ public class DiagnosticService {
     /**
      * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
      * of the certificate authority
-     *
      * @param entry
      * @return
      */

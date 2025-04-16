@@ -29,13 +29,12 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ValidationException;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.globalconf.model.MemberInfo;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
@@ -58,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -112,16 +112,15 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         assertEquals("/foo", endpoint.getPath());
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteEndpointNotExist() {
         endpointsApiController.deleteEndpoint(NO_SUCH_ENDPOINT_ID);
     }
 
-    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"DELETE_ENDPOINT"})
     public void deleteGeneratedEndpoint() {
-        endpointsApiController.deleteEndpoint("10");
+        assertThrows(ValidationException.class, () -> endpointsApiController.deleteEndpoint("10"));
     }
 
     @Test
@@ -134,13 +133,12 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         assertTrue(client.getAccessRights().size() < aclCount);
     }
 
-    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"EDIT_OPENAPI3_ENDPOINT"})
     public void updateGeneratedEndpoint() {
         EndpointUpdateDto pathAndMethod = new EndpointUpdateDto();
         pathAndMethod.setMethod(EndpointUpdateDto.MethodEnum.STAR);
         pathAndMethod.setPath("/test");
-        endpointsApiController.updateEndpoint("10", pathAndMethod);
+        assertThrows(ValidationException.class, () -> endpointsApiController.updateEndpoint("10", pathAndMethod));
     }
 
     @Test(expected = ConstraintViolationException.class)
@@ -204,7 +202,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         assertTrue(serviceClients.stream().anyMatch(sc -> "2".equals(sc.getId())));
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test(expected = NotFoundException.class)
     @WithMockUser(authorities = {"EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL"})
     public void removeInexistingEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());

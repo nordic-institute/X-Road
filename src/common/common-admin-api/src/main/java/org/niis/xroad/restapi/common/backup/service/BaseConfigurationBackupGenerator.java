@@ -31,18 +31,15 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_FAILED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_GENERATION_FAILED;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -58,7 +55,6 @@ public abstract class BaseConfigurationBackupGenerator {
 
     /**
      * Generate a new backup file
-     *
      * @return
      * @throws InterruptedException if the thread the backup process is interrupted and the backup fails. <b>The
      *                              interrupted thread has already been handled with so you can choose to ignore this exception if you
@@ -81,12 +77,12 @@ public abstract class BaseConfigurationBackupGenerator {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_BACKUP_GENERATION_FAILED));
+            throw new InternalServerErrorException(e, BACKUP_GENERATION_FAILED.build());
         }
 
         Optional<BackupFile> backupFile = backupService.getBackup(filename);
         if (backupFile.isEmpty()) {
-            throw new ServiceException(BACKUP_GENERATION_FAILED);
+            throw new InternalServerErrorException(BACKUP_GENERATION_FAILED.build());
         }
         return backupFile.get();
     }

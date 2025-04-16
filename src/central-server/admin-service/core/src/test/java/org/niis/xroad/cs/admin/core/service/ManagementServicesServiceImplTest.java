@@ -37,8 +37,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.MemberClass;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -138,7 +138,6 @@ class ManagementServicesServiceImplTest {
             var serverClient = new ServerClient();
             serverClient.setServerId(SecurityServerId.create(serviceProviderClientId, "SS0"));
             when(subsystem.getServerClients()).thenReturn(Set.of(serverClient));
-
 
             var result = managementServicesService.getManagementServicesConfiguration();
 
@@ -261,8 +260,8 @@ class ManagementServicesServiceImplTest {
             when(systemParameterService.getManagementServiceProviderId()).thenReturn(null);
 
             assertThatThrownBy(() -> managementServicesService.registerManagementServicesSecurityServer(securityServerId))
-                    .isInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Management service provider not set");
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=management_service_provider_not_set]");
         }
 
         @Test
@@ -272,8 +271,8 @@ class ManagementServicesServiceImplTest {
             when(securityServerClientEntity.getServerClients()).thenReturn(Set.of(mock(ServerClientEntity.class)));
 
             assertThatThrownBy(() -> managementServicesService.registerManagementServicesSecurityServer(securityServerId))
-                    .isInstanceOf(ValidationFailureException.class)
-                    .hasMessage("Subsystem is already registered to the security server.");
+                    .isInstanceOf(BadRequestException.class)
+                    .hasMessage("Error[code=subsystem_already_registered_to_security_server]");
 
             verify(auditData).put(SERVER_CODE, securityServerId.getServerCode());
             verify(auditData).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());

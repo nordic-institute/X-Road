@@ -34,8 +34,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
@@ -174,7 +174,7 @@ class CentralServerConfigurationRestorationServiceTest {
                 "-f", FormatUtils.encodeStringToBase64(configurationBackupPath + backupFileName))
         ).thenThrow(new ProcessFailedException("message"));
 
-        assertThrows(ServiceException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
+        assertThrows(InternalServerErrorException.class, () -> configurationRestorationService.restoreFromBackup(backupFileName));
 
         verify(auditDataHelper).putBackupFilename(Paths.get(configurationBackupPath + backupFileName));
         verify(eventPublisher).publishEvent(BackupRestoreEvent.START);

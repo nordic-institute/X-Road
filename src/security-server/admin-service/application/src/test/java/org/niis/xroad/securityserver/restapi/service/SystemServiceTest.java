@@ -41,8 +41,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
@@ -59,6 +57,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -121,8 +120,8 @@ public class SystemServiceTest {
     }
 
     @Test
-    public void addConfiguredTimestampingService() throws
-            SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
+    public void addConfiguredTimestampingService()
+            throws SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
 
         assertEquals(1, serverConfService.getConfiguredTimestampingServiceEntities().size());
@@ -136,27 +135,18 @@ public class SystemServiceTest {
 
     @Test
     public void addConfiguredTimestampingServiceNonApproved() throws
-            SystemService.DuplicateConfiguredTimestampingServiceException {
+                                                              SystemService.DuplicateConfiguredTimestampingServiceException {
         TimestampingService timestampingService = TestUtils.createTspType("http://test.com", "TSA 3");
 
-        try {
-            systemService.addConfiguredTimestampingService(timestampingService);
-            fail("should throw TimestampingServiceNotFoundException");
-        } catch (TimestampingServiceNotFoundException expected) {
-            // success
-        }
+        assertThrows(TimestampingServiceNotFoundException.class, () -> systemService.addConfiguredTimestampingService(timestampingService));
     }
 
     @Test
     public void addConfiguredTimestampingServiceDuplicate() throws TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTspType(TSA_1_URL, TSA_1_NAME);
 
-        try {
-            systemService.addConfiguredTimestampingService(timestampingService);
-            fail("should throw DuplicateConfiguredTimestampingServiceException");
-        } catch (SystemService.DuplicateConfiguredTimestampingServiceException expected) {
-            // success
-        }
+        assertThrows(SystemService.DuplicateConfiguredTimestampingServiceException.class,
+                () -> systemService.addConfiguredTimestampingService(timestampingService));
     }
 
     @Test
@@ -174,12 +164,8 @@ public class SystemServiceTest {
     public void deleteConfiguredTimestampingServiceNonExisting() {
         TimestampingService timestampingService = TestUtils.createTspType(TSA_2_URL, TSA_2_NAME);
 
-        try {
-            systemService.deleteConfiguredTimestampingService(timestampingService);
-            fail("should throw TimestampingServiceNotFoundException");
-        } catch (TimestampingServiceNotFoundException expected) {
-            // success
-        }
+        assertThrows(TimestampingServiceNotFoundException.class,
+                () -> systemService.deleteConfiguredTimestampingService(timestampingService));
     }
 
     @Test
@@ -219,9 +205,8 @@ public class SystemServiceTest {
         try {
             systemService.replaceAnchor(anchorBytes);
             fail("Should have failed");
-        } catch (Exception e) {
-            DeviationTestUtils.assertErrorWithoutMetadata(DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS,
-                    (ConfigurationVerifier.ConfigurationVerificationException) e);
+        } catch (InternalServerErrorException e) {
+            DeviationTestUtils.assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS.code(), e);
         }
     }
 
@@ -264,7 +249,7 @@ public class SystemServiceTest {
             systemService.changeSecurityServerAddress("another address");
             fail();
         } catch (ConflictException e) {
-            assertEquals("Address change request already submitted.", e.getMessage());
+            assertEquals("Error[code=address_change_request_already_submitted]", e.getMessage());
             // ok
         }
     }
@@ -277,7 +262,7 @@ public class SystemServiceTest {
             systemService.changeSecurityServerAddress(SERVER_ADDRESS);
             fail();
         } catch (ConflictException e) {
-            assertEquals("Can not change to the same address.", e.getMessage());
+            assertEquals("Error[code=same_address_change_request]", e.getMessage());
             // ok
         }
     }

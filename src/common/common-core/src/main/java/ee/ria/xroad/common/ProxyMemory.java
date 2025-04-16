@@ -26,7 +26,20 @@
 package ee.ria.xroad.common;
 
 public record ProxyMemory(long totalMemory, long freeMemory, long maxMemory, long usedMemory, Long threshold, long usedPercent) {
+
+    public static ProxyMemory get() {
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemory = runtime.maxMemory();
+        long totalMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        long usedMemory = totalMemory - freeMemory;
+        Long threshold = SystemProperties.getProxyMemoryUsageThreshold();
+        long usedPercent = (usedMemory * 100) / maxMemory;
+        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
+    }
+
     public boolean isUsedAboveThreshold() {
         return threshold != null && usedPercent > threshold;
     }
+
 }

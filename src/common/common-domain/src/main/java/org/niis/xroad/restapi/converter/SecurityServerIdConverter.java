@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.inject.Named;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
@@ -48,7 +48,6 @@ public class SecurityServerIdConverter extends DtoConverter<SecurityServerId, St
     /**
      * encoded security server id =
      * <instance_id>:<member_class>:<member_code>:<security_server_code>
-     *
      * @param encodedId
      * @return
      */
@@ -71,13 +70,12 @@ public class SecurityServerIdConverter extends DtoConverter<SecurityServerId, St
         int separators = FormatUtils.countOccurences(encodedId,
                 XRoadId.ENCODED_ID_SEPARATOR);
         if (separators != SECURITY_SERVER_CODE_INDEX) {
-            throw new ValidationFailureException(INVALID_ENCODED_ID, encodedId);
+            throw new BadRequestException(INVALID_ENCODED_ID.build(encodedId));
         }
     }
 
     /**
      * Convert securityServerId into encoded id
-     *
      * @param securityServerId
      * @return
      */

@@ -23,46 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.common.exception;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import ee.ria.xroad.common.HttpStatus;
+
+import lombok.NonNull;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
-
-import java.util.Collection;
 
 /**
- * Root class for all checked service layer exceptions
+ * Data integrity exception It has an error message which optionally can be thrown to api layer.
+ * Note: Usually if used within rest API this exception leads to http code 409.
  */
-public abstract class ServiceException extends DeviationAwareException {
-
-    protected ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation) {
-        super(msg, t, errorDeviation);
+public class ConflictException extends ClientErrorException {
+    public ConflictException(String message, @NonNull ErrorDeviation errorDeviation) {
+        super(message, errorDeviation);
     }
 
-    protected ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
-                               Collection<WarningDeviation> warningDeviations) {
-        super(msg, t, errorDeviation, warningDeviations);
+    public ConflictException(Throwable cause, @NonNull ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
 
-    protected ServiceException(ErrorDeviation errorDeviation, Collection<WarningDeviation> warningDeviations) {
-        super(errorDeviation, warningDeviations);
-    }
-
-    protected ServiceException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
-    protected ServiceException(Throwable t, ErrorDeviation errorDeviation,
-                               Collection<WarningDeviation> warningDeviations) {
-        super(t, errorDeviation, warningDeviations);
-    }
-
-    protected ServiceException(ErrorDeviation errorDeviation) {
+    public ConflictException(@NonNull ErrorDeviation errorDeviation) {
         super(errorDeviation);
     }
 
-    protected ServiceException(String msg, ErrorDeviation errorDeviation) {
-        super(msg, errorDeviation);
+    public <DE extends Exception & DeviationAware> ConflictException(@NonNull DE exception) {
+        super(exception);
+    }
+
+    @Override
+    public int getHttpStatus() {
+        return HttpStatus.SC_CONFLICT;
     }
 }

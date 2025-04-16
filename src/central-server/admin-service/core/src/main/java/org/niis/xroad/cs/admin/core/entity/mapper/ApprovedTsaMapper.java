@@ -31,7 +31,7 @@ import ee.ria.xroad.common.util.CertUtils;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedTsa;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
@@ -40,7 +40,7 @@ import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import java.security.cert.X509Certificate;
 
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
 
 @Mapper(componentModel = SPRING, uses = {CertificateConverter.class})
 public interface ApprovedTsaMapper extends GenericUniDirectionalMapper<ApprovedTsaEntity, ApprovedTsa> {
@@ -63,7 +63,7 @@ public interface ApprovedTsaMapper extends GenericUniDirectionalMapper<ApprovedT
             entity.setName(CertUtils.getSubjectCommonName(cert));
             return entity;
         } catch (Exception e) {
-            throw new ValidationFailureException(INVALID_CERTIFICATE);
+            throw new BadRequestException(e, INVALID_CERTIFICATE.build());
         }
     }
 }

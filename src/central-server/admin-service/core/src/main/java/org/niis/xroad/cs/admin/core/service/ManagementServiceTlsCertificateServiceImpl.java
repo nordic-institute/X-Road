@@ -40,8 +40,8 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.cs.admin.api.dto.CertificateDetails;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
@@ -63,6 +63,9 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.BYTES_TO_CERTIFICATE_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_IMPORT_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_READ_FAILED;
@@ -70,9 +73,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CERTIFICATE_WRI
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.CSR_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.IMPORTED_KEY_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_CERTIFICATE;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_DISTINGUISHED_NAME;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_CERT_GENERATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.KEY_CERT_GENERATION_INTERRUPTED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
 
@@ -104,7 +104,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             return CryptoUtils.readCertificate(Files.readAllBytes(Path.of(getManagementServiceTlsCertPath())));
         } catch (Exception e) {
             log.error("Cannot read management service TLS certificate", e);
-            throw new ValidationFailureException(INVALID_CERTIFICATE, e);
+            throw new BadRequestException(e, INVALID_CERTIFICATE.build());
         }
     }
 
@@ -131,7 +131,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
         } catch (IOException | CertificateEncodingException e) {
             log.error("Writing certificate to file failed", e);
-            throw new ValidationFailureException(CERTIFICATE_WRITING_FAILED, e);
+            throw new BadRequestException(e, CERTIFICATE_WRITING_FAILED.build());
         }
         return byteArrayOutputStream.toByteArray();
     }
@@ -143,9 +143,9 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             KeyPair keyPair = CertUtils.readKeyPairFromPemFile(getManagementServiceTlsKeyPath());
             csrBytes = CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
         } catch (IllegalArgumentException e) {
-            throw new ValidationFailureException(INVALID_DISTINGUISHED_NAME, e);
+            throw new BadRequestException(e, INVALID_DISTINGUISHED_NAME.build());
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
-            throw new ValidationFailureException(CSR_GENERATION_FAILED, e);
+            throw new BadRequestException(e, CSR_GENERATION_FAILED.build());
         }
         return csrBytes;
     }
@@ -156,7 +156,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             // the imported file can be a single certificate or a chain
             x509Certificates = CryptoUtils.readCertificates(certificateBytes);
         } catch (Exception e) {
-            throw new ValidationFailureException(BYTES_TO_CERTIFICATE_FAILED, e);
+            throw new BadRequestException(e, BYTES_TO_CERTIFICATE_FAILED.build());
         }
         auditDataHelper.putCertificateHash(Iterables.get(x509Certificates, 0));
         verifyCertificateImportability(x509Certificates);
@@ -167,7 +167,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             CertUtils.writePemToFile(certificateBytes, getManagementServiceTlsCertPath());
         } catch (Exception e) {
             log.error("Failed to import management service TLS certificate", e);
-            throw new ServiceException(CERTIFICATE_IMPORT_FAILED, e);
+            throw new InternalServerErrorException(e, CERTIFICATE_IMPORT_FAILED.build());
         }
 
         return certificateConverter.toCertificateDetails(Iterables.get(x509Certificates, 0));
@@ -178,10 +178,10 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             externalProcessRunner.executeAndThrowOnFailure(generateCertificateScriptPath, GENERATE_CERT_SCRIPT_ARGS.split("\\s+"));
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate management service TLS key and certificate", e);
-            throw new ServiceException(KEY_CERT_GENERATION_FAILED, e);
+            throw new InternalServerErrorException(e, KEY_CERT_GENERATION_FAILED.build());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ServiceException(KEY_CERT_GENERATION_INTERRUPTED, e);
+            throw new InternalServerErrorException(e, KEY_CERT_GENERATION_INTERRUPTED.build());
         }
 
         // audit log hash of generated cert
@@ -204,9 +204,9 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
         boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
         if (!found) {
-            throw new ValidationFailureException(IMPORTED_KEY_NOT_FOUND);
+            throw new BadRequestException(IMPORTED_KEY_NOT_FOUND.build());
         } else if (Iterables.elementsEqual(certificateChain, newCertChain)) {
-            throw new ValidationFailureException(IMPORTED_CERTIFICATE_ALREADY_EXISTS);
+            throw new BadRequestException(IMPORTED_CERTIFICATE_ALREADY_EXISTS.build());
         }
     }
 
@@ -215,7 +215,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
             return CryptoUtils.readCertificates(fileInputStream);
         } catch (Exception e) {
             log.error("Can't read management service tls certificate");
-            throw new ValidationFailureException(CERTIFICATE_READ_FAILED, e);
+            throw new BadRequestException(e, CERTIFICATE_READ_FAILED.build());
         }
     }
 

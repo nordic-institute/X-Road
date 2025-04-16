@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -86,10 +87,8 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             String tokenId = (String) args[0];
             switch (tokenId) {
                 case WRONG_SOFTTOKEN_PIN_TOKEN_ID -> throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
-                case UNKNOWN_LOGIN_FAIL_TOKEN_ID ->
-                        throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
-                case TOKEN_NOT_FOUND_TOKEN_ID ->
-                        throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
+                case UNKNOWN_LOGIN_FAIL_TOKEN_ID -> throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
+                case TOKEN_NOT_FOUND_TOKEN_ID -> throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
                 case UNRECOGNIZED_FAULT_CODE_TOKEN_ID -> throw new SignerException("foo", "bar");
                 case null, default -> log.debug("activate successful");
             }
@@ -149,17 +148,8 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         char[] password = "foobar".toCharArray();
         tokenService.activateToken("token-should-be-activatable", password);
 
-        try {
-            tokenService.activateToken(WRONG_SOFTTOKEN_PIN_TOKEN_ID, password);
-            fail("should have thrown exception");
-        } catch (TokenService.PinIncorrectException expected) {
-        }
-
-        try {
-            tokenService.activateToken(WRONG_HSM_PIN_TOKEN_ID, password);
-            fail("should have thrown exception");
-        } catch (TokenService.PinIncorrectException expected) {
-        }
+        assertThrows(TokenService.PinIncorrectException.class, () -> tokenService.activateToken(WRONG_SOFTTOKEN_PIN_TOKEN_ID, password));
+        assertThrows(TokenService.PinIncorrectException.class, () -> tokenService.activateToken(WRONG_HSM_PIN_TOKEN_ID, password));
 
         try {
             tokenService.activateToken(UNKNOWN_LOGIN_FAIL_TOKEN_ID, password);
@@ -169,11 +159,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             assertEquals("dont know what happened", expected.getFaultString());
         }
 
-        try {
-            tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password);
-            fail("should have thrown exception");
-        } catch (TokenNotFoundException expected) {
-        }
+        assertThrows(TokenNotFoundException.class, () ->
+                tokenService.activateToken(TOKEN_NOT_FOUND_TOKEN_ID, password)
+        );
 
         try {
             tokenService.activateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID, password);
@@ -189,11 +177,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     public void deactivateToken() throws Exception {
         tokenService.deactivateToken("token-should-be-deactivatable");
 
-        try {
-            tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID);
-            fail("should have thrown exception");
-        } catch (TokenNotFoundException expected) {
-        }
+        assertThrows(TokenNotFoundException.class, () ->
+                tokenService.deactivateToken(TOKEN_NOT_FOUND_TOKEN_ID)
+        );
 
         try {
             tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID);
@@ -207,10 +193,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     @Test
     public void getToken() throws Exception {
 
-        try {
-            tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
-        } catch (TokenNotFoundException expected) {
-        }
+        assertThrows(TokenNotFoundException.class, () -> tokenService.getToken(TOKEN_NOT_FOUND_TOKEN_ID));
 
         TokenInfo token = tokenService.getToken(GOOD_TOKEN_ID);
         assertEquals(GOOD_TOKEN_NAME, token.getFriendlyName());
@@ -236,9 +219,8 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         tokenService.updateTokenFriendlyName(TOKEN_NOT_FOUND_TOKEN_ID, "new-name");
     }
 
-    @Test(expected = NotFoundException.class)
     public void deleteNonExistingToken() {
-        tokenService.deleteToken(TOKEN_NOT_FOUND_TOKEN_ID);
+        assertThrows(NotFoundException.class, () -> tokenService.deleteToken(TOKEN_NOT_FOUND_TOKEN_ID));
     }
 
     @Test
