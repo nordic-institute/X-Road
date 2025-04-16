@@ -30,10 +30,12 @@ package org.niis.xroad.proxy.core.admin;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.ProxyMemory;
 
 import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
@@ -41,6 +43,7 @@ import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.Empty;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
+import org.niis.xroad.proxy.proto.ProxyMemoryStatusResp;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -51,6 +54,7 @@ import static java.util.Collections.unmodifiableList;
 
 @ApplicationScoped
 @RequiredArgsConstructor
+@Slf4j
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ServerConfProvider serverConfProvider;
@@ -58,6 +62,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final TimestampStatusHandler timestampStatusHandler;
+    private final ProxyMemoryStatusService proxyMemoryStatusService;
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
@@ -80,6 +85,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     @Override
+    public void getProxyMemoryStatus(Empty request, StreamObserver<ProxyMemoryStatusResp> responseObserver) {
+        handleRequest(responseObserver, this::handleProxyMemoryStatus);
+    }
+
+    @Override
     public void clearConfCache(Empty request, StreamObserver<Empty> responseObserver) {
         handleRequest(responseObserver, this::handleClearConfCache);
     }
@@ -89,6 +99,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
             responseObserver.onNext(handler.get());
             responseObserver.onCompleted();
         } catch (Exception e) {
+            log.error("Error handling request", e);
             responseObserver.onError(e);
         }
     }
@@ -121,6 +132,20 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
                 .setMessageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
                 .addAllMembers(members)
                 .build();
+    }
+
+    private ProxyMemoryStatusResp handleProxyMemoryStatus() {
+        ProxyMemory proxyMemory = proxyMemoryStatusService.getMemoryStatus();
+        var responseBuilder = ProxyMemoryStatusResp.newBuilder()
+                .setFreeMemory(proxyMemory.freeMemory())
+                .setTotalMemory(proxyMemory.totalMemory())
+                .setMaxMemory(proxyMemory.maxMemory())
+                .setUsedMemory(proxyMemory.usedMemory())
+                .setUsedPercent(proxyMemory.usedPercent());
+        if (proxyMemory.threshold() != null) {
+            responseBuilder.setThreshold(proxyMemory.threshold());
+        }
+        return responseBuilder.build();
     }
 
     private Empty handleClearConfCache() {

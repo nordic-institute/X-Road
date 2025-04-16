@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.proxy.core.util.healthcheck;
 
+import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -33,6 +34,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.proxy.core.admin.ProxyMemoryStatusService;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckProvider;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckResult;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
@@ -69,7 +71,9 @@ public class HealthChecksTest {
     private final KeyConfProvider keyConfProvider = mock(KeyConfProvider.class);
     private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
     private final SignerRpcClient signerRpcClient = mock(SignerRpcClient.class);
-    private final HealthChecks healthChecks = new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient);
+    private final ProxyMemoryStatusService proxyMemoryStatusService = mock(ProxyMemoryStatusService.class);
+    private final HealthChecks healthChecks = new HealthChecks(
+            globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient, proxyMemoryStatusService);
 
 
     @Test
@@ -344,5 +348,51 @@ public class HealthChecksTest {
         when(mockResponse.getStatus()).thenReturn(status);
 
         when(keyConfProvider.getOcspResponse((X509Certificate) notNull())).thenReturn(mockResponse);
+    }
+
+    @Test
+    public void checkProxyMemoryUsageShouldFReturnOkWhenThresholdNotSet() {
+
+        mockMemoryStatus(null, 50);
+
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkProxyMemoryUsage();
+
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
+    }
+
+    @Test
+    public void checkProxyMemoryUsageShouldFReturnOkWhenMemoryUsageBelowThreshold() {
+
+        // prepare
+        mockMemoryStatus(100L, 50);
+
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkProxyMemoryUsage();
+
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
+
+    }
+
+    @Test
+    public void checkProxyMemoryUsageShouldFailWhenMemoryUsageOverThreshold() {
+
+        // prepare
+        mockMemoryStatus(0L, 50);
+
+        // execute
+        HealthCheckProvider testedProvider = healthChecks.checkProxyMemoryUsage();
+        HealthCheckResult checkedResult = testedProvider.get();
+
+        // verify
+        assertFalse("health check result should be a failure", checkedResult.isOk());
+        assertThat(checkedResult.getErrorMessage(), containsString("Memory usage above threshold"));
+
+    }
+
+    private void mockMemoryStatus(Long threshold, int usedPercent) {
+        when(proxyMemoryStatusService.getMemoryStatus()).thenReturn(new ProxyMemory(200, 100, 100, 80, threshold, usedPercent));
     }
 }

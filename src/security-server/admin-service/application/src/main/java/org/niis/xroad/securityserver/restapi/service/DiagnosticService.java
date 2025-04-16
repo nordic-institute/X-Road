@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -162,6 +163,19 @@ public class DiagnosticService {
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
         try {
             return proxyRpcClient.getMessageLogEncryptionStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
+        }
+    }
+
+    /**
+     * Query proxy memory usage from admin port over HTTP.
+     *
+     * @return ProxyMemory
+     */
+    public ProxyMemory queryProxyMemoryUsage() {
+        try {
+            return proxyRpcClient.getProxyMemoryStatus();
         } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }

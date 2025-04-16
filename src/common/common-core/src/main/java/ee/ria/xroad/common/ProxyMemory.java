@@ -23,20 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.healthcheck;
+package ee.ria.xroad.common;
 
-
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-/**
- * A common interface that implements health checks somehow to produce a single {@link HealthCheckResult}
- */
-@FunctionalInterface
-public interface HealthCheckProvider extends Supplier<HealthCheckResult> {
-
-    default HealthCheckProvider map(Function<HealthCheckProvider, HealthCheckProvider> mapper) {
-        return mapper.apply(this);
+public record ProxyMemory(long totalMemory, long freeMemory, long maxMemory, long usedMemory, Long threshold, long usedPercent) {
+    public boolean isUsedAboveThreshold() {
+        return threshold != null && usedPercent > threshold;
     }
-
 }

@@ -36,6 +36,7 @@ service AdminService {
   rpc GetAddOnStatus(Empty) returns (AddOnStatusResp) {}
   rpc GetMessageLogEncryptionStatus(Empty) returns (MessageLogEncryptionStatusResp) {}
   rpc GetTimestampStatus(Empty) returns (TimestampStatusResp) {}
+  rpc GetProxyMemoryStatus(Empty) returns (ProxyMemoryStatusResp) {}
   rpc ClearConfCache(Empty) returns (Empty) {}
   rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
 }
@@ -64,6 +65,15 @@ message MessageLogArchiveEncryptionMember {
 
 message TimestampStatusResp {
   map<string, DiagnosticsStatus> diagnostics_status = 1;
+}
+
+message ProxyMemoryStatusResp {
+  int64 totalMemory = 1;
+  int64 freeMemory = 2;
+  int64 maxMemory = 3;
+  int64 usedMemory = 4;
+  int64 usedPercent = 5;
+  optional int64 threshold = 6;
 }
 
 message DiagnosticsStatus {

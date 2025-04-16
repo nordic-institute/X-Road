@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,20 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.healthcheck;
+package org.niis.xroad.proxy.core.admin;
 
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import ee.ria.xroad.common.ProxyMemory;
 
-/**
- * A common interface that implements health checks somehow to produce a single {@link HealthCheckResult}
- */
-@FunctionalInterface
-public interface HealthCheckProvider extends Supplier<HealthCheckResult> {
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.proxy.core.ProxyProperties;
 
-    default HealthCheckProvider map(Function<HealthCheckProvider, HealthCheckProvider> mapper) {
-        return mapper.apply(this);
+
+@RequiredArgsConstructor
+@ApplicationScoped
+public class ProxyMemoryStatusService {
+    private final ProxyProperties proxyProperties;
+
+    public ProxyMemory getMemoryStatus() {
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemory = runtime.maxMemory();
+        long totalMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        long usedMemory = totalMemory - freeMemory;
+        Long threshold = proxyProperties.memoryUsageThreshold().orElse(null);
+        long usedPercent = (usedMemory * 100) / maxMemory;
+        return new ProxyMemory(totalMemory, freeMemory, maxMemory, usedMemory, threshold, usedPercent);
     }
+
 
 }

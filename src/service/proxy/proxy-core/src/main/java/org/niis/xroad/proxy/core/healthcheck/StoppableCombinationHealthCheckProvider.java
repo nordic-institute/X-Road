@@ -95,6 +95,9 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
         providers.add(healthChecks.checkServerConfDatabaseStatus()
                 .map(withTimeout(timeout, TimeUnit.SECONDS, "Server conf database status"))
                 .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+        providers.add(healthChecks.checkProxyMemoryUsage()
+                .map(withTimeout(timeout, TimeUnit.SECONDS, "Proxy memory usage status"))
+                .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
 
         return Collections.unmodifiableList(providers);
     }
