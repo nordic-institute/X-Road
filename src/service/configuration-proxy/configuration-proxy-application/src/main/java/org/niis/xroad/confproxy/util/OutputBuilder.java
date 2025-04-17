@@ -44,6 +44,7 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.globalconf.util.HashCalculator;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -90,6 +91,7 @@ public class OutputBuilder implements AutoCloseable {
             DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneId.of("UTC"));
 
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final VersionedConfigurationDirectory confDir;
     private final ConfProxyProperties conf;
     private final int version;
@@ -111,10 +113,12 @@ public class OutputBuilder implements AutoCloseable {
      * @param configuration configuration proxy instance configuration
      * @throws IOException in case of errors when a temporary directory
      */
-    public OutputBuilder(SignerRpcClient signerRpcClient, VersionedConfigurationDirectory confDirectory,
+    public OutputBuilder(SignerRpcClient signerRpcClient, SignerSignClient signerSignClient,
+                         VersionedConfigurationDirectory confDirectory,
                          ConfProxyProperties configuration, int version)
             throws IOException {
         this.signerRpcClient = signerRpcClient;
+        this.signerSignClient = signerSignClient;
         this.confDir = confDirectory;
         this.conf = configuration;
         this.version = version;
@@ -391,7 +395,7 @@ public class OutputBuilder implements AutoCloseable {
      * @throws Exception if cryptographic operations fail
      */
     private String getSignature(final String keyId, final SignAlgorithm signatureAlgorithmId, final byte[] digest) {
-        byte[] signature = signerRpcClient.sign(keyId, signatureAlgorithmId, digest);
+        byte[] signature = signerSignClient.sign(keyId, signatureAlgorithmId, digest);
 
         return encodeBase64(signature);
     }

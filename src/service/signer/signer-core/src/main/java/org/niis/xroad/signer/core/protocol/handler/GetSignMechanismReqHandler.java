@@ -29,9 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
 
@@ -43,15 +41,15 @@ public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechan
 
     @Override
     protected GetSignMechanismResp handle(GetSignMechanismReq request) throws Exception {
-        KeyInfo keyInfo = TokenManager.getKeyInfo(request.getKeyId());
+        var signMechanism = tokenManager.getKeySignMechanismInfo(request.getKeyId());
 
-        if (keyInfo == null) {
+        if (signMechanism.isEmpty()) {
             throw CodedException.tr(ErrorCodes.X_KEY_NOT_FOUND, "key_not_found", "Key '%s' not found",
                     request.getKeyId());
         }
 
         return GetSignMechanismResp.newBuilder()
-                .setSignMechanismName(keyInfo.getSignMechanismName())
+                .setSignMechanismName(signMechanism.get().name())
                 .build();
     }
 }

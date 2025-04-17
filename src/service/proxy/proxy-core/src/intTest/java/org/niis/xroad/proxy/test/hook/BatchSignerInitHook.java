@@ -38,6 +38,7 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
@@ -52,6 +53,7 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
     private final TestableApplicationInfoProvider testableApplicationInfoProvider;
 
     public static SignerRpcClient signerRpcClient;
+    public static SignerSignRpcClient signerSignClient;
 
     @Override
     @SneakyThrows
@@ -60,7 +62,7 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
 
         TestSecurityUtil.initSecurity();
 
-        signerRpcClient = new SignerRpcClient(getFactory(), new SignerRpcChannelProperties() {
+        var properties = new SignerRpcChannelProperties() {
             @Override
             public String host() {
                 return testableApplicationInfoProvider.getHost();
@@ -75,8 +77,11 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
             public int deadlineAfter() {
                 return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
             }
-        });
+        };
+        signerRpcClient = new SignerRpcClient(getFactory(), properties);
+        signerSignClient = new SignerSignRpcClient(getFactory(), properties);
         signerRpcClient.init();
+        signerSignClient.init();
     }
 
     @Override

@@ -73,6 +73,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 @RequiredArgsConstructor
 public class OcspResponseManager {
     private final GlobalConfProvider globalConfProvider;
+    private final TokenManager tokenManager;
     private final OcspClient ocspClient;
 
     /**
@@ -120,7 +121,7 @@ public class OcspResponseManager {
             responseCache.reloadFromDisk();
 
             for (Entry<String, OCSPResp> e : responseCache.entrySet()) {
-                TokenManager.setOcspResponse(e.getKey(), e.getValue());
+                tokenManager.setOcspResponse(e.getKey(), e.getValue());
             }
         } catch (Exception e) {
             log.error("Failed to load OCSP responses from disk", e);
@@ -187,7 +188,7 @@ public class OcspResponseManager {
 
     public void removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(String certHash) {
         OCSPResp response = responseCache.get(certHash);
-        TokenManager.setOcspResponse(certHash, response);
+        tokenManager.setOcspResponse(certHash, response);
     }
 
     private OCSPResp getResponse(String certHash) {
@@ -199,7 +200,7 @@ public class OcspResponseManager {
         try {
             responseCache.put(certHash, response);
         } finally {
-            TokenManager.setOcspResponse(certHash, response);
+            tokenManager.setOcspResponse(certHash, response);
         }
     }
 
@@ -212,7 +213,7 @@ public class OcspResponseManager {
      */
     private X509Certificate getCertForCertHash(String certSha1Hash)
             throws CertificateEncodingException, IOException, OperatorCreationException {
-        X509Certificate cert = TokenManager.getCertificateForCerHash(certSha1Hash);
+        X509Certificate cert = tokenManager.getCertificateForCerHash(certSha1Hash);
         if (cert != null) {
             return cert;
         }

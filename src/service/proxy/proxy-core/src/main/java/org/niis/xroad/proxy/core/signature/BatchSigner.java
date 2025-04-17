@@ -38,6 +38,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -71,7 +72,8 @@ public class BatchSigner implements MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
-    private final SignerRpcClient signerRpcClient;
+    private final SignerRpcClient signerClient;
+    private final SignerSignClient signerSignClient;
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
@@ -119,7 +121,7 @@ public class BatchSigner implements MessageSigner {
 
             return workers.computeIfAbsent(name, key -> {
                 log.trace("Creating new worker for cert '{}'", name);
-                return new WorkerImpl(signerRpcClient, signRequest.getKeyId());
+                return new WorkerImpl(signRequest.getKeyId());
             });
         } catch (Exception e) {
             throw new RuntimeException("Unable to get worker", e);
@@ -129,17 +131,15 @@ public class BatchSigner implements MessageSigner {
     /**
      * This is the worker that does the heavy lifting.
      */
-    private static class WorkerImpl {
-        private final SignerRpcClient signerRpcClient;
+    private class WorkerImpl {
         private final boolean batchSigningEnabled;
         private final BlockingQueue<SigningRequestWrapper> requestsQueue = new LinkedBlockingQueue<>();
         private boolean stopping;
         private final Thread workerThread;
 
-        protected WorkerImpl(SignerRpcClient signerRpcClient, String keyId) {
-            this.signerRpcClient = signerRpcClient;
+        protected WorkerImpl(String keyId) {
             try {
-                batchSigningEnabled = signerRpcClient.isTokenBatchSigningEnabled(keyId);
+                batchSigningEnabled = signerClient.isTokenBatchSigningEnabled(keyId);
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
                 throw new RuntimeException(e);
@@ -201,20 +201,24 @@ public class BatchSigner implements MessageSigner {
                             .filter(req -> !isExpired(req))
                             .forEach(req -> ctx.add(req.getClientFuture(), req.getRequest()));
 
-                    try {
-                        byte[] digest = calculateDigest(ctx.getSignatureAlgorithmId().digest(),
-                                ctx.getDataToBeSigned());
-                        final byte[] response = signerRpcClient.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
-                        sendSignatureResponse(ctx, response);
-                    } catch (Exception exception) {
-                        sendException(ctx, exception);
-                    }
+                    sign(ctx);
                 } catch (InterruptedException interruptedException) {
                     log.trace("queue polling interrupted");
                     Thread.currentThread().interrupt();
                 }
             }
             log.trace("Worker thread stopped");
+        }
+
+        private void sign(BatchSignatureCtx ctx) {
+            try {
+                byte[] digest = calculateDigest(ctx.getSignatureAlgorithmId().digest(),
+                        ctx.getDataToBeSigned());
+                final byte[] response = signerSignClient.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
+                sendSignatureResponse(ctx, response);
+            } catch (Exception exception) {
+                sendException(ctx, exception);
+            }
         }
 
         protected void stop() {

@@ -50,6 +50,7 @@ import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -89,10 +90,11 @@ class OcspClientTest {
 
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
     private final OcspClient ocspClient = new OcspClient(globalConfProvider);
+    private final TokenManager tokenManager = mock(TokenManager.class);
     private final OcspClientWorker ocspClientWorker = new TestOcspClient(globalConfProvider,
-            new OcspResponseManager(globalConfProvider, ocspClient,
+            new OcspResponseManager(globalConfProvider, tokenManager, ocspClient,
                     new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class))),
-            ocspClient);
+            tokenManager, ocspClient);
 
     OcspClientTest() throws Exception {
     }
@@ -296,8 +298,9 @@ class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager, OcspClient ocspClient) {
-            super(globalConfProvider, ocspResponseManager, ocspClient);
+        TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
+                       TokenManager tokenManager, OcspClient ocspClient) {
+            super(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
         }
 
         @Override

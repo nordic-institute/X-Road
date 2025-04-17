@@ -35,6 +35,8 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -56,10 +58,14 @@ public class SignerClientHolder {
     private final String grpcHostOverride;
 
     private SignerRpcClient signerRpcClientInstance;
-
+    private SignerSignRpcClient signerSignClient;
 
     public SignerRpcClient get() {
         return signerRpcClientInstance;
+    }
+
+    public SignerSignClient getSignClient() {
+        return signerSignClient;
     }
 
     @SneakyThrows
@@ -83,6 +89,10 @@ public class SignerClientHolder {
 
         signerRpcClientInstance = new SignerRpcClient(getFactory(), properties);
         signerRpcClientInstance.init();
+
+        signerSignClient = new SignerSignRpcClient(getFactory(), properties);
+        signerSignClient.init();
+
         log.info("Will use {}:{} (original port {})  for signer RPC connection..", properties.host(), properties.port(), SIGNER_GRPC_PORT);
         return signerRpcClientInstance;
     }

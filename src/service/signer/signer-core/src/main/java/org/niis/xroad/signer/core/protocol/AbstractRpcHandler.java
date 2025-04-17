@@ -36,6 +36,7 @@ import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
 import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 
@@ -54,6 +55,8 @@ public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT ext
     protected TokenWorkerProvider tokenWorkerProvider;
     @Inject
     protected SignerProperties signerProperties;
+    @Inject
+    protected TokenManager tokenManager;
 
     protected abstract RespT handle(ReqT request) throws Exception;
 

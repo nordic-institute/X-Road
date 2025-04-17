@@ -64,8 +64,10 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
         memoryTokens.stream()
                 // except inactive and unavailable and deleted from file tokens we will not merge back from memory
                 .filter(token -> token.isActive() || token.isAvailable() || isTokenExistsInFile(token, fileTokens))
-                // add any missing tokens from memory to file, match tokens based on token id
-                .forEach(memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken, this::mergeToken));
+
+                        // add any missing tokens from memory to file, match tokens based on token id
+                        .forEach(memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
+                                this::mergeToken));
 
         return new MergeResult(new ArrayList<>(fileTokensMap.values()), this.newCertsFromFile);
     }
@@ -138,6 +140,7 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
 
     /**
      * Merge key memoryKey onto fileKey
+     *
      * @param fileKey
      * @param memoryKey
      */

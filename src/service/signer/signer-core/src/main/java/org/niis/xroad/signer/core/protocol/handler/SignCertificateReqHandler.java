@@ -32,14 +32,12 @@ import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
 
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.findTokenIdForKeyId;
-
 @ApplicationScoped
 public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
 
     @Override
     protected SignCertificateResp handle(SignCertificateReq request) throws Exception {
-        final byte[] signedCertificate = getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+        final byte[] signedCertificate = getTokenWorker(tokenManager.findTokenIdForKeyId(request.getKeyId()))
                 .handleSignCertificate(request);
 
         return SignCertificateResp.newBuilder()

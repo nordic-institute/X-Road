@@ -27,7 +27,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
 
@@ -40,10 +39,10 @@ public class GetTokenBatchSigningEnabledReqHandler
 
     @Override
     protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) throws Exception {
-        String tokenId = TokenManager.findTokenIdForKeyId(request.getKeyId());
+        String tokenId = tokenManager.findTokenIdForKeyId(request.getKeyId());
 
         return GetTokenBatchSigningEnabledResp.newBuilder()
-                .setBatchingSigningEnabled(TokenManager.isBatchSigningEnabled(tokenId))
+                .setBatchingSigningEnabled(tokenManager.isBatchSigningEnabled(tokenId))
                 .build();
     }
 }

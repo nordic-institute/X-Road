@@ -53,6 +53,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -126,6 +127,7 @@ public class SignerCLI implements QuarkusApplication {
 
     private final SignerRpcChannelProperties rpcChannelProperties;
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
 
     /**
      * Shell input converters
@@ -583,7 +585,7 @@ public class SignerCLI implements QuarkusApplication {
 
         for (String d : data) {
             byte[] digest = calculateDigest(SHA512, d.getBytes(UTF_8));
-            final byte[] signature = signerRpcClient.sign(keyId, signAlgoId, digest);
+            final byte[] signature = signerSignClient.sign(keyId, signAlgoId, digest);
 
             System.out.println("Signature: " + Arrays.toString(signature));
         }
@@ -604,7 +606,7 @@ public class SignerCLI implements QuarkusApplication {
         final var signAlgoId = SignAlgorithm.ofDigestAndMechanism(SHA512, signMechanism);
 
         byte[] digest = calculateDigest(SHA512, fileToBytes(fileName));
-        final byte[] signed = signerRpcClient.sign(keyId, signAlgoId, digest);
+        final byte[] signed = signerSignClient.sign(keyId, signAlgoId, digest);
 
         System.out.println("Signature: " + Arrays.toString(signed));
     }
@@ -637,7 +639,7 @@ public class SignerCLI implements QuarkusApplication {
         final long startTime = System.nanoTime();
 
         for (int i = 0; i < iterations; i++) {
-            signerRpcClient.sign(keyId, signAlgoId, digest);
+            signerSignClient.sign(keyId, signAlgoId, digest);
         }
 
         final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);

@@ -31,7 +31,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetMemberCertsReq;
 import org.niis.xroad.signer.proto.GetMemberCertsResp;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
@@ -50,7 +49,7 @@ public class GetMemberCertsReqHandler
     @Override
     protected GetMemberCertsResp handle(GetMemberCertsReq request) throws Exception {
         final var memberId = ClientIdMapper.fromDto(request.getMemberId());
-        List<CertificateInfoProto> memberCerts = TokenManager.listTokens().stream()
+        List<CertificateInfoProto> memberCerts = tokenManager.listTokens().stream()
                 .flatMap(t -> t.getKeyInfo().stream())
                 .filter(k -> k.getUsage() == KeyUsageInfo.SIGNING)
                 .flatMap(k -> k.getCerts().stream())

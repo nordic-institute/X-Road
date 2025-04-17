@@ -28,7 +28,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.ListTokensResp;
 
 /**
@@ -41,7 +40,7 @@ public class ListTokensReqHandler extends AbstractRpcHandler<Empty, ListTokensRe
     protected ListTokensResp handle(Empty request) throws Exception {
         final ListTokensResp.Builder builder = ListTokensResp.newBuilder();
 
-        TokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
+        tokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
 
         return builder.build();
     }

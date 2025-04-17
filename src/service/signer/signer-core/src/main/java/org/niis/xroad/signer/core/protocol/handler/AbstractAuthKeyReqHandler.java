@@ -43,7 +43,6 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil;
@@ -74,7 +73,7 @@ public abstract class AbstractAuthKeyReqHandler<RespT extends AbstractMessage> e
 
         validateToken();
 
-        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
+        for (TokenInfo tokenInfo : tokenManager.listTokens()) {
             if (!SoftwareModuleType.TYPE.equals(tokenInfo.getType())) {
                 log.trace("Ignoring {} module", tokenInfo.getType());
                 continue;
@@ -112,7 +111,7 @@ public abstract class AbstractAuthKeyReqHandler<RespT extends AbstractMessage> e
             throw tokenNotInitialized(SoftwareTokenType.ID);
         }
 
-        if (!TokenManager.isTokenActive(SoftwareTokenType.ID)) {
+        if (!tokenManager.isTokenActive(SoftwareTokenType.ID)) {
             throw tokenNotActive(SoftwareTokenType.ID);
         }
     }

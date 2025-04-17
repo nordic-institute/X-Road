@@ -416,7 +416,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             case EC -> SHA256_WITH_ECDSA;
         };
 
-        clientHolder.get().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        clientHolder.getSignClient().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
     }
 
     @Step("certificate can be deactivated")
@@ -453,7 +453,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             case EC -> SHA256_WITH_ECDSA;
         };
 
-        final byte[] bytes = clientHolder.get().signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
+        final byte[] bytes = clientHolder.getSignClient().signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
 
@@ -470,7 +470,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             case EC -> SHA256_WITH_ECDSA;
         };
 
-        byte[] bytes = clientHolder.get().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        byte[] bytes = clientHolder.getSignClient().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
         assertThat(bytes).isNotEmpty();
     }
 
@@ -546,7 +546,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signKeyFail() {
         String keyId = randomUUID().toString();
         try {
-            clientHolder.get().sign(keyId, SignAlgorithm.ofName(randomUUID().toString()), new byte[0]);
+            clientHolder.getSignClient().sign(keyId, SignAlgorithm.ofName(randomUUID().toString()), new byte[0]);
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.KeyNotFound", "key_not_found",
@@ -558,7 +558,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signAlgorithmFail(String keyName, String friendlyName) throws Exception {
         try {
             final KeyInfo key = findKeyInToken(friendlyName, keyName);
-            clientHolder.get().sign(key.getId(),
+            clientHolder.getSignClient().sign(key.getId(),
                     SignAlgorithm.ofName("NOT-ALGORITHM-ID"),
                     calculateDigest(SHA256, "digest".getBytes(UTF_8)));
 

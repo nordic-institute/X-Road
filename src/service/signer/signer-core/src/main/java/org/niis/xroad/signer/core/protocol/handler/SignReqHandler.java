@@ -31,8 +31,6 @@ import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignResp;
 
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.findTokenIdForKeyId;
-
 /**
  * Handles signing requests.
  */
@@ -49,7 +47,7 @@ public class SignReqHandler extends AbstractRpcHandler<SignReq, SignResp> {
     }
 
     public byte[] signData(SignReq request) {
-        return getTokenWorker(findTokenIdForKeyId(request.getKeyId()))
+        return getTokenWorker(tokenManager.findTokenIdForKeyId(request.getKeyId()))
                 .handleSign(request);
     }
 }

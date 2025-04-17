@@ -23,27 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.protocol.handler;
+package org.niis.xroad.signer.core.protocol;
 
+import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.rpc.common.Empty;
-import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.signer.core.protocol.handler.SignCertificateReqHandler;
+import org.niis.xroad.signer.core.protocol.handler.SignReqHandler;
+import org.niis.xroad.signer.proto.SignCertificateReq;
+import org.niis.xroad.signer.proto.SignCertificateResp;
+import org.niis.xroad.signer.proto.SignReq;
+import org.niis.xroad.signer.proto.SignResp;
+import org.niis.xroad.signer.proto.SignServiceGrpc;
 
-import java.time.Instant;
-
-/**
- * Handles requests for setting the certificate renewal error.
- */
 @ApplicationScoped
-public class SetNextPlannedRenewalReqHandler
-        extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
+@RequiredArgsConstructor
+public class SignService extends SignServiceGrpc.SignServiceImplBase {
+    private final SignReqHandler signReqHandler;
+    private final SignCertificateReqHandler signCertificateReqHandler;
 
     @Override
-    protected Empty handle(SetNextPlannedRenewalReq request) throws Exception {
-        Instant nextRenewalTime = Instant.ofEpochSecond(request.getNextRenewalTime().getSeconds(), request.getNextRenewalTime().getNanos());
-        tokenManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
+    public void sign(SignReq request, StreamObserver<SignResp> responseObserver) {
+        signReqHandler.processSingle(request, responseObserver);
+    }
 
-        return Empty.getDefaultInstance();
+    @Override
+    public void signCertificate(SignCertificateReq request, StreamObserver<SignCertificateResp> responseObserver) {
+        signCertificateReqHandler.processSingle(request, responseObserver);
     }
 }

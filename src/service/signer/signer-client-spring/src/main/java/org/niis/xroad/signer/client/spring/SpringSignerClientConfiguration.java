@@ -31,6 +31,8 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +47,11 @@ public class SpringSignerClientConfiguration {
     @Bean
     SignerRpcClient signerRpcClient(RpcChannelFactory rpcChannelFactory, SignerRpcChannelProperties signerRpcChannelProperties) {
         return new SignerRpcClient(rpcChannelFactory, signerRpcChannelProperties);
+    }
+
+    @Bean
+    SignerSignClient signerSignClient(RpcChannelFactory rpcChannelFactory, SignerRpcChannelProperties signerRpcChannelProperties) {
+        return new SignerSignRpcClient(rpcChannelFactory, signerRpcChannelProperties);
     }
 
     @Setter

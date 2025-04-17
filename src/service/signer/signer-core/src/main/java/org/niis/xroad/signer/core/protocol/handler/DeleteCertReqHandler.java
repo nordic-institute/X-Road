@@ -33,7 +33,6 @@ import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -50,7 +49,7 @@ public class DeleteCertReqHandler
 
     @Override
     protected Empty handle(DeleteCertReq request) throws Exception {
-        CertificateInfo certInfo = TokenManager.getCertificateInfo(request.getCertId());
+        CertificateInfo certInfo = tokenManager.getCertificateInfo(request.getCertId());
         if (certInfo == null) {
             throw certWithIdNotFound(request.getCertId());
         }
@@ -58,7 +57,7 @@ public class DeleteCertReqHandler
         if (!certInfo.isSavedToConfiguration()) {
             deleteCertOnToken(request);
             return Empty.getDefaultInstance();
-        } else if (TokenManager.removeCert(request.getCertId())) {
+        } else if (tokenManager.removeCert(request.getCertId())) {
             return Empty.getDefaultInstance();
         }
 
@@ -66,7 +65,7 @@ public class DeleteCertReqHandler
     }
 
     protected void deleteCertOnToken(DeleteCertReq deleteCert) {
-        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
+        for (TokenInfo tokenInfo : tokenManager.listTokens()) {
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
                     if (deleteCert.getCertId().equals(certInfo.getId())) {

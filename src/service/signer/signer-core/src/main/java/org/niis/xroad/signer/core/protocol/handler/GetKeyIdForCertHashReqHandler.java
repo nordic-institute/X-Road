@@ -30,7 +30,6 @@ import ee.ria.xroad.common.CodedException;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
 
@@ -44,7 +43,7 @@ public class GetKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetKeyIdFo
 
     @Override
     protected GetKeyIdForCertHashResp handle(GetKeyIdForCertHashReq request) throws Exception {
-        KeyInfo keyInfo = TokenManager.getKeyInfoForCertHash(request.getCertHash());
+        KeyInfo keyInfo = tokenManager.getKeyInfoForCertHash(request.getCertHash());
 
         if (keyInfo == null) {
             throw CodedException.tr(X_CERT_NOT_FOUND, "certificate_with_hash_not_found",

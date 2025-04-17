@@ -28,7 +28,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
 
 /**
@@ -40,7 +39,7 @@ public class SetKeyFriendlyNameReqHandler
 
     @Override
     protected Empty handle(SetKeyFriendlyNameReq request) throws Exception {
-        TokenManager.setKeyFriendlyName(request.getKeyId(),
+        tokenManager.setKeyFriendlyName(request.getKeyId(),
                 request.getFriendlyName());
         return Empty.getDefaultInstance();
     }

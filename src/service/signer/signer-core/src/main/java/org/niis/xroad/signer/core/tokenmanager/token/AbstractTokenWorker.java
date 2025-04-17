@@ -57,8 +57,6 @@ import java.security.cert.X509Certificate;
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.isKeyAvailable;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenAvailable;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 
 /**
@@ -70,11 +68,13 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     protected final String tokenId;
     protected final SignerProperties signerProperties;
+    protected final TokenManager tokenManager;
 
-    AbstractTokenWorker(TokenInfo tokenInfo, SignerProperties signerProperties) {
+    AbstractTokenWorker(TokenInfo tokenInfo, SignerProperties signerProperties, TokenManager tokenManager) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
         this.signerProperties = signerProperties;
+        this.tokenManager = tokenManager;
     }
 
     @Override
@@ -92,7 +92,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         } catch (Exception e) {
             log.error("Failed to activate token '{}': {}", getWorkerId(), e.getMessage());
 
-            TokenManager.setTokenActive(tokenId, false);
+            tokenManager.setTokenActive(tokenId, false);
 
             throw translateException(e);
         }
@@ -116,13 +116,13 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
         if (isKeyMissing(keyId)) {
             var signMechanism = resolveSignMechanism(mapAlgorithm(message.getAlgorithm()));
-            TokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
-            TokenManager.setKeyAvailable(keyId, true);
-            TokenManager.setKeyLabel(keyId, message.getKeyLabel());
-            TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
+            tokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
+            tokenManager.setKeyAvailable(keyId, true);
+            tokenManager.setKeyLabel(keyId, message.getKeyLabel());
+            tokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
         }
 
-        return TokenManager.findKeyInfo(keyId);
+        return tokenManager.findKeyInfo(keyId);
     }
 
     @Override
@@ -135,7 +135,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
             throw translateException(e);
         }
 
-        TokenManager.removeKey(keyId);
+        tokenManager.removeKey(keyId);
     }
 
     @Override
@@ -176,11 +176,11 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     @Override
     public void destroy() {
-        setTokenAvailable(tokenId, false);
+        tokenManager.setTokenAvailable(tokenId, false);
     }
 
     protected boolean isKeyMissing(String keyId) {
-        return TokenManager.getKeyInfo(keyId) == null;
+        return tokenManager.getKeyInfo(keyId) == null;
     }
 
     protected boolean isPinStored() {
@@ -220,7 +220,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     protected abstract SignMechanism resolveSignMechanism(KeyAlgorithm algorithm);
 
     protected void assertKeyAvailable(String keyId) {
-        if (!isKeyAvailable(keyId)) {
+        if (!tokenManager.isKeyAvailable(keyId)) {
             throw keyNotAvailable(keyId);
         }
     }

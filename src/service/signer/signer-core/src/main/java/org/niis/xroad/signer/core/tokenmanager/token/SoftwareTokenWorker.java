@@ -85,14 +85,6 @@ import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.addKey;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.getKeyInfo;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.isTokenActive;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.listKeys;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setKeyAvailable;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenActive;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenAvailable;
-import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenStatus;
 import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.P12;
 import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
 import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
@@ -141,8 +133,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      *
      * @param tokenInfo the token info
      */
-    public SoftwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties) {
-        super(tokenInfo, signerProperties);
+    public SoftwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties, TokenManager tokenManager) {
+        super(tokenInfo, signerProperties, tokenManager);
         this.tokenType = tokenType;
     }
 
@@ -179,7 +171,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             deactivateToken();
         }
 
-        setTokenStatus(tokenId, TokenStatusInfo.OK);
+        tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
     }
 
     @Override
@@ -214,7 +206,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     @Override
     protected void deleteCert(String certId) {
-        TokenManager.removeCert(certId);
+        tokenManager.removeCert(certId);
     }
 
     @Override
@@ -267,7 +259,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
         assertTokenAvailable();
         assertKeyAvailable(keyId);
-        KeyInfo keyInfo = getKeyInfo(keyId);
+        KeyInfo keyInfo = tokenManager.getKeyInfo(keyId);
         PrivateKey privateKey = getPrivateKey(keyId);
 
         var keyAlgorithm = KeyAlgorithm.valueOf(privateKey.getAlgorithm());
@@ -293,17 +285,17 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         boolean isInitialized = isTokenInitialized();
 
         if (!isInitialized) {
-            setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
         }
 
         boolean isActive = isInitialized && isPinStored();
-        setTokenActive(tokenId, isActive);
+        tokenManager.setTokenActive(tokenId, isActive);
 
         if (isActive) {
             try {
                 activateToken();
             } catch (Exception e) {
-                setTokenActive(tokenId, false);
+                tokenManager.setTokenActive(tokenId, false);
 
                 log.trace("Failed to activate token", e);
             }
@@ -311,10 +303,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void updateKeys() {
-        for (KeyInfo keyInfo : listKeys(tokenId)) {
+        for (KeyInfo keyInfo : tokenManager.listKeys(tokenId)) {
             String keyId = keyInfo.getId();
 
-            setKeyAvailable(keyId, true);
+            tokenManager.setKeyAvailable(keyId, true);
 
             if (privateKeys.containsKey(keyId)) {
                 continue;
@@ -323,7 +315,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             try {
                 initializePrivateKey(keyId);
             } catch (Exception e) {
-                setKeyAvailable(keyId, false);
+                tokenManager.setKeyAvailable(keyId, false);
 
                 log.trace("Failed to load private key from key store", e);
             }
@@ -341,7 +333,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                     log.debug("Found new key with id '{}'", keyId);
 
                     var signMechanism = resolveSignMechanism(publicKey.map(KeyData::algorithm).orElse(null));
-                    addKey(tokenId, keyId, publicKey.map(KeyData::data).orElse(null), signMechanism);
+                    tokenManager.addKey(tokenId, keyId, publicKey.map(KeyData::data).orElse(null), signMechanism);
                 } catch (Exception e) {
                     log.error("Failed to read pkcs#12 key '{}'", keyId, e);
                 }
@@ -389,8 +381,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             String keyStoreFile = getKeyStoreFileName(PIN_FILE);
             savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
 
-            setTokenAvailable(tokenId, true);
-            setTokenStatus(tokenId, TokenStatusInfo.OK);
+            tokenManager.setTokenAvailable(tokenId, true);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -423,12 +415,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             verifyPin(oldPin);
         } catch (Exception e) {
             log.error("Error verifying token PIN", e);
-            setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
             throw pinIncorrect();
         }
         if (!Arrays.equals(oldPinFromStore, oldPin)) {
             log.error("The PIN provided for updating the pin was incorrect");
-            setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
             throw pinIncorrect();
         }
         // Verify new pin complexity
@@ -494,18 +486,18 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         try {
             verifyPin(PasswordStore.getPassword(tokenId));
 
-            setTokenStatus(tokenId, TokenStatusInfo.OK);
-            setTokenActive(tokenId, true);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
+            tokenManager.setTokenActive(tokenId, true);
         } catch (FileNotFoundException e) {
             log.error("Software token not initialized", e);
 
-            setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
 
             throw tokenNotInitialized(tokenId);
         } catch (Exception e) {
             log.error("Error verifying token PIN", e);
 
-            setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+            tokenManager.setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
 
             throw pinIncorrect();
         }
@@ -514,7 +506,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     private void deactivateToken() {
         privateKeys.clear();
 
-        setTokenActive(tokenId, false);
+        tokenManager.setTokenActive(tokenId, false);
     }
 
     private PrivateKey loadPrivateKey(String keyId) throws Exception {
@@ -578,7 +570,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void assertTokenAvailable() {
-        if (!isTokenActive(tokenId)) {
+        if (!tokenManager.isTokenActive(tokenId)) {
             throw tokenNotActive(tokenId);
         }
     }

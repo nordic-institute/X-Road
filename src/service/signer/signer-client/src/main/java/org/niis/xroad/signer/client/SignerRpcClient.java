@@ -26,20 +26,13 @@
  */
 package org.niis.xroad.signer.client;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -51,8 +44,6 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.rpc.common.Empty;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
-import org.niis.xroad.signer.api.dto.AuthKeyCertInfo;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
@@ -100,25 +91,19 @@ import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 import org.niis.xroad.signer.proto.SetRenewalErrorReq;
 import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
-import org.niis.xroad.signer.proto.SignCertificateReq;
-import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -127,6 +112,7 @@ import static java.time.Instant.ofEpochMilli;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
+import static org.niis.xroad.signer.client.util.SignerRpcUtils.tryToRun;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -169,58 +155,6 @@ public class SignerRpcClient extends AbstractRpcClient {
         }
     }
 
-    private static void tryToRun(Action action) throws SignerException {
-        try {
-            action.run();
-        } catch (SignerException e) {
-            throw e;
-        } catch (CodedException e) {
-            throw new SignerException(e);
-        } catch (Exception e) {
-            throw new SignerException(ErrorCodes.X_INTERNAL_ERROR, e);
-        }
-    }
-
-    private static <R, T> T tryToRun(ActionWithResult<R> action, Function<R, T> mapper) throws SignerException {
-        return tryToRun(() -> mapper.apply(action.run()));
-    }
-
-    private static <T> T tryToRun(ActionWithResult<T> action) throws SignerException {
-        try {
-            return action.run();
-        } catch (SignerException e) {
-            throw e;
-        } catch (CodedException e) {
-            throw new SignerException(e);
-        } catch (StatusRuntimeException error) {
-            if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw SignerException.tr(X_NETWORK_ERROR, "signer_client_timeout",
-                                "Signer client timed out. " + error.getStatus().getDescription())
-                        .withPrefix(SIGNER_X);
-            }
-            com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
-            if (status != null) {
-                handleGenericStatusRuntimeException(status);
-            }
-            throw error;
-        } catch (Exception e) {
-            throw new SignerException(ErrorCodes.X_INTERNAL_ERROR, e);
-        }
-    }
-
-    private static void handleGenericStatusRuntimeException(com.google.rpc.Status status) {
-        for (Any any : status.getDetailsList()) {
-            if (any.is(CodedExceptionProto.class)) {
-                try {
-                    final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
-                            .withPrefix(SIGNER_X);
-                } catch (InvalidProtocolBufferException e) {
-                    throw new RuntimeException("Failed to parse grpc message", e);
-                }
-            }
-        }
-    }
 
     /**
      * Initialize the software token with the given password.
@@ -833,25 +767,6 @@ public class SignerRpcClient extends AbstractRpcClient {
     }
 
     /**
-     * Get Security Server auth key certificate.
-     * @param serverId securityServerId
-     * @return authKeyInfo
-     * @throws Exception
-     */
-    public AuthKeyCertInfo getAuthKeyCert(SecurityServerId serverId) throws SignerException {
-        return tryToRun(
-                () -> blockingKeyService.getAuthKeyCert(GetAuthKeyReq.newBuilder()
-                        .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
-                        .build()),
-                response -> {
-                    return new AuthKeyCertInfo(response.getAlias(),
-                            new CertificateInfo(response.getCert()));
-                }
-        );
-    }
-
-
-    /**
      * Get Security Server auth key
      * @param serverId securityServerId
      * @return authKeyInfo
@@ -921,17 +836,6 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
-    @WithSpan("SignerProxy#sign")
-    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException {
-        return tryToRun(
-                () -> blockingKeyService.sign(SignReq.newBuilder()
-                                .setKeyId(keyId)
-                                .setSignatureAlgorithmId(signatureAlgorithmId.name())
-                                .setDigest(ByteString.copyFrom(digest))
-                                .build())
-                        .getSignature().toByteArray()
-        );
-    }
 
     public Boolean isTokenBatchSigningEnabled(String keyId) throws SignerException {
         return tryToRun(
@@ -970,18 +874,6 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
-    public byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
-            throws SignerException {
-        return tryToRun(
-                () -> blockingKeyService.signCertificate(SignCertificateReq.newBuilder()
-                                .setKeyId(keyId)
-                                .setSignatureAlgorithmId(signatureAlgorithmId.name())
-                                .setSubjectName(subjectName)
-                                .setPublicKey(ByteString.copyFrom(publicKey.getEncoded()))
-                                .build())
-                        .getCertificateChain().toByteArray()
-        );
-    }
 
     /**
      * DTO since we don't want to leak signer message objects out
@@ -1044,11 +936,4 @@ public class SignerRpcClient extends AbstractRpcClient {
     public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {
     }
 
-    private interface ActionWithResult<T> {
-        T run() throws Exception;
-    }
-
-    private interface Action {
-        void run() throws Exception;
-    }
 }

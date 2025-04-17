@@ -61,6 +61,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
     private final ModuleType moduleType;
 
     protected final SignerProperties signerProperties;
+    protected final TokenManager tokenManager;
 
     public Optional<TokenWorker> getTokenById(String tokenId) {
         return Optional.ofNullable(tokenWorkers.get(tokenId));
@@ -143,15 +144,15 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
         }
     }
 
-    private static TokenInfo getTokenInfo(TokenType tokenType) {
-        TokenInfo info = TokenManager.getTokenInfo(tokenType.getId());
+    private  TokenInfo getTokenInfo(TokenType tokenType) {
+        TokenInfo info = tokenManager.getTokenInfo(tokenType.getId());
 
         if (info != null) {
-            TokenManager.setTokenAvailable(tokenType, true);
+            tokenManager.setTokenAvailable(tokenType, true);
 
             return info;
         } else {
-            return TokenManager.createToken(tokenType);
+            return tokenManager.createToken(tokenType);
         }
     }
 }

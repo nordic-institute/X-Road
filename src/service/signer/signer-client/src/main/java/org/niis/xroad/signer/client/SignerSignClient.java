@@ -23,30 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.protocol.handler;
+package org.niis.xroad.signer.client;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.proto.AuthKeyCertInfoProto;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-/**
- * Handles authentication key cert retrieval requests.
- */
-@Slf4j
-@ApplicationScoped
-public class GetAuthKeyCertReqHandler
-        extends AbstractAuthKeyReqHandler<AuthKeyCertInfoProto> {
+import org.niis.xroad.signer.api.exception.SignerException;
 
-    @Override
-    protected AuthKeyCertInfoProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
-        var builder = AuthKeyCertInfoProto.newBuilder()
-                .setAlias(keyInfo.getId())
-                .setCert(certInfo.asMessage());
+import java.security.PublicKey;
 
-        return builder.build();
-    }
+public interface SignerSignClient {
 
+    byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException;
 
+    byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
+            throws SignerException;
 }
