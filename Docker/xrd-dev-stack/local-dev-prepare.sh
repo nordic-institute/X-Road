@@ -44,6 +44,7 @@ if [[ $# -eq 0 ]]; then
   echo "Available args:"
   echo "--skip-gradle-build: Skip gradle build and use existing packages"
   echo "--skip-tests: Skip gradle build and use existing packages"
+  echo "--parallel: Run gradle build in parallel"
 fi
 
 if [[ "$GRADLE_BUILD" -eq 1 ]]; then

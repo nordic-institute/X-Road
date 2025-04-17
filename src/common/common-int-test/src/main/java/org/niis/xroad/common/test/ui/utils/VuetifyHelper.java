@@ -68,6 +68,11 @@ public final class VuetifyHelper {
         return $x(format(xpath, value));
     }
 
+    public static SelenideElement selectorComboboxOf(String value) {
+        var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item-title') and contains(.,'%s')]";
+        return $x(format(xpath, value));
+    }
+
     private VuetifyHelper() {
     }
 

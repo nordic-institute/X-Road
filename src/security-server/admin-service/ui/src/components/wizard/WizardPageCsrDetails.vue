@@ -46,13 +46,15 @@
           :label-text="$t('csr.client')"
           :help-text="$t('csr.helpClient')"
         />
-        <v-select
+        <v-combobox
           v-bind="csrClientRef"
           :items="memberIdItems"
+          :return-object="false"
+          auto-select-first
           class="wizard-form-input"
           data-test="csr-client-select"
           variant="outlined"
-        ></v-select>
+        ></v-combobox>
       </div>
 
       <div class="wizard-row-wrap">
@@ -87,7 +89,7 @@
     </div>
     <div class="button-footer">
       <xrd-button outlined data-test="cancel-button" @click="cancel"
-      >{{ $t('action.cancel') }}
+        >{{ $t('action.cancel') }}
       </xrd-button>
 
       <xrd-button
@@ -96,7 +98,7 @@
         class="previous-button"
         data-test="previous-button"
         @click="previous"
-      >{{ $t('action.previous') }}
+        >{{ $t('action.previous') }}
       </xrd-button>
       <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
         {{ $t(saveButtonText) }}
