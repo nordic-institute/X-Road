@@ -6,7 +6,7 @@ echo "Building baseline images.."
 (cd ../docker/base && ./build-base-images.sh $REGISTRY_URL)
 
 echo "Building Security Server images.."
-(cd ../../../src && ./gradlew assemble -PxroadImageRegistry=$REGISTRY_URL)
+(cd ../../../src && ./gradlew assemble -PxroadImageRegistry=$REGISTRY_URL -PbuildImages=true)
 
 echo "Building OpenBao init-runner"
 docker buildx build \

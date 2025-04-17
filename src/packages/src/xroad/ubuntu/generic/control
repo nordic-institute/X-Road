@@ -195,11 +195,10 @@ Package: xroad-secret-store-local
 Architecture: amd64 arm64
 Conflicts: xroad-secret-store-remote
 Pre-Depends: jq, gpg, bao (>= 2.0.0)
-Depends: xroad-base (=${binary:Version})
+Depends: postgresql, postgresql-contrib
 Description: Meta-package for X-Road local secret store dependencies
 
 Package: xroad-secret-store-remote
 Architecture: all
 Conflicts: xroad-secret-store-local
-Depends: xroad-base (=${binary:Version})
 Description: Meta-package for X-Road remote secret store dependencies

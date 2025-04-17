@@ -16,7 +16,7 @@ variable "serverconf_db_user" {
 }
 
 variable "serverconf_db_user_password" {
-  description = "Serverconf DB uses's password"
+  description = "Serverconf DB user's password"
   type        = string
   sensitive   = true
 }
