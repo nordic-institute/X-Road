@@ -114,8 +114,8 @@ jobs:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
-  BuildAndPackageWithUnitTestsOnArm:
-    name: Build, test and package code for arm architecture
+  BuildAndPackageOnArm:
+    name: Build and package code for arm architecture
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04-arm
     steps:
@@ -142,6 +142,10 @@ jobs:
       - name: Build native dependencies
         working-directory: ./src
         run: ./gradlew :service:signer:signer-api:make
+      - name: Build RHEL8 packages
+        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+      - name: Build RHEL9 packages
+        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
       - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
@@ -152,7 +156,7 @@ jobs:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh noble -release
-      - name: Store deb files for system tests
+      - name: Store deb files for Docker dev images
         uses: actions/upload-artifact@v4
         with:
           name: debian-packages-arm
