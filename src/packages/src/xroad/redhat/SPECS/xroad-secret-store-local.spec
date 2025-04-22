@@ -10,7 +10,7 @@ Summary:            Meta-package for local secret store dependencies
 Group:              Applications/Internet
 License:            MIT
 Requires:           jq, bao >= 2.0.0
-Requires:           postgresql-server, postgresql-contrib
+Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 Conflicts:          xroad-secret-store-remote
 
 %description
@@ -74,11 +74,10 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
     install -m 644 /opt/openbao/tls/tls.crt /etc/pki/ca-trust/source/anchors/openbao.crt
     update-ca-trust
 
+
     # Initialize PostgreSQL storage
     init_local_postgres
-    password=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
-    /usr/share/xroad/scripts/secret-store-init-db.sh --db-user-password "${password}"
-    sed -i "/storage \".*{/,/}/c\storage \"postgresql\" {\n  connection_url = \"postgres://openbao:${password}@localhost:5432/openbao?search_path=openbao\"\n}" /etc/openbao/openbao.hcl
+    /usr/share/xroad/scripts/secret-store-init-db.sh
 
     # Enable and start service
     if ! systemctl enable openbao.service; then
