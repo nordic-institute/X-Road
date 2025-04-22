@@ -28,12 +28,12 @@ jobs:
         if: env.MERGE_EXIT_CODE == '0'
         run: |
           git push origin HEAD:XRDDEV-2875-8.x
-
       - name: Create a pull request if merge failed
         if: env.MERGE_EXIT_CODE != '0'
         run: |
           git merge --abort
           BRANCH_NAME="XRDDEV-2875-to-XRDDEV-2875-8.x-${{ github.run_id }}"
+          git checkout XRDDEV-2875
           git checkout -b "$BRANCH_NAME"
           git push --set-upstream origin "$BRANCH_NAME"
           gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" --body "This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
