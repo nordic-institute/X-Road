@@ -32,7 +32,7 @@ jobs:
       - name: Create a pull request if merge failed
         if: env.MERGE_EXIT_CODE != '0'
         run: |
-          git merge –abort
+          git merge --abort
           BRANCH_NAME="XRDDEV-2875-to-XRDDEV-2875-8.x-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
           git commit -m "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
