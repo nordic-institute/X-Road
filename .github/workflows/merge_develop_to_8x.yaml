@@ -33,7 +33,12 @@ jobs:
           git checkout XRDDEV-2875
           git checkout -b "$BRANCH_NAME"
           git push --set-upstream origin "$BRANCH_NAME"
-          gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" --body "This PR was created because an attempt to automatically merge XRDDEV-2875 into XRDDEV-2875-8.x resulted in conflicts.
+          gh pr create \
+          --base XRDDEV-2875-8.x \
+          --head "$BRANCH_NAME" \
+          --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" \
+          --assignee "${{ github.event.pusher.name }}" \
+          --body "This PR was created because an attempt to automatically merge XRDDEV-2875 into XRDDEV-2875-8.x resulted in conflicts.
             Please resolve them manually."
         env:
           GH_TOKEN: ${{ github.token }}
