@@ -1,0 +1,44 @@
+name: Auto-merge XRDDEV-2875 to XRDDEV-2875-8.x
+on:
+  push:
+    branches:
+      - XRDDEV-2875
+jobs:
+  AutoMergeToDevelop8x:
+    name: Auto-merge to XRDDEV-2875-8.x
+    runs-on: ubuntu-22.04
+#    permissions:
+#      contents: write
+#      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Try to merge XRDDEV-2875 into XRDDEV-2875-8.x
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git fetch origin XRDDEV-2875-8.x
+          git checkout -b XRDDEV-2875-8.x origin/XRDDEV-2875-8.x
+          set +e
+          git merge origin/XRDDEV-2875 -m "Auto-merge XRDDEV-2875 into XRDDEV-2875-8.x"
+          echo "MERGE_EXIT_CODE=$?" >> $GITHUB_ENV
+          set -e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push if merge was successful
+        if: env.MERGE_EXIT_CODE == '0'
+        run: |
+          git push origin HEAD:XRDDEV-2875-8.x
+
+      - name: Create a pull request if merge failed
+        if: env.MERGE_EXIT_CODE != '0'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
+          title: "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
+          body: |
+            This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
+            Please resolve them manually.
+          base: XRDDEV-2875-8.x
+          branch: XRDDEV-2875-to-XRDDEV-2875-8.x-${{ github.run_id }}
