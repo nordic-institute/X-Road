@@ -33,12 +33,10 @@ jobs:
 
       - name: Create a pull request if merge failed
         if: env.MERGE_EXIT_CODE != '0'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          commit-message: "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
-          title: "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
-          body: |
-            This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
-            Please resolve them manually.
-          base: XRDDEV-2875-8.x
-          branch: XRDDEV-2875-to-XRDDEV-2875-8.x-${{ github.run_id }}
+        run: |
+          BRANCH_NAME="auto-merge-${{ github.ref_name }}-${GITHUB_RUN_ID}"
+          git checkout -b "$BRANCH_NAME"
+          git commit -m "Merge into ${{ github.ref_name }}"
+          echo "Creating pull request..."
+          gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge to ${{ github.ref_name }}" --body "This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
+            Please resolve them manually."
