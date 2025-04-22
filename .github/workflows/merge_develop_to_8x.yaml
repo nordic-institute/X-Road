@@ -24,8 +24,6 @@ jobs:
           git merge origin/XRDDEV-2875 -m "Auto-merge XRDDEV-2875 into XRDDEV-2875-8.x"
           echo "MERGE_EXIT_CODE=$?" >> $GITHUB_ENV
           set -e
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Push if merge was successful
         if: env.MERGE_EXIT_CODE == '0'
         run: |
@@ -34,9 +32,10 @@ jobs:
       - name: Create a pull request if merge failed
         if: env.MERGE_EXIT_CODE != '0'
         run: |
-          BRANCH_NAME="auto-merge-${{ github.ref_name }}-${GITHUB_RUN_ID}"
+          git merge –abort
+          BRANCH_NAME="XRDDEV-2875-to-XRDDEV-2875-8.x-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
-          git commit -m "Merge into ${{ github.ref_name }}"
+          git commit -m "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
           echo "Creating pull request..."
-          gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge to ${{ github.ref_name }}" --body "This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
+          gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" --body "This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
             Please resolve them manually."
