@@ -7,9 +7,6 @@ jobs:
   AutoMergeToDevelop8x:
     name: Auto-merge to XRDDEV-2875-8.x
     runs-on: ubuntu-22.04
-#    permissions:
-#      contents: write
-#      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,7 +33,7 @@ jobs:
           git checkout XRDDEV-2875
           git checkout -b "$BRANCH_NAME"
           git push --set-upstream origin "$BRANCH_NAME"
-          gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" --body "This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
-            Please resolve them manually by merging develop into $BRANCH_NAME and solving any merge conflicts manually."
+          gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" --body "This PR was created because an attempt to automatically merge XRDDEV-2875 into XRDDEV-2875-8.x resulted in conflicts.
+            Please resolve them manually."
         env:
           GH_TOKEN: ${{ github.token }}
