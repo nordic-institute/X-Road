@@ -1,0 +1,7 @@
+xroad:
+  # we shorten here messages processing from 1 min to 1 second
+  records-available-timestamp-offset-seconds: 1
+  buffer:
+    socket-timeout-seconds: 1
+  service:
+    socket-timeout-seconds: 1
