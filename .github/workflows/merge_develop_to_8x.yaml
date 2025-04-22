@@ -35,7 +35,5 @@ jobs:
           git merge --abort
           BRANCH_NAME="XRDDEV-2875-to-XRDDEV-2875-8.x-${{ github.run_id }}"
           git checkout -b "$BRANCH_NAME"
-          git commit -m "Merge XRDDEV-2875 into XRDDEV-2875-8.x"
-          echo "Creating pull request..."
           gh pr create --base XRDDEV-2875-8.x --head "$BRANCH_NAME" --title "Merge XRDDEV-2875 into XRDDEV-2875-8.x" --body "This PR was created because an attempt to automatically merge `XRDDEV-2875` into `XRDDEV-2875-8.x` resulted in conflicts.
-            Please resolve them manually."
+            Please resolve them manually by merging develop into $BRANCH_NAME and solving any merge conflicts manually."
