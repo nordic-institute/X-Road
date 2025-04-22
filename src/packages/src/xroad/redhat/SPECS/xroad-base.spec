@@ -21,7 +21,6 @@ Requires:  rlwrap
 %endif
 Requires:  jre-21-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl
-Requires:  (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 
 %define src %{_topdir}/..
 
