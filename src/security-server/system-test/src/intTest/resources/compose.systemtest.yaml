@@ -82,6 +82,8 @@ services:
       - xroad.db.op-monitor.hibernate.connection.driver_class=org.postgresql.Driver
       - xroad.db.op-monitor.hibernate.connection.username=opmonitor
       - xroad.db.op-monitor.hibernate.connection.password=secret
+    volumes:
+      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d/op-monitor.yaml:/etc/xroad/conf.d/local.yaml
     healthcheck:
       interval: 5s
       retries: 40
