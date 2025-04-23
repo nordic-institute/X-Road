@@ -25,7 +25,7 @@
  -->
 <template>
   <v-card v-if="showConnectionType" variant="flat" class="xrd-card mb-5">
-    <v-card-title class="text-h6 mb-3 mt-4">
+    <v-card-title class="text-h6 mb-3 pa-4">
       {{ $t('internalServers.connectionType') }}
     </v-card-title>
     <v-select
