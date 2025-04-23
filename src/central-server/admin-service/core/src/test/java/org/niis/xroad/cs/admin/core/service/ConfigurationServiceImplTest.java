@@ -40,8 +40,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
@@ -359,7 +359,7 @@ class ConfigurationServiceImplTest {
 
             assertThatThrownBy(() -> configurationService.getConfigurationPartFile(CONTENT_IDENTIFIER, VERSION))
                     .isInstanceOf(NotFoundException.class)
-                    .hasMessage("Configuration part file not found");
+                    .hasMessage("Error[code=configuration_part_file_not_found]");
         }
     }
 
@@ -406,7 +406,7 @@ class ConfigurationServiceImplTest {
                 assertThrows(CodedException.class, () -> configurationService.uploadConfigurationPart(INTERNAL,
                         "NON-EXISTING", "fn", FILE_DATA));
 
-                assertThrows(ServiceException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,
+                assertThrows(InternalServerErrorException.class, () -> configurationService.uploadConfigurationPart(EXTERNAL,
                         "TEST-CONFIGURATION-PART", "fn", FILE_DATA));
             }
         }

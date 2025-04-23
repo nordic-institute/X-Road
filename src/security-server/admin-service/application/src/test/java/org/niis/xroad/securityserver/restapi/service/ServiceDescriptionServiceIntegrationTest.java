@@ -64,6 +64,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -268,7 +269,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             fail("should throw exception");
         } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
             Assert.assertEquals(Collections.singletonList("xroadGetRandom:aa"),
-                    expected.getErrorDeviation().getMetadata());
+                    expected.getErrorDeviation().metadata());
         }
     }
 
@@ -281,8 +282,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
             Set<String> invalidIdentifiers = new HashSet<>(Arrays.asList("xroadGetRandom:aa", "xroadGetRandom;aa",
                     "xroadGetRandom\\aa", "xroadGetRandom/aa", "xroadGetRandom%aa", "xroadGetRandom/../aa"));
-            assertEquals(invalidIdentifiers, new HashSet<>(expected.getErrorDeviation().getMetadata()));
-            Assert.assertEquals(invalidIdentifiers.size(), expected.getErrorDeviation().getMetadata().size());
+            assertEquals(invalidIdentifiers, new HashSet<>(expected.getErrorDeviation().metadata()));
+            Assert.assertEquals(invalidIdentifiers.size(), expected.getErrorDeviation().metadata().size());
         }
     }
 
@@ -293,7 +294,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
                     getTempWsdlFileUrl("wsdl/invalid-serviceversion-percent.wsdl"), false);
             fail("should throw exception");
         } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
-            Assert.assertEquals(Collections.singletonList("v1%234"), expected.getErrorDeviation().getMetadata());
+            Assert.assertEquals(Collections.singletonList("v1%234"), expected.getErrorDeviation().metadata());
         }
     }
 
@@ -503,7 +504,6 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
                 singleton("foo"),
                 CLIENT_ID_SS6);
 
-
         clientEntity = clientService.getLocalClientEntity(CLIENT_ID_SS1);
 
         assertTrue("Expecting endpoint for service 'foo' to be added",
@@ -709,20 +709,14 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
                         && service.getServiceVersion().equals("v1")));
 
         // Test adding service with duplicate service code
-        try {
-            serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
-                    "http://testurl.com", "getRandom");
-            throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException ignored) {
-        }
+        assertThrows(ServiceDescriptionService.ServiceCodeAlreadyExistsException.class,
+                () -> serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
+                "http://testurl.com", "getRandom"));
 
         // Test adding service with duplicate full service code
-        try {
-            serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
-                    "http:://testurl.com", "getRandom.v1");
-            throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException ignored) {
-        }
+        assertThrows(ServiceDescriptionService.ServiceCodeAlreadyExistsException.class,
+                () -> serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
+                "http:://testurl.com", "getRandom.v1"));
 
     }
 
@@ -743,7 +737,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
                 .count());
 
         OpenApiParser.Result parsedOasResult = openApiParser.parse(urlString);
-        assertEquals(OAS3_SERVICE_URL, parsedOasResult.getBaseUrl());
+        assertEquals(OAS3_SERVICE_URL, parsedOasResult.baseUrl());
     }
 
     @Test
@@ -884,7 +878,6 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         } catch (UnhandledWarningsException e) {
             fail("Shouldn't throw warnings exception when ignorewarning is true");
         }
-
 
         List<EndpointEntity> endpoints = client.getEndpoints();
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));

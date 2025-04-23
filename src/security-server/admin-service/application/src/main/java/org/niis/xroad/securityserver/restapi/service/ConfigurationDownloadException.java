@@ -25,17 +25,16 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_DOWNLOAD_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CONF_DOWNLOAD_FAILED;
 
 /**
  * Thrown if downloading configuration from the anchor fails. Usually caused by erroneous response (500) from
  * ConfigurationClient.
  */
-public class ConfigurationDownloadException extends ServiceException {
+public class ConfigurationDownloadException extends InternalServerErrorException {
     public ConfigurationDownloadException(String s) {
-        super(s, new ErrorDeviation(ERROR_CONF_DOWNLOAD_FAILED));
+        super(s, CONF_DOWNLOAD_FAILED.build());
     }
 }

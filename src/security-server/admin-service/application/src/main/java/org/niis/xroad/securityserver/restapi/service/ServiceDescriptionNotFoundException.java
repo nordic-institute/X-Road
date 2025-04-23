@@ -25,14 +25,17 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_DESCRIPTION_NOT_FOUND;
 
 public class ServiceDescriptionNotFoundException extends NotFoundException {
 
-    public static final String ERROR_SERVICE_DESCRIPTION_NOT_FOUND = "service_description_not_found";
-
     public ServiceDescriptionNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_SERVICE_DESCRIPTION_NOT_FOUND));
+        super(s, SERVICE_DESCRIPTION_NOT_FOUND.build());
+    }
+
+    public ServiceDescriptionNotFoundException(long serviceDescriptionId) {
+        this("Service description with id %s not found".formatted(serviceDescriptionId));
     }
 }

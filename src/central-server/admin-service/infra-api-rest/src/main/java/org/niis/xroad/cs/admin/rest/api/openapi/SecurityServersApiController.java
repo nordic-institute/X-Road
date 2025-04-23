@@ -26,8 +26,10 @@
  */
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.rest.api.converter.CertificateDetailsDtoConverter;
@@ -55,7 +57,6 @@ import java.util.List;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SECURITY_SERVER_AUTH_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SECURITY_SERVER_ADDRESS;
@@ -118,10 +119,11 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVER_DETAILS')")
     public ResponseEntity<SecurityServerDto> getSecurityServer(String id) {
-        return securityServerService.find(securityServerIdConverter.convertId(id))
+        SecurityServerId serverId = securityServerIdConverter.convertId(id);
+        return securityServerService.find(serverId)
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND, id));
+                .orElseThrow(() -> new SecurityServerNotFoundException(serverId));
     }
 
     @Override
@@ -150,6 +152,6 @@ public class SecurityServersApiController implements SecurityServersApi {
         return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND, id));
+                .orElseThrow(() -> new SecurityServerNotFoundException(securityServerId));
     }
 }

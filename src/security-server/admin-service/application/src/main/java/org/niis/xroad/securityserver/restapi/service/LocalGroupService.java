@@ -33,11 +33,10 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
-import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
@@ -60,9 +59,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_LOCAL_GROUP_CODE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_LOCAL_GROUP_CODE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.LOCAL_GROUP_MEMBER_ALREADY_EXISTS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.LOCAL_GROUP_MEMBER_NOT_FOUND;
 
 /**
  * LocalGroup service
@@ -144,10 +143,10 @@ public class LocalGroupService {
 
     /**
      * Adds a local group to a client
-     * @param id id
+     * @param id              id
      * @param localGroupToAdd localGroupToAdd
      * @throws DuplicateLocalGroupCodeException if local group with given code already exists
-     * @throws ClientNotFoundException if client with given id was not found
+     * @throws ClientNotFoundException          if client with given id was not found
      */
     public LocalGroup addLocalGroup(ClientId id, LocalGroup localGroupToAdd)
             throws DuplicateLocalGroupCodeException, ClientNotFoundException {
@@ -175,12 +174,12 @@ public class LocalGroupService {
     /**
      * Adds a members to LocalGroup
      * @param memberIds memberIds
-     * @throws MemberAlreadyExistsException if given member already exists in the group
-     * @throws LocalGroupNotFoundException if local group with given id was not found
+     * @throws MemberAlreadyExistsException      if given member already exists in the group
+     * @throws LocalGroupNotFoundException       if local group with given id was not found
      * @throws LocalGroupMemberNotFoundException if local group member was not found
      */
-    public void addLocalGroupMembers(Long groupId, List<ClientId> memberIds) throws MemberAlreadyExistsException,
-            LocalGroupNotFoundException, LocalGroupMemberNotFoundException {
+    public void addLocalGroupMembers(Long groupId, List<ClientId> memberIds)
+            throws MemberAlreadyExistsException, LocalGroupNotFoundException, LocalGroupMemberNotFoundException {
         LocalGroupEntity localGroupEntity = getLocalGroupEntity(groupId);
         if (localGroupEntity == null) {
             throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
@@ -217,7 +216,7 @@ public class LocalGroupService {
      * Deletes a local group
      * @param groupId groupId
      * @throws LocalGroupNotFoundException if local group with given id was not found
-     * @throws ClientNotFoundException if client containing local group was not found
+     * @throws ClientNotFoundException     if client containing local group was not found
      */
     public void deleteLocalGroup(Long groupId) throws LocalGroupNotFoundException, ClientNotFoundException {
         LocalGroupEntity existingLocalGroupEntity = getLocalGroupEntity(groupId);
@@ -236,9 +235,8 @@ public class LocalGroupService {
 
     /**
      * Removes access rights by XRoadId
-     *
      * @param clientEntity clientEntity
-     * @param xRoadId xRoadId
+     * @param xRoadId      xRoadId
      */
     private void deleteAccessRightsByXRoadId(ClientEntity clientEntity, XRoadIdEntity xRoadId) {
         List<AccessRightEntity> acls = clientEntity.getAccessRights().stream()
@@ -252,7 +250,7 @@ public class LocalGroupService {
      * @param groupId local group id
      * @param items
      * @throws LocalGroupMemberNotFoundException if local group member was not found in the group
-     * @throws LocalGroupNotFoundException if local group was not found
+     * @throws LocalGroupNotFoundException       if local group was not found
      */
     public void deleteGroupMembers(long groupId, List<ClientId> items)
             throws LocalGroupMemberNotFoundException, LocalGroupNotFoundException {
@@ -323,7 +321,7 @@ public class LocalGroupService {
 
     /**
      * @param clientEntity local group owner
-     * @param identifiers identifiers to check
+     * @param identifiers  identifiers to check
      * @return whether all the local groups exist in LOCALGROUP table for the given client.
      * Entry in IDENTIFIER table may or may not exist
      */
@@ -337,18 +335,18 @@ public class LocalGroupService {
     /**
      * Thrown when attempt to add member that already exists
      */
-    public static class MemberAlreadyExistsException extends ServiceException {
+    public static class MemberAlreadyExistsException extends ConflictException {
         public MemberAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS));
+            super(s, LOCAL_GROUP_MEMBER_ALREADY_EXISTS.build());
         }
     }
 
     /**
      * Thrown when attempt to add member that already exists
      */
-    public static class DuplicateLocalGroupCodeException extends ServiceException {
+    public static class DuplicateLocalGroupCodeException extends ConflictException {
         public DuplicateLocalGroupCodeException(String s) {
-            super(s, new ErrorDeviation(ERROR_DUPLICATE_LOCAL_GROUP_CODE));
+            super(s, DUPLICATE_LOCAL_GROUP_CODE.build());
         }
     }
 
@@ -357,7 +355,7 @@ public class LocalGroupService {
      */
     public static class LocalGroupMemberNotFoundException extends NotFoundException {
         public LocalGroupMemberNotFoundException(String s) {
-            super(s, new ErrorDeviation(ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND));
+            super(s, LOCAL_GROUP_MEMBER_NOT_FOUND.build());
         }
     }
 }

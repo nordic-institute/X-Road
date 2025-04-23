@@ -55,8 +55,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
@@ -366,26 +366,17 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
     @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void cantDeleteOrphansForDifferentReasons() throws Exception {
         // client exists
-        try {
-            orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1));
 
         // siblings exist
-        try {
-            orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_SIBLINGS_O3);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_SIBLINGS_O3));
 
         // siblings dont exist, but there is no orphan data
         // siblings exist
-        try {
-            orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4));
     }
 
     @Test

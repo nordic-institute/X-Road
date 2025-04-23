@@ -29,20 +29,20 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
+import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -78,6 +78,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -85,6 +86,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CLIENT_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockAuthCertificate;
@@ -199,13 +202,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         doAnswer(answer -> notFoundId).when(globalConfProvider).getSubjectName(any(), any());
         X509Certificate mockCert = getMockCertificate();
         Resource body = CertificateTestUtils.getResource(mockCert.getEncoded());
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (BadRequestException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CLIENT_NOT_FOUND, error.getCode());
-            Assert.assertEquals(notFoundId.asEncodedId(), error.getMetadata().get(0));
-        }
+        var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(CLIENT_NOT_FOUND.code(), error.code());
+        assertEquals(notFoundId.asEncodedId(), error.metadata().get(0));
     }
 
     @Test
@@ -215,12 +215,9 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .tr(X_CERT_EXISTS, "mock code", "mock msg"))
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (ConflictException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS, error.getCode());
-        }
+        var e = assertThrows(ConflictException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS, error.code());
     }
 
     @Test
@@ -230,12 +227,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .tr(X_INCORRECT_CERTIFICATE, "mock code", "mock msg"))
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (BadRequestException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_CERT, error.getCode());
-        }
+        var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(INVALID_CERTIFICATE.code(), error.code());
+
     }
 
     @Test
@@ -245,12 +240,9 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .tr(X_WRONG_CERT_USAGE, "mock code", "mock msg"))
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (BadRequestException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE, error.getCode());
-        }
+        var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE, error.code());
     }
 
     @Test
@@ -260,12 +252,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .tr(X_CSR_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (ConflictException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CSR_NOT_FOUND, error.getCode());
-        }
+        var e = assertThrows(ConflictException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_CSR_NOT_FOUND, error.code());
+
     }
 
     @Test
@@ -275,24 +265,20 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .tr(X_KEY_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerRpcClient).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (BadRequestException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_KEY_NOT_FOUND, error.getCode());
-        }
+        var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_KEY_NOT_FOUND, error.code());
+
     }
 
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importInvalidSignCertificate() throws Exception {
         Resource body = CertificateTestUtils.getResource(new byte[]{0, 0, 0, 0});
-        try {
-            tokenCertificatesApiController.importCertificate(body);
-        } catch (BadRequestException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_CERT, error.getCode());
-        }
+        var e = assertThrows(BadRequestException.class, () -> tokenCertificatesApiController.importCertificate(body));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(INVALID_CERTIFICATE.code(), error.code());
+
     }
 
     @Test
@@ -368,12 +354,9 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerRpcClient).getCertForHash(any());
-        try {
-            tokenCertificatesApiController.getCertificate(UNKNOWN_CERT_HASH);
-        } catch (ResourceNotFoundException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
-        }
+        var e = assertThrows(NotFoundException.class, () -> tokenCertificatesApiController.getCertificate(UNKNOWN_CERT_HASH));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.code());
     }
 
     @Test
@@ -404,12 +387,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerRpcClient).getCertForHash(any());
-        try {
-            tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
-        } catch (ResourceNotFoundException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
-        }
+        var e = assertThrows(NotFoundException.class,
+                () -> tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.code());
     }
 
     @Test
@@ -421,12 +402,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .certificateStatus(CertificateInfo.STATUS_SAVED)
                 .build();
         doAnswer(answer -> certificateInfo).when(signerRpcClient).getCertForHash(any());
-        try {
-            tokenCertificatesApiController.importCertificateFromToken(MOCK_AUTH_CERTIFICATE_HASH);
-        } catch (BadRequestException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED, error.getCode());
-        }
+        var e = assertThrows(TokenCertificateService.AuthCertificateNotSupportedException.class,
+                () -> tokenCertificatesApiController.importCertificateFromToken(MOCK_AUTH_CERTIFICATE_HASH));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED, error.code());
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -492,12 +471,9 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         doThrow(SignerException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerRpcClient).deleteCert(any());
-        try {
-            tokenCertificatesApiController.deleteCertificate(UNKNOWN_CERT_HASH);
-        } catch (ResourceNotFoundException e) {
-            ErrorDeviation error = e.getErrorDeviation();
-            Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
-        }
+        var e = assertThrows(NotFoundException.class, () -> tokenCertificatesApiController.deleteCertificate(UNKNOWN_CERT_HASH));
+        ErrorDeviation error = e.getErrorDeviation();
+        assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.code());
     }
 
     @Test

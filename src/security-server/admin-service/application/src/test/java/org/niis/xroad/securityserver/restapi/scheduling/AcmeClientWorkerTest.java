@@ -237,7 +237,8 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     public void failureAuthAndSignCertRollback() {
-        when(acmeService.renew(any(), any(), any(), any(), any(), any())).thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE));
+        when(acmeService.renew(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new AcmeServiceException(ORDER_CREATION_FAILURE.build()));
 
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);

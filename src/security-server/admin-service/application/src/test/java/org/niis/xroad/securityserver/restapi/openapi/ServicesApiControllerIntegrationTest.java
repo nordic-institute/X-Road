@@ -28,14 +28,13 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
@@ -57,12 +56,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CLIENT_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_NOT_FOUND;
 
 /**
  * Test ServicesApiController
@@ -152,22 +153,18 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         serviceUpdate.setSslAuth(true);
         serviceUpdate.setUrl(TestUtils.URL_HTTPS);
 
-        try {
-            servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
-            fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR,
-                    expected.getWarningDeviations().iterator().next().getCode());
-        }
+        var expected = assertThrows(BadRequestException.class,
+                () -> servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate));
+
+        assertEquals(DeviationCodes.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR,
+                expected.getWarningDeviations().iterator().next().code());
 
         doThrow(new Exception("")).when(internalServerTestService).testHttpsConnection(any(), any());
-        try {
-            servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
-            fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.WARNING_INTERNAL_SERVER_SSL_ERROR,
-                    expected.getWarningDeviations().iterator().next().getCode());
-        }
+        expected = assertThrows(BadRequestException.class,
+                () -> servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate));
+
+        assertEquals(DeviationCodes.WARNING_INTERNAL_SERVER_SSL_ERROR,
+                expected.getWarningDeviations().iterator().next().code());
 
         serviceUpdate.setIgnoreWarnings(true);
 
@@ -208,12 +205,10 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         serviceUpdate.setSslAuth(true); // value will be set to null if http
         serviceUpdate.setUrl(TestUtils.URL_HTTP);
 
-        try {
-            servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate);
-            fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_INVALID_HTTPS_URL, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(BadRequestException.class,
+                () -> servicesApiController.updateService(TestUtils.SS1_GET_RANDOM_V1, serviceUpdate));
+
+        assertEquals(DeviationCodes.ERROR_INVALID_HTTPS_URL, expected.getErrorDeviation().code());
     }
 
     @Test
@@ -300,23 +295,16 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES"})
     public void getServiceClientNotFound() {
-        try {
-            servicesApiController.getService(TestUtils.SS0_GET_RANDOM_V1).getBody();
-            fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_CLIENT_NOT_FOUND, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(NotFoundException.class, () -> servicesApiController.getService(TestUtils.SS0_GET_RANDOM_V1).getBody());
+        assertEquals(CLIENT_NOT_FOUND.code(), expected.getErrorDeviation().code());
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES"})
     public void getServiceNotFound() {
-        try {
-            servicesApiController.getService(SS1_PREDICT_WINNING_LOTTERY_NUMBERS).getBody();
-            fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(NotFoundException.class,
+                () -> servicesApiController.getService(SS1_PREDICT_WINNING_LOTTERY_NUMBERS).getBody());
+        assertEquals(DeviationCodes.ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().code());
     }
 
     @Test
@@ -327,7 +315,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
         // Test sorting order
-        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
+        assertTrue(TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
 
         ServiceClientDto serviceClient = getServiceClientByTypeExceptId(
                 serviceClients, TestUtils.GLOBALGROUP, "FI:test-globalgroup").get();
@@ -355,19 +343,13 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         serviceClients = servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V2).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
-        try {
-            servicesApiController.getServiceServiceClients(TestUtils.SS0_GET_RANDOM_V1);
-            fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_CLIENT_NOT_FOUND, expected.getErrorDeviation().getCode());
-        }
+        var expected = assertThrows(NotFoundException.class,
+                () -> servicesApiController.getServiceServiceClients(TestUtils.SS0_GET_RANDOM_V1));
+        assertEquals(CLIENT_NOT_FOUND.code(), expected.getErrorDeviation().code());
 
-        try {
-            servicesApiController.getServiceServiceClients(SS1_PREDICT_WINNING_LOTTERY_NUMBERS);
-            fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_SERVICE_NOT_FOUND, expected.getErrorDeviation().getCode());
-        }
+        expected = assertThrows(NotFoundException.class,
+                () -> servicesApiController.getServiceServiceClients(SS1_PREDICT_WINNING_LOTTERY_NUMBERS));
+        assertEquals(SERVICE_NOT_FOUND.code(), expected.getErrorDeviation().code());
     }
 
     private Optional<ServiceClientDto> getServiceClientByTypeExceptId(
@@ -494,12 +476,10 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                         ServiceClientTypeDto.SUBSYSTEM))
                 .addItemsItem(new ServiceClientDto().id(TestUtils.CLIENT_ID_SS4).serviceClientType(
                         ServiceClientTypeDto.SUBSYSTEM));
-        try {
-            servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1,
-                    deletedServiceClients).getBody();
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().getCode());
-        }
+
+        var expected = assertThrows(BadRequestException.class,
+                () -> servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody());
+        assertEquals(DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().code());
     }
 
     @Test
@@ -519,12 +499,10 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                         ServiceClientTypeDto.SUBSYSTEM))
                 .addItemsItem(new ServiceClientDto().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                         ServiceClientTypeDto.LOCALGROUP));
-        try {
-            servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1,
-                    deletedServiceClients).getBody();
-        } catch (BadRequestException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().getCode());
-        }
+
+        var expected = assertThrows(BadRequestException.class,
+                () -> servicesApiController.deleteServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, deletedServiceClients).getBody());
+        assertEquals(DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND, expected.getErrorDeviation().code());
     }
 
     @Test(expected = BadRequestException.class)
@@ -631,7 +609,6 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                 .collect(Collectors.toList()).size() == 1);
     }
 
-    @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = {"VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL"})
     public void addBogusAccessRight() {
         doReturn(false).when(globalConfService).clientsExist(any());
@@ -646,7 +623,8 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                 .addItemsItem(new ServiceClientDto().id(TestUtils.CLIENT_ID_SS2 + "foo").serviceClientType(
                         ServiceClientTypeDto.SUBSYSTEM));
 
-        servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd);
+        assertThrows(ConflictException.class,
+                () -> servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, clientsToAdd));
     }
 
     @Test(expected = ConflictException.class)
