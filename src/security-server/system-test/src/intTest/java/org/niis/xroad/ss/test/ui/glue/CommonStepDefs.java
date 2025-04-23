@@ -31,8 +31,6 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-
 import static com.codeborne.selenide.Condition.text;
 import static java.time.Duration.ofSeconds;
 import static org.junit.Assert.assertFalse;
