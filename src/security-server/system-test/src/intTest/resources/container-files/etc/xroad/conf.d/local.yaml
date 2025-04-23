@@ -37,3 +37,7 @@ xroad:
   op-monitor:
     scheme: https # To ensure vault-powered mTLS communication between the proxy and op-monitor daemon
     host: op-monitor
+    buffer:
+      socket-timeout-seconds: 1
+    service:
+      socket-timeout-seconds: 1

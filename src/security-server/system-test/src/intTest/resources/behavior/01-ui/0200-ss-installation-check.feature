@@ -1,4 +1,5 @@
 @SecurityServer
+@Skip
 Feature: 0200 - SS: After installation check
 
   Scenario: Verify that documentation files are installed

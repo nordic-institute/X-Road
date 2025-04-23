@@ -102,8 +102,8 @@ public class CommonStepDefs extends BaseUiStepDefs {
     }
 
     @Step("file {string} exists")
-    public void fileExists(String filePath) throws IOException, InterruptedException {
-        var fileContent = envSetup.execInContainer(EnvSetup.UI, "cat", filePath).getStdout();
+    public void fileExists(String filePath) {
+        var fileContent = envSetup.execInContainer(EnvSetup.PROXY, "cat", filePath).getStdout();
         assertFalse(fileContent.isEmpty());
     }
 }
