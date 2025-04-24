@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.BlockingTokenWorker;
@@ -58,6 +59,8 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
 
     @Getter
     private final ModuleType moduleType;
+
+    protected final SignerProperties signerProperties;
 
     public Optional<TokenWorker> getTokenById(String tokenId) {
         return Optional.ofNullable(tokenWorkers.get(tokenId));

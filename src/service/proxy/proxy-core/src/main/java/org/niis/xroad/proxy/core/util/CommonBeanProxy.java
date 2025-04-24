@@ -25,11 +25,14 @@
  */
 package org.niis.xroad.proxy.core.util;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -40,11 +43,14 @@ import org.niis.xroad.serverconf.ServerConfProvider;
  */
 @Deprecated
 @RequiredArgsConstructor
+@ApplicationScoped
+@Getter
 public class CommonBeanProxy {
-    public final GlobalConfProvider globalConfProvider;
-    public final ServerConfProvider serverConfProvider;
-    public final KeyConfProvider keyConfProvider;
-    public final SigningCtxProvider signingCtxProvider;
-    public final CertChainFactory certChainFactory;
-    public final CertHelper certHelper;
+    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final SigningCtxProvider signingCtxProvider;
+    private final CertHelper certHelper;
+    private final LogRecordManager logRecordManager;
+    private final VaultKeyProvider vaultKeyProvider;
 }

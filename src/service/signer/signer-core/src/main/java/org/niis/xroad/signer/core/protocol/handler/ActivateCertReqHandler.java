@@ -28,15 +28,15 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 
@@ -50,7 +50,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component
+@ApplicationScoped
 public class ActivateCertReqHandler
         extends AbstractRpcHandler<ActivateCertReq, Empty> {
 

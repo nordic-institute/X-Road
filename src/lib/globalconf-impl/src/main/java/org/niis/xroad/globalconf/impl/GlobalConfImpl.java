@@ -36,7 +36,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +46,6 @@ import org.niis.xroad.globalconf.GlobalConfSource;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
-import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
@@ -82,18 +80,16 @@ import static java.util.stream.Collectors.toSet;
  * Global configuration implementation
  */
 @Slf4j
-@Singleton
 public class GlobalConfImpl implements GlobalConfProvider {
 
     private final GlobalConfSource globalConfSource;
-    private final CertChainFactory certChainFactory;
     private final GlobalConfExtensions globalConfExtensions;
 
-    public GlobalConfImpl(GlobalConfSource globalConfSource) {
+    public GlobalConfImpl(GlobalConfSource globalConfSource, GlobalConfExtensions globalConfExtensions) {
         this.globalConfSource = globalConfSource;
-        this.certChainFactory = new CertChainFactory(this);
-        this.globalConfExtensions = new GlobalConfExtensions(globalConfSource, new GlobalConfExtensionFactoryImpl());
+        this.globalConfExtensions = globalConfExtensions;
     }
+
 
     @Override
     public void reload() {
@@ -405,7 +401,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return null;
         }
 
-        return certChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[0]));
+        return CertChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[0]));
     }
 
     X509Certificate getCaCertForSubject(X509Certificate subject, SharedParametersCache sharedParameters)

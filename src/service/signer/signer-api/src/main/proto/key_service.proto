@@ -48,7 +48,9 @@ service KeyService {
 
   rpc DeleteKey(DeleteKeyReq) returns (Empty) {}
 
-  rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyInfoProto) {}
+  rpc GetAuthKeyCert(GetAuthKeyReq) returns (AuthKeyCertInfoProto) {}
+
+  rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyProto) {}
 }
 
 enum Algorithm {
@@ -116,9 +118,14 @@ message GetAuthKeyReq {
   SecurityServerIdProto security_server = 1;
 }
 
-message AuthKeyInfoProto {
+message AuthKeyCertInfoProto {
   string alias = 1;
-  string key_store_file_name = 2;
+  CertificateInfoProto cert = 2;
+}
+
+message AuthKeyProto {
+  string alias = 1;
+  bytes keyStore = 2; // PKCS#12 keystore
   string password = 3;
   CertificateInfoProto cert = 4;
 }

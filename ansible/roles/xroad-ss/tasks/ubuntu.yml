@@ -45,7 +45,7 @@
     - install-xroad-ss-packages
 
 - name: install op-monitoring
-  package: name=xroad-addon-opmonitoring state=latest
+  package: name=xroad-opmonitor state=latest
   when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
 
 - name: install hwtokens

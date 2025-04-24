@@ -158,7 +158,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+        Collection<String> hostNames = commonBeanProxy.getGlobalConfProvider().getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -166,7 +166,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (serverId != null) {
-            final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
+            final String securityServerAddress = commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(serverId);
 
             if (securityServerAddress == null) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
@@ -209,7 +209,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
-        String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
+        String status = commonBeanProxy.getServerConfProvider().getMemberStatus(client);
         if (!Client.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }

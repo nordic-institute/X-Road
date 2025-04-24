@@ -10,12 +10,12 @@ else
   root_properties=/etc/xroad.properties
 fi
 db_host="127.0.0.1:5432"
-db_conn_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
+db_conn_user="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.username' 'serverconf')"
 db_user="${db_conn_user%%@*}"
-db_schema=$(get_prop ${db_properties} 'serverconf.hibernate.hikari.dataSource.currentSchema' "${db_user},public")
+db_schema=$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.hikari.dataSource.currentSchema' "${db_user},public")
 db_schema=${db_schema%%,*}
-db_password="$(get_prop ${db_properties} 'serverconf.hibernate.connection.password' "serverconf")"
-db_url="$(get_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
+db_password="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.password' "serverconf")"
+db_url="$(get_prop ${db_properties} 'xroad.db.serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
 db_database=serverconf
 pg_options="-c client-min-messages=warning -c search_path=$db_schema,public"
 db_admin_user=$(get_prop ${root_properties} 'serverconf.database.admin_user' "$db_conn_user")

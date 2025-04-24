@@ -25,52 +25,101 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.stream.Stream;
+
+@Slf4j
 public class SignerStepDefs extends BaseUiStepDefs {
-    @Autowired
-    private TestableApplicationContainerProvider containerProvider;
 
     @SneakyThrows
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Step("signer service is restarted")
     public void signerServiceIsRestarted() {
-        var execResult = containerProvider.getContainer()
-                .execInContainer("supervisorctl", "restart", "xroad-signer");
-
-        testReportService.attachJson("supervisorctl restart xroad-signer", execResult);
+        envSetup.restartContainer(EnvSetup.SIGNER);
     }
 
     @SneakyThrows
     @Step("predefined signer softtoken is uploaded")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void updateSignerSoftToken() {
-        execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("rm", "-rf", "/etc/xroad/signer/");
-        execInContainer("cp", "-r", "/etc/xroad/signer-predefined/", "/etc/xroad/signer/");
-        execInContainer("chown", "-R", "xroad:xroad", "/etc/xroad/signer/");
-        execInContainer("supervisorctl", "start", "xroad-signer");
+        if (SystemUtils.IS_OS_UNIX) {
+            envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
+        }
+
+        envSetup.stop(EnvSetup.SIGNER);
+
+        FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
+        FileUtils.copyDirectory(
+                Paths.get("src/intTest/resources/container-files/etc/xroad/signer-predefined").toFile(),
+                Paths.get("build/signer-volume").toFile());
+
+        envSetup.start(EnvSetup.SIGNER);
     }
 
-    @SneakyThrows
     @Step("Predefined inactive signer token is uploaded")
-    public void addInactiveSignerToken() {
-        execInContainer("supervisorctl", "stop", "xroad-signer");
-        execInContainer("sed", "-i", "/<\\/device>/a\\\n"
-                + "<device>\\\n"
-                + "        <deviceType>softToken</deviceType>\\\n"
-                + "        <friendlyName>softToken-for-deletion</friendlyName>\\\n"
-                + "        <id>1</id>\\\n"
-                + "        <pinIndex>1</pinIndex>\\\n"
-                + "    </device>", "/etc/xroad/signer/keyconf.xml");
-        execInContainer("supervisorctl", "start", "xroad-signer");
+    public void addInactiveSignerToken() throws Exception {
+        // make file accessible for editing outside the container.
+        if (SystemUtils.IS_OS_UNIX) {
+            envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
+        }
+        String deviceEntry = """
+                </device>
+                <device>
+                    <deviceType>softToken</deviceType>
+                    <friendlyName>softToken-for-deletion</friendlyName>
+                    <id>1</id>
+                    <pinIndex>1</pinIndex>
+                </device>
+                """;
+
+        try {
+            String currenKeyconf = envSetup
+                    .execInContainer(EnvSetup.SIGNER, "cat", "/etc/xroad/signer/keyconf.xml").getStdout();
+
+            envSetup.stop(EnvSetup.SIGNER);
+
+            String updatedKeyConf = currenKeyconf.replaceFirst("</device>", deviceEntry);
+
+            Path tempDir = Files.createTempDirectory("signertmp");
+            FileUtils.copyDirectory(Paths.get("build/signer-volume/softtoken").toFile(),
+                    tempDir.resolve("softtoken").toFile());
+
+            Files.writeString(tempDir.resolve("keyconf.xml"), updatedKeyConf);
+
+            FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
+            FileUtils.copyDirectory(
+                    tempDir.toFile(),
+                    Paths.get("build/signer-volume").toFile());
+
+            if (SystemUtils.IS_OS_UNIX) {
+                try (Stream<Path> fileStream = Files.walk(Paths.get("build/signer-volume"))) {
+                    fileStream.forEach(path -> {
+                        try {
+                            Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxrwxrwx"));
+                        } catch (IOException e) {
+                            log.error("Failed to set permissions for: {}", path);
+                        }
+                    });
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to modify keyconf.xml file", e);
+            throw e;
+        } finally {
+            envSetup.start(EnvSetup.SIGNER);
+        }
+
     }
 
-    @SneakyThrows
-    private void execInContainer(String... args) {
-        var execResult = containerProvider.getContainer().execInContainer(args);
-        testReportService.attachJson(StringUtils.join(args, " "), execResult);
-    }
 }

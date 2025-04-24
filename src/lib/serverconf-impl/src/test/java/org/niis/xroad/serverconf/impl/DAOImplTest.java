@@ -26,12 +26,14 @@
  */
 package org.niis.xroad.serverconf.impl;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -74,14 +76,21 @@ public class DAOImplTest {
 
     private Session session;
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
+    private static final DatabaseCtx DATABASE_CTX = ServerConfDatabaseConfig.createServerConfDbCtx(TestUtil.serverConfDbProperties);
 
     /**
      * Prepares test database.
+     *
      * @throws Exception if an error occurs
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
+        prepareDB(DATABASE_CTX);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        DATABASE_CTX.destroy();
     }
 
     /**
@@ -89,7 +98,7 @@ public class DAOImplTest {
      */
     @Before
     public void beginTransaction() {
-        session = ServerConfDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -97,7 +106,7 @@ public class DAOImplTest {
      */
     @After
     public void commitTransaction() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**

@@ -56,13 +56,12 @@ public abstract class BaseTestSignerSetup {
 
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties,
-            String signerPath, String hwTokenPath) {
+            String signerPath) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
             public ImageFromDockerfile imageDefinition() {
                 var appJarPath = Paths.get(signerPath);
-                var hwTokenJarPath = Paths.get(hwTokenPath);
 
                 log.info("Will use {} jar for container creation", appJarPath);
 
@@ -73,8 +72,7 @@ public abstract class BaseTestSignerSetup {
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
                         .withFileFromPath("files/lib/%s".formatted(PKCS11_WRAPPER_FILENAME), getPkcsWrapperPath())
-                        .withFileFromPath("files/lib/hwtoken.jar", hwTokenJarPath)
-                        .withFileFromPath("files/app.jar", appJarPath);
+                        .withFileFromPath("files/app/", appJarPath);
             }
 
             @NotNull
@@ -86,7 +84,7 @@ public abstract class BaseTestSignerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(5558, 5560);
+                return List.of(5560);
             }
 
             private Path getPkcsWrapperPath() {
@@ -107,28 +105,17 @@ public abstract class BaseTestSignerSetup {
             @Override
             @SuppressWarnings("squid:S2068")
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                var modulemanager = enableHwModule
-                        ? "-Dxroad.signer.moduleManagerImpl=org.niis.xroad.signer.core.tokenmanager.module.HardwareModuleManagerImpl"
-                        : "";
-
                 genericContainer
-                        .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
+                        .waitingFor(Wait.forLogMessage(".*signer .* started in.*", 1));
                 genericContainer
                         .withCommand("java",
                                 "-Xmx50m",
                                 "-XX:MaxMetaspaceSize=70m",
-                                "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
-                                "-Dxroad.internal.passwordstore-provider=file",
-                                "-Dxroad.common.grpc-internal-host=0.0.0.0",
-                                "-Dxroad.common.grpc-internal-keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                                "-Dxroad.common.grpc-internal-keystore-password=111111",
-                                "-Dxroad.common.grpc-internal-truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                                "-Dxroad.common.grpc-internal-truststore-password=111111",
                                 "-Djava.library.path=/root/lib/",
-                                modulemanager,
-                                "-cp",
-                                "/root/lib/hwtoken.jar:/root/app.jar",
-                                "org.niis.xroad.signer.application.SignerMain");
+                                enableHwModule ? "-Dxroad.signer.addon.hwtoken.enabled=true" : "",
+                                "-Dxroad.common.rpc.use-tls=false",
+                                "-jar",
+                                "/root/app/quarkus-run.jar");
 
                 prepareSignerDirs();
             }

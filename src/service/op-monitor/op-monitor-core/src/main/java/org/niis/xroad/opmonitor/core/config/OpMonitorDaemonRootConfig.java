@@ -25,23 +25,20 @@
  */
 package org.niis.xroad.opmonitor.core.config;
 
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
-import org.niis.xroad.opmonitor.core.OpMonitorDaemon;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
-@Import({OpMonitorDaemonJobConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class
-})
-@Configuration
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
+
+import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
+
 public class OpMonitorDaemonRootConfig {
 
-    @Bean
-    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
-        return new OpMonitorDaemon(globalConfProvider);
+
+    @ApplicationScoped
+    OperationalDataRecordManager operationalDataRecordManager(@Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
+                                                              OpMonitorProperties opMonitorProperties) {
+        return new OperationalDataRecordManager(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
     }
 }

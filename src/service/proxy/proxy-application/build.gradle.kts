@@ -1,32 +1,35 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.java-exec-conventions")
-  alias(libs.plugins.shadow)
+  id("xroad.quarkus-application-conventions")
+}
+
+quarkus {
+  quarkusBuildProperties.putAll(
+    buildMap {
+      put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-proxy")
+      put("quarkus.jib.jvm-entrypoint", "/bin/sh,/opt/app/entrypoint.sh")
+    }
+  )
+}
+
+configurations.configureEach {
+  exclude(group = "xml-apis", module = "xml-apis") // This library interferes with Jetty
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
+  implementation(platform(libs.quarkus.bom))
+
+  implementation(project(":lib:bootstrap-quarkus"))
+  implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:proxy:proxy-core"))
-  implementation(libs.logback.classic)
-}
+  implementation(libs.bundles.quarkus.containerized)
 
-tasks.jar {
-  manifest {
-    attributes("Main-Class" to "org.niis.xroad.proxy.application.ProxyMain")
-  }
-  archiveClassifier.set("plain")
-}
+  implementation(libs.quarkus.extension.systemd.notify)
 
-tasks.shadowJar {
-  archiveClassifier.set("")
-  archiveBaseName.set("proxy")
-  exclude("**/module-info.class")
-  from(rootProject.file("LICENSE.txt"))
-  mergeServiceFiles()
-}
-
-tasks.assemble {
-  finalizedBy(tasks.shadowJar)
+  testImplementation(libs.quarkus.junit5)
+  testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":lib:serverconf-impl")))
 }
 
 val runProxyTest by tasks.registering(JavaExec::class) {

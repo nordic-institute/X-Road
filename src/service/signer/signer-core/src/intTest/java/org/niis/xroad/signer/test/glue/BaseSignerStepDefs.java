@@ -30,8 +30,8 @@ package org.niis.xroad.signer.test.glue;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.test.SignerClientHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +39,8 @@ import java.util.Map;
 public class BaseSignerStepDefs extends BaseStepDefs {
     private static final String KEY_FRIENDLY_NAME_MAPPING = "tokenFriendlyNameToIdMapping";
 
-    protected SignerRpcClient signerRpcClient = SignerClientHolder.get();
+    @Autowired
+    protected SignerClientHolder clientHolder;
 
     protected Map<String, String> getTokenFriendlyNameToIdMapping() {
         Map<String, String> map = scenarioContext.getStepData(KEY_FRIENDLY_NAME_MAPPING);
@@ -51,7 +52,7 @@ public class BaseSignerStepDefs extends BaseStepDefs {
     }
 
     protected TokenInfo getTokenInfoByFriendlyName(String friendlyName) throws Exception {
-        var tokenInfo = signerRpcClient.getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
+        var tokenInfo = clientHolder.get().getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
         testReportService.attachJson("TokenInfo", tokenInfo);
         return tokenInfo;
     }

@@ -21,15 +21,19 @@ include("common:common-mail")
 include("common:common-management-request")
 include("common:common-messagelog")
 include("common:common-rpc")
+include("common:common-rpc-spring")
+include("common:common-rpc-quarkus")
 include("common:common-int-test")
 include("common:common-core")
 include("common:common-jetty")
 include("common:common-message")
+include("common:common-properties")
 include("common:common-scheduler")
 
 // Lib projects
 include("lib")
 include("lib:asic-core")
+include("lib:bootstrap-quarkus")
 include("lib:globalconf-impl")
 include("lib:globalconf-core")
 include("lib:globalconf-spring")
@@ -44,31 +48,39 @@ include("service")
 
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
+include("service:configuration-client:configuration-client-model")
+include("service:configuration-client:configuration-client-rpc-client")
 
 include("service:configuration-proxy:configuration-proxy-application")
 
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
+include("service:monitor:monitor-rpc-client")
 
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
 include("service:op-monitor:op-monitor-core")
+include("service:op-monitor:op-monitor-db")
 
 include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")
+include("service:proxy:proxy-rpc-client")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
 include("service:signer:signer-core")
 include("service:signer:signer-cli")
 include("service:signer:signer-client")
+include("service:signer:signer-client-spring")
 
+include("service:message-log-archiver:message-log-archiver-core")
 include("service:message-log-archiver:message-log-archiver-application")
 
 // Tool projects
 include("tool")
 include("tool:asic-verifier-cli")
+include("tool:migration-cli")
 
 // Main projects
 include("shared-ui")
@@ -110,17 +122,10 @@ include("security-server:e2e-test")
 include("common:common-test")
 
 // Addons
-include("addons:hwtoken")
-include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")
-include("addons:metaservice")
 
 include("addons:proxymonitor-common")
 project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
 
-include("addons:proxymonitor-metaservice")
-project(":addons:proxymonitor-metaservice").projectDir = file("addons/proxymonitor/metaservice")
-
-include("addons:op-monitoring")
 include("addons:wsdlvalidator")

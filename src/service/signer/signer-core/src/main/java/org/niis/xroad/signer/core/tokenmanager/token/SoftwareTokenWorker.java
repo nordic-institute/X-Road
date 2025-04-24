@@ -26,14 +26,12 @@
 package org.niis.xroad.signer.core.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +44,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.passwordstore.PasswordStore;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
@@ -141,8 +141,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      *
      * @param tokenInfo the token info
      */
-    public SoftwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType) {
-        super(tokenInfo);
+    public SoftwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties) {
+        super(tokenInfo, signerProperties);
         this.tokenType = tokenType;
     }
 
@@ -378,12 +378,13 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         log.info("Initializing software token with new pin...");
 
-        if (SystemProperties.shouldEnforceTokenPinPolicy() && !TokenPinPolicy.validate(pin)) {
+        if (signerProperties.enforceTokenPinPolicy() && !TokenPinPolicy.validate(pin)) {
             throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
         }
 
         try {
-            java.security.KeyPair kp = KeyManagers.getFor(SystemProperties.getSofTokenPinKeystoreAlgorithm()).generateKeyPair();
+            java.security.KeyPair kp = KeyManagers.getFor(KeyAlgorithm.valueOf(signerProperties.softTokenPinKeystoreAlgorithm()))
+                    .generateKeyPair();
 
             String keyStoreFile = getKeyStoreFileName(PIN_FILE);
             savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
@@ -431,7 +432,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throw pinIncorrect();
         }
         // Verify new pin complexity
-        if (SystemProperties.shouldEnforceTokenPinPolicy() && !TokenPinPolicy.validate(newPin)) {
+        if (signerProperties.enforceTokenPinPolicy() && !TokenPinPolicy.validate(newPin)) {
             throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE,
                     "Token PIN does not meet complexity requirements");
         }

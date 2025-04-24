@@ -50,7 +50,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Objects;
 import java.util.concurrent.Future;
 
-
+@Deprecated(forRemoval = true)
 @Component
 @Slf4j
 @RequiredArgsConstructor

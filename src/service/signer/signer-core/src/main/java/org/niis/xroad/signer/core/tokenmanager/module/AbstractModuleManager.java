@@ -27,20 +27,22 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.message.GetOcspResponses;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,38 +56,40 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static java.util.Objects.requireNonNull;
+import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.KEY_DIR_PERMISSIONS;
+import static org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
 
 /**
  * Module manager base class.
  */
 @Slf4j
-public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider, InitializingBean, DisposableBean {
+@RequiredArgsConstructor
+public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
-    @Autowired
-    private OcspResponseManager ocspResponseManager;
+    private final ModuleConf moduleConf;
+    protected final SignerProperties signerProperties;
+    protected final OcspResponseManager ocspResponseManager;
 
     @SuppressWarnings("java:S3077")
     private volatile Map<String, AbstractModuleWorker> moduleWorkers = Collections.emptyMap();
 
     private FileWatcherRunner keyConfFileWatcherRunner;
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        start();
-    }
 
     @Override
     public void start() {
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {
-            TokenManager.init();
+            initializeDirs();
+
+            TokenManager.init(signerProperties);
 
             if (SLAVE.equals(SystemProperties.getServerNodeType())) {
                 // when the key conf file is changed from outside this system (i.e. a new copy from master),
                 // send an update event to the module manager so it knows to load the new config
                 this.keyConfFileWatcherRunner = FileWatcherRunner.create()
-                        .watchForChangesIn(Paths.get(SystemProperties.getKeyConfFile()))
+                        .watchForChangesIn(Paths.get(signerProperties.keyConfigurationFile()))
                         .listenToCreate().listenToModify()
                         .andOnChangeNotify(this::refresh)
                         .buildAndStartWatcher();
@@ -93,6 +97,20 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             refresh();
         } catch (Exception e) {
             log.error("Failed to initialize token worker!", e);
+        }
+    }
+
+    private void initializeDirs() throws IOException {
+        var keyConfDir = Paths.get(ResourceUtils.getFullPathFromFileName(SystemProperties.getKeyConfFile()));
+
+        if (!Files.exists(keyConfDir)) {
+            log.info("Creating keyConf directory: {}", keyConfDir);
+            Files.createDirectories(keyConfDir, KEY_DIR_PERMISSIONS);
+        }
+        var softTokenDir = getKeyDir().toPath();
+        if (!Files.exists(softTokenDir)) {
+            log.info("Creating softToken directory: {}", softTokenDir);
+            Files.createDirectories(softTokenDir, KEY_DIR_PERMISSIONS);
         }
     }
 
@@ -159,12 +177,12 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     private void loadModules() {
         log.trace("loadModules()");
 
-        if (!ModuleConf.hasChanged()) {
+        if (!moduleConf.hasChanged()) {
             // do not reload, if conf has not changed
             return;
         }
 
-        ModuleConf.reload();
+        moduleConf.reload();
 
         final Collection<ModuleType> modules = ModuleConf.getModules();
         final Map<String, AbstractModuleWorker> refreshedWorkerModules = loadModules(modules);

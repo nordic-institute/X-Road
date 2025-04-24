@@ -96,7 +96,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
 /usr/share/xroad/scripts/_setup_memory.sh
-/usr/share/xroad/scripts/xroad-base.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
@@ -152,9 +151,6 @@ fi
       fi                                                                                                                 \
     fi                                                                                                                   \
                                                                                                                          \
-    `# restart is required to trigger any changes within xroad-base.sh`                                                  \
-    echo "Restarting xroad-base service.."                                                                               \
-    %systemd_try_restart xroad-base.service                                                                              \
   fi
 
 %define restart_xroad_services()                                                                                                                                 \

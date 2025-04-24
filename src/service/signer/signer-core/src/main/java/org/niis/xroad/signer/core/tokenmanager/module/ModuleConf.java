@@ -29,6 +29,8 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
@@ -36,10 +38,12 @@ import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.configuration2.ex.ConversionException;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.signer.core.config.SignerProperties;
 
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,17 +55,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
-
 /**
  * Encapsulates module data read form the external configuration file.
  * <p>
  * Each module specifies an UID, the pkcs#11 library path and other options specific to that module.
  */
 @Slf4j
-public final class ModuleConf {
+@Singleton
+@RequiredArgsConstructor
+public class ModuleConf {
 
-    /** The type used to identify software keys in key configuration. */
+    /**
+     * The type used to identify software keys in key configuration.
+     */
     private static final String SOFTKEY_TYPE = "softToken";
 
     // Maps Type (UID) to ModuleType.
@@ -108,7 +114,9 @@ public final class ModuleConf {
     private static final String PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "priv_key_attribute_allowed_mechanisms";
     private static final String SLOT_IDS_PARAM = "slot_ids";
 
-    private static FileContentChangeChecker changeChecker = null;
+    private final SignerProperties signerProperties;
+
+    private FileContentChangeChecker changeChecker = null;
 
     private static Map<SignMechanism, Long> createSupportedSignMechanismsMap() {
         Map<SignMechanism, Long> mechanisms = new HashMap<>();
@@ -137,9 +145,6 @@ public final class ModuleConf {
         return mechanisms;
     }
 
-    private ModuleConf() {
-    }
-
     /**
      * @return sign mechanism code, null in case not supported sign mechanism
      */
@@ -157,10 +162,10 @@ public final class ModuleConf {
     /**
      * @return true, if the configuration file has changed (modified on disk)
      */
-    static boolean hasChanged() {
+    public boolean hasChanged() {
         try {
             if (changeChecker == null) {
-                changeChecker = new FileContentChangeChecker(getDeviceConfFile());
+                changeChecker = new FileContentChangeChecker(signerProperties.deviceConfigurationFile());
 
                 return true;
             }
@@ -176,9 +181,9 @@ public final class ModuleConf {
     /**
      * Reloads the modules from the configuration.
      */
-    static void reload() {
+    public void reload() {
         try {
-            reload(getDeviceConfFile());
+            reload(signerProperties.deviceConfigurationFile());
         } catch (Exception e) {
             log.error("Failed to load module conf", e);
         }
@@ -190,9 +195,18 @@ public final class ModuleConf {
         MODULES.clear();
         MODULES.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
 
+        var configPath = Paths.get(fileName);
+        if (Files.exists(configPath)) {
+            readDevicesConfig(configPath);
+        } else {
+            log.error("Module configuration file '{}' not found", configPath); //TODO xroad8, decide if this should be an error
+        }
+    }
+
+    private static void readDevicesConfig(Path configPath) throws Exception {
         INIConfiguration conf = new INIConfiguration();
         conf.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
-        try (Reader reader = Files.newBufferedReader(Paths.get(fileName), StandardCharsets.UTF_8)) {
+        try (Reader reader = Files.newBufferedReader(configPath, StandardCharsets.UTF_8)) {
             conf.read(reader);
         }
 

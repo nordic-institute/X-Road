@@ -27,18 +27,23 @@
 
 package org.niis.xroad.ss.test.addons.glue;
 
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.core.ThrowingRunnable;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,25 +52,28 @@ import static org.awaitility.Awaitility.given;
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ProxyHealthcheckStepDefs extends BaseStepDefs {
+
     @Autowired
-    private TestableApplicationContainerProvider containerProvider;
+    private EnvSetup envSetup;
+
     @Autowired
     private FeignHealthcheckApi healthcheckApi;
 
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
-    public void stopDatabase(String service, String state) throws Exception {
-
-        var action = "stopped".equals(state) ? "stop" : state.substring(0, state.length() - 2);
-        var result = containerProvider.getContainer().execInContainer("supervisorctl", action, service);
-        testReportService.attachText("supervisorctl output", result.toString());
-    }
-
-    @Step("^property \"(.*)\" is set to \"(.*)\"$")
-    public void setProperty(String property, String value) throws IOException, InterruptedException {
-        var group = "proxy";
-        var result = containerProvider.getContainer().execInContainer("crudini", "--set", "/etc/xroad/conf.d/local.ini",
-                group, property, value);
-        testReportService.attachText("crudini output", result.toString());
+    public void stopService(String service, String state) throws Exception {
+        switch (state) {
+            case "restarted":
+                envSetup.restartContainer(service);
+                break;
+            case "stopped":
+                envSetup.stop(service);
+                break;
+            case "started":
+                envSetup.start(service);
+                break;
+            default:
+                throw new IllegalStateException("unexpected state: " + state);
+        }
     }
 
     @Step("healthcheck has no errors")
@@ -107,5 +115,31 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
                 .pollInSameThread()
                 .atMost(maxWaitTime, TimeUnit.SECONDS)
                 .await().untilAsserted(assertion);
+    }
+
+    @Step("HSM health check is enabled on proxy")
+    public void hsmHealthCheckIsEnabled() throws IOException {
+        setConfigValue("build/resources/intTest/container-files/etc/xroad/conf.d/local.yaml",
+                "xroad.proxy.hsm-health-check-enabled", true);
+    }
+
+    @Step("HSM health check is disabled on proxy")
+    public void hsmHealthCheckIsDisabled() throws IOException {
+        setConfigValue("build/resources/intTest/container-files/etc/xroad/conf.d/local.yaml",
+                "xroad.proxy.hsm-health-check-enabled", false);
+    }
+
+    public static void setConfigValue(String fileName, String key, Object value) throws IOException {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+
+        Map<String, Object> data = mapper.readValue(new File(fileName), Map.class);
+
+        String[] keys = key.split("\\.");
+        Map<String, Object> current = data;
+        for (int i = 0; i < keys.length - 1; i++) {
+            current = (Map<String, Object>) current.computeIfAbsent(keys[i], k -> new HashMap<>());
+        }
+        current.put(keys[keys.length - 1], value);
+        mapper.writeValue(new File(fileName), data);
     }
 }

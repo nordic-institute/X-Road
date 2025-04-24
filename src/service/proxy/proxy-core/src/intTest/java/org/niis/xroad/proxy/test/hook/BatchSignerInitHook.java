@@ -29,13 +29,18 @@ package org.niis.xroad.proxy.test.hook;
 
 import ee.ria.xroad.common.TestSecurityUtil;
 
+import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.stereotype.Component;
 
+import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 import static java.lang.String.format;
 
 @Slf4j
@@ -44,22 +49,42 @@ import static java.lang.String.format;
 public class BatchSignerInitHook implements BeforeSuiteHook {
     private static final String CONTAINER_FILES_PATH = "build/resources/intTest/signer-container-files/%s";
 
+    private final TestableApplicationInfoProvider testableApplicationInfoProvider;
+
     public static SignerRpcClient signerRpcClient;
 
     @Override
     @SneakyThrows
     public void beforeSuite() {
         System.setProperty("xroad.common.configuration-path", format(CONTAINER_FILES_PATH, "etc/xroad/globalconf"));
-        System.setProperty("xroad.signer.key-configuration-file", format(CONTAINER_FILES_PATH, "etc/xroad/signer/keyconf.xml"));
 
         TestSecurityUtil.initSecurity();
 
-        signerRpcClient = new SignerRpcClient();
+        signerRpcClient = new SignerRpcClient(getFactory(), new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return testableApplicationInfoProvider.getHost();
+            }
+
+            @Override
+            public int port() {
+                return testableApplicationInfoProvider.getMappedPort(SIGNER_GRPC_PORT);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
         signerRpcClient.init();
     }
 
     @Override
     public int beforeSuiteOrder() {
         return DEFAULT_ORDER + 100;
+    }
+
+    private RpcChannelFactory getFactory() {
+        return new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
     }
 }

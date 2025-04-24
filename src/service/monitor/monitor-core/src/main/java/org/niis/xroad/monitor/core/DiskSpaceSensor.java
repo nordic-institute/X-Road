@@ -25,29 +25,25 @@
  */
 package org.niis.xroad.monitor.core;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
-import org.springframework.scheduling.TaskScheduler;
 
 import java.io.File;
-import java.time.Duration;
 
 /**
  * Collects disk space information
  */
 @Slf4j
-public class DiskSpaceSensor extends AbstractSensor {
+@ApplicationScoped
+public class DiskSpaceSensor {
 
     /**
      * Constructor
      */
-    public DiskSpaceSensor(TaskScheduler taskScheduler) {
-        super(taskScheduler);
-        log.info("Creating sensor, measurement interval: {}", getInterval());
-        updateMetrics();
-        scheduleSingleMeasurement(getInterval());
+    public DiskSpaceSensor(EnvMonitorProperties envMonitorProperties) {
+        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.diskSpaceSensorInterval());
     }
 
     private void updateMetrics() {
@@ -67,16 +63,11 @@ public class DiskSpaceSensor extends AbstractSensor {
         }
     }
 
-    @Override
+    @Scheduled(every = "${xroad.env-monitor.disk-space-sensor-interval}",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     protected void measure() {
         log.debug("Updating metrics");
         updateMetrics();
-        scheduleSingleMeasurement(getInterval());
-    }
-
-    @Override
-    protected Duration getInterval() {
-        return Duration.ofSeconds(SystemProperties.getEnvMonitorDiskSpaceSensorInterval());
     }
 
 }

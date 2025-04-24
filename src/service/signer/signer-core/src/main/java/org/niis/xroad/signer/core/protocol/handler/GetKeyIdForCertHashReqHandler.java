@@ -27,19 +27,19 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashReq;
 import org.niis.xroad.signer.proto.GetKeyIdForCertHashResp;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 
 /**
  * Handles requests for key id based on certificate hashes.
  */
-@Component
+@ApplicationScoped
 public class GetKeyIdForCertHashReqHandler extends AbstractRpcHandler<GetKeyIdForCertHashReq, GetKeyIdForCertHashResp> {
 
     @Override

@@ -27,7 +27,7 @@
 package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -35,6 +35,7 @@ import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -48,7 +49,6 @@ import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -77,6 +77,8 @@ import static org.niis.xroad.serverconf.impl.TestUtil.client;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
 import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceId;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
+import static org.niis.xroad.serverconf.impl.TestUtil.serverConfDbProperties;
+import static org.niis.xroad.serverconf.impl.TestUtil.serverConfProperties;
 import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
 /**
@@ -87,6 +89,7 @@ public class CachingServerConfTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    private static final DatabaseCtx DATABASE_CTX = new DatabaseCtx("serverconf", serverConfDbProperties.hibernate());
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
 
@@ -97,15 +100,20 @@ public class CachingServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
-
         globalConfProvider = new EmptyGlobalConf() {
             @Override
             public boolean isSecurityServerClient(ClientId client, SecurityServerId securityServer) {
                 return true;
             }
         };
-        serverConfProvider = new CachingServerConfImpl(globalConfProvider, SystemProperties.getServerConfCachePeriod());
+        serverConfProvider = new CachingServerConfImpl(DATABASE_CTX, globalConfProvider, serverConfProperties);
+
+        prepareDB(DATABASE_CTX);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        DATABASE_CTX.destroy();
     }
 
     /**
@@ -113,7 +121,7 @@ public class CachingServerConfTest {
      */
     @Before
     public void beforeTest() {
-        ServerConfDatabaseCtx.get().beginTransaction();
+        DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -121,7 +129,7 @@ public class CachingServerConfTest {
      */
     @After
     public void afterTest() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**
@@ -189,7 +197,7 @@ public class CachingServerConfTest {
         ClientId client1 = createTestClientId(client(1));
         ClientId client2 = createTestClientId(client(2));
 
-        List<ServiceId> expectedServices = Arrays.asList(
+        List<ServiceId> expectedServices = List.of(
                 createTestServiceId(serviceProvider,
                         service(1, 1), SERVICE_VERSION));
 
@@ -281,7 +289,7 @@ public class CachingServerConfTest {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
-        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.get(0));
+        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.getFirst());
     }
 
     /**
@@ -316,11 +324,9 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting TSPs.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getTsps() throws Exception {
+    public void getTsps() {
         List<String> tspUrls = serverConfProvider.getTspUrl();
         assertEquals(NUM_TSPS, tspUrls.size());
     }
@@ -335,11 +341,9 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting services.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getServices() throws Exception {
+    public void getServices() {
         ClientId serviceProvider = createTestClientId(client(1), null);
 
         List<ServiceId.Conf> allServices = getServices(serviceProvider);
@@ -359,7 +363,7 @@ public class CachingServerConfTest {
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProviderId) {
         return XRoadIdMapper.get().toServices(new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(), serviceProviderId)
+                DATABASE_CTX.getSession(), serviceProviderId)
         );
     }
 }

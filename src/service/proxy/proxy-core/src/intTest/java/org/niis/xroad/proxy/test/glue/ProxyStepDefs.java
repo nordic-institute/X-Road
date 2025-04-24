@@ -42,7 +42,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
-import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
@@ -55,7 +54,7 @@ import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -208,16 +207,9 @@ public class ProxyStepDefs extends BaseStepDefs {
     }
 
     @SneakyThrows
-    private KeyConfProvider createKeyConf() {
-        var globalConf = new TestGlobalConfImpl();
-        var serverConf = new ServerConfImpl(globalConf);
-        return new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
-    }
-
-    @SneakyThrows
     private SigningCtxProvider createSigningCtxProvider() {
-        var globalConf = new TestGlobalConfImpl();
-        var serverConf = new ServerConfImpl(globalConf);
+        var globalConf = TestGlobalConfFactory.create();
+        var serverConf = new ServerConfImpl(null, globalConf);
         var keyconf = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
         return new SigningCtxProviderImpl(globalConf, keyconf, new BatchSigner(signerRpcClient));
@@ -240,7 +232,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private static void verify(final BatchSignResult batchSignResult)
             throws Exception {
-        var globalConfProvider = new TestGlobalConfImpl();
+        var globalConfProvider = TestGlobalConfFactory.create();
         SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, batchSignResult.signatureData());
         verifier.addParts(batchSignResult.messageParts());
 

@@ -1,6 +1,7 @@
 plugins {
   id("xroad.java-conventions")
   id("xroad.int-test-conventions")
+  alias(libs.plugins.jandex)
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -19,24 +20,24 @@ sourceSets {
 }
 
 dependencies {
-  api(platform(libs.springBoot.bom))
-
   implementation(project(":common:common-core"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":lib:globalconf-spring"))
-  implementation(project(":common:common-rpc"))
+
+  implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:signer:signer-api"))
 
-  api("org.springframework:spring-context-support")
+  implementation(libs.quarkus.arc)
+  implementation(libs.quarkus.scheduler)
+
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(libs.mockito.core)
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-  "intTestRuntimeOnly"(project(":addons:hwtoken"))
-  "intTestImplementation"(project(":common:common-test"))
-  "intTestImplementation"(project(":common:common-int-test"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":common:common-int-test"))
+  intTestImplementation(libs.logback.classic)
 
   xjc(libs.bundles.jaxb)
 }
@@ -105,6 +106,10 @@ tasks.register<Test>("intTest") {
   reports {
     junitXml.required.set(false)
   }
+}
+
+tasks.named("compileIntTestJava") {
+  dependsOn(tasks.named("jandex"))
 }
 
 tasks.named("check") {

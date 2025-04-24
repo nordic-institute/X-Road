@@ -32,11 +32,12 @@ import com.google.protobuf.AbstractMessage;
 import io.grpc.Status;
 import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.protobuf.Any.pack;
 import static java.util.Optional.ofNullable;
@@ -49,8 +50,10 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
 @Slf4j
 @SuppressWarnings("squid:S119")
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
-    @Autowired
+    @Inject
     protected TokenWorkerProvider tokenWorkerProvider;
+    @Inject
+    protected SignerProperties signerProperties;
 
     protected abstract RespT handle(ReqT request) throws Exception;
 

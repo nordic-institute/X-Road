@@ -24,6 +24,15 @@
         group: "xroad"
         mode: 0751
         force: no
+
+    - name: openbao.hcl template
+      template:
+        src: "openbao.hcl"
+        dest: "/etc/openbao/openbao.hcl"
+        owner: "openbao"
+        group: "openbao"
+        mode: 0600
+        force: no
   when: (database_admin_password is defined) and (database_admin_password != "")
   tags:
     - install-xroad-ss-packages
@@ -49,7 +58,7 @@
 
 - name: install opmonitoring
   yum:
-    name: xroad-addon-opmonitoring
+    name: xroad-opmonitor
     state: latest
   when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
   tags:
