@@ -128,6 +128,36 @@ jobs:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
+      - name: Clean build packages #otherwise might run out of disk space in the next steps
+        run: |
+          rm -rf src/packages/build
+      - name: Save docker images from registry
+        run: |
+          mkdir -p ${{ runner.temp }}/docker-images
+          docker pull localhost:5000/ss-configuration-client:latest
+          docker pull localhost:5000/ss-proxy:latest
+          docker pull localhost:5000/ss-signer:latest
+          docker pull localhost:5000/ss-monitor:latest
+          docker pull localhost:5000/ss-op-monitor:latest
+          docker pull localhost:5000/ss-proxy-ui-api:latest
+          docker pull localhost:5000/ss-db-serverconf-init:latest
+          docker pull localhost:5000/ss-db-messagelog-init:latest
+          docker pull localhost:5000/ss-db-opmonitor-init:latest
+
+          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5000/ss-db-serverconf-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5000/ss-db-messagelog-init:latest
+          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5000/ss-db-opmonitor-init:latest
+      - name: Store docker images for other jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: ${{ runner.temp }}/docker-images
   BuildAndPackageOnArm:
     name: Build and package code for arm architecture
     needs: BuildAndPackageWithUnitTests
@@ -176,37 +206,6 @@ jobs:
           name: debian-packages-arm
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
-      - name: Clean build packages #otherwise might run out of disk space in the next steps
-        run: |
-          rm -rf src/packages/build
-      - name: Save docker images from registry
-        run: |
-          mkdir -p ${{ runner.temp }}/docker-images
-          docker pull localhost:5000/ss-configuration-client:latest
-          docker pull localhost:5000/ss-proxy:latest
-          docker pull localhost:5000/ss-signer:latest
-          docker pull localhost:5000/ss-monitor:latest
-          docker pull localhost:5000/ss-op-monitor:latest
-          docker pull localhost:5000/ss-proxy-ui-api:latest
-          docker pull localhost:5000/ss-db-serverconf-init:latest
-          docker pull localhost:5000/ss-db-messagelog-init:latest
-          docker pull localhost:5000/ss-db-opmonitor-init:latest
-
-          docker save -o ${{ runner.temp }}/docker-images/ss-configuration-client.tar localhost:5000/ss-configuration-client:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-proxy.tar localhost:5000/ss-proxy:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-signer.tar localhost:5000/ss-signer:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-monitor.tar localhost:5000/ss-monitor:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-op-monitor.tar localhost:5000/ss-op-monitor:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-proxy-ui-api.tar localhost:5000/ss-proxy-ui-api:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-serverconf-init.tar localhost:5000/ss-db-serverconf-init:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-messagelog-init.tar localhost:5000/ss-db-messagelog-init:latest
-          docker save -o ${{ runner.temp }}/docker-images/ss-db-opmonitor-init.tar localhost:5000/ss-db-opmonitor-init:latest
-      - name: Store docker images for other jobs
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-images
-          path: ${{ runner.temp }}/docker-images
-
   RunCSSystemTests:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
