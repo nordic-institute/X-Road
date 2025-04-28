@@ -48,11 +48,13 @@ public class SignerConfig {
     @ApplicationScoped
     @Startup
     AbstractModuleManager moduleManager(ModuleConf moduleConf, TokenManager tokenManager, TokenRegistry tokenRegistry,
-                                        SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+                                        SignerProperties signerProperties,
+                                        SignerHwTokenAddonProperties hwTokenAddonProperties, OcspResponseManager ocspResponseManager) {
         AbstractModuleManager moduleManager;
-        if (signerProperties.addon().hwTokenEnabled()) {
+        if (hwTokenAddonProperties.enabled()) {
             log.info("Hardware token manager enabled.");
-            moduleManager = new HardwareModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, ocspResponseManager);
+            moduleManager = new HardwareModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, hwTokenAddonProperties,
+                    ocspResponseManager);
         } else {
             log.debug("Using default module manager implementation");
             moduleManager = new DefaultModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, ocspResponseManager);

@@ -37,6 +37,7 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
@@ -58,13 +59,16 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  */
 @Slf4j
 public class HardwareModuleWorker extends AbstractModuleWorker {
+    private final SignerHwTokenAddonProperties hwTokenAddonProperties;
     private final HardwareModuleType module;
 
     private Module pkcs11Module;
 
-    public HardwareModuleWorker(HardwareModuleType moduleType, SignerProperties signerProperties, TokenManager tokenManager) {
+    public HardwareModuleWorker(HardwareModuleType moduleType, SignerProperties signerProperties,
+                                SignerHwTokenAddonProperties hwTokenAddonProperties, TokenManager tokenManager) {
         super(moduleType, signerProperties, tokenManager);
         this.module = moduleType;
+        this.hwTokenAddonProperties = hwTokenAddonProperties;
     }
 
     @Override
@@ -200,6 +204,6 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
     @Override
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
-        return new HardwareTokenWorker(tokenInfo, tokenType, signerProperties, tokenManager);
+        return new HardwareTokenWorker(tokenInfo, tokenType, signerProperties, hwTokenAddonProperties, tokenManager);
     }
 }

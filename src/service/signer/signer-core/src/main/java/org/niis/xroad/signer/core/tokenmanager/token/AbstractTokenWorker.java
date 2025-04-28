@@ -31,6 +31,8 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -66,6 +68,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLifecycle {
     private final String workerId;
 
+    @Getter(AccessLevel.PACKAGE)
     protected final String tokenId;
     protected final SignerProperties signerProperties;
     protected final TokenManager tokenManager;

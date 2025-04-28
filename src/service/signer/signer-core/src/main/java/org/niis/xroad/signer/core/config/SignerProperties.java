@@ -102,20 +102,4 @@ public interface SignerProperties {
     @WithName("module-instance-provider")
     Optional<String> moduleInstanceProvider();
 
-    @WithName("addon")
-    SignerAddonProperties addon();
-
-    interface SignerAddonProperties {
-        @WithName("hwtoken.enabled")
-        @WithDefault("false")
-        boolean hwTokenEnabled();
-
-        @WithName("hwtoken.pool-size")
-        @WithDefault("1")
-        int hwTokenPoolSize();
-
-        @WithName("hwtoken.session-acquire-timeout-millis")
-        @WithDefault("15000")
-        int hwTokenSessionAcquireTimeoutMillis();
-    }
 }

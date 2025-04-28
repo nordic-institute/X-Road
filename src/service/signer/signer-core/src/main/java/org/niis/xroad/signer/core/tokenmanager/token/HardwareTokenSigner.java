@@ -1,0 +1,167 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package org.niis.xroad.signer.core.tokenmanager.token;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+
+import iaik.pkcs.pkcs11.Mechanism;
+import iaik.pkcs.pkcs11.objects.PrivateKey;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
+
+import java.io.Closeable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
+
+@Slf4j
+public class HardwareTokenSigner implements Closeable {
+    private final HardwareTokenWorker tokenWorker;
+
+    // maps signature algorithm id and signing mechanism
+    private final Map<SignAlgorithm, Mechanism> signMechanisms;
+    private final boolean pinVerificationPerSigning;
+
+    private final SessionProvider sessionPool;
+
+    public static HardwareTokenSigner create(HardwareTokenWorker tokenWorker, SignerHwTokenAddonProperties properties) throws Exception {
+        SessionProvider sessionPool = null;
+        if (properties.poolEnabled()) {
+            sessionPool = new HardwareTokenSessionPool(properties, tokenWorker.getToken(), tokenWorker.getTokenId());
+            log.info("HSM sign session pool created for token '{}'", tokenWorker.getTokenId());
+        } else {
+            log.info("HSM sign session pool is disabled for token '{}'. Management session will be used.", tokenWorker.getTokenId());
+        }
+        return new HardwareTokenSigner(tokenWorker, sessionPool);
+    }
+
+    HardwareTokenSigner(HardwareTokenWorker tokenWorker, SessionProvider sessionPool) {
+        var tempSignMechanisms = new HashMap<SignAlgorithm, Mechanism>();
+        var tokenType = tokenWorker.getTokenType();
+
+        Arrays.stream(KeyAlgorithm.values())
+                .map(tokenType::resolveSignMechanismName)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(HardwareTokenUtil::createSignMechanisms)
+                .forEach(tempSignMechanisms::putAll);
+
+        this.tokenWorker = tokenWorker;
+        this.signMechanisms = Map.copyOf(tempSignMechanisms);
+        this.pinVerificationPerSigning = tokenType.isPinVerificationPerSigning();
+        this.sessionPool = sessionPool;
+    }
+
+    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
+
+        SessionProvider sessionProvider;
+        if (sessionPool == null) {
+            sessionProvider = tokenWorker.getManagementSessionProvider();
+        } else {
+            sessionProvider = sessionPool;
+        }
+        return sessionProvider.executeWithSession(session -> {
+            return doSign(session, keyId, signatureAlgorithmId, data);
+        });
+    }
+
+    private byte[] doSign(ManagedPKCS11Session session, String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+        pinVerificationPerSigningLogin(session);
+        tokenWorker.assertKeyAvailable(keyId);
+
+        var rawSession = session.get();
+
+        PrivateKey key = tokenWorker.getPrivateKey(session, keyId);
+        if (key == null) {
+            throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
+                    keyId, tokenWorker.getTokenId());
+        }
+
+        log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
+        try {
+            var signMechanism = verifyAndReturnSignMechanism(signatureAlgorithmId, KeyAlgorithm.valueOf(key.getKeyType().toString()));
+
+            rawSession.signInit(signMechanism, key);
+            return rawSession.sign(data);
+        } finally {
+            pinVerificationPerSigningLogout(session);
+        }
+    }
+
+    private void pinVerificationPerSigningLogin(ManagedPKCS11Session session) {
+        if (pinVerificationPerSigning) {
+            try {
+                session.login();
+            } catch (Exception e) {
+                log.warn("Login failed", e);
+
+                throw loginFailed(e.getMessage());
+            }
+        }
+    }
+
+    private void pinVerificationPerSigningLogout(ManagedPKCS11Session session) {
+        if (pinVerificationPerSigning) {
+            try {
+                session.logout();
+            } catch (Exception e) {
+                log.error("Logout failed", e);
+            }
+        }
+    }
+
+    private Mechanism verifyAndReturnSignMechanism(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
+        Mechanism signMechanism = signMechanisms.get(signatureAlgorithmId);
+
+        if (signMechanism == null) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                    "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+        }
+
+        if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                    "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), algorithm);
+        }
+
+        return signMechanism;
+    }
+
+    @Override
+    public void close() {
+        if (sessionPool != null) {
+            sessionPool.close();
+        }
+    }
+}
