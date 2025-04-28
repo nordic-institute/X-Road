@@ -39,7 +39,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
@@ -78,6 +78,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_UNKNOWN_TYPE;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.ADDRESS_CHANGE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
@@ -234,8 +235,9 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
 
             Executable testable = () -> converter.toDto(illegalRequest);
 
-            ValidationFailureException actualThrown = assertThrows(ValidationFailureException.class, testable);
-            assertEquals("Unknown request type", actualThrown.getMessage());
+            BadRequestException actualThrown = assertThrows(BadRequestException.class, testable);
+            assertEquals(MR_UNKNOWN_TYPE.code(), actualThrown.getErrorDeviation().code());
+            assertTrue(actualThrown.getErrorDeviation().metadata().contains(illegalRequest.getClass().getName()));
             inOrder(illegalRequest).verifyNoMoreInteractions();
         }
 

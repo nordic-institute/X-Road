@@ -71,6 +71,8 @@ xroad:
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
     security-server-url: https://localhost:8443
+    reserved-service-codes: listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData
+
 
 file-upload-endpoints:
   endpoint-definitions:

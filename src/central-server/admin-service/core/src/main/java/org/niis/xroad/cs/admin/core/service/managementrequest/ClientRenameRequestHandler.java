@@ -29,8 +29,8 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.exception.DataIntegrityException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.ClientRenameRequest;
 import org.niis.xroad.cs.admin.core.entity.ClientRenameRequestEntity;
@@ -105,16 +105,16 @@ class ClientRenameRequestHandler implements RequestHandler<ClientRenameRequest> 
 
     private void validate(ClientRenameRequest request) {
         if (!request.getClientId().isSubsystem()) {
-            throw new ValidationFailureException(MR_ONLY_SUBSYSTEM_RENAME_ALLOWED);
+            throw new BadRequestException(MR_ONLY_SUBSYSTEM_RENAME_ALLOWED.build());
         }
 
         if (StringUtils.isBlank(request.getSubsystemName())) {
-            throw new ValidationFailureException(MR_INVALID_SUBSYSTEM_NAME);
+            throw new BadRequestException(MR_INVALID_SUBSYSTEM_NAME.build());
         }
     }
 
-    private Supplier<DataIntegrityException> clientNotFound(String securityServerId, String clientId) {
-        return () -> new DataIntegrityException(MR_SERVER_CLIENT_NOT_FOUND, securityServerId, clientId);
+    private Supplier<ConflictException> clientNotFound(String securityServerId, String clientId) {
+        return () -> new ConflictException(MR_SERVER_CLIENT_NOT_FOUND.build(securityServerId, clientId));
     }
 
     @Override

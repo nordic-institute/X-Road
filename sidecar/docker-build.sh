@@ -47,7 +47,7 @@ build_variant() {
     -t "$tag:$version$1-$2" "$dir"
 }
 
-docker pull ubuntu:20.04 # Ensure latest ubuntu image is used as base
+docker pull ubuntu:24.04 # Ensure latest ubuntu image is used as base
 
 build "$dir/slim/Dockerfile" "-slim"
 build_variant "-slim" "fi"

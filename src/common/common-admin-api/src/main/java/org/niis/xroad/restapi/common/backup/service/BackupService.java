@@ -27,8 +27,8 @@ package org.niis.xroad.restapi.common.backup.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -57,7 +57,6 @@ public class BackupService {
 
     /**
      * Return a list of available backup files
-     *
      * @return list of backup files
      */
     public List<BackupFile> getBackupFiles() {
@@ -66,28 +65,26 @@ public class BackupService {
 
     /**
      * Delete a backup file or throws an exception if the file does not exist
-     *
      * @param filename backup file name to delete
      * @throws NotFoundException if backup file is not found
      */
     public void deleteBackup(String filename) throws NotFoundException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
         if (getBackup(filename).isEmpty()) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(filename));
         }
         backupRepository.deleteBackupFile(filename);
     }
 
     /**
      * Read backup file's content
-     *
      * @param filename backup file name to retrieve
      * @return raw contents of file
      * @throws NotFoundException if backup file is not found
      */
     public byte[] readBackupFile(String filename) throws NotFoundException {
         if (getBackup(filename).isEmpty()) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, filename);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(filename));
         }
         return backupRepository.readBackupFile(filename);
     }
@@ -95,19 +92,18 @@ public class BackupService {
     /**
      * Write uploaded backup file to disk. If ignoreWarnings=false, an exception is thrown when a file with
      * the same name already exists. If ignoreWarnings=true, the existing file is overwritten.
-     *
      * @param ignoreWarnings should the warning be ignored
      * @param filename       backup file name
      * @param fileBytes      file content
      * @return newly created backup
      * @throws UnhandledWarningsException if backup file with the same name already exists
      *                                    and ignoreWarnings is false
-     * @throws ValidationFailureException if backup file is not a valid tar file
+     * @throws BadRequestException        if backup file is not a valid tar file
      *                                    or the first entry of the tar file
      *                                    does not match to the first entry if the Security Server generated backup tar files
      */
     public BackupFile uploadBackup(boolean ignoreWarnings, String filename, byte[] fileBytes)
-            throws UnhandledWarningsException, ValidationFailureException {
+            throws UnhandledWarningsException, BadRequestException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(filename));
 
         if (!ignoreWarnings && backupRepository.fileExists(filename)) {
@@ -121,7 +117,6 @@ public class BackupService {
 
     /**
      * Get a backup file with the given filename
-     *
      * @param filename backup file name
      * @return backup, if available
      */

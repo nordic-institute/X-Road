@@ -106,7 +106,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         registrationRequests.findBy(serverId, clientId, Set.of(DECLINED))
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND.build()));
     }
 
     private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {
@@ -124,7 +124,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     }
 
     private void mrClientRegistrationNotFound() {
-        throw new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND);
+        throw new NotFoundException(MR_CLIENT_REGISTRATION_NOT_FOUND.build());
     }
 
     @Override

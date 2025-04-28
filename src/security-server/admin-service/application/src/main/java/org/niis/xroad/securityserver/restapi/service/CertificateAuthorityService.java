@@ -38,10 +38,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeProperties;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
@@ -60,7 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CA_CERT_PROCESSING;
 
 /**
  * Service that handles approved certificate authorities
@@ -89,7 +88,6 @@ public class CertificateAuthorityService {
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
      * Returns top level certificate authorities
-     *
      * @param keyUsageInfo list CAs for this type of key usage. If null, list all.
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
@@ -100,7 +98,6 @@ public class CertificateAuthorityService {
 
     /**
      * Return approved certificate authorities
-     *
      * @param keyUsageInfo           list CAs for this type of key usage. If null, list all.
      * @param includeIntermediateCas true = also include intermediate CAs.
      *                               false = only include top CAs
@@ -168,7 +165,6 @@ public class CertificateAuthorityService {
 
     /**
      * Build a single {@code ApprovedCaDto} object using given parameters
-     *
      * @param certificate               CA certificate
      * @param base64EncodedOcspResponse OCSP response
      * @param subjectsToIssuers         map linking all CA subject DNs to corresponding issuer DNs
@@ -211,7 +207,7 @@ public class CertificateAuthorityService {
         // path and is-top-ca info
         List<String> subjectDnPath = buildPath(certificate, subjectsToIssuers);
         builder.subjectDnPath(subjectDnPath);
-        builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.get(0)));
+        builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.getFirst()));
 
         return builder.build();
     }
@@ -226,7 +222,7 @@ public class CertificateAuthorityService {
         String issuer = certificate.getIssuerX500Principal().toString();
         pathElements.add(current);
         while (!current.equals(issuer) && subjectsToIssuers.containsKey(issuer)) {
-            pathElements.add(0, issuer);
+            pathElements.addFirst(issuer);
             current = issuer;
             issuer = subjectsToIssuers.get(current);
         }
@@ -247,7 +243,6 @@ public class CertificateAuthorityService {
 
     /**
      * Return correct CertificateProfileInfo for given parameters
-     *
      * @param caName       name of the CA
      * @param keyUsageInfo key usage
      * @param memberId     member when key usage = signing, ignored otherwise
@@ -260,7 +255,7 @@ public class CertificateAuthorityService {
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId,
                                                         boolean isNewMember)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
-            WrongKeyUsageException, ClientNotFoundException {
+                   WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthorityInfo(caName);
         if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
@@ -296,7 +291,6 @@ public class CertificateAuthorityService {
 
     /**
      * Return ApprovedCAInfo for CA with given CN name
-     *
      * @param caName CN name
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      */
@@ -311,17 +305,17 @@ public class CertificateAuthorityService {
     /**
      * Thrown when attempted to find CA certificate status and other details, but failed
      */
-    public static class InconsistentCaDataException extends ServiceException {
+    public static class InconsistentCaDataException extends InternalServerErrorException {
         public InconsistentCaDataException(String s, Throwable t) {
-            super(s, t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
+            super(s, t, CA_CERT_PROCESSING.build());
         }
 
         public InconsistentCaDataException(String s) {
-            super(s, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
+            super(s, CA_CERT_PROCESSING.build());
         }
 
         public InconsistentCaDataException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
+            super(t, CA_CERT_PROCESSING.build());
         }
     }
 

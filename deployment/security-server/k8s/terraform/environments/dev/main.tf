@@ -18,7 +18,7 @@ module "openbao" {
     module.kind_cluster
   ]
 
-  openbao_dev = false
+  openbao_db_user_password="secret"
 }
 
 module "cs_service_bridge" {

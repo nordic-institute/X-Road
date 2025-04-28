@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.matchText;
 import static com.codeborne.selenide.Condition.or;
 import static com.codeborne.selenide.Condition.partialText;
 import static com.codeborne.selenide.Condition.text;
@@ -172,6 +173,15 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                 .shouldHave(or("Validate status",
                         partialText("ok"),
                         partialText("not sent yet")));
+    }
+
+    @Step("Proxy memory usage should be ok")
+    public void proxyMemoryUsageStatus() {
+        diagnosticsPage.proxyMemoryUsageMessage()
+                .scrollIntoView(false)
+                .shouldHave(partialText("ok"));
+        diagnosticsPage.proxyMemoryUsageMax().shouldHave(matchText("\\d{3}\\.\\dMB"));
+        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
     }
 
     @Step("download diagnostic report button is clicked")

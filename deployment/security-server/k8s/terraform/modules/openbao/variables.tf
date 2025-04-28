@@ -3,13 +3,14 @@ variable "namespace" {
   default     = "ss"
 }
 
-variable "openbao_dev" {
-  description = "OpenBAO dev"
-  type        = bool
-  default = false
+variable "openbao_db_user" {
+  description = "OpenBao DB user"
+  type        = string
+  default     = "openbao"
 }
 
-variable "openbao_version" {
-  type    = string
-  default = "2.1.0"
+variable "openbao_db_user_password" {
+  description = "OpenBao DB user's password"
+  type        = string
+  sensitive   = true
 }

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.ProxyMemory;
 
 import io.grpc.ManagedChannel;
 import jakarta.annotation.PostConstruct;
@@ -123,6 +124,16 @@ public class ProxyRpcClient extends AbstractRpcClient {
                             val.hasDescription() ? val.getDescription() : null
                     );
                 }));
+    }
+
+    public ProxyMemory getProxyMemoryStatus() throws Exception {
+        var response = exec(() -> adminServiceBlockingStub.getProxyMemoryStatus(Empty.getDefaultInstance()));
+        return new ProxyMemory(response.getTotalMemory(),
+                response.getFreeMemory(),
+                response.getMaxMemory(),
+                response.getUsedMemory(),
+                response.hasThreshold() ? response.getThreshold() : null,
+                response.getUsedPercent());
     }
 
     public void clearConfCache() throws Exception {

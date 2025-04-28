@@ -28,16 +28,18 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.MemberNameDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.MEMBER_NAME_NOT_FOUND;
 
 /**
  * Member names controller for finding member names
@@ -55,7 +57,7 @@ public class MemberNamesApiController implements MemberNamesApi {
     public ResponseEntity<MemberNameDto> findMemberName(String memberClass, String memberCode) {
         String memberName = globalConfService.findMemberName(memberClass, memberCode);
         if (StringUtils.isEmpty(memberName)) {
-            throw new ResourceNotFoundException("member name not found");
+            throw new NotFoundException(MEMBER_NAME_NOT_FOUND.build());
         }
         return new ResponseEntity<>(new MemberNameDto().memberName(memberName), HttpStatus.OK);
     }

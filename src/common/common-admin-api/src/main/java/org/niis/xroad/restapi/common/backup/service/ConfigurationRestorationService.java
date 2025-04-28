@@ -32,8 +32,8 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -67,19 +67,18 @@ public abstract class ConfigurationRestorationService {
     /**
      * Restores the security server configuration from a backup. Any tokens that are not software tokens are logged
      * out by the current restore script.
-     *
      * @param fileName name of the backup file
-     * @throws InterruptedException execution of the restore script was interrupted
-     * @throws ServiceException     if the restore script fails or does not execute
+     * @throws InterruptedException         execution of the restore script was interrupted
+     * @throws InternalServerErrorException if the restore script fails or does not execute
      */
     public synchronized void restoreFromBackup(String fileName) throws
-            InterruptedException, ServiceException {
+                                                                InterruptedException, InternalServerErrorException {
         auditDataHelper.putBackupFilename(backupRepository.getAbsoluteBackupFilePath(fileName));
         String configurationBackupPath = backupRepository.getConfigurationBackupPath();
         String backupFilePath = configurationBackupPath + fileName;
         File backupFile = new File(backupFilePath);
         if (!backupFile.isFile()) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND, backupFilePath);
+            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(backupFilePath));
         }
         String[] arguments = buildArguments(backupFilePath);
         try {
@@ -101,7 +100,7 @@ public abstract class ConfigurationRestorationService {
             persistenceUtils.evictPoolConnections();
 
         } catch (ProcessFailedException | ProcessNotExecutableException e) {
-            throw new ServiceException(BACKUP_RESTORATION_FAILED, e);
+            throw new InternalServerErrorException(e, BACKUP_RESTORATION_FAILED.build());
         } finally {
             eventPublisher.publishEvent(BackupRestoreEvent.END);
             apiKeyService.clearApiKeyCaches();
@@ -111,7 +110,6 @@ public abstract class ConfigurationRestorationService {
 
     /**
      * Encodes args with base64 and returns all options and args as an array
-     *
      * @param backupFilePath
      * @return
      */

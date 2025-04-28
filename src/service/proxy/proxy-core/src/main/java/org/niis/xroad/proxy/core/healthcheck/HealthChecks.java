@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.core.healthcheck;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ProxyMemory;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -37,6 +38,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.dto.AuthKey;
+import org.niis.xroad.proxy.core.admin.ProxyMemoryStatusService;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -60,6 +62,7 @@ public class HealthChecks {
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final SignerRpcClient signerRpcClient;
+    private final ProxyMemoryStatusService proxyMemoryStatusService;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
@@ -155,6 +158,21 @@ public class HealthChecks {
                 log.error("Exception when verifying HSM status", e);
                 return failure("At least one HSM are non operational");
             }
+        };
+    }
+
+    public HealthCheckProvider checkProxyMemoryUsage() {
+        return () -> {
+            ProxyMemory proxyMemory = proxyMemoryStatusService.getMemoryStatus();
+            log.debug("Max memory: {}", proxyMemory.maxMemory());
+            log.debug("Total allocated memory: {}", proxyMemory.totalMemory());
+            log.debug("Free memory: {}", proxyMemory.freeMemory());
+            log.debug("Used memory: {} ({}%)", proxyMemory.usedMemory(), proxyMemory.usedPercent());
+            log.debug("Configured threshold: {}%", proxyMemory.threshold());
+            if (proxyMemory.isUsedAboveThreshold()) {
+                return failure("Memory usage above threshold");
+            }
+            return OK;
         };
     }
 

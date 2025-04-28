@@ -5,7 +5,7 @@ resource "helm_release" "postgresql_serverconf" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.1.0"
+  version    = "15.5.38"
 
   values = [
     yamlencode({
@@ -39,7 +39,7 @@ resource "helm_release" "postgresql_messagelog" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.1.0"
+  version    = "15.5.38"
 
   values = [
     yamlencode({
@@ -75,7 +75,7 @@ resource "helm_release" "postgresql_opmonitor" {
 
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  version    = "15.1.0"
+  version    = "15.5.38"
 
   values = [
     yamlencode({

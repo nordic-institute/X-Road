@@ -69,6 +69,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -322,18 +323,12 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertNull(clientService.getLocalClient(subsystemId));
 
         // 404 from member
-        try {
-            clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT"));
-            fail("should throw exception");
-        } catch (ClientNotFoundException expected) {
-        }
+        assertThrows(ClientNotFoundException.class,
+                () -> clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT")));
 
         // 404 from subsystem
-        try {
-            clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT:SUBSYSTEM"));
-            fail("should throw exception");
-        } catch (ClientNotFoundException expected) {
-        }
+        assertThrows(ClientNotFoundException.class,
+                () -> clientService.deleteLocalClient(TestUtils.getClientId("FI:GOV:NON-EXISTENT:SUBSYSTEM")));
     }
 
     /**
@@ -397,14 +392,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -416,14 +405,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -444,14 +427,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -463,14 +440,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -482,14 +453,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        try {
-            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        } catch (ActionNotPossibleException expected) {
-        }
-        try {
-            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
-        } catch (ActionNotPossibleException expected) {
-        }
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status));
+        assertThrows(ActionNotPossibleException.class, () -> addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status));
 
         assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
@@ -555,55 +520,42 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertEquals(STATUS_SAVED, added.getClientStatus());
 
         // add third member FI:GOV:M3 fails
-        try {
-            id = TestUtils.getClientId("FI:GOV:M3");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.AdditionalMemberAlreadyExistsException");
-        } catch (ClientService.AdditionalMemberAlreadyExistsException expected) {
-        }
+
+        ClientId id2 = TestUtils.getClientId("FI:GOV:M3");
+
+        assertThrows(ClientService.AdditionalMemberAlreadyExistsException.class,
+                () -> clientService.addLocalClient(id2.getMemberClass(), id2.getMemberCode(), id2.getSubsystemCode(), null,
+                        IsAuthentication.SSLAUTH, false));
     }
 
     @Test
     public void addLocalClientDuplicateFails() throws Exception {
         // try member, FI:GOV:M1
-        try {
-            ClientId id = TestUtils.getClientId("FI:GOV:M1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.ClientAlreadyExistsException");
-        } catch (ClientService.ClientAlreadyExistsException expected) {
-        }
+        ClientId member = TestUtils.getClientId("FI:GOV:M1");
+        assertThrows(ClientService.ClientAlreadyExistsException.class,
+                () -> clientService.addLocalClient(member.getMemberClass(), member.getMemberCode(), member.getSubsystemCode(), null,
+                        IsAuthentication.SSLAUTH, false));
 
         // and subsystem, FI:GOV:M1:SS1
-        try {
-            ClientId id = TestUtils.getClientId("FI:GOV:M1:SS1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.ClientAlreadyExistsException");
-        } catch (ClientService.ClientAlreadyExistsException expected) {
-        }
+        ClientId subsystem = TestUtils.getClientId("FI:GOV:M1:SS1");
+        assertThrows(ClientService.ClientAlreadyExistsException.class,
+                () -> clientService.addLocalClient(subsystem.getMemberClass(), subsystem.getMemberCode(), subsystem.getSubsystemCode(),
+                        null, IsAuthentication.SSLAUTH, false));
     }
 
     @Test
     public void addLocalClientWithInvalidMemberClass() throws Exception {
         // try member, FI:INVALID:M1
-        try {
-            ClientId id = TestUtils.getClientId("FI:INVALID:M1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.InvalidMemberClassException");
-        } catch (ClientService.InvalidMemberClassException expected) {
-        }
+        ClientId member = TestUtils.getClientId("FI:INVALID:M1");
+        assertThrows(ClientService.InvalidMemberClassException.class,
+                () -> clientService.addLocalClient(member.getMemberClass(), member.getMemberCode(), member.getSubsystemCode(),
+                        null, IsAuthentication.SSLAUTH, false));
 
         // and subsystem, FI:INVALID:M1:SS1
-        try {
-            ClientId id = TestUtils.getClientId("FI:INVALID:M1:SS1");
-            clientService.addLocalClient(id.getMemberClass(), id.getMemberCode(), id.getSubsystemCode(), null,
-                    IsAuthentication.SSLAUTH, false);
-            fail("should have thrown ClientService.InvalidMemberClassException");
-        } catch (ClientService.InvalidMemberClassException expected) {
-        }
+        ClientId subsystem = TestUtils.getClientId("FI:INVALID:M1:SS1");
+        assertThrows(ClientService.InvalidMemberClassException.class,
+                () -> clientService.addLocalClient(subsystem.getMemberClass(), subsystem.getMemberCode(), subsystem.getSubsystemCode(),
+                        null, IsAuthentication.SSLAUTH, false));
     }
 
     @Test
@@ -858,11 +810,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         clientService.addTlsCertificate(id, derBytes);
 
-        try {
-            clientService.addTlsCertificate(id, pemBytes);
-            fail("should have thrown CertificateAlreadyExistsException");
-        } catch (CertificateAlreadyExistsException expected) {
-        }
+        assertThrows(CertificateAlreadyExistsException.class, () -> clientService.addTlsCertificate(id, pemBytes));
     }
 
     @Test
@@ -875,11 +823,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         clientService.addTlsCertificate(id, derBytes);
         String hash = CryptoUtils.calculateCertHexHash(derBytes);
 
-        try {
-            clientService.deleteTlsCertificate(id, "wrong hash");
-            fail("should have thrown CertificateNotFoundException");
-        } catch (CertificateNotFoundException expected) {
-        }
+        assertThrows(CertificateNotFoundException.class, () -> clientService.deleteTlsCertificate(id, "wrong hash"));
         clientEntity = clientService.getLocalClientEntity(id);
         assertEquals(1, clientEntity.getCertificates().size());
 

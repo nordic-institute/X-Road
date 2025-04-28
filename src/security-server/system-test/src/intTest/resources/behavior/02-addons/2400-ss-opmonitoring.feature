@@ -1,6 +1,6 @@
 @SecurityServer
 @Addon
-Feature: 2300 - SS: Operational monitoring services
+Feature: 2400 - SS: Operational monitoring services
 
   Scenario: Retrieving Operational Data of Security Server
     When Security Server Operational Data request was sent

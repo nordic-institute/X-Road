@@ -53,7 +53,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpd
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceUpdateDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenNameDto;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -87,7 +87,7 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.addApiKeyAuth
 /**
  * test validation of identifier parameters with real requests
  * (can't test binders with regular integration tests, for some reason)
- *
+ * <p>
  * TestRestTemplate requests will not be rolled back so the context will need to be reloaded after this test class
  */
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -146,7 +146,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
         when(systemService.isAnchorImported()).thenReturn(false);
         when(urlValidator.isValidUrl(any())).thenReturn(true);
-        doThrow(new AnchorNotFoundException(""))
+        doThrow(new InitializationService.AnchorNotFoundException("err"))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
     }
 
@@ -469,7 +469,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
 
     private void assertAddKeyAndCsrValidationError(String tokenIdParam,
                                                    KeyLabelWithCsrGenerateDto keyLabelWithCsrGenerateParam, Map<String,
-            List<String>> expectedFieldValidationErrors) {
+                    List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys-with-csrs",
                         keyLabelWithCsrGenerateParam, Object.class);

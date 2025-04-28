@@ -25,21 +25,49 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_IDENTIFIER_NOT_FOUND;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class IdentifierNotFoundException extends NotFoundException {
-    public IdentifierNotFoundException() {
-        super(new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+/**
+ * Provides access to the list of reserved service codes defined via configuration.
+ */
+@Component
+public class ReservedServiceCodesProvider {
+
+    private final Set<String> reservedCodes;
+
+    /**
+     * Loads the reserved service codes from configuration (proxy-ui-api.reserved-service-codes)
+     * @param reservedCodesList List of reserved codes from application configuration
+     */
+    public ReservedServiceCodesProvider(
+            @Value("${xroad.proxy-ui-api.reserved-service-codes:}") List<String> reservedCodesList) {
+        if (reservedCodesList != null) {
+            this.reservedCodes = new HashSet<>(reservedCodesList);
+        } else {
+            this.reservedCodes = Collections.emptySet();
+        }
     }
 
-    public IdentifierNotFoundException(Throwable t) {
-        super(t, new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+    /**
+     * Check if the given service code is reserved.
+     * @param code Service code to check
+     * @return true if code is reserved, false otherwise
+     */
+    public boolean isReserved(String code) {
+        return reservedCodes.contains(code);
     }
 
-    public IdentifierNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
+    /**
+     * Returns an unmodifiable view of the reserved codes.
+     * @return reserved service codes
+     */
+    public Set<String> getReservedCodes() {
+        return Collections.unmodifiableSet(reservedCodes);
     }
 }

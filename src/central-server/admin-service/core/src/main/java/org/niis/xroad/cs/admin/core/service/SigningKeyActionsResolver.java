@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -59,6 +59,6 @@ public class SigningKeyActionsResolver {
                               final TokenInfo token,
                               final ConfigurationSigningKey signingKey) {
         if (!resolveActions(token, signingKey).contains(action))
-            throw new ValidationFailureException(SIGNING_KEY_ACTION_NOT_POSSIBLE);
+            throw new BadRequestException(SIGNING_KEY_ACTION_NOT_POSSIBLE.build());
     }
 }

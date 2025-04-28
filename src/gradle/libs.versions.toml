@@ -8,7 +8,7 @@
 metrics = "4.2.30"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.11.Final"
+hibernate = "6.6.13.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.3"
 mockito = "5.16.1"
@@ -19,7 +19,7 @@ bouncyCastle = "1.80"
 slf4j = "2.0.17"
 testAutomationFramework = "0.2.19"
 protoc = "4.30.2"
-grpc = "1.71.0"
+grpc = "1.72.0"
 swaggerParser = "2.1.26"
 logback = "1.5.18"
 logbackAccess = "2.0.6"
@@ -179,7 +179,7 @@ wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-hikariCP = { module = "com.zaxxer:HikariCP", version = "6.2.1" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "6.3.0" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
@@ -189,7 +189,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.1" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.5.1" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.14.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.15.0" }
 
 #Gradle plugins
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }

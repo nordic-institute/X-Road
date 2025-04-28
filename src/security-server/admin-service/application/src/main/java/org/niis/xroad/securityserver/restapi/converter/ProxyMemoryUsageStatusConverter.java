@@ -23,18 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.securityserver.restapi.converter;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import ee.ria.xroad.common.ProxyMemory;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_NOT_FOUND;
+import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
+import org.springframework.stereotype.Component;
 
-/**
- * If anchor file was not found
- */
-public class AnchorNotFoundException extends NotFoundException {
-    public AnchorNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_ANCHOR_NOT_FOUND));
+import java.math.BigDecimal;
+
+@Component
+public class ProxyMemoryUsageStatusConverter {
+
+    public ProxyMemoryUsageStatusDto convert(
+            ProxyMemory proxyMemory) {
+        ProxyMemoryUsageStatusDto proxyMemoryUsageStatus = new ProxyMemoryUsageStatusDto()
+                .maxMemory(BigDecimal.valueOf(proxyMemory.maxMemory()))
+                .totalMemory(BigDecimal.valueOf(proxyMemory.totalMemory()))
+                .usedMemory(BigDecimal.valueOf(proxyMemory.usedMemory()))
+                .usagePercent(BigDecimal.valueOf(proxyMemory.usedPercent()))
+                .isUsedOverThreshold(proxyMemory.isUsedAboveThreshold());
+        if (proxyMemory.threshold() != null) {
+            proxyMemoryUsageStatus.threshold(BigDecimal.valueOf(proxyMemory.threshold()));
+        }
+        return proxyMemoryUsageStatus;
+
     }
+
 }

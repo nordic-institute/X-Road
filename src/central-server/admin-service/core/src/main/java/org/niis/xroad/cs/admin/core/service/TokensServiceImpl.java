@@ -31,9 +31,9 @@ import ee.ria.xroad.common.CodedException;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.SignerProxyException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
@@ -85,7 +85,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
                     .map(tokenInfoMapper::toTarget)
                     .collect(toSet());
         } catch (Exception e) {
-            throw new ServiceException(TOKEN_FETCH_FAILED, e);
+            throw new InternalServerErrorException(e, TOKEN_FETCH_FAILED.build());
         }
     }
 
@@ -94,7 +94,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             return signerProxyFacade.getTokens().stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
         } catch (Exception e) {
-            throw new ServiceException(TOKEN_FETCH_FAILED, e);
+            throw new InternalServerErrorException(e, TOKEN_FETCH_FAILED.build());
         }
     }
 
@@ -104,7 +104,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         addAuditData(token);
 
         if (USER_PIN_LOCKED == token.getStatus()) {
-            throw new ValidationFailureException(TOKEN_PIN_LOCKED);
+            throw new BadRequestException(TOKEN_PIN_LOCKED.build());
         }
 
         tokenActionsResolver.requireAction(LOGIN, token, configurationSigningKeysService.findByTokenIdentifier(token));
@@ -115,13 +115,13 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         } catch (CodedException codedException) {
             final org.niis.xroad.signer.api.dto.TokenInfo token1 = getToken(tokenLoginRequest.getTokenId());
             if (USER_PIN_FINAL_TRY == token1.getStatus()) {
-                throw new ValidationFailureException(TOKEN_PIN_FINAL_TRY);
+                throw new BadRequestException(codedException, TOKEN_PIN_FINAL_TRY.build());
             } else if (USER_PIN_LOCKED == token1.getStatus()) {
-                throw new ValidationFailureException(TOKEN_PIN_LOCKED);
+                throw new BadRequestException(codedException, TOKEN_PIN_LOCKED.build());
             }
-            throw new SignerProxyException(TOKEN_ACTIVATION_FAILED, codedException, codedException.getFaultCode());
+            throw new SignerProxyException(codedException, TOKEN_ACTIVATION_FAILED.build(codedException.getFaultCode()));
         } catch (Exception exception) {
-            throw new SignerProxyException(TOKEN_ACTIVATION_FAILED, exception);
+            throw new SignerProxyException(exception, TOKEN_ACTIVATION_FAILED.build());
         }
 
         return tokenInfoMapper.toTarget(getToken(tokenLoginRequest.getTokenId()));
@@ -135,9 +135,9 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         try {
             signerProxyFacade.deactivateToken(tokenId);
         } catch (CodedException codedException) {
-            throw new SignerProxyException(TOKEN_DEACTIVATION_FAILED, codedException, codedException.getFaultCode());
+            throw new SignerProxyException(codedException, TOKEN_DEACTIVATION_FAILED.build(codedException.getFaultCode()));
         } catch (Exception exception) {
-            throw new SignerProxyException(TOKEN_DEACTIVATION_FAILED, exception);
+            throw new SignerProxyException(exception, TOKEN_DEACTIVATION_FAILED.build());
         }
 
         return tokenInfoMapper.toTarget(getToken(tokenId));
@@ -153,10 +153,10 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         for (final Map.Entry<String, String> entry : token.getTokenInfo().entrySet()) {
             if (KEY_MIN_PIN_LENGTH.equals(entry.getKey())
                     && isInt(entry.getValue()) && password.length() < parseInt(entry.getValue())) {
-                throw new ValidationFailureException(TOKEN_INCORRECT_PIN_FORMAT);
+                throw new BadRequestException(TOKEN_INCORRECT_PIN_FORMAT.build());
             } else if (KEY_MAX_PIN_LENGTH.equals(entry.getKey())
                     && isInt(entry.getValue()) && password.length() > parseInt(entry.getValue())) {
-                throw new ValidationFailureException(TOKEN_INCORRECT_PIN_FORMAT);
+                throw new BadRequestException(TOKEN_INCORRECT_PIN_FORMAT.build());
             }
         }
     }

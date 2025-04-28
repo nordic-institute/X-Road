@@ -31,13 +31,14 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
+import org.niis.xroad.restapi.exceptions.DeviationBuilder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_WEAK_PIN;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_INVALID_CHARACTERS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_WEAK_PIN;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
 
@@ -47,9 +48,9 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PI
 @RequiredArgsConstructor
 public class TokenPinValidatorImpl implements TokenPinValidator {
     private static final Object[] DEFAULT_WEAK_PIN_METADATA = new String[]{
-            ERROR_METADATA_PIN_MIN_LENGTH,
+            DeviationBuilder.TRANSLATABLE_PREFIX + ERROR_METADATA_PIN_MIN_LENGTH,
             String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-            ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
+            DeviationBuilder.TRANSLATABLE_PREFIX + ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
             String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)
     };
 
@@ -57,14 +58,14 @@ public class TokenPinValidatorImpl implements TokenPinValidator {
     private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
 
     @Override
-    public void validateSoftwareTokenPin(char[] softwareTokenPin) throws ValidationFailureException {
+    public void validateSoftwareTokenPin(char[] softwareTokenPin) throws BadRequestException {
         if (isTokenPinEnforced) {
             TokenPinPolicy.Description description = TokenPinPolicy.describe(softwareTokenPin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {
-                    throw new ValidationFailureException(TOKEN_INVALID_CHARACTERS);
+                    throw new BadRequestException(TOKEN_INVALID_CHARACTERS.build());
                 }
-                throw new ValidationFailureException(TOKEN_WEAK_PIN, DEFAULT_WEAK_PIN_METADATA);
+                throw new BadRequestException(TOKEN_WEAK_PIN.build(DEFAULT_WEAK_PIN_METADATA));
             }
         }
     }
