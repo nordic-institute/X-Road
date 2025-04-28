@@ -60,7 +60,6 @@ public class DbConfigSourceFactory implements ConfigSourceFactory {
                 return Collections.singletonList(new DbConfigSource(dataSource, config));
             } catch (SQLException e) {
                 log.error("Failed to initialize DB configuration source", e);
-                // todo: fail?
             }
         } else {
             log.info("DB config source is disabled.");
