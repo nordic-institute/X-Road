@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - develop
+permissions:
+  contents: write
 jobs:
   AutoMergeToDevelop8x:
     name: Auto-merge to develop-8.x
