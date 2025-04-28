@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponseDto;
@@ -43,6 +44,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -79,9 +81,12 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getMailNotificationStatus() {
         ResponseEntity<MailNotificationStatusDto> mailNotificationStatus = mailApiController.getMailNotificationStatus();
-        assertEquals(true, mailNotificationStatus.getBody().getAcmeFailureStatus());
-        assertEquals(true, mailNotificationStatus.getBody().getAcmeSuccessStatus());
-        assertEquals(true, mailNotificationStatus.getBody().getAuthCertRegisteredStatus());
+        Set<MailNotificationTypeDto> activatedTypes = Set.of(MailNotificationTypeDto.ACME_FAILURE,
+                MailNotificationTypeDto.ACME_SUCCESS,
+                MailNotificationTypeDto.AUTH_CERT_REGISTERED,
+                MailNotificationTypeDto.ACME_CERT_AUTOMATICALLY_ACTIVATED,
+                MailNotificationTypeDto.ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE);
+        assertEquals(activatedTypes, mailNotificationStatus.getBody().getEnabledNotifications());
         assertEquals(true, mailNotificationStatus.getBody().getConfigurationPresent());
         assertEquals(List.of("DEV:COM:1234: member1@example.org"), mailNotificationStatus.getBody().getRecipientsEmails());
     }
