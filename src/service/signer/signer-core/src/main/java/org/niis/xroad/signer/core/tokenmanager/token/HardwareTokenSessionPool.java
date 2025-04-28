@@ -175,6 +175,7 @@ class HardwareTokenSessionPool implements SessionProvider {
                     }
                 } catch (TokenException e) {
                     log.trace("Session {} for token {} is invalid: {}", session.getSessionHandle(), tokenId, e.getMessage());
+                    isValid = false;
                 }
 
             }

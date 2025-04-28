@@ -29,6 +29,7 @@ package org.niis.xroad.signer.core.tokenmanager.token;
 import ee.ria.xroad.common.CodedException;
 
 import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,13 +46,12 @@ public class BlockingPKCS11SessionManager implements SessionProvider {
     ManagedPKCS11Session createSession(Token token, String tokenId) throws Exception {
         try {
             return ManagedPKCS11Session.openSession(token, tokenId);
-        } catch (PKCS11Exception e) {
+        } catch (TokenException e) {
             log.error("Failed to create session for token {}", tokenId, e);
             throw e;
         } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, "Failed to create session for token %s: %s", tokenId, e.getMessage());
+            throw new CodedException(X_INTERNAL_ERROR, e, "Failed to create session for token %s: %s", tokenId, e.getMessage());
         }
-
     }
 
     @Override
