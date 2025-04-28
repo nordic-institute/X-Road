@@ -10,10 +10,10 @@ jetty = "12.0.16"
 jaxb = "4.0.5"
 hibernate = "6.6.13.Final"
 mapstruct = "1.6.3"
-jackson = "2.18.3"
-mockito = "5.16.1"
+jackson = "2.19.0"
+mockito = "5.17.0"
 springBoot = "3.4.4"
-junitJupiter = "5.11.4"
+junitJupiter = "5.12.2"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
 slf4j = "2.0.17"
@@ -98,21 +98,21 @@ mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = 
 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.17.0" }
-apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.13.0" }
+apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.13.1" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
 apache-tikaCore = { module = "org.apache.tika:tika-core", version = "3.1.0" }
-apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.3" }
+apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.4" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
-apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.3" }
+apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.4.4" }
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.18.0" }
-commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
+commons-io = { module = "commons-io:commons-io", version = "2.19.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
 swagger-parser = { module = "io.swagger.parser.v3:swagger-parser", version.ref = "swaggerParser" }
@@ -122,21 +122,21 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.38" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
-wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.12.1" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.0" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.31.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.5" }
 guava = { module = "com.google.guava:guava", version = "33.4.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.29" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.30" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.3.0" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -168,7 +168,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.12.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.13.0" }
 sonarqube = { id = "org.sonarqube", version = "6.1.0.5360" }
 protobuf = { id = "com.google.protobuf", version = "0.9.5" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "10.0.0" }
