@@ -40,7 +40,6 @@ import iaik.pkcs.pkcs11.objects.RSAPublicKey;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -91,13 +90,12 @@ import static org.niis.xroad.signer.core.util.SignerUtil.keyId;
 public class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
 
     private final SignerHwTokenAddonProperties hwTokenAddonProperties;
-    @Getter(AccessLevel.PACKAGE)
     private final TokenType tokenType;
 
     // maps key id (hex) to PrivateKey
     private final Map<String, PrivateKey> privateKeyCache = new HashMap<>();
     private final Map<String, List<X509PublicKeyCertificate>> certs = new HashMap<>();
-    @Getter(AccessLevel.PACKAGE)
+    @Getter
     private BlockingPKCS11SessionManager managementSessionProvider;
     private HardwareTokenSigner signer;
 
@@ -522,7 +520,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker implements Hardware
                 tokenManager.setTokenActive(tokenId, true);
                 managementSession.executeWithSession(this::loadPrivateKeys);
             }
-            this.signer = HardwareTokenSigner.create(this, hwTokenAddonProperties);
+            this.signer = HardwareTokenSigner.create(this, tokenType, getToken(), tokenId, hwTokenAddonProperties);
         } catch (PKCS11Exception e) {
             setTokenStatusFromErrorCode(e.getErrorCode());
 

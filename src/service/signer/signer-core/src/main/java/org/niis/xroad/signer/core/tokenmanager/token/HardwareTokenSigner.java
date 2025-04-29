@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import iaik.pkcs.pkcs11.Mechanism;
+import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
@@ -57,10 +58,12 @@ public class HardwareTokenSigner implements Closeable {
 
     private final Supplier<SessionProvider> sessionSupplier;
 
-    public static HardwareTokenSigner create(HardwareTokenWorker tokenWorker, SignerHwTokenAddonProperties properties) throws Exception {
+    public static HardwareTokenSigner create(SignPrivateKeyProvider privateKeyProvider,
+                                             TokenType tokenType,
+                                             Token token, String tokenId, SignerHwTokenAddonProperties properties) throws Exception {
         Supplier<SessionProvider> session;
         if (properties.poolEnabled()) {
-            final var sessionPool = new HardwareTokenSessionPool(properties, tokenWorker.getToken(), tokenWorker.getTokenId());
+            final var sessionPool = new HardwareTokenSessionPool(properties, token, tokenId);
             session = () -> {
                 try {
                     return sessionPool;
@@ -69,17 +72,18 @@ public class HardwareTokenSigner implements Closeable {
                 }
             };
 
-            log.info("HSM sign session pool created for token '{}'", tokenWorker.getTokenId());
+            log.info("HSM sign session pool created for token '{}'", tokenId);
         } else {
-            session = tokenWorker::getManagementSessionProvider;
-            log.info("HSM sign session pool is disabled for token '{}'. Management session will be used.", tokenWorker.getTokenId());
+            session = privateKeyProvider::getManagementSessionProvider;
+            log.info("HSM sign session pool is disabled for token '{}'. Management session will be used.", tokenId);
         }
-        return new HardwareTokenSigner(tokenWorker, session);
+        return new HardwareTokenSigner(privateKeyProvider, tokenType, session);
     }
 
-    HardwareTokenSigner(HardwareTokenWorker privateKeyProvider, Supplier<SessionProvider> sessionSupplier) {
+    HardwareTokenSigner(SignPrivateKeyProvider privateKeyProvider,
+                        TokenType tokenType, Supplier<SessionProvider> sessionSupplier) {
         var tempSignMechanisms = new HashMap<SignAlgorithm, Mechanism>();
-        var tokenType = privateKeyProvider.getTokenType();
+
 
         Arrays.stream(KeyAlgorithm.values())
                 .map(tokenType::resolveSignMechanismName)
@@ -176,5 +180,7 @@ public class HardwareTokenSigner implements Closeable {
 
     public interface SignPrivateKeyProvider {
         PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws Exception;
+
+        SessionProvider getManagementSessionProvider();
     }
 }
