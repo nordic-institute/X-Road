@@ -269,4 +269,4 @@ class ManagedPKCS11SessionTest {
         // Assert
         verify(session).closeSession(); // Verify close was still called
     }
-} 
+}
