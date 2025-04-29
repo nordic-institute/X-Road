@@ -111,10 +111,11 @@ abstract class SharedParametersV3ToXmlConverter {
     List<JAXBElement<Object>> xmlClientIds(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap) {
         var clientIds = securityServer.getClients();
 
-        if (clientIds == null || securityServer.getMaintenanceMode().isEnabled()) {
+        if (clientIds == null) {
             return List.of();
         }
         return clientIds.stream()
+                .filter(id -> id.isMember() || !securityServer.getMaintenanceMode().isEnabled())
                 .map(clientId -> xmlClientId(clientId, clientMap))
                 .map(OBJECT_FACTORY::createSecurityServerTypeClient)
                 .toList();
