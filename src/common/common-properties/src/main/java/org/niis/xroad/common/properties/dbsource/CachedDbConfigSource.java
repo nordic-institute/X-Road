@@ -27,59 +27,50 @@
 
 package org.niis.xroad.common.properties.dbsource;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.sql.DataSource;
-
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Optional.ofNullable;
 
 @Slf4j
 public class CachedDbConfigSource {
 
-    private final Cache<String, String> cache;
-    private final DbSourceRepository repository;
+    private final Map<String, String> cache;
 
-    public CachedDbConfigSource(DataSource dataSource, DbSourceConfig config) {
-        this.repository = new DbSourceRepository(dataSource, config);
-        // todo use ConcurrentHashMap for cache?
-        this.cache = Caffeine.newBuilder().build();
+    public CachedDbConfigSource(DbSourceConfig config) {
+        DbSourceRepository repository = initRepository(config);
+        this.cache = new ConcurrentHashMap<>(repository.getProperties());
+    }
 
-        reloadCache();
+    private DbSourceRepository initRepository(DbSourceConfig config) {
+        var hikariConfig = new HikariConfig();
+        hikariConfig.setMaximumPoolSize(1);
+        hikariConfig.setJdbcUrl(config.getUrl());
 
-        int ttl = config.getCacheTtl();
-        if (ttl > 0) {
-            log.info("Scheduling cache refresh every {} seconds", ttl);
-            Executors.newSingleThreadScheduledExecutor()
-                    .scheduleAtFixedRate(this::reloadCache, ttl, ttl, TimeUnit.SECONDS);
-        } else {
-            log.info("Cache refresh disabled");
-        }
+        ofNullable(config.getUsername()).ifPresent(hikariConfig::setUsername);
+        ofNullable(config.getPassword()).ifPresent(p -> hikariConfig.setPassword(new String(p)));
+
+        return new DbSourceRepository(new HikariDataSource(hikariConfig), config);
     }
 
     public Set<String> getPropertyNames() {
         log.trace("getPropertyNames()");
-        return cache.asMap().keySet();
+        return cache.keySet();
     }
 
     public String getValue(String propertyName) {
         log.trace("getValue() for property {}", propertyName);
-        return cache.getIfPresent(propertyName);
+        return cache.get(propertyName);
     }
 
     public Map<String, String> getProperties() {
-        return cache.asMap();
-    }
-
-    private synchronized void reloadCache() {
-        log.debug("reloadCache()");
-        Map<String, String> dbProps = repository.getProperties();
-        cache.invalidateAll();
-        cache.putAll(dbProps);
+        return new HashMap<>(cache);
     }
 
 }

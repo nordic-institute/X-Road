@@ -44,12 +44,15 @@ import static org.mockito.Mockito.when;
 
 public class CachedDbConfigSourceTest {
 
+    private static final String JDBC_URL =
+            "jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1";
+
     private static DataSource dataSource;
 
     @BeforeAll
     public static void beforeAll() throws SQLException {
         JdbcDataSource ds = new JdbcDataSource();
-        ds.setUrl("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1");
+        ds.setUrl(JDBC_URL);
         ds.setUser("sa");
         ds.setPassword("");
 
@@ -80,7 +83,7 @@ public class CachedDbConfigSourceTest {
     @Test
     void testSignerProperties() {
         DbSourceConfig config = mockConfig("signer");
-        CachedDbConfigSource configSource = new CachedDbConfigSource(dataSource, config);
+        CachedDbConfigSource configSource = new CachedDbConfigSource(config);
 
         Map<String, String> properties = configSource.getProperties();
 
@@ -93,7 +96,7 @@ public class CachedDbConfigSourceTest {
     @Test
     void testOtherAppProperties() {
         DbSourceConfig config = mockConfig("otherApp");
-        CachedDbConfigSource configSource = new CachedDbConfigSource(dataSource, config);
+        CachedDbConfigSource configSource = new CachedDbConfigSource(config);
 
         Map<String, String> properties = configSource.getProperties();
 
@@ -105,7 +108,7 @@ public class CachedDbConfigSourceTest {
     @Test
     void singleProperty() {
         DbSourceConfig config = mockConfig("test-app");
-        CachedDbConfigSource configSource = new CachedDbConfigSource(dataSource, config);
+        CachedDbConfigSource configSource = new CachedDbConfigSource(config);
 
         assertEquals("value for test-app", configSource.getValue("test.app.key"));
         assertEquals("value for all", configSource.getValue("test.key"));
@@ -115,9 +118,11 @@ public class CachedDbConfigSourceTest {
     private DbSourceConfig mockConfig(String appName) {
         DbSourceConfig config = mock(DbSourceConfig.class);
 
+        when(config.getUrl()).thenReturn(JDBC_URL);
+        when(config.getUsername()).thenReturn("sa");
+
         when(config.getAppName()).thenReturn(appName);
         when(config.getTableName()).thenReturn("config");
-        when(config.getCacheTtl()).thenReturn(-1);
         when(config.isEnabled()).thenReturn(true);
 
         return config;

@@ -32,8 +32,6 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 
-import javax.sql.DataSource;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -44,8 +42,8 @@ public class DbConfigSource implements ConfigSource {
 
     private final CachedDbConfigSource dbConfigSource;
 
-    public DbConfigSource(DataSource dataSource, DbSourceConfig config) {
-        this.dbConfigSource = new CachedDbConfigSource(dataSource, config);
+    public DbConfigSource(DbSourceConfig config) {
+        this.dbConfigSource = new CachedDbConfigSource(config);
     }
 
     @Override

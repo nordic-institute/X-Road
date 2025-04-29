@@ -38,13 +38,11 @@ public class DbSourceConfig {
 
     private static final String ENV_VAR_DB_URL = "DB_CONFIG_SOURCE_URL";
     private static final String ENV_VAR_DB_USERNAME = "DB_CONFIG_SOURCE_USERNAME";
-    private static final String ENV_VAR_CACHE_TTL = "DB_CONFIG_SOURCE_CACHE_TTL";
     private static final String ENV_VAR_TABLE_NAME = "DB_CONFIG_SOURCE_TABLE_NAME";
     private static final String ENV_VAR_ENABLED = "DB_CONFIG_SOURCE_ENABLED";
     private static final String ENV_VAR_DB_PASS = "DB_CONFIG_SOURCE_PASSWORD";
 
     private static final String DEFAULT_TABLE_NAME = "configuration_properties";
-    private static final String DEFAULT_TTL = "-1";
     private static final String DEFAULT_ENABLED = "false";
 
     private String appName;
@@ -53,7 +51,6 @@ public class DbSourceConfig {
     private String username;
     private char[] password;
     private String tableName;
-    private int cacheTtl;
 
     public static DbSourceConfig loadValues(String appName) {
         DbSourceConfig config = new DbSourceConfig();
@@ -64,9 +61,7 @@ public class DbSourceConfig {
                 .map(String::toCharArray)
                 .orElse(null);
 
-        config.cacheTtl = Integer.parseInt(ofNullable(getenv(ENV_VAR_CACHE_TTL)).orElse(DEFAULT_TTL));
         config.tableName = ofNullable(getenv(ENV_VAR_TABLE_NAME)).orElse(DEFAULT_TABLE_NAME);
-//        config.enabled = parseBoolean(ofNullable(getenv(ENV_VAR_ENABLED)).orElse(config.url != null ? "true" : "false"));
         config.enabled = parseBoolean(ofNullable(getenv(ENV_VAR_ENABLED)).orElse(DEFAULT_ENABLED));
 
         return config;

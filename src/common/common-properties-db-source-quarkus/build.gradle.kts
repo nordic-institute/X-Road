@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
   implementation(project(":common:common-properties"))
-
-  implementation(libs.quarkus.jdbc.postgresql)
+  implementation(libs.smallrye.config.core)
+  implementation(libs.slf4j.api)
 }

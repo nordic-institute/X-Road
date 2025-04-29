@@ -27,25 +27,13 @@
 
 package org.niis.xroad.common.properties.dbsource.quarkus;
 
-import io.agroal.api.AgroalDataSource;
-import io.agroal.api.configuration.supplier.AgroalConnectionFactoryConfigurationSupplier;
-import io.agroal.api.configuration.supplier.AgroalConnectionPoolConfigurationSupplier;
-import io.agroal.api.configuration.supplier.AgroalDataSourceConfigurationSupplier;
-import io.agroal.api.security.NamePrincipal;
-import io.agroal.api.security.SimplePassword;
 import io.smallrye.config.ConfigSourceContext;
 import io.smallrye.config.ConfigSourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 
-import javax.sql.DataSource;
-
-import java.sql.SQLException;
-import java.time.Duration;
 import java.util.Collections;
-
-import static java.util.Optional.ofNullable;
 
 @Slf4j
 public class DbConfigSourceFactory implements ConfigSourceFactory {
@@ -56,38 +44,14 @@ public class DbConfigSourceFactory implements ConfigSourceFactory {
         if (config.isEnabled() && config.getUrl() != null) {
             log.info("Using DB config source.");
             try {
-                DataSource dataSource = initDataSource(config);
-                return Collections.singletonList(new DbConfigSource(dataSource, config));
-            } catch (SQLException e) {
+                return Collections.singletonList(new DbConfigSource(config));
+            } catch (Exception e) {
                 log.error("Failed to initialize DB configuration source", e);
             }
         } else {
             log.info("DB config source is disabled.");
         }
         return Collections.emptyList();
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private DataSource initDataSource(DbSourceConfig config) throws SQLException {
-        AgroalDataSourceConfigurationSupplier dataSourceConfiguration = new AgroalDataSourceConfigurationSupplier();
-        AgroalConnectionPoolConfigurationSupplier poolConfiguration = dataSourceConfiguration.connectionPoolConfiguration();
-        AgroalConnectionFactoryConfigurationSupplier connectionFactoryConfiguration = poolConfiguration.connectionFactoryConfiguration();
-
-        poolConfiguration
-                .initialSize(1)
-                .minSize(1)
-                .maxSize(10)
-                .acquisitionTimeout(Duration.ofSeconds(5));
-
-        connectionFactoryConfiguration.jdbcUrl(config.getUrl());
-
-        ofNullable(config.getUsername())
-                .ifPresent(username -> connectionFactoryConfiguration.credential(new NamePrincipal(config.getUsername())));
-
-        ofNullable(config.getPassword())
-                .ifPresent(password -> connectionFactoryConfiguration.credential(new SimplePassword(password)));
-
-        return AgroalDataSource.from(dataSourceConfiguration.get());
     }
 
 }

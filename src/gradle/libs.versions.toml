@@ -162,7 +162,6 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
-caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version = "3.2.0" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.12.1" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }

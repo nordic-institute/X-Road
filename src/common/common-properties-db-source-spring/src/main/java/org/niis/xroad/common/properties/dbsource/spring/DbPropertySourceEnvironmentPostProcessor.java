@@ -31,17 +31,13 @@ import org.niis.xroad.common.properties.dbsource.CachedDbConfigSource;
 import org.niis.xroad.common.properties.dbsource.DbSourceConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.logging.DeferredLog;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
-import javax.sql.DataSource;
-
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Optional.ofNullable;
 import static org.springframework.core.env.StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
 
 public class DbPropertySourceEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -57,8 +53,7 @@ public class DbPropertySourceEnvironmentPostProcessor implements EnvironmentPost
         if (config.isEnabled() && config.getUrl() != null) {
             log.info("Using DB properties source.");
 
-            DataSource dataSource = initDataSource(config);
-            CachedDbConfigSource dbSource = new CachedDbConfigSource(dataSource, config);
+            CachedDbConfigSource dbSource = new CachedDbConfigSource(config);
             Map<String, String> dbProperties = dbSource.getProperties();
 
             environment.getPropertySources().addAfter(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
@@ -68,13 +63,4 @@ public class DbPropertySourceEnvironmentPostProcessor implements EnvironmentPost
         }
     }
 
-    private DataSource initDataSource(DbSourceConfig config) {
-        DataSourceBuilder<?> dataSourceBuilder = DataSourceBuilder
-                .create()
-                .driverClassName("org.postgresql.Driver")
-                .url(config.getUrl());
-        ofNullable(config.getUsername()).ifPresent(dataSourceBuilder::username);
-        ofNullable(config.getPassword()).ifPresent(p -> dataSourceBuilder.password(new String(p)));
-        return dataSourceBuilder.build();
-    }
 }
