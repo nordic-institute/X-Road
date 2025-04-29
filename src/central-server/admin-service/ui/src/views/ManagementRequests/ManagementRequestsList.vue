@@ -49,8 +49,8 @@
         :loading="loading"
         :headers="headers"
         :must-sort="true"
-        :items="managementRequestsStore.items"
-        :items-length="managementRequestsStore.pagingOptions.total_items"
+        :items="managementRequests.items"
+        :items-length="managementRequests.pagingOptions.total_items"
         :items-per-page="10"
         :items-per-page-options="itemsPerPageOptions"
         class="elevation-0 data-table"
@@ -96,12 +96,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
 import { useNotifications } from '@/store/modules/notifications';
-import { debounce } from '@/util/helpers';
 import { useManagementRequests } from '@/store/modules/management-requests';
-import { ManagementRequestStatus } from '@/openapi-types';
 import ManagementRequestIdCell from '@/components/managementRequests/MrIdCell.vue';
 import MrActionsCell from '@/components/managementRequests/MrActionsCell.vue';
 import MrStatusCell from '@/components/managementRequests/MrStatusCell.vue';
@@ -109,139 +106,109 @@ import MrTypeCell from '@/components/managementRequests/MrTypeCell.vue';
 import { DataQuery, DataTableHeader, SortItem } from '@/ui-types';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import DateTime from '@/components/ui/DateTime.vue';
-import { defineComponent } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import { i18n } from '@/plugins/i18n';
+import { ManagementRequestStatus } from '@/openapi-types';
+import { debounce } from '@/util/helpers';
 
-// To provide the Vue instance to debounce
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let that: any;
+const sortBy = reactive([{ key: 'id', order: 'desc' }] as SortItem[]);
+const loading = ref(false);
+const dataQuery = reactive({} as DataQuery);
+const itemsPerPageOptions = reactive(defaultItemsPerPageOptions(50));
 
-/**
- * General component for Management requests
- */
-export default defineComponent({
-  name: 'ManagementRequestsList',
-  components: {
-    SearchableTitledView,
-    DateTime,
-    MrTypeCell,
-    MrStatusCell,
-    MrActionsCell,
-    ManagementRequestIdCell,
-  },
-  data() {
-    return {
-      sortBy: [{ key: 'id', order: 'desc' }] as SortItem[],
-      loading: false, //is data being loaded
-      dataQuery: {} as DataQuery,
-      itemsPerPageOptions: defaultItemsPerPageOptions(50),
-    };
-  },
-  computed: {
-    ...mapStores(useManagementRequests),
-    showOnlyPending: {
-      get(): boolean {
-        return (
-          this.managementRequestsStore.currentFilter.status ===
-          ManagementRequestStatus.WAITING
-        );
-      },
-      set(value: boolean) {
-        this.managementRequestsStore.currentFilter.status = value
-          ? ManagementRequestStatus.WAITING
-          : undefined;
-      },
-    },
-    filterQuery: {
-      get(): string {
-        return this.managementRequestsStore.currentFilter.query || '';
-      },
-      set(value: string) {
-        this.managementRequestsStore.currentFilter.query = value;
-      },
-    },
-    headers(): DataTableHeader[] {
-      return [
-        {
-          title: this.$t('global.id') as string,
-          align: 'start',
-          key: 'id',
-        },
-        {
-          title: this.$t('global.created') as string,
-          align: 'start',
-          key: 'created_at',
-        },
-        {
-          title: this.$t('global.type') as string,
-          align: 'start',
-          key: 'type',
-        },
-        {
-          title: this.$t(
-            'managementRequests.securityServerOwnerName',
-          ) as string,
-          align: 'start',
-          key: 'security_server_owner',
-        },
-        {
-          title: this.$t('managementRequests.securityServerId') as string,
-          align: 'start',
-          key: 'security_server_id',
-        },
-        {
-          title: this.$t('global.status') as string,
-          align: 'start',
-          key: 'status',
-        },
-        {
-          title: '',
-          sortable: false,
-          key: 'button',
-        },
-      ];
-    },
-  },
-  watch: {
-    filterQuery: {
-      handler() {
-        this.debouncedFetchItems();
-      },
-    },
-  },
-  created() {
-    that = this;
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    debouncedFetchItems: debounce(() => {
-      // Debounce is used to reduce unnecessary api calls
-      that.fetchItems();
-    }, 600),
-    // @ts-expect-error
-    changeOptions: async function ({ itemsPerPage, page, sortBy }) {
-      this.dataQuery.itemsPerPage = itemsPerPage;
-      this.dataQuery.page = page;
-      this.dataQuery.sortBy = sortBy[0]?.key;
-      this.dataQuery.sortOrder = sortBy[0]?.order;
-      await this.fetchItems();
-    },
-    fetchItems: async function () {
-      this.loading = true;
+const managementRequests = useManagementRequests();
+const { showError } = useNotifications()
+const { t } = i18n.global;
 
-      try {
-        await this.managementRequestsStore.find(
-          this.dataQuery,
-          this.managementRequestsStore.currentFilter,
-        );
-      } catch (error: unknown) {
-        this.showError(error);
-      } finally {
-        this.loading = false;
-      }
-    },
+const showOnlyPending = computed({
+  get(): boolean {
+    return managementRequests.currentFilter.status === ManagementRequestStatus.WAITING;
+  },
+  set(value: boolean) {
+    managementRequests.currentFilter.status = value
+      ? ManagementRequestStatus.WAITING
+      : undefined;
   },
 });
+
+const filterQuery = computed({
+  get(): string {
+    return managementRequests.currentFilter.query || '';
+  },
+  set(value: string) {
+    managementRequests.currentFilter.query = value;
+  },
+})
+
+const headers = computed(() => [
+  {
+    title: t('global.id') as string,
+    align: 'start',
+    key: 'id',
+  },
+  {
+    title: t('global.created') as string,
+    align: 'start',
+    key: 'created_at',
+  },
+  {
+    title: t('global.type') as string,
+    align: 'start',
+    key: 'type',
+  },
+  {
+    title: t(
+      'managementRequests.securityServerOwnerName',
+    ) as string,
+    align: 'start',
+    key: 'security_server_owner',
+  },
+  {
+    title: t('managementRequests.securityServerId') as string,
+    align: 'start',
+    key: 'security_server_id',
+  },
+  {
+    title: t('global.status') as string,
+    align: 'start',
+    key: 'status',
+  },
+  {
+    title: '',
+    sortable: false,
+    key: 'button',
+  },
+] as DataTableHeader[]);
+
+watch(filterQuery, debounce(() => {
+  // Debounce is used to reduce unnecessary api calls
+  fetchItems();
+}, 600));
+
+async function changeOptions({ itemsPerPage, page, sortBy }) {
+  dataQuery.itemsPerPage = itemsPerPage;
+  dataQuery.page = page;
+  dataQuery.sortBy = sortBy[0]?.key;
+  dataQuery.sortOrder = sortBy[0]?.order;
+  await fetchItems();
+}
+
+async function fetchItems() {
+  loading.value = true;
+
+  try {
+    await managementRequests.find(
+      dataQuery,
+      managementRequests.currentFilter,
+    );
+  } catch (error: unknown) {
+    showError(error);
+  } finally {
+    loading.value = false;
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
