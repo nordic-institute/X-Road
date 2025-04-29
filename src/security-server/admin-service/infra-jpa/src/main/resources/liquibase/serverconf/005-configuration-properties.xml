@@ -11,10 +11,10 @@
             <column name="id" autoIncrement="true" type="SERIAL">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="property_key" type="VARCHAR(512)">
+            <column name="property_key" type="VARCHAR(1024)">
                 <constraints nullable="false"/>
             </column>
-            <column name="property_value" type="VARCHAR(512)">
+            <column name="property_value" type="VARCHAR(4096)">
                 <constraints nullable="false"/>
             </column>
             <column name="scope" type="VARCHAR(255)"/>
