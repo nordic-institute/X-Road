@@ -200,6 +200,7 @@ public class SharedParametersV2Converter {
                 }
             }
             target.setClients(clients);
+            target.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
         }
         return target;
     }

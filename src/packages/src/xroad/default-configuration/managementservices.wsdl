@@ -151,6 +151,10 @@
             <xsd:element name="ownerChangeResponse" type="tns:ClientRequestType"/>
             <xsd:element name="addressChange" type="tns:AddressChangeRequestType"/>
             <xsd:element name="addressChangeResponse" type="tns:AddressChangeRequestType"/>
+            <xsd:element name="maintenanceModeEnable" type="tns:MaintenanceModeEnableRequestType"/>
+            <xsd:element name="maintenanceModeEnableResponse" type="tns:MaintenanceModeEnableRequestType"/>
+            <xsd:element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
+            <xsd:element name="maintenanceModeDisableResponse" type="tns:MaintenanceModeDisableRequestType"/>
             <!-- Header fields -->
             <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
             <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
@@ -293,9 +297,7 @@
                 <xsd:sequence>
                     <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identifier of the Security Server the
-                                authentication certificate will be associated with.
-                            </xsd:documentation>
+                          <xsd:documentation>Identifier of the security server for which the address will be changed.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="address" type="string">
@@ -306,6 +308,31 @@
                     <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:complexType>
+          <xsd:complexType name="MaintenanceModeEnableRequestType">
+            <xsd:sequence>
+              <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <xsd:annotation>
+                  <xsd:documentation>Identifier of the security server which will be put into maintenance mode.</xsd:documentation>
+                </xsd:annotation>
+              </xsd:element>
+              <xsd:element name="message" type="string" minOccurs="0">
+                <xsd:annotation>
+                  <xsd:documentation>Optional message for maintenance mode</xsd:documentation>
+                </xsd:annotation>
+              </xsd:element>
+              <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+            </xsd:sequence>
+          </xsd:complexType>
+          <xsd:complexType name="MaintenanceModeDisableRequestType">
+            <xsd:sequence>
+              <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <xsd:annotation>
+                  <xsd:documentation>Identifier of the security server which will be taken out of maintenance mode.</xsd:documentation>
+                </xsd:annotation>
+              </xsd:element>
+              <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+            </xsd:sequence>
+          </xsd:complexType>
             <xsd:simpleType name="RequestIdType">
                 <xsd:annotation>
                     <xsd:documentation>For responses only, unique identifier
@@ -377,6 +404,18 @@
     <wsdl:message name="addressChangeResponse">
         <wsdl:part element="xroad:addressChangeResponse" name="parameters"/>
     </wsdl:message>
+    <wsdl:message name="maintenanceModeEnable">
+      <wsdl:part element="xroad:maintenanceModeEnable" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeEnableResponse">
+      <wsdl:part element="xroad:maintenanceModeEnableResponse" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeDisable">
+      <wsdl:part element="xroad:maintenanceModeDisable" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeDisableResponse">
+      <wsdl:part element="xroad:maintenanceModeDisableResponse" name="parameters"/>
+    </wsdl:message>
     <wsdl:portType name="centralservice">
         <wsdl:operation name="clientReg">
             <wsdl:input message="tns:clientReg"/>
@@ -409,6 +448,14 @@
         <wsdl:operation name="addressChange">
             <wsdl:input message="tns:addressChange"/>
             <wsdl:output message="tns:addressChangeResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeEnable">
+          <wsdl:input message="tns:maintenanceModeEnable"/>
+          <wsdl:output message="tns:maintenanceModeEnableResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeDisable">
+          <wsdl:input message="tns:maintenanceModeDisable"/>
+          <wsdl:output message="tns:maintenanceModeDisableResponse"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
@@ -556,6 +603,42 @@
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeEnable">
+          <soap:operation soapAction=""/>
+          <wsdl:input>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+          </wsdl:input>
+          <wsdl:output>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+          </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeDisable">
+          <soap:operation soapAction=""/>
+          <wsdl:input>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+          </wsdl:input>
+          <wsdl:output>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+          </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="centralservice">

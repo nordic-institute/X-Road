@@ -240,6 +240,46 @@ public class ManagementRequestStepDefs extends BaseStepDefs {
         executeRequest(req.createPayload());
     }
 
+    @Step("Maintenance mode enable request with message {string} was sent")
+    public void maintenanceModeEnableRequestWasSent(String message) throws Exception {
+        maintenanceModeEnableRequestWasSent("EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId(), message);
+    }
+
+    @Step("Maintenance mode enable request with clientId {string} and serverId {string} and message {string} was sent")
+    public void maintenanceModeEnableRequestWasSent(String clientIdString, String serverId, String message) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdString);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(clientId)
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder((builder, serverId1, clientId1)
+                        -> builder.buildMaintenanceModeEnableRequest(serverId1, message))
+                .build();
+        executeRequest(req.createPayload());
+    }
+
+    @Step("Maintenance mode disable request was sent")
+    public void maintenanceModeDisableRequestWasSent() throws Exception {
+        maintenanceModeDisableRequestWasSent("EE:CLASS:MEMBER", DEFAULT_SERVER_ID.asEncodedId());
+    }
+
+    @Step("Maintenance mode disable request with clientId {string} and serverId {string} was sent")
+    public void maintenanceModeDisableRequestWasSent(String clientIdString, String serverId) throws Exception {
+        var clientId = resolveClientIdFromEncodedStr(clientIdString);
+        var req = TestGenericClientRequestBuilder.newBuilder()
+                .withSenderClientId(clientId)
+                .withReceiverClientId(DEFAULT_RECEIVER)
+                .withServerId(resolveServerIdFromEncodedStr(serverId))
+                .withClientId(clientId)
+                .withClientOcsp(CertificateStatus.GOOD)
+                .withSoapMessageBuilder((builder, serverId1, clientId1)
+                        -> builder.buildMaintenanceModeDisableRequest(serverId1))
+                .build();
+        executeRequest(req.createPayload());
+    }
+
     @Step("Client disable request with clientId {string} was sent")
     public void executeRequestClientDisable(String clientIdStr) throws Exception {
         executeRequestClientDisableWithCustomServerId(clientIdStr, DEFAULT_SERVER_ID.asEncodedId());

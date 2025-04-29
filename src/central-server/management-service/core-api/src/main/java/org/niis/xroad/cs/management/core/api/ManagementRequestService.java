@@ -26,22 +26,9 @@
  */
 package org.niis.xroad.cs.management.core.api;
 
-import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRegRequestType;
-import ee.ria.xroad.common.request.ClientRenameRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
-
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 
 public interface ManagementRequestService {
-    Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType);
+    Integer addManagementRequest(Object request, ManagementRequestType requestType);
 
-    Integer addManagementRequest(AuthCertDeletionRequestType request);
-
-    Integer addManagementRequest(AddressChangeRequestType request);
-
-    Integer addManagementRequest(ClientRenameRequestType request);
-
-    Integer addManagementRequest(ClientRegRequestType request);
 }

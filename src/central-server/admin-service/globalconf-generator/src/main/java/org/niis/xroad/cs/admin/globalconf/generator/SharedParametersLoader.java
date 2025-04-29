@@ -177,6 +177,7 @@ class SharedParametersLoader {
         result.setAddress(ss.getAddress());
         result.setServerCode(ss.getServerCode());
         result.setClients(getSecurityServerClients(ss.getId()));
+        result.setMaintenanceMode(new SharedParameters.MaintenanceMode(ss.isInMaintenanceMode(), ss.getMaintenanceModeMessage()));
         result.setAuthCertHashes(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
                 .map(CertHash::new)

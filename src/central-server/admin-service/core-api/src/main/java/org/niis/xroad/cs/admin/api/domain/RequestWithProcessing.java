@@ -33,7 +33,8 @@ import lombok.Setter;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public abstract class RequestWithProcessing extends Request {
+public abstract sealed class RequestWithProcessing extends Request
+        permits AuthenticationCertificateRegistrationRequest, ClientRegistrationRequest, OwnerChangeRequest {
     @Getter
     @Setter
     private ManagementRequestStatus processingStatus;
