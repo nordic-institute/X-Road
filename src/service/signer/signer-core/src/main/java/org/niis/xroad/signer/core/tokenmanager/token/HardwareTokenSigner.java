@@ -40,35 +40,45 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
 
 @Slf4j
 public class HardwareTokenSigner implements Closeable {
-    private final HardwareTokenWorker tokenWorker;
+    private final SignPrivateKeyProvider privateKeyProvider;
 
     // maps signature algorithm id and signing mechanism
     private final Map<SignAlgorithm, Mechanism> signMechanisms;
     private final boolean pinVerificationPerSigning;
 
-    private final SessionProvider sessionPool;
+    private final Supplier<SessionProvider> sessionSupplier;
 
     public static HardwareTokenSigner create(HardwareTokenWorker tokenWorker, SignerHwTokenAddonProperties properties) throws Exception {
-        SessionProvider sessionPool = null;
+        Supplier<SessionProvider> session;
         if (properties.poolEnabled()) {
-            sessionPool = new HardwareTokenSessionPool(properties, tokenWorker.getToken(), tokenWorker.getTokenId());
+            session = () -> {
+                try {
+                    return new HardwareTokenSessionPool(properties, tokenWorker.getToken(), tokenWorker.getTokenId());
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, "Could not generate public key");
+                }
+            };
+
             log.info("HSM sign session pool created for token '{}'", tokenWorker.getTokenId());
         } else {
+            session = tokenWorker::getManagementSessionProvider;
             log.info("HSM sign session pool is disabled for token '{}'. Management session will be used.", tokenWorker.getTokenId());
         }
-        return new HardwareTokenSigner(tokenWorker, sessionPool);
+        return new HardwareTokenSigner(tokenWorker, session);
     }
 
-    HardwareTokenSigner(HardwareTokenWorker tokenWorker, SessionProvider sessionPool) {
+    HardwareTokenSigner(HardwareTokenWorker privateKeyProvider, Supplier<SessionProvider> sessionSupplier) {
         var tempSignMechanisms = new HashMap<SignAlgorithm, Mechanism>();
-        var tokenType = tokenWorker.getTokenType();
+        var tokenType = privateKeyProvider.getTokenType();
 
         Arrays.stream(KeyAlgorithm.values())
                 .map(tokenType::resolveSignMechanismName)
@@ -77,20 +87,18 @@ public class HardwareTokenSigner implements Closeable {
                 .map(HardwareTokenUtil::createSignMechanisms)
                 .forEach(tempSignMechanisms::putAll);
 
-        this.tokenWorker = tokenWorker;
+        this.privateKeyProvider = privateKeyProvider;
         this.signMechanisms = Map.copyOf(tempSignMechanisms);
         this.pinVerificationPerSigning = tokenType.isPinVerificationPerSigning();
-        this.sessionPool = sessionPool;
+        this.sessionSupplier = sessionSupplier;
     }
 
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
-        SessionProvider sessionProvider;
-        if (sessionPool == null) {
-            sessionProvider = tokenWorker.getManagementSessionProvider();
-        } else {
-            sessionProvider = sessionPool;
+        var sessionProvider = sessionSupplier.get();
+        if (sessionProvider == null) {
+            throw new CodedException(X_INTERNAL_ERROR, "Session provider is null");
         }
         return sessionProvider.executeWithSession(session -> {
             return doSign(session, keyId, signatureAlgorithmId, data);
@@ -99,14 +107,13 @@ public class HardwareTokenSigner implements Closeable {
 
     private byte[] doSign(ManagedPKCS11Session session, String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
         pinVerificationPerSigningLogin(session);
-        tokenWorker.assertKeyAvailable(keyId);
 
         var rawSession = session.get();
 
-        PrivateKey key = tokenWorker.getPrivateKey(session, keyId);
+        PrivateKey key = privateKeyProvider.getPrivateKey(session, keyId);
         if (key == null) {
             throw CodedException.tr(X_KEY_NOT_FOUND, "key_not_found_on_token", "Key '%s' not found on token '%s'",
-                    keyId, tokenWorker.getTokenId());
+                    keyId, session.getTokenId());
         }
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
@@ -160,8 +167,10 @@ public class HardwareTokenSigner implements Closeable {
 
     @Override
     public void close() {
-        if (sessionPool != null) {
-            sessionPool.close();
-        }
+        sessionSupplier.get().close();
+    }
+
+    public interface SignPrivateKeyProvider {
+        PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws Exception;
     }
 }

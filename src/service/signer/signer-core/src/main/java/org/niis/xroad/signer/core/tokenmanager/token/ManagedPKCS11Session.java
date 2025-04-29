@@ -31,7 +31,9 @@ import ee.ria.xroad.common.CodedException;
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.Token;
 import iaik.pkcs.pkcs11.TokenException;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
@@ -42,6 +44,7 @@ import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 @Slf4j
 @RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ManagedPKCS11Session {
+    @Getter
     private final String tokenId;
     private final Session session;
 
@@ -75,12 +78,14 @@ public class ManagedPKCS11Session {
                 log.warn("Cannot login, no password stored for token {}", tokenId);
                 return false;
             }
-
-            HardwareTokenUtil.login(session, password);
+            session.login(Session.CKUserType.USER, password);
             log.trace("Successfully logged in to session for token {}", tokenId);
             return true;
         } catch (PKCS11Exception pkcs11Exception) {
-            throw pkcs11Exception;
+            if (pkcs11Exception.getErrorCode() != PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
+                throw pkcs11Exception;
+            }
+            return true;
         } catch (Exception e) {
             log.warn("Failed to login to session for token {}", tokenId, e);
             return false;
@@ -92,11 +97,14 @@ public class ManagedPKCS11Session {
      */
     public boolean logout() throws PKCS11Exception {
         try {
-            HardwareTokenUtil.logout(session);
+            session.logout();
             log.trace("Successfully logged out of session for token {}", tokenId);
             return true;
         } catch (PKCS11Exception pkcs11Exception) {
-            throw pkcs11Exception;
+            if (pkcs11Exception.getErrorCode() != PKCS11Constants.CKR_USER_NOT_LOGGED_IN) {
+                throw pkcs11Exception;
+            }
+            return true;
         } catch (Exception e) {
             log.warn("Failed to logout of session for token {}", tokenId, e);
             return false;

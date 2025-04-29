@@ -111,7 +111,7 @@ public class TokenRegistry {
             }
 
             TokenMergeStrategy.MergeResult result;
-            synchronized (TokenManager.class) {
+            synchronized (TokenRegistry.class) {
                 result = MERGE_STRATEGY.merge(fileTokens, currentTokens);
                 currentTokens = result.getResultTokens();
             }

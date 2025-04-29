@@ -47,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -74,13 +75,13 @@ class ManagedPKCS11SessionTest {
 
     @Test
     void openSessionSuccess() throws TokenException {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
 
-        // Act
+        // When
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
 
-        // Assert
+        // Then
         assertNotNull(managedSession);
         assertEquals(session, managedSession.get());
         verify(token).openSession(eq(Token.SessionType.SERIAL_SESSION), eq(true), any(), any());
@@ -88,7 +89,7 @@ class ManagedPKCS11SessionTest {
 
     @Test
     void openSessionFailsWhenTokenIsNull() {
-        // Act & Assert
+        // When & Assert
         CodedException thrown = assertThrows(CodedException.class, () -> {
             ManagedPKCS11Session.openSession(null, TOKEN_ID);
         });
@@ -97,11 +98,11 @@ class ManagedPKCS11SessionTest {
 
     @Test
     void openSessionFailsWhenUnderlyingOpenThrows() throws TokenException {
-        // Arrange
+        // Given
         TokenException expectedException = new TokenException("Open failed");
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenThrow(expectedException);
 
-        // Act & Assert
+        // When & Assert
         TokenException thrown = assertThrows(TokenException.class, () -> {
             ManagedPKCS11Session.openSession(token, TOKEN_ID);
         });
@@ -111,187 +112,170 @@ class ManagedPKCS11SessionTest {
 
     @Test
     void getSessionHandle() throws TokenException {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         when(session.getSessionHandle()).thenReturn(SESSION_HANDLE);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
 
-        // Act
+        // When
         long handle = managedSession.getSessionHandle();
 
-        // Assert
+        // Then
         assertEquals(SESSION_HANDLE, handle);
         verify(session).getSessionHandle();
     }
 
     @Test
     void loginSuccess() throws Exception {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
+        doNothing().when(session).login(Session.CKUserType.USER, PIN);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class);
-             MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-
+        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
             psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
-            htuMock.when(() -> HardwareTokenUtil.login(session, PIN)).thenAnswer(invocation -> null); // Mock void method
 
-            // Act
+            // When
             boolean result = managedSession.login();
 
-            // Assert
+            // Then
             assertTrue(result);
             psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            htuMock.verify(() -> HardwareTokenUtil.login(session, PIN));
+            verify(session).login(Session.CKUserType.USER, PIN);
         }
     }
 
     @Test
     void loginFailsIfPinNotFound() throws Exception {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class);
-             MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-
+        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
             psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(null);
 
-            // Act
+            // When
             boolean result = managedSession.login();
 
-            // Assert
+            // Then
             assertFalse(result);
             psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            htuMock.verify(() -> HardwareTokenUtil.login(any(), any()), never()); // Login util not called
+            verify(session, never()).login(anyLong(), any()); // Login not called
         }
     }
 
     @Test
-    void loginThrowsIfUtilThrowsPkcs11Exception() throws Exception {
-        // Arrange
+    void loginThrowsIfSessionLoginThrowsPkcs11Exception() throws Exception {
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
         PKCS11Exception expectedException = new PKCS11Exception(0L);
+        doThrow(expectedException).when(session).login(Session.CKUserType.USER, PIN);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class);
-             MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-
+        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
             psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
-            htuMock.when(() -> HardwareTokenUtil.login(session, PIN)).thenThrow(expectedException);
 
-            // Act & Assert
+            // When & Assert
             PKCS11Exception thrown = assertThrows(PKCS11Exception.class, managedSession::login);
             assertEquals(expectedException, thrown);
 
             psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            htuMock.verify(() -> HardwareTokenUtil.login(session, PIN));
+            verify(session).login(Session.CKUserType.USER, PIN);
         }
     }
 
     @Test
-    void loginFailsIfUtilThrowsOtherException() throws Exception {
-        // Arrange
+    void loginFailsIfSessionLoginThrowsOtherException() throws Exception {
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
         RuntimeException expectedException = new RuntimeException("Other login failure");
+        doThrow(expectedException).when(session).login(Session.CKUserType.USER, PIN);
 
-        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class);
-             MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-
+        try (MockedStatic<PasswordStore> psMock = mockStatic(PasswordStore.class)) {
             psMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(PIN);
-            htuMock.when(() -> HardwareTokenUtil.login(session, PIN)).thenThrow(expectedException);
 
-            // Act
+            // When
             boolean result = managedSession.login();
 
-            // Assert
+            // Then
             assertFalse(result);
             psMock.verify(() -> PasswordStore.getPassword(TOKEN_ID));
-            htuMock.verify(() -> HardwareTokenUtil.login(session, PIN));
+            verify(session).login(Session.CKUserType.USER, PIN);
         }
     }
 
     @Test
     void logoutSuccess() throws Exception {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
+        doNothing().when(session).logout();
 
-        try (MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-            htuMock.when(() -> HardwareTokenUtil.logout(session)).thenAnswer(invocation -> null);
+        // When
+        boolean result = managedSession.logout();
 
-            // Act
-            boolean result = managedSession.logout();
-
-            // Assert
-            assertTrue(result);
-            htuMock.verify(() -> HardwareTokenUtil.logout(session));
-        }
+        // Then
+        assertTrue(result);
+        verify(session).logout();
     }
 
     @Test
-    void logoutThrowsIfUtilThrowsPkcs11Exception() throws Exception {
-        // Arrange
+    void logoutThrowsIfSessionLogoutThrowsPkcs11Exception() throws Exception {
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
         PKCS11Exception expectedException = new PKCS11Exception(1L);
+        doThrow(expectedException).when(session).logout();
 
-        try (MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-            htuMock.when(() -> HardwareTokenUtil.logout(session)).thenThrow(expectedException);
-
-            // Act & Assert
-            PKCS11Exception thrown = assertThrows(PKCS11Exception.class, managedSession::logout);
-            assertEquals(expectedException, thrown);
-            htuMock.verify(() -> HardwareTokenUtil.logout(session));
-        }
+        // When & Assert
+        PKCS11Exception thrown = assertThrows(PKCS11Exception.class, managedSession::logout);
+        assertEquals(expectedException, thrown);
+        verify(session).logout();
     }
 
     @Test
-    void logoutFailsIfUtilThrowsOtherException() throws Exception {
-        // Arrange
+    void logoutFailsIfSessionLogoutThrowsOtherException() throws Exception {
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
         RuntimeException expectedException = new RuntimeException("Other logout failure");
+        doThrow(expectedException).when(session).logout();
 
-        try (MockedStatic<HardwareTokenUtil> htuMock = mockStatic(HardwareTokenUtil.class)) {
-            htuMock.when(() -> HardwareTokenUtil.logout(session)).thenThrow(expectedException);
+        // When
+        boolean result = managedSession.logout();
 
-            // Act
-            boolean result = managedSession.logout();
-
-            // Assert
-            assertFalse(result);
-            htuMock.verify(() -> HardwareTokenUtil.logout(session));
-        }
+        // Then
+        assertFalse(result);
+        verify(session).logout();
     }
 
     @Test
     void closeSuccess() throws Exception {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         doNothing().when(session).closeSession();
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
 
-        // Act
+        // When
         managedSession.close();
 
-        // Assert
+        // Then
         verify(session).closeSession();
     }
 
     @Test
     void closeHandlesTokenException() throws Exception {
-        // Arrange
+        // Given
         when(token.openSession(anyBoolean(), anyBoolean(), any(), any())).thenReturn(session);
         doThrow(new TokenException("Close failed")).when(session).closeSession();
         ManagedPKCS11Session managedSession = ManagedPKCS11Session.openSession(token, TOKEN_ID);
 
-        // Act
+        // When
         // Should not throw, only log warning
         managedSession.close();
 
-        // Assert
+        // Then
         verify(session).closeSession(); // Verify close was still called
     }
 }

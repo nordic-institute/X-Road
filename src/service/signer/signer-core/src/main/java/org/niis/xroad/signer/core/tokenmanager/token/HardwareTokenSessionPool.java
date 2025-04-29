@@ -100,7 +100,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         return objectPool;
     }
 
-    private static void prefillPool(GenericObjectPool<ManagedPKCS11Session> objectPool, String tokenId)throws Exception {
+    private static void prefillPool(GenericObjectPool<ManagedPKCS11Session> objectPool, String tokenId) throws Exception {
         try {
             log.debug("Pre-filling pool for token {}...", tokenId);
             objectPool.preparePool();

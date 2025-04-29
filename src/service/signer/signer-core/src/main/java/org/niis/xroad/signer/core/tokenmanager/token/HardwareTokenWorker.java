@@ -88,7 +88,7 @@ import static org.niis.xroad.signer.core.util.SignerUtil.keyId;
  * Token worker for hardware tokens.
  */
 @Slf4j
-public class HardwareTokenWorker extends AbstractTokenWorker {
+public class HardwareTokenWorker extends AbstractTokenWorker implements HardwareTokenSigner.SignPrivateKeyProvider {
 
     private final SignerHwTokenAddonProperties hwTokenAddonProperties;
     @Getter(AccessLevel.PACKAGE)
@@ -322,6 +322,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     @Override
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+        assertKeyAvailable(keyId);
+
         return signer.sign(keyId, signatureAlgorithmId, data);
     }
 
@@ -333,7 +335,6 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         KeyInfo keyInfo = tokenManager.getKeyInfo(keyId);
         CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-
 
         ContentSigner contentSigner = new HardwareTokenContentSigner(signer, keyId, signatureAlgorithmId);
 
@@ -400,7 +401,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws Exception {
+    @Override
+    public PrivateKey getPrivateKey(ManagedPKCS11Session session, String keyId) throws Exception {
         PrivateKey privateKey = privateKeyCache.get(keyId);
         if (privateKey == null) {
             log.debug("Key {} not found in cache, trying to find it from hardware token", keyId);
@@ -491,7 +493,12 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     private void initialize() throws Exception {
         log.trace("initialize()");
 
-        createManagementSession();
+        closeActiveSessions();
+
+        if (getToken() != null) {
+            managementSessionProvider = new BlockingPKCS11SessionManager(getToken(), tokenId);
+        }
+
         updateTokenInfo();
     }
 
@@ -548,15 +555,6 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-
-    private void createManagementSession() throws Exception {
-        log.trace("createSession()");
-        closeActiveSessions();
-
-        if (getToken() != null) {
-            managementSessionProvider = new BlockingPKCS11SessionManager(getToken(), tokenId);
-        }
-    }
 
     private void loadPrivateKeys(ManagedPKCS11Session session) throws Exception {
         if (managementSessionProvider == null) {

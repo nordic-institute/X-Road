@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Module;
-import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.TokenInfo;
 import iaik.pkcs.pkcs11.objects.Key;
@@ -41,7 +40,6 @@ import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.parameters.RSAPkcsParameters.MessageGenerationFunctionType;
 import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.NoArgsConstructor;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
@@ -86,26 +84,6 @@ public final class HardwareTokenUtil {
         }
 
         return Module.getInstance(libraryPath);
-    }
-
-    static void login(Session session, char[] password) throws Exception {
-        try {
-            session.login(Session.CKUserType.USER, password);
-        } catch (PKCS11Exception ex) {
-            if (ex.getErrorCode() != PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
-                throw ex;
-            }
-        }
-    }
-
-    static void logout(Session session) throws Exception {
-        try {
-            session.logout();
-        } catch (PKCS11Exception ex) {
-            if (ex.getErrorCode() != PKCS11Constants.CKR_USER_NOT_LOGGED_IN) {
-                throw ex;
-            }
-        }
     }
 
     static PrivateKey findPrivateKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {

@@ -62,15 +62,15 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void constructorSuccess() throws Exception {
-        // Arrange
+        // Given
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                     .thenReturn(managedSession);
 
-            // Act
+            // When
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Assert
+            // Then
             assertNotNull(manager);
             staticSessionMock.verify(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID));
         }
@@ -78,13 +78,13 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void constructorFailsWhenOpenSessionThrowsTokenException() throws Exception {
-        // Arrange
+        // Given
         TokenException expectedException = new TokenException("Open failed");
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                     .thenThrow(expectedException);
 
-            // Act & Assert
+            // When & Assert
             TokenException thrown = assertThrows(TokenException.class, () -> {
                 new BlockingPKCS11SessionManager(token, TOKEN_ID);
             });
@@ -95,13 +95,13 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void constructorFailsWhenOpenSessionThrowsOtherException() throws Exception {
-        // Arrange
+        // Given
         RuntimeException underlyingException = new RuntimeException("Underlying problem");
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID))
                     .thenThrow(underlyingException); // Simulate ManagedPKCS11Session wrapping it
 
-            // Act & Assert
+            // When & Assert
             // Constructor wraps non-TokenExceptions in CodedException
             CodedException thrown = assertThrows(CodedException.class, () -> {
                 new BlockingPKCS11SessionManager(token, TOKEN_ID);
@@ -114,16 +114,16 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void loginDelegatesAndReturnsTrue() throws Exception {
-        // Arrange
+        // Given
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             when(managedSession.login()).thenReturn(true);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act
+            // When
             boolean result = manager.login();
 
-            // Assert
+            // Then
             assertTrue(result);
             verify(managedSession).login();
         }
@@ -131,16 +131,16 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void loginDelegatesAndReturnsFalse() throws Exception {
-        // Arrange
+        // Given
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             when(managedSession.login()).thenReturn(false);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act
+            // When
             boolean result = manager.login();
 
-            // Assert
+            // Then
             assertFalse(result);
             verify(managedSession).login();
         }
@@ -148,14 +148,14 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void loginPropagatesPkcs11Exception() throws Exception {
-        // Arrange
+        // Given
         PKCS11Exception expectedException = new PKCS11Exception(1L);
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             when(managedSession.login()).thenThrow(expectedException);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act & Assert
+            // When & Assert
             PKCS11Exception thrown = assertThrows(PKCS11Exception.class, manager::login);
             assertEquals(expectedException, thrown);
             verify(managedSession).login();
@@ -164,16 +164,16 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void logoutDelegatesAndReturnsTrue() throws Exception {
-        // Arrange
+        // Given
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             when(managedSession.logout()).thenReturn(true);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act
+            // When
             boolean result = manager.logout();
 
-            // Assert
+            // Then
             assertTrue(result);
             verify(managedSession).logout();
         }
@@ -181,16 +181,16 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void logoutDelegatesAndReturnsFalse() throws Exception {
-        // Arrange
+        // Given
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             when(managedSession.logout()).thenReturn(false);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act
+            // When
             boolean result = manager.logout();
 
-            // Assert
+            // Then
             assertFalse(result);
             verify(managedSession).logout();
         }
@@ -198,14 +198,14 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void logoutPropagatesPkcs11Exception() throws Exception {
-        // Arrange
+        // Given
         PKCS11Exception expectedException = new PKCS11Exception(2L);
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             when(managedSession.logout()).thenThrow(expectedException);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act & Assert
+            // When & Assert
             PKCS11Exception thrown = assertThrows(PKCS11Exception.class, manager::logout);
             assertEquals(expectedException, thrown);
             verify(managedSession).logout();
@@ -214,7 +214,7 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void executeWithSessionFuncSuccess() throws Exception {
-        // Arrange
+        // Given
         String expectedResult = "OperationResult";
         AtomicReference<ManagedPKCS11Session> capturedSession = new AtomicReference<>();
         SessionProvider.FuncWithSession<String> operation = (session) -> {
@@ -226,10 +226,10 @@ class BlockingPKCS11SessionManagerTest {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act
+            // When
             String actualResult = manager.executeWithSession(operation);
 
-            // Assert
+            // Then
             assertEquals(expectedResult, actualResult);
             assertEquals(managedSession, capturedSession.get());
         }
@@ -237,7 +237,7 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void executeWithSessionFuncPropagatesException() throws Exception {
-        // Arrange
+        // Given
         Exception expectedException = new RuntimeException("Operation Failed");
         SessionProvider.FuncWithSession<String> operation = (session) -> {
             throw expectedException;
@@ -247,7 +247,7 @@ class BlockingPKCS11SessionManagerTest {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act & Assert
+            // When & Assert
             Exception thrown = assertThrows(Exception.class, () -> manager.executeWithSession(operation));
             assertEquals(expectedException, thrown);
         }
@@ -255,7 +255,7 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void executeWithSessionConsumerSuccess() throws Exception {
-        // Arrange
+        // Given
         AtomicReference<ManagedPKCS11Session> capturedSession = new AtomicReference<>();
         AtomicBoolean executed = new AtomicBoolean(false);
         SessionProvider.ConsumerWithSession operation = (session) -> {
@@ -267,10 +267,10 @@ class BlockingPKCS11SessionManagerTest {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act
+            // When
             manager.executeWithSession(operation);
 
-            // Assert
+            // Then
             assertTrue(executed.get());
             assertEquals(managedSession, capturedSession.get());
         }
@@ -278,7 +278,7 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void executeWithSessionConsumerPropagatesException() throws Exception {
-        // Arrange
+        // Given
         Exception expectedException = new RuntimeException("Operation Failed");
         SessionProvider.ConsumerWithSession operation = (session) -> {
             throw expectedException;
@@ -288,7 +288,7 @@ class BlockingPKCS11SessionManagerTest {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
 
-            // Act & Assert
+            // When & Assert
             Exception thrown = assertThrows(Exception.class, () -> manager.executeWithSession(operation));
             assertEquals(expectedException, thrown);
         }
@@ -296,16 +296,16 @@ class BlockingPKCS11SessionManagerTest {
 
     @Test
     void closeDelegates() throws Exception {
-        // Arrange
+        // Given
         try (MockedStatic<ManagedPKCS11Session> staticSessionMock = mockStatic(ManagedPKCS11Session.class)) {
             staticSessionMock.when(() -> ManagedPKCS11Session.openSession(token, TOKEN_ID)).thenReturn(managedSession);
             BlockingPKCS11SessionManager manager = new BlockingPKCS11SessionManager(token, TOKEN_ID);
             Mockito.doNothing().when(managedSession).close();
 
-            // Act
+            // When
             manager.close();
 
-            // Assert
+            // Then
             verify(managedSession).close();
         }
     }
