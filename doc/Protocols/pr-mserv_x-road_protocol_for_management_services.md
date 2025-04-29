@@ -2,37 +2,38 @@
 
 **Technical Specification**
 
-Version: 1.18  
+Version: 1.19  
 Doc. ID: PR-MSERV
 
-| Date       | Version | Description                                                                 | Author               |
-|------------|---------|-----------------------------------------------------------------------------|----------------------|
-| 19.08.2015 | 0.1     | Initial version                                                             | Martin Lind          |
-| 28.08.2015 | 0.2     | Added comments and made editorial changes                                   | Margus Freudenthal   |
-| 03.09.2015 | 0.3     | Re-structuring and accuracy improvements                                    | Martin Lind          |
-| 13.09.2015 | 0.4     | Made editorial changes                                                      | Margus Freudenthal   |
-| 16.09.2015 | 0.5     | Correct example message for authentication certificate registration request | Martin Lind          |
-| 17.09.2015 | 0.6     | Improvements for example messages and referential improvements              | Martin Lind          |
-| 17.09.2015 | 0.7     | Improvements for Schema fragments                                           | Martin Lind          |
-| 18.09.2015 | 0.8     | Updating Schema in the WSDL                                                 | Martin Lind          |
-| 21.09.2015 | 1.0     | Editorial changes made                                                      | Imbi Nõgisto         |
-| 21.09.2015 | 1.1     | Document renamed                                                            | Imbi Nõgisto         |
-| 01.10.2015 | 1.2     | Field *requestId* added and redundant elements removed                      | Martin Lind          |
-| 05.10.2015 | 1.3     | Updated example messages                                                    | Martin Lind          |
-| 06.10.2015 | 1.4     | Correct header fields for WSDL                                              | Martin Lind          |
-| 17.10.2015 | 1.6     | Editorial changes related to *requestId* field                              | Margus Freudenthal   |
-| 28.10.2015 | 1.7     | Complete X-Road identifiers schema added                                    | Siim Annuk           |
-| 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL                 | Kristo Heero         |
-| 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                   | Siim Annuk           |
-| 07.06.2017 | 1.10    | Additional signature algorithms supported                                   | Kristo Heero         |
-| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references          | Tatu Repo            |
-| 06.02.2019 | 1.12    | Update *clientReg* message description                                      | Petteri Kivimäki     |
-| 03.06.2019 | 1.13    | Add ownerChange management service                                          | Ilkka Seppälä        |
-| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service     | Petteri Kivimäki     |
-| 10.05.2023 | 1.15    | Security Categories removed.                                                | Justas Samuolis      |
-| 20.11.2023 | 1.16    | Add *addressChange* management service                                      | Justas Samuolis      |
-| 11.12.2023 | 1.17    | *clientDisable* and *clientEnable* services                                 | Madis Loitmaa        |
-| 07.03.2025 | 1.18    | Add *clientRename* management service and update *clientReg* service        | Ovidijus Narkevičius |
+| Date       | Version | Description                                                                  | Author               |
+|------------|---------|------------------------------------------------------------------------------|----------------------|
+| 19.08.2015 | 0.1     | Initial version                                                              | Martin Lind          |
+| 28.08.2015 | 0.2     | Added comments and made editorial changes                                    | Margus Freudenthal   |
+| 03.09.2015 | 0.3     | Re-structuring and accuracy improvements                                     | Martin Lind          |
+| 13.09.2015 | 0.4     | Made editorial changes                                                       | Margus Freudenthal   |
+| 16.09.2015 | 0.5     | Correct example message for authentication certificate registration request  | Martin Lind          |
+| 17.09.2015 | 0.6     | Improvements for example messages and referential improvements               | Martin Lind          |
+| 17.09.2015 | 0.7     | Improvements for Schema fragments                                            | Martin Lind          |
+| 18.09.2015 | 0.8     | Updating Schema in the WSDL                                                  | Martin Lind          |
+| 21.09.2015 | 1.0     | Editorial changes made                                                       | Imbi Nõgisto         |
+| 21.09.2015 | 1.1     | Document renamed                                                             | Imbi Nõgisto         |
+| 01.10.2015 | 1.2     | Field *requestId* added and redundant elements removed                       | Martin Lind          |
+| 05.10.2015 | 1.3     | Updated example messages                                                     | Martin Lind          |
+| 06.10.2015 | 1.4     | Correct header fields for WSDL                                               | Martin Lind          |
+| 17.10.2015 | 1.6     | Editorial changes related to *requestId* field                               | Margus Freudenthal   |
+| 28.10.2015 | 1.7     | Complete X-Road identifiers schema added                                     | Siim Annuk           |
+| 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL                  | Kristo Heero         |
+| 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                    | Siim Annuk           |
+| 07.06.2017 | 1.10    | Additional signature algorithms supported                                    | Kristo Heero         |
+| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references           | Tatu Repo            |
+| 06.02.2019 | 1.12    | Update *clientReg* message description                                       | Petteri Kivimäki     |
+| 03.06.2019 | 1.13    | Add ownerChange management service                                           | Ilkka Seppälä        |
+| 29.06.2019 | 1.14    | Rename *newOwner* element to *client* in ownerChange management service      | Petteri Kivimäki     |
+| 10.05.2023 | 1.15    | Security Categories removed.                                                 | Justas Samuolis      |
+| 20.11.2023 | 1.16    | Add *addressChange* management service                                       | Justas Samuolis      |
+| 11.12.2023 | 1.17    | *clientDisable* and *clientEnable* services                                  | Madis Loitmaa        |
+| 07.03.2025 | 1.18    | Add *clientRename* management service and update *clientReg* service         | Ovidijus Narkevičius |
+| 29.04.2025 | 1.19    | Add *maintenanceModeEnable* and *maintenanceModeDisable* management services | Ovidijus Narkevičius |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -50,6 +51,8 @@ Doc. ID: PR-MSERV
   - [2.7 *clientDisable* - Disable Security Server Client Subsystem Temporarily](#27-clientdisable---disable-security-server-client-subsystem-temporarily)
   - [2.8 *clientEnable* - Enable Security Server Client Subsystem](#28-clientenable---enable-security-server-client-subsystem)
   - [2.9 *clientRename* - Rename Security Server Client Subsystem](#29-clientrename---rename-security-server-client-subsystem)
+  - [2.10 *maintenanceModeEnable* - Enable Maintenance Mode for the Security Server](#210-maintenancemodeenable---enable-maintenance-mode-for-the-security-server)
+  - [2.11 *maintenanceModeDisable* - Disable Maintenance Mode for the Security Server](#211-maintenancemodedisable---disable-maintenance-mode-for-the-security-server)
 - [Annex A. Example messages](#annex-a-example-messages)
   - [A.1 clientReg](#a1-clientreg)
   - [A.2 clientDeletion](#a2-clientdeletion)
@@ -59,6 +62,9 @@ Doc. ID: PR-MSERV
   - [A.6 addressChange](#a6-addresschange)
   - [A.7 clientDisable](#a7-clientdisable)
   - [A.8 clientEnable](#a8-clientenable)
+  - [A.8 clientRename](#a9-clientrename)
+  - [A.8 maintenanceModeEnable](#a10-maintenancemodeenable)
+  - [A.8 maintenanceModeDisable](#a11-maintenancemodedisable)
 - [Annex B WSDL File for Management Services](#annex-b-wsdl-file-for-management-services)
 
 ## License
@@ -442,7 +448,79 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 The response echoes back the subsystemName, the client and the server fields of the request and adds the field *requestId*.
 
-An example of the client registration request and response is given in [Annex A.9](#a1-clientrename).
+An example of the client rename request and response is given in [Annex A.9](#a9-clientrename).
+
+### 2.10 *maintenanceModeEnable* - Enable Maintenance Mode for the Security Server
+
+The *maintenanceModeEnable* service is used to enable maintenance mode for the Security Server.
+
+The body of the maintenance enable message (request or response) contains following fields:
+
+* **message** – optional message explaining reason or end time for maintenance mode or etc. This message will be displayed to the client when the client tries to access the Security Server during maintenance mode.
+* **server** – identifier of the Security Server where the client is registered;
+* **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
+
+The XML Schema fragment of the client rename request body shown below.
+
+```xml
+<xsd:complexType name="MaintenanceModeEnableRequestType">
+    <xsd:sequence>
+        <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
+        <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+        <xsd:element name="message" type="string" minOccurs="0"/>
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+    </xsd:sequence>
+</xsd:complexType>
+```
+
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+
+2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+
+3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+
+4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+
+The response echoes back the message, the client and the server fields of the request and adds the field *requestId*.
+
+An example of the maintenance mode enable request and response is given in [Annex A.10](#a10-maintenanceModeEnable).
+
+### 2.11 *maintenanceModeDisable* - Disable Maintenance Mode for the Security Server
+
+The *maintenanceModeDisable* service is used to enable maintenance mode for the Security Server.
+
+The body of the maintenance enable message (request or response) contains following fields:
+
+* **server** – identifier of the Security Server where the client is registered;
+* **requestId** – for responses only, unique identifier of the request that is stored in the Central Server database \[[DM-CS](#Ref_DM-CS)\].
+
+The XML Schema fragment of the client rename request body shown below.
+
+```xml
+<xsd:complexType name="MaintenanceModeDisableRequestType">
+    <xsd:sequence>
+        <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType"/>
+        <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+        <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+    </xsd:sequence>
+</xsd:complexType>
+```
+
+The request is sent using HTTP POST method. The content type of the request MUST be *multipart/related* and the request must contain the following MIME parts.
+
+1. X-Road SOAP request message. The message MUST contain the regular X-Road headers and the two data fields (*server*, *client*). The content type of this part MUST be *text/xml*.
+
+2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
+
+3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+
+4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+
+The response echoes back the client and the server fields of the request and adds the field *requestId*.
+
+An example of the maintenance mode disable request and response is given in [Annex A.10](#a11-maintenanceModeDisable).
 
 
 ## Annex A. Example messages
@@ -1416,6 +1494,184 @@ Response message
 </SOAP-ENV:Envelope>
 ```
 
+### A.10 maintenanceModeEnable
+
+Request message
+
+```xml
+--jetty832974847lp2nei0x
+Content-Type: text/xml; charset=UTF-8
+        
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                   xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+            <id:serviceCode>maintenanceModeEnable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>7f47514b-a6eb-40ce-afea-34e81d7b38a3</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:maintenanceModeEnable>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>TS1OWNER</id:memberCode>
+                <id:serverCode>TS1</id:serverCode>
+            </xroad:server>
+            <xroad:message>Will end at 2016-01-01T00:00:00.000+02:00</xroad:message>
+        </xroad:maintenanceModeEnable>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty832974847lp2nei0x
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+
+[OWNER SIGNATURE BYTES]
+--jetty832974847lp2nei0x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE BYTES]
+--jetty832974847lp2nei0x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty832974847lp2nei0x--
+```
+
+Response message
+
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                   xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+            <id:serviceCode>maintenanceModeEnable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>7f47514b-a6eb-40ce-afea-34e81d7b38a3</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:maintenanceModeEnableResponse>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>TS1OWNER</id:memberCode>
+                <id:serverCode>TS1</id:serverCode>
+            </xroad:server>
+            <xroad:message>Will end at 2016-01-01T00:00:00.000+02:00</xroad:message>
+            <xroad:requestId>1133</xroad:requestId>
+        </xroad:maintenanceModeEnableResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
+### A.11 maintenanceModeDisable
+
+Request message
+
+```xml
+--jetty832974847lp2nei0x
+Content-Type: text/xml; charset=UTF-8
+        
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                   xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+            <id:serviceCode>maintenanceModeDisable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>7f47514b-a6eb-40ce-afea-34e81d7b38a3</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:maintenanceModeDisable>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>TS1OWNER</id:memberCode>
+                <id:serverCode>TS1</id:serverCode>
+            </xroad:server>
+        </xroad:maintenanceModeDisable>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty832974847lp2nei0x
+Content-Type: application/octet-stream
+signature-algorithm-id: SHA512withRSA
+
+[OWNER SIGNATURE BYTES]
+--jetty832974847lp2nei0x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE BYTES]
+--jetty832974847lp2nei0x
+Content-Type: application/octet-stream
+
+[OWNER CERTIFICATE OCSP RESPONSE BYTES]
+--jetty832974847lp2nei0x--
+```
+
+Response message
+
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                   xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd">
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>TS1OWNER</id:memberCode>
+            <id:serviceCode>maintenanceModeDisable</id:serviceCode>
+        </xroad:service>
+        <xroad:id>7f47514b-a6eb-40ce-afea-34e81d7b38a3</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:maintenanceModeDisableResponse>
+            <xroad:server id:objectType="SERVER">
+                <id:xRoadInstance>EE</id:xRoadInstance>
+                <id:memberClass>GOV</id:memberClass>
+                <id:memberCode>TS1OWNER</id:memberCode>
+                <id:serverCode>TS1</id:serverCode>
+            </xroad:server>
+            <xroad:requestId>1133</xroad:requestId>
+        </xroad:maintenanceModeDisableResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+```
+
 ## Annex B WSDL File for Management Services
 
 ```xml
@@ -1572,6 +1828,10 @@ Response message
       <xsd:element name="ownerChangeResponse" type="tns:ClientRequestType"/>
       <xsd:element name="addressChange" type="tns:AddressChangeRequestType"/>
       <xsd:element name="addressChangeResponse" type="tns:AddressChangeRequestType"/>
+      <xsd:element name="maintenanceModeEnable" type="tns:MaintenanceModeEnableRequestType"/>
+      <xsd:element name="maintenanceModeEnableResponse" type="tns:MaintenanceModeEnableRequestType"/>
+      <xsd:element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
+      <xsd:element name="maintenanceModeDisableResponse" type="tns:MaintenanceModeDisableRequestType"/>
       <!-- Header fields -->
       <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
       <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
@@ -1714,14 +1974,37 @@ Response message
         <xsd:sequence>
           <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
             <xsd:annotation>
-              <xsd:documentation>Identifier of the Security Server the
-                authentication certificate will be associated with.
-              </xsd:documentation>
+              <xsd:documentation>Identifier of the security server for which the address will be changed.</xsd:documentation>
             </xsd:annotation>
           </xsd:element>
           <xsd:element name="address" type="string">
             <xsd:annotation>
               <xsd:documentation>New address of the Security Server</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="MaintenanceModeEnableRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the security server which will be put into maintenance mode.</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="message" type="string" minOccurs="0">
+            <xsd:annotation>
+              <xsd:documentation>Optional message for maintenance mode</xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="MaintenanceModeDisableRequestType">
+        <xsd:sequence>
+          <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+            <xsd:annotation>
+              <xsd:documentation>Identifier of the security server which will be taken out of maintenance mode.</xsd:documentation>
             </xsd:annotation>
           </xsd:element>
           <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
@@ -1798,6 +2081,18 @@ Response message
   <wsdl:message name="addressChangeResponse">
     <wsdl:part element="xroad:addressChangeResponse" name="parameters"/>
   </wsdl:message>
+  <wsdl:message name="maintenanceModeEnable">
+    <wsdl:part element="xroad:maintenanceModeEnable" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="maintenanceModeEnableResponse">
+    <wsdl:part element="xroad:maintenanceModeEnableResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="maintenanceModeDisable">
+    <wsdl:part element="xroad:maintenanceModeDisable" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="maintenanceModeDisableResponse">
+    <wsdl:part element="xroad:maintenanceModeDisableResponse" name="parameters"/>
+  </wsdl:message>
   <wsdl:portType name="centralservice">
     <wsdl:operation name="clientReg">
       <wsdl:input message="tns:clientReg"/>
@@ -1830,6 +2125,14 @@ Response message
     <wsdl:operation name="addressChange">
       <wsdl:input message="tns:addressChange"/>
       <wsdl:output message="tns:addressChangeResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="maintenanceModeEnable">
+      <wsdl:input message="tns:maintenanceModeEnable"/>
+      <wsdl:output message="tns:maintenanceModeEnableResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="maintenanceModeDisable">
+      <wsdl:input message="tns:maintenanceModeDisable"/>
+      <wsdl:output message="tns:maintenanceModeDisableResponse"/>
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
@@ -1961,6 +2264,42 @@ Response message
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="addressChange">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="maintenanceModeEnable">
+      <soap:operation soapAction=""/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+        <soap:header message="tns:requestheader" part="client" use="literal"/>
+        <soap:header message="tns:requestheader" part="service" use="literal"/>
+        <soap:header message="tns:requestheader" part="id" use="literal"/>
+        <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+        <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="maintenanceModeDisable">
       <soap:operation soapAction=""/>
       <wsdl:input>
         <soap:body use="literal"/>
