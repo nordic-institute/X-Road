@@ -74,12 +74,13 @@ class HardwareTokenSessionPool implements SessionProvider {
 
     @Override
     public void close() {
+        log.debug("Closing HSM session pool..");
         pool.close();
     }
 
     private static GenericObjectPool<ManagedPKCS11Session> createPool(SignerHwTokenAddonProperties properties, Token token, String tokenId)
             throws Exception {
-        log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId);
+        log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId, new Throwable());
 
         if (token == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Token is null for pool initialization");

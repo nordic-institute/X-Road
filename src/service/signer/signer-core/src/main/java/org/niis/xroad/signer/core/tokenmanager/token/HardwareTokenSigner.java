@@ -60,9 +60,10 @@ public class HardwareTokenSigner implements Closeable {
     public static HardwareTokenSigner create(HardwareTokenWorker tokenWorker, SignerHwTokenAddonProperties properties) throws Exception {
         Supplier<SessionProvider> session;
         if (properties.poolEnabled()) {
+            final var sessionPool = new HardwareTokenSessionPool(properties, tokenWorker.getToken(), tokenWorker.getTokenId());
             session = () -> {
                 try {
-                    return new HardwareTokenSessionPool(properties, tokenWorker.getToken(), tokenWorker.getTokenId());
+                    return sessionPool;
                 } catch (Exception e) {
                     throw new CodedException(X_INTERNAL_ERROR, "Could not generate public key");
                 }
@@ -167,7 +168,10 @@ public class HardwareTokenSigner implements Closeable {
 
     @Override
     public void close() {
-        sessionSupplier.get().close();
+        var sessionProvider = sessionSupplier.get();
+        if (sessionProvider != null) {
+            sessionProvider.close();
+        }
     }
 
     public interface SignPrivateKeyProvider {

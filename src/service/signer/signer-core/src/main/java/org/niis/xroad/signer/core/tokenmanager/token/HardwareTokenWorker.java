@@ -541,7 +541,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker implements Hardware
 
         try {
             if (managementSessionProvider.logout()) {
-                log.info("User successfully logged out");
+                log.info("HSM management session successfully logged out");
                 tokenManager.setTokenStatus(tokenId, TokenStatusInfo.OK);
             }
             this.signer.close();

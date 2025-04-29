@@ -82,10 +82,10 @@ public class ManagedPKCS11Session {
             log.trace("Successfully logged in to session for token {}", tokenId);
             return true;
         } catch (PKCS11Exception pkcs11Exception) {
-            if (pkcs11Exception.getErrorCode() != PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
-                throw pkcs11Exception;
+            if (pkcs11Exception.getErrorCode() == PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
+                return true;
             }
-            return true;
+            throw pkcs11Exception;
         } catch (Exception e) {
             log.warn("Failed to login to session for token {}", tokenId, e);
             return false;
@@ -101,10 +101,10 @@ public class ManagedPKCS11Session {
             log.trace("Successfully logged out of session for token {}", tokenId);
             return true;
         } catch (PKCS11Exception pkcs11Exception) {
-            if (pkcs11Exception.getErrorCode() != PKCS11Constants.CKR_USER_NOT_LOGGED_IN) {
-                throw pkcs11Exception;
+            if (pkcs11Exception.getErrorCode() == PKCS11Constants.CKR_USER_NOT_LOGGED_IN) {
+                return true;
             }
-            return true;
+            throw pkcs11Exception;
         } catch (Exception e) {
             log.warn("Failed to logout of session for token {}", tokenId, e);
             return false;

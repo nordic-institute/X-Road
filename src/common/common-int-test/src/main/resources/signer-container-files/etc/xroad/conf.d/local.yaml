@@ -1,3 +1,7 @@
+quarkus:
+  log:
+    level: DEBUG
+
 xroad:
   signer:
     device-configuration-file: /etc/xroad/signer/devices.ini
