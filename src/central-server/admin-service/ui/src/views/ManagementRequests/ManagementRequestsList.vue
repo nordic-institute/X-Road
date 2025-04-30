@@ -44,8 +44,10 @@
         </div>
       </template>
       <v-data-table-server
-        v-model:sort-by="sortBy"
         data-test="management-requests-table"
+        class="elevation-0 data-table"
+        item-key="id"
+        :sort-by="sortBy"
         :loading="loading"
         :headers="headers"
         :must-sort="true"
@@ -53,8 +55,6 @@
         :items-length="managementRequests.pagingOptions.total_items"
         :items-per-page="10"
         :items-per-page-options="itemsPerPageOptions"
-        class="elevation-0 data-table"
-        item-key="id"
         :loader-height="2"
         @update:options="changeOptions"
       >
@@ -112,10 +112,10 @@ import { i18n } from '@/plugins/i18n';
 import { ManagementRequestStatus } from '@/openapi-types';
 import { debounce } from '@/util/helpers';
 
-const sortBy = reactive([{ key: 'id', order: 'desc' }] as SortItem[]);
+const sortBy = [{ key: 'id', order: 'desc' }] as SortItem[];
 const loading = ref(false);
 const dataQuery = reactive({} as DataQuery);
-const itemsPerPageOptions = reactive(defaultItemsPerPageOptions(50));
+const itemsPerPageOptions = defaultItemsPerPageOptions(50);
 
 const managementRequests = useManagementRequests();
 const { showError } = useNotifications()
