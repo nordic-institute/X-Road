@@ -27,7 +27,10 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.config.SignerHwTokenAddonProperties;
 import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 
 import java.util.Optional;
 
@@ -36,9 +39,13 @@ import java.util.Optional;
  */
 @Slf4j
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
+    private final SignerHwTokenAddonProperties hwTokenAddonProperties;
 
-    public HardwareModuleManagerImpl(ModuleConf moduleConf, SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
-        super(moduleConf, signerProperties, ocspResponseManager);
+    public HardwareModuleManagerImpl(ModuleConf moduleConf, TokenManager tokenManager, TokenRegistry tokenRegistry,
+                                     SignerProperties signerProperties, SignerHwTokenAddonProperties hwTokenAddonProperties,
+                                     OcspResponseManager ocspResponseManager) {
+        super(moduleConf, tokenManager, tokenRegistry, signerProperties, ocspResponseManager);
+        this.hwTokenAddonProperties = hwTokenAddonProperties;
     }
 
     @Override
@@ -52,7 +59,7 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
     private AbstractModuleWorker createWorker(HardwareModuleType hardwareModule) {
         try {
-            return new HardwareModuleWorker(hardwareModule, signerProperties);
+            return new HardwareModuleWorker(hardwareModule, signerProperties, hwTokenAddonProperties, tokenManager);
         } catch (Exception e) {
             log.error("Error initializing hardware module '{}'", hardwareModule.getType(), e);
         }

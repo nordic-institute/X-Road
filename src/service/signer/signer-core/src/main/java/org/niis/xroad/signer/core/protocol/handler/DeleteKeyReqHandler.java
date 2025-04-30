@@ -32,7 +32,6 @@ import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
 
@@ -45,8 +44,7 @@ public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty>
 
     @Override
     protected Empty handle(DeleteKeyReq request) throws Exception {
-        TokenAndKey tokenAndKey =
-                TokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenManager.findTokenAndKey(request.getKeyId());
 
         if (request.getDeleteFromDevice()) {
             log.trace("Deleting key '{}' from device", request.getKeyId());
@@ -66,11 +64,11 @@ public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty>
                 .handleDeleteKey(request.getKeyId());
     }
 
-    private static void removeCertsFromKey(KeyInfo keyInfo) {
+    private void removeCertsFromKey(KeyInfo keyInfo) {
         keyInfo.getCerts().stream().filter(CertificateInfo::isSavedToConfiguration)
-                .map(CertificateInfo::getId).forEach(TokenManager::removeCert);
+                .map(CertificateInfo::getId).forEach(tokenManager::removeCert);
 
         keyInfo.getCertRequests().stream()
-                .map(CertRequestInfo::getId).forEach(TokenManager::removeCertRequest);
+                .map(CertRequestInfo::getId).forEach(tokenManager::removeCertRequest);
     }
 }

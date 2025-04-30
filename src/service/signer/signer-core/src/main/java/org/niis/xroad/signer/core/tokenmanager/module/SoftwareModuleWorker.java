@@ -46,8 +46,8 @@ import java.util.Map;
 public class SoftwareModuleWorker extends AbstractModuleWorker {
     private final List<TokenType> tokenTypes;
 
-    public SoftwareModuleWorker(ModuleType moduleType, SignerProperties signerProperties) {
-        super(moduleType, signerProperties);
+    public SoftwareModuleWorker(ModuleType moduleType, SignerProperties signerProperties, TokenManager tokenManager) {
+        super(moduleType, signerProperties, tokenManager);
         this.tokenTypes = List.of(new SoftwareTokenType(
                 Map.of(
                         KeyAlgorithm.EC, SignMechanism.valueOf(signerProperties.softTokenEcSignMechanism()),
@@ -65,14 +65,14 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         initTokenInfo(tokenInfo);
 
-        return new SoftwareTokenWorker(tokenInfo, tokenType, signerProperties);
+        return new SoftwareTokenWorker(tokenInfo, tokenType, signerProperties, tokenManager);
     }
 
     private void initTokenInfo(TokenInfo tokenInfo) {
         Map<String, String> info = new HashMap<>();
         info.put("Type", "Software");
 
-        TokenManager.setTokenInfo(tokenInfo.getId(), info);
+        tokenManager.setTokenInfo(tokenInfo.getId(), info);
     }
 
 }

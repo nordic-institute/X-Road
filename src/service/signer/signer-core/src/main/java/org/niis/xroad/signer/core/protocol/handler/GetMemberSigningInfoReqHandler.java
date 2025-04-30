@@ -40,7 +40,6 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 
@@ -66,7 +65,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     @Override
     protected GetMemberSigningInfoResp handle(GetMemberSigningInfoReq request) throws Exception {
         var memberId = ClientIdMapper.fromDto(request.getMemberId());
-        List<KeyInfo> memberKeys = TokenManager.getKeyInfo(memberId);
+        List<KeyInfo> memberKeys = tokenManager.getKeyInfo(memberId);
 
         if (memberKeys.isEmpty()) {
             throw CodedException.tr(X_UNKNOWN_MEMBER, "member_certs_not_found",
@@ -91,7 +90,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     private SelectedCertificate selectMemberCert(List<KeyInfo> memberKey, ClientId memberId) {
         for (KeyInfo keyInfo : memberKey) {
             for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                if (TokenManager.certBelongsToMember(certInfo, memberId)
+                if (certInfo.belongsToMember(memberId)
                         && isSuitableCertificate(memberId.getXRoadInstance(), certInfo)) {
                     log.info("Found suitable certificate for member '{}' under key {}", memberId, keyInfo.getId());
 

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Module;
-import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.TokenInfo;
 import iaik.pkcs.pkcs11.objects.Key;
@@ -41,8 +40,8 @@ import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.parameters.RSAPkcsParameters.MessageGenerationFunctionType;
 import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
+import lombok.NoArgsConstructor;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
 import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -56,19 +55,16 @@ import java.util.Set;
 /**
  * Utility methods for hardware token.
  */
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class HardwareTokenUtil {
 
     private static final int MAX_OBJECTS = 64;
 
-    private static final Mechanism EC_KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
-
-    private HardwareTokenUtil() {
-    }
-
     /**
      * Returns the module instance. The module provider class can be specified
      * by system parameter 'xroad.signer.module-instance-provider'.
-     * @param libraryPath the pkcs11 library path
+     *
+     * @param libraryPath   the pkcs11 library path
      * @param providerClass provider class
      * @return the module instance
      * @throws Exception if an error occurs
@@ -90,27 +86,7 @@ public final class HardwareTokenUtil {
         return Module.getInstance(libraryPath);
     }
 
-    static void login(Session session, char[] password) throws Exception {
-        try {
-            session.login(Session.CKUserType.USER, password);
-        } catch (PKCS11Exception ex) {
-            if (ex.getErrorCode() != PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
-                throw ex;
-            }
-        }
-    }
-
-    static void logout(Session session) throws Exception {
-        try {
-            session.logout();
-        } catch (PKCS11Exception ex) {
-            if (ex.getErrorCode() != PKCS11Constants.CKR_USER_NOT_LOGGED_IN) {
-                throw ex;
-            }
-        }
-    }
-
-    static PrivateKey findPrivateKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+    static PrivateKey findPrivateKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
         var template = new PrivateKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
@@ -119,7 +95,7 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<PrivateKey> findPrivateKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
+    static List<PrivateKey> findPrivateKeys(ManagedPKCS11Session session, Set<Long> allowedMechanisms) throws Exception {
         var template = new PrivateKey();
         template.getSign().setBooleanValue(true);
 
@@ -128,7 +104,7 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static List<PublicKey> findPublicKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
+    static List<PublicKey> findPublicKeys(ManagedPKCS11Session session, Set<Long> allowedMechanisms) throws Exception {
         var template = new PublicKey();
         template.getVerify().setBooleanValue(true);
 
@@ -137,7 +113,7 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static PublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+    static PublicKey findPublicKey(ManagedPKCS11Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
         var template = new PublicKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
@@ -146,7 +122,7 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<X509PublicKeyCertificate> findPublicKeyCertificates(Session session) throws Exception {
+    static List<X509PublicKeyCertificate> findPublicKeyCertificates(ManagedPKCS11Session session) throws Exception {
         return find(new X509PublicKeyCertificate(), session, MAX_OBJECTS);
     }
 
@@ -196,37 +172,39 @@ public final class HardwareTokenUtil {
 
     @SuppressWarnings("unchecked")
     static <T extends iaik.pkcs.pkcs11.objects.Object> List<T> find(
-            T template, Session session, int maxObjectCount)
+            T template, ManagedPKCS11Session session, int maxObjectCount)
             throws TokenException {
         iaik.pkcs.pkcs11.objects.Object[] tmpArray;
 
         List<T> foundObjects = new ArrayList<>();
 
-        session.findObjectsInit(template);
+        var rawSession = session.get();
+        rawSession.findObjectsInit(template);
         do {
-            tmpArray = session.findObjects(maxObjectCount);
+            tmpArray = rawSession.findObjects(maxObjectCount);
             for (iaik.pkcs.pkcs11.objects.Object object : tmpArray) {
                 foundObjects.add((T) object);
             }
         } while (tmpArray.length != 0);
 
-        session.findObjectsFinal();
+        rawSession.findObjectsFinal();
         return foundObjects;
     }
 
     @SuppressWarnings("unchecked")
     static <T extends iaik.pkcs.pkcs11.objects.Object> T find(
-            T template, Session session) throws TokenException {
+            T template, ManagedPKCS11Session session) throws TokenException {
         T foundObject = null;
 
-        session.findObjectsInit(template);
+        var rawSession = session.get();
+        rawSession.findObjectsInit(template);
 
-        iaik.pkcs.pkcs11.objects.Object[] tmpArray = session.findObjects(1);
+        iaik.pkcs.pkcs11.objects.Object[] tmpArray = rawSession.findObjects(1);
         if (tmpArray.length > 0) {
             foundObject = (T) tmpArray[0];
         }
 
-        session.findObjectsFinal();
+        rawSession.findObjectsFinal();
         return foundObject;
     }
 

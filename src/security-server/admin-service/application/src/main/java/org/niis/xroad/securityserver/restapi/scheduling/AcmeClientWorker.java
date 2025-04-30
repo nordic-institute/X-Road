@@ -46,6 +46,7 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,6 +80,7 @@ public class AcmeClientWorker {
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
     private final MailNotificationHelper mailNotificationHelper;
@@ -375,7 +377,8 @@ public class AcmeClientWorker {
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient, sender, receiver, proxyUrl);
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
+                signerSignClient, sender, receiver, proxyUrl);
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
