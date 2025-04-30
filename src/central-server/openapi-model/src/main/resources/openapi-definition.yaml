@@ -4705,7 +4705,7 @@ components:
         member_class:
           description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: GOV
-          format: text§
+          format: text
           maxLength: 255
           minLength: 1
           type: string
@@ -5068,6 +5068,10 @@ components:
       type: object
       properties:
         message:
+          description: Optional short message about maintenance mode
+          example: Short maintenance procedure
+          format: text
+          maxLength: 255
           type: string
     MaintenanceModeDisableRequest:
       allOf:
