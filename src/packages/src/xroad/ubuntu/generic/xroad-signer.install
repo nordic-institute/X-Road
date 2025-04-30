@@ -4,3 +4,4 @@
 ../../../../../service/signer/signer-application/build/quarkus-app/* usr/share/xroad/jlib/signer/
 ../../../../../service/signer/signer-cli/build/quarkus-app/* usr/share/xroad/jlib/signer-console/
 ../../../../../libs/passwordstore/${DEB_HOST_ARCH}/libpasswordstore.so usr/share/xroad/lib/
+../../../../../libs/pkcs11wrapper/${DEB_HOST_ARCH}/libpkcs11wrapper.so usr/share/xroad/lib/

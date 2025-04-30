@@ -102,12 +102,4 @@ public interface SignerProperties {
     @WithName("module-instance-provider")
     Optional<String> moduleInstanceProvider();
 
-    @WithName("addon")
-    SignerAddonProperties addon();
-
-    interface SignerAddonProperties {
-        @WithName("hwtoken.enabled")
-        @WithDefault("false")
-        boolean hwTokenEnabled();
-    }
 }

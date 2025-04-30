@@ -134,6 +134,7 @@ apache-commonsCompress = { module = "org.apache.commons:commons-compress", versi
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.17.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.13.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
+apache-commonsPool2 = { module = "org.apache.commons:commons-pool2", version = "2.12.1" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
 apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }

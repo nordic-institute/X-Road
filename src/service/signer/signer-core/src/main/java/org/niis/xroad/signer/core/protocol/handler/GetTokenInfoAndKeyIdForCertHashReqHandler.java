@@ -27,7 +27,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetTokenByCertHashReq;
 import org.niis.xroad.signer.protocol.dto.TokenInfoAndKeyIdProto;
 
@@ -41,7 +40,7 @@ public class GetTokenInfoAndKeyIdForCertHashReqHandler
 
     @Override
     protected TokenInfoAndKeyIdProto handle(GetTokenByCertHashReq request) throws Exception {
-        var token = TokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
+        var token = tokenManager.findTokenAndKeyIdForCertHash(request.getCertHash());
         return token.asMessage();
     }
 }

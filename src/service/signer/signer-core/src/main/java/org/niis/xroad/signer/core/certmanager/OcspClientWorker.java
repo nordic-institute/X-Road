@@ -87,6 +87,7 @@ public class OcspClientWorker {
 
     private final GlobalConfProvider globalConfProvider;
     private final OcspResponseManager ocspResponseManager;
+    private final TokenManager tokenManager;
     private final OcspClient ocspClient;
 
     private final GlobalConfChangeChecker changeChecker = new GlobalConfChangeChecker();
@@ -207,7 +208,7 @@ public class OcspClientWorker {
     List<X509Certificate> getCertsForOcsp() {
         Set<X509Certificate> certs = new HashSet<>();
 
-        for (CertificateInfo certInfo : TokenManager.getAllCerts()) {
+        for (CertificateInfo certInfo : tokenManager.getAllCerts()) {
             if (!certInfo.isActive()) {
                 // do not download OCSP responses for inactive certificates
                 log.debug("Skipping inactive certificate {}", certInfo.getId());

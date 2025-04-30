@@ -31,7 +31,6 @@ import ee.ria.xroad.common.util.SignerProtoUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
 
@@ -46,7 +45,7 @@ public class InitSoftwareTokenReqHandler
 
     @Override
     protected Empty handle(InitSoftwareTokenReq request) throws Exception {
-        String softwareTokenId = TokenManager.getSoftwareTokenId();
+        String softwareTokenId = tokenManager.getSoftwareTokenId();
 
         if (softwareTokenId != null) {
             final TokenWorker tokenWorker = getTokenWorker(softwareTokenId);

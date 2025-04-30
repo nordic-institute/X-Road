@@ -34,6 +34,8 @@ import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
+import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +50,7 @@ public final class ConfProxyMain {
 
     private static final String APP_NAME = "xroad-confproxy";
     private static SignerRpcClient signerRpcClient;
+    private static SignerSignClient signerSignClient;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -107,6 +110,23 @@ public final class ConfProxyMain {
             }
         });
         signerRpcClient.init();
+
+        signerSignClient = new SignerSignRpcClient(factory, new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return DEFAULT_HOST;
+            }
+
+            @Override
+            public int port() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+            }
+        });
     }
 
     /**
@@ -128,7 +148,7 @@ public final class ConfProxyMain {
 
         for (String instance : instances) {
             try {
-                ConfProxy proxy = new ConfProxy(signerRpcClient, instance);
+                ConfProxy proxy = new ConfProxy(signerRpcClient, signerSignClient, instance);
                 log.info("ConfProxy executing for instance {}", instance);
                 proxy.execute();
             } catch (Exception ex) {

@@ -49,7 +49,6 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
@@ -82,9 +81,9 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
     @Override
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) throws Exception {
-        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenManager.findTokenAndKey(request.getKeyId());
 
-        if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
+        if (!tokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 

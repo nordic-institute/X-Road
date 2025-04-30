@@ -1,5 +1,5 @@
 ../../../../../LICENSE.txt usr/share/doc/xroad-addon-hwtokens/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-addon-hwtokens/
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-addon-hwtokens/
-../../../../../libs/pkcs11wrapper/${DEB_HOST_ARCH}/libpkcs11wrapper.so usr/share/xroad/lib/
+
 

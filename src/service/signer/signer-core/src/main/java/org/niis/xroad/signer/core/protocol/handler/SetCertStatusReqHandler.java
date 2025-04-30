@@ -28,7 +28,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
 
 /**
@@ -40,7 +39,7 @@ public class SetCertStatusReqHandler
 
     @Override
     protected Empty handle(SetCertStatusReq request) throws Exception {
-        TokenManager.setCertStatus(request.getCertId(), request.getStatus());
+        tokenManager.setCertStatus(request.getCertId(), request.getStatus());
 
         return Empty.getDefaultInstance();
     }

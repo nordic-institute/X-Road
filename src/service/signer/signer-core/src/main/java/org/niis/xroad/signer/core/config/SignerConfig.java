@@ -35,6 +35,8 @@ import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.core.tokenmanager.module.AbstractModuleManager;
 import org.niis.xroad.signer.core.tokenmanager.module.DefaultModuleManagerImpl;
 import org.niis.xroad.signer.core.tokenmanager.module.HardwareModuleManagerImpl;
@@ -45,14 +47,17 @@ public class SignerConfig {
 
     @ApplicationScoped
     @Startup
-    AbstractModuleManager moduleManager(ModuleConf moduleConf, SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+    AbstractModuleManager moduleManager(ModuleConf moduleConf, TokenManager tokenManager, TokenRegistry tokenRegistry,
+                                        SignerProperties signerProperties,
+                                        SignerHwTokenAddonProperties hwTokenAddonProperties, OcspResponseManager ocspResponseManager) {
         AbstractModuleManager moduleManager;
-        if (signerProperties.addon().hwTokenEnabled()) {
+        if (hwTokenAddonProperties.enabled()) {
             log.info("Hardware token manager enabled.");
-            moduleManager = new HardwareModuleManagerImpl(moduleConf, signerProperties, ocspResponseManager);
+            moduleManager = new HardwareModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, hwTokenAddonProperties,
+                    ocspResponseManager);
         } else {
             log.debug("Using default module manager implementation");
-            moduleManager = new DefaultModuleManagerImpl(moduleConf, signerProperties, ocspResponseManager);
+            moduleManager = new DefaultModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, ocspResponseManager);
         }
 
         moduleManager.start();
