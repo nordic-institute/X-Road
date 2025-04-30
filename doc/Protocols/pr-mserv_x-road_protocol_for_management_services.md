@@ -452,9 +452,9 @@ An example of the client rename request and response is given in [Annex A.9](#a9
 
 ### 2.10 *maintenanceModeEnable* - Enable Maintenance Mode for the Security Server
 
-The *maintenanceModeEnable* service is used to enable maintenance mode for the Security Server.
+The *maintenanceModeEnable* service is used to enable maintenance mode for the Security Server. When the maintenance mode is enabled, the Security Server does not receive requests from other Security Servers.
 
-The body of the maintenance enable message (request or response) contains following fields:
+The body of the maintenance mode enable message (request or response) contains following fields:
 
 * **message** – optional message explaining reason or end time for maintenance mode or etc. This message will be displayed to the client when the client tries to access the Security Server during maintenance mode.
 * **server** – identifier of the Security Server where the client is registered;
@@ -479,9 +479,9 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
-3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+3. Signing certificate of the owner member that was used to create the second MIME part.
 
-4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request.
 
 The response echoes back the message, the client and the server fields of the request and adds the field *requestId*.
 
@@ -489,7 +489,7 @@ An example of the maintenance mode enable request and response is given in [Anne
 
 ### 2.11 *maintenanceModeDisable* - Disable Maintenance Mode for the Security Server
 
-The *maintenanceModeDisable* service is used to enable maintenance mode for the Security Server.
+The *maintenanceModeDisable* service is used to disable maintenance mode for the Security Server. When the maintenance mode is disabled, the Security Server receives requests from other Security Servers.
 
 The body of the maintenance enable message (request or response) contains following fields:
 
@@ -514,13 +514,13 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
-3. Signing certificate of the subsystem's owner member that was used to create the second MIME part. The content type of this part MUST be *application/octet-stream*.
+3. Signing certificate of the owner member that was used to create the second MIME part.
 
-4. OCSP response certifying that the subsystem's owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be *application/octet-stream*.
+4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request.
 
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
-An example of the maintenance mode disable request and response is given in [Annex A.10](#a11-maintenanceModeDisable).
+An example of the maintenance mode disable request and response is given in [Annex A.11](#a11-maintenanceModeDisable).
 
 
 ## Annex A. Example messages

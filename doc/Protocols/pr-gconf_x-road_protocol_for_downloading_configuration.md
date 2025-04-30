@@ -183,7 +183,7 @@ A configuration client can download the configuration by making HTTP GET request
 
 ### 2.7 Versioning
 
-The current version of the configuration is 3.
+The current version of the configuration is 5.
 
 Configuration source MAY support several versions of the configuration. The configuration client SHOULD signal the version it supports by appending a "version" query parameter in the download URI specified in the configuration anchor. The version number is an integer which is incremented when a backwards-incompatible change is made to the PRIVATE-PARAMETERS or SHARED-PARAMETERS configuration part.
 
