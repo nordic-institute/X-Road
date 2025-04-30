@@ -7,7 +7,9 @@
     <changeSet author="niis" id="202504241111-security_servers-add-new-columns">
         <comment>Add new columns to security_servers table</comment>
         <addColumn tableName="security_servers">
-            <column name="in_maintenance_mode" type="BOOLEAN" valueBoolean="true"/>
+            <column name="in_maintenance_mode" type="boolean" valueBoolean="false">
+                <constraints nullable="false" />
+            </column>
             <column name="maintenance_mode_message" type="VARCHAR(255)" />
         </addColumn>
     </changeSet>

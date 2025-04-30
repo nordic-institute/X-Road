@@ -84,6 +84,7 @@ public class SecurityServerEntity extends AuditableEntity {
     private String address;
 
     @Column(name = "in_maintenance_mode")
+    @NotNull
     @Getter
     @Setter
     private boolean inMaintenanceMode;
