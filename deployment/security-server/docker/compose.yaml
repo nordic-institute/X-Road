@@ -99,7 +99,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     deploy:
       resources:
         reservations:
@@ -131,7 +130,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -153,7 +151,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -189,7 +186,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -233,7 +229,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ] #TODO verify that endpoint returns 200
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -247,8 +242,5 @@ services:
           memory: 512M
 
 networks:
-  xroad-network:
-    name: xroad-network
-    external: true
   xrd-ss-network:
     driver: bridge
