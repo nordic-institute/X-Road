@@ -128,6 +128,8 @@ public final class SystemProperties {
     /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV =
+            propertyNameToEnvVariable(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED);
 
     public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
             PREFIX + "proxy-ui-api.acme-renewal-active";
@@ -370,7 +372,6 @@ public final class SystemProperties {
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
-    private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
     private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
@@ -906,8 +907,9 @@ public final class SystemProperties {
     }
 
     public static boolean isAcmeChallengePortEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
-                DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED));
+        String isAcmeChallengePortEnabled = Optional.ofNullable(System.getenv().get(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED_ENV))
+                .orElse(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, FALSE));
+        return TRUE.equalsIgnoreCase(isAcmeChallengePortEnabled);
     }
 
     /**
