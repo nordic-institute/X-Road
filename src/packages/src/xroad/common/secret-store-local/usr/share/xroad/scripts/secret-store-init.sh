@@ -16,7 +16,8 @@ else
   INIT_OUTPUT=$(bao operator init -key-shares=3 -key-threshold=2 -format=json)
   jq -r '.unseal_keys_b64[]' <<< $INIT_OUTPUT >$UNSEAL_KEYS_FILE
   jq -r '.root_token' <<< $INIT_OUTPUT >$ROOT_TOKEN_FILE
-  chmod 600 $ROOT_TOKEN_FILE $UNSEAL_KEYS_FILE
+  chmod 640 $ROOT_TOKEN_FILE $UNSEAL_KEYS_FILE
+  chown root:xroad $ROOT_TOKEN_FILE $UNSEAL_KEYS_FILE
 fi
 
 if [ "$SEALED" = "false" ]; then

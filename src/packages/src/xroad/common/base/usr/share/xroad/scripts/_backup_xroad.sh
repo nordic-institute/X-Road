@@ -34,6 +34,23 @@ create_database_backup () {
   fi
 }
 
+create_openbao_backup () {
+  if [[ $SKIP_OPENBAO_BACKUP = true ]] ; then
+    echo "SKIPPING OPENBAO BACKUP AS REQUESTED"
+  elif [[ -d /etc/openbao && -f ${OPENBAO_DATABASE_BACKUP_SCRIPT} ]] ; then
+    if [ -x "${OPENBAO_DATABASE_BACKUP_SCRIPT}" ] ; then
+      echo "CREATING OPENBAO DATABASE DUMP TO ${OPENBAO_DATABASE_DUMP_FILENAME}"
+      if ! $OPENBAO_DATABASE_BACKUP_SCRIPT "$OPENBAO_DATABASE_DUMP_FILENAME"; then
+        die "OpenBao database backup failed!" \
+            "Please check the error messages and fix them before trying again!"
+      fi
+      BACKED_UP_PATHS+=("/etc/openbao" "${OPENBAO_DATABASE_DUMP_FILENAME}")
+    else
+      die "Failed to execute OpenBao database backup script at ${OPENBAO_DATABASE_BACKUP_SCRIPT}"
+    fi
+  fi
+}
+
 create_backup_tarball () {
 
   if [ "$ENCRYPT_MODE" = "encrypt" ] || [ "$ENCRYPT_MODE" = "signonly" ] ; then
@@ -130,6 +147,7 @@ done
 
 check_server_type
 create_database_backup
+create_openbao_backup
 make_tarball_label
 create_backup_tarball
 

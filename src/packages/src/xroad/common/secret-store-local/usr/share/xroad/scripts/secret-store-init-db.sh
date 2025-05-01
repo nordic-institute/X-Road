@@ -28,10 +28,10 @@ setup_database() {
   local db_user=${db_conn_user%%@*}
   local db_password="$(gen_pw)"
   local db_database="openbao"
-  local db_options=""
   local db_schema="openbao"
+  local db_options="?search_path=$db_schema"
 
-  # db config predefined in OpenBao's config file superesede default ones
+  # db config predefined in OpenBao's config file supersedes default ones
   db_connection_url=$(awk '/storage "postgresql"/,/\}/' /etc/openbao/openbao.hcl | grep 'connection_url' | cut -d'"' -f2)
   pat='^postgres:\/\/([^:]+):([^@]+)@([^:]+):([0-9]+)\/([^?]+)(\?(.*))?$'
   if [[ $db_connection_url =~ $pat ]]; then
@@ -42,9 +42,9 @@ setup_database() {
     db_options="${BASH_REMATCH[7]}" # full query string after '?', if present
     schema_pat='(^|&)search_path=([^&]*)'
     if [[ $db_options =~ $schema_pat ]]; then
-      local db_schema="${BASH_REMATCH[2]}"
+      db_schema="${BASH_REMATCH[2]}"
     else
-      local db_schema="openbao"
+      db_schema="public"
     fi
   fi
 
@@ -57,7 +57,7 @@ setup_database() {
     PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
   fi
 
-  export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public${PGOPTIONS_EXTRA-}"
+  export PGOPTIONS="-c client-min-messages=warning -c search_path=${db_schema}${PGOPTIONS_EXTRA-}"
 
   local hosts
   IFS=',' read -ra hosts <<<"$db_host"
@@ -81,7 +81,7 @@ setup_database() {
   fi
 
   if PGCONNECT_TIMEOUT=5 psql_dbuser -c "\q" &>/dev/null; then
-    log "Database and user exists, skipping database creation."
+    echo "Database and user exists, skipping database creation."
   else
     {
       cat <<EOF
@@ -104,7 +104,8 @@ GRANT USAGE ON SCHEMA public to "${db_user}";
 EOF
     } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
-    sed -i "/storage \".*{/,/}/c\storage \"postgresql\" {\n  connection_url = \"postgres://${db_conn_user}:${db_password}@${db_addr}:${db_port}/$db_database?search_path=${db_schema}\"\n}" /etc/openbao/openbao.hcl
+    # Configure OpenBao with PostgreSQL connection URL
+    sed -i "/storage \".*{/,/}/c\storage \"postgresql\" {\n  connection_url = \"postgres://${db_conn_user}:${db_password}@${db_addr}:${db_port}/${db_database}${db_options}\"\n}" /etc/openbao/openbao.hcl
 
   fi
 }
