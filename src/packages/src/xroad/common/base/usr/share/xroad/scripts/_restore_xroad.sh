@@ -128,9 +128,10 @@ select_commands () {
 stop_services () {
   echo "STOPPING REGISTERED SERVICES"
   select_commands
-  for entry in "/etc/xroad/backup.d/"* ; do
-    if  [[ -f ${entry} ]] ; then
-      servicename=$(basename "$entry" | sed 's/.*_//')
+  files=("/etc/xroad/backup.d/"*)
+  for ((i=${#files[@]}-1; i>=0; i--)); do
+    if  [[ -f ${files[$i]} ]] ; then
+      servicename=$(basename "${files[$i]}" | sed 's/.*_//')
       echo "${STOP_CMD}" "${servicename}"
       ${STOP_CMD} "${servicename}"
     fi
@@ -293,10 +294,9 @@ remove_tmp_files() {
 
 restart_services () {
   echo "RESTARTING REGISTERED SERVICES"
-  files=("/etc/xroad/backup.d/"*)
-  for ((i=${#files[@]}-1; i>=0; i--)); do
-    if  [[ -f ${files[$i]} ]] ; then
-      servicename=$(basename "${files[$i]}" | sed 's/.*_//')
+  for entry in "/etc/xroad/backup.d/"* ; do
+    if  [[ -f ${entry} ]] ; then
+      servicename=$(basename "$entry" | sed 's/.*_//')
       echo "${START_CMD}" "${servicename}"
       ${START_CMD} "${servicename}"
 
