@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="xrd-table-toolbar pt-4">
+    <div class="xrd-table-toolbar">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -60,7 +60,7 @@
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
-      class="elevation-0 data-table mt-10"
+      class="elevation-0 data-table mt-5"
       item-key="id"
       :loader-height="2"
       hide-default-footer
@@ -73,7 +73,7 @@
           data-test="open-access-rights"
           @click="showAccessRights(item.id)"
         >
-          {{ item.name }}
+          <client-name :service-client="item" />
         </div>
       </template>
 
@@ -94,16 +94,19 @@
 import { defineComponent } from 'vue';
 
 import * as api from '@/util/api';
-import { ServiceClient } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { ServiceClient } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { DataTableHeader } from '@/ui-types';
+import SubsystemName from '@/components/client/SubsystemName.vue';
+import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
+  components: { ClientName, SubsystemName },
   props: {
     id: {
       type: String,

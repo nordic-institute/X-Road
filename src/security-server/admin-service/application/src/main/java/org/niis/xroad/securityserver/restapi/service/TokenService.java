@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,11 +30,13 @@ import ee.ria.xroad.common.CodedException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.Client;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -50,9 +53,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_NOT_ACTIVE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_PIN_INCORRECT;
 
 /**
@@ -72,47 +74,43 @@ public class TokenService {
 
     /**
      * get all tokens
-     *
      * @return
      */
     public List<TokenInfo> getAllTokens() {
         try {
             return signerRpcClient.getTokens();
         } catch (Exception e) {
-            throw new ServiceException(TOKEN_FETCH_FAILED, e);
+            throw new InternalServerErrorException(e, TOKEN_FETCH_FAILED.build());
         }
     }
 
     /**
      * get all sign certificates for a given client.
-     *
-     * @param clientType client whose member certificates need to be
-     *                   linked to
+     * @param client client whose member certificates need to be
+     *               linked to
      * @return
      */
-    public List<CertificateInfo> getSignCertificates(ClientType clientType) {
-        return getCertificates(clientType, true);
+    public List<CertificateInfo> getSignCertificates(Client client) {
+        return getCertificates(client, true);
     }
 
     /**
      * get all certificates for a given client.
-     *
-     * @param clientType client whose member certificates need to be
-     *                   linked to
+     * @param client client whose member certificates need to be
+     *               linked to
      * @return
      */
-    public List<CertificateInfo> getAllCertificates(ClientType clientType) {
-        return getCertificates(clientType, false);
+    public List<CertificateInfo> getAllCertificates(Client client) {
+        return getCertificates(client, false);
     }
 
     /**
      * Get all certificates for a given client
-     *
-     * @param clientType
+     * @param client
      * @param onlySignCertificates if true, return only signing certificates
      * @return
      */
-    private List<CertificateInfo> getCertificates(ClientType clientType, boolean onlySignCertificates) {
+    private List<CertificateInfo> getCertificates(Client client, boolean onlySignCertificates) {
         List<TokenInfo> tokenInfos = getAllTokens();
         Predicate<KeyInfo> keyInfoPredicate = keyInfo -> true;
         if (onlySignCertificates) {
@@ -122,13 +120,12 @@ public class TokenService {
                 .flatMap(tokenInfo -> tokenInfo.getKeyInfo().stream())
                 .filter(keyInfoPredicate)
                 .flatMap(keyInfo -> keyInfo.getCerts().stream())
-                .filter(certificateInfo -> clientType.getIdentifier().memberEquals(certificateInfo.getMemberId()))
+                .filter(certificateInfo -> client.getIdentifier().memberEquals(certificateInfo.getMemberId()))
                 .collect(toList());
     }
 
     /**
      * Activate a token
-     *
      * @param id       id of token
      * @param password password for token
      * @throws TokenNotFoundException     if token was not found
@@ -136,7 +133,7 @@ public class TokenService {
      * @throws ActionNotPossibleException if token activation was not possible
      */
     public void activateToken(String id, char[] password) throws
-            TokenNotFoundException, PinIncorrectException, ActionNotPossibleException {
+                                                          TokenNotFoundException, PinIncorrectException, ActionNotPossibleException {
 
         // check that action is possible
         TokenInfo tokenInfo = getToken(id);
@@ -158,13 +155,12 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
     /**
      * Deactivate a token
-     *
      * @param id id of token
      * @throws TokenNotFoundException     if token was not found
      * @throws ActionNotPossibleException if deactivation was not possible
@@ -190,13 +186,12 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
     /**
      * return one token
-     *
      * @param id
      * @throws TokenNotFoundException if token was not found
      */
@@ -212,19 +207,18 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
     /**
      * update token friendly name
-     *
      * @param tokenId
      * @param friendlyName
      * @throws TokenNotFoundException if token was not found
      */
     public TokenInfo updateTokenFriendlyName(String tokenId, String friendlyName) throws TokenNotFoundException,
-            ActionNotPossibleException {
+                                                                                         ActionNotPossibleException {
 
         // check that updating friendly name is possible
         TokenInfo tokenInfo = getToken(tokenId);
@@ -245,7 +239,7 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
         return tokenInfo;
     }
@@ -265,7 +259,7 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
@@ -273,7 +267,7 @@ public class TokenService {
      * Get TokenInfoAndKeyId for certificate hash
      */
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateHash(String hash) throws KeyNotFoundException,
-            CertificateNotFoundException {
+                                                                                    CertificateNotFoundException {
         try {
             return signerRpcClient.getTokenAndKeyIdForCertHash(hash);
         } catch (SignerException e) {
@@ -287,13 +281,12 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
     /**
      * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
-     *
      * @return true/false
      */
     public boolean isSoftwareTokenInitialized() {
@@ -312,7 +305,6 @@ public class TokenService {
 
     /**
      * Whether or not a software token exists AND it's status != TokenStatusInfo.NOT_INITIALIZED
-     *
      * @return {@link TokenInitStatusInfo}
      */
     public TokenInitStatusInfo getSoftwareTokenInitStatus() {
@@ -323,7 +315,7 @@ public class TokenService {
             } else {
                 return TokenInitStatusInfo.NOT_INITIALIZED;
             }
-        } catch (SignerException | ServiceException e) {
+        } catch (SignerException | InternalServerErrorException e) {
             log.error("Could not get software token status from signer", e);
             return TokenInitStatusInfo.UNKNOWN;
         }
@@ -333,7 +325,7 @@ public class TokenService {
      * Get TokenInfoAndKeyId for csr id
      */
     public TokenInfoAndKeyId getTokenAndKeyIdForCertificateRequestId(String csrId) throws KeyNotFoundException,
-            CsrNotFoundException {
+                                                                                          CsrNotFoundException {
         try {
             return signerRpcClient.getTokenAndKeyIdForCertRequestId(csrId);
         } catch (SignerException e) {
@@ -347,13 +339,12 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
     /**
      * Check if there are any tokens that are not software tokens
-     *
      * @return true if there are any other than software tokens present
      */
     public boolean hasHardwareTokens() {
@@ -364,7 +355,6 @@ public class TokenService {
 
     /**
      * Update the pin code for a token and it's keys
-     *
      * @param tokenId ID of the token
      * @param oldPin  the old (current) passing pin
      * @param newPin  the new pin
@@ -373,8 +363,8 @@ public class TokenService {
      */
     public void updateSoftwareTokenPin(String tokenId, String oldPin, String newPin)
             throws TokenNotFoundException, PinIncorrectException,
-            ActionNotPossibleException, InvalidCharactersException,
-            WeakPinException {
+                   ActionNotPossibleException, InvalidCharactersException,
+                   WeakPinException {
         TokenInfo tokenInfo = getToken(tokenId);
 
         auditDataHelper.put(tokenInfo);
@@ -396,19 +386,33 @@ public class TokenService {
         } catch (CodedException ce) {
             throw ce;
         } catch (Exception other) {
-            throw new ServiceException(INTERNAL_ERROR, other);
+            throw new InternalServerErrorException(other);
         }
     }
 
-    public static class PinIncorrectException extends ServiceException {
+    /**
+     * Delete inactive token
+     * @param id ID of the token
+     */
+    public void deleteToken(String id) {
+        try {
+            TokenInfo tokenInfo = getToken(id);
+            auditDataHelper.put(tokenInfo);
+
+            possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_DELETE, tokenInfo);
+            signerRpcClient.deleteToken(id);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e, ACTION_NOT_POSSIBLE.build());
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception other) {
+            throw new InternalServerErrorException(other);
+        }
+    }
+
+    public static class PinIncorrectException extends BadRequestException {
         public PinIncorrectException(Throwable t) {
-            super(TOKEN_PIN_INCORRECT, t);
-        }
-    }
-
-    public static class TokenNotActiveException extends ServiceException {
-        public TokenNotActiveException(Throwable t) {
-            super(TOKEN_NOT_ACTIVE, t);
+            super(t, TOKEN_PIN_INCORRECT.build());
         }
     }
 }

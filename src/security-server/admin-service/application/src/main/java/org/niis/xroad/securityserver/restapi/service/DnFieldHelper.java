@@ -32,8 +32,7 @@ import ee.ria.xroad.common.certificateprofile.impl.DnFieldValueImpl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_DN_PARAMETER;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_DN_PARAMETER;
 
 /**
  * helper for working with DnFieldValues and -Descriptions
@@ -105,13 +104,13 @@ public class DnFieldHelper {
     /**
      * Thrown if a subject dn parameter was invalid
      */
-    public static class InvalidDnParameterException extends ServiceException {
+    public static class InvalidDnParameterException extends BadRequestException {
         public InvalidDnParameterException(Throwable t) {
-            super(t, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
+            super(t, INVALID_DN_PARAMETER.build());
         }
 
         public InvalidDnParameterException(String s) {
-            super(s, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
+            super(s, INVALID_DN_PARAMETER.build());
         }
     }
 }

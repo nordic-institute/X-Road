@@ -28,7 +28,7 @@
   Member details view
 -->
 <template>
-  <main id="member-details-content">
+  <main id="member-details-content" class="mt-5">
     <!-- Member Details -->
     <div id="member-details">
       <info-card
@@ -333,13 +333,10 @@ export default defineComponent({
 }
 
 #member-details {
-  margin-top: 24px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-end;
-
-  margin-bottom: 24px;
 
   .details-card {
     width: 100%;

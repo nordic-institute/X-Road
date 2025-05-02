@@ -1974,11 +1974,11 @@ paths:
       tags:
         - subsystems
   /subsystems/{subsystem_id}:
+    parameters:
+      - $ref: '#/components/parameters/SubsystemIdParam'
     delete:
       description: <h3>CS administrator deletes a subsystem</h3>
       operationId: deleteSubsystem
-      parameters:
-        - $ref: '#/components/parameters/SubsystemIdParam'
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -1993,6 +1993,36 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
       summary: delete a subsystem
+      tags:
+        - subsystems
+    patch:
+      description: <h3>CS administrator edits the name of a subsystem.</h3>
+      operationId: updateSubsystemName
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubsystemName'
+        description: subsystem name
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: the updated member
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: update the name of a subsystem
       tags:
         - subsystems
   /subsystems/{subsystem_id}/servers/{server_id}:
@@ -3981,6 +4011,8 @@ components:
     SubsystemAdd:
       description: x-road subsystem to add
       type: object
+      allOf:
+        - $ref: '#/components/schemas/SubsystemName'
       required:
         - subsystem_id
       properties:
@@ -3999,6 +4031,7 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
+
       required:
         - subsystem_code
     NewMemberId:
@@ -4022,6 +4055,8 @@ components:
         - code
       type: object
     Subsystem:
+      allOf:
+        - $ref: '#/components/schemas/SubsystemName'
       properties:
         subsystem_id:
           $ref: '#/components/schemas/ClientId'
@@ -4069,6 +4104,17 @@ components:
           format: text
           maxLength: 255
           minLength: 1
+          type: string
+      type: object
+    SubsystemName:
+      description: x-road subsystem name
+      properties:
+        subsystem_name:
+          description: Subsystem name.
+          example: Subsystem123
+          format: text
+          maxLength: 255
+          minLength: 0
           type: string
       type: object
     MemberCode:
@@ -4705,6 +4751,7 @@ components:
           CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
           CLIENT_DISABLE_REQUEST: "ClientDisableRequest"
           CLIENT_ENABLE_REQUEST: "ClientEnableRequest"
+          CLIENT_RENAME_REQUEST: "ClientRenameRequest"
           OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
           ADDRESS_CHANGE_REQUEST: "AddressChangeRequest"
       properties:
@@ -4758,6 +4805,9 @@ components:
         client_owner_name:
           type: string
           readOnly: true
+        client_subsystem_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time
@@ -4775,6 +4825,7 @@ components:
         - CLIENT_DELETION_REQUEST
         - CLIENT_DISABLE_REQUEST
         - CLIENT_ENABLE_REQUEST
+        - CLIENT_RENAME_REQUEST
         - AUTH_CERT_DELETION_REQUEST
         - ADDRESS_CHANGE_REQUEST
     ManagementRequestStatus:
@@ -4932,6 +4983,8 @@ components:
         client_id:
           type: string
           description: Encoded Client ID
+        subsystem_name:
+          type: string
       required:
         - client_id
     ClientDeletionRequest:
@@ -4964,6 +5017,19 @@ components:
           description: Encoded Client ID
       required:
         - client_id
+    ClientRenameRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        client_id:
+          type: string
+          description: Encoded Client ID
+        subsystem_name:
+          type: string
+      required:
+        - client_id
+        - client_name
     OwnerChangeRequest:
       allOf:
         - $ref: '#/components/schemas/ManagementRequest'

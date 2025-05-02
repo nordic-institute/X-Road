@@ -24,7 +24,6 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
     <XrdTitledView title-key="tab.main.diagnostics" data-test="diagnostics-view">
       <template #header-buttons>
         <DiagnosticsDownloadSystemInfoBtn />
@@ -52,8 +51,10 @@
       <DiagnosticsMessageLogDatabaseCard
         :message-log-encryption-loading="messageLogEncryptionLoading"
       />
+
+      <DiagnosticsProxyMemoryUsageCard />
+
     </XrdTitledView>
-  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -69,6 +70,7 @@ import DiagnosticsOcspRespondersCard from '@/views/Diagnostics/DiagnosticsOcspRe
 import DiagnosticsBackupEncryptionCard from '@/views/Diagnostics/DiagonsticsBackupEncryptionCard.vue';
 import DiagnosticsMessageLogArchiveCard from '@/views/Diagnostics/DiagnosticsMessageLogArchiveCard.vue';
 import DiagnosticsMessageLogDatabaseCard from '@/views/Diagnostics/DiagnosticsMessageLogDatabaseCard.vue';
+import DiagnosticsProxyMemoryUsageCard from "@/views/Diagnostics/DiagnosticsProxyMemoryUsageCard.vue";
 import DiagnosticsDownloadSystemInfoBtn from '@/views/Diagnostics/DiagnosticsDownloadSystemInfoBtn.vue';
 import { XrdSubViewContainer, XrdTitledView } from '@niis/shared-ui';
 
@@ -85,6 +87,7 @@ export default defineComponent({
     DiagnosticsBackupEncryptionCard,
     DiagnosticsMessageLogArchiveCard,
     DiagnosticsMessageLogDatabaseCard,
+    DiagnosticsProxyMemoryUsageCard,
   },
   data: () => ({
     addonStatusLoading: false,

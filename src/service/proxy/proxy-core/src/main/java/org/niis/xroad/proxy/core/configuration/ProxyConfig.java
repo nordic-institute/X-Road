@@ -33,6 +33,7 @@ import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
@@ -128,7 +129,11 @@ public class ProxyConfig {
     @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider, signerRpcClient);
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
+    @Bean
+    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
+        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
+    }
 }

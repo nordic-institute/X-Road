@@ -36,8 +36,8 @@ import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.entity.ApiKeyEntity;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +62,7 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     @Autowired
     ApiKeyAuthenticationHelper apiKeyAuthenticationHelper;
 
-    @MockBean
+    @MockitoBean
     private EntityManager entityManager;
 
     @Mock

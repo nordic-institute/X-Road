@@ -9,6 +9,12 @@ dependencies {
   api(project(":lib:serverconf-core"))
   api(project(":lib:globalconf-impl"))
 
+  annotationProcessor(libs.mapstructProcessor)
+  annotationProcessor(libs.lombokMapstructBinding)
+
+  implementation(libs.jakarta.validationApi)
+  implementation(libs.mapstruct)
+
   testImplementation(project(":common:common-test"))
   testImplementation(libs.hsqldb)
   testImplementation(libs.hibernate.hikaricp)

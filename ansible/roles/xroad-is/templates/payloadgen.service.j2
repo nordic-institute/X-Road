@@ -1,0 +1,15 @@
+[Unit]
+Description=Payloadgen
+After=network.target
+
+[Service]
+Environment=ROCKET_ADDRESS=0.0.0.0
+Environment=ROCKET_PORT=8083
+Environment=ROCKET_LOG=critical
+Environment=ROCKET_KEEP_ALIVE=5
+ExecStart=/opt/payloadgen/payloadgen
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -34,7 +34,7 @@ public class RestoreMonitorClientAfterTest extends ExternalResource {
     private MonitorClient monitorClient;
 
     @Override
-    protected void before() throws Throwable {
+    protected void before() {
         monitorClient = ProxyMonitor.getClient();
     }
 

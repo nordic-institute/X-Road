@@ -28,14 +28,16 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,17 +55,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @WithMockUser
 public abstract class AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     protected GlobalConfProvider globalConfProvider;
-    @MockBean
+    @MockitoBean
     protected ServerConfProvider serverConfProvider;
-    @MockBean
+    @MockitoBean
     protected ManagementRequestSenderService managementRequestSenderService;
-    @MockBean
+    @MockitoBean
     protected SignerRpcClient signerRpcClient;
-    @MockBean
+    @MockitoBean
     protected AcmeService acmeService;
-    @MockBean
+    @MockitoSpyBean
+    protected SubsystemNameStatus subsystemNameStatus;
+    @MockitoBean
     MonitorClient monitorClient;
-
 }

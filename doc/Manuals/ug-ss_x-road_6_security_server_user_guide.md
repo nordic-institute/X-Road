@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.91  
+Version: 2.96  
 Doc. ID: UG-SS
 
 ---
@@ -120,6 +120,11 @@ Doc. ID: UG-SS
 | 17.12.2024 | 2.89    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 07.01.2025 | 2.90    | Updated references                                                                                                                                                                                                                                                                                                                                                                                          | Petteri Kivimäki     |
 | 15.01.2025 | 2.91    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki     |
+| 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
+| 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
+| 13.02.2025 | 2.94    | Add helper script for allocating memory for proxy service                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
+| 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
+| 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -166,6 +171,7 @@ Doc. ID: UG-SS
   - [4.7 Disabling Client Subsystem Temporarily](#47-disabling-client-subsystem-temporarily)
     - [4.7.1 Disabling Client Subsystem](#471-disabling-client-subsystem)
     - [4.7.2 Enabling Client Subsystem](#472-enabling-client-subsystem)
+  - [4.8 Renaming Client Subsystem](#48-renaming-client-subsystem)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -178,6 +184,7 @@ Doc. ID: UG-SS
     - [5.6.1 Unregistering an Authentication Certificate](#561-unregistering-an-authentication-certificate)
     - [5.6.2 Deleting a Certificate or a certificate Signing Request notice](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)
   - [5.7 Deleting a Key](#57-deleting-a-key)
+  - [5.8 Deleting an inactive Token](#58-deleting-an-inactive-token)
 - [6 X-Road Services](#6-x-road-services)
   - [6.1 Adding a service description](#61-adding-a-service-description)
     - [6.1.1 SOAP](#611-soap)
@@ -264,6 +271,7 @@ Doc. ID: UG-SS
   - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
+    - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
@@ -353,7 +361,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](../../src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -945,7 +953,7 @@ Follow these steps.
 
 2.  In the wizard that opens
 
-    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually and click **NEXT**
+    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field. Click **NEXT**
 
     2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **NEXT**
 
@@ -971,7 +979,7 @@ Follow these steps.
 
 2.  In the wizard that opens
 
-    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually
+    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field
 
     2.2. If you wish to register the new subsystem immediately, check the **Register subsystem** checkbox and then click **ADD SUBSYSTEM**.
 
@@ -1100,6 +1108,21 @@ To enable client subsystem, follow these steps.
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
 
 
+### 4.8 Renaming Client subsystem
+
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+To rename a client subsystem, follow these steps.
+
+1.  In the **CLIENTS** view click the name of subsystem that you wish to rename
+
+2.  In the window that opens, click **Edit** and then enter name for subsystem and click **Save**. The Security Server automatically sends a client rename request to the X-Road Central Server.
+
+3.  Next, a subsystem is put into "Name change is submitted" state, which doesn't affect the subsystem functionality. Once the name change is propagated through the global configuration, subsystem name is updated.
+
+**Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
+
+
 ## 5 Security Tokens, Keys, and Certificates
 
 
@@ -1194,7 +1217,7 @@ A Security Server certificate can be in one of the following validity states.
 
 -   For signing certificates: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
-Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled".
+Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled". Certificate can be activated only when OCSP responses are valid.
 
 To activate or disable a certificate, follow these steps.
 
@@ -1296,6 +1319,19 @@ To delete a key, follow these steps.
 
     3.1 In the opening **Key** dialog, click **DELETE**. Confirm the deletion of the key (and its associated certificates) by clicking **YES**.
 
+### 5.8 Deleting an inactive Token
+
+**Warning:** Deleting an inactive token from the server configuration also deletes all associated information of the token.
+
+**Access rights:** [Service Administrator](#xroad-service-administrator)
+
+To delete a token, follow these steps.
+
+1.  In the **Navigation tabs**, select **KEYS AND CERTIFICATES**.
+
+2.  Select the inactive token, then end of the token name click **Edit** icon.
+
+3.  In the opening **Edit** dialog, click **DELETE**. Confirm the deletion of the token (and its associated information) by clicking **YES**.
 
 ## 6 X-Road Services
 
@@ -3236,6 +3272,60 @@ XROAD_PROXY_UI_API_PARAMS
 XROAD_SIGNER_CONSOLE_PARAMS
 ```
 
+### 21.1 Updating Proxy Service's memory allocation command line arguments
+
+In case of proxy service, the memory allocation command line arguments can be updated by using  helper script `proxy_memory_helper.sh` located in `/usr/share/xroad/scripts/` directory. The script updates the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+Usage examples:
+
+* Get information about total memory, used memory, current configuration and suggested configuration for proxy service:
+
+    ```bash
+    proxy_memory_helper.sh
+    #alternatively
+    #proxy_memory_helper.sh status
+    ```
+
+* Get/Apply recommended memory allocation config based on total memory:
+
+    ```bash
+    #Prints the recommended memory allocation configuration
+    proxy_memory_helper.sh get-recommended
+    #Applies the recommended memory allocation configuration
+    proxy_memory_helper.sh apply-recommended
+    ```
+  
+* Get/Apply default memory allocation config based on total memory:
+
+    ```bash
+    #Prints the default memory allocation configuration
+    proxy_memory_helper.sh get-default
+    #Applies the default memory allocation configuration
+    proxy_memory_helper.sh apply-default
+    ```
+    
+* Apply custom memory allocation config based on total memory, first value is for initial heap size and second value is for maximum heap size:
+
+    ```bash
+    proxy_memory_helper.sh apply 256m 4g
+    ```
+
+* All available commands can be listed with:
+
+    ```bash
+    proxy_memory_helper.sh help
+    ```  
+
+  Value format is the same as for Java's `-Xms` and `-Xmx` options. The script will update the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+  After running the script, the changes will take effect only after restarting the `xroad-proxy` service.
+
+    ```bash
+    sudo systemctl restart xroad-proxy
+    ```
+
+  Note that only -Xms, -Xmx, -XX:InitialHeapSize and -XX:MaxHeapSize options will be overwritten. Instead, any other options present in the XROAD_PROXY_PARAMS property will be preserved.
+
 ## 22 Additional Security Hardening
 
 For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
@@ -3280,9 +3370,13 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
+**Automatic certificate activation**
+
+It is also possible to let the Security Server automatically activate new certificate once it is ordered for signing certificates or once it is registered for authentication certificates. This behaviour can be controlled by respective [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+
 **E-mail notifications**
 
-The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure and authentication certificate registration success. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure, authentication certificate registration success and signing and authentication certificate automatic activation success or failure. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
 
 The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
 

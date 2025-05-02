@@ -27,7 +27,7 @@
 <template>
   <main
     data-test="security-server-authentication-certificates-view"
-    class="mt-8"
+    class="mt-5"
   >
     <!-- Table -->
     <v-data-table

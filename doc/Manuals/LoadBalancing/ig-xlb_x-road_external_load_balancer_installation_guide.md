@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.25 
+Version: 1.27
 Doc. ID: IG-XLB
 
 
@@ -32,6 +32,9 @@ Doc. ID: IG-XLB
 | 16.08.2024 | 1.23    | Added assumption that the load balancer supports TLS passthrough                                                         | Petteri Kivimäki            |
 | 06.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
 | 17.12.2024 | 1.25    | When adding user xroad-slave, the home directory must be explicitly added for Ubuntu                                     | Eneli Reimets               |
+| 17.03.2025 | 1.26    | Syntax and styling                                                                                                       | Pauline Dimmek              |
+| 02.04.2025 | 1.27    | Added Proxy memory health check paragraph                                                                                | Mikk-Erik Bachmann          |
+
 ## Table of Contents
 
 <!-- toc -->
@@ -64,6 +67,7 @@ Doc. ID: IG-XLB
     - [3.4 Health check service configuration](#34-health-check-service-configuration)
       - [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
       - [3.4.2 Health check examples](#342-health-check-examples)
+      - [3.4.3 Proxy memory health check](#343-proxy-memory-health-check)
   - [4. Database replication setup](#4-database-replication-setup)
     - [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
     - [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
@@ -342,14 +346,17 @@ In order to properly set up the data replication, the secondary nodes must be ab
    For more information on the management REST API, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
 10. Note about API keys and caching.
-   If API keys have been created for primary node, those keys are replicated to secondaries, like everything else from `serverconf` database is.
-   The keys that are associated with the `xroad-securityserver-observer` role have read-only access to the secondary.
-   Instead, the keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the secondary and API calls will fail.
-   To avoid this, secondary REST API should only be accessed using keys associated with the `xroad-securityserver-observer` role, and only for operations that read configuration, not updates. <p>
-   Furthermore, API keys are accessed through a cache that assumes that all updates to keys (e.g. revoking keys, or changing permissions) are done using the same node.
-   If API keys are changed on primary, the changes are not reflected on the secondary caches until the next time `xroad-proxy-ui-api` process is restarted.
-   To address this issue, you should restart secondary nodes' `xroad-proxy-ui-api` processes after API keys are modified (and database has been replicated to secondaries), to ensure correct operation.<p>
-   Improvements to API key handling in clustered setups will be included in later releases.
+    If API keys have been created for primary node, those keys are replicated to secondaries, like everything else from `serverconf` database is.
+    The keys that are associated with the `xroad-securityserver-observer` role have read-only access to the secondary.
+    Instead, the keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the secondary and API calls will fail.
+    To avoid this, secondary REST API should only be accessed using keys associated with the `xroad-securityserver-observer` role, and only for operations that read configuration, not updates. 
+   
+    Furthermore, API keys are accessed through a cache that assumes that all updates to keys (e.g. revoking keys, or changing permissions) are done using the same node.
+    If API keys are changed on primary, the changes are not reflected on the secondary caches until the next time `xroad-proxy-ui-api` process is restarted.
+    To address this issue, you should restart secondary nodes' `xroad-proxy-ui-api` processes after API keys are modified (and database has been replicated to secondaries), to ensure correct operation.
+   
+    Improvements to API key handling in clustered setups will be included in later releases.
+
 11. It is possible to use the autologin-package with secondary nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
@@ -451,6 +458,10 @@ Fetching health check response timed out for: Authentication key OCSP status
 
 
 Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
+
+#### 3.4.3 Proxy memory health check
+
+Besides the health checks mentioned above, Proxy can also be configured to check its own memory usage. To turn this memory check on `memory-usage-threshold` System Property needs to be set to a numerical value which represents a percentage of the maximum memory being used over which the health check starts failing. For example if this is set to 80, then the health check will fail if more than 80% of the maximum is being used by the Proxy. The maximum memory is configured by the java `-Xmx` flag. For more info about configuring the Security Server Proxy's memory allocation see [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
 
 ## 4. Database replication setup
 
@@ -1078,6 +1089,7 @@ Repeat this process for each secondary node, one by one.
    ```bash
    service xroad-sync start
    ```
+   
 7. Restart the X-Road services and wait until the secondary node is healthy.
 
 8. After the node is healthy, enable the secondary node in the load balancer if you manually disabled it. If using the

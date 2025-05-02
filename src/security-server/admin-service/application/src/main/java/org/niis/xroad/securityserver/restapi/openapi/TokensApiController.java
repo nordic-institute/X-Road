@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,42 +31,34 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.securityserver.restapi.converter.KeyConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TokenConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerate;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabel;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelWithCsrGenerate;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyWithCertificateSigningRequestId;
-import org.niis.xroad.securityserver.restapi.openapi.model.Token;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenName;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenPassword;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenPinUpdate;
-import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
-import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelWithCsrGenerateDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyWithCertificateSigningRequestIdDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenPasswordDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenPinUpdateDto;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.DnFieldHelper;
-import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
-import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
 import org.niis.xroad.securityserver.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
-import org.niis.xroad.securityserver.restapi.service.TokenNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
-import org.niis.xroad.securityserver.restapi.service.WeakPinException;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
@@ -78,6 +71,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Set;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.MISSING_TOKEN_PASSWORD;
 
 /**
  * tokens controller
@@ -99,109 +94,91 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
-    public ResponseEntity<Set<Token>> getTokens() {
+    public ResponseEntity<Set<TokenDto>> getTokens() {
         List<TokenInfo> tokenInfos = tokenService.getAllTokens();
-        Set<Token> tokens = tokenConverter.convert(tokenInfos);
+        Set<TokenDto> tokens = tokenConverter.convert(tokenInfos);
         return new ResponseEntity<>(tokens, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
-    public ResponseEntity<Token> getToken(String id) {
-        Token token = getTokenFromService(id);
+    public ResponseEntity<TokenDto> getToken(String id) {
+        TokenDto token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.LOGIN_TOKEN)
-    public ResponseEntity<Token> loginToken(String id, TokenPassword tokenPassword) {
-        if (tokenPassword == null
-                || tokenPassword.getPassword() == null
-                || tokenPassword.getPassword().isEmpty()) {
-            throw new BadRequestException("Missing token password");
+    public ResponseEntity<TokenDto> loginToken(String id, TokenPasswordDto tokenPasswordDto) {
+        if (tokenPasswordDto == null
+                || tokenPasswordDto.getPassword() == null
+                || tokenPasswordDto.getPassword().isEmpty()) {
+            throw new BadRequestException(MISSING_TOKEN_PASSWORD.build());
         }
-        char[] password = tokenPassword.getPassword().toCharArray();
-        try {
-            tokenService.activateToken(id, password);
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (TokenService.PinIncorrectException e) {
-            throw new BadRequestException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
-        }
-        Token token = getTokenFromService(id);
+        char[] password = tokenPasswordDto.getPassword().toCharArray();
+
+        tokenService.activateToken(id, password);
+
+        TokenDto token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('ACTIVATE_DEACTIVATE_TOKEN')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.LOGOUT_TOKEN)
-    public ResponseEntity<Token> logoutToken(String id) {
-        try {
-            tokenService.deactivateToken(id);
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
-        }
-        Token token = getTokenFromService(id);
+    public ResponseEntity<TokenDto> logoutToken(String id) {
+
+        tokenService.deactivateToken(id);
+
+        TokenDto token = getTokenFromService(id);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
-    private Token getTokenFromService(String id) {
-        TokenInfo tokenInfo = null;
-        try {
-            tokenInfo = tokenService.getToken(id);
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
+    private TokenDto getTokenFromService(String id) {
+        TokenInfo tokenInfo = tokenService.getToken(id);
         return tokenConverter.convert(tokenInfo);
     }
 
     @PreAuthorize("hasAuthority('EDIT_TOKEN_FRIENDLY_NAME')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_TOKEN_NAME)
-    public ResponseEntity<Token> updateToken(String id, TokenName tokenName) {
-        try {
-            TokenInfo tokenInfo = tokenService.updateTokenFriendlyName(id, tokenName.getName());
-            Token token = tokenConverter.convert(tokenInfo);
-            return new ResponseEntity<>(token, HttpStatus.OK);
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
-        }
+    public ResponseEntity<TokenDto> updateToken(String id, TokenNameDto tokenNameDto) {
+        TokenInfo tokenInfo = tokenService.updateTokenFriendlyName(id, tokenNameDto.getName());
+        TokenDto token = tokenConverter.convert(tokenInfo);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('DELETE_TOKEN')")
+    @AuditEventMethod(event = RestApiAuditEvent.DELETE_TOKEN)
+    @Override
+    public ResponseEntity<Void> deleteToken(String id) {
+        tokenService.deleteToken(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PreAuthorize("hasAuthority('GENERATE_KEY')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY)
-    public ResponseEntity<Key> addKey(String tokenId, KeyLabel keyLabel) {
-        try {
-            KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel(), KeyAlgorithm.RSA);
-            Key key = keyConverter.convert(keyInfo);
-            return ControllerUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
-        }
+    public ResponseEntity<KeyDto> addKey(String tokenId, KeyLabelDto keyLabelDto) {
+
+        KeyInfo keyInfo = keyService.addKey(tokenId, keyLabelDto.getLabel(), KeyAlgorithm.RSA);
+        KeyDto key = keyConverter.convert(keyInfo);
+        return ControllerUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
     }
 
     @Override
     @PreAuthorize("hasAuthority('GENERATE_KEY') "
             + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))"
-            + " and (!#keyLabelWithCsrGenerate.csrGenerateRequest.acmeOrder"
+            + " and (!#keyLabelWithCsrGenerateDto.csrGenerateRequest.acmeOrder"
             + "      or hasAuthority('IMPORT_AUTH_CERT') or hasAuthority('IMPORT_SIGN_CERT'))")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY_AND_CSR)
-    public ResponseEntity<KeyWithCertificateSigningRequestId> addKeyAndCsr(String tokenId,
-                                                                           KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
+    public ResponseEntity<KeyWithCertificateSigningRequestIdDto> addKeyAndCsr(String tokenId,
+                                                                              KeyLabelWithCsrGenerateDto keyLabelWithCsrGenerateDto) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
-        CsrGenerate csrGenerate = keyLabelWithCsrGenerate.getCsrGenerateRequest();
+        CsrGenerateDto csrGenerate = keyLabelWithCsrGenerateDto.getCsrGenerateRequest();
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
         ClientId.Conf memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
@@ -216,27 +193,23 @@ public class TokensApiController implements TokensApi {
         KeyAndCertificateRequestService.KeyAndCertRequestInfo keyAndCertRequest;
         try {
             keyAndCertRequest = keyAndCertificateRequestService.addKeyAndCertRequest(
-                    tokenId, keyLabelWithCsrGenerate.getKeyLabel(),
+                    tokenId, keyLabelWithCsrGenerateDto.getKeyLabel(),
                     memberId,
                     keyUsageInfo,
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat,
                     csrGenerate.getAcmeOrder());
-        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException
-                 | DnFieldHelper.InvalidDnParameterException | TokenCertificateService.AuthCertificateNotSupportedException e) {
+        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | GlobalConfOutdatedException | CsrNotFoundException
-                 | CertificateAlreadyExistsException e) {
+        } catch (CsrNotFoundException e) {
             throw new ConflictException(e);
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
             throw new InternalServerErrorException(e);
         }
 
-        KeyWithCertificateSigningRequestId result = new KeyWithCertificateSigningRequestId();
-        Key key = keyConverter.convert(keyAndCertRequest.getKeyInfo());
+        KeyWithCertificateSigningRequestIdDto result = new KeyWithCertificateSigningRequestIdDto();
+        KeyDto key = keyConverter.convert(keyAndCertRequest.getKeyInfo());
         result.setKey(key);
         result.setCsrId(keyAndCertRequest.getCertReqId());
 
@@ -247,16 +220,9 @@ public class TokensApiController implements TokensApi {
     @Override
     @PreAuthorize("hasAuthority('UPDATE_TOKEN_PIN')")
     @AuditEventMethod(event = RestApiAuditEvent.CHANGE_PIN_TOKEN)
-    public ResponseEntity<Void> updateTokenPin(String id, TokenPinUpdate tokenPinUpdate) {
-        try {
-            tokenService.updateSoftwareTokenPin(id, tokenPinUpdate.getOldPin(), tokenPinUpdate.getNewPin());
-        } catch (TokenNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (TokenService.PinIncorrectException | InvalidCharactersException | WeakPinException e) {
-            throw new BadRequestException(e);
-        } catch (ActionNotPossibleException e) {
-            throw new ConflictException(e);
-        }
+    public ResponseEntity<Void> updateTokenPin(String id, TokenPinUpdateDto tokenPinUpdateDto) {
+
+        tokenService.updateSoftwareTokenPin(id, tokenPinUpdateDto.getOldPin(), tokenPinUpdateDto.getNewPin());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

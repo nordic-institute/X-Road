@@ -58,7 +58,6 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.serverproxy.IdleConnectionMonitorThread;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
-import org.niis.xroad.proxy.core.util.SSLContextUtil;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -105,6 +104,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connectionMonitor;
+    private ReloadingSSLSocketFactory reloadingSSLSocketFactory;
 
     /**
      * Constructs and configures a new client proxy.
@@ -199,8 +199,8 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     }
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier,
-                SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
+        reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, reloadingSSLSocketFactory);
     }
 
     private void createConnectors() throws Exception {
@@ -329,6 +329,11 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         server.stop();
 
         HibernateUtil.closeSessionFactories();
+    }
+
+    public void reloadAuthKey() {
+        log.trace("reloadAuthKey()");
+        reloadingSSLSocketFactory.reload();
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {

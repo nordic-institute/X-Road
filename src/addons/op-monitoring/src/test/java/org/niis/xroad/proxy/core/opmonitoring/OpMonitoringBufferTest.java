@@ -108,7 +108,6 @@ class OpMonitoringBufferTest {
 
     @Test
     void bufferSaturatesUnderLoad() throws Exception {
-        final ExecutorService executorService = Executors.newFixedThreadPool(80);
 
         when(httpClient.execute(any(HttpRequestBase.class), any(HttpContext.class))).thenAnswer(invocation -> {
             doSleep(20, 80);
@@ -126,12 +125,12 @@ class OpMonitoringBufferTest {
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer();
         int requestCount = 30_000;
         AtomicInteger processedCounter = new AtomicInteger();
-        try {
+        try (ExecutorService executorService = Executors.newFixedThreadPool(80)) {
             IntStream.range(0, requestCount).forEach(index -> {
                 executorService.execute(() -> {
                     doSleep(0, 50);
                     OpMonitoringData opMonitoringData = new OpMonitoringData(
-                            OpMonitoringData.SecurityServerType.CLIENT, RandomUtils.nextLong());
+                            OpMonitoringData.SecurityServerType.CLIENT, RandomUtils.secure().randomLong());
 
                     try {
                         opMonitoringBuffer.store(opMonitoringData);
@@ -154,8 +153,6 @@ class OpMonitoringBufferTest {
                         assertEquals(requestCount, processedCounter.get());
                         assertEquals(0, opMonitoringBuffer.getCurrentBufferSize());
                     });
-        } finally {
-            executorService.shutdownNow();
         }
     }
 
@@ -207,7 +204,7 @@ class OpMonitoringBufferTest {
     @SneakyThrows
     @SuppressWarnings("squid:S2925")
     private void doSleep(long min, long max) {
-        var sleep = RandomUtils.nextLong(min, max);
+        var sleep = RandomUtils.secure().randomLong(min, max);
         Thread.sleep(sleep);
     }
 }

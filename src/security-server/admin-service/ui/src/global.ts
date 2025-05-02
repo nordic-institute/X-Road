@@ -98,6 +98,7 @@ export enum Permissions {
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
   DISABLE_CLIENT = 'DISABLE_CLIENT',
+  RENAME_SUBSYSTEM = 'RENAME_SUBSYSTEM',
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
   EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES', // client > service clients
@@ -109,6 +110,7 @@ export enum Permissions {
   EDIT_SERVICE_ACL = 'EDIT_SERVICE_ACL', // client > service clients > access rights
   EDIT_SERVICE_PARAMS = 'EDIT_SERVICE_PARAMS', // client > services > rest/wsdl > service params
   EDIT_TOKEN_FRIENDLY_NAME = 'EDIT_TOKEN_FRIENDLY_NAME', // token details
+  DELETE_TOKEN = 'DELETE_TOKEN', // delete inactive token
   EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description of type WSDL
   EDIT_REST = 'EDIT_REST', // client > services > edit service description of type rest
   EDIT_OPENAPI3 = 'EDIT_OPENAPI3', // client > services > edit service description of type openapi3

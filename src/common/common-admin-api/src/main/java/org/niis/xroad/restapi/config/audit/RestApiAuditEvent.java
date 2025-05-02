@@ -75,6 +75,7 @@ public enum RestApiAuditEvent {
     DELETE_LOCAL_GROUP("Delete group"),
     DISABLE_CLIENT("Disable client"),
     ENABLE_CLIENT("Enable client"),
+    RENAME_SUBSYSTEM("Rename subsystem"),
 
     // system parameters
     GENERATE_INTERNAL_TLS_CSR("Generate certificate request for TLS"),
@@ -125,6 +126,7 @@ public enum RestApiAuditEvent {
     UPDATE_TOKEN_NAME("Set friendly name to token"),
     UPDATE_KEY_NAME("Set friendly name to key"),
     DELETE_SECURITY_SERVER_AUTH_CERT("Delete authentication certificate of security server"),
+    DELETE_TOKEN("Delete token"),
 
     // backup and restore events
     BACKUP("Back up configuration"),
@@ -169,6 +171,7 @@ public enum RestApiAuditEvent {
     ADD_SUBSYSTEM("Add subsystem"),
     UNREGISTER_SUBSYSTEM("Unregister subsystem as security server client"),
     DELETE_SUBSYSTEM("Delete subsystem"),
+    EDIT_SUBSYSTEM("Edit subsystem"),
     DELETE_INTERMEDIATE_CA("Delete intermediate CA"),
     DELETE_OCSP_RESPONDER("Delete OCSP responder"),
 

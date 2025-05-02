@@ -656,9 +656,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             signerRpcClient.activateCert(this.certInfo.getId());
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
-            assertException("Signer.InvalidCertPath.CertValidation", "",
-                    "Signer.InvalidCertPath.CertValidation: OCSP response indicates certificate status is REVOKED (date: 2022-01-01 "
-                            + "00:00:00)",
+            assertException("Signer.InternalError",
+                    "",
+                    "Signer.InternalError: Failed to verify OCSP responses for certificate. Error: InvalidCertPath.CertValidation: OCSP "
+                          + "response indicates certificate status is REVOKED (date: 2022-01-01 00:00:00)",
                     codedException);
         }
     }

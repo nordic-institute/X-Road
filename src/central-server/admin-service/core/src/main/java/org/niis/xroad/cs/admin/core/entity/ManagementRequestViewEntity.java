@@ -58,6 +58,7 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DISABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_RENAME_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
 @Entity
@@ -127,6 +128,9 @@ public class ManagementRequestViewEntity {
     @Column(name = "client_subsystem_code")
     private String clientSubsystemCode;
 
+    @Column(name = "client_subsystem_name")
+    private String clientSubsystemName;
+
     @Column(name = "auth_cert")
     private byte[] authCert;
 
@@ -155,7 +159,8 @@ public class ManagementRequestViewEntity {
                 CLIENT_DISABLE_REQUEST, ClientDisableRequestEntity.DISCRIMINATOR_VALUE,
                 CLIENT_ENABLE_REQUEST, ClientEnableRequestEntity.DISCRIMINATOR_VALUE,
                 AUTH_CERT_DELETION_REQUEST, AuthenticationCertificateDeletionRequestEntity.DISCRIMINATOR_VALUE,
-                ADDRESS_CHANGE_REQUEST, AddressChangeRequestEntity.DISCRIMINATOR_VALUE
+                ADDRESS_CHANGE_REQUEST, AddressChangeRequestEntity.DISCRIMINATOR_VALUE,
+                CLIENT_RENAME_REQUEST, ClientRenameRequestEntity.DISCRIMINATOR_VALUE
         );
 
         public static ManagementRequestType getManagementRequestType(String discriminator) {

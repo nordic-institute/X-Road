@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -32,10 +33,7 @@ import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.serverconf.IsAuthentication;
-import org.niis.xroad.serverconf.model.CertificateType;
-import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -142,13 +140,9 @@ public class AuditDataHelper {
     }
 
     /**
-     * put status of given client
+     * put status of client
      */
-    public void putClientStatus(ClientType client) {
-        String clientStatus = null;
-        if (client != null) {
-            clientStatus = client.getClientStatus();
-        }
+    public void putClientStatus(String clientStatus) {
         put(RestApiAuditProperty.CLIENT_STATUS, clientStatus);
     }
 
@@ -170,10 +164,8 @@ public class AuditDataHelper {
     /**
      * put service description url and type
      */
-    public void putServiceDescriptionUrl(ServiceDescriptionType serviceDescriptionType) {
-        if (serviceDescriptionType != null) {
-            putServiceDescriptionUrl(serviceDescriptionType.getUrl(), serviceDescriptionType.getType());
-        }
+    public void putServiceDescriptionUrlAndType(String serviceDescriptionUrl, DescriptionType type) {
+        putServiceDescriptionUrl(serviceDescriptionUrl, type);
     }
 
     /**
@@ -256,12 +248,9 @@ public class AuditDataHelper {
     /**
      * Put (only) cert hash, and hash default algorithm
      */
-    public void put(CertificateType certificateType) {
-        if (certificateType != null) {
-            String hash = createFormattedHash(certificateType.getData());
-            put(RestApiAuditProperty.CERT_HASH, hash);
-            putDefaultCertHashAlgorithm();
-        }
+    public void putCertificateHashAndAlgorithm(byte[] certificateData) {
+        put(RestApiAuditProperty.CERT_HASH, createFormattedHash(certificateData));
+        putDefaultCertHashAlgorithm();
     }
 
     /**

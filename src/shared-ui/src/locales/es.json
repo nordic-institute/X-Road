@@ -151,14 +151,34 @@
     "backup_file_not_found": "La copia de seguridad no se encontró",
     "backup_generation_failed": "No se pudo generar la copia de seguridad",
     "backup_restore_interrupted": "La restauración de la copia de seguridad ha sido interrumpida",
+    "core": {
+      "Signer": {
+        "CertNotFound": "No se encuentra el certificado",
+        "KeyNotFound": "No se encuentra la clave",
+        "NetworkError": "El firmante no es actualmente accesible.",
+        "PinIncorrect": "PIN no válido",
+        "TokenNotAvailable": "El token no está disponible",
+        "TokenNotFound": "No se encuentra el token",
+        "UnknownMember": "X -Road Core - Signer: miembro desconocido"
+      }
+    },
     "generate_backup_interrupted": "La generación de la copia de seguridad ha sido interrumpida",
+    "internal_error": "Error interno. Consulte los registros del servidor para más detalles",
     "invalid_backup_file": "Archivo de copia de seguridad no válido",
+    "invalid_certificate": "Certificado X.509 no válido",
     "invalid_distinguished_name": "El nombre distinguido no es válido",
     "invalid_filename": "Nombre de archivo no válido",
     "resource_read_failed": "No se pudo leer el recurso",
     "restore_process_failed": "El proceso de restauración falló",
     "token_fetch_failed": "Error al obtener el token",
     "token_not_found": "Token no encontrado",
+    "token_weak_pin": "El código PIN proporcionado era demasiado débil",
+    "tr": {
+      "check_signer_logs": "Consulte el registro (log) del firmante para más detalles.",
+      "code": "Código: {0}",
+      "pin_min_char_classes_count": "Cantidad mínima de clases de caracteres para el PIN: {0}",
+      "pin_min_length": "Longitud mínima: {0}"
+    },
     "validation_failure": "Falla de validación"
   },
   "fields": {
@@ -187,7 +207,10 @@
     "name": "Nombre"
   },
   "keys": {
-    "gotIt": "Entiendo"
+    "gotIt": "Entiendo",
+    "token": {
+      "label": "Token:"
+    }
   },
   "locals_demo": "Esto se localiza en la biblioteca",
   "login": {
@@ -199,9 +222,6 @@
   "logout": {
     "idleWarning": "Has estado inactivo durante 30 minutos y tu sesión ha expirado. Por razones de seguridad, deberás autenticarte nuevamente.",
     "sessionExpired": "Sesión expirada"
-  },
-  "meta": {
-    "check_signer_logs": "Consulte el registro (log) del firmante para más detalles."
   },
   "noData": {
     "loading": "Cargando ... por favor espera",

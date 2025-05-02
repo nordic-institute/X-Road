@@ -35,6 +35,10 @@ import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
+import static java.util.function.Predicate.not;
+
 @Component
 @RequiredArgsConstructor
 public class SubsystemCreationRequestMapper implements GenericUniDirectionalMapper<SubsystemAddDto, SubsystemCreationRequest> {
@@ -44,10 +48,14 @@ public class SubsystemCreationRequestMapper implements GenericUniDirectionalMapp
     @Override
     public SubsystemCreationRequest toTarget(SubsystemAddDto source) {
         var subsystemId = createSubsystemId(source.getSubsystemId());
+        var name = Optional.ofNullable(source.getSubsystemName())
+                .filter(not(String::isEmpty))
+                .orElse(null);
 
         return new SubsystemCreationRequest(
                 subsystemId.getMemberId(),
-                subsystemId);
+                subsystemId,
+                name);
     }
 
     private SubsystemId createSubsystemId(NewSubsystemIdDto source) {

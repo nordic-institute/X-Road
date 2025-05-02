@@ -29,15 +29,15 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.MultiIdentifierLoadAccess;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 
 import java.util.List;
 
 /**
  * Service description data access object implementation.
  */
-public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptionType> {
+public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptionEntity> {
 
     /**
      * Returns the service description of the given service identifier.
@@ -45,8 +45,8 @@ public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptio
      * @param id the service identifier
      * @return the service description of the given service identifier
      */
-    public ServiceDescriptionType getServiceDescription(Session session, ServiceId id) {
-        ServiceType service =
+    public ServiceDescriptionEntity getServiceDescription(Session session, ServiceId id) {
+        ServiceEntity service =
                 new ServiceDAOImpl().getService(session, id);
         if (service != null) {
             return service.getServiceDescription();
@@ -56,13 +56,13 @@ public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptio
     }
 
     /**
-     * Returns the service description of the given ServiceDescription PK.
+     * Returns the service description of the given ServiceDescriptionEntity PK.
      * @param session the session
-     * @param id the ServiceDescriptionType PK
+     * @param id the ServiceDescriptionEntity PK
      * @return the service description of the given service identifier
      */
-    public ServiceDescriptionType getServiceDescription(Session session, Long id) {
-        return session.get(ServiceDescriptionType.class, id);
+    public ServiceDescriptionEntity getServiceDescription(Session session, Long id) {
+        return session.get(ServiceDescriptionEntity.class, id);
     }
 
 
@@ -72,9 +72,9 @@ public class ServiceDescriptionDAOImpl extends AbstractDAOImpl<ServiceDescriptio
      * @param ids
      * @return
      */
-    public List<ServiceDescriptionType> getServiceDescriptions(Session session, Long... ids) {
-        MultiIdentifierLoadAccess<ServiceDescriptionType> multiLoadAccess =
-                session.byMultipleIds(ServiceDescriptionType.class);
+    public List<ServiceDescriptionEntity> getServiceDescriptions(Session session, Long... ids) {
+        MultiIdentifierLoadAccess<ServiceDescriptionEntity> multiLoadAccess =
+                session.byMultipleIds(ServiceDescriptionEntity.class);
         return multiLoadAccess.multiLoad(ids);
     }
 

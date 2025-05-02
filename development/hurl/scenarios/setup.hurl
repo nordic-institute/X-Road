@@ -507,6 +507,9 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     },
     {
       "service_code": "addressChange"
+    },
+    {
+      "service_code": "clientRename"
     }
   ]
 }
@@ -1090,9 +1093,9 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
 POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
-  "url": "{{is_rest_openapi_url}}",
+  "url": "{{is_openapi_url}}",
   "type": "OPENAPI3",
-  "rest_service_code": "{{is_rest_openapi_service_code}}"
+  "rest_service_code": "{{is_openapi_service_code}}"
 }
 
 HTTP 201
@@ -1101,7 +1104,7 @@ HTTP 201
 ss0_test_rest_openapi_service_service_id: jsonpath "$.id"
 
 # Add TestClient access to OpenAPI REST service's "GET members" endpoint
-GET https://{{ss0_host}}:4000/api/v1/services/{{ss0_test_service_id}}%3A{{is_rest_openapi_service_code}}
+GET https://{{ss0_host}}:4000/api/v1/services/{{ss0_test_service_id}}%3A{{is_openapi_service_code}}
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 
 HTTP 200

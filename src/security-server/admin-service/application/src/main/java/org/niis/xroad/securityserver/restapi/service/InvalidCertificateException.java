@@ -25,24 +25,24 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
+
 
 /**
  * General error that happens when importing a cert. Usually a wrong file type
  */
-public class InvalidCertificateException extends ServiceException {
+public class InvalidCertificateException extends BadRequestException {
     public InvalidCertificateException(Throwable t) {
-        super(t, new ErrorDeviation(ERROR_INVALID_CERT));
+        super(t, INVALID_CERTIFICATE.build());
     }
 
     public InvalidCertificateException(String msg) {
-        super(msg, new ErrorDeviation(ERROR_INVALID_CERT));
+        super(msg, INVALID_CERTIFICATE.build());
     }
 
     public InvalidCertificateException(String msg, Throwable t) {
-        super(msg, t, new ErrorDeviation(ERROR_INVALID_CERT));
+        super(msg, t, INVALID_CERTIFICATE.build());
     }
 }

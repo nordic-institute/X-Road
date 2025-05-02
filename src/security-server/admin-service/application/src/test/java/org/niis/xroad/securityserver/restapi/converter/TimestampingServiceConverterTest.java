@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,9 +28,9 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +63,7 @@ public class TimestampingServiceConverterTest {
 
     @Test
     public void convertSingleTspType() {
-        TimestampingService timestampingService = timestampingServiceConverter.convert(
+        TimestampingServiceDto timestampingService = timestampingServiceConverter.convert(
                 TestUtils.createTspType(TSA_1_URL, TSA_1_NAME));
 
         assertEquals(TSA_1_URL, timestampingService.getUrl());
@@ -71,29 +72,29 @@ public class TimestampingServiceConverterTest {
 
     @Test
     public void convertEmptyTspTypeList() {
-        List<TspType> tspTypes = new ArrayList<>();
+        List<TimestampingService> timestampingServices = new ArrayList<>();
 
-        Set<TimestampingService> timestampingService = timestampingServiceConverter.convert(tspTypes);
+        Set<TimestampingServiceDto> timestampingService = timestampingServiceConverter.convert(timestampingServices);
 
         assertEquals(0, timestampingService.size());
     }
 
     @Test
     public void convertMultipleTspTypes() {
-        List<TspType> tspTypes = new ArrayList<>(Arrays.asList(TestUtils.createTspType(
+        List<TimestampingService> tspTypes = new ArrayList<>(Arrays.asList(TestUtils.createTspType(
                 TSA_1_URL, TSA_1_NAME), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME)));
 
-        Set<TimestampingService> timestampingServices = timestampingServiceConverter.convert(tspTypes);
+        Set<TimestampingServiceDto> timestampingServices = timestampingServiceConverter.convert(tspTypes);
 
         assertEquals(2, timestampingServices.size());
     }
 
     @Test
     public void convertSingleTimestampingService() {
-        TspType tspType = timestampingServiceConverter.convert(TestUtils
+        TimestampingService timestampingService = timestampingServiceConverter.convert(TestUtils
                 .createTimestampingService(TSA_1_URL, TSA_1_NAME));
 
-        assertEquals(TSA_1_URL, tspType.getUrl());
-        assertEquals(TSA_1_NAME, tspType.getName());
+        assertEquals(TSA_1_URL, timestampingService.getUrl());
+        assertEquals(TSA_1_NAME, timestampingService.getName());
     }
 }

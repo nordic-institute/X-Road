@@ -151,15 +151,34 @@
     "backup_file_not_found": "Backup was not found",
     "backup_generation_failed": "Failed to generate backup",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
+    "core": {
+      "Signer": {
+        "CertNotFound": "Certification is not found",
+        "KeyNotFound": "Key is not found",
+        "NetworkError": "Signer is not currently reachable.",
+        "PinIncorrect": "Invalid PIN",
+        "TokenNotAvailable": "Token is not available",
+        "TokenNotFound": "Token is not found",
+        "UnknownMember": "X-Road core - signer: Unknown member"
+      }
+    },
     "generate_backup_interrupted": "Backup generation has been interrupted",
     "internal_error": "Internal error. See server logs for more details",
     "invalid_backup_file": "Invalid backup file",
+    "invalid_certificate": "Invalid X.509 certificate",
     "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_filename": "Invalid filename",
     "resource_read_failed": "Failed to read resource",
     "restore_process_failed": "Restore process failed",
     "token_fetch_failed": "Error getting tokens.",
     "token_not_found": "Token not found.",
+    "token_weak_pin": "The provided pin code was too weak",
+    "tr": {
+      "check_signer_logs": "Please check the signer log for details.",
+      "code": "Code: {0}",
+      "pin_min_char_classes_count": "PIN minimum character classes count: {0}",
+      "pin_min_length": "PIN minimum length: {0}"
+    },
     "validation_failure": "Validation failure"
   },
   "fields": {
@@ -169,6 +188,7 @@
     "password": "Password",
     "securityServerCode": "Security Server Code",
     "shared": "sharedlib",
+    "subsystemName": "Subsystem Name",
     "username": "LIB-Username"
   },
   "footer": {
@@ -188,7 +208,10 @@
     "name": "Name"
   },
   "keys": {
-    "gotIt": "Got it"
+    "gotIt": "Got it",
+    "token": {
+      "label": "Token:"
+    }
   },
   "locals_demo": "This is localised in library",
   "login": {
@@ -200,9 +223,6 @@
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
-  },
-  "meta": {
-    "check_signer_logs": "Please check the signer log for details."
   },
   "noData": {
     "loading": "Loading... Please wait",

@@ -57,7 +57,7 @@ public class ManagementRequestSoapExecutor {
 
             var createdRequestId = onSuccess.applyAsInt(verificationResult);
 
-            var responseBody = ManagementRequestUtil.toResponse(verificationResult.getSoapMessage(), createdRequestId).getXml();
+            var responseBody = ManagementRequestUtil.toResponse(verificationResult.soapMessage(), createdRequestId).getXml();
             return disableCache(ResponseEntity.ok())
                     .body(responseBody);
         } catch (Exception e) {

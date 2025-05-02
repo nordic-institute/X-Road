@@ -26,7 +26,7 @@
  -->
 <template>
   <article>
-    <div class="navigation-back" data-test="navigation-back">
+    <div class="navigation-back mt-1 mb-0" data-test="navigation-back">
       <router-link to="" @click="goBack">
         <v-icon :color="colors.Purple100" icon="mdi-chevron-left" />
         {{ $t('global.navigation.back') }}
@@ -72,7 +72,6 @@ export default defineComponent({
 .navigation-back {
   color: colors.$Link;
   cursor: pointer;
-  margin-bottom: 20px;
 
   a {
     text-decoration: none;

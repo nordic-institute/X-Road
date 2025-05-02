@@ -3,8 +3,6 @@ spring:
   mvc:
     throw-exception-if-no-handler-found: true
   jpa:
-    ## *.hbm.xml files are loaded from classpath
-    mapping-resources: identifiers.orm.xml,serverconf.orm.xml
     open-in-view: false
     hibernate:
       ddl-auto: none
@@ -39,6 +37,7 @@ xroad:
     request-size-limit-binary-upload: 10MB
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
+    reserved-service-codes: listClients,listMethods,allowedMethods,getWsdl,getOpenAPI,getSecurityServerMetrics,getSecurityServerOperationalData,getSecurityServerHealthData
 
 file-upload-endpoints:
   endpoint-definitions:
@@ -80,6 +79,7 @@ url:
   diagnostics-addon-status: http://localhost:%s/addonstatus
   diagnostics-backup-encryption-status: http://localhost:%s/backup-encryption-status
   diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
+  diagnostics-proxy-memory-usage: http://localhost:%s/memory-usage
 
 common-module-endpoints:
   base-path: /api/v1

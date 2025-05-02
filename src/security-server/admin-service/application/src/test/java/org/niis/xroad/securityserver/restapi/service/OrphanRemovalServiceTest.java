@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,7 +33,8 @@ import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
@@ -53,8 +55,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
@@ -213,11 +215,11 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
                 }));
 
         doReturn(Collections.singletonList(tokenInfo)).when(signerRpcClient).getTokens();
-        Map<ClientId, ClientType> localClients = new HashMap<>();
+        Map<ClientId, ClientEntity> localClients = new HashMap<>();
         ALL_LOCAL_CLIENTS.forEach(id -> {
-            ClientType clientType = new ClientType();
-            clientType.setIdentifier(id);
-            localClients.put(id, clientType);
+            ClientEntity clientEntity = new ClientEntity();
+            clientEntity.setIdentifier(XRoadIdMapper.get().toEntity(id));
+            localClients.put(id, clientEntity);
         });
         doReturn(new ArrayList<>(localClients.values())).when(clientRepository).getAllLocalClients();
         doAnswer(invocation -> {
@@ -364,26 +366,17 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
     @WithMockUser(authorities = {"DELETE_AUTH_KEY", "DELETE_SIGN_KEY", "DELETE_KEY"})
     public void cantDeleteOrphansForDifferentReasons() throws Exception {
         // client exists
-        try {
-            orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(NON_DELETED_CLIENT_ID_O1));
 
         // siblings exist
-        try {
-            orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_SIBLINGS_O3);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITH_SIBLINGS_O3));
 
         // siblings dont exist, but there is no orphan data
         // siblings exist
-        try {
-            orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4);
-            fail("should throw exception");
-        } catch (OrphanRemovalService.OrphansNotFoundException expected) {
-        }
+        assertThrows(OrphanRemovalService.OrphansNotFoundException.class,
+                () -> orphanRemovalService.deleteOrphans(DELETED_CLIENT_ID_WITHOUT_ORPHAN_ITEMS_O4));
     }
 
     @Test

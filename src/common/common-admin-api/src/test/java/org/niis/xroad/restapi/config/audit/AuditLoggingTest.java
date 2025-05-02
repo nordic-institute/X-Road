@@ -30,13 +30,12 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +44,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,7 +78,7 @@ class AuditLoggingTest {
     private static final String URL_VAR2 = "var2";
     private static final String BAD_VALUE = "bad-value";
 
-    @SpyBean
+    @MockitoSpyBean
     AuditEventLoggingFacadeImpl auditEventLoggingFacade;
 
     @Autowired
@@ -146,7 +146,7 @@ class AuditLoggingTest {
                 urlCaptor.capture());
 
         assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
-        assertEquals(INTERNAL_ERROR.getDescription(), reasonCaptor.getValue());
+        assertEquals(INTERNAL_ERROR.build().toString(), reasonCaptor.getValue());
 
         Map<String, Object> data = dataCaptor.getValue();
         assertEquals(0, data.size());
@@ -170,7 +170,7 @@ class AuditLoggingTest {
                 @PathVariable(URL_VAR1) String var1,
                 @PathVariable(URL_VAR2) String var2) {
             if (BAD_VALUE.equals(var1)) {
-                throw new ValidationFailureException(INTERNAL_ERROR);
+                throw new BadRequestException(INTERNAL_ERROR.build());
             }
             auditDataHelper.put(RestApiAuditProperty.ID, var1);
             auditDataHelper.put(RestApiAuditProperty.CERT_ID, var2);

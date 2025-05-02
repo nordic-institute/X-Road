@@ -1,20 +1,21 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,9 +28,9 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
@@ -38,9 +39,9 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
-import org.niis.xroad.securityserver.restapi.openapi.model.BackupExt;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupExtDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOutDto;
 import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.springframework.core.io.Resource;
@@ -58,7 +59,6 @@ import java.util.Set;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 
 /**
  * Backups controller
@@ -77,7 +77,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<Set<Backup>> getBackups() {
+    public ResponseEntity<Set<BackupDto>> getBackups() {
         List<BackupFile> backupFiles = backupService.getBackupFiles();
 
         return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);
@@ -102,63 +102,63 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
-    public ResponseEntity<Backup> addBackup() {
+    public ResponseEntity<BackupDto> addBackup() {
         try {
             BackupFile backupFile = backupGenerator.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InterruptedException e) {
-            throw new ServiceException(BACKUP_GENERATION_INTERRUPTED);
+            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
         } catch (NotFoundException e) {
-            throw new ServiceException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
-    public ResponseEntity<BackupExt> addBackupExt() {
+    public ResponseEntity<BackupExtDto> addBackupExt() {
         try {
             BackupFile backupFile = backupGenerator.generateBackup();
-            BackupExt backupExt = new BackupExt();
+            BackupExtDto backupExt = new BackupExtDto();
             backupExt.setFilename(backupFile.getFilename());
             backupExt.setCreatedAt(backupFile.getCreatedAt());
             backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
             return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
         } catch (InterruptedException e) {
-            throw new ServiceException(BACKUP_GENERATION_INTERRUPTED);
+            throw new InternalServerErrorException(e, BACKUP_GENERATION_INTERRUPTED.build());
         } catch (NotFoundException e) {
-            throw new ServiceException(e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.UPLOAD_BACKUP)
-    public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
+    public ResponseEntity<BackupDto> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
             BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
                     file.getBytes());
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (UnhandledWarningsException e) {
-            throw new ValidationFailureException(e);
+            throw new BadRequestException(e);
         } catch (IOException e) {
-            throw new ServiceException(INTERNAL_ERROR, e);
+            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
     @PreAuthorize("hasAuthority('RESTORE_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.RESTORE_BACKUP)
-    public synchronized ResponseEntity<TokensLoggedOut> restoreBackup(String filename) {
+    public synchronized ResponseEntity<TokensLoggedOutDto> restoreBackup(String filename) {
         boolean hasHardwareTokens = tokenService.hasHardwareTokens();
         // If hardware tokens exist prior to the restore -> they will be logged out by the restore script
-        TokensLoggedOut tokensLoggedOut = new TokensLoggedOut().hsmTokensLoggedOut(hasHardwareTokens);
+        TokensLoggedOutDto tokensLoggedOut = new TokensLoggedOutDto().hsmTokensLoggedOut(hasHardwareTokens);
         try {
             configurationRestorationService.restoreFromBackup(filename);
         } catch (NotFoundException e) {
-            throw new ServiceException(e);
+            throw new InternalServerErrorException(e);
         } catch (InterruptedException e) {
-            throw new ServiceException(BACKUP_RESTORATION_INTERRUPTED);
+            throw new InternalServerErrorException(e, BACKUP_RESTORATION_INTERRUPTED.build());
         }
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }

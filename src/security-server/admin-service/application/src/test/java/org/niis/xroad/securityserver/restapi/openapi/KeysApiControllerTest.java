@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,9 +28,9 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.securityserver.restapi.openapi.model.Key;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
@@ -115,10 +116,10 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
         try {
             keysApiController.getKey(KEY_NOT_FOUND_KEY_ID);
             fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
-        ResponseEntity<Key> response = keysApiController.getKey(GOOD_SIGN_KEY_ID);
+        ResponseEntity<KeyDto> response = keysApiController.getKey(GOOD_SIGN_KEY_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(GOOD_SIGN_KEY_ID, response.getBody().getId());
     }
@@ -130,7 +131,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
             // key id is not used
             keysApiController.deleteCsr(GOOD_SIGN_KEY_ID, KEY_NOT_FOUND_CSR_ID);
             fail("should have thrown exception");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
         }
 
         ResponseEntity<Void> response = keysApiController.deleteCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
@@ -140,20 +141,20 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getPossibleActionsForCsr() {
-        ResponseEntity<List<PossibleAction>> response = keysApiController
+        ResponseEntity<List<PossibleActionDto>> response = keysApiController
                 .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<PossibleAction> allActions = new HashSet<>(Arrays.asList(PossibleAction.values()));
+        Set<PossibleActionDto> allActions = new HashSet<>(Arrays.asList(PossibleActionDto.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 
     @Test
     @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getPossibleActionsForKey() {
-        ResponseEntity<List<PossibleAction>> response = keysApiController
+        ResponseEntity<List<PossibleActionDto>> response = keysApiController
                 .getPossibleActionsForKey(GOOD_SIGN_KEY_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<PossibleAction> allActions = new HashSet<>(Arrays.asList(PossibleAction.values()));
+        Set<PossibleActionDto> allActions = new HashSet<>(Arrays.asList(PossibleActionDto.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 

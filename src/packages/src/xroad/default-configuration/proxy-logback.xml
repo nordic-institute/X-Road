@@ -43,7 +43,7 @@
         <appender-ref ref="clientproxy-access-log"/>
     </logger>
 
-    <logger name="org.niis.xroad.proxy.core.clientproxy.RequestLog" level="INFO" additivity="false">
+    <logger name="org.niis.xroad.proxy.core.serverproxy.RequestLog" level="INFO" additivity="false">
         <appender-ref ref="serverproxy-access-log"/>
     </logger>
 

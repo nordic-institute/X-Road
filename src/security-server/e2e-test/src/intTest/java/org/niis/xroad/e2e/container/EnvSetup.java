@@ -84,6 +84,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                             .withEnv("CS_IMG", customProperties.getCsImage())
                             .withEnv("SS_IMG", customProperties.getSsImage())
                             .withEnv("CA_IMG", customProperties.getCaImage())
+                            .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
                             .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
                             .withLogConsumer(HURL, createLogConsumer(HURL))
                             .withLogConsumer(CS, createLogConsumer(CS))

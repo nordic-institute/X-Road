@@ -27,7 +27,6 @@ package ee.ria.xroad.common;
 
 import lombok.experimental.UtilityClass;
 
-import java.io.IOException;
 import java.net.ServerSocket;
 
 @UtilityClass
@@ -36,9 +35,11 @@ public class TestPortUtils {
     /**
      * Get random available port for use.
      */
-    public static Integer findRandomPort() throws IOException {
+    public static Integer findRandomPort() {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find available port", e);
         }
     }
 }

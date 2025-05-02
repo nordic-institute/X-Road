@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,6 +27,7 @@
 package org.niis.xroad.proxy.core.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
@@ -50,13 +52,14 @@ import java.util.Map;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 import static org.niis.xroad.serverconf.IsAuthentication.NOSSL;
-import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGISTERED;
+import static org.niis.xroad.serverconf.model.Client.STATUS_REGISTERED;
 
 public class ClientRestMessageProcessorTest {
 
@@ -95,7 +98,8 @@ public class ClientRestMessageProcessorTest {
         assertEquals("REST", data.get("serviceType"));
         assertEquals("pets", data.get("serviceCode"));
         assertEquals("GET", data.get("restMethod"));
-        assertEquals("/pets/1", data.get("restPath"));
+        assertNull(data.get("restPath"));
+        assertEquals(Version.XROAD_VERSION, data.get("xRoadVersion"));
         assertNotNull("DEV", data.get("clientXRoadInstance"));
         assertEquals("1234", data.get("clientMemberCode"));
         assertEquals("TestService", data.get("clientSubsystemCode"));

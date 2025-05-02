@@ -29,40 +29,40 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientTypeDto;
 
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between ServiceClientType in api (enum) and model (XRoadObjectType)
+ * Mapping between ServiceClientTypeDto in api (enum) and model (XRoadObjectType)
  */
 @Getter
 @RequiredArgsConstructor
 public enum ServiceClientTypeMapping {
-    SUBSYSTEM(XRoadObjectType.SUBSYSTEM, ServiceClientType.SUBSYSTEM),
-    LOCALGROUP(XRoadObjectType.LOCALGROUP, ServiceClientType.LOCALGROUP),
-    GLOBALGROUP(XRoadObjectType.GLOBALGROUP, ServiceClientType.GLOBALGROUP);
+    SUBSYSTEM(XRoadObjectType.SUBSYSTEM, ServiceClientTypeDto.SUBSYSTEM),
+    LOCALGROUP(XRoadObjectType.LOCALGROUP, ServiceClientTypeDto.LOCALGROUP),
+    GLOBALGROUP(XRoadObjectType.GLOBALGROUP, ServiceClientTypeDto.GLOBALGROUP);
 
     private final XRoadObjectType xRoadObjectType;
-    private final ServiceClientType serviceClientType;
+    private final ServiceClientTypeDto serviceClientTypeDto;
 
     /**
-     * Return matching ServiceClientType, if any
+     * Return matching ServiceClientTypeDto, if any
      * @param xRoadObjectType
      * @return
      */
-    public static Optional<ServiceClientType> map(XRoadObjectType xRoadObjectType) {
-        return getFor(xRoadObjectType).map(ServiceClientTypeMapping::getServiceClientType);
+    public static Optional<ServiceClientTypeDto> map(XRoadObjectType xRoadObjectType) {
+        return getFor(xRoadObjectType).map(ServiceClientTypeMapping::getServiceClientTypeDto);
     }
 
     /**
-     * Return matching XRoadObjectType, if any
-     * @param serviceClientType
+     * Return matching XRoadObjectTypeDto, if any
+     * @param serviceClientTypeDto
      * @return
      */
-    public static Optional<XRoadObjectType> map(ServiceClientType serviceClientType) {
-        return getFor(serviceClientType).map(ServiceClientTypeMapping::getXRoadObjectType);
+    public static Optional<XRoadObjectType> map(ServiceClientTypeDto serviceClientTypeDto) {
+        return getFor(serviceClientTypeDto).map(ServiceClientTypeMapping::getXRoadObjectType);
     }
 
     /**
@@ -78,12 +78,12 @@ public enum ServiceClientTypeMapping {
 
     /**
      * return ServiceClientTypeMapping matching the given serviceClientType, if any
-     * @param serviceClientType
+     * @param serviceClientTypeDto
      * @return
      */
-    public static Optional<ServiceClientTypeMapping> getFor(ServiceClientType serviceClientType) {
+    public static Optional<ServiceClientTypeMapping> getFor(ServiceClientTypeDto serviceClientTypeDto) {
         return Arrays.stream(values())
-                .filter(mapping -> mapping.serviceClientType.equals(serviceClientType))
+                .filter(mapping -> mapping.serviceClientTypeDto.equals(serviceClientTypeDto))
                 .findFirst();
     }
 

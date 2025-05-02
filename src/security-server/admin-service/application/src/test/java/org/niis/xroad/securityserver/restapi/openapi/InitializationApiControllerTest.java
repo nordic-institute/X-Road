@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,13 +28,12 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConfDto;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
@@ -67,7 +67,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     @WithMockUser
     public void initStatus() {
-        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(new InitializationStatusDto());
+        when(initializationService.getSecurityServerInitializationStatus()).thenReturn(new InitializationStatus());
         initializationApiController.getInitializationStatus();
         verify(initializationService).getSecurityServerInitializationStatus();
     }
@@ -75,7 +75,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initSecurityServerSuccess() {
-        InitialServerConf initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
+        InitialServerConfDto initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
         ResponseEntity<Void> response = initializationApiController.initSecurityServer(initialServerConf);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
@@ -83,8 +83,8 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     @WithMockUser(authorities = {"INIT_CONFIG"})
     public void initSecurityServerFail() throws Exception {
-        InitialServerConf initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
-        Mockito.doThrow(new AnchorNotFoundException(""))
+        InitialServerConfDto initialServerConf = createInitConfWithPin(SOFTWARE_TOKEN_PIN);
+        Mockito.doThrow(new InitializationService.AnchorNotFoundException("err"))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
@@ -148,8 +148,8 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         }
     }
 
-    private InitialServerConf createInitConfWithPin(String pin) {
-        return new InitialServerConf().ownerMemberClass(OWNER_MEMBER_CLASS)
+    private InitialServerConfDto createInitConfWithPin(String pin) {
+        return new InitialServerConfDto().ownerMemberClass(OWNER_MEMBER_CLASS)
                 .ownerMemberCode(OWNER_MEMBER_CODE)
                 .securityServerCode(SECURITY_SERVER_CODE)
                 .softwareTokenPin(pin)

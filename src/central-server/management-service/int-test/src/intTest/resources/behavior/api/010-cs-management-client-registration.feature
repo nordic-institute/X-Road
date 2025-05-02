@@ -15,6 +15,35 @@ Feature: Management requests API: Client registration
     }
     """
 
+  Scenario: Client registration is successful for subsystem
+    Given Admin api is mocked with a response with status-code 202, type CLIENT_REGISTRATION_REQUEST and id 1133
+    When Client Registration request with clientId "EE:CLASS:MEMBER:sub" was sent
+    Then Response of status code 200 and requestId 1133 is returned
+    And Admin api has received following request
+    """json
+    {
+    "type" : "CLIENT_REGISTRATION_REQUEST",
+    "origin" : "SECURITY_SERVER",
+    "security_server_id" : "EE:CLASS:MEMBER:SS1",
+    "client_id" : "EE:CLASS:MEMBER:sub"
+    }
+    """
+
+  Scenario: Client registration is successful for subsystem with name
+    Given Admin api is mocked with a response with status-code 202, type CLIENT_REGISTRATION_REQUEST and id 1133
+    When Client Registration request for "Subsystem Name" with clientId "EE:CLASS:MEMBER:sub" was sent
+    Then Response of status code 200 and requestId 1133 is returned
+    And Admin api has received following request
+    """json
+    {
+    "type" : "CLIENT_REGISTRATION_REQUEST",
+    "origin" : "SECURITY_SERVER",
+    "security_server_id" : "EE:CLASS:MEMBER:SS1",
+    "client_id" : "EE:CLASS:MEMBER:sub",
+    "subsystem_name" : "Subsystem Name"
+    }
+    """
+
   Scenario: Client registration fails with soap fault on bad admin-api response
     Given Admin api is mocked with a response with status-code 409, type CLIENT_REGISTRATION_REQUEST and id 1122
     When Client Registration request with clientId "EE:CLASS:MEMBER" was sent

@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -57,7 +58,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_CERT_GENERATION_FAILED;
 
 /**
  * Operations related to internal tls certificates
@@ -117,7 +118,6 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
-     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -159,9 +159,8 @@ public class InternalTlsCertificateService {
     /**
      * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
-     *
      * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
-     * has already been handled with so you can choose to ignore this exception if you so please.</b>
+     *                              has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
     public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
         try {
@@ -169,7 +168,7 @@ public class InternalTlsCertificateService {
                     generateCertScriptArgs.split("\\s+"));
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate internal TLS key and cert", e);
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_KEY_CERT_GENERATION_FAILED));
+            throw new InternalServerErrorException(e, KEY_CERT_GENERATION_FAILED.build());
         }
 
         clearCacheService.executeClearConfigurationCache();
@@ -181,7 +180,6 @@ public class InternalTlsCertificateService {
 
     /**
      * Imports a new internal TLS certificate.
-     *
      * @param certificateBytes
      * @return X509Certificate
      * @throws InvalidCertificateException
@@ -217,9 +215,8 @@ public class InternalTlsCertificateService {
 
     /**
      * Verifies that the chain matches the internal TLS key
-     *
      * @param newCertChain the cert chain to be imported
-     * @throws KeyNotFoundException if the public key of the cert does not match
+     * @throws KeyNotFoundException              if the public key of the cert does not match
      * @throws CertificateAlreadyExistsException if the certificate has already been imported
      */
     private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain)

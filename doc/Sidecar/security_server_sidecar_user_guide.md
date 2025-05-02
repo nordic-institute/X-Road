@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.15  
+Version: 1.18  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -23,6 +23,9 @@ Doc. ID: UG-SS-SIDECAR
 | 22.08.2024 | 1.13    | Add a section about enabling ACME support               | Eneli Reimets             |
 | 23.09.2024 | 1.14    | Changing System Parameter Values in Configuration Files | Eneli Reimets             |
 | 23.12.2024 | 1.15    | Minor documentation updates                             | Eneli Reimets             |
+| 18.02.2025 | 1.16    | Configuring memory allocation fo proxy service          | Ovidijus Narkevičius      |
+| 26.03.2025 | 1.17    | Syntax and styling                                      | Pauline Dimmek            |
+| 02.04.2025 | 1.18    | Added autologin paragraph                               | Mikk-Erik Bachmann        |
 
 ## License
 
@@ -51,6 +54,8 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Changing the System Parameter Values in Configuration Files](#31-changing-the-system-parameter-values-in-configuration-files)
   * [3.2 Enabling ACME Support](#32-enabling-acme-support)
+  * [3.3 Configuring the memory allocation for the Proxy Service](#33-configuring-the-memory-allocation-for-the-proxy-service)
+  * [3.4 Autologin](#34-autologin)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -66,22 +71,22 @@ X-Road Security Server Sidecar is containerized, production ready, version of th
 
 The Security Server Sidecar has several images with alternative configurations:
 
-**Image**                                                    | **Description**
------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------------------
-niis/xroad-security-server-sidecar:\<version>-slim           | Slim image with the minimum required packages and configuration to function.
-niis/xroad-security-server-sidecar:\<version>                | Full image uses the slim as the base and adds message logging, and environmental and operational monitoring.
-niis/xroad-security-server-sidecar:\<version>-slim-\<variant>| Same as the slim image but with the NIIS member/partner country variant (ee,fi,fo,is) settings included.
-niis/xroad-security-server-sidecar:\<version>-\<variant>     | Same as the full image but with the NIIS member/partner country variant configuration settings included.
+| **Image**                                                     | **Description**                                                                                              |
+|---------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| niis/xroad-security-server-sidecar:\<version>-slim            | Slim image with the minimum required packages and configuration to function.                                 |
+| niis/xroad-security-server-sidecar:\<version>                 | Full image uses the slim as the base and adds message logging, and environmental and operational monitoring. |
+| niis/xroad-security-server-sidecar:\<version>-slim-\<variant> | Same as the slim image but with the NIIS member/partner country variant (ee,fi,fo,is) settings included.     |
+| niis/xroad-security-server-sidecar:\<version>-\<variant>      | Same as the full image but with the NIIS member/partner country variant configuration settings included.     |
 
 All images can act as a provider or consumer Security Server. The images with a country code suffix (e.g., `-fi`) include NIIS member/partner -specific configuration.
 
-**Feature**                      | **Sidecar** | **Sidecar Slim** |
----------------------------------|-------------|------------------|
-Consume services                 | Yes         | Yes              |
-Provide services                 | Yes         | Yes              |
-Message logging                  | Yes         | No               |
-Environmental monitoring         | Yes         | No               |
-Operational monitoring           | Yes         | No               |
+| **Feature**              | **Sidecar** | **Sidecar Slim** |
+|--------------------------|-------------|------------------|
+| Consume services         | Yes         | Yes              |
+| Provide services         | Yes         | Yes              |
+| Message logging          | Yes         | No               |
+| Environmental monitoring | Yes         | No               |
+| Operational monitoring   | Yes         | No               |
 
 ### 1.2 References
 
@@ -106,41 +111,41 @@ Minimum container resource limits for running the Security Server Sidecar contai
 
 The following parameters are used in example commands:
 
-| **Value**                           | **Explanation**
-|-------------------------------------| ----------------------------------------------------------
-| \<container name>                   | Name of the Security Server Sidecar container
-| \<admin port>                       | Port for admin user interface (default 4000)
-| \<healthcheck port>                 | Port for service health check (default 5588)
-| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https))
-| \<token pin>                        | Software token PIN code
-| \<admin user>                       | Admin username
-| \<admin password>                   | Admin password
-| \<database host>                    | (Optional) host for external database
-| \<database port>                    | (Optional) port for external database, default 5432
-| \<database password>                | (Optional) External database super user password
-| \<log level>                        | (Optional) Logging level, one of: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
-| \<database name>                    | (Optional) Database name prefix ('serverconf' becomes '\<database-name>\_serverconf'), useful when using a shared database server
-| \<config volume name>               | Name of the configuration volume
-| \<database volume name>             | Name of the local database volume
-| \<archive volume name>              | Name of the archive/backup volume
+| **Value**                           | **Explanation**                                                                                                                   |
+|-------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| \<container name>                   | Name of the Security Server Sidecar container                                                                                     |
+| \<admin port>                       | Port for admin user interface (default 4000)                                                                                      |
+| \<healthcheck port>                 | Port for service health check (default 5588)                                                                                      |
+| \<consumer information system port> | Consumer information system port (default 8080 (http), 8443 (https))                                                              |
+| \<token pin>                        | Software token PIN code                                                                                                           |
+| \<admin user>                       | Admin username                                                                                                                    |
+| \<admin password>                   | Admin password                                                                                                                    |
+| \<database host>                    | (Optional) host for external database                                                                                             |
+| \<database port>                    | (Optional) port for external database, default 5432                                                                               |
+| \<database password>                | (Optional) External database super user password                                                                                  |
+| \<log level>                        | (Optional) Logging level, one of: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF                                                     |
+| \<database name>                    | (Optional) Database name prefix ('serverconf' becomes '\<database-name>\_serverconf'), useful when using a shared database server |
+| \<config volume name>               | Name of the configuration volume                                                                                                  |
+| \<database volume name>             | Name of the local database volume                                                                                                 |
+| \<archive volume name>              | Name of the archive/backup volume                                                                                                 |
 
 ### 2.3 Network
 
 The table below lists the required connections between different components.
 
-| Connection | Source                      | Target                       | Target Ports     | Protocol     | Note                    |
--------------|-----------------------------|------------------------------|------------------|--------------|-------------------------|
-| Inbound    | Other Security Servers      | Sidecar                      | 5500, 5577       | tcp          |                         |
-| Inbound    | Consumer Information System | Sidecar                      | 8080, 8443       | tcp          | From "internal" network |
-| Inbound    | Admin                       | Sidecar                      | 4000             | https        | From "internal" network |
-| Inbound    | ACME Server                 | Sidecar                      | 80               | http         |                         |
-| Outbound   | Sidecar                     | Central Server               | 80, 443, 4001    | http(s)      |                         |
-| Outbound   | Sidecar                     | OCSP Service                 | 80 / 443 / other | http(s)      |                         |
-| Outbound   | Sidecar                     | Timestamping Service         | 80 / 443 / other | http(s)      | Not used by *slim*      |
-| Outbound   | Sidecar                     | Other Security Server(s)     | 5500, 5577       | tcp          |                         |
-| Outbound   | Sidecar                     | Producer Information System  | 80, 443, other   | http(s)      | To "internal" network   |
-| Outbound   | Sidecar                     | ACME Server                  | 80 / 443         | http(s)      |                         |
-| Outbound   | Sidecar                     | Mail server                  | 587              | tcp          |                         |
+| Connection | Source                      | Target                      | Target Ports     | Protocol | Note                    |
+|------------|-----------------------------|-----------------------------|------------------|----------|-------------------------|
+| Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                         |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network |
+| Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network |
+| Inbound    | ACME Server                 | Sidecar                     | 80               | http     |                         |
+| Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                         |
+| Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                         |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*      |
+| Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                         |
+| Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network   |
+| Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                         |
+| Outbound   | Sidecar                     | Mail server                 | 587              | tcp      |                         |
 
 Notes:
 * Using a firewall to protect the Security Server is recommended. The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed.
@@ -154,7 +159,7 @@ See also [Docker Networking](https://docs.docker.com/network/)
 ### 2.4 Running the Sidecar Container
 
 To run X-Road Security Server Sidecar, use one of the images published in [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server-sidecar).
-Alternatively, you can build container images locally using the [docker-build.sh script](../../sidecar/docker-build.sh).
+Alternatively, you can build container images locally using the [docker-build.sh script](https://github.com/nordic-institute/X-Road/blob/2834322c62363e845b6030511e6e52fdacd9a8e0/sidecar/docker-build.sh).
 
 ```bash
 docker run --detach \
@@ -176,7 +181,7 @@ docker run --detach \
   -e XROAD_DB_PORT=<database-port> \
   -e XROAD_DB_PWD=<postgres password> \
   # Optional parameters - END
-  niis/xroad-security-server-sidecar:<version[-type[-variant]>
+  niis/xroad-security-server-sidecar:<version[-type[-variant]]>
 ```
 
 Note! This command persists all configuration inside the Sidecar container which means that state is lost when the container is destroyed.
@@ -359,6 +364,16 @@ See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
 
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
+
+### 3.3 Configuring the memory allocation for the Proxy Service
+
+The memory allocation for the Proxy Service can be configured using helper script `/usr/share/xroad/scripts/proxy_memory_helper.sh`. More information about the usage of this script is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#211-updating-proxy-services-memory-allocation-command-line-arguments).
+
+### 3.4 Autologin
+
+The Autologin feature logs onto the Signer keys' token automatically when the container has been restarted (for more info see [Autologin User Guide](../Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)). 
+
+For Sidecar, Autologin uses a custom script `custom-fetch-pin.sh` which looks at the environment variable `XROAD_TOKEN_PIN` first. This is set in the above example with a flag `-e XROAD_TOKEN_PIN=<token pin>`. When the Security Server is initialized for the first time, the token pin configured in the third step needs to match this variable. Given that for the autologin to succeed the token needs to be initialized and xroad-signer needs to be running, there can be retry statements in the logs when the autologin process starts before one of these things has happened. Eventually the autologin process should exit with a log message `xroad-autologin (exit status 0; expected)` which indicates that the autologin has succeeded. When the environment variable is not set, autologin might fail because by default the sidecar container doesn't have the token pin in its fallback location `/etc/xroad/autologin`. This file can be manually added with the correct pin if having the pin as plain text in that file is acceptable.
 
 ## 4 Upgrading
 

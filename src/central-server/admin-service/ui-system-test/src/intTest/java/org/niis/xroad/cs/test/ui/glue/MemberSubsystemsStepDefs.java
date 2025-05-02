@@ -44,28 +44,40 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
         memberSubsystemsPageObj.listSubsystems().shouldBe(Condition.enabled);
     }
 
-    @Step("A new subsystem with code: {} is added")
+    @Step("A new subsystem with code: {string} is added")
     public void subsystemIsAdded(String subsystemCode) {
+        subsystemIsAdded(subsystemCode, null);
+    }
+
+    @Step("A new subsystem with code: {string} and name: {string} is added")
+    public void subsystemIsAdded(String subsystemCode, String subsystemName) {
         memberSubsystemsPageObj.btnAddSubsystem().click();
         commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
 
         vTextField(memberSubsystemsPageObj.addDialog().subsystemCode())
                 .setValue(subsystemCode);
+        vTextField(memberSubsystemsPageObj.addDialog().subsystemName())
+                .setValue(subsystemName);
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Subsystem with code: {} and status: {} is listed")
+    @Step("Subsystem with code: {string} and status: {string} is listed")
     public void subsystemIsShown(String subsystemCode, String subsystemStatus) {
         memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, subsystemStatus).shouldBe(Condition.visible);
     }
 
-    @Step("Subsystem with code: {} and status: {} is deleted")
-    public void subsystemIsDeleted(String subsystemCode, String subsystemStatus) {
-        memberSubsystemsPageObj.btnDeleteSubsystem(subsystemCode, subsystemStatus).click();
+    @Step("Subsystem with code: {string}, name: {string} and status: {string} is listed")
+    public void subsystemIsShown(String subsystemCode, String subsystemName, String subsystemStatus) {
+        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, subsystemName, subsystemStatus).shouldBe(Condition.visible);
+    }
+
+    @Step("Subsystem with code: {string} is deleted")
+    public void subsystemIsDeleted(String subsystemCode) {
+        memberSubsystemsPageObj.btnDeleteSubsystem(subsystemCode).click();
 
         commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
         commonPageObj.dialog.btnDelete().shouldBe(Condition.enabled).click();
@@ -74,8 +86,24 @@ public class MemberSubsystemsStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Subsystem with code: {} and status: {} not listed any more")
-    public void subsystemIsNotShown(String subsystemCode, String subsystemStatus) {
-        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode, subsystemStatus).shouldNotBe(Condition.visible);
+    @Step("Subsystem with code: {string} is renamed to {string}")
+    public void subsystemIsRenamed(String subsystemCode, String newName) {
+        memberSubsystemsPageObj.btnRenameSubsystem(subsystemCode).click();
+
+        commonPageObj.dialog.btnCancel().shouldBe(Condition.enabled);
+        commonPageObj.dialog.btnSave().shouldNotBe(Condition.enabled);
+
+        vTextField(memberSubsystemsPageObj.renameDialog().subsystemName())
+                .setValue(newName);
+
+        commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
+
+        commonPageObj.snackBar.success().shouldBe(Condition.visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
+
+    @Step("Subsystem with code: {string} not listed any more")
+    public void subsystemIsNotShown(String subsystemCode) {
+        memberSubsystemsPageObj.listSubsystemsRowOf(subsystemCode).shouldNotBe(Condition.visible);
     }
 }

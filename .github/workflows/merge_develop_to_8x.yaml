@@ -1,0 +1,46 @@
+name: Auto-merge develop to develop-8.x
+on:
+  push:
+    branches:
+      - develop
+permissions:
+  contents: write
+jobs:
+  AutoMergeToDevelop8x:
+    name: Auto-merge to develop-8.x
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Try to merge develop into develop-8.x
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git fetch origin develop-8.x
+          git checkout -b develop-8.x origin/develop-8.x
+          set +e
+          git merge origin/develop -m "Auto-merge develop into develop-8.x"
+          echo "MERGE_EXIT_CODE=$?" >> $GITHUB_ENV
+          set -e
+      - name: Push if merge was successful
+        if: env.MERGE_EXIT_CODE == '0'
+        run: |
+          git push origin HEAD:develop-8.x
+      - name: Create a pull request if merge failed
+        if: env.MERGE_EXIT_CODE != '0'
+        run: |
+          git merge --abort
+          BRANCH_NAME="develop-to-develop-8.x-${{ github.run_id }}"
+          git checkout develop
+          git checkout -b "$BRANCH_NAME"
+          git push --set-upstream origin "$BRANCH_NAME"
+          gh pr create \
+          --base develop-8.x \
+          --head "$BRANCH_NAME" \
+          --title "Merge develop into develop-8.x" \
+          --assignee "${{ github.event.pusher.name }}" \
+          --body "This PR was created because an attempt to automatically merge develop into develop-8.x resulted in conflicts.
+            Please resolve them manually."
+        env:
+          GH_TOKEN: ${{ github.token }}

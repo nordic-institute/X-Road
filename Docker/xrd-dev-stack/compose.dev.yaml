@@ -56,6 +56,12 @@ services:
       - "4403:9998"
     networks:
       - xroad-network
+  isopenapi:
+    container_name: isopenapi
+    ports:
+      - "4700:8080"
+    networks:
+      - xroad-network
   isrest:
     container_name: isrest
     ports:

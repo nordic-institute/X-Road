@@ -25,21 +25,20 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_CLIENT_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SERVICE_CLIENT_NOT_FOUND;
 
 public class ServiceClientNotFoundException extends NotFoundException {
     public ServiceClientNotFoundException() {
-        super(new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
+        super(SERVICE_CLIENT_NOT_FOUND.build());
     }
 
     public ServiceClientNotFoundException(String s) {
-        super(s, new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
+        super(s, SERVICE_CLIENT_NOT_FOUND.build());
     }
 
     public ServiceClientNotFoundException(Throwable t) {
-        super(t, new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
+        super(t, SERVICE_CLIENT_NOT_FOUND.build());
     }
 }

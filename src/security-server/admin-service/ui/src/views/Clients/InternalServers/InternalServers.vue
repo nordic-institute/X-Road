@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card v-if="showConnectionType" variant="flat" class="xrd-card">
-    <v-card-title class="text-h6 mb-3 mt-4">
+  <v-card v-if="showConnectionType" variant="flat" class="xrd-card mb-5">
+    <v-card-title class="text-h6 mb-3 pa-4">
       {{ $t('internalServers.connectionType') }}
     </v-card-title>
     <v-select
@@ -42,7 +42,7 @@
     </v-card-text>
   </v-card>
 
-  <v-card variant="flat" class="xrd-card pb-4">
+  <v-card variant="flat" class="xrd-card mb-5">
     <v-card-title class="tls-title-wrap pa-4">
       <h1 class="text-h6 mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
       <xrd-file-upload
@@ -110,7 +110,7 @@
     </v-data-table>
   </v-card>
 
-  <v-card v-if="canViewSSCert" variant="flat" class="xrd-card pb-4">
+  <v-card v-if="canViewSSCert" variant="flat" class="xrd-card mb-5">
     <v-card-title class="text-h6 mb-3 pa-4">{{
       $t('internalServers.ssCertTitle')
     }}</v-card-title>
@@ -355,7 +355,6 @@ export default defineComponent({
 }
 
 .xrd-card {
-  margin-top: 40px;
 }
 
 .conn-info {

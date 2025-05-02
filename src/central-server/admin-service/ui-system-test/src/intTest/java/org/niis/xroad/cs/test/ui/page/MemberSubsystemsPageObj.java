@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.codeborne.selenide.Selenide.$x;
 import static org.openqa.selenium.By.xpath;
@@ -34,6 +35,7 @@ import static org.openqa.selenium.By.xpath;
 @SuppressWarnings("InnerClassMayBeStatic")
 public class MemberSubsystemsPageObj {
     private final AddDialog addDialog = new AddDialog();
+    private final RenameDialog renameDialog = new RenameDialog();
 
     public SelenideElement tabSubsystems() {
         return $x("//a[@data-test='member-subsystems-tab-button']");
@@ -43,16 +45,23 @@ public class MemberSubsystemsPageObj {
         return $x("//div[@data-test='subsystems-table']");
     }
 
-    public SelenideElement listSubsystemsRowOf(String code, String status) {
+    public SelenideElement listSubsystemsRowOf(String code, Object... other) {
 
-        var xpath = ".//div//table//tbody//tr[td[contains(text(), '%s')] and td[contains(text(), '%s')]]";
+        var xpath = ".//div//table//tbody//tr[td[contains(text(), '%s')] %s]";
 
-        return listSubsystems().find(xpath(String.format(xpath, code, status)));
+        var additional = StringUtils.repeat(" and td[contains(text(), '%s')]", other.length).formatted(other);
+
+        return listSubsystems().find(xpath(String.format(xpath, code, additional)));
     }
 
-    public SelenideElement btnDeleteSubsystem(String code, String status) {
-        return listSubsystemsRowOf(code, status)
+    public SelenideElement btnDeleteSubsystem(String code) {
+        return listSubsystemsRowOf(code)
                 .find(xpath(".//button[@data-test='delete-subsystem']"));
+    }
+
+    public SelenideElement btnRenameSubsystem(String code) {
+        return listSubsystemsRowOf(code)
+                .find(xpath(".//button[@data-test='rename-subsystem']"));
     }
 
     public SelenideElement btnAddSubsystem() {
@@ -63,9 +72,23 @@ public class MemberSubsystemsPageObj {
         return addDialog;
     }
 
+    public RenameDialog renameDialog() {
+        return renameDialog;
+    }
+
     public class AddDialog {
         public SelenideElement subsystemCode() {
             return $x("//div[@data-test='add-subsystem-input']");
+        }
+
+        public SelenideElement subsystemName() {
+            return $x("//div[@data-test='add-subsystem-name-input']");
+        }
+    }
+
+    public class RenameDialog {
+        public SelenideElement subsystemName() {
+            return $x("//div[@data-test='subsystem-name-input']");
         }
     }
 }

@@ -26,7 +26,7 @@
  -->
 <template>
   <main>
-    <v-card class="mt-8" flat>
+    <v-card class="mt-5" flat>
       <!-- Table -->
       <v-table
         :loading="loading"
@@ -59,6 +59,7 @@
                 })`
               }}
             </th>
+            <th>{{ $t('members.member.subsystems.subsystemname') }}</th>
             <th>{{ $t('members.member.subsystems.servercode') }}</th>
             <th>{{ $t('members.member.subsystems.serverOwner') }}</th>
             <th>{{ $t('members.member.subsystems.status') }}</th>
@@ -69,6 +70,13 @@
           <tr v-if="item.used_security_servers.length === 0" class="">
             <td class="unregistered-subsystem">
               {{ item.subsystem_id.subsystem_code }}
+            </td>
+            <td class="unregistered-subsystem">
+              {{ item.subsystem_name }}
+              <rename-subsystem-btn
+                v-if="allowMemberSubsystemRename"
+                :subsystem-name="item.subsystem_name"
+                @click="renameClicked(item)" />
             </td>
             <td class="unregistered-subsystem" />
             <td class="unregistered-subsystem" />
@@ -99,6 +107,13 @@
           >
             <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
               {{ item.subsystem_id.subsystem_code }}
+            </td>
+            <td v-if="iSub === 0" :rowspan="item.used_security_servers.length">
+              {{ item.subsystem_name }}
+              <rename-subsystem-btn
+                v-if="allowMemberSubsystemRename"
+                :subsystem-name="item.subsystem_name"
+                @click="renameClicked(item)" />
             </td>
             <td>{{ subitem.server_code }}</td>
             <td>{{ subitem.server_owner }}</td>
@@ -171,6 +186,16 @@
       @save="addedSubsystem"
     />
 
+    <rename-member-subsystem-dialog
+      v-if="clickedSubsystemCode && showRenameDialog"
+      :member="memberStore.currentMember"
+      :subsystem-code="clickedSubsystemCode"
+      :subsystem-name="clickedSubsystemName"
+      data-test="rename-subsystem"
+      @cancel="cancel"
+      @save="renamedSubsystem"
+    />
+
     <delete-member-subsystem-dialog
       v-if="clickedSubsystemCode && showDeleteDialog"
       :member="memberStore.currentMember"
@@ -212,6 +237,8 @@ import {
 } from '@/openapi-types';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import RenameMemberSubsystemDialog from '@/views/Members/Member/Subsystems/RenameMemberSubsystemDialog.vue';
+import RenameSubsystemBtn from '@/components/members/RenameSubsystemBtn.vue';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -223,6 +250,8 @@ let that: any;
 export default defineComponent({
   name: 'MemberSubsystems',
   components: {
+    RenameSubsystemBtn,
+    RenameMemberSubsystemDialog,
     CustomDataTableFooter,
     DataTableToolbar,
     DeleteMemberSubsystemDialog,
@@ -243,6 +272,7 @@ export default defineComponent({
 
       showAddSubsystemDialog: false,
       showDeleteDialog: false,
+      showRenameDialog: false,
       showUnregisterDialog: false,
 
       loading: false,
@@ -251,6 +281,7 @@ export default defineComponent({
       subsystems: [] as Subsystem[],
 
       clickedSubsystemCode: '',
+      clickedSubsystemName: '',
       clickedServer: null as UsedSecurityServers | null,
     };
   },
@@ -262,6 +293,9 @@ export default defineComponent({
     },
     allowMemberSubsystemDelete(): boolean {
       return this.hasPermission(Permissions.REMOVE_MEMBER_SUBSYSTEM);
+    },
+    allowMemberSubsystemRename(): boolean {
+      return this.hasPermission(Permissions.EDIT_MEMBER_SUBSYSTEM);
     },
     allowToUnregisterMemberSubsystem(): boolean {
       return this.hasPermission(Permissions.UNREGISTER_SUBSYSTEM);
@@ -290,6 +324,11 @@ export default defineComponent({
         ?.subsystem_code as string;
       this.showDeleteDialog = true;
     },
+    renameClicked(subsystem: Subsystem) {
+      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
+      this.clickedSubsystemName= subsystem.subsystem_name as string;
+      this.showRenameDialog = true;
+    },
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {
       this.clickedSubsystemCode = subsystem.subsystem_id
         ?.subsystem_code as string;
@@ -305,6 +344,12 @@ export default defineComponent({
       this.clickedSubsystemCode = '';
       this.refetchSubsystems();
     },
+    renamedSubsystem() {
+      this.showRenameDialog = false;
+      this.clickedSubsystemCode = '';
+      this.clickedSubsystemName = '';
+      this.refetchSubsystems();
+    },
     unregisteredSubsystem() {
       this.showUnregisterDialog = false;
       this.clickedSubsystemCode = '';
@@ -313,9 +358,11 @@ export default defineComponent({
     },
     cancel() {
       this.showAddSubsystemDialog = false;
+      this.showRenameDialog = false;
       this.showDeleteDialog = false;
       this.showUnregisterDialog = false;
       this.clickedSubsystemCode = '';
+      this.clickedSubsystemName = '';
       this.clickedServer = null;
     },
     refetchSubsystems() {

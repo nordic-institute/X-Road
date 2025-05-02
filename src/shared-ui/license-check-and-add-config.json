@@ -23,7 +23,8 @@
     "tests/unit/__snapshots__",
     "build.gradle.kts",
     "build/**",
-    ".gradle/**"
+    ".gradle/**",
+    ".settings/**"
   ],
   "license": "LICENSE.txt",
   "licenseFormats": {

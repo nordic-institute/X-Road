@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.converter.comparator;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,7 @@ public class ServiceClientSortingComparatorTest {
 
     @Test
     public void testClientSorting() {
-        List<ServiceClient> clients = new ArrayList<ServiceClient>();
+        List<ServiceClientDto> clients = new ArrayList<ServiceClientDto>();
         clients.add(createTestServiceClient("Client", "TEST:COM:33456:Client"));
         clients.add(createTestServiceClient("client", "TEST:COM:33455:Client"));
         clients.add(createTestServiceClient(null, "TEST:ORG:33456:Service1"));
@@ -115,8 +116,8 @@ public class ServiceClientSortingComparatorTest {
         assertEquals("TEST:ORG:33456:Service1", clients.get(16).getId());
     }
 
-    private ServiceClient createTestServiceClient(String name, String id) {
-        ServiceClient serviceClient = new ServiceClient();
+    private ServiceClientDto createTestServiceClient(String name, String id) {
+        ServiceClientDto serviceClient = new ServiceClientDto();
         serviceClient.setName(name);
         serviceClient.setId(id);
         return serviceClient;

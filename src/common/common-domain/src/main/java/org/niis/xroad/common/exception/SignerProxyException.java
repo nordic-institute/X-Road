@@ -27,15 +27,13 @@
 
 package org.niis.xroad.common.exception;
 
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import lombok.NonNull;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class SignerProxyException extends ServiceException {
+public class SignerProxyException extends InternalServerErrorException {
 
-    public SignerProxyException(DeviationProvider code, Object... metadata) {
-        super(code, metadata);
+    public SignerProxyException(Throwable cause, @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
 
-    public SignerProxyException(DeviationProvider code, Throwable cause, Object... metadata) {
-        super(code, cause, metadata);
-    }
 }

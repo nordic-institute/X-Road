@@ -134,7 +134,7 @@ class SharedParametersLoaderTest {
         when(securityServerService.findAll()).thenReturn(getSecurityServers());
         when(clientService.find(new ClientService.SearchParameters()
                 .setSecurityServerId(SECURITY_SERVER_ID).setSecurityServerEnabled(true)))
-                .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1")));
+                .thenReturn(List.of(getFlattenedSecurityServerClientView("M2", "S1", null)));
 
         when(globalGroupService.findGlobalGroups()).thenReturn(List.of(getGlobalGroup()));
         when(globalGroupMemberService.findByGroupCode(GLOBAL_GROUP_CODE)).thenReturn(List.of(
@@ -285,7 +285,7 @@ class SharedParametersLoaderTest {
                             assertThat(member.getId()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
 
                             assertThat(member.getSubsystems())
-                                    .containsOnly(new SharedParameters.Subsystem("S1",
+                                    .containsOnly(new SharedParameters.Subsystem("S1", null,
                                             ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1", "S1")));
                         },
                         member -> {
@@ -293,9 +293,9 @@ class SharedParametersLoaderTest {
                             assertThat(member.getId()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"));
                             assertThat(member.getSubsystems())
                                     .containsOnly(
-                                            new SharedParameters.Subsystem("S1",
+                                            new SharedParameters.Subsystem("S1", null,
                                                     ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1")),
-                                            new SharedParameters.Subsystem("S2",
+                                            new SharedParameters.Subsystem("S2", "Name of S2",
                                                     ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2")));
                         }
                 );
@@ -303,14 +303,16 @@ class SharedParametersLoaderTest {
 
     private List<FlattenedSecurityServerClientView> getClients() {
         return List.of(
-                getFlattenedSecurityServerClientView("M1", null),
-                getFlattenedSecurityServerClientView("M1", "S1"),
-                getFlattenedSecurityServerClientView("M2", "S1"),
-                getFlattenedSecurityServerClientView("M2", "S2"),
-                getFlattenedSecurityServerClientView("M2", null));
+                getFlattenedSecurityServerClientView("M1", null, null),
+                getFlattenedSecurityServerClientView("M1", "S1", null),
+                getFlattenedSecurityServerClientView("M2", "S1", null),
+                getFlattenedSecurityServerClientView("M2", "S2", "Name of S2"),
+                getFlattenedSecurityServerClientView("M2", null, null));
     }
 
-    private FlattenedSecurityServerClientView getFlattenedSecurityServerClientView(String memberCode, String subsystemCode) {
+    private FlattenedSecurityServerClientView getFlattenedSecurityServerClientView(String memberCode,
+                                                                                   String subsystemCode,
+                                                                                    String subsystemName) {
         var client = new FlattenedSecurityServerClientView();
         client.setXroadInstance(XROAD_INSTANCE);
 
@@ -319,6 +321,7 @@ class SharedParametersLoaderTest {
 
         client.setMemberCode(memberCode);
         client.setSubsystemCode(subsystemCode);
+        client.setSubsystemName(subsystemName);
         client.setType(subsystemCode == null ? MEMBER : SUBSYSTEM);
         client.setMemberName(String.format("Member %s%s", memberCode, subsystemCode != null ? "/" + subsystemCode : ""));
         return client;

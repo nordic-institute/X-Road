@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,20 +31,25 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.GlobalGroupIdEntity;
+import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;
+import org.niis.xroad.serverconf.impl.entity.SecurityServerIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
+import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 
 import java.util.List;
 
 /**
  * Identifier data access object implementation.
  */
-public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId.Conf> {
+public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
 
     private static final String X_ROAD_INSTANCE = "xRoadInstance";
     private static final String MEMBER_CLASS = "memberClass";
@@ -55,10 +61,10 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId.Conf> {
     /**
      * Finds a (local) client identifier corresponding the example or null if none exits
      */
-    public ClientId.Conf findClientId(Session session, ClientId example) {
+    public ClientIdEntity findClientId(Session session, ClientId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<ClientId.Conf> query = cb.createQuery(ClientId.Conf.class);
-        final Root<ClientId.Conf> from = query.from(ClientId.Conf.class);
+        final CriteriaQuery<ClientIdEntity> query = cb.createQuery(ClientIdEntity.class);
+        final Root<ClientIdEntity> from = query.from(ClientIdEntity.class);
 
         Predicate pred = cb.and(
                 cb.equal(from.get(X_ROAD_INSTANCE), example.getXRoadInstance()),
@@ -70,18 +76,18 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId.Conf> {
             pred = cb.and(pred, cb.equal(from.get(SUBSYSTEM_CODE), example.getSubsystemCode()));
         }
 
-        final List<ClientId.Conf> list = session.createQuery(query.select(from).where(pred))
+        final List<ClientIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
                 .setCacheable(true)
                 .getResultList();
 
-        return list.isEmpty() ? null : list.get(0);
+        return list.isEmpty() ? null : list.getFirst();
     }
 
-    public ServiceId.Conf findServiceId(Session session, ServiceId example) {
+    public ServiceIdEntity findServiceId(Session session, ServiceId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<ServiceId.Conf> query = cb.createQuery(ServiceId.Conf.class);
-        final Root<ServiceId.Conf> from = query.from(ServiceId.Conf.class);
+        final CriteriaQuery<ServiceIdEntity> query = cb.createQuery(ServiceIdEntity.class);
+        final Root<ServiceIdEntity> from = query.from(ServiceIdEntity.class);
 
         Predicate pred = cb.and(
                 cb.equal(from.get(X_ROAD_INSTANCE), example.getXRoadInstance()),
@@ -99,18 +105,18 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId.Conf> {
             pred = cb.and(pred, cb.equal(from.get(SERVICE_VERSION), example.getServiceVersion()));
         }
 
-        final List<ServiceId.Conf> list = session.createQuery(query.select(from).where(pred))
+        final List<ServiceIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
                 .setCacheable(true)
                 .getResultList();
 
-        return list.isEmpty() ? null : list.get(0);
+        return list.isEmpty() ? null : list.getFirst();
     }
 
-    public SecurityServerId.Conf findSecurityServerId(Session session, SecurityServerId example) {
+    public SecurityServerIdEntity findSecurityServerId(Session session, SecurityServerId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<SecurityServerId.Conf> query = cb.createQuery(SecurityServerId.Conf.class);
-        final Root<SecurityServerId.Conf> from = query.from(SecurityServerId.Conf.class);
+        final CriteriaQuery<SecurityServerIdEntity> query = cb.createQuery(SecurityServerIdEntity.class);
+        final Root<SecurityServerIdEntity> from = query.from(SecurityServerIdEntity.class);
 
         Predicate pred = cb.and(
                 cb.equal(from.get(X_ROAD_INSTANCE), example.getXRoadInstance()),
@@ -119,47 +125,47 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId.Conf> {
                 cb.equal(from.get("serverCode"), example.getServerCode()));
 
 
-        final List<SecurityServerId.Conf> list = session.createQuery(query.select(from).where(pred))
+        final List<SecurityServerIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
                 .setCacheable(true)
                 .getResultList();
 
-        return list.isEmpty() ? null : list.get(0);
+        return list.isEmpty() ? null : list.getFirst();
     }
 
-    public GlobalGroupId.Conf findGlobalGroupId(Session session, GlobalGroupId example) {
+    public GlobalGroupIdEntity findGlobalGroupId(Session session, GlobalGroupId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<GlobalGroupId.Conf> query = cb.createQuery(GlobalGroupId.Conf.class);
-        final Root<GlobalGroupId.Conf> from = query.from(GlobalGroupId.Conf.class);
+        final CriteriaQuery<GlobalGroupIdEntity> query = cb.createQuery(GlobalGroupIdEntity.class);
+        final Root<GlobalGroupIdEntity> from = query.from(GlobalGroupIdEntity.class);
 
         Predicate pred = cb.and(
                 cb.equal(from.get(X_ROAD_INSTANCE), example.getXRoadInstance()),
                 cb.equal(from.get(GROUP_CODE), example.getGroupCode()));
 
 
-        final List<GlobalGroupId.Conf> list = session.createQuery(query.select(from).where(pred))
+        final List<GlobalGroupIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
                 .setCacheable(true)
                 .getResultList();
 
-        return list.isEmpty() ? null : list.get(0);
+        return list.isEmpty() ? null : list.getFirst();
     }
 
-    public LocalGroupId.Conf findLocalGroupId(Session session, LocalGroupId example) {
+    public LocalGroupIdEntity findLocalGroupId(Session session, LocalGroupId example) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<LocalGroupId.Conf> query = cb.createQuery(LocalGroupId.Conf.class);
-        final Root<LocalGroupId.Conf> from = query.from(LocalGroupId.Conf.class);
+        final CriteriaQuery<LocalGroupIdEntity> query = cb.createQuery(LocalGroupIdEntity.class);
+        final Root<LocalGroupIdEntity> from = query.from(LocalGroupIdEntity.class);
 
         Predicate pred = cb.and(
                 cb.isNull(from.get(X_ROAD_INSTANCE)),
                 cb.equal(from.get(GROUP_CODE), example.getGroupCode()));
 
 
-        final List<LocalGroupId.Conf> list = session.createQuery(query.select(from).where(pred))
+        final List<LocalGroupIdEntity> list = session.createQuery(query.select(from).where(pred))
                 .setMaxResults(1)
                 .setCacheable(true)
                 .getResultList();
 
-        return list.isEmpty() ? null : list.get(0);
+        return list.isEmpty() ? null : list.getFirst();
     }
 }

@@ -23,8 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { App } from 'vue';
-import { i18n } from './plugins/i18n';
+import { App } from "vue";
+import { i18n } from "./plugins/i18n";
 
 export class Filters {
   capitalize(value: string): string {
@@ -146,6 +146,28 @@ export class Filters {
   commaSeparate(value: string[]): string {
     return value.join(', ');
   }
+
+  bytes(value, byteFormat: ByteFormat = ByteFormat.MB, fractionDigits: number = 1): string {
+    switch (byteFormat) {
+      case ByteFormat.kB:
+        return (data / 1024).toFixed(fractionDigits) + ByteFormat.kB;
+      case ByteFormat.MB:
+        return (value / 1024 ** 2).toFixed(fractionDigits) + ByteFormat.MB;
+      case ByteFormat.GB:
+        return (value / 1024 ** 3).toFixed(fractionDigits) + ByteFormat.GB;
+      case ByteFormat.TB:
+        return (value / 1024 ** 4).toFixed(fractionDigits) + ByteFormat.TB;
+      default:
+        return '-';
+    }
+  }
+}
+
+export enum ByteFormat {
+  kB = 'kB',
+  MB = 'MB',
+  GB = 'GB',
+  TB = 'TB',
 }
 
 export function createFilters() {

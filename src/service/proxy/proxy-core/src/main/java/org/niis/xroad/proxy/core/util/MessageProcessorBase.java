@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -137,6 +138,7 @@ public abstract class MessageProcessorBase {
                     soapMessage.getProtocolVersion());
             opMonitoringData.setServiceType(DescriptionType.WSDL.name());
             opMonitoringData.setRequestSize(soapMessage.getBytes().length);
+            opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
         }
     }
 
@@ -155,7 +157,10 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setServiceType(Optional.ofNullable(
                     commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
-            opMonitoringData.setRestPath(getNormalizedServicePath(request.getServicePath()));
+            // we log rest path data only for PRODUCER
+            opMonitoringData.setRestPath(opMonitoringData.isProducer()
+                    ? getNormalizedServicePath(request.getServicePath()) : null);
+            opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
         }
     }
 

@@ -18,3 +18,7 @@ tasks.register<Jar>("changelogJar") {
 artifacts {
   add("changelogJar", tasks.named("changelogJar"))
 }
+
+archUnit {
+  setSkip(true)
+}

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import lombok.Data;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -47,22 +48,22 @@ public class ServiceChangeChecker {
      * @param newServices
      * @return
      */
-    public ServiceChanges check(List<ServiceType> oldServices, List<ServiceType> newServices) {
+    public ServiceChanges check(List<ServiceEntity> oldServices, List<ServiceEntity> newServices) {
         List<String> oldFullServiceCodes = toFullServiceCodes(oldServices);
         List<String> newFullServiceCodes = toFullServiceCodes(newServices);
 
-        List<ServiceType> addedServices = new ArrayList<>(newServices);
+        List<ServiceEntity> addedServices = new ArrayList<>(newServices);
         addedServices.removeIf(serviceType -> oldFullServiceCodes
                 .contains(ServiceFormatter.getServiceFullName(serviceType)));
 
-        List<ServiceType> removedServices = new ArrayList<>(oldServices);
+        List<ServiceEntity> removedServices = new ArrayList<>(oldServices);
         removedServices.removeIf(serviceType -> newFullServiceCodes
                 .contains(ServiceFormatter.getServiceFullName(serviceType)));
 
         return new ServiceChanges(addedServices, removedServices);
     }
 
-    private List<String> toFullServiceCodes(List<ServiceType> newServices) {
+    private List<String> toFullServiceCodes(List<ServiceEntity> newServices) {
         return newServices.stream()
                 .map(ServiceFormatter::getServiceFullName)
                 .collect(Collectors.toList());
@@ -76,10 +77,10 @@ public class ServiceChangeChecker {
     public class ServiceChanges {
         private List<String> addedFullServiceCodes;
         private List<String> removedFullServiceCodes;
-        private List<ServiceType> addedServices;
-        private List<ServiceType> removedServices;
+        private List<ServiceEntity> addedServices;
+        private List<ServiceEntity> removedServices;
 
-        public ServiceChanges(List<ServiceType> addedServices, List<ServiceType> removedServices) {
+        public ServiceChanges(List<ServiceEntity> addedServices, List<ServiceEntity> removedServices) {
             this.addedServices = addedServices;
             this.removedServices = removedServices;
             this.addedFullServiceCodes = toFullServiceCodes(addedServices);

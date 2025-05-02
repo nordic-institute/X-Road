@@ -39,6 +39,7 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
@@ -78,6 +79,7 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DE
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_RENAME_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
 import static org.springframework.http.HttpStatus.ACCEPTED;
@@ -126,11 +128,17 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
 
     @Step("client {string} is registered as security server {string} client from {string}")
     public void memberIsRegisteredAsSecurityServerClient(String memberId, String securityServerId, String origin) {
+        memberIsRegisteredAsSecurityServerClient(memberId, null, securityServerId, origin);
+    }
+
+    @Step("client {string} with name {string} is registered as security server {string} client from {string}")
+    public void memberIsRegisteredAsSecurityServerClient(String memberId, String subsystemName, String securityServerId, String origin) {
         final ClientRegistrationRequestDto managementRequest = new ClientRegistrationRequestDto();
         managementRequest.setType(CLIENT_REGISTRATION_REQUEST);
         managementRequest.setOrigin(valueOf(origin));
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(memberId);
+        managementRequest.setSubsystemName(subsystemName);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();
@@ -175,6 +183,23 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(clientId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .execute();
+    }
+
+    @Step("security server {string} client {string} is renamed to {string}")
+    public void securityServerClientIsRenamed(String securityServerId, String clientId, String newName) {
+        final var managementRequest = new ClientRenameRequestDto();
+        managementRequest.setType(CLIENT_RENAME_REQUEST);
+        managementRequest.setOrigin(SECURITY_SERVER);
+        managementRequest.setSecurityServerId(securityServerId);
+        managementRequest.setClientId(clientId);
+        managementRequest.setSubsystemName(newName);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
         this.managementRequestId = response.getBody().getId();

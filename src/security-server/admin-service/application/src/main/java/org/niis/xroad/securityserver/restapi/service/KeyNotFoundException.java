@@ -25,21 +25,17 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.common.exception.NotFoundException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_NOT_FOUND;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.KEY_NOT_FOUND;
 
 public class KeyNotFoundException extends NotFoundException {
     public KeyNotFoundException(String s) {
-        super(s, createError());
+        super(s, KEY_NOT_FOUND.build());
     }
 
     public KeyNotFoundException(Throwable t) {
-        super(t, createError());
+        super(t, KEY_NOT_FOUND.build());
     }
 
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_KEY_NOT_FOUND);
-    }
 }

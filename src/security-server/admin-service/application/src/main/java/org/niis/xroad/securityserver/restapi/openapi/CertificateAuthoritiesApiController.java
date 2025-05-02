@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,32 +32,24 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.CertificateAuthorityConverter;
 import org.niis.xroad.securityserver.restapi.converter.CsrSubjectFieldDescriptionConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.AcmeEabCredentialsStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrder;
-import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
-import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescription;
-import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
-import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
-import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
+import org.niis.xroad.securityserver.restapi.openapi.model.AcmeEabCredentialsStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrderDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescriptionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
-import org.niis.xroad.securityserver.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
@@ -72,6 +65,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collection;
 import java.util.Set;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.MEMBER_ID_REQUIRED_FOR_SIGN_CSR;
 
 /**
  * certificate authorities api controller
@@ -92,54 +87,47 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Currently returns partial CertificateAuthority objects that have only
+     * Currently returns partial CertificateAuthorityDto objects that have only
      * name and authentication_only properties set.
      * Other properties will be added in another ticket (system parameters).
-     *
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CERTIFICATE_AUTHORITIES')"
             + " or (hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
-            + " or #keyUsageType == null))"
+            + " (#keyUsageTypeDto == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).AUTHENTICATION"
+            + " or #keyUsageTypeDto == null))"
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING)")
-    public ResponseEntity<Set<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
-                                                                                       Boolean includeIntermediateCas) {
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
-        Collection<ApprovedCaDto> caDtos = null;
-        try {
-            caDtos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo, includeIntermediateCas);
-        } catch (CertificateAuthorityService.InconsistentCaDataException e) {
-            throw new InternalServerErrorException(e);
-        }
-        Set<CertificateAuthority> cas = certificateAuthorityConverter.convert(caDtos);
+            + "#keyUsageTypeDto == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).SIGNING)")
+    public ResponseEntity<Set<CertificateAuthorityDto>> getApprovedCertificateAuthorities(KeyUsageTypeDto keyUsageTypeDto,
+                                                                                          Boolean includeIntermediateCas) {
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageTypeDto).orElse(null);
+        Collection<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo, includeIntermediateCas);
+
+        Set<CertificateAuthorityDto> cas = certificateAuthorityConverter.convert(caDtos);
         return new ResponseEntity<>(cas, HttpStatus.OK);
     }
 
     @SuppressWarnings("squid:S3655") // see reason below
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " (#keyUsageTypeDto == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).AUTHENTICATION))"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "(#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
-    public ResponseEntity<Set<CsrSubjectFieldDescription>> getSubjectFieldDescriptions(
+            + "(#keyUsageTypeDto == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).SIGNING))")
+    public ResponseEntity<Set<CsrSubjectFieldDescriptionDto>> getSubjectFieldDescriptions(
             String caName,
-            KeyUsageType keyUsageType,
+            KeyUsageTypeDto keyUsageTypeDto,
             String keyId,
             String encodedMemberId,
             Boolean isNewMember) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).get();
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageTypeDto).get();
 
         // memberId is mandatory for sign csrs
-        if (keyUsageInfo == KeyUsageInfo.SIGNING) {
-            if (StringUtils.isBlank(encodedMemberId)) {
-                throw new BadRequestException("memberId is mandatory for sign csrs");
-            }
+        if (keyUsageInfo == KeyUsageInfo.SIGNING && StringUtils.isBlank(encodedMemberId)) {
+            throw new BadRequestException(MEMBER_ID_REQUIRED_FOR_SIGN_CSR.build());
         }
 
         try {
@@ -148,8 +136,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
                 KeyInfo keyInfo = keyService.getKey(keyId);
                 if (keyInfo.getUsage() != null) {
                     if (keyInfo.getUsage() != keyUsageInfo) {
-                        throw new BadRequestException("key is for different usage",
-                                new ErrorDeviation("wrong_key_usage"));
+                        throw new WrongKeyUsageException("key is for different usage");
                     }
                 }
             }
@@ -162,53 +149,41 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             CertificateProfileInfo profileInfo;
             profileInfo = certificateAuthorityService.getCertificateProfile(
                     caName, keyUsageInfo, memberId, isNewMember);
-            Set<CsrSubjectFieldDescription> converted = subjectConverter.convert(
+            Set<CsrSubjectFieldDescriptionDto> converted = subjectConverter.convert(
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 
-        } catch (WrongKeyUsageException | KeyNotFoundException | ClientNotFoundException e) {
+        } catch (KeyNotFoundException | ClientNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAuthorityNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (CertificateProfileInstantiationException e) {
-            throw new InternalServerErrorException(e);
         }
     }
 
     @Override
     @PreAuthorize("(hasAuthority('IMPORT_AUTH_CERT') and "
-            + " (#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " (#keyUsageTypeDto == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).AUTHENTICATION))"
             + " or (hasAuthority('IMPORT_SIGN_CERT') and "
-            + "(#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
-    public ResponseEntity<AcmeEabCredentialsStatus> hasAcmeExternalAccountBindingCredentials(String caName,
-                                                                                             KeyUsageType keyUsageType,
-                                                                                             String memberId) {
-        try {
-            final var isAcmeEabRequired = certificateAuthorityService.isAcmeExternalAccountBindingRequired(caName);
-            final var hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
-            return new ResponseEntity<>(new AcmeEabCredentialsStatus(isAcmeEabRequired, hasAcmeEabCredentials), HttpStatus.OK);
-        } catch (CertificateAuthorityNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
+            + "(#keyUsageTypeDto == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).SIGNING))")
+    public ResponseEntity<AcmeEabCredentialsStatusDto> hasAcmeExternalAccountBindingCredentials(String caName,
+                                                                                                KeyUsageTypeDto keyUsageTypeDto,
+                                                                                                String memberId) {
+
+        final var isAcmeEabRequired = certificateAuthorityService.isAcmeExternalAccountBindingRequired(caName);
+        final var hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
+        return new ResponseEntity<>(new AcmeEabCredentialsStatusDto(isAcmeEabRequired, hasAcmeEabCredentials), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("(hasAuthority('IMPORT_AUTH_CERT') and "
-            + " (#acmeOrder.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " (#acmeOrderDto.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).AUTHENTICATION))"
             + " or (hasAuthority('IMPORT_SIGN_CERT') and "
-            + "(#acmeOrder.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
+            + "(#acmeOrderDto.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto).SIGNING))")
     @AuditEventMethod(event = RestApiAuditEvent.ACME_ORDER_CERTIFICATE)
-    public ResponseEntity<Void> orderAcmeCertificate(String caName, AcmeOrder acmeOrder) {
-        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrder.getKeyUsageType()).get();
+    public ResponseEntity<Void> orderAcmeCertificate(String caName, AcmeOrderDto acmeOrderDto) {
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrderDto.getKeyUsageType()).orElseThrow();
         try {
-            tokenCertificateService.orderAcmeCertificate(caName, acmeOrder.getCsrId(), keyUsageInfo);
-        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException
-                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
+            tokenCertificateService.orderAcmeCertificate(caName, acmeOrderDto.getCsrId(), keyUsageInfo);
+        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | GlobalConfOutdatedException | CertificateAlreadyExistsException e) {
-            throw new ConflictException(e);
-        } catch (CsrNotFoundException e) {
-            throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
             throw new InternalServerErrorException(e);
         }

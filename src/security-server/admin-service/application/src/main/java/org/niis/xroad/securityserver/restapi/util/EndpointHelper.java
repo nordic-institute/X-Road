@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,56 +27,48 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
+import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.EndpointMapper;
+import org.niis.xroad.serverconf.model.Endpoint;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_METHOD;
+import static org.niis.xroad.serverconf.model.BaseEndpoint.ANY_PATH;
+
 @Component
 public class EndpointHelper {
 
     /**
-     * Get endpoints from client, for given service
-     * @param service
-     * @param client
-     * @return
-     */
-    public List<EndpointType> getEndpoints(ServiceType service, ClientType client) {
-        List<EndpointType> allEndpoints = client.getEndpoint();
-        return allEndpoints.stream()
-                .filter(endpointType -> endpointType.getServiceCode().equals(service.getServiceCode()))
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Get endpoints from given service description
-     * @param serviceDescriptionType
-     * @return
+     * @param serviceDescriptionEntity service description
+     * @return List<EndpointEntity>
      */
-    public List<EndpointType> getEndpoints(ServiceDescriptionType serviceDescriptionType) {
-        ClientType client = serviceDescriptionType.getClient();
-        List<String> allServiceCodes = serviceDescriptionType.getService().stream()
-                .map(ServiceType::getServiceCode)
-                .collect(Collectors.toList());
-        List<EndpointType> allEndpoints = client.getEndpoint();
+    public List<EndpointEntity> getEndpoints(ServiceDescriptionEntity serviceDescriptionEntity) {
+        ClientEntity client = serviceDescriptionEntity.getClient();
+        List<String> allServiceCodes = serviceDescriptionEntity.getServices().stream()
+                .map(ServiceEntity::getServiceCode)
+                .toList();
+        List<EndpointEntity> allEndpoints = client.getEndpoints();
         return allEndpoints.stream()
-                .filter(endpointType -> allServiceCodes.contains(endpointType.getServiceCode()))
+                .filter(endpointEntity -> allServiceCodes.contains(endpointEntity.getServiceCode()))
                 .collect(Collectors.toList());
     }
 
-    public List<EndpointType> getNewEndpoints(String serviceCode, OpenApiParser.Result result) {
-        List<EndpointType> newEndpoints = result.getOperations().stream()
+    public List<EndpointEntity> getNewEndpoints(String serviceCode, OpenApiParser.Result result) {
+        List<Endpoint> newEndpoints = result.operations().stream()
                 .map(operation -> mapOperationToEndpoint(serviceCode, operation))
                 .collect(Collectors.toList());
-        newEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
-        return newEndpoints;
+        newEndpoints.add(new Endpoint(serviceCode, ANY_METHOD, ANY_PATH, true));
+        return EndpointMapper.get().toEntities(newEndpoints);
     }
 
-    private EndpointType mapOperationToEndpoint(String serviceCode, OpenApiParser.Operation operation) {
-        return new EndpointType(serviceCode, operation.getMethod(), operation.getPath(), true);
+    private Endpoint mapOperationToEndpoint(String serviceCode, OpenApiParser.Operation operation) {
+        return new Endpoint(serviceCode, operation.method(), operation.path(), true);
     }
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -35,8 +36,11 @@ import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.serverconf.model.TspType;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
@@ -154,7 +158,6 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId with given params
-     *
      * @param instance
      * @param memberClass
      * @param memberCode
@@ -167,7 +170,6 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId "FI:GOV:M1:SS1"
-     *
      * @return ClientId
      */
     public static ClientId.Conf getM1Ss1ClientId() {
@@ -176,7 +178,6 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId "FI:GOV:M1:SS2"
-     *
      * @return ClientId
      */
     public static ClientId.Conf getM1Ss2ClientId() {
@@ -186,7 +187,6 @@ public final class TestUtils {
     /**
      * Returns a new ClientId which has been built from encoded client id string,
      * such as "FI:GOV:M1:SS1"
-     *
      * @param encodedId
      * @return
      */
@@ -194,9 +194,12 @@ public final class TestUtils {
         return new ClientIdConverter().convertId(encodedId);
     }
 
+    public static ClientIdEntity getClientIdEntity(String encodedId) {
+        return XRoadIdMapper.get().toEntity(new ClientIdConverter().convertId(encodedId));
+    }
+
     /**
      * Returns a new MemberInfo with given parameters
-     *
      * @param instance
      * @param memberClass
      * @param memberCode
@@ -205,12 +208,12 @@ public final class TestUtils {
      */
     public static MemberInfo getMemberInfo(String instance, String memberClass, String memberCode, String subsystem) {
         return new MemberInfo(getClientId(instance, memberClass, memberCode, subsystem),
-                subsystem != null ? NAME_FOR + subsystem : NAME_FOR + memberCode);
+                NAME_FOR + memberCode,
+                subsystem == null ? null : NAME_FOR + subsystem);
     }
 
     /**
      * Returns a new GlobalGroupInfo object
-     *
      * @param instance
      * @param groupCode
      * @return
@@ -221,7 +224,6 @@ public final class TestUtils {
 
     /**
      * Finds warning with matching code, or returns null
-     *
      * @param code
      * @param warningDeviations
      * @return
@@ -229,7 +231,7 @@ public final class TestUtils {
     public static WarningDeviation findWarning(String code, Collection<WarningDeviation> warningDeviations) {
         if (warningDeviations != null) {
             return warningDeviations.stream()
-                    .filter(warning -> code.equals(warning.getCode()))
+                    .filter(warning -> code.equals(warning.code()))
                     .findFirst()
                     .orElse(null);
         }
@@ -239,7 +241,6 @@ public final class TestUtils {
     /**
      * assert that path <code>http://http://localhost</code> + endpointPathEnd
      * exists in header <code>Location</code> (true for our integration tests)
-     *
      * @param endpointPath for example "/api/service-descriptions/12"
      * @param response
      */
@@ -252,7 +253,6 @@ public final class TestUtils {
 
     /**
      * assert that request does not have <code>Location</code> headers
-     *
      * @param response
      */
     public static <T> void assertMissingLocationHeader(ResponseEntity<T> response) {
@@ -266,7 +266,6 @@ public final class TestUtils {
 
     /**
      * Add Authentication header for API key with all roles
-     *
      * @param testRestTemplate
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate) {
@@ -275,9 +274,8 @@ public final class TestUtils {
 
     /**
      * Add Authentication header for specific API key
-     *
      * @param testRestTemplate
-     * @param apiKeyToken API key token
+     * @param apiKeyToken      API key token
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate,
                                                     String apiKeyToken) {
@@ -292,13 +290,19 @@ public final class TestUtils {
 
     /**
      * Creates a new TspType using the given url and name
-     *
      * @param url
      * @param name
      * @return
      */
-    public static TspType createTspType(String url, String name) {
-        TspType tsp = new TspType();
+    public static TimestampingService createTspType(String url, String name) {
+        TimestampingService tsp = new TimestampingService();
+        tsp.setUrl(url);
+        tsp.setName(name);
+        return tsp;
+    }
+
+    public static TimestampingServiceEntity createTspTypeEntity(String url, String name) {
+        TimestampingServiceEntity tsp = new TimestampingServiceEntity();
         tsp.setUrl(url);
         tsp.setName(name);
         return tsp;
@@ -306,7 +310,6 @@ public final class TestUtils {
 
     /**
      * Creates a new ApprovedTSAType with the given url and name
-     *
      * @param url
      * @param name
      * @return
@@ -320,13 +323,12 @@ public final class TestUtils {
 
     /**
      * Creates a new TimestampingService using the given url and name
-     *
      * @param url
      * @param name
      * @return
      */
-    public static TimestampingService createTimestampingService(String url, String name) {
-        TimestampingService timestampingService = new TimestampingService();
+    public static TimestampingServiceDto createTimestampingService(String url, String name) {
+        TimestampingServiceDto timestampingService = new TimestampingServiceDto();
         timestampingService.setUrl(url);
         timestampingService.setName(name);
         return timestampingService;
@@ -334,7 +336,6 @@ public final class TestUtils {
 
     /**
      * Returns a file from classpath
-     *
      * @param pathToFile
      * @return
      */

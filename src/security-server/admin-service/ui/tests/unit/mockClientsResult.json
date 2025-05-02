@@ -11,7 +11,7 @@
     "status": "REGISTERED",
     "subsystem_code": "POP1",
     "type": "SUBSYSTEM",
-    "visibleName": "POP1"
+    "visibleName": ""
   },
   {
     "connection_type": "HTTPS",
@@ -24,7 +24,7 @@
     "status": "REGISTERED",
     "subsystem_code": "POP2",
     "type": "SUBSYSTEM",
-    "visibleName": "POP2"
+    "visibleName": ""
   },
   {
     "connection_type": "HTTPS",
@@ -38,7 +38,7 @@
     "status": "SAVED",
     "subsystem_code": "SUBS1",
     "type": "SUBSYSTEM",
-    "visibleName": "SUBS1"
+    "visibleName": ""
   },
   {
     "connection_type": "HTTPS",
@@ -52,7 +52,7 @@
     "status": "SAVED",
     "subsystem_code": "MANAGEMENT",
     "type": "SUBSYSTEM",
-    "visibleName": "MANAGEMENT"
+    "visibleName": ""
   },
   {
     "connection_type": "HTTPS",
@@ -101,6 +101,6 @@
     "member_code": "3000",
     "owner": false,
     "type": "VIRTUAL_MEMBER",
-    "visibleName": "unknown member"
+    "visibleName": "client.unknownMember"
   }
 ]

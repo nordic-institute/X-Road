@@ -9,7 +9,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Clients tab is selected
 
   Scenario: Client WSDL service is configured
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When WSDL service dialog is opened and url is set to "http://mock-server:1080/test-services/testservice1.wsdl"
     And  WSDL service dialog is opened and url is set to "http://mock-server:1080/test-services/testservice3.wsdl"
@@ -17,25 +17,25 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And  Service "WSDL (http://mock-server:1080/test-services/testservice3.wsdl)" is present in the list
 
   Scenario: Client WSDL service is not duplicated
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When  WSDL service dialog is opened and url is set to "http://mock-server:1080/test-services/testservice1.wsdl"
     Then error: "WSDL exists" was displayed
 
   Scenario: Client WSDL service is not valid
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When  WSDL service dialog is opened and url is set to "https://www.niis.org/"
     Then error: "Invalid WSDL" was displayed
 
   Scenario: Client WSDL service url does not respond
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When  WSDL service dialog is opened and url is set to "http://mock-server:1080/test-services/missing.wsdl"
     Then error: "WSDL download failed" was displayed
 
   Scenario: Client WSDL service url is updated
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is updated with url "http://mock-server:1080/test-services/testservice2.wsdl"
     Then Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is missing in the list
@@ -45,7 +45,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is present in the list
 
   Scenario: Client WSDL service service testOp1 is edited
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
@@ -64,7 +64,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
       | testOpA      | https://www.niis.org/second-update/  | 33       |
 
   Scenario: Client service has access rights added to it
-    When Client "TestService" is opened
+    When Client "Test service" is opened
     And Services sub-tab is selected
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
@@ -75,7 +75,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service access rights subjects search filter clearing restore initial state
-    When Client "TestService" is opened
+    When Client "Test service" is opened
     And Services sub-tab is selected
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
@@ -87,7 +87,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     Then The query return 9 entries in the subjects table
 
   Scenario: Client service has one access rights removed
-    When Client "TestService" is opened
+    When Client "Test service" is opened
     And Services sub-tab is selected
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
@@ -97,7 +97,7 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service has all access rights removed
-    When Client "TestService" is opened
+    When Client "Test service" is opened
     And Services sub-tab is selected
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
@@ -112,20 +112,20 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service Access Rights table member with id "DEV:COM:1234:TestService" is missing
 
   Scenario: Newly added services are enabled and one of them disabled
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is enabled
     And Service "WSDL (http://mock-server:1080/test-services/testservice3.wsdl)" is enabled
     Then Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is disabled with notice "just disabled."
 
   Scenario: Newly added service is deleted
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "WSDL (http://mock-server:1080/test-services/testservice3.wsdl)" is deleted
     Then Service "WSDL (http://mock-server:1080/test-services/testservice3.wsdl)" is missing in the list
 
   Scenario: Service is refreshed
-    Given Client "TestService" is opened
+    Given Client "Test service" is opened
     And Services sub-tab is selected
     When Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     Then WSDL Service is refreshed

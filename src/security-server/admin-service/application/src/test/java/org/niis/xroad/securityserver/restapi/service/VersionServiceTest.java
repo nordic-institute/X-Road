@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.Version;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
+import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -44,7 +44,7 @@ class VersionServiceTest {
 
     @Test
     void readVersionInfo() {
-        VersionInfoDto versionInfo = versionService.getVersionInfo();
+        VersionInfo versionInfo = versionService.getVersionInfo();
         assertTrue(versionInfo.isUsingSupportedJavaVersion());
     }
 
@@ -53,7 +53,7 @@ class VersionServiceTest {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
         System.setProperty(Version.JAVA_VERSION_PROPERTY, "10");
         try {
-            VersionInfoDto versionInfo = versionService.getVersionInfo();
+            VersionInfo versionInfo = versionService.getVersionInfo();
             assertEquals(10, versionInfo.getJavaVersion());
             assertFalse(versionInfo.isUsingSupportedJavaVersion());
         } finally {
@@ -66,7 +66,7 @@ class VersionServiceTest {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
         System.setProperty(Version.JAVA_VERSION_PROPERTY, "12");
         try {
-            VersionInfoDto versionInfo = versionService.getVersionInfo();
+            VersionInfo versionInfo = versionService.getVersionInfo();
             assertEquals(12, versionInfo.getJavaVersion());
             assertFalse(versionInfo.isUsingSupportedJavaVersion());
         } finally {

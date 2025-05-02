@@ -24,7 +24,8 @@ warn() {
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then
-  errorExit "XROAD_HOME is not set. Exiting."
+  XROAD_HOME=$(realpath "$(pwd)/../..")
+  warn "XROAD_HOME is not set. Setting it to $XROAD_HOME"
 fi
 
 TARGET_PACKAGE_SOURCE=internal
@@ -43,6 +44,7 @@ if [[ $# -eq 0 ]]; then
   echo "Available args:"
   echo "--skip-gradle-build: Skip gradle build and use existing packages"
   echo "--skip-tests: Skip gradle build and use existing packages"
+  echo "--parallel: Run gradle build in parallel"
 fi
 
 if [[ "$GRADLE_BUILD" -eq 1 ]]; then
