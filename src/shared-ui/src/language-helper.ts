@@ -27,8 +27,11 @@
 
 import { createI18n } from 'vue-i18n';
 import merge from 'deepmerge';
+import enSharedMessages from './locales/en.json';
+import ptSharedMessages from './locales/pt.json';  // suporte adicionado para mensagens da interface em pt-BR
+import enValidationMessages from '@vee-validate/i18n/dist/locale/en.json';
+import ptValidationMessages from '@vee-validate/i18n/dist/locale/pt_BR.json'; // suporte adicionado para mensagens de validação em pt-BR (vee-validate)
 import axios from 'axios';
-import { nextTick } from 'vue';
 
 interface MessageLoader {
   (language: string): Promise<any>
@@ -36,21 +39,22 @@ interface MessageLoader {
 
 interface LanguageHelper {
   selectLanguage(language: string): Promise<void>;
-
   loadLanguage(language: string): Promise<void>;
-
   getCurrentLanguage(): string;
 }
 
 export const defaultLanguage = import.meta.env.VITE_I18N_LOCALE || 'en';
 export const defaultFallbackLanguage = import.meta.env.VITE_FALLBACK_LOCALE || defaultLanguage;
 
-export function prepareI18n(...loaders: MessageLoader[]) {
-  const loadedLanguages = new Set();
+export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) {
+  const loadedLanguages = new Set(defaultLanguage);
 
-  const _loaders = [loadValidationMessages, loadVuetifyMessages, loadSharedMessages, ...loaders];
+  const _loaders = [loadValidationMessages, loadSharedMessages, ...loaders];
 
-  const missingAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
+  const enMessages = merge.all([{ validation: enValidationMessages }, enSharedMessages, fallbackMessages]) as any;
+  const ptMessages = merge.all([{ validation: ptValidationMessages }, ptSharedMessages]) as any; // combina mensagens de validação e interface para pt-BR
+
+  const missingAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION === 'true';
 
   const i18n = createI18n({
     legacy: false,
@@ -59,33 +63,31 @@ export function prepareI18n(...loaders: MessageLoader[]) {
     missingWarn: missingAndFallbackWarn,
     fallbackWarn: missingAndFallbackWarn,
     allowComposition: true,
+    messages: {
+      en: enMessages,
+      pt: ptMessages, // suporte adicionado para pt-BR
+    },
   });
-
-  loadLanguage(defaultLanguage);
 
   async function load(language: string) {
     return Promise.all(_loaders.map(loader => loader(language)))
-      .then(msgs => {
-        return msgs
-      })
-      .then((msgs) => merge.all(msgs));
+      .then(msgs => merge.all(msgs));
   }
 
   async function loadLanguage(language: string) {
     if (!loadedLanguages.has(language)) {
       const messages = await load(language);
       i18n.global.setLocaleMessage(language, messages);
-      loadedLanguages.add(language)
+      loadedLanguages.add(language);
     }
-    return nextTick();
   }
 
   async function selectLanguage(language: string) {
     await loadLanguage(language);
     i18n.global.locale.value = language;
 
-    axios.defaults.headers.common['Accept-Language'] = language
-    document.querySelector('html')?.setAttribute('lang', language)
+    axios.defaults.headers.common['Accept-Language'] = language;
+    document.querySelector('html')?.setAttribute('lang', language);
   }
 
   const languageHelper: LanguageHelper = {
@@ -94,7 +96,7 @@ export function prepareI18n(...loaders: MessageLoader[]) {
     getCurrentLanguage() {
       return i18n.global.locale.value;
     },
-  }
+  };
 
   return { i18n, languageHelper };
 }
@@ -104,31 +106,19 @@ async function loadSharedMessages(language: string) {
     const module = await import(`./locales/${language}.json`);
     return module.default;
   } catch (e) {
-    console.warn("Failed to load shared translations for: " + language);
+    console.error("Failed to load translations for: " + language);
     return {};
   }
 }
 
 async function loadValidationMessages(language: string) {
   try {
-    const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`);
+    const normalizedLanguage = language === 'pt' ? 'pt_BR' : language; // normaliza 'pt' para 'pt_BR' ao carregar mensagens de validação do vee-validate
+    const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${normalizedLanguage}.json`);
     return { validation: msg.default };
   } catch (e) {
-    console.warn("Failed to load veeValidate translations for: " + language);
-    return {}
-  }
-}
-
-async function loadVuetifyMessages(language: string) {
-  try {
-    const locales = await import('vuetify/locale') as any;
-    if (!locales[language]) {
-      console.warn("Missing Vuetify translations for: " + language);
-    }
-    return { $vuetify: (locales[language] || {}) };
-  } catch (e) {
-    console.warn("Failed to load Vuetify translations for: " + language);
-    return {}
+    console.error("Failed to load validation messages for: " + language);
+    return {};
   }
 }
 
