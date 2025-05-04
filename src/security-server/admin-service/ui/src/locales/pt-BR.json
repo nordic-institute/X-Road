@@ -1,0 +1,1003 @@
+{
+  "403": {
+    "goBack": "Voltar",
+    "mainTitle": "Acesso negado",
+    "text": "Parece que você não tem permissão para acessar esta página. Verifique se está na conta correta ou entre em contato com o administrador.",
+    "topTitle": "Acesso negado"
+  },
+  "404": {
+    "pageNotFound": "404 - página não encontrada",
+    "text": "Ops! Essa página não existe.",
+    "textUnicorn": "Verifique o endereço ou volte a página inicial."
+  },
+  "accessRights": {
+    "addServiceClients": "Adicionar clientes",
+    "addServiceClientsSuccess": "Direitos de acesso adicionados com sucesso",
+    "addServiceClientsTitle": "Adicionar clientes",
+    "addSubjectsSuccess": "Direitos de acesso adicionados com sucesso",
+    "id": "ID",
+    "memberName": "Nome do Membro / Descrição do Grupo",
+    "removeAllText": "Você tem certeza de que deseja remover os direitos de acesso de todos os clientes?",
+    "removeAllTitle": "Remover todos os direitos de acesso?",
+    "removeSuccess": "Direitos de acesso removidos com sucesso",
+    "removeText": "Você tem certeza de que deseja remover os direitos de acesso deste cliente?",
+    "removeTitle": "Remover direitos de acesso?",
+    "rightsGiven": "Direitos de Acesso concedidos",
+    "title": "Direitos de Acesso"
+  },
+  "action": {
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "disable": "Desativar",
+    "enable": "Ativar",
+    "order": "Ordenar"
+  },
+  "alert": {
+    "warningCount": "Quantidade de avisos iguais"
+  },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITYSERVER_OBSERVER": "Observador do Servidor",
+      "XROAD_SERVICE_ADMINISTRATOR": "Administrador de Serviços"
+    }
+  },
+  "backup": {
+    "createBackup": {
+      "messages": {
+        "localConfWarning": "Aviso! O arquivo “/etc/xroad/services/local.conf” usado para sobrescrever configurações está obsoleto e não é mais incluído nos backups. Use o arquivo “/etc/xroad/services/local.properties” em vez disso."
+      }
+    }
+  },
+  "cert": {
+    "activateSuccess": "Certificado ativado",
+    "certDeleted": "Certificado excluído",
+    "deleteCertConfirm": "Tem certeza de que deseja excluir este certificado?",
+    "deleteCertTitle": "Excluir certificado?",
+    "disableSuccess": "Certificado desativado",
+    "disabled": "Desativado",
+    "expires": "Expira em",
+    "inUse": "Em uso",
+    "serialNumber": "Número de Série",
+    "signCertificate": "Assinar Certificado",
+    "state": "Estado"
+  },
+  "certificateProfile": {
+    "COMMON_NAME": "Nome Comum (CN)",
+    "COUNTRY_CODE": "Código do País (C)",
+    "INSTANCE_IDENTIFIER": "Identificador da Instância (C)",
+    "INSTANCE_IDENTIFIER_O": "Identificador da Instância (O)",
+    "MEMBER_CLASS": "Classe do Membro (O)",
+    "MEMBER_CLASS_BC": "Classe do Membro (BC)",
+    "MEMBER_CLASS_OU": "Classe do Membro (OU)",
+    "MEMBER_CODE": "Código do Membro (CN)",
+    "MEMBER_CODE_SN": "Código do Membro (SN)",
+    "ORGANIZATION_NAME": "Nome da Organização (O)",
+    "ORGANIZATION_NAME_CN": "Nome da Organização (CN)",
+    "SERIAL_NUMBER": "Número de Série",
+    "SERIAL_NUMBER_SN": "Número de Série (SN)",
+    "SERVER_CODE": "Código do Servidor (CN)",
+    "SERVER_DNS_NAME": "Nome DNS do Servidor (CN)",
+    "SUBJECT_ALTERNATIVE_NAME": "Nome Alternativo do  (SAN)"
+  },
+  "client": {
+    "action": {
+      "delete": {
+        "confirmText": "Você deseja excluir este cliente?",
+        "confirmTitle": "Excluir cliente",
+        "success": "Cliente excluído"
+      },
+      "makeOwner": {
+        "button": "Tornar Proprietário",
+        "confirmText1": "Você deseja tornar o membro abaixo o novo Membro Proprietário deste Servidor Seguro?",
+        "confirmText2": "Ao pressionar o botão \"Tornar proprietário\" abaixo, uma solicitação de alteração de proprietário será enviada à autoridade gestora do X-Road.",
+        "confirmTitle": "Tornar Membro Proprietário",
+        "success": "Proprietário alterado"
+      },
+      "removeOrphans": {
+        "cancelButtonText": "Não",
+        "confirmText": "A chave de assinatura e o certificado associados ao cliente excluído não possuem usuários. Deseja excluir a chave e o certificado?",
+        "confirmTitle": "Exclusão de chave e certificado",
+        "success": "Certificado excluído"
+      },
+      "unregister": {
+        "confirmText": "Você deseja desregistrar este cliente?",
+        "confirmTitle": "Desregistrar cliente",
+        "success": "Cliente desregistrado"
+      },
+      "disable": {
+        "confirmText": "Você deseja desativar este cliente?",
+        "confirmTitle": "Desativar cliente",
+        "success": "Desativação do cliente em andamento"
+      },
+      "enable": {
+        "confirmText": "Você deseja ativar este cliente?",
+        "confirmTitle": "Ativar cliente",
+        "success": "Ativação do cliente em andamento"
+      }
+    },
+    "id": "ID",
+    "member": "Membro",
+    "memberClass": "Classe do Membro",
+    "memberCode": "Código do Membro",
+    "memberName": "Nome do Membro",
+    "name": "Nome",
+    "owner": "Proprietário",
+    "status": "Status",
+    "statusText": {
+      "deletionInProgress": "EXCLUSÃO EM ANDAMENTO",
+      "globalError": "ERRO GLOBAL",
+      "registered": "REGISTRADO",
+      "registrationInProgress": "REGISTRO EM ANDAMENTO",
+      "saved": "SALVO",
+      "disabled": "DESATIVADO",
+      "disablingInProgress": "DESATIVAÇÃO EM ANDAMENTO",
+      "enablingInProgress": "ATIVAÇÃO EM ANDAMENTO"
+    },
+    "subsystemCode": "Código do Subsistema",
+    "unknownMember": "membro desconhecido"
+  },
+  "clients": {
+    "action": {
+      "register": {
+        "confirm": {
+          "text": "Tem certeza de que deseja enviar uma solicitação de registro de cliente?",
+          "title": "Registrar cliente"
+        },
+        "success": "Solicitação de registro de cliente enviada com sucesso"
+      }
+    }
+  },
+  "csr": {
+    "addKey": "Adicionar chave",
+    "certificationService": "Serviço de Certificação",
+    "client": "Cliente",
+    "csrDetails": "Detalhes do CSR",
+    "csrFormat": "Formato do CSR",
+    "eabCredRequired": "A Autoridade Certificadora selecionada exige vinculação de conta externa para ACME, mas as credenciais estão ausentes na configuração.",
+    "failedFetchAcmeMetadata": "Falha ao buscar os metadados ACME para a Autoridade Certificadora selecionada, o que pode causar erros nas próximas etapas.",
+    "generateCsr": "Gerar CSR",
+    "helpCertificationService": "Autoridade Certificadora (CA) que emitirá o certificado.",
+    "helpClient": "Membro X-Road para o qual o certificado será emitido.",
+    "helpCsrFormat": "Formato do pedido de assinatura de certificado conforme os requisitos da CA.",
+    "helpUsage": "Política de uso do certificado: assinar mensagens ou autenticar o Servidor Seguro.",
+    "saveInfo": "Gere um novo CSR e salve-o em um local seguro.",
+    "usage": "Uso",
+    "orderAcmeCertificate": "Solicite um certificado do Servidor ACME com o CSR gerado e importe o certificado retornado para o token."
+  },
+  "customValidation": {
+    "invalidEndpoint": "O endpoint contém caracteres inválidos",
+    "invalidUrl": "A URL não é válida",
+    "invalidXrdIdentifier": "O identificador contém caracteres inválidos",
+    "requiredIf": "O campo {fieldName} é obrigatório"
+  },
+  "diagnostics": {
+    "addOnStatus": {
+      "messageLogDisabled": "Desativado pela configuração"
+    },
+    "globalConfiguration": {
+      "configurationStatus": {
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Não foi possível baixar a configuração global. Verifique a conexão de rede.",
+        "ERROR_CODE_EXPIRED_CONF": "A configuração global baixada expirou.",
+        "ERROR_CODE_INTERNAL": "Ocorreu um erro interno.",
+        "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Valor de assinatura inválido.",
+        "ERROR_CODE_MISSING_PRIVATE_PARAMS": "A configuração global baixada não contém parâmetros privados.",
+        "ERROR_CODE_UNINITIALIZED": "O cliente de configuração está inicializando.",
+        "SUCCESS": "Tudo certo",
+        "UNKNOWN": "Desconhecido"
+      },
+      "title": "Configuração global"
+    },
+    "javaVersion": {
+      "earliest": "Versão mínima suportada",
+      "latest": "Última versão suportada",
+      "notSupported": "A versão atual do Java não é suportada",
+      "ok": "Tudo certo",
+      "title": "Versão do Java",
+      "vendor": "Nome do fornecedor"
+    },
+    "mailNotificationConfiguration": {
+      "title": "Status das notificações por e-mail",
+      "help": {
+        "title": "Status de notificações por e-mail disponíveis",
+        "description": "Notificações por e-mail são enviadas automaticamente para os destinatários configurados nos seguintes eventos, dependendo da configuração: renovação do certificado de autenticação via ACME (sucesso/falha), renovação do certificado de assinatura via ACME (sucesso/falha) e registro do certificado de autenticação (sucesso). Ativar notificações por e-mail exige alterações na configuração do Servidor Seguro. Consulte o Guia do Usuário do Servidor Seguro para mais detalhes."
+      },
+      "failureEnabled": "Notificações de falha",
+      "successEnabled": "Notificações de sucesso",
+      "configuration": "Configuração do servidor de e-mail",
+      "recipientsEmails": "E-mails dos destinatários",
+      "enabled": {
+        "true": "Ativado",
+        "false": "Desativado"
+      },
+      "confStatus": {
+        "true": "Configurado",
+        "false": "Configuração incompleta"
+      }
+    },
+    "message": "Mensagem",
+    "nextUpdate": "Próxima atualização",
+    "ocspResponders": {
+      "certificationService": "Serviço de Certificação:",
+      "ocspStatus": {
+        "ERROR_CODE_OCSP_CONNECTION_ERROR": "Não foi possível conectar ao validador OCSP",
+        "ERROR_CODE_OCSP_FAILED": "Não foi possível obter a resposta do validador OCSP",
+        "ERROR_CODE_OCSP_RESPONSE_INVALID": "Não foi possível interpretar a resposta do OCSP",
+        "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "Não foi possível verificar a resposta do OCSP",
+        "ERROR_CODE_OCSP_UNINITIALIZED": "Solicitação de status ainda não enviada",
+        "SUCCESS": "Tudo certo",
+        "UNKNOWN": "Desconhecido"
+      },
+      "title": "Validadores OCSP"
+    },
+    "previousUpdate": "Atualização anterior",
+    "serviceUrl": "URL do Serviço",
+    "status": "Status",
+    "timestamping": {
+      "timestampingStatus": {
+        "ERROR_CODE_INTERNAL": "Ocorreu um erro interno",
+        "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "URL do servidor de carimbo de tempo malformada. Verifique a URL.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Conexão expirou. Verifique a rede com o provedor da configuração global.",
+        "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Conexão ok, nenhuma solicitação de carimbo de tempo feita ainda",
+        "SUCCESS": "Tudo certo",
+        "UNKNOWN": "Desconhecido"
+      },
+      "title": "Carimbo de Tempo"
+    },
+    "encryption": {
+      "status": {
+        "false": "Desativada",
+        "true": "Ativada"
+      },
+      "statusTitle": "Status da criptografia:",
+      "backup": {
+        "title": "Criptografia de backup",
+        "configuredKeyId": "ID da Chave Configurada"
+      },
+      "messageLog": {
+        "archive": {
+          "title": "Criptografia do arquivo de logs de mensagens",
+          "groupingTitle": "Regra de agrupamento:",
+          "memberIdentifier": "Identificador do membro",
+          "keyId": "ID da chave",
+          "defaultKeyNote": "Este membro está configurado para usar a chave padrão de criptografia do servidor. Para maior segurança, considere definir uma chave específica."
+        },
+        "database": {
+          "title": "Criptografia do banco de dados de logs de mensagens"
+        }
+      }
+    }
+  },
+  "endpoints": {
+    "addEndpoint": "Adicionar Endpoint",
+    "all": "TODOS",
+    "deleteEndpointText": "Tem certeza de que deseja excluir este endpoint?",
+    "deleteSuccess": "Endpoint removido com sucesso",
+    "deleteTitle": "Excluir endpoint",
+    "details": "Detalhes do Endpoint",
+    "editSuccess": "Alterações no endpoint salvas com sucesso",
+    "endpointHelp1": "Os caminhos são relativos ao caminho base da API, por exemplo, '/pets'. O asterisco (*) pode ser usado como um caractere curinga.",
+    "endpointHelp2": "* = corresponde a um segmento de caminho.",
+    "endpointHelp3": "** = corresponde a zero ou mais segmentos, por exemplo, '/pets/**'.",
+    "endpointHelp4": "Parâmetros de caminho devem ser substituídos por um asterisco, por exemplo, '/pets/{id}/images' => '/pets/*/images'.",
+    "httpRequestMethod": "Método HTTP",
+    "path": "Caminho",
+    "saveNewEndpointSuccess": "Novo endpoint criado com sucesso"
+  },
+  "error_code": {
+    "accessright_not_found": "Direito de acesso não encontrado",
+    "acme": {
+      "eab_credentials_missing": "Credenciais de vinculação de conta externa ausentes, mas necessárias",
+      "eab_secret_length": "Comprimento do segredo base64 da vinculação de conta externa inválido",
+      "account_key_pair_error": "Erro ao obter o par de chaves para a conta do servidor ACME",
+      "account_keystore_password_missing": "Senha do keystore da conta ACME ausente no arquivo de configuração acme.yml",
+      "fetching_metadata_error": "Falha ao buscar metadados do servidor ACME. O servidor ACME pode estar inacessível",
+      "account_creation_failure": "Falha ao criar conta no servidor ACME. Se a vinculação de conta externa for necessária, verifique se as credenciais corretas estão configuradas no acme.yml",
+      "order_creation_failure": "Falha ao criar nova Ordem no servidor ACME",
+      "order_finalization_failure": "Falha ao finalizar a Ordem no servidor ACME",
+      "http_challenge_file_creation": "Falha ao criar o arquivo de desafio HTTP do ACME",
+      "http_challenge_file_deletion": "Falha ao excluir o arquivo de desafio HTTP do ACME",
+      "http_challenge_missing": "Atualmente o X-Road suporta apenas o desafio HTTP, mas ele está ausente das opções disponíveis no servidor ACME",
+      "challenge_trigger_failure": "Falha ao solicitar ao servidor ACME a validação do desafio",
+      "authorization_failure": "Falha na autorização. Geralmente está relacionada à falha na validação do desafio necessária para provar a propriedade do domínio",
+      "authorization_wait_failure": "Falha ao aguardar a conclusão da autorização",
+      "certificate_failure": "Falha ao obter o Certificado do servidor ACME",
+      "certificate_wait_failure": "Falha ao aguardar a criação do novo Certificado"
+    },
+    "action_not_possible": "Ação não é possível",
+    "additional_member_already_exists": "Membro adicional já existe",
+    "anchor_already_exists": "Âncora já existe",
+    "anchor_file_not_found": "Arquivo de âncora não encontrado",
+    "anchor_not_found": "Âncora não encontrada",
+    "anchor_upload_failed": "Falha ao enviar a âncora",
+    "auth_cert_not_supported": "Certificado de autenticação não suportado",
+    "base_endpoint_not_found": "Endpoint base não encontrado",
+    "ca_cert_status_processing_failure": "Falha ao processar o status do certificado da CA",
+    "cannot_delete_owner": "Não é possível excluir o proprietário",
+    "cannot_register_owner": "Não é possível registrar o proprietário",
+    "cannot_unregister_owner": "Não é possível desregistrar o proprietário",
+    "cert_wrong_usage": "Uso incorreto do certificado",
+    "certificate_already_exists": "Certificado já existe",
+    "certificate_authority_not_found": "Autoridade Certificadora não encontrada",
+    "certificate_id_not_found": "ID do Certificado não encontrado",
+    "certificate_not_found": "Certificado não encontrado",
+    "certificate_profile_instantiation_failure": "Falha ao instanciar o perfil do certificado",
+    "client_already_exists": "Cliente já existe",
+    "client_not_deleted": "Não foi possível excluir chaves, certificados e CSRs porque pertencem a um cliente existente",
+    "client_not_found": "Cliente não encontrado",
+    "conf_download_failed": "Falha no download da configuração",
+    "conf_verification": {
+      "anchor_not_for_external_source": "Âncora aponta para uma fonte de configuração interna. Apenas âncoras de fontes externas são suportadas como âncoras confiáveis.",
+      "missing_private_params": "Falha na importação da âncora de configuração: arquivo de âncora inválido",
+      "other": "Configuração da fonte falhou na verificação",
+      "outdated": "Configuração da fonte está desatualizada",
+      "signature_invalid": "A assinatura da configuração não pode ser verificada",
+      "unreachable": "A fonte de configuração não pode ser acessada, verifique a URL da fonte no arquivo de âncora enviado"
+    },
+    "core": {
+      "Server": {
+        "InternalError": "Erro interno",
+        "ServerProxy": {
+          "ServiceFailed": {
+            "HttpError": "Erro HTTP",
+            "SslAuthenticationFailed": "Falha na autenticação SSL"
+          },
+          "UnknownService": "Serviço desconhecido"
+        }
+      },
+      "Signer": {
+        "CertNotFound": "Certificado não encontrado",
+        "NetworkError": "O assinador não está acessível no momento.",
+        "KeyNotFound": "Chave não encontrada",
+        "TokenNotAvailable": "Token não disponível",
+        "TokenNotFound": "Token não encontrado",
+        "UnknownMember": "X-Road core - assinador: Membro desconhecido"
+      }
+    },
+    "csr_not_found": "CSR não encontrado",
+    "diagnostic_request_failed": "Solicitação de diagnóstico falhou",
+    "duplicate_accessright": "Direito de acesso duplicado",
+    "endpoint_already_exists": "Endpoint já existe",
+    "endpoint_not_found": "Endpoint não encontrado",
+    "global_conf_download_request_failed": "Falha na solicitação de download da configuração global",
+    "global_conf_outdated": "A configuração global está desatualizada",
+    "gpg_key_generation_failed": "Falha na geração do par de chaves GPG",
+    "gpg_key_generation_interrupted": "Geração do par de chaves GPG interrompida",
+    "identifier_not_found": "Identificador não encontrado",
+    "illegal_generated_endpoint_remove": "Remoção do endpoint gerado não é permitida",
+    "illegal_generated_endpoint_update": "Atualização do endpoint gerado não é permitida",
+    "import_internal_cert_failed": "Falha ao importar certificado interno",
+    "internal_anchor_upload_invalid_instance_id": "Âncora contém um ID de instância inválido",
+    "internal_error": "Erro interno. Consulte os logs do Servidor Seguro para mais detalhes.",
+    "internal_key_cert_interrupted": "Certificado de chave interna interrompido",
+    "invalid_cert": "Certificado inválido",
+    "invalid_characters_pin": "O PIN contém caracteres inválidos",
+    "invalid_dn_parameter": "Parâmetro DN inválido",
+    "invalid_https_url": "A URL não utiliza HTTPS",
+    "invalid_init_params": "Parâmetros de inicialização inválidos",
+    "invalid_instance_identifier": "Identificador de instância inválido",
+    "invalid_member_class": "Classe de membro inválida",
+    "invalid_service_client_id": "ID de cliente de serviço inválido",
+    "invalid_service_url": "URL de serviço inválida",
+    "invalid_wsdl": "WSDL inválido",
+    "invalid_wsdl_service_identifier": "Identificador de serviço WSDL inválido",
+    "key_and_cert_generation_failed": "Falha na geração da chave e certificado",
+    "key_not_found": "Chave não encontrada",
+    "local_group_code_already_exists": "Código do grupo local já existe",
+    "local_group_member_already_exists": "Membro do grupo local já existe",
+    "local_group_member_not_found": "Membro do grupo local não encontrado",
+    "local_group_not_found": "Grupo local não encontrado",
+    "malformed_anchor": "Âncora malformada",
+    "malformed_url": "URL malformada",
+    "management_request_sending_failed": "Falha no envio da solicitação de gerenciamento",
+    "member_already_owner": "Membro já é o proprietário",
+    "member_class_exists": "Classe de membro já existe",
+    "member_class_not_provided": "Classe de membro não fornecida",
+    "member_code_exists": "Código de membro já existe",
+    "member_code_not_provided": "Código de membro não fornecido",
+    "missing_parameter": "Parâmetro ausente",
+    "openapi_parsing_error": "Falha ao analisar a descrição OpenApi3",
+    "orphans_not_found": "Chaves órfãs, certificados e/ou CSRs associados ao cliente não foram encontrados",
+    "pin_code_exists": "Código PIN já existe",
+    "pin_code_not_provided": "Código PIN não fornecido",
+    "pin_incorrect": "PIN incorreto. Por favor, tente novamente.",
+    "pin_min_char_classes_count": "Contagem mínima de classes de caracteres no PIN",
+    "pin_min_length": "Comprimento mínimo do PIN",
+    "process_failed": "Processo falhou",
+    "process_not_executable": "Processo não é executável",
+    "server_already_fully_initialized": "O servidor já está totalmente inicializado",
+    "server_code_exists": "Código do servidor já existe",
+    "server_code_not_provided": "Código do servidor não fornecido",
+    "service_already_exists": "Serviço já existe",
+    "service_client_not_found": "Cliente de serviço não encontrado",
+    "service_code_already_exists": "Código de serviço já existe",
+    "service_description_not_found": "Descrição do serviço não encontrada",
+    "service_not_found": "Serviço não encontrado",
+    "sign_cert_not_supported": "Certificado de assinatura não suportado",
+    "software_token_init_failed": "Falha na inicialização do token de software",
+    "timestamping_service_already_configured": "Serviço de carimbo de tempo já configurado",
+    "timestamping_service_not_found": "Serviço de carimbo de tempo não encontrado",
+    "token": {
+      "malformed_csr": "Os dados do CSR estão malformados"
+    },
+    "token_not_active": "Token não está ativo",
+    "unsupported_openapi_version": "Versão OpenAPI não suportada. Apenas as versões 3.0.x e 3.1.0 são suportadas atualmente.",
+    "url_already_exists": "URL já existe",
+    "warnings_detected": "Avisos detectados",
+    "weak_pin": "PIN fraco",
+    "wrong_key_usage": "Uso incorreto da chave",
+    "wrong_servicedescription_type": "Tipo de descrição de serviço incorreto",
+    "wsdl_download_failed": "Falha no download do WSDL",
+    "wsdl_exists": "WSDL já existe",
+    "wsdl_validator_interrupted": "Validador WSDL interrompido",
+    "wsdl_validator_not_executable": "Validador WSDL não é executável"
+  },
+  "fields": {
+    "addClient": {
+      "memberClass": "Classe do Membro",
+      "memberCode": "Código do Membro",
+      "subsystemCode": "Código do Subsistema"
+    },
+    "C": "Código do País",
+    "clientAdd": {
+      "client": {
+        "memberCode": "Código do Membro",
+        "subsystemCode": "Código do Subsistema"
+      }
+    },
+    "CN": "Nome DNS do Servidor",
+    "confirmPin": "Confirmar PIN",
+    "csr": {
+      "certService": "Serviço de Certificação",
+      "client": "Cliente",
+      "csrFormat": "Formato do CSR",
+      "usage": "Uso",
+      "certificationService": "Serviço de Certificação"
+    },
+    "dns": "DNS",
+    "keys": {
+      "name": "Nome"
+    },
+    "O": "Nome da Organização",
+    "path": "Caminho",
+    "pin": "PIN",
+    "memberCode": "Código do Membro",
+    "securityServerAddress": "Endereço do Servidor Seguro",
+    "serialNumber": "Número de Série",
+    "serviceCode": "Código do Serviço",
+    "serviceDescriptionAdd": {
+      "restServiceCode": "Código do Serviço"
+    },
+    "serviceDescriptionUpdate": {
+      "newRestServiceCode": "Código do Serviço"
+    },
+    "serviceTimeout": "Tempo limite",
+    "serviceType": "Tipo de Serviço",
+    "serviceUrl": "URL",
+    "subjectAltName": "Nome Alternativo",
+    "token": {
+      "friendlyName": "Nome amigável",
+      "newPin": "Novo PIN",
+      "newPinConfirm": "Confirmar novo PIN",
+      "oldPin": "PIN antigo"
+    },
+    "tokenPin": "PIN do Token",
+    "url": "URL",
+    "username": "Nome de Usuário",
+    "certificationService": "Serviço de Certificação"
+  },
+  "global": {
+    "appTitle": "X-Road Servidor Seguro"
+  },
+  "general": {
+    "instance": "Instância",
+    "memberClass": "Classe do Membro",
+    "memberCode": "Código do Membro",
+    "name": "Nome",
+    "subsystem": "Subsistema",
+    "subsystemCode": "Código do Subsistema",
+    "type": "Tipo"
+  },
+  "globalAlert": {
+    "backupRestoreInProgress": "A configuração do Servidor Seguro está sendo restaurada a partir de um backup. Processo iniciado em {startTime}",
+    "globalConfigurationInvalid": "A configuração global está expirada",
+    "secondaryNode": "Você está em um nó secundário de um cluster do Servidor Seguro. Modificar a configuração está desativado.",
+    "softTokenPinNotEntered": "Por favor, insira o PIN do token de software",
+    "certificateRenewalJobFailure": "A última renovação de certificado falhou.",
+    "certificateRenewalJobFailureAuth": "Certificado(s) de autenticação com falha:",
+    "certificateRenewalJobFailureSign": "Certificado(s) de assinatura com falha:",
+    "navigateToKeysPage": "Veja a página de chaves e certificados para mais detalhes"
+  },
+  "initialConfiguration": {
+    "anchor": {
+      "generated": "Gerado",
+      "hash": "Hash (SHA-224)",
+      "info": "Importe a âncora de configuração fornecida pelo administrador do Servidor Central.",
+      "title": "Âncora de Configuração"
+    },
+    "member": {
+      "info": "Defina o membro que será o proprietário do Servidor Seguro:",
+      "serverCodeHelp": "Código do Servidor Seguro que identifica este servidor de forma única entre todos os servidores do mesmo proprietário.",
+      "title": "Membro Proprietário"
+    },
+    "noInitializationStatus": "Nenhum status de inicialização disponível",
+    "noPermission": "Este Servidor Seguro ainda não foi inicializado, entre em contato com um administrador para realizar a configuração inicial.",
+    "pin": {
+      "confirmPin": "Confirmar PIN",
+      "info1": "O token de software é onde as chaves AUTH do Servidor Seguro são armazenadas. Defina um PIN para acessar o token de software.",
+      "info2": "Todas as informações necessárias foram coletadas, pressione o botão Enviar para inicializar o Servidor Seguro.",
+      "info3": "Após a inicialização, conclua a configuração do Servidor Seguro clicando no botão Configurar na notificação que aparecerá em breve.",
+      "pin": "PIN",
+      "pinMatchError": "A confirmação do PIN não corresponde",
+      "title": "PIN do Token"
+    },
+    "success": "Servidor inicializado",
+    "title": "Configuração Inicial",
+    "warning": {
+      "init_server_id_exists": "ID do servidor já existe",
+      "init_server_owner_exists": "Proprietário do servidor já existe",
+      "init_servercode_exists": "Código do servidor já existe",
+      "init_software_token_initialized": "Token de software já inicializado",
+      "init_unregistered_member": "Membro não registrado"
+    }
+  },
+  "internalServers": {
+    "certHash": "Hash do Certificado",
+    "connTypeUpdated": "Tipo de conexão atualizado",
+    "connectionInfo": "O tipo de conexão para servidores no papel de provedor de serviço é definido na aba Serviços pela URL do serviço (http/https).",
+    "connectionType": "Tipo de conexão",
+    "ssCertTitle": "Certificado do Servidor Seguro",
+    "tlsTitle": "Certificado TLS do Sistema de Informação"
+  },
+  "certificate": {
+    "hash": "Hash do Certificado",
+    "subjectDistinguishedName": "Titular do Certificado (DN)",
+    "notBefore": "Não Antes de",
+    "notAfter": "Não Depois de"
+  },
+  "keys": {
+    "addKey": "Adicionar chave",
+    "authDetailsTitle": "Detalhes da Chave AUTH",
+    "authKeyCert": "Chaves e Certificados AUTH",
+    "authNotSupported": "Chave AUTH não suportada",
+    "auth_key_with_registered_cert_warning": "A chave possui certificados que precisam ser desregistrados antes da exclusão. Deseja continuar com o desregistro e a exclusão dos certificados associados e da chave da configuração do servidor? ID da Chave:",
+    "certMarkedForDeletion": "Certificado marcado para exclusão",
+    "certRegistrationInfo": "Nome DNS ou endereço IP do Servidor Seguro",
+    "certStatus": {
+      "deletion": "Exclusão em andamento",
+      "globalError": "Erro global",
+      "onlyInHWToken": "Somente no token",
+      "registered": "Registrado",
+      "registration": "Registro em andamento",
+      "saved": "Salvo"
+    },
+    "certificateRegistered": "Solicitação de registro do certificado enviada com sucesso",
+    "certificateUnregistered": "Solicitação de desregistro do certificado enviada com sucesso",
+    "csrDeleted": "CSR excluído",
+    "deleteCsr": "Excluir CSR",
+    "deleteCsrText": "Tem certeza de que deseja excluir este CSR?",
+    "deleteCsrTitle": "Excluir CSR?",
+    "deleteKeyText": "Tem certeza de que deseja excluir esta chave e todos os certificados associados da configuração do servidor?",
+    "deleteTitle": "Excluir chave?",
+    "detailsTitle": "Detalhes da Chave",
+    "expires": "Expira em",
+    "friendlyName": "Nome amigável",
+    "generateCsr": "Gerar CSR",
+    "globalErrors": "Erros globais",
+    "gotIt": "Entendido",
+    "helpTextApi": "As chaves API são usadas para autenticar chamadas de API na REST API de gerenciamento do Servidor Seguro. As chaves API estão associadas a funções que definem as permissões concedidas.",
+    "helpTextKeys": "A chave e o certificado de autenticação certificam a autenticidade de um Servidor Seguro. Eles são usados para autenticação em conexões entre Servidores de Seguros. A chave e o certificado de assinatura certificam a autenticidade de um membro do X-Road. Eles são usados para assinar e verificar a integridade de mensagens mediadas.",
+    "helpTextSS": "O certificado TLS do Servidor Seguro é usado em conexões entre o Servidor Seguro e um sistema de informação. O certificado TLS interno é usado tanto como cliente quanto como servidor, dependendo dos papéis de cada um.",
+    "helpTitleApi": "Chaves API",
+    "helpTitleKeys": "Chaves AUTH e SIGN",
+    "helpTitleSS": "Certificado TLS do Servidor Seguro",
+    "id": "ID",
+    "importCert": "Importar cert.",
+    "importCertSuccess": "Upload do certificado realizado com sucesso",
+    "incorrectPin": "PIN incorreto. Por favor, tente novamente.",
+    "keyDeleted": "Chave excluída",
+    "keyId": "ID da Chave:",
+    "keyInfo": "Informações da Chave",
+    "keyLabelInput": "Etiqueta da Chave",
+    "keySaved": "Chave salva",
+    "label": "Etiqueta:",
+    "logIn": "Entrar",
+    "logOut": "Sair",
+    "logOutText": "Sair do token?",
+    "logOutTitle": "Sair",
+    "loggedIn": "Token conectado",
+    "loggedOut": "Token desconectado",
+    "noIssues": "Sem problemas",
+    "ocsp": "OCSP",
+    "ocspStatus": {
+      "disabled": "Desativado",
+      "expired": "Expirado",
+      "good": "Válido",
+      "revoked": "Revogado",
+      "suspended": "Suspenso",
+      "unknown": "Desconhecido"
+    },
+    "orderAcmeCertificate": "Solicitar Certificado",
+    "acmeCertOrdered": "Certificado solicitado com sucesso",
+    "readOnly": "Somente leitura:",
+    "keyAlgorithm": "Algoritmo da Chave:",
+    "registrationRequest": "Solicitação de registro",
+    "renewal": "Renovação Automática",
+    "request": "Solicitação",
+    "signDetailsTitle": "Detalhes da Chave SIGN",
+    "signKeyCert": "Chaves e Certificados SIGN",
+    "status": "Status",
+    "token": "Token:",
+    "tokenDetails": "Detalhes do Token",
+    "tokenId": "ID do Token:",
+    "tokenInfo": "Informações do Token",
+    "tokenPin": "PIN do Token",
+    "tokenSaved": "Token salvo",
+    "tokenStatus": {
+      "active": "Ativo",
+      "available": "Disponível",
+      "inactive": "Inativo",
+      "unavailable": "Bloqueado",
+      "unsaved": "Não salvo"
+    },
+    "type": "Tipo:",
+    "unknown": "Tipo de chave não especificado",
+    "unregisterError": "Falha ao desregistrar o certificado. Continuar com a exclusão do certificado mesmo assim?",
+    "unregisterText": "Deseja desregistrar este certificado?",
+    "unregisterTitle": "Desregistrar certificado"
+  },
+  "localGroup": {
+    "accessDate": "Direitos de Acesso Concedidos",
+    "addLocalGroup": "Adicionar Grupo Local",
+    "addMembers": "Adicionar Membros",
+    "addSelected": "Adicionar selecionados",
+    "code": "Código",
+    "deleteText": "Tem certeza de que deseja excluir este grupo?",
+    "deleteTitle": "Excluir grupo?",
+    "descSaved": "Descrição salva",
+    "description": "Descrição",
+    "groupDeleted": "Grupo excluído",
+    "groupMembers": "Membros do Grupo",
+    "id": "ID",
+    "localGroup": "Grupo Local",
+    "localGroupAdded": "Grupo local adicionado",
+    "name": "Nome do Membro",
+    "noResults": "Sua busca não encontrou resultados.",
+    "removeAllText": "Tem certeza de que deseja remover todos os membros deste grupo?",
+    "removeAllTitle": "Remover todos os membros?",
+    "removeText": "Tem certeza de que deseja remover este membro?",
+    "removeTitle": "Remover membro?",
+    "searchOptions": "Opções de busca"
+  },
+  "localGroups": {
+    "addGroup": "Adicionar grupo",
+    "code": "Código",
+    "description": "Descrição",
+    "memberCount": "Quantidade de Membros",
+    "updated": "Atualizado"
+  },
+  "noData": {
+    "noBackUpEncryptionKeys": "Nenhuma chave de criptografia de backup configurada",
+    "noClientData": "Nenhum dado de cliente",
+    "noCertificateAuthorities": "Nenhuma autoridade certificadora",
+    "noLocalGroups": "Nenhum grupo local",
+    "noServiceClients": "Nenhum cliente de serviço",
+    "noTimestampingServices": "Nenhum serviço de carimbo de tempo"
+  },
+  "serviceClientType": {
+    "globalGroup": "GRUPO GLOBAL",
+    "localGroup": "GRUPO LOCAL",
+    "subsystem": "SUBSISTEMA"
+  },
+  "serviceClients": {
+    "accessRights": "Direitos de acesso",
+    "accessRightsGiven": "Direitos de Acesso Concedidos",
+    "addSelected": "Adicionar selecionados",
+    "addService": "Adicionar serviço",
+    "addServiceClient": "Adicionar cliente de serviço",
+    "addServiceClientAccessRightSuccess": "Direitos de acesso adicionados com sucesso",
+    "addServiceClientTitle": "Adicionar cliente de serviço",
+    "id": "ID",
+    "memberGroupCodeLabel": "Código do Membro/Grupo",
+    "memberGroupStep": "Membro / Grupo",
+    "name": "Nome do Membro / Descrição do Grupo",
+    "noAccessRights": "Sem direitos de acesso para este cliente",
+    "noAvailableServices": "Nenhum serviço disponível",
+    "removeAll": "Remover todos",
+    "removeAllText": "Tem certeza de que deseja remover todos os direitos de acesso deste cliente de serviço?",
+    "removeAllTitle": "Remover todos os direitos de acesso?",
+    "removeOneText": "Tem certeza de que deseja remover os direitos de acesso deste cliente de serviço?",
+    "removeOneTitle": "Remover direitos de acesso?",
+    "searchPlaceHolder": "Clientes de serviço",
+    "serviceCode": "Código do Serviço",
+    "serviceSelectionStep": "Código do Serviço",
+    "servicesStep": "Serviços",
+    "title": "Título"
+  },
+  "services": {
+    "OpenApi3Description": "Descrição OpenAPI 3",
+    "addRest": "Adicionar REST",
+    "addWsdl": "Adicionar WSDL",
+    "applyToAll": "Aplicar a todos no WSDL",
+    "deleteRestText": "Tem certeza de que deseja excluir este Serviço REST?",
+    "deleteTitle": "Excluir descrição do serviço?",
+    "deleteWsdlText": "Tem certeza de que deseja excluir este WSDL?",
+    "deleted": "Descrição do serviço excluída",
+    "disableNotice": "Aviso de desativação",
+    "disableSuccess": "Descrição do serviço desativada",
+    "disableTitle": "Desativar?",
+    "editUrl": "Editar URL",
+    "enableSuccess": "Descrição do serviço ativada",
+    "idGroupCode": "ID / Código do Grupo",
+    "lastRefreshed": "Última atualização: ",
+    "memberNameGroupDesc": "Nome do Membro / Descrição do Grupo",
+    "noMatches": "Nenhum registro correspondente",
+    "openApi3Added": "Serviço OpenAPI 3 adicionado",
+    "openapiDetails": "Detalhes do OpenAPI 3",
+    "refreshed": "Atualizado",
+    "restAdded": "Serviço REST adicionado",
+    "restApiBasePath": "Caminho Base da API REST",
+    "restDetails": "Detalhes do REST",
+    "service": "Serviço",
+    "serviceCode": "Código do Serviço",
+    "serviceCodePlaceholder": "Insira o código do serviço",
+    "serviceSaved": "Serviço salvo",
+    "serviceType": "Tipo de URL",
+    "serviceUrl": "URL do Serviço",
+    "service_parameters_ssl_test_warnings": {
+      "internal_server_ssl_error": "Falha ao verificar os certificados do servidor interno. A URL do servidor upstream está correta e acessível pelo Servidor Seguro?",
+      "internal_server_ssl_handshake_error": "Falha no handshake TLS com o servidor upstream, certificado do servidor ausente na configuração:"
+    },
+    "timeout": "Tempo limite",
+    "timeoutSec": "Tempo limite (s)",
+    "timeoutTooltip": "A duração máxima de uma solicitação ao serviço, em segundos",
+    "tlsTooltip": "Verifique o certificado TLS ao estabelecer uma conexão segura",
+    "url": "URL",
+    "urlPlaceholder": "Insira a URL",
+    "urlTooltip": "A URL para onde as solicitações direcionadas ao serviço são enviadas",
+    "warning": "Aviso",
+    "warningCode": {
+      "adding_endpoints": "Adicionando endpoints:",
+      "adding_services": "Adicionando serviços:",
+      "deleting_endpoints": "Excluindo endpoints:",
+      "deleting_services": "Excluindo serviços:",
+      "wsdl_validation_warnings": "Avisos de validação:",
+      "openapi_validation_warnings": "Avisos de validação:"
+    },
+    "verifyTls": "Verificar certificado TLS",
+    "wsdlAdded": "WSDL adicionado",
+    "wsdlDescription": "Descrição do WSDL",
+    "wsdlDetails": "Detalhes do WSDL"
+  },
+  "ssTlsCertificate": {
+    "certificateImported": "Certificado importado",
+    "exportCertificate": "Exportar cert.",
+    "generateCsr": "Gerar CSR",
+    "generateInternalCsr": {
+      "cancel": "CANCELAR",
+      "done": "CONCLUÍDO",
+      "step1": {
+        "description": "1) Primeiro, Forneça o Titular do Certificado (DN)",
+        "label": "Titular do Certificado (DN)",
+        "placeholder": "CN=meuservidordeseguranca.exemplo.com, O=Minha Organização, C=BR",
+        "tooltip": "O Titular do Certificado (DN) identifica de forma exclusiva uma entidade em um certificado X.509. Os seguintes tipos de atributos são comumente encontrados no DN: CN = Nome comum, O = Nome da organização, C = Código do país."
+      },
+      "step2": {
+        "description": "2) Gere um novo CSR e salve-o em um local seguro",
+        "generateCSR": "Gerar CSR"
+      },
+      "title": "Gerar Solicitação de Assinatura de Certificado TLS"
+    },
+    "generateKey": "Gerar chave",
+    "generateTlsAndCertificateDialog": {
+      "confirmation": "Gerar uma nova chave e certificado TLS do Servidor Seguro?",
+      "explanation": "O sistema gerará uma nova chave TLS do Servidor Seguro e um certificado autoassinado, substituindo a chave e o certificado existentes.",
+      "success": "Nova chave e certificado TLS do Servidor Seguro gerados com sucesso",
+      "title": "Chave TLS do Servidor Seguro"
+    },
+    "importCertificate": "Importar cert.",
+    "keyCertTitle": "Chave e Certificado TLS",
+    "keyText": "Chave TLS Interna"
+  },
+  "stores": {
+    "user": {
+      "currentSecurityServerNotFound": "Falha ao determinar as informações do Servidor Seguro atual. A resposta da API é inválida."
+    }
+  },
+  "systemParameters": {
+    "approvedCertificateAuthorities": {
+      "table": {
+        "header": {
+          "distinguishedName": "Titular do Certificado (DN)",
+          "expires": "Expira em",
+          "ocspResponse": "Resposta OCSP",
+          "acmeIpAddresses": "IP do Servidor ACME"
+        },
+        "notAvailable": "N/D",
+        "ocspResponse": {
+          "NOT_AVAILABLE": "N/D",
+          "OCSP_RESPONSE_GOOD": "Válido",
+          "OCSP_RESPONSE_REVOKED": "Revogado",
+          "OCSP_RESPONSE_SUSPENDED": "Suspenso",
+          "OCSP_RESPONSE_UNKNOWN": "Desconhecido"
+        }
+      },
+      "title": "Autoridades Certificadoras Aprovadas"
+    },
+    "configurationAnchor": {
+      "action": {
+        "download": "Baixar",
+        "upload": {
+          "button": "Carregar",
+          "dialog": {
+            "confirmation": "Continuar com a importação?",
+            "field": {
+              "generated": "Gerado",
+              "hash": "Hash (SHA-224)"
+            },
+            "info": "Detalhes da âncora de configuração:",
+            "success": "Âncora de configuração carregada",
+            "title": "Confirmar detalhes da âncora de configuração"
+          }
+        }
+      },
+      "table": {
+        "header": {
+          "distinguishedName": "Hash (SHA-224)",
+          "generated": "Gerado"
+        }
+      },
+      "title": "Âncora de Configuração"
+    },
+    "timestampingServices": {
+      "action": {
+        "add": {
+          "button": "Adicionar",
+          "dialog": {
+            "info": "Serviços de Timestamp confiáveis:",
+            "success": "Serviço de Timestamp adicionado",
+            "title": "Adicionar Serviço de Timestamp"
+          }
+        }
+      },
+      "table": {
+        "action": {
+          "delete": {
+            "button": "Excluir",
+            "confirmation": {
+              "text": "Tem certeza de que deseja excluir o serviço de carimbo de tempo?",
+              "title": "Tem certeza?"
+            },
+            "success": "Serviço de carimbo de tempo excluído com sucesso"
+          }
+        },
+        "header": {
+          "serviceURL": "URL do Serviço",
+          "timestampingService": "Serviço de carimbo de tempo"
+        }
+      },
+      "title": "Serviços de carimbo de tempo"
+    },
+    "securityServer": {
+      "securityServer": "Servidor Seguro",
+      "serverAddress": "Endereço do Servidor",
+      "editDialog": {
+        "title": "Editar endereço do Servidor Seguro"
+      },
+      "addressChangeInProgress": "ALTERAÇÃO EM ANDAMENTO",
+      "updateSubmitted": "Alteração de endereço do Servidor Seguro enviada com sucesso"
+    },
+    "title": "Parâmetros do sistema"
+  },
+  "tab": {
+    "client": {
+      "details": "Detalhes",
+      "internalServers": "Servidores internos",
+      "localGroups": "Grupos locais",
+      "serviceClients": "Clientes de serviço",
+      "services": "Serviços"
+    },
+    "keys": {
+      "apiKey": "Chaves API",
+      "signAndAuthKeys": "Chaves SIGN e AUTH",
+      "ssTlsCertificate": "Chave TLS do Servidor Seguro"
+    },
+    "main": {
+      "clients": "Clientes",
+      "diagnostics": "Diagnósticos",
+      "keys": "Chaves e certificados",
+      "settings": "Configurações"
+    },
+    "services": {
+      "endpoints": "Endpoints",
+      "parameters": "Parâmetros do Serviço"
+    },
+    "settings": {
+      "backupAndRestore": "Backup e Restauração",
+      "systemParameters": "Parâmetros do Sistema"
+    }
+  },
+  "token": {
+    "changePin": "Alterar PIN",
+    "pinChanged": "PIN do token alterado – faça login no token com o novo PIN",
+    "tokenPinPolicyHeader": "A política de PIN do Token está ativada.",
+    "tokenPinPolicy": "O PIN do token de software deve conter pelo menos 10 caracteres ASCII de, no mínimo, três classes de caracteres (letras minúsculas, letras maiúsculas, dígitos, caracteres especiais)."
+  },
+  "toolbar": {
+    "securityServerNodeType": {
+      "undefined": "",
+      "PRIMARY": "Nó primário",
+      "SECONDARY": "Nó secundário"
+    }
+  },
+  "validationError": {
+    "IdentifierChars": "Caracteres inválidos no identificador"
+  },
+  "wizard": {
+    "addClientTitle": "Adicionar cliente",
+    "addMemberTitle": "Adicionar membro",
+    "addSubsystemTitle": "Adicionar subsistema",
+    "client": {
+      "addClient": "Adicionar Cliente",
+      "clientExists": "Cliente já existe",
+      "memberClassTooltip": "Código que identifica a classe do membro (ex.: agência governamental, empresa privada etc.).",
+      "memberCodeTooltip": "Código do membro que identifica exclusivamente este membro do X-Road dentro de sua classe (ex.: ID comercial).",
+      "memberNameTooltip": "Nome da organização do membro.",
+      "register": "Registrar cliente",
+      "searchLabel": "Cliente",
+      "subsystemCodeTooltip": "Código do subsistema que identifica um sistema de informação pertencente ao membro."
+    },
+    "clientDetails": "Detalhes do Cliente",
+    "clientInfo1": "Especifique os detalhes do Cliente que deseja adicionar.",
+    "clientInfo2": "Se o Cliente já existir, você pode selecioná-lo na lista Global.",
+    "finish": {
+      "acme": {
+        "infoLine": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes, e a nova chave e certificado aparecerão na visualização de Chaves e Certificados. O certificado será solicitado ao Servidor ACME da AC e importado automaticamente. Depois disso, você poderá registrar o novo cliente."
+      },
+      "infoLine1": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes, e a nova chave e CSR aparecerão na visualização de Chaves e Certificados.",
+      "infoLine2": "Para registrar o novo cliente, conclua os seguintes passos:",
+      "note": "NOTA: se você clicar em Cancelar, todos os dados serão perdidos",
+      "title": "Concluir",
+      "todo1": "1) Envie o CSR para uma Autoridade Certificadora para assinatura",
+      "todo2": "2) Após receber de volta, importe o certificado resultante para a chave correspondente",
+      "todo3": "3) Neste ponto, você pode registrar o novo cliente"
+    },
+    "member": {
+      "info1": "Especifique os detalhes do Membro que deseja adicionar.",
+      "info2": "Se o Membro já existir, você pode selecioná-lo na lista Global.",
+      "memberExists": "Membro já existe",
+      "register": "Registrar membro",
+      "searchLabel": "Membro",
+      "select": "Selecionar membro",
+      "title": "Detalhes do Membro"
+    },
+    "memberClass": "Classe do Membro",
+    "memberCode": "Código do Membro",
+    "memberName": "Nome do Membro",
+    "selectClient": "Selecionar Cliente",
+    "selectMemberClass": "Selecionar Classe do Membro",
+    "signKey": {
+      "info": "Você pode definir um Descrição para a nova chave SIGN criada (opcional)",
+      "keyLabel": "Descrição da Chave",
+      "title": "Chave SIGN"
+    },
+    "subsystem": {
+      "info1": "Especifique o código do subsistema a ser adicionado.",
+      "info2": "Se o subsistema já existir, você pode selecioná-lo na lista Global.",
+      "registerSubsystem": "Registrar subsistema",
+      "searchLabel": "Subsistema",
+      "selectSubsystem": "Selecionar Subsistema",
+      "subsystemAdded": "Subsistema adicionado",
+      "subsystemExists": "Subsistema já existe"
+    },
+    "subsystemCode": "Código do Subsistema",
+    "token": {
+      "info": "Selecione o token onde deseja adicionar a chave SIGN para o novo Cliente. Nota: o token deve estar no estado Conectado.",
+      "loggedIn": "Conectado",
+      "title": "Token",
+      "tokenName": "Nome do Token"
+    },
+    "warning": {
+      "unregistered_member": "Membro não registrado"
+    }
+  }
+}

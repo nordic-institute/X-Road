@@ -24,23 +24,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+import { Plugin } from 'vue';
+import { useUser } from '@/store/modules/user';
+import { key } from '@niis/shared-ui';
+import { RouteName } from '@/global';
+import { useRouter } from 'vue-router';
+import { useSystem } from '@/store/modules/system';
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
-}
+export default {
+  install(app) {
+    app.runWithContext(() => {
+      const user = useUser();
+      const system = useSystem();
+      const router = useRouter();
 
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
+      app.provide(key.routing, {
+        toLogin() {
+          return router.replace({ name: RouteName.Login });
+        },
+        toHome() {
+          return router.replace(user.getFirstAllowedTab.to);
+        },
+        goBack(steps: number) {
+          return router.go(steps);
+        },
+      });
 
+      app.provide(key.user, {
+        logout() {
+          return user.logout();
+        },
+        username() {
+          return user.username;
+        },
+        isSessionAlive(): boolean {
+          return user.isSessionAlive;
+        },
+      });
+
+      app.provide(key.system, {
+        version() {
+          return system.serverVersion?.info;
+        },
+      });
+    });
+  },
+} as Plugin;

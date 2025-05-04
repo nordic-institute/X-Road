@@ -24,23 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+package org.niis.xroad.common.managementrequest.verify.decode;
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+
+public class MaintenanceModeDisableRequestCallback extends BaseServerRequestCallback<MaintenanceModeDisableRequestType> {
+
+    public MaintenanceModeDisableRequestCallback(GlobalConfProvider globalConfProvider,
+                                                ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(globalConfProvider, rootCallback, ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST);
+    }
+
+    @Override
+    protected SecurityServerId getServer() {
+        return getRequest().getServer();
+    }
+
 }
-
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-

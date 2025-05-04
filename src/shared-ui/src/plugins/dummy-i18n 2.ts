@@ -24,23 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
+import { createI18n } from 'vue-i18n';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+import en from '../locales/en.json';
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
-}
+type MessageSchema = typeof en;
 
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-
+export default createI18n<[MessageSchema], 'en'>({
+  legacy: false,
+  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
+  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true,
+  allowComposition: true,
+  messages: { en },
+});

@@ -24,23 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+import { InjectionKey } from 'vue';
+import { CommonUser, CommonRouting, CommonSystem } from './types';
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
-}
+const system = Symbol() as InjectionKey<CommonSystem>;
+const user = Symbol() as InjectionKey<CommonUser>;
+const routing = Symbol() as InjectionKey<CommonRouting>;
 
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-
+export const key = {
+  system,
+  user,
+  routing,
+};

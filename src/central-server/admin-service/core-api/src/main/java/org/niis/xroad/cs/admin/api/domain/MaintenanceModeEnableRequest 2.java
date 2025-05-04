@@ -24,23 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+package org.niis.xroad.cs.admin.api.domain;
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public final class MaintenanceModeEnableRequest extends Request {
+
+    public MaintenanceModeEnableRequest(Origin origin, SecurityServerId identifier, String message) {
+        super(origin, identifier);
+        setComments(message);
+    }
+
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST;
+    }
 }
-
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-
