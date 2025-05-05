@@ -233,7 +233,6 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
-      "authCertRegisteredEnabled": "AUTH certificate registered notifications",
       "confStatus": {
         "false": "Configuration incomplete",
         "true": "Configured"
@@ -243,14 +242,21 @@
         "false": "Disabled",
         "true": "Enabled"
       },
-      "failureEnabled": "Failure notifications",
       "help": {
         "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details.",
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
-      "successEnabled": "Success notifications",
-      "title": "Mail notification status"
+      "title": "Mail notification status",
+      "type": {
+        "ACME_FAILURE": "ACME failure notifications",
+        "ACME_SUCCESS": "ACME success notifications",
+        "AUTH_CERT_REGISTERED": "AUTH certificate registered notifications",
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
+      },
+      "types": "Mail notification types",
+      "status": "Status"
     },
     "message": "Message",
     "nextUpdate": "Next Update",
