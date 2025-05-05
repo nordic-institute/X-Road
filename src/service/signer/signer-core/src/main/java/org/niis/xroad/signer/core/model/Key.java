@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.model;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
@@ -37,7 +38,6 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -46,6 +46,7 @@ import static java.util.Collections.unmodifiableList;
  */
 @Data
 // a quick solution to avoid stack overflow if Token.toString() used, both key and token have references to each other.
+@EqualsAndHashCode(exclude = {"token"})
 @ToString(exclude = {"token"})
 public final class Key {
 
@@ -160,12 +161,18 @@ public final class Key {
         return isAvailable() && getUsage() == KeyUsageInfo.SIGNING;
     }
 
+    public boolean hasCertsOrCertRequests() {
+        return getCerts().stream().map(Cert::isSavedToConfiguration)
+                .findFirst().orElse(!getCertRequests().isEmpty());
+    }
+
     private List<CertificateInfoProto> getCertsAsDTOs() {
-        return certs.stream().map(Cert::toProtoDTO).collect(Collectors.toList());
+        return certs.stream().map(Cert::toProtoDTO).toList();
     }
 
     private List<CertRequestInfoProto> getCertRequestsAsDTOs() {
-        return certRequests.stream().map(CertRequest::toProtoDTO).collect(Collectors.toList());
+        return certRequests.stream().map(CertRequest::toProtoDTO).toList();
     }
+
 
 }

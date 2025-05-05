@@ -24,5 +24,10 @@
         <mapping class="org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity" />
         <mapping class="org.niis.xroad.serverconf.impl.entity.UiUserEntity" />
         <mapping class="org.niis.xroad.serverconf.impl.entity.XRoadIdEntity" />
+
+        <mapping class="org.niis.xroad.serverconf.impl.entity.KeyConfCertificateEntity"/>
+        <mapping class="org.niis.xroad.serverconf.impl.entity.KeyConfCertRequestEntity"/>
+        <mapping class="org.niis.xroad.serverconf.impl.entity.KeyConfDeviceEntity"/>
+        <mapping class="org.niis.xroad.serverconf.impl.entity.KeyConfKeyEntity"/>
     </session-factory>
 </hibernate-configuration>

@@ -31,9 +31,11 @@ import org.niis.xroad.signer.core.model.Key;
 import org.niis.xroad.signer.core.model.Token;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.partitioningBy;
@@ -54,7 +56,7 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
     }
 
     @Override
-    public MergeResult merge(List<Token> fileTokens, List<Token> memoryTokens) {
+    public MergeResult merge(Set<Token> fileTokens, Set<Token> memoryTokens) {
 
         this.newCertsFromFile = new ArrayList<>();
 
@@ -69,10 +71,10 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
                         .forEach(memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
                                 this::mergeToken));
 
-        return new MergeResult(new ArrayList<>(fileTokensMap.values()), this.newCertsFromFile);
+        return new MergeResult(new HashSet<>(fileTokensMap.values()), this.newCertsFromFile);
     }
 
-    private static boolean isTokenExistsInFile(Token token, List<Token> fileTokens) {
+    private static boolean isTokenExistsInFile(Token token, Set<Token> fileTokens) {
         return fileTokens.stream().anyMatch(fileToken -> Objects.equals(fileToken.getId(), token.getId()));
     }
 

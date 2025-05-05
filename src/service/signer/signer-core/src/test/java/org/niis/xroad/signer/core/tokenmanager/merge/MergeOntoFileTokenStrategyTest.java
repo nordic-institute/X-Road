@@ -42,9 +42,9 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -84,9 +84,6 @@ public class MergeOntoFileTokenStrategyTest {
         testedStrategy = new MergeOntoFileTokensStrategy();
     }
 
-    /**
-     * @see MergeOntoFileTokensStrategy#merge(List, List)
-     */
     @Test
     public void mergeShouldAddMissingActiveTokensFromMemory() {
 
@@ -95,8 +92,8 @@ public class MergeOntoFileTokenStrategyTest {
         Token memoryToken1 = createActiveToken("1");
         Token memoryToken2 = createAvailableToken("2");
         Token memoryToken3 = createActiveToken("3");
-        List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
-        List<Token> memoryList = Arrays.asList(memoryToken1, memoryToken2, memoryToken3);
+        Set<Token> fileList = Set.of(fileToken1, fileToken2);
+        Set<Token> memoryList = Set.of(memoryToken1, memoryToken2, memoryToken3);
 
         MergeResult result = testedStrategy.merge(fileList, memoryList);
 
@@ -112,8 +109,8 @@ public class MergeOntoFileTokenStrategyTest {
         Token memoryToken1 = createActiveToken("1");
         Token memoryToken2 = createAvailableToken("2");
         Token memoryToken3 = createAvailableToken("3");
-        List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
-        List<Token> memoryList = Arrays.asList(memoryToken1, memoryToken2, memoryToken3);
+        Set<Token> fileList = Set.of(fileToken1, fileToken2);
+        Set<Token> memoryList = Set.of(memoryToken1, memoryToken2, memoryToken3);
 
         MergeResult result = testedStrategy.merge(fileList, memoryList);
 
@@ -129,8 +126,8 @@ public class MergeOntoFileTokenStrategyTest {
         Token memoryToken1 = createActiveToken("1");
         Token memoryToken2 = createInactiveAndUnavailableToken("2");
         Token memoryToken3 = createInactiveAndUnavailableToken("3");
-        List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
-        List<Token> memoryList = Arrays.asList(memoryToken1, memoryToken2, memoryToken3);
+        Set<Token> fileList = Set.of(fileToken1, fileToken2);
+        Set<Token> memoryList = Set.of(memoryToken1, memoryToken2, memoryToken3);
 
         MergeResult result = testedStrategy.merge(fileList, memoryList);
 
@@ -138,9 +135,6 @@ public class MergeOntoFileTokenStrategyTest {
         assertThat("Missing tokens were not added", result.getResultTokens(), hasItems(fileToken1, fileToken2));
     }
 
-    /**
-     * @see MergeOntoFileTokensStrategy#merge(List, List)
-     */
     @Test
     public void mergeShouldNotChangeTokensActiveState() {
         final String tokenId = "1124";
@@ -150,10 +144,11 @@ public class MergeOntoFileTokenStrategyTest {
         Token memoryToken = createInactiveAndUnavailableToken(tokenId);
         memoryToken.setActive(true);
 
-        MergeResult result = testedStrategy.merge(Collections.singletonList(fileToken),
-                Collections.singletonList(memoryToken));
+        MergeResult result = testedStrategy.merge(Set.of(fileToken),
+                Set.of(memoryToken));
 
-        assertTrue("Token was not merged, isActive was not changed", result.getResultTokens().getFirst().isActive());
+        assertTrue("Token was not merged, isActive was not changed",
+                result.getResultTokens().stream().findFirst().orElseThrow().isActive());
     }
 
     private static Token createActiveToken(String id) {
@@ -169,7 +164,7 @@ public class MergeOntoFileTokenStrategyTest {
     }
 
     private static Token createToken(String id, boolean active, boolean available) {
-        Token token = new Token(SoftwareModuleType.TYPE, id);
+        Token token = new Token(SoftwareModuleType.TYPE, id, null);
         token.setActive(active);
         token.setAvailable(available);
         return token;
@@ -182,7 +177,7 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeTokenShouldMergeOnlySpecificFields() {
 
         final String fileTokenId = "1";
-        Token fileToken = new Token(SoftwareModuleType.TYPE, fileTokenId);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, fileTokenId, null);
 
         final String fileFriendlyName = "fileFriendlyName";
         fileToken.setFriendlyName(fileFriendlyName);
@@ -204,7 +199,7 @@ public class MergeOntoFileTokenStrategyTest {
         fileToken.setReadOnly(false);
         fileToken.setActive(false);
 
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, "2");
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, "2", null);
 
         final String memModuleId = "memoryModuleId";
         memoryToken.setModuleId(memModuleId);
@@ -249,8 +244,8 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeTokenShouldMergeKeysInTokens() {
 
         final String tokenId = "1123";
-        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId);
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId, null);
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId, null);
 
         final String keyId = "1551";
 
@@ -446,7 +441,7 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeKeyShouldOnlyCopyOverAvailabilityOutOfSingleFields() {
 
         final String fileId = "123t5dssd";
-        final Token fileToken = new Token("fileToken", "fileId");
+        final Token fileToken = new Token("fileToken", "fileId", null);
         final Key fileKey = new Key(fileToken, fileId, SignMechanism.CKM_RSA_PKCS);
 
         final String fileFriendlyName = "d§gsdasd";
@@ -465,7 +460,7 @@ public class MergeOntoFileTokenStrategyTest {
         fileKey.setUsage(fileKeyUsageInfo);
 
         final String memId = "asre111";
-        Key memKey = new Key(new Token("memToken", "memId"), memId, SignMechanism.CKM_RSA_PKCS);
+        Key memKey = new Key(new Token("memToken", "memId", null), memId, SignMechanism.CKM_RSA_PKCS);
 
         final boolean memAvailable = true;
         assertNotEquals("test setup failure", fileAvailable, memAvailable);

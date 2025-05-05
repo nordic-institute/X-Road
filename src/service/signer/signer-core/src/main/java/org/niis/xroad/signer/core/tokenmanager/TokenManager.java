@@ -95,7 +95,7 @@ public final class TokenManager {
      * @return the new token
      */
     public TokenInfo createToken(TokenType tokenType) {
-        Token token = new Token(tokenType.getModuleType(), tokenType.getId());
+        Token token = new Token(tokenType.getModuleType(), tokenType.getId(), null);
         token.setModuleId(tokenType.getModuleType());
         token.setReadOnly(tokenType.isReadOnly());
         token.setSerialNumber(tokenType.getSerialNumber());
@@ -199,7 +199,7 @@ public final class TokenManager {
         log.trace("findTokenAndKeyIdForCertRequestId({})", certRequestId);
 
         return tokenRegistry.readAction(ctx -> {
-            String keyId = ctx.forCertRequest((k, c) -> certRequestId.equals(c.getId()),
+            String keyId = ctx.forCertRequest((k, c) -> certRequestId.equals(c.id()),
                             (k, c) -> k.getId())
                     .orElseThrow(() -> csrWithIdNotFound(certRequestId));
 
@@ -379,7 +379,7 @@ public final class TokenManager {
             Key key = ctx.findKey(keyId);
             return key.getCertRequests().stream()
                     .filter(c -> key.getUsage() == KeyUsageInfo.AUTHENTICATION
-                            || memberId.equals(c.getMemberId()))
+                            || memberId.equals(c.memberId()))
                     .map(CertRequest::toDTO)
                     .findFirst()
                     .orElse(null);
@@ -395,7 +395,7 @@ public final class TokenManager {
 
         return tokenRegistry.readAction(ctx ->
                 ctx.forCertRequest(
-                                (k, c) -> certReqId.equals(c.getId()),
+                                (k, c) -> certReqId.equals(c.id()),
                                 (k, c) -> c.toDTO())
                         .orElse(null));
     }
@@ -821,8 +821,8 @@ public final class TokenManager {
             key.setUsage(keyUsage);
 
             for (CertRequest certRequest : key.getCertRequests()) {
-                ClientId crMember = certRequest.getMemberId();
-                String crSubject = certRequest.getSubjectName();
+                ClientId crMember = certRequest.memberId();
+                String crSubject = certRequest.subjectName();
 
                 if ((memberId == null && crSubject.equalsIgnoreCase(subjectName))
                         || (memberId != null && memberId.equals(crMember)
@@ -830,7 +830,7 @@ public final class TokenManager {
                     log.warn("Certificate request (memberId: {}, "
                                     + "subjectName: {}) already exists", memberId,
                             subjectName);
-                    return certRequest.getId();
+                    return certRequest.id();
                 }
             }
 
@@ -853,7 +853,7 @@ public final class TokenManager {
         log.trace("removeCertRequest({})", certReqId);
 
         return tokenRegistry.writeAction(ctx -> ctx.forCertRequest(
-                (k, c) -> c.getId().equals(certReqId),
+                (k, c) -> c.id().equals(certReqId),
                 (k, c) -> {
                     if (!k.getCertRequests().remove(c)) {
                         return null;

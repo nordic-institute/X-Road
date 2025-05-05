@@ -23,36 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.tokenmanager.merge;
+package org.niis.xroad.serverconf.impl.dao;
 
-import lombok.Value;
-import org.niis.xroad.signer.core.model.Cert;
-import org.niis.xroad.signer.core.model.Token;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.hibernate.Session;
+import org.niis.xroad.serverconf.impl.entity.KeyConfDeviceEntity;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-/**
- * A strategy for merging in-memory token lists (with transient information) to token lists from a file.
- */
-public interface TokenMergeStrategy {
+@ApplicationScoped
+public class KeyConfDeviceDaoImpl extends AbstractDAOImpl<KeyConfDeviceEntity> {
 
-    /**
-     * A simple class to hold the results of the merge.
-     */
-    @Value
-    class MergeResult {
-
-        // this is also  created by @Value but some see using @RequiredArgsConstructor as bad style
-        // so specifically creating it
-        MergeResult(Set<Token> resultTokens, List<Cert> addedCertificates) {
-            this.resultTokens = resultTokens;
-            this.addedCertificates = addedCertificates;
-        }
-
-        private Set<Token> resultTokens;
-        private List<Cert> addedCertificates;
+    public Set<KeyConfDeviceEntity> findAll(Session session) {
+        var q = session.getCriteriaBuilder().createQuery(KeyConfDeviceEntity.class);
+        q.select(q.from(KeyConfDeviceEntity.class));
+        return session.createQuery(q).getResultStream()
+                .collect(Collectors.toSet());
     }
 
-    MergeResult merge(Set<Token> memoryTokens, Set<Token> fileTokens);
+    public Set<Long> findAllIds(Session session) {
+        var query = session.createQuery("select id from KeyConfDeviceEntity", Long.class);
+        return query.getResultStream()
+                .collect(Collectors.toSet());
+    }
+
+    public void saveTokens(Session session, Collection<KeyConfDeviceEntity> entities) {
+        entities.forEach(entity -> session.persist(entities));
+    }
+
+    public void deleteAll(Session session) {
+        var query = session.createMutationQuery("delete from KeyConfDeviceEntity");
+        query.executeUpdate();
+    }
 }

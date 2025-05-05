@@ -32,7 +32,7 @@ import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
 import org.niis.xroad.signer.core.model.Token;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -47,28 +47,28 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
 @UtilityClass
 class TokenLookupUtils {
 
-    static Token findToken(List<Token> tokens, String tokenId) {
+    static Token findToken(Collection<Token> tokens, String tokenId) {
         log.trace("findToken({})", tokenId);
 
         return forToken(tokens, t -> t.getId().equals(tokenId), t -> t)
                 .orElseThrow(() -> tokenNotFound(tokenId));
     }
 
-    static Key findKey(List<Token> tokens, String keyId) {
+    static Key findKey(Collection<Token> tokens, String keyId) {
         log.trace("findKey({})", keyId);
 
         return forKey(tokens, (t, k) -> k.getId().equals(keyId), (t, k) -> k)
                 .orElseThrow(() -> keyNotFound(keyId));
     }
 
-    static Cert findCert(List<Token> tokens, String certId) {
+    static Cert findCert(Collection<Token> tokens, String certId) {
         log.trace("findCert({})", certId);
 
         return forCert(tokens, (k, c) -> c.getId().equals(certId), (k, c) -> c)
                 .orElseThrow(() -> certWithIdNotFound(certId));
     }
 
-    static <T> Optional<T> forToken(List<Token> tokens, Predicate<Token> tester, Function<Token, T> mapper) {
+    static <T> Optional<T> forToken(Collection<Token> tokens, Predicate<Token> tester, Function<Token, T> mapper) {
         for (Token token : tokens) {
             if (tester.test(token)) {
                 return Optional.ofNullable(mapper.apply(token));
@@ -78,7 +78,7 @@ class TokenLookupUtils {
         return Optional.empty();
     }
 
-    static <T> Optional<T> forKey(List<Token> tokens,
+    static <T> Optional<T> forKey(Collection<Token> tokens,
                                   BiPredicate<Token, Key> tester,
                                   BiFunction<Token, Key, T> mapper) {
         for (Token token : tokens) {
@@ -92,7 +92,7 @@ class TokenLookupUtils {
         return Optional.empty();
     }
 
-    static <T> Optional<T> forCert(List<Token> tokens,
+    static <T> Optional<T> forCert(Collection<Token> tokens,
                                    BiPredicate<Key, Cert> tester,
                                    BiFunction<Key, Cert, T> mapper) {
         for (Token token : tokens) {
@@ -108,7 +108,7 @@ class TokenLookupUtils {
         return Optional.empty();
     }
 
-    static <T> Optional<T> forCertRequest(List<Token> tokens,
+    static <T> Optional<T> forCertRequest(Collection<Token> tokens,
                                           BiPredicate<Key, CertRequest> tester,
                                           BiFunction<Key, CertRequest, T> mapper) {
         for (Token token : tokens) {

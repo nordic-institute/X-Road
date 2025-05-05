@@ -27,7 +27,6 @@ package org.niis.xroad.signer.core.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.Value;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
@@ -36,19 +35,19 @@ import static java.util.Optional.ofNullable;
 
 /**
  * Model object representing the certificate request.
+ *
+ * @param id                 the unique request id
+ * @param memberId           the client id of the member
+ * @param subjectName        the subject name
+ * @param subjectAltName     the subject alternative name
+ * @param certificateProfile the certificate profile
  */
-@Value
-public class CertRequest {
-
-    private final String id;
-
-    private final ClientId.Conf memberId;
-
-    private final String subjectName;
-
-    private final String subjectAltName;
-
-    private final String certificateProfile;
+public record CertRequest(
+        String id,
+        ClientId.Conf memberId,
+        String subjectName,
+        String subjectAltName,
+        String certificateProfile) {
 
     /**
      * Converts this object to value object.
@@ -59,6 +58,7 @@ public class CertRequest {
         final CertRequestInfoProto.Builder builder = CertRequestInfoProto.newBuilder()
                 .setId(id)
                 .setSubjectName(subjectName);
+
         ofNullable(subjectAltName).ifPresent(builder::setSubjectAltName);
         ofNullable(certificateProfile).ifPresent(builder::setCertificateProfile);
         ofNullable(memberId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);

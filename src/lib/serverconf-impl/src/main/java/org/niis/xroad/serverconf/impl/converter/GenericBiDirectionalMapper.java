@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.tokenmanager.merge;
+package org.niis.xroad.serverconf.impl.converter;
 
-import lombok.Value;
-import org.niis.xroad.signer.core.model.Cert;
-import org.niis.xroad.signer.core.model.Token;
+import ee.ria.xroad.common.util.NoCoverage;
 
-import java.util.List;
-import java.util.Set;
-
-/**
- * A strategy for merging in-memory token lists (with transient information) to token lists from a file.
- */
-public interface TokenMergeStrategy {
-
-    /**
-     * A simple class to hold the results of the merge.
-     */
-    @Value
-    class MergeResult {
-
-        // this is also  created by @Value but some see using @RequiredArgsConstructor as bad style
-        // so specifically creating it
-        MergeResult(Set<Token> resultTokens, List<Cert> addedCertificates) {
-            this.resultTokens = resultTokens;
-            this.addedCertificates = addedCertificates;
-        }
-
-        private Set<Token> resultTokens;
-        private List<Cert> addedCertificates;
-    }
-
-    MergeResult merge(Set<Token> memoryTokens, Set<Token> fileTokens);
+public interface GenericBiDirectionalMapper<S, T> extends GenericUniDirectionalMapper<S, T> {
+    @NoCoverage
+    S toSource(T source);
 }

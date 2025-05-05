@@ -60,6 +60,11 @@ public final class Token {
     private final String id;
 
     /**
+     * Internal database ID.
+     */
+    private final Long internalId;
+
+    /**
      * The module id.
      */
     private String moduleId;

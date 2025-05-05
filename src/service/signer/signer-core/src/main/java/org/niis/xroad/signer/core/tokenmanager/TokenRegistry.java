@@ -27,9 +27,10 @@ package org.niis.xroad.signer.core.tokenmanager;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.model.CertRequest;
 import org.niis.xroad.signer.core.model.Key;
@@ -38,9 +39,8 @@ import org.niis.xroad.signer.core.tokenmanager.merge.MergeOntoFileTokensStrategy
 import org.niis.xroad.signer.core.tokenmanager.merge.TokenMergeAddedCertificatesListener;
 import org.niis.xroad.signer.core.tokenmanager.merge.TokenMergeStrategy;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiFunction;
@@ -58,10 +58,11 @@ public class TokenRegistry {
     private static final TokenMergeStrategy MERGE_STRATEGY = new MergeOntoFileTokensStrategy();
 
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    private final SignerProperties signerProperties;
+    private final TokenConf tokenConf;
 
     private final TokenContext tokenContext = new TokenContext();
-    private List<Token> currentTokens;
+    @Getter(AccessLevel.PACKAGE)
+    private TokenConf.LoadedTokens currentTokens;
 
     /**
      * Initializes the manager -- loads the tokens from the token configuration.
@@ -71,12 +72,10 @@ public class TokenRegistry {
     @PostConstruct
     public void init() {
         try {
-            TokenConf.getInstance().load(signerProperties);
-        } catch (Exception e) {
-            log.error("Failed to load token conf", e);
+            currentTokens = tokenConf.retrieveTokensFromDb();
+        } catch (TokenConf.TokenConfException e) {
+            log.error("Failed to load the new key configuration from database.", e);
         }
-
-        currentTokens = new ArrayList<>(TokenConf.getInstance().getTokens());
     }
 
     /**
@@ -86,8 +85,7 @@ public class TokenRegistry {
      */
     public synchronized void saveToConf() throws Exception {
         log.trace("persist()");
-
-        TokenConf.getInstance().save(currentTokens);
+        tokenConf.save(currentTokens);
     }
 
     /**
@@ -98,30 +96,32 @@ public class TokenRegistry {
      */
     public void merge(TokenMergeAddedCertificatesListener listener) {
 
-        if (TokenConf.getInstance().hasChanged()) {
-            log.debug("The key configuration on disk has changed, merging changes.");
+        if (tokenConf.hasChanged(currentTokens)) {
+            log.debug("The key configuration in database has changed, merging changes.");
 
-            List<Token> fileTokens;
+            TokenConf.LoadedTokens dbTokens;
             try {
-                fileTokens = TokenConf.getInstance().retrieveTokensFromConf();
+                dbTokens = tokenConf.retrieveTokensFromDb();
 
             } catch (TokenConf.TokenConfException e) {
-                log.error("Failed to load the new key configuration from disk.", e);
+                log.error("Failed to load the new key configuration from database.", e);
+                return;
+            }
+            if (dbTokens.tokens().isEmpty()) {
+                log.error("Error while fetching key config: no tokens found");
                 return;
             }
 
             TokenMergeStrategy.MergeResult result;
             synchronized (TokenRegistry.class) {
-                result = MERGE_STRATEGY.merge(fileTokens, currentTokens);
-                currentTokens = result.getResultTokens();
+                result = MERGE_STRATEGY.merge(dbTokens.tokens(), currentTokens.tokens());
+                currentTokens = new TokenConf.LoadedTokens(result.getResultTokens(), dbTokens.entitySetHashCode());
             }
             if (listener != null) {
                 listener.mergeDone(result.getAddedCertificates());
             }
 
-
             log.info("Merged new key configuration.");
-
         } else {
             log.debug("The key configuration on disk has not changed, skipping merge.");
         }
@@ -131,39 +131,39 @@ public class TokenRegistry {
 
     public class TokenContext {
 
-        public List<Token> getTokens() {
-            return currentTokens;
+        public Set<Token> getTokens() {
+            return currentTokens.tokens();
         }
 
         public Token findToken(String tokenId) {
-            return TokenLookupUtils.findToken(currentTokens, tokenId);
+            return TokenLookupUtils.findToken(getTokens(), tokenId);
         }
 
         public Key findKey(String keyId) {
-            return TokenLookupUtils.findKey(currentTokens, keyId);
+            return TokenLookupUtils.findKey(getTokens(), keyId);
         }
 
         public Cert findCert(String certId) {
-            return TokenLookupUtils.findCert(currentTokens, certId);
+            return TokenLookupUtils.findCert(getTokens(), certId);
         }
 
         public <T> Optional<T> forCert(BiPredicate<Key, Cert> tester,
                                        BiFunction<Key, Cert, T> mapper) {
-            return TokenLookupUtils.forCert(currentTokens, tester, mapper);
+            return TokenLookupUtils.forCert(getTokens(), tester, mapper);
         }
 
         public <T> Optional<T> forKey(BiPredicate<Token, Key> tester,
                                       BiFunction<Token, Key, T> mapper) {
-            return TokenLookupUtils.forKey(currentTokens, tester, mapper);
+            return TokenLookupUtils.forKey(getTokens(), tester, mapper);
         }
 
         public <T> Optional<T> forToken(Predicate<Token> tester, Function<Token, T> mapper) {
-            return TokenLookupUtils.forToken(currentTokens, tester, mapper);
+            return TokenLookupUtils.forToken(getTokens(), tester, mapper);
         }
 
         <T> Optional<T> forCertRequest(BiPredicate<Key, CertRequest> tester,
                                        BiFunction<Key, CertRequest, T> mapper) {
-            return TokenLookupUtils.forCertRequest(currentTokens, tester, mapper);
+            return TokenLookupUtils.forCertRequest(getTokens(), tester, mapper);
         }
 
     }

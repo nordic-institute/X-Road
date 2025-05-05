@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
@@ -47,7 +48,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-@Mapper
+@Mapper(componentModel = MappingConstants.ComponentModel.JAKARTA_CDI)
 public interface XRoadIdMapper extends GenericUniDirectionalMapper<XRoadIdEntity, XRoadId.Conf> {
     XRoadIdMapper INSTANCE = Mappers.getMapper(XRoadIdMapper.class);
 
