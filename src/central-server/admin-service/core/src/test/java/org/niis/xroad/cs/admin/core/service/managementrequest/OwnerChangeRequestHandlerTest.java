@@ -192,7 +192,7 @@ class OwnerChangeRequestHandlerTest {
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("Error[code=management_request_server_not_found, metadata=[SecurityServerId()]]");
+                .hasMessage("Error[code=management_request_server_not_found, metadata=[%s]]".formatted(securityServerId));
     }
 
     @Test

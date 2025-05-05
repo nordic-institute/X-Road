@@ -204,6 +204,7 @@ class SharedParametersV4ToXmlConverterTest {
         securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
+        securityServer.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
         return securityServer;
     }
 

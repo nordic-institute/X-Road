@@ -41,6 +41,8 @@ import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
@@ -73,6 +75,8 @@ public class AdminApiMockStepDefs extends BaseStepDefs {
             case CLIENT_RENAME_REQUEST -> new ClientRenameRequestDto();
             case AUTH_CERT_DELETION_REQUEST -> new AuthenticationCertificateDeletionRequestDto();
             case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestDto();
+            case MAINTENANCE_MODE_ENABLE_REQUEST -> new MaintenanceModeEnableRequestDto();
+            case MAINTENANCE_MODE_DISABLE_REQUEST -> new MaintenanceModeDisableRequestDto();
         };
         response.setId(id);
         response.setType(type);

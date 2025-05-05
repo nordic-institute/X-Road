@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.NoCoverage;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Optional;
 
@@ -41,7 +40,6 @@ import static ee.ria.xroad.common.util.Validation.validateArgument;
 
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 public class SecurityServerId extends XRoadId implements ee.ria.xroad.common.identifier.SecurityServerId {
 
