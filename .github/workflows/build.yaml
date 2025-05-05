@@ -309,7 +309,6 @@ jobs:
         working-directory: ./src
         run: |
           mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
-          docker network create xroad-network
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
       - name: Test report
         env:

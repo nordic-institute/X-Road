@@ -59,6 +59,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String UI = "ui";
     private static final String SIGNER = "signer";
     private static final String CONFIGURATION_CLIENT = "configuration-client";
+    private static final String XROAD_NETWORK = "xroad-network";
 
     public static final String HURL = "hurl";
 
@@ -74,10 +75,8 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
             envSs0 = createSSEnvironment("ss0");
-            envSs0.start();
 
             envSs1 = createSSEnvironment("ss1");
-            envSs1.start();
 
             envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE), new File(COMPOSE_E2E_FILE))
                     .withLocalCompose(true)
@@ -99,8 +98,26 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         }
     }
 
+    private void connectToExternalNetwork(ComposeContainer env, String... serviceNames) {
+        for (String serviceName : serviceNames) {
+            var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
+            var dockerClient = containerState.getDockerClient();
+
+            String networkId = dockerClient.listNetworksCmd().exec().stream()
+                    .filter(n -> XROAD_NETWORK.equals(n.getName()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Could not find external network '%s'".formatted(XROAD_NETWORK)))
+                    .getId();
+
+            dockerClient.connectToNetworkCmd()
+                    .withContainerId(containerState.getContainerId())
+                    .withNetworkId(networkId)
+                    .exec();
+        }
+    }
+
     private ComposeContainer createSSEnvironment(String name) {
-        return new ComposeContainer(name + "-", new File(COMPOSE_SS_FILE))
+        var env = new ComposeContainer(name + "-", new File(COMPOSE_SS_FILE))
                 .withLocalCompose(true)
                 .withExposedService(PROXY, Port.PROXY, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
@@ -108,6 +125,10 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
                 .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER));
+        env.start();
+        connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
+
+        return env;
     }
 
     private String getContainerName(ComposeContainer env, String container) {
@@ -116,7 +137,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     private Slf4jLogConsumer createLogConsumer(String env, String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-%s" .formatted(env, containerName)));
+        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-%s".formatted(env, containerName)));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
