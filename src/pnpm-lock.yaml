@@ -82,7 +82,7 @@ importers:
         specifier: ~5.8.3
         version: 5.8.3
       vite:
-        specifier: ^6.3.4
+        specifier: ^6.3.3
         version: 6.3.4(@types/node@22.15.2)(jiti@2.4.1)(sass@1.87.0)(stylus@0.57.0)(yaml@2.7.1)
       vite-plugin-vuetify:
         specifier: ^2.1.1
