@@ -62,9 +62,9 @@ Doc. ID: PR-MSERV
   - [A.6 addressChange](#a6-addresschange)
   - [A.7 clientDisable](#a7-clientdisable)
   - [A.8 clientEnable](#a8-clientenable)
-  - [A.8 clientRename](#a9-clientrename)
-  - [A.8 maintenanceModeEnable](#a10-maintenancemodeenable)
-  - [A.8 maintenanceModeDisable](#a11-maintenancemodedisable)
+  - [A.9 clientRename](#a9-clientrename)
+  - [A.10 maintenanceModeEnable](#a10-maintenancemodeenable)
+  - [A.11 maintenanceModeDisable](#a11-maintenancemodedisable)
 - [Annex B WSDL File for Management Services](#annex-b-wsdl-file-for-management-services)
 
 ## License
@@ -479,9 +479,9 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
-3. Signing certificate of the owner member that was used to create the second MIME part.
+3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be application/octet-stream.
 
-4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request.
+4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be application/octet-stream.
 
 The response echoes back the message, the client and the server fields of the request and adds the field *requestId*.
 
@@ -514,9 +514,9 @@ The request is sent using HTTP POST method. The content type of the request MUST
 
 2. Signature of owner member of the Security Server. The MIME part must contain signature of the SOAP request message, created with the private key corresponding to a **signing certificate** of the owner member. The content type of this part must be *application/octet-stream*. Additionally, the part MUST include header field *signature-algorithm-ID* that identifies the signature algorithm. Currently supported signature algorithms are *SHA256withRSA*, *SHA384withRSA*, *SHA512withRSA*, *SHA256withRSAandMGF1*, *SHA384withRSAandMGF1*, and *SHA512withRSAandMGF1*.
 
-3. Signing certificate of the owner member that was used to create the second MIME part.
+3. Signing certificate of the owner member that was used to create the second MIME part. The content type of this part MUST be application/octet-stream.
 
-4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request.
+4. OCSP response certifying that the owner member's signing certificate was valid at the time of creation of the request. The content type of this part MUST be application/octet-stream.
 
 The response echoes back the client and the server fields of the request and adds the field *requestId*.
 
