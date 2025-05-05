@@ -42,7 +42,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 <a name="UG-SYSPAR"></a>**UG-SYSPAR** -- X-Road: System Parameters. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters.md).  
 <a name="UG-SS"></a>**UG-SS** -- X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide.md).  
-<a name="CRON"></a>**CRON** -- Quartz Scheduler Cron Trigger Tutorial,  http://www.quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/crontrigger.html  
+<a name="CRON"></a>**CRON** -- Quartz Scheduler Cron Trigger Tutorial,  http://www.quartz-scheduler.org/documentation/quartz-2.2.2/tutorials/crontrigger.html  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
 ## 2 Operational Monitoring System Parameters
