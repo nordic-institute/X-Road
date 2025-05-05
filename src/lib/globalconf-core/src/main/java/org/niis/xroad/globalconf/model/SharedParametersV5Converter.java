@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class SharedParametersV5Converter {
 
@@ -224,6 +225,7 @@ public class SharedParametersV5Converter {
         target.setServerCode(source.getServerCode());
         target.setAddress(source.getAddress());
         target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
+
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {
@@ -234,6 +236,12 @@ public class SharedParametersV5Converter {
                 }
             }
             target.setClients(clients);
+
+            Optional.ofNullable(source.getInMaintenanceMode())
+                    .map(mode -> SharedParameters.MaintenanceMode.enabled(mode.getMessage()))
+                    .or(() -> Optional.of(SharedParameters.MaintenanceMode.disabled()))
+                    .ifPresent(target::setMaintenanceMode);
+
         }
         return target;
     }

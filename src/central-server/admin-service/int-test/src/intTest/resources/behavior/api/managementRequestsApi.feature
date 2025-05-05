@@ -318,6 +318,25 @@ Feature: Management requests API
     And member 'CS:E2E:member-2' owned servers contains 'CS:E2E:member-2:SS-X'
 
   @Modifying
+  Scenario: Disabling/enabling maintenance mode
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And security server 'CS:E2E:member-1:SS-X' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' is put into maintenance mode
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS-X' is in maintenance mode without message
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' is taken out of maintenance mode
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS-X' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS-X' is put into maintenance mode with message: 'Will be back up soon'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS-X' is in maintenance mode with message: 'Will be back up soon'
+
+  @Modifying
   Scenario: View management request details
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER

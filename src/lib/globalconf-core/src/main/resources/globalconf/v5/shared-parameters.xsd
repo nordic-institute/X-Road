@@ -21,6 +21,22 @@
                 </extension>
             </complexContent>
         </complexType>
+
+        <complexType name="SecurityServerType">
+            <complexContent>
+                <extension base="tns:SecurityServerType">
+                    <sequence>
+                        <element name="inMaintenanceMode" type="tns:MaintenanceMode" minOccurs="0" >
+                            <annotation>
+                                <documentation>
+                                    If present marks security server as in maintenance mode and not available
+                                </documentation>
+                            </annotation>
+                        </element>
+                    </sequence>
+                </extension>
+            </complexContent>
+        </complexType>
     </redefine>
 
     <element name="conf" type="tns:SharedParametersTypeV5">
@@ -31,6 +47,18 @@
             </documentation>
         </annotation>
     </element>
+
+    <complexType name="MaintenanceMode">
+        <sequence>
+            <element name="message" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        The optional message that is shown to consumers when the server is in maintenance mode.
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
 
     <complexType name="ConfigurationSourceType">
         <sequence>

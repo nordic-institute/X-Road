@@ -37,6 +37,8 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRegRequestType;
 import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,8 @@ import org.niis.xroad.common.managementrequest.verify.decode.ClientDisableReques
 import org.niis.xroad.common.managementrequest.verify.decode.ClientEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRenameRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeDisableRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -75,7 +79,9 @@ public final class ManagementRequestVerifier {
             ClientRequestType.class,
             AddressChangeRequestType.class,
             ClientRenameRequestType.class,
-            ClientRegRequestType.class
+            ClientRegRequestType.class,
+            MaintenanceModeEnableRequestType.class,
+            MaintenanceModeDisableRequestType.class
     );
     private final GlobalConfProvider globalConfProvider;
 
@@ -86,6 +92,9 @@ public final class ManagementRequestVerifier {
                     .map(clazz::cast);
         }
 
+        public Optional<Object> getRequest() {
+            return Optional.ofNullable(request);
+        }
 
     }
 
@@ -152,6 +161,8 @@ public final class ManagementRequestVerifier {
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, this);
                 case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, this);
+                case MAINTENANCE_MODE_ENABLE_REQUEST -> new MaintenanceModeEnableRequestCallback(globalConfProvider, this);
+                case MAINTENANCE_MODE_DISABLE_REQUEST -> new MaintenanceModeDisableRequestCallback(globalConfProvider, this);
             };
         }
 

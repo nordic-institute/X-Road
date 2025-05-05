@@ -36,7 +36,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ClientRenameRequest extends Request {
+public final class ClientRenameRequest extends Request {
     private ClientId clientId;
     private String subsystemName;
 

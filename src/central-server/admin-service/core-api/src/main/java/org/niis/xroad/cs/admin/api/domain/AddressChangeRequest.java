@@ -41,7 +41,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @NoArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class AddressChangeRequest extends Request {
+public final class AddressChangeRequest extends Request {
     private String serverAddress;
 
     public AddressChangeRequest(Origin origin, SecurityServerId identifier, String address) {
