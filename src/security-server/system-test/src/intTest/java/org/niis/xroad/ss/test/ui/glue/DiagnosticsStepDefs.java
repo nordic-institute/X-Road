@@ -131,9 +131,9 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
 
     @Step("Mail notification status should be ok")
     public void mailNotificationStatus() {
+        diagnosticsPage.mailNotificationConfigurationStatus().shouldHave(partialText("Configured"));
         diagnosticsPage.mailNotificationOnSuccessEnabled().shouldHave(partialText("Enabled"));
         diagnosticsPage.mailNotificationOnFailureEnabled().shouldHave(partialText("Enabled"));
-        diagnosticsPage.mailNotificationConfigurationStatus().shouldHave(partialText("Configured"));
     }
 
     @Step("Sending test mail is a success")

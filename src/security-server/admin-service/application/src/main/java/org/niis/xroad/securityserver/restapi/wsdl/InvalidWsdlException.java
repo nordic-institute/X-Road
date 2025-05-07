@@ -26,6 +26,8 @@
 package org.niis.xroad.securityserver.restapi.wsdl;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.HttpStatusAware;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -34,7 +36,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSD
 /**
  * Thrown if WSDL was invalid
  */
-public class InvalidWsdlException extends WsdlValidationException {
+public class InvalidWsdlException extends WsdlValidationException implements HttpStatusAware {
     /**
      * @param metadata describes why wsdl was invalid
      */
@@ -48,5 +50,10 @@ public class InvalidWsdlException extends WsdlValidationException {
 
     public InvalidWsdlException(ErrorDeviation errorDeviation) {
         super(errorDeviation);
+    }
+
+    @Override
+    public int getHttpStatus() {
+        return HttpStatus.CONFLICT.value();
     }
 }

@@ -28,6 +28,7 @@ dependencies {
 
   implementation(libs.quarkus.arc)
   implementation(libs.quarkus.scheduler)
+  implementation(libs.apache.commonsPool2)
 
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 

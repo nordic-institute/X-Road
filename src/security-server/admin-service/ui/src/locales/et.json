@@ -26,8 +26,6 @@
     "title": "Pääsuõigused"
   },
   "action": {
-    "cancel": "Tühista",
-    "delete": "Kustuta",
     "disable": "Blokeeri",
     "enable": "Aktiveeri",
     "order": "Telli"
@@ -347,13 +345,6 @@
           },
           "UnknownService": "Tundmatu teenus"
         }
-      },
-      "Signer": {
-        "CertNotFound": "Sertifikaati ei leitud",
-        "KeyNotFound": "Võtit ei leitud",
-        "TokenNotAvailable": "Krüptomoodul pole saadaval",
-        "TokenNotFound": " Krüptomoodulit ei leitud",
-        "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
       }
     },
     "csr_not_found": "CSR-i ei leitud",
@@ -361,7 +352,6 @@
     "duplicate_accessright": "Dubleeri pääsuõigus",
     "endpoint_already_exists": "Otspunkt on juba olemas",
     "endpoint_not_found": "Otspunkti ei leitud",
-    "generate_backup_interrupted": "Varukoopia loomine katkestatud",
     "global_conf_download_request_failed": "Globaalse konfiguratsiooni allalaadimise päring ebaõnnestus",
     "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
     "gpg_key_generation_failed": "GPG võtmepaari loomine ebaõnnestus",
@@ -372,7 +362,6 @@
     "import_internal_cert_failed": "Sisemise sertifikaadi import ebaõnnestus",
     "internal_anchor_upload_invalid_instance_id": "Ankrul on kehtetu juhtumi ID",
     "internal_key_cert_interrupted": "Sisemise võtme sertifikaat katkestatud",
-    "invalid_cert": "Kehtetu sertifikaat",
     "invalid_characters_pin": "PIN-kood sisaldab kehtetuid märke",
     "invalid_dn_parameter": "Kehtetu DN parameeter",
     "invalid_https_url": "URL ei kasuta HTTPS-i",
@@ -403,8 +392,6 @@
     "pin_code_exists": "PIN-kood on olemas",
     "pin_code_not_provided": "PIN-kood puudub",
     "pin_incorrect": "Vale PIN-kood. Proovige uuesti.",
-    "pin_min_char_classes_count": "PIN-koodi minimaalne tähemärgiklasside arv",
-    "pin_min_length": "PIN-koodi minimaalne pikkus",
     "process_failed": "Protsess ebaõnnestus",
     "process_not_executable": "Protsess pole teostatav",
     "server_already_fully_initialized": "Server on juba täielikult lähtestatud",
@@ -413,6 +400,7 @@
     "service_already_exists": "Teenus on juba olemas",
     "service_client_not_found": "Teenuse klienti ei leitud",
     "service_code_already_exists": "Teenuse kood on juba olemas",
+    "service_code_reserved": "Teenusekood on reserveeritud süsteemi sisemiseks kasutamiseks ja seda ei saa määrata kohandatud teenustele",    
     "service_description_not_found": "Teenuse kirjeldust ei leitud",
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",
@@ -427,7 +415,6 @@
     "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
     "url_already_exists": "URL on juba olemas",
     "warnings_detected": "Tuvastati hoiatused",
-    "weak_pin": "Nõrk PIN",
     "wrong_key_usage": "Vale võtme kasutus",
     "wrong_servicedescription_type": "Vale teenuse kirjelduse tüüp",
     "wsdl_download_failed": "WSDL-i allalaadimine ebaõnnestus",
@@ -624,11 +611,9 @@
     "signKeyCert": "SIGN-võtmed ja sertifikaadid",
     "status": "Olek",
     "token": {
-      "label": "Krüptomoodul:",
       "details": "Krüptomooduli detailid",
       "id": "Krüptomooduli ID:",
       "info": "Krüptomooduli teave",
-      "pin": "Krüptomooduli PIN",
       "saved": "Krüptomoodul salvestatud",
       "deleteText": "Kas olete kindel, et soovite selle krüptomooduli ja kõik seotud informatsiooni serveri konfiguratsioonist kustutada?",
       "deleteTitle": "Kustuta krüptomoodul?",

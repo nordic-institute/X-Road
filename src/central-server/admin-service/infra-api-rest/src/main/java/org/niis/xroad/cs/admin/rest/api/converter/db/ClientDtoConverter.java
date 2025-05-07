@@ -49,6 +49,7 @@ import java.util.Optional;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationBuilder.trMetadata;
 
 @Slf4j
 @Service
@@ -92,9 +93,8 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                 MemberClass memberClass = memberClassService
                         .findByCode(memberClassCode)
                         .orElseThrow(() -> new NotFoundException(
-                                MEMBER_CLASS_NOT_FOUND,
-                                "code",
-                                memberClassCode
+                                MEMBER_CLASS_NOT_FOUND.build(
+                                        trMetadata("code", memberClassCode))
                         ));
                 return new XRoadMember(
                         source.getMemberName(),
@@ -105,9 +105,9 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
                 XRoadMember xRoadMember = memberService
                         .findMember(clientId.getMemberId())
                         .orElseThrow(() -> new NotFoundException(
-                                MEMBER_NOT_FOUND,
-                                "code",
-                                clientIdDto.getMemberCode()
+                                MEMBER_NOT_FOUND.build(
+                                        trMetadata("code",
+                                                clientIdDto.getMemberCode()))
                         ));
                 return new Subsystem(xRoadMember, clientId, null);
             case null:

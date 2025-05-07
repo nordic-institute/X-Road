@@ -182,7 +182,7 @@ class OcspRespondersServiceImplTest {
         Executable testable = () -> service.delete(ID);
 
         NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-        assertEquals(OCSP_RESPONDER_NOT_FOUND.getDescription(), actualThrown.getMessage());
+        assertEquals(OCSP_RESPONDER_NOT_FOUND.code(), actualThrown.getErrorDeviation().code());
     }
 
     private void assertAuditMessages(OcspInfoEntity ocspInfo, String url) {

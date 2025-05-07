@@ -32,15 +32,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.CertificateAuthorityConverter;
 import org.niis.xroad.securityserver.restapi.converter.CsrSubjectFieldDescriptionConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
@@ -50,14 +47,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrderDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescriptionDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
-import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
-import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
-import org.niis.xroad.securityserver.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
@@ -73,6 +65,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collection;
 import java.util.Set;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.MEMBER_ID_REQUIRED_FOR_SIGN_CSR;
 
 /**
  * certificate authorities api controller
@@ -96,7 +90,6 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
      * Currently returns partial CertificateAuthorityDto objects that have only
      * name and authentication_only properties set.
      * Other properties will be added in another ticket (system parameters).
-     *
      * @return
      */
     @Override
@@ -109,12 +102,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     public ResponseEntity<Set<CertificateAuthorityDto>> getApprovedCertificateAuthorities(KeyUsageTypeDto keyUsageTypeDto,
                                                                                           Boolean includeIntermediateCas) {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageTypeDto).orElse(null);
-        Collection<ApprovedCaDto> caDtos = null;
-        try {
-            caDtos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo, includeIntermediateCas);
-        } catch (CertificateAuthorityService.InconsistentCaDataException e) {
-            throw new InternalServerErrorException(e);
-        }
+        Collection<ApprovedCaDto> caDtos = certificateAuthorityService.getCertificateAuthorities(keyUsageInfo, includeIntermediateCas);
+
         Set<CertificateAuthorityDto> cas = certificateAuthorityConverter.convert(caDtos);
         return new ResponseEntity<>(cas, HttpStatus.OK);
     }
@@ -137,10 +126,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageTypeDto).get();
 
         // memberId is mandatory for sign csrs
-        if (keyUsageInfo == KeyUsageInfo.SIGNING) {
-            if (StringUtils.isBlank(encodedMemberId)) {
-                throw new BadRequestException("memberId is mandatory for sign csrs");
-            }
+        if (keyUsageInfo == KeyUsageInfo.SIGNING && StringUtils.isBlank(encodedMemberId)) {
+            throw new BadRequestException(MEMBER_ID_REQUIRED_FOR_SIGN_CSR.build());
         }
 
         try {
@@ -149,8 +136,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
                 KeyInfo keyInfo = keyService.getKey(keyId);
                 if (keyInfo.getUsage() != null) {
                     if (keyInfo.getUsage() != keyUsageInfo) {
-                        throw new BadRequestException("key is for different usage",
-                                new ErrorDeviation("wrong_key_usage"));
+                        throw new WrongKeyUsageException("key is for different usage");
                     }
                 }
             }
@@ -167,12 +153,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 
-        } catch (WrongKeyUsageException | KeyNotFoundException | ClientNotFoundException e) {
+        } catch (KeyNotFoundException | ClientNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAuthorityNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        } catch (CertificateProfileInstantiationException e) {
-            throw new InternalServerErrorException(e);
         }
     }
 
@@ -184,13 +166,10 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     public ResponseEntity<AcmeEabCredentialsStatusDto> hasAcmeExternalAccountBindingCredentials(String caName,
                                                                                                 KeyUsageTypeDto keyUsageTypeDto,
                                                                                                 String memberId) {
-        try {
-            final var isAcmeEabRequired = certificateAuthorityService.isAcmeExternalAccountBindingRequired(caName);
-            final var hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
-            return new ResponseEntity<>(new AcmeEabCredentialsStatusDto(isAcmeEabRequired, hasAcmeEabCredentials), HttpStatus.OK);
-        } catch (CertificateAuthorityNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
+
+        final var isAcmeEabRequired = certificateAuthorityService.isAcmeExternalAccountBindingRequired(caName);
+        final var hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
+        return new ResponseEntity<>(new AcmeEabCredentialsStatusDto(isAcmeEabRequired, hasAcmeEabCredentials), HttpStatus.OK);
     }
 
     @Override
@@ -203,13 +182,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrderDto.getKeyUsageType()).orElseThrow();
         try {
             tokenCertificateService.orderAcmeCertificate(caName, acmeOrderDto.getCsrId(), keyUsageInfo);
-        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException
-                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
+        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | GlobalConfOutdatedException | CertificateAlreadyExistsException e) {
-            throw new ConflictException(e);
-        } catch (CsrNotFoundException e) {
-            throw new ResourceNotFoundException(e);
         } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
             throw new InternalServerErrorException(e);
         }

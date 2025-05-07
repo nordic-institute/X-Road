@@ -89,6 +89,25 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Store files for arm packaging
+        uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        with:
+          name: workspace-for-arm
+          include-hidden-files: true
+          path: |
+            **
+            !**/src/lib/**
+            !**/src/test/**
+            !**/build/classes/**
+            !**/build/tmp/**
+            !**/build/allure-**
+            !**/build/test-results/**
+            !**/build/reports/**
+            !**/.git/**
+            !**/.pnpm-store/**
+            !**/pnpm-node/**
+            !**/node_modules/**
+            !**/executionHistory/**
       - name: Build RHEL8 packages
         run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
       - name: Build RHEL9 packages
@@ -139,7 +158,54 @@ jobs:
         with:
           name: docker-images
           path: ${{ runner.temp }}/docker-images
-
+  BuildAndPackageOnArm:
+    name: Build and package code for arm architecture
+    needs: BuildAndPackageWithUnitTests
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - name: Ensure required packages
+        env:
+          DEBIAN_FRONTEND: noninteractive # Less output to log
+        run: sudo apt-get update && sudo apt-get install -y curl software-properties-common build-essential unzip debhelper devscripts
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
+          gradle-home-cache-cleanup: true
+          dependency-graph: generate-and-submit
+          add-job-summary-as-pr-comment: always
+      - name: Download workspace
+        uses: pyTooling/download-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
+        with:
+          name: workspace-for-arm
+      - name: Build native dependencies
+        working-directory: ./src
+        run: ./gradlew :service:signer:signer-api:make
+      - name: Build RHEL8 packages
+        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+      - name: Build RHEL9 packages
+        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+      - name: Build 22.04 (Jammy) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./src/packages/build-deb.sh jammy -release
+      - name: Build 24.04 (Noble) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./src/packages/build-deb.sh noble -release
+      - name: Store deb files for Docker dev images
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-packages-arm
+          path: src/packages/build/ubuntu22.04/*.deb
+          compression-level: 0 #No point in compressing these
   RunCSSystemTests:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
@@ -243,8 +309,7 @@ jobs:
         working-directory: ./src
         run: |
           mv -f ../deployment/security-server/docker/.env.github ../deployment/security-server/docker/.env
-          docker network create xroad-network
-          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest 
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'

@@ -32,9 +32,9 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
@@ -44,7 +44,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
@@ -235,9 +235,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
                 .addConfiguredTimestampingService(any());
 
         try {
-            ResponseEntity<TimestampingServiceDto> response = systemApiController
-                    .addConfiguredTimestampingService(timestampingService);
-            fail("should throw ResourceNotFoundException");
+            systemApiController.addConfiguredTimestampingService(timestampingService);
+            fail("should throw ValidationFailureException");
         } catch (BadRequestException expected) {
             // success
         }
@@ -270,7 +269,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"VIEW_ANCHOR"})
-    public void getAnchor() throws AnchorNotFoundException {
+    public void getAnchor() throws AnchorFileNotFoundException {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFile()).thenReturn(anchorFile);
@@ -285,8 +284,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"VIEW_ANCHOR"})
-    public void getAnchorNotFound() throws AnchorNotFoundException {
-        Mockito.doThrow(new AnchorNotFoundException("")).when(systemService).getAnchorFile();
+    public void getAnchorNotFound() throws AnchorFileNotFoundException {
+        Mockito.doThrow(new AnchorFileNotFoundException("err", new Exception())).when(systemService).getAnchorFile();
 
         try {
             ResponseEntity<AnchorDto> response = systemApiController.getAnchor();
@@ -298,7 +297,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
-    public void downloadAnchor() throws AnchorNotFoundException, IOException {
+    public void downloadAnchor() throws AnchorFileNotFoundException, IOException {
         byte[] bytes = "teststring".getBytes(StandardCharsets.UTF_8);
         when(systemService.readAnchorFile()).thenReturn(bytes);
         when(systemService.getAnchorFilenameForDownload())
@@ -311,11 +310,11 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
-    public void downloadAnchorNotFound() throws AnchorNotFoundException {
-        Mockito.doThrow(new AnchorNotFoundException("")).when(systemService).readAnchorFile();
+    public void downloadAnchorNotFound() throws AnchorFileNotFoundException {
+        Mockito.doThrow(new AnchorFileNotFoundException("err", new Exception())).when(systemService).readAnchorFile();
 
         try {
-            ResponseEntity<Resource> response = systemApiController.downloadAnchor();
+            systemApiController.downloadAnchor();
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException expected) {
             // success

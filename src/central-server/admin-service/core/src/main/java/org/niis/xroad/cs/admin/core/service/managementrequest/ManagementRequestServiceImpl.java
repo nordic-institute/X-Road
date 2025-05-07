@@ -28,16 +28,15 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestView;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.Request;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.paging.Page;
 import org.niis.xroad.cs.admin.api.paging.PageRequestDto;
 import org.niis.xroad.cs.admin.api.service.ManagementRequestService;
@@ -58,6 +57,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_INVALID_STATE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DECLINE_MANAGEMENT_REQUEST;
@@ -85,7 +85,6 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
 
     /**
      * Get a management request
-     *
      * @param id request id
      */
     @Override
@@ -98,14 +97,14 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public ManagementRequestView getRequestView(int requestId) {
         return managementRequestViewRepository.findById(requestId)
                 .map(viewMapper::toTarget)
-                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND.build()));
     }
 
     @Override
     public ManagementRequestType getRequestType(int id) {
         return requests.findById(id)
                 .map(RequestEntity::getManagementRequestType)
-                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND.build()));
     }
 
     /**
@@ -131,7 +130,6 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
 
     /**
      * Approve pending management request
-     *
      * @param requestId request id to approve
      */
     @Override
@@ -142,7 +140,6 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
 
     /**
      * Revoke (decline) pending management request
-     *
      * @param requestId request id to revoke
      */
     @Override
@@ -152,7 +149,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         if (request instanceof RequestWithProcessingEntity requestWithProcessingEntity) {
             var processing = requestWithProcessingEntity.getRequestProcessing();
             if (!REVOCABLE_MR_STATUSES.contains(processing.getStatus())) {
-                throw new ValidationFailureException(ErrorMessage.MR_INVALID_STATE);
+                throw new BadRequestException(MR_INVALID_STATE.build());
             }
 
             if (processing.getRequests().size() == 1 && request.getOrigin() == Origin.CENTER) {
@@ -164,13 +161,13 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
             requests.save(request);
         } else {
             // should not happen since simple requests can not be pending
-            throw new DataIntegrityException(MR_NOT_SUPPORTED);
+            throw new ConflictException(MR_NOT_SUPPORTED.build());
         }
     }
 
     private <T extends RequestEntity> T findRequest(int requestId) {
         return (T) requests.findById(requestId)
-                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MR_NOT_FOUND.build()));
     }
 
     /*
@@ -184,7 +181,7 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .findFirst()
-                .orElseThrow(() -> new ServiceException(MR_NOT_SUPPORTED));
+                .orElseThrow(() -> new InternalServerErrorException(MR_NOT_SUPPORTED.build()));
     }
 
     /*

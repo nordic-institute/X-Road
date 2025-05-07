@@ -36,7 +36,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class ClientEnableRequest extends Request {
+public final class ClientEnableRequest extends Request {
     private ClientId clientId;
 
 

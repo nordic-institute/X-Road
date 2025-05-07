@@ -27,6 +27,7 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import feign.FeignException;
+import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.openapi.model.ClientDto;
@@ -224,6 +225,52 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
                 .assertion(equalsAssertion("CN=Subject-" + serverId, "body[0].subjectDistinguishedName",
                         "Auth cert \"subjectDistinguishedName\" should match"))
                 .assertion(notNullAssertion("body[0].notAfter"))
+                .execute();
+    }
+
+    public enum MaintenanceMode {
+        enabled, disabled
+    }
+
+    @ParameterType("enabled|disabled")
+    public MaintenanceMode maintenanceMode(String name) {
+        return MaintenanceMode.valueOf(name);
+    }
+
+    @Step("security server {string} has maintenance mode {maintenanceMode}")
+    public void userCanGetSecurityServerAuthenticationCertificates(String serverId, MaintenanceMode maintenanceMode) {
+        final var response = securityServersApi.getSecurityServer(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(MaintenanceMode.enabled == maintenanceMode, "body.inMaintenanceMode"))
+                .execute();
+    }
+
+    @Step("security server {string} is in maintenance mode without message")
+    public void setSecurityServerIsInMaintenanceMode(String serverId) {
+        setSecurityServerIsInMaintenanceMode(serverId, null);
+    }
+
+    @Step("security server {string} is in maintenance mode with message: {string}")
+    public void setSecurityServerIsInMaintenanceMode(String serverId, String message) {
+        final var response = securityServersApi.getSecurityServer(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(true, "body.inMaintenanceMode"))
+                .assertion(equalsAssertion(message, "body.maintenanceModeMessage"))
+                .execute();
+    }
+
+    @Step("security server {string} is not in maintenance mode")
+    public void setSecurityServerIsNotInMaintenanceMode(String serverId) {
+        final var response = securityServersApi.getSecurityServer(serverId);
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(OK))
+                .assertion(equalsAssertion(false, "body.inMaintenanceMode"))
+                .assertion(equalsAssertion(null, "body.maintenanceModeMessage"))
                 .execute();
     }
 

@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
@@ -67,7 +67,7 @@ class SigningKeyActionsResolverTest {
         var otherActions = EnumSet.complementOf(allowed);
         otherActions.forEach(
                 action -> assertThatThrownBy(() -> signingKeyActionsResolver.requireAction(action, createTokenInfo(true), inactiveKey))
-                        .isInstanceOf(ValidationFailureException.class)
+                        .isInstanceOf(BadRequestException.class)
         );
     }
 
@@ -83,7 +83,7 @@ class SigningKeyActionsResolverTest {
         var otherActions = EnumSet.complementOf(allowed);
         otherActions.forEach(
                 action -> assertThatThrownBy(() -> signingKeyActionsResolver.requireAction(action, createTokenInfo(true), activeKey))
-                        .isInstanceOf(ValidationFailureException.class)
+                        .isInstanceOf(BadRequestException.class)
         );
     }
 

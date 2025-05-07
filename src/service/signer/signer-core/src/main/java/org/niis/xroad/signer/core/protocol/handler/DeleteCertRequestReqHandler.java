@@ -31,7 +31,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
@@ -52,7 +51,7 @@ public class DeleteCertRequestReqHandler
     }
 
     public void deleteCertRequest(String certId) {
-        String removedKeyId = TokenManager.removeCertRequest(certId);
+        String removedKeyId = tokenManager.removeCertRequest(certId);
         if (removedKeyId == null) {
             throw CodedException.tr(X_CSR_NOT_FOUND,
                     "csr_not_found", "Certificate request '%s' not found", certId);

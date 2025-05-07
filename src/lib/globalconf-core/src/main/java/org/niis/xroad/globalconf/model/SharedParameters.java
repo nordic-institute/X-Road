@@ -61,7 +61,6 @@ public class SharedParameters {
     }
 
 
-
     @Data
     public static class ConfigurationSource {
         private String address;
@@ -146,6 +145,22 @@ public class SharedParameters {
         private String address;
         private List<CertHash> authCertHashes;
         private List<ClientId> clients;
+        private MaintenanceMode maintenanceMode;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class MaintenanceMode {
+        private boolean enabled;
+        private String message;
+
+        public static MaintenanceMode enabled(String message) {
+            return new MaintenanceMode(true, message);
+        }
+
+        public static MaintenanceMode disabled() {
+            return new MaintenanceMode(false, null);
+        }
     }
 
     @Data

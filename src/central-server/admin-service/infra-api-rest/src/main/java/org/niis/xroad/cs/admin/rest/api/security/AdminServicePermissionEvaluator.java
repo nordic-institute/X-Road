@@ -35,6 +35,8 @@ import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.OwnerChangeRequestDto;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -43,6 +45,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,18 +58,30 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
 
     public AdminServicePermissionEvaluator(List<TargetTypeResolver<?>> resolvers) {
         this.resolvers = resolvers;
-        this.targetMapping = new IdentityHashMap<>(Map.of(
-                AuthenticationCertificateRegistrationRequestDto.class, ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
-                AuthenticationCertificateDeletionRequestDto.class, ManagementRequestType.AUTH_CERT_DELETION_REQUEST,
-                ClientRegistrationRequestDto.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
-                ClientDeletionRequestDto.class, ManagementRequestType.CLIENT_DELETION_REQUEST,
-                ClientDisableRequestDto.class, ManagementRequestType.CLIENT_DISABLE_REQUEST,
-                ClientEnableRequestDto.class, ManagementRequestType.CLIENT_ENABLE_REQUEST,
-                ClientRenameRequestDto.class, ManagementRequestType.CLIENT_RENAME_REQUEST,
-                OwnerChangeRequestDto.class, ManagementRequestType.OWNER_CHANGE_REQUEST,
-                AddressChangeRequestDto.class, ManagementRequestType.ADDRESS_CHANGE_REQUEST
-        ));
 
+        var tempMapping = new HashMap<Class<?>, ManagementRequestType>();
+
+        Arrays.stream(ManagementRequestType.values())
+                .forEach(type -> tempMapping.put(mapRequestClasses(type), type));
+
+        this.targetMapping = new IdentityHashMap<>(tempMapping);
+
+    }
+
+    private Class<?> mapRequestClasses(ManagementRequestType type) {
+        return switch (type) {
+            case AUTH_CERT_REGISTRATION_REQUEST -> AuthenticationCertificateRegistrationRequestDto.class;
+            case AUTH_CERT_DELETION_REQUEST -> AuthenticationCertificateDeletionRequestDto.class;
+            case CLIENT_REGISTRATION_REQUEST -> ClientRegistrationRequestDto.class;
+            case CLIENT_DELETION_REQUEST -> ClientDeletionRequestDto.class;
+            case CLIENT_DISABLE_REQUEST -> ClientDisableRequestDto.class;
+            case CLIENT_ENABLE_REQUEST -> ClientEnableRequestDto.class;
+            case CLIENT_RENAME_REQUEST -> ClientRenameRequestDto.class;
+            case OWNER_CHANGE_REQUEST -> OwnerChangeRequestDto.class;
+            case ADDRESS_CHANGE_REQUEST -> AddressChangeRequestDto.class;
+            case MAINTENANCE_MODE_ENABLE_REQUEST -> MaintenanceModeEnableRequestDto.class;
+            case MAINTENANCE_MODE_DISABLE_REQUEST -> MaintenanceModeDisableRequestDto.class;
+        };
     }
 
     @Override

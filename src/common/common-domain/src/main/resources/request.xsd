@@ -14,6 +14,8 @@
     <element name="clientRename" type="tns:ClientRenameRequestType"/>
     <element name="ownerChange" type="tns:ClientRequestType"/>
     <element name="addressChange" type="tns:AddressChangeRequestType"/>
+    <element name="maintenanceModeEnable" type="tns:MaintenanceModeEnableRequestType"/>
+    <element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
 
     <complexType name="AuthCertRegRequestType">
         <sequence>
@@ -151,14 +153,37 @@
         <sequence>
             <element name="server" type="id:XRoadSecurityServerIdentifierType">
                 <annotation>
-                    <documentation>Identifier of the security server the
-                        authentication certificate will be associated with.
-                    </documentation>
+                    <documentation>Identifier of the security server for which the address will be changed.</documentation>
                 </annotation>
             </element>
             <element name="address" type="string">
                 <annotation>
                     <documentation>New address of the security server</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="MaintenanceModeEnableRequestType">
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security server which will be put into maintenance mode.</documentation>
+                </annotation>
+            </element>
+            <element name="message" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Optional message for maintenance mode</documentation>
+                </annotation>
+            </element>
+            <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+        </sequence>
+    </complexType>
+    <complexType name="MaintenanceModeDisableRequestType">
+        <sequence>
+            <element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the security server which will be taken out of maintenance mode.</documentation>
                 </annotation>
             </element>
             <element name="requestId" type="tns:RequestIdType" minOccurs="0"/>

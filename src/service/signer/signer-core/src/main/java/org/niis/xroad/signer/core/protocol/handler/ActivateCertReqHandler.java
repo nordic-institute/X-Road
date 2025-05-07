@@ -35,7 +35,6 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 
 import java.security.cert.X509Certificate;
@@ -59,7 +58,7 @@ public class ActivateCertReqHandler
     @Override
     protected Empty handle(ActivateCertReq request) throws Exception {
         if (request.getActive()) {
-            CertificateInfo certificateInfo = TokenManager.getCertificateInfo(request.getCertIdOrHash());
+            CertificateInfo certificateInfo = tokenManager.getCertificateInfo(request.getCertIdOrHash());
             if (certificateInfo == null) {
                 throw certWithIdNotFound(request.getCertIdOrHash());
             }
@@ -68,11 +67,11 @@ public class ActivateCertReqHandler
                 try {
                     ocspResponseManager.verifyOcspResponses(x509Certificate);
                     if (isNotBlank(certificateInfo.getOcspVerifyBeforeActivationError())) {
-                        TokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), "");
+                        tokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), "");
                     }
                 } catch (Exception e) {
                     log.error("Failed to verify OCSP responses for certificate {}", certificateInfo.getCertificateDisplayName(), e);
-                    TokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), e.getMessage());
+                    tokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), e.getMessage());
                     throw new CodedException(X_INTERNAL_ERROR,
                             "Failed to verify OCSP responses for certificate. Error: %s",
                             e.getMessage());
@@ -80,7 +79,7 @@ public class ActivateCertReqHandler
             }
         }
 
-        TokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
+        tokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
 
         return Empty.getDefaultInstance();
     }

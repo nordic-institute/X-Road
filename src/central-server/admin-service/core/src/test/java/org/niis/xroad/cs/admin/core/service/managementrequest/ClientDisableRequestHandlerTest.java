@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
@@ -127,8 +127,9 @@ class ClientDisableRequestHandlerTest {
         when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
 
         Assertions.assertThatThrownBy(() -> handler.add(request))
-                .isInstanceOf(DataIntegrityException.class)
-                .hasMessage("Security server client not found");
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Error[code=management_request_server_client_not_found, "
+                        + "metadata=[%s, %s]]".formatted(securityServerId, unknownSubsystemId));
     }
 
 

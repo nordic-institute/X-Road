@@ -27,7 +27,7 @@ package org.niis.xroad.confclient.core;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
@@ -72,7 +72,7 @@ class SharedParametersConfigurationLocations {
                             source.getInstanceIdentifier(), getDownloadUrl(confSource.getAddress(), configurationDirectory),
                             getVerificationCerts(configurationDirectory, confSource)))
                     .collect(Collectors.toList());
-        } catch (CertificateEncodingException | DataIntegrityException | IOException e) {
+        } catch (CertificateEncodingException | ConflictException | IOException e) {
             log.error("Unable to acquire shared parameters for instance {}", source.getInstanceIdentifier(), e);
         }
 
@@ -99,7 +99,7 @@ class SharedParametersConfigurationLocations {
                 return firstHttpDownloadUrl.get().substring(matcher.end());
             }
         }
-        throw new DataIntegrityException(INVALID_DOWNLOAD_URL_FORMAT);
+        throw new ConflictException(INVALID_DOWNLOAD_URL_FORMAT.build());
     }
 
     private List<byte[]> getVerificationCerts(String confLocation, SharedParameters.ConfigurationSource confSource) {

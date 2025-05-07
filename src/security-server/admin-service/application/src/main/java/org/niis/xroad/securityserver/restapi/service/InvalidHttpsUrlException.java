@@ -25,21 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_HTTPS_URL;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_HTTPS_URL;
 
-public class InvalidHttpsUrlException extends ServiceException {
-    public InvalidHttpsUrlException() {
-        super(createError());
-    }
+public class InvalidHttpsUrlException extends BadRequestException {
 
     public InvalidHttpsUrlException(String s) {
-        super(s, createError());
+        super(s, INVALID_HTTPS_URL.build());
     }
 
-    private static ErrorDeviation createError() {
-        return new ErrorDeviation(ERROR_INVALID_HTTPS_URL);
-    }
 }

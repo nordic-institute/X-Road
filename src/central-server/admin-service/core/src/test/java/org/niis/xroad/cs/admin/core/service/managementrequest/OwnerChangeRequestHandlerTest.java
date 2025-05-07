@@ -32,8 +32,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.DataIntegrityException;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.cs.admin.api.domain.ClientId;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
@@ -65,6 +65,8 @@ import java.util.UUID;
 import static ee.ria.xroad.common.SystemProperties.CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -79,7 +81,6 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_OWNER_MUST_BE_CLIENT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_OWNER_MUST_BE_MEMBER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_CODE_EXISTS;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 
 @ExtendWith(MockitoExtension.class)
@@ -162,9 +163,8 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of(mock(OwnerChangeRequestEntity.class), mock(OwnerChangeRequestEntity.class)));
 
-        assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
-                .isInstanceOf(DataIntegrityException.class)
-                .hasMessage(MR_EXISTS.getDescription());
+        var err = assertThrows(ConflictException.class, () -> ownerChangeRequestHandler.add(request));
+        assertEquals(MR_EXISTS.code(), err.getErrorDeviation().code());
     }
 
     @Test
@@ -176,9 +176,8 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
-        assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage(MR_OWNER_MUST_BE_MEMBER.getDescription());
+        var err = assertThrows(BadRequestException.class, () -> ownerChangeRequestHandler.add(request));
+        assertEquals(MR_OWNER_MUST_BE_MEMBER.code(), err.getErrorDeviation().code());
     }
 
     @Test
@@ -192,8 +191,8 @@ class OwnerChangeRequestHandlerTest {
         when(servers.findBy(securityServerId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
-                .isInstanceOf(DataIntegrityException.class)
-                .hasMessage(MR_SERVER_NOT_FOUND.getDescription());
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Error[code=management_request_server_not_found, metadata=[%s]]".formatted(securityServerId));
     }
 
     @Test
@@ -208,9 +207,8 @@ class OwnerChangeRequestHandlerTest {
         Set<ServerClientEntity> mockClients = Set.of(mockServerClientEntity(), mockServerClientEntity());
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
 
-        assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage(MR_OWNER_MUST_BE_CLIENT.getDescription());
+        var err = assertThrows(BadRequestException.class, () -> ownerChangeRequestHandler.add(request));
+        assertEquals(MR_OWNER_MUST_BE_CLIENT.code(), err.getErrorDeviation().code());
     }
 
     @Test
@@ -231,9 +229,8 @@ class OwnerChangeRequestHandlerTest {
         when(ownerMock.getIdentifier()).thenReturn(ownerId);
         when(securityServerEntity.getOwner()).thenReturn(ownerMock);
 
-        assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage(MR_CLIENT_ALREADY_OWNER.getDescription());
+        var err = assertThrows(BadRequestException.class, () -> ownerChangeRequestHandler.add(request));
+        assertEquals(MR_CLIENT_ALREADY_OWNER.code(), err.getErrorDeviation().code());
     }
 
     @Test
@@ -257,9 +254,8 @@ class OwnerChangeRequestHandlerTest {
 
         when(servers.count(SecurityServerId.create(clientId, "SS"))).thenReturn(1L);
 
-        assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
-                .isInstanceOf(DataIntegrityException.class)
-                .hasMessage(MR_SERVER_CODE_EXISTS.getDescription());
+        var err = assertThrows(ConflictException.class, () -> ownerChangeRequestHandler.add(request));
+        assertEquals(MR_SERVER_CODE_EXISTS.code(), err.getErrorDeviation().code());
     }
 
     private ServerClientEntity mockServerClientEntity(MemberIdEntity memberId) {

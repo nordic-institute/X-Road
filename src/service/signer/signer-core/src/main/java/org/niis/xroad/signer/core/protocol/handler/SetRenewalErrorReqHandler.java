@@ -28,7 +28,6 @@ package org.niis.xroad.signer.core.protocol.handler;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetRenewalErrorReq;
 
 /**
@@ -40,7 +39,7 @@ public class SetRenewalErrorReqHandler
 
     @Override
     protected Empty handle(SetRenewalErrorReq request) throws Exception {
-        TokenManager.setRenewalError(request.getCertId(), request.getErrorMessage());
+        tokenManager.setRenewalError(request.getCertId(), request.getErrorMessage());
 
         return Empty.getDefaultInstance();
     }

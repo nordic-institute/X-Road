@@ -25,20 +25,16 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MANAGEMENT_REQUEST_SENDING_FAILED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MANAGEMENT_REQUEST_SENDING_FAILED;
 
 /**
  * Management request failed
  */
-public class ManagementRequestSendingFailedException extends ServiceException {
+public class ManagementRequestSendingFailedException extends InternalServerErrorException {
     public ManagementRequestSendingFailedException(Throwable t) {
-        super(t, createError(t));
+        super(t, MANAGEMENT_REQUEST_SENDING_FAILED.build(t.getMessage()));
     }
 
-    private static ErrorDeviation createError(Throwable t) {
-        return new ErrorDeviation(ERROR_MANAGEMENT_REQUEST_SENDING_FAILED, t.getMessage());
-    }
 }

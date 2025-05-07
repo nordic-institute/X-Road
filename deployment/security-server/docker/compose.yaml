@@ -89,13 +89,16 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     healthcheck:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     deploy:
       resources:
         reservations:
@@ -127,7 +130,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -149,7 +151,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -185,7 +186,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -216,6 +216,10 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
       - XROAD_PROXY_UI_API_SECURITY_SERVER_URL=https://proxy:8443
+      - DB_CONFIG_SOURCE_ENABLED=true
+      - DB_CONFIG_SOURCE_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - DB_CONFIG_SOURCE_USERNAME=serverconf
+      - DB_CONFIG_SOURCE_PASSWORD=secret
     ports:
       - "0:4000" # Frontend
       - "0:9999" # debug port
@@ -225,7 +229,6 @@ services:
       test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ] #TODO verify that endpoint returns 200
     networks:
       - xrd-ss-network
-      - xroad-network
     depends_on:
       db-serverconf-init:
         condition: service_completed_successfully
@@ -239,8 +242,5 @@ services:
           memory: 512M
 
 networks:
-  xroad-network:
-    name: xroad-network
-    external: true
   xrd-ss-network:
     driver: bridge

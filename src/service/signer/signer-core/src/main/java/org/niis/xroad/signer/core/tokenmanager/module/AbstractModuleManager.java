@@ -37,6 +37,7 @@ import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.model.Cert;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.core.tokenmanager.token.WorkerWithLifecycle;
@@ -68,6 +69,8 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
     private final ModuleConf moduleConf;
+    protected final TokenManager tokenManager;
+    protected final TokenRegistry tokenRegistry;
     protected final SignerProperties signerProperties;
     protected final OcspResponseManager ocspResponseManager;
 
@@ -82,8 +85,6 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {
             initializeDirs();
-
-            TokenManager.init(signerProperties);
 
             if (SLAVE.equals(SystemProperties.getServerNodeType())) {
                 // when the key conf file is changed from outside this system (i.e. a new copy from master),
@@ -120,7 +121,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
         if (!SLAVE.equals(SystemProperties.getServerNodeType())) {
             try {
-                TokenManager.saveToConf();
+                tokenRegistry.saveToConf();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -213,14 +214,14 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
     private void persistConfiguration() {
         try {
-            TokenManager.saveToConf();
+            tokenRegistry.saveToConf();
         } catch (Exception e) {
             log.error("Failed to save conf", e);
         }
     }
 
     private void mergeConfiguration() {
-        TokenManager.merge(addedCerts -> {
+        tokenRegistry.merge(addedCerts -> {
             if (!addedCerts.isEmpty()) {
                 log.info("Requesting OCSP update for new certificates obtained in key configuration merge.");
                 try {

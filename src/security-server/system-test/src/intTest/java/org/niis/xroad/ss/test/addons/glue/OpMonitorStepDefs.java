@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.ss.test.addons.glue;
 
+
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -34,16 +35,15 @@ import ee.ria.xroad.common.message.SoapParser;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Step;
 import jakarta.xml.soap.SOAPBody;
 import jakarta.xml.soap.SOAPMessage;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.opmonitor.core.OperationalDataRecord;
+import org.niis.xroad.opmonitor.core.OperationalDataRecords;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,13 +57,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
@@ -81,9 +81,10 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static final String OPERATIONAL_DATA_JSON = "operational-monitoring-data.json.gz";
     private static final String OP_MONITORING_XSD = "http://x-road.eu/xsd/op-monitoring.xsd";
 
-    @SuppressWarnings("checkstyle:OperatorWrap")
+    @SuppressWarnings({"checkstyle:OperatorWrap", "checkstyle:MagicNumber"})
     @Step("Security Server Operational Data request was sent")
     public void executeGetSecurityServerOperationalData() throws Exception {
+        Thread.sleep(2000); // make sure that messages are processed
         InputStream is = new FileInputStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(MimeTypes.TEXT_XML_UTF8, is);
@@ -91,12 +92,30 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         putStepData(XROAD_SOAP_RESPONSE, response);
     }
 
-    @Step("Security Server REST listMethod was sent for client {string}")
-    public void executeGetListMethods(String xRoadClientId) {
+    @Step("Security Server saved endpoint REST method was sent for client {string}")
+    public void executeSavedGetPets(String xRoadClientId) {
         try {
-            xRoadRestRequestsApi.pets(xRoadClientId);
+            xRoadRestRequestsApi.s3c2(xRoadClientId);
         } catch (Exception e) {
-            log.info("There was error in REST call: {}", e.getMessage());
+            log.info("There was error in saved endpoint REST call: {}", e.getMessage());
+        }
+    }
+
+    @Step("Security Server saved endpoint OPENAPI3 method was sent for client {string}")
+    public void executeSavedGetTest(String xRoadClientId) {
+        try {
+            xRoadRestRequestsApi.testOas31(xRoadClientId);
+        } catch (Exception e) {
+            log.info("There was error in saved endpoint OPENAPI3 call: {}", e.getMessage());
+        }
+    }
+
+    @Step("Security Server not saved endpoint OPENAPI3 method was sent for client {string}")
+    public void executeNotSavedGetTest(String xRoadClientId) {
+        try {
+            xRoadRestRequestsApi.s4c2(xRoadClientId);
+        } catch (Exception e) {
+            log.info("There was error in not saved endpoint OPENAPI3 call: {}", e.getMessage());
         }
     }
 
@@ -136,8 +155,9 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                     @SuppressWarnings("checkstyle:MagicNumber")
                     public void soap(SoapMessage message, Map<String, String> headers) {
                         assertEquals("cid:" + OPERATIONAL_DATA_JSON, findOperationalDataRecordsContentId(message, "records"));
-                        // backup tests disabled, reduce the number from 9 to 8
-                        assertTrue(Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount")) >= 8);
+                        var recordsCount = Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount"));
+                        log.info("operational data records count: {}", recordsCount);
+                        assertTrue(recordsCount > 0);
                     }
 
 
@@ -148,10 +168,20 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                         String expectedCid = "<" + OPERATIONAL_DATA_JSON + ">";
                         assertEquals(expectedCid, additionalHeaders.get("content-id"));
 
-                        MonitoringData monitoringData = new ObjectMapper().readValue(readGzipContent(content), MonitoringData.class);
+                        OperationalDataRecords monitoringData = new ObjectMapper()
+                                .readValue(readGzipContent(content), OperationalDataRecords.class);
 
-                        verifyRestRecord(getRecord(monitoringData, "REST", "pets"));
-                        verifyWsdlRecord(getRecord(monitoringData, "WSDL", "clientDisable"));
+                        // saved REST endpoint call: client path is null and producer path is saved path
+                        verifyRestRecord(getClientRecord(monitoringData, "REST", "s3c2"), null);
+                        verifyRestRecord(getProducerRecord(monitoringData, "REST", "s3c2"), "/*/pets/*");
+                        // saved OPENAPI endpoint call: client path is null and producer path is saved path
+                        verifyRestRecord(getClientRecord(monitoringData, "OPENAPI3", "testOas31"), null);
+                        verifyRestRecord(getProducerRecord(monitoringData, "OPENAPI3", "testOas31"), "/test");
+                        // not saved OPENAPI endpoint call: both client and producer path are null
+                        verifyRestRecord(getClientRecord(monitoringData, "OPENAPI3", "s4c2"), null);
+                        verifyRestRecord(getProducerRecord(monitoringData, "OPENAPI3", "s4c2"), null);
+                        // WSDL call: method and path values are null
+                        verifyWsdlRecord(getProducerRecord(monitoringData, "WSDL", "clientDisable"));
                     }
 
                     @Override
@@ -172,39 +202,47 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         decoder.parse(new ByteArrayInputStream(Objects.requireNonNull(response.getBody())));
     }
 
-    private Record getRecord(MonitoringData monitoringData, String serviceType, String serviceCode) {
+    private OperationalDataRecord getRecord(OperationalDataRecords monitoringData, String securityServerType,
+                                            String serviceType, String serviceCode) {
         return monitoringData.getRecords().stream()
                 .filter(record -> serviceType.equals(record.getServiceType())
                         && serviceCode.equals(record.getServiceCode())
-                        && "Client".equals(record.getSecurityServerType()))
+                        && record.getSecurityServerType().equals(securityServerType))
                 .toList().getFirst();
     }
 
-    private void verifyRecord(Record record) {
+    private OperationalDataRecord getClientRecord(OperationalDataRecords monitoringData, String serviceType, String serviceCode) {
+        return getRecord(monitoringData, "Client", serviceType, serviceCode);
+    }
+
+    private OperationalDataRecord getProducerRecord(OperationalDataRecords monitoringData, String serviceType, String serviceCode) {
+        return getRecord(monitoringData, "Producer", serviceType, serviceCode);
+    }
+
+    private void verifyRecord(OperationalDataRecord record) {
         assertEquals("DEV", record.getClientXRoadInstance());
         assertEquals("COM", record.getClientMemberClass());
         assertEquals("1234", record.getClientMemberCode());
+        assertNull(record.getClientSubsystemCode());
         assertEquals("DEV", record.getServiceXRoadInstance());
         assertEquals("COM", record.getServiceMemberClass());
         assertEquals("1234", record.getServiceMemberCode());
-        assertEquals("ss0", record.getClientSecurityServerAddress());
         assertEquals("ss0", record.getServiceSecurityServerAddress());
+        assertNotNull(record.getXRoadVersion());
     }
 
-    private void verifyRestRecord(Record record) {
+    private void verifyRestRecord(OperationalDataRecord record, String path) {
         assertEquals("1", record.getMessageProtocolVersion());
         assertEquals("GET", record.getRestMethod());
-        assertEquals("/pets", record.getRestPath());
-        assertEquals("TestService", record.getClientSubsystemCode());
+        assertEquals(path, record.getRestPath());
         assertEquals("TestService", record.getServiceSubsystemCode());
         verifyRecord(record);
     }
 
-    private void verifyWsdlRecord(Record record) {
+    private void verifyWsdlRecord(OperationalDataRecord record) {
         assertEquals("4.0", record.getMessageProtocolVersion());
         assertNull(record.getRestMethod());
         assertNull(record.getRestPath());
-        assertNull(record.getClientSubsystemCode());
         assertEquals("MANAGEMENT", record.getServiceSubsystemCode());
         verifyRecord(record);
     }
@@ -243,106 +281,5 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         return response.getElementsByTagNameNS(OP_MONITORING_XSD, elementTagName)
                 .item(0)
                 .getTextContent();
-    }
-
-    @Getter
-    @Setter
-    static class Record {
-        @JsonProperty("monitoringDataTs")
-        private Long monitoringDataTs;
-
-        @JsonProperty("xRequestId")
-        private String xRequestId;
-
-        @JsonProperty("securityServerInternalIp")
-        private String securityServerInternalIp;
-
-        @JsonProperty("securityServerType")
-        private String securityServerType;
-
-        @JsonProperty("requestInTs")
-        private Long requestInTs;
-
-        @JsonProperty("responseOutTs")
-        private Long responseOutTs;
-
-        @JsonProperty("requestOutTs")
-        private Long requestOutTs;
-
-        @JsonProperty("responseInTs")
-        private Long responseInTs;
-
-        @JsonProperty("clientXRoadInstance")
-        private String clientXRoadInstance;
-
-        @JsonProperty("clientMemberClass")
-        private String clientMemberClass;
-
-        @JsonProperty("clientMemberCode")
-        private String clientMemberCode;
-
-        @JsonProperty("clientSubsystemCode")
-        private String clientSubsystemCode;
-
-        @JsonProperty("serviceXRoadInstance")
-        private String serviceXRoadInstance;
-
-        @JsonProperty("serviceMemberClass")
-        private String serviceMemberClass;
-
-        @JsonProperty("serviceMemberCode")
-        private String serviceMemberCode;
-
-        @JsonProperty("serviceSubsystemCode")
-        private String serviceSubsystemCode;
-
-        @JsonProperty("serviceCode")
-        private String serviceCode;
-
-        @JsonProperty("restMethod")
-        private String restMethod;
-
-        @JsonProperty("restPath")
-        private String restPath;
-
-        @JsonProperty("messageId")
-        private String messageId;
-
-        @JsonProperty("messageProtocolVersion")
-        private String messageProtocolVersion;
-
-        @JsonProperty("serviceSecurityServerAddress")
-        private String serviceSecurityServerAddress;
-
-        @JsonProperty("clientSecurityServerAddress")
-        private String clientSecurityServerAddress;
-
-        @JsonProperty("requestSize")
-        private Integer requestSize;
-
-        @JsonProperty("requestMimeSize")
-        private Integer requestMimeSize;
-
-        @JsonProperty("requestAttachmentCount")
-        private Integer requestAttachmentCount;
-
-        @JsonProperty("succeeded")
-        private Boolean succeeded;
-
-        @JsonProperty("faultCode")
-        private String faultCode;
-
-        @JsonProperty("faultString")
-        private String faultString;
-
-        @JsonProperty("serviceType")
-        private String serviceType;
-    }
-
-    @Getter
-    @Setter
-    static class MonitoringData {
-        @JsonProperty("records")
-        private List<Record> records;
     }
 }

@@ -26,8 +26,6 @@
     "title": "Access Rights"
   },
   "action": {
-    "cancel": "Cancel",
-    "delete": "Delete",
     "disable": "Disable",
     "enable": "Enable",
     "order": "Order"
@@ -116,9 +114,9 @@
         "success": "Certificate deleted"
       },
       "renameSubsystem": {
-        "title": "Edit subsystem name",
+        "changeAdded": "Subsystem name change successfully added and will be applied on client registration",
         "changeSubmitted": "Subsystem name change successfully submitted",
-        "changeAdded": "Subsystem name change successfully added and will be applied on client registration"
+        "title": "Edit subsystem name"
       },
       "unregister": {
         "confirmText": "Do you want to unregister this client?",
@@ -235,7 +233,6 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
-      "authCertRegisteredEnabled": "AUTH certificate registered notifications",
       "confStatus": {
         "false": "Configuration incomplete",
         "true": "Configured"
@@ -245,14 +242,21 @@
         "false": "Disabled",
         "true": "Enabled"
       },
-      "failureEnabled": "Failure notifications",
       "help": {
         "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details.",
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
-      "successEnabled": "Success notifications",
-      "title": "Mail notification status"
+      "title": "Mail notification status",
+      "type": {
+        "ACME_FAILURE": "ACME failure notifications",
+        "ACME_SUCCESS": "ACME success notifications",
+        "AUTH_CERT_REGISTERED": "AUTH certificate registered notifications",
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
+      },
+      "types": "Mail notification types",
+      "status": "Status"
     },
     "message": "Message",
     "nextUpdate": "Next Update",
@@ -370,14 +374,6 @@
           },
           "UnknownService": "Unknown service"
         }
-      },
-      "Signer": {
-        "CertNotFound": "Certification is not found",
-        "KeyNotFound": "Key is not found",
-        "NetworkError": "Signer is not currently reachable.",
-        "TokenNotAvailable": "Token is not available",
-        "TokenNotFound": "Token is not found",
-        "UnknownMember": "X-Road core - signer: Unknown member"
       }
     },
     "csr_not_found": "CSR not found",
@@ -394,9 +390,7 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
-    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
-    "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
     "invalid_dn_parameter": "Invalid DN parameter",
     "invalid_https_url": "URL does not use HTTPS",
@@ -427,8 +421,6 @@
     "pin_code_exists": "PIN code exists",
     "pin_code_not_provided": "PIN code is not provided",
     "pin_incorrect": "Incorrect PIN. Please try again.",
-    "pin_min_char_classes_count": "PIN minimum character classes count",
-    "pin_min_length": "PIN minimum length",
     "process_failed": "Process failed",
     "process_not_executable": "Process is not executable",
     "server_already_fully_initialized": "Server is already fully initialised",
@@ -437,6 +429,7 @@
     "service_already_exists": "Service already exists",
     "service_client_not_found": "Service client not found",
     "service_code_already_exists": "Service code already exists",
+    "service_code_reserved": "The service code provided is reserved for internal system use and cannot be assigned to custom services.",
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
@@ -450,7 +443,6 @@
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "warnings_detected": "Warnings detected",
-    "weak_pin": "Weak PIN",
     "wrong_key_usage": "Wrong key usage",
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",
@@ -615,8 +607,8 @@
     "helpTitleSS": "Security Server TLS Certificate",
     "id": "ID",
     "importCert": "Import cert.",
-    "importCertSuccess": "Uploading certificate succeeded",
     "importCertOcspVerifyWarning": "Could not activate certificate, because OCSP Responses could not be verified. Error message: {errorMessage}",
+    "importCertSuccess": "Uploading certificate succeeded",
     "incorrectPin": "Incorrect PIN. Please try again.",
     "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Key deleted",
@@ -650,11 +642,9 @@
     "signKeyCert": "SIGN Keys and Certificates",
     "status": "Status",
     "token": {
-      "label": "Token:",
       "details": "Token details",
       "id": "Token ID:",
       "info": "Token information",
-      "pin": "Token PIN",
       "saved": "Token saved",
       "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
       "deleteTitle": "Delete token?",

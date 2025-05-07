@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -146,7 +146,7 @@ class AuditLoggingTest {
                 urlCaptor.capture());
 
         assertEquals(RestApiAuditEvent.INIT_CENTRAL_SERVER, eventCaptor.getValue());
-        assertEquals(INTERNAL_ERROR.getDescription(), reasonCaptor.getValue());
+        assertEquals(INTERNAL_ERROR.build().toString(), reasonCaptor.getValue());
 
         Map<String, Object> data = dataCaptor.getValue();
         assertEquals(0, data.size());
@@ -170,7 +170,7 @@ class AuditLoggingTest {
                 @PathVariable(URL_VAR1) String var1,
                 @PathVariable(URL_VAR2) String var2) {
             if (BAD_VALUE.equals(var1)) {
-                throw new ValidationFailureException(INTERNAL_ERROR);
+                throw new BadRequestException(INTERNAL_ERROR.build());
             }
             auditDataHelper.put(RestApiAuditProperty.ID, var1);
             auditDataHelper.put(RestApiAuditProperty.CERT_ID, var2);

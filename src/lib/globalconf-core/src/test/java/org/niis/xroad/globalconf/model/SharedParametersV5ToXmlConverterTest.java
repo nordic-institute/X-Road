@@ -68,7 +68,8 @@ class SharedParametersV5ToXmlConverterTest {
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
             entry("authCertHash", "authCerts"),
-            entry("groupMember", "groupMembers")
+            entry("groupMember", "groupMembers"),
+            entry("inMaintenanceMode", "maintenanceMode")
     );
 
     @Test
@@ -207,6 +208,7 @@ class SharedParametersV5ToXmlConverterTest {
         securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
+        securityServer.setMaintenanceMode(new SharedParameters.MaintenanceMode(true, "maintenance message"));
         return securityServer;
     }
 
