@@ -42,6 +42,8 @@ cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildr
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init-db.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-unseal.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-wait-for.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/restore_openbao_db.sh
 
@@ -93,13 +95,7 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
         exit 1
     fi
 
-    echo "Waiting for OpenBao to be ready..."
-    for _ in $(seq 1 15); do
-        if curl -sf "${BAO_ADDR:-https://127.0.0.1:8200}/v1/sys/health" >/dev/null 2>&1; then
-            break
-        fi
-        sleep 1
-    done
+    /usr/share/xroad/scripts/secret-store-wait-for.sh
 
     echo "Initializing OpenBao.."
     systemctl enable xroad-secret-store-local.service

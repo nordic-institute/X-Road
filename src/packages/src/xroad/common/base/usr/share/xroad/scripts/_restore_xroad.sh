@@ -221,6 +221,19 @@ extract_to_tmp_restore_dir () {
       cp /etc/xroad/xroad.properties ${RESTORE_DIR}/etc/xroad/xroad.properties
   fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
+
+  if [[ -d "${RESTORE_DIR}/etc/openbao" ]]; then
+    chown -R openbao:openbao ${RESTORE_DIR}/etc/openbao
+
+    # keep existing unseal-keys and root token
+    if [[ -f /etc/openbao/root-token ]]; then
+        cp /etc/openbao/root-token ${RESTORE_DIR}/etc/openbao/root-token
+    fi
+    if [[ -f /etc/openbao/unseal-keys ]]; then
+        cp /etc/openbao/unseal-keys ${RESTORE_DIR}/etc/openbao/unseal-keys
+    fi
+  fi
+
   # reset permissions of all files to fixed, "safe" values
   chmod -R a-x,o=,u=rwX,g-w,g+X "$RESTORE_DIR"
 }
@@ -268,7 +281,7 @@ restore_openbao () {
     if cp --help | grep -q "\-Z"; then
       Z="-Z"
     fi
-    cp -v -r ${Z} ${RESTORE_DIR}/etc/openbao -t /etc
+    cp -v -a ${Z} ${RESTORE_DIR}/etc/openbao -t /etc
 
     # Restore database
     cp -v -a ${Z} ${RESTORE_DIR}/var/lib/xroad/openbao_dbdump.dat -t /var/lib/xroad/
@@ -302,18 +315,9 @@ restart_services () {
 
       # Unseal OpenBao after it has been started
       if [[ "$servicename" == "openbao" ]]; then
-        echo "Waiting for OpenBao to be ready..."
-        for _ in $(seq 1 15); do
-          if curl -sf "${BAO_ADDR:-https://127.0.0.1:8200}/v1/sys/health" >/dev/null 2>&1; then
-            break
-          fi
-          sleep 1
-        done
+        /usr/share/xroad/scripts/secret-store-wait-for.sh
 
-        echo "Unsealing OpenBao..."
-        head -n 2 /etc/openbao/unseal-keys | while IFS= read -r key; do
-          bao operator unseal "$key"
-        done
+        /usr/share/xroad/scripts/secret-store-unseal.sh /etc/openbao/unseal-keys 2
       fi
     fi
   done
