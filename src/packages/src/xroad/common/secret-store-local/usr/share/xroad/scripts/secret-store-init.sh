@@ -17,15 +17,13 @@ else
   jq -r '.unseal_keys_b64[]' <<< $INIT_OUTPUT >$UNSEAL_KEYS_FILE
   jq -r '.root_token' <<< $INIT_OUTPUT >$ROOT_TOKEN_FILE
   chmod 600 $ROOT_TOKEN_FILE $UNSEAL_KEYS_FILE
+  chown root:root $ROOT_TOKEN_FILE $UNSEAL_KEYS_FILE
 fi
 
 if [ "$SEALED" = "false" ]; then
   echo "OpenBao already unsealed"
 else
-  echo "Unsealing OpenBao..."
-  head -n 2 $UNSEAL_KEYS_FILE | while IFS= read -r key; do
-    bao operator unseal "$key"
-  done
+  /usr/share/xroad/scripts/secret-store-unseal.sh $UNSEAL_KEYS_FILE 2
 fi
 
 
@@ -37,6 +35,7 @@ if [ "$XRD_PKI_CONFIGURED" = "true" ]; then
 else
   echo "Initializing X-Road secrets engine ..."
 
+  # Enable secrets engines
   # Enable secrets engines
   bao secrets enable -path=xrd-pki pki || exit 1
   bao secrets enable -path=xrd-secret kv || exit 1

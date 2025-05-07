@@ -9,9 +9,12 @@ umask 027
 set -o pipefail
 
 DATABASE_DUMP_FILENAME="/var/lib/xroad/dbdump.dat"
+OPENBAO_DATABASE_DUMP_FILENAME="/var/lib/xroad/openbao_dbdump.dat"
 
 DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_db.sh"
 DATABASE_RESTORE_SCRIPT="/usr/share/xroad/scripts/restore_db.sh"
+OPENBAO_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_openbao_db.sh"
+OPENBAO_DATABASE_RESTORE_SCRIPT="/usr/share/xroad/scripts/restore_openbao_db.sh"
 COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
 # This version number must be increased when we introduce changes that make

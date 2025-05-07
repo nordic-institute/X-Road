@@ -27,20 +27,25 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/scripts/
 mkdir -p %{buildroot}/etc/xroad/services/
+mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{_sourcedir}/secret-store-local/xroad-secret-store-local.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/services/secret-store-local.conf %{buildroot}/etc/xroad/services/
-cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/secret-store-init.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/secret-store-init-db.sh %{buildroot}/usr/share/xroad/scripts/
+cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/* %{buildroot}/usr/share/xroad/scripts/
+cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildroot}/etc/xroad/backup.d/
 
 %files
 %defattr(0640,xroad,xroad,0751)
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_openbao
 %attr(644,root,root) %{_unitdir}/xroad-secret-store-local.service
 %config /etc/xroad/services/secret-store-local.conf
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-init-db.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-unseal.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-wait-for.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh
+%attr(554,root,xroad) /usr/share/xroad/scripts/restore_openbao_db.sh
 
 %pre -p /bin/bash
 %upgrade_check
@@ -70,10 +75,10 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
     }
 
     /usr/share/xroad/scripts/secret-store-generate-tls-certificate.sh
+
     # Install generated certificate to system
     install -m 644 /opt/openbao/tls/tls.crt /etc/pki/ca-trust/source/anchors/openbao.crt
     update-ca-trust
-
 
     # Initialize PostgreSQL storage
     init_local_postgres
@@ -90,13 +95,7 @@ if [ $1 -eq 1 ]; then  # $1 == 1 means fresh install, $1 == 2 means upgrade
         exit 1
     fi
 
-    echo "Waiting for OpenBao to be ready..."
-    for i in $(seq 1 30); do
-        if curl -sf "${BAO_ADDR}/v1/sys/health" >/dev/null 2>&1; then
-            break
-        fi
-        sleep 1
-    done
+    /usr/share/xroad/scripts/secret-store-wait-for.sh
 
     echo "Initializing OpenBao.."
     systemctl enable xroad-secret-store-local.service
