@@ -259,6 +259,15 @@
       "status": "Status"
     },
     "maintenanceMode": {
+      "label": "Maintenance mode:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
+        "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode requested is submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode requested is submitted"
+      },
+
+
       "enable": "Enable maintenance mode",
       "enableTitle": "Enable maintenance mode",
       "enableConfirm": "Do you want to enable maintenance mode?",
