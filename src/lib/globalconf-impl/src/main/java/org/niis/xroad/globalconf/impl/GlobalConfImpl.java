@@ -748,4 +748,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return OptionalInt.empty();
         }
     }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId) {
+        return Optional.ofNullable(serverId)
+                .map(id -> getSharedParametersCache(id.getXRoadInstance()).getSecurityServersById().get(id))
+                .map(SharedParameters.SecurityServer::getMaintenanceMode);
+    }
 }

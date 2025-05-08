@@ -45,6 +45,8 @@ import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRenameRequest;
+import org.niis.xroad.common.managementrequest.model.MaintenanceModeDisableRequest;
+import org.niis.xroad.common.managementrequest.model.MaintenanceModeEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -157,6 +159,35 @@ public final class ManagementRequestSender {
             return send(sender, getSecurityServerURI(),
                     new AddressChangeRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
                             builder.buildAddressChangeRequest(securityServer, address)));
+        }
+    }
+
+    /**
+     * Sends enable maintenance mode request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @param message        the optional message
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new MaintenanceModeEnableRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeEnableRequest(securityServer, message)));
+        }
+    }
+
+    /**
+     * Sends disable maintenance mode request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new MaintenanceModeDisableRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeDisableRequest(securityServer)));
         }
     }
 
