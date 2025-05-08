@@ -188,7 +188,7 @@ public class SystemApiController implements SystemApi {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PreAuthorize("hasAuthority('ENABLE_MAINTENANCE_MODE')")
+    @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
     @AuditEventMethod(event = RestApiAuditEvent.ENABLE_MAINTENANCE_MODE)
     @Override
     public ResponseEntity<Void> enableMaintenanceMode(MaintenanceModeMessageDto maintenanceModeMessageDto) {
@@ -196,7 +196,7 @@ public class SystemApiController implements SystemApi {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAuthority('DISABLE_MAINTENANCE_MODE')")
+    @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
     @AuditEventMethod(event = RestApiAuditEvent.DISABLE_MAINTENANCE_MODE)
     @Override
     public ResponseEntity<Void> disableMaintenanceMode() {
@@ -204,7 +204,7 @@ public class SystemApiController implements SystemApi {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
     @Override
     public ResponseEntity<MaintenanceModeDto> maintenanceMode() {
         return ResponseEntity.ok(maintenanceModeConverter.convert(systemService.getMaintenanceMode()));

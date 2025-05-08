@@ -26,8 +26,8 @@
 <template>
   <XrdTitledView title-key="tab.main.diagnostics" data-test="diagnostics-view">
     <template #header-buttons>
-      <DiagnosticsMaintenanceModeWidget />
-      <DiagnosticsDownloadSystemInfoBtn class="ml-5" />
+      <DiagnosticsDownloadSystemInfoBtn />
+      <DiagnosticsMaintenanceModeWidget class="ml-5" />
     </template>
 
     <DiagnosticsJavaVersionCard class="mt-0" />
@@ -74,15 +74,11 @@ import DiagnosticsMessageLogDatabaseCard from '@/views/Diagnostics/DiagnosticsMe
 import DiagnosticsProxyMemoryUsageCard from "@/views/Diagnostics/DiagnosticsProxyMemoryUsageCard.vue";
 import DiagnosticsDownloadSystemInfoBtn from '@/views/Diagnostics/DiagnosticsDownloadSystemInfoBtn.vue';
 import { XrdSubViewContainer, XrdTitledView } from '@niis/shared-ui';
-import DiagnosticsEnableMaintenanceModeBtn from '@/views/Diagnostics/DiagnosticsEnableMaintenanceModeBtn.vue';
-import DiagnosticsDisableMaintenanceModeBtn from '@/views/Diagnostics/DiagnosticsDisableMaintenanceModeBtn.vue';
 import DiagnosticsMaintenanceModeWidget from '@/views/Diagnostics/DiagnosticsMaintenanceModeWidget.vue';
 
 export default defineComponent({
   components: {
     DiagnosticsMaintenanceModeWidget,
-    DiagnosticsDisableMaintenanceModeBtn,
-    DiagnosticsEnableMaintenanceModeBtn,
     XrdSubViewContainer,
     XrdTitledView,
     DiagnosticsDownloadSystemInfoBtn,
