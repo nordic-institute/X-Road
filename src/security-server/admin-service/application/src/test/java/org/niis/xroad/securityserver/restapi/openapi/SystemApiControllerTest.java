@@ -36,10 +36,13 @@ import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
+import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeMessageDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
@@ -54,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -71,9 +75,12 @@ import java.util.Set;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.ANCHOR_FILE;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.INTERNAL_CERT_CN;
@@ -345,7 +352,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"VIEW_NODE_TYPE"})
     public void getNodeTypeStandalone() {
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeTypeDto.STANDALONE); // default value is STANDALONE
+        assertEquals(NodeTypeDto.STANDALONE, response.getBody().getNodeType()); // default value is STANDALONE
     }
 
     @Test
@@ -353,7 +360,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void getNodeTypePrimary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeTypeDto.PRIMARY);
+        assertEquals(NodeTypeDto.PRIMARY, response.getBody().getNodeType());
     }
 
     @Test
@@ -361,6 +368,38 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void getNodeTypeSecondary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
         ResponseEntity<NodeTypeResponseDto> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeTypeDto.SECONDARY);
+        assertEquals(NodeTypeDto.SECONDARY, response.getBody().getNodeType());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void getMaintenanceMode() {
+        final var message = "message";
+        when(systemService.getMaintenanceMode()).thenReturn(new MaintenanceMode(MaintenanceMode.Status.ENABLED, message));
+        var response = systemApiController.maintenanceMode();
+        assertEquals(message, response.getBody().getMessage());
+        assertEquals(MaintenanceModeStatusDto.ENABLED_MAINTENANCE_MODE, response.getBody().getStatus());
+
+        when(systemService.getMaintenanceMode()).thenReturn(new MaintenanceMode(MaintenanceMode.Status.DISABLED, null));
+        response = systemApiController.maintenanceMode();
+        assertNull(response.getBody().getMessage());
+        assertEquals(MaintenanceModeStatusDto.DISABLED_MAINTENANCE_MODE, response.getBody().getStatus());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void enableMaintenanceMode() {
+        final var message = "message";
+        var response = systemApiController.enableMaintenanceMode(new MaintenanceModeMessageDto().message(message));
+        assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
+        verify(systemService).enableMaintenanceMode(eq(message));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"TOGGLE_MAINTENANCE_MODE"})
+    public void disableMaintenanceMode() {
+        var response = systemApiController.disableMaintenanceMode();
+        assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
+        verify(systemService).disableMaintenanceMode();
     }
 }
