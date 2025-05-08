@@ -236,13 +236,11 @@ public class SharedParametersV5Converter {
                 }
             }
             target.setClients(clients);
-
-            Optional.ofNullable(source.getInMaintenanceMode())
-                    .map(mode -> SharedParameters.MaintenanceMode.enabled(mode.getMessage()))
-                    .or(() -> Optional.of(SharedParameters.MaintenanceMode.disabled()))
-                    .ifPresent(target::setMaintenanceMode);
-
         }
+        Optional.ofNullable(source.getInMaintenanceMode())
+                .map(mode -> SharedParameters.MaintenanceMode.enabled(mode.getMessage()))
+                .or(() -> Optional.of(SharedParameters.MaintenanceMode.disabled()))
+                .ifPresent(target::setMaintenanceMode);
         return target;
     }
 

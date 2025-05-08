@@ -98,6 +98,7 @@ export enum Permissions {
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
   DISABLE_CLIENT = 'DISABLE_CLIENT',
+  DISABLE_MAINTENANCE_MODE = 'DISABLE_MAINTENANCE_MODE', // diagnostics > enable / disable maintenance mode button
   RENAME_SUBSYSTEM = 'RENAME_SUBSYSTEM',
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
   DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
@@ -117,6 +118,7 @@ export enum Permissions {
   EDIT_OPENAPI3_ENDPOINT = 'EDIT_OPENAPI3_ENDPOINT', // client > services > service > endpoints > edit endpoint
   ENABLE_CLIENT = 'ENABLE_CLIENT',
   ENABLE_DISABLE_WSDL = 'ENABLE_DISABLE_WSDL', // client > services > enable / disable WSDL switch
+  ENABLE_MAINTENANCE_MODE = 'ENABLE_MAINTENANCE_MODE', // diagnostics > enable / disable maintenance mode button
   EXPORT_INTERNAL_TLS_CERT = 'EXPORT_INTERNAL_TLS_CERT', // export SS TLS certificate in "internal servers" view & system parameters
   GENERATE_AUTH_CERT_REQ = 'GENERATE_AUTH_CERT_REQ',
   GENERATE_INTERNAL_TLS_KEY_CERT = 'GENERATE_INTERNAL_TLS_KEY_CERT', // Generate Security server TLS key and certificate

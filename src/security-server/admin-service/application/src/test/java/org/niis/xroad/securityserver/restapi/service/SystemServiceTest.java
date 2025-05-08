@@ -41,11 +41,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
@@ -57,7 +59,6 @@ import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -82,6 +83,8 @@ public class SystemServiceTest {
     @Mock
     private GlobalConfService globalConfService;
     @Mock
+    private GlobalConfProvider globalConfProvider;
+    @Mock
     private AnchorRepository anchorRepository;
     @Mock
     private ConfigurationVerifier configurationVerifier;
@@ -92,6 +95,7 @@ public class SystemServiceTest {
     @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
+    private final MaintenanceModeStatus maintenanceModeStatus = new MaintenanceModeStatus();
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -104,13 +108,13 @@ public class SystemServiceTest {
 
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(TimestampingServiceMapper.get().toTargets(List.of(tsa1, tsa2)));
         ClientId.Conf ownerId = ClientId.Conf.create("CS", "GOV", "1111");
-        when(serverConfService.getConfiguredTimestampingServiceEntities()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
+        when(serverConfService.getConfiguredTimestampingServiceEntities()).thenReturn(new ArrayList<>(List.of(tsa1)));
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
                 configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus);
+                addressChangeStatus, maintenanceModeStatus, globalConfProvider);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
         systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }

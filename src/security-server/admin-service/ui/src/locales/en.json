@@ -258,6 +258,16 @@
       "types": "Mail notification types",
       "status": "Status"
     },
+    "maintenanceMode": {
+      "enable": "Enable maintenance mode",
+      "enableTitle": "Enable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "disable": "Disable maintenance mode",
+      "disableTitle": "Disable maintenance mode",
+      "disableConfirm": "Do you want to disable maintenance mode?",
+      "disableSuccess": "Maintenance mode disabling in progress"
+    },
     "message": "Message",
     "nextUpdate": "Next Update",
     "ocspResponders": {
@@ -479,6 +489,7 @@
     "keys": {
       "name": "Name"
     },
+    "maintenanceModeMessage": "Maintenance mode message",
     "memberCode": "Member Code",
     "path": "path",
     "pin": "PIN",
