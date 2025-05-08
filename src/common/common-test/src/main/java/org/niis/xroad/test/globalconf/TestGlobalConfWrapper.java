@@ -44,6 +44,7 @@ import org.niis.xroad.globalconf.model.SharedParameters;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -288,5 +289,10 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public OptionalInt getVersion() {
         return globalConfProvider.getVersion();
+    }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId) {
+        return globalConfProvider.getMaintenanceMode(serverId);
     }
 }

@@ -39,6 +39,8 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRegRequestType;
 import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
@@ -59,6 +61,8 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_RENAME_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
 @Slf4j
@@ -174,6 +178,23 @@ final class ManagementRequestBuilder {
         request.setServer(securityServer);
         request.setAddress(address);
         return buildMessage(element(ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
+    }
+
+    SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
+        log.debug("buildMaintenanceModeEnableRequest(server: {}, message: {})", securityServer, message);
+
+        var request = FACTORY.createMaintenanceModeEnableRequestType();
+        request.setServer(securityServer);
+        request.setMessage(message);
+        return buildMessage(element(MAINTENANCE_MODE_ENABLE_REQUEST, MaintenanceModeEnableRequestType.class, request));
+    }
+
+    SoapMessageImpl buildMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
+        log.debug("buildMaintenanceModeDisableRequest(server: {})", securityServer);
+
+        var request = FACTORY.createMaintenanceModeDisableRequestType();
+        request.setServer(securityServer);
+        return buildMessage(element(MAINTENANCE_MODE_DISABLE_REQUEST, MaintenanceModeDisableRequestType.class, request));
     }
 
     // -- Private helper methods ----------------------------------------------

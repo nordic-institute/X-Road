@@ -43,6 +43,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -376,4 +377,10 @@ public interface GlobalConfProvider {
      * @return the version of the global configuration
      */
     OptionalInt getVersion();
+
+    /**
+     * @return Status of the maintenance mode
+     */
+    Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId);
+
 }
