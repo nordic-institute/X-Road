@@ -53,6 +53,8 @@ import static com.codeborne.selenide.Condition.visible;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
@@ -218,7 +220,30 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             }
             assertThat(actualItems).contains(EXPECTED_REPORT_ITEMS);
         }
-
-
     }
+
+    @Step("maintenance mode toggle is off")
+    public void maintenanceModeToggleIsOff() {
+        vSwitch(diagnosticsPage.toggleMaintenanceMode())
+                .shouldBe(visible)
+                .shouldNotBeLoading()
+                .shouldBeOff();
+    }
+
+    @Step("maintenance mode toggle is clicked")
+    public void maintenanceModeToggleIsClicked() {
+        vSwitch(diagnosticsPage.toggleMaintenanceMode())
+                .shouldBe(visible)
+                .shouldBeEnabled()
+                .click();
+    }
+
+    @Step("message: {string} for maintenance mode is entered")
+    public void confirmMaintenanceModeEnable(String message) {
+        vTextField(diagnosticsPage.enableMaintenanceModeDialog.messageField())
+                .shouldBe(visible)
+                .clear()
+                .setValue(message);
+    }
+
 }
