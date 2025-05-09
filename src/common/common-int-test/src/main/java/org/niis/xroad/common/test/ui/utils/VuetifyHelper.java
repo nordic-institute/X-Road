@@ -34,6 +34,7 @@ import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.or;
+import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -47,6 +48,10 @@ public final class VuetifyHelper {
 
     public static TextField vTextField(final SelenideElement vuetifyTextField) {
         return new TextField(vuetifyTextField);
+    }
+
+    public static Switch vSwitch(final SelenideElement vuetifyTextField) {
+        return new Switch(vuetifyTextField);
     }
 
     public static Checkbox vCheckbox(final SelenideElement vuetifyCheckboxField) {
@@ -107,6 +112,42 @@ public final class VuetifyHelper {
 
         public Checkbox scrollIntoView(boolean alignToTop) {
             controlElement.scrollIntoView(alignToTop);
+            return this;
+        }
+
+        public void click() {
+            controlElement.shouldBe(visible);
+            input.click();
+        }
+    }
+
+    public static final class Switch {
+        private final SelenideElement controlElement;
+        private final SelenideElement input;
+
+        private Switch(final SelenideElement vuetifySwitch) {
+            this.controlElement = vuetifySwitch.shouldBe(tagName(ROOT_TAG))
+                    .shouldHave(cssClass("v-switch"));
+            this.input = this.controlElement.$x(INPUT_XPATH);
+        }
+
+        public Switch shouldBeOff() {
+            input.shouldNotBe(selected);
+            return this;
+        }
+
+        public Switch shouldBeEnabled() {
+            input.shouldBe(enabled);
+            return this;
+        }
+
+        public Switch shouldNotBeLoading() {
+            controlElement.shouldNotHave(cssClass("v-switch--loading"));
+            return this;
+        }
+
+        public Switch shouldBe(WebElementCondition condition) {
+            controlElement.shouldBe(condition);
             return this;
         }
 

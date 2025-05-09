@@ -34,6 +34,8 @@ import static com.codeborne.selenide.Selenide.$x;
 
 public class DiagnosticsPageObj {
 
+    public final EnableMaintenanceModeDialog enableMaintenanceModeDialog = new EnableMaintenanceModeDialog();
+
     public SelenideElement backupEncryptionStatus() {
         return $x("//div[@data-test='backup-encryption-status']");
     }
@@ -111,4 +113,18 @@ public class DiagnosticsPageObj {
     public SelenideElement btnDownloadDiagnoticsReport() {
         return $x("//button[@data-test='download-diagnostics-report-button']");
     }
+
+    public SelenideElement toggleMaintenanceMode() {
+        return $x("//div[@data-test='maintenance-mode-switch']");
+    }
+
+    public static class EnableMaintenanceModeDialog {
+        private static final String ROOT = "//div[@data-test='enable-maintenance-mode-dialog']";
+
+        public SelenideElement messageField() {
+            return $x(ROOT + "//div[@data-test='enable-maintenance-mode-message']");
+        }
+
+    }
+
 }
