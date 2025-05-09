@@ -32,7 +32,6 @@ import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
 import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +50,7 @@ import org.springframework.scheduling.TaskScheduler;
 public class AcmeConfig {
 
     @Profile("nontest")
-    @ConditionalOnProperty(value = "xroad.proxy-ui-api.acme-challenge-port-enabled", havingValue = "true")
+    @Conditional(IsAcmeChallengePortEnabled.class)
     @Bean
     public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer() {
         return this::acmeChallengeCustomizer;
@@ -73,6 +72,18 @@ public class AcmeConfig {
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, taskScheduler);
         scheduler.init();
         return scheduler;
+    }
+
+    @Slf4j
+    public static class IsAcmeChallengePortEnabled implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            boolean isEnabled = SystemProperties.isAcmeChallengePortEnabled();
+            if (!isEnabled) {
+                log.info("ACME challenge port 80 is disabled");
+            }
+            return isEnabled;
+        }
     }
 
     @Slf4j
