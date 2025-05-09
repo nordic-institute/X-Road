@@ -29,11 +29,14 @@
       open-delay="500">
       <template v-slot:activator="{ props }">
         <div v-bind="props">
-          <v-switch :model-value="enabled"
-                    :loading="pending"
-                    :disabled="pending"
-                    hide-details
-                    @update:model-value="showConfirm=true">
+          <v-switch
+            data-test="maintenance-mode-switch"
+            :model-value="enabled"
+            :key="'maintenance-mode-switch' + key"
+            :loading="pending"
+            :disabled="pending"
+            hide-details
+            @update:model-value="showConfirm=true">
             <template #prepend>
               {{ $t('diagnostics.maintenanceMode.label') }}
             </template>
@@ -48,7 +51,7 @@
       data-test="disable-maintenance-mode-dialog"
       text="diagnostics.maintenanceMode.disableConfirm"
       :loading="updating"
-      @cancel="showConfirm=false"
+      @cancel="showConfirm=false; key++"
       @accept="changeMode(false)"
     />
 
@@ -62,7 +65,7 @@
       :loading="updating"
       :disable-save="!meta.valid"
       @save="changeMode(true)"
-      @cancel="showConfirm=false"
+      @cancel="showConfirm=false; key++"
     >
       <template #text>
         {{ $t('diagnostics.maintenanceMode.enableConfirm') }}
@@ -97,6 +100,7 @@ import { Permissions } from '@/global';
 
 const showConfirm = ref(false);
 
+const key = ref(0);
 const updating = ref(false);
 const enabled = ref(false);
 const pending = ref(false);
@@ -120,13 +124,14 @@ async function changeMode(enable: boolean) {
   if (enable) {
     return enableMaintenanceMode(noticeMessage.value)
       .then(() => update())
+      .catch((error) => showError(error))
       .finally(() => (updating.value = false))
-      .finally(() => (showConfirm.value = false))
-      .finally(() => resetField());
+      .finally(() => close());
   } else {
     return disableMaintenanceMode()
       .then(() => update())
-      .finally(() => (showConfirm.value = false))
+      .catch((error) => showError(error))
+      .finally(() => (close()))
       .finally(() => (updating.value = false))
   }
 }
@@ -151,7 +156,13 @@ async function update() {
       }
     })
     .catch((error) => showError(error))
-    .finally(() => (updating.value = false))
+    .finally(() => (updating.value = false));
+}
+
+function close() {
+  showConfirm.value = false;
+  key.value++;
+  resetField()
 }
 
 if (canToggleMaintenanceMode.value) {
