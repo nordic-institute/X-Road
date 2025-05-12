@@ -20,6 +20,11 @@ ss_modules:
     build: build
     target: /usr/share/xroad/jlib/configuration-client
     service: xroad-confclient
+  backup-manager:
+    dir: service/backup-manager/backup-manager-application
+    build: build
+    target: /usr/share/xroad/jlib/backup-manager
+    service: xroad-backup-manager
   proxy-ui-api:
     dir: security-server/admin-service/application
     build: build
