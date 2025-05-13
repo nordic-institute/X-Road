@@ -62,7 +62,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class KeyConfImpl implements KeyConfProvider {
+class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
     protected final SignerRpcClient signerRpcClient;
