@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.signer.container;
+package org.niis.xroad.signer.test.container;
 
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -45,24 +47,22 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@SuppressWarnings("checkstyle:MagicNumber")
-public abstract class BaseTestSignerSetup {
+@Configuration
+public class ContainerSetup {
+    private static final boolean HWTOKEN_ENABLED = true;
     private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11wrapper.so";
+    private static final String PKCS11_WRAPPER_DIR = "../../../libs/pkcs11wrapper/%s/%s";
+    private static final String SIGNER_JAR_PATH = "../signer-application/build/libs/signer-1.0.jar";
+    private static final String HWTOKEN_JAR_PATH = "../../../addons/hwtoken/build/libs/hwtoken-1.0.jar";
 
-    static {
-        //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
-        System.setProperty("api.version", "1.41");
-    }
-
-    public TestContainerConfigurator testContainerConfigurator(
-            TestableContainerProperties testableContainerProperties,
-            String signerPath, String hwTokenPath) {
+    @Bean
+    public TestContainerConfigurator testContainerConfigurator(TestableContainerProperties testableContainerProperties) {
         return new TestContainerConfigurator() {
-            @NotNull
+
             @Override
-            public ImageFromDockerfile imageDefinition() {
-                var appJarPath = Paths.get(signerPath);
-                var hwTokenJarPath = Paths.get(hwTokenPath);
+            public @NotNull ImageFromDockerfile imageDefinition() {
+                var appJarPath = Paths.get(SIGNER_JAR_PATH);
+                var hwTokenJarPath = Paths.get(HWTOKEN_JAR_PATH);
 
                 log.info("Will use {} jar for container creation", appJarPath);
 
@@ -77,15 +77,15 @@ public abstract class BaseTestSignerSetup {
                         .withFileFromPath("files/app.jar", appJarPath);
             }
 
-            @NotNull
             @Override
-            public Map<String, String> environmentalVariables() {
+            public @NotNull Map<String, String> environmentalVariables() {
                 return new HashMap<>();
             }
 
-            @NotNull
+
             @Override
-            public List<Integer> exposedPorts() {
+            @SuppressWarnings("checkstyle:MagicNumber")
+            public @NotNull List<Integer> exposedPorts() {
                 return List.of(5558, 5560);
             }
 
@@ -95,19 +95,20 @@ public abstract class BaseTestSignerSetup {
                     case "aarch64", "arm64" -> "arm64";
                     default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
                 };
-                return Paths.get(getPksWrapperDir().formatted(archDir, PKCS11_WRAPPER_FILENAME));
+                return Paths.get(PKCS11_WRAPPER_DIR.formatted(archDir, PKCS11_WRAPPER_FILENAME));
 
             }
         };
     }
 
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(boolean enableHwModule) {
+    @Bean
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
         return new TestContainerConfigurator.TestContainerInitListener() {
 
             @Override
             @SuppressWarnings("squid:S2068")
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                var modulemanager = enableHwModule
+                var modulemanager = HWTOKEN_ENABLED
                         ? "-Dxroad.signer.moduleManagerImpl=org.niis.xroad.signer.core.tokenmanager.module.HardwareModuleManagerImpl"
                         : "";
 
@@ -155,5 +156,5 @@ public abstract class BaseTestSignerSetup {
         };
     }
 
-    public abstract String getPksWrapperDir();
+
 }
