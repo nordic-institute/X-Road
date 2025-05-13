@@ -84,7 +84,7 @@ class BatchSignerTest {
 
     private final GlobalConfProvider globalConf = new TestSuiteGlobalConf();
     private final TestCertUtil.PKCS12 producerP12 = TestCertUtil.getProducer();
-    private final ClientId.Conf clientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
+    private final ClientId.Conf producerClientId = ClientId.Conf.create("EE", "BUSINESS", "producer");
 
     @Mock
     private SignerRpcClient signerClient;
@@ -122,7 +122,7 @@ class BatchSignerTest {
         });
 
 
-        final var signingCtx = createSigningCtxProvider(clientId).createSigningCtx(clientId);
+        final var signingCtx = createSigningCtxProvider(producerClientId).createSigningCtx(producerClientId);
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -172,11 +172,11 @@ class BatchSignerTest {
                     builder.addPart(hashPart);
                     SignatureData signatureData = signingCtx.buildSignature(builder);
 
-                    return new BatchSignResult(clientId, message, signatureData, hashes);
+                    return new BatchSignResult(producerClientId, message, signatureData, hashes);
 
                 } catch (Exception e) {
                     log.error("Error", e);
-                    return new BatchSignResult(clientId, message, null, null);
+                    return new BatchSignResult(producerClientId, message, null, null);
                 }
 
             });
