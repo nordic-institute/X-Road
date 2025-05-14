@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.test.signer.container;
+package org.niis.xroad.signer.test.container;
 
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -45,23 +47,19 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@SuppressWarnings("checkstyle:MagicNumber")
-public abstract class BaseTestSignerSetup {
+@Configuration
+public class ContainerSetup {
     private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11wrapper.so";
+    private static final String PKCS11_WRAPPER_DIR = "../../../libs/pkcs11wrapper/%s/%s";
+    private static final String SIGNER_RUNTIME_PATH = "../signer-application/build/quarkus-app";
 
-    static {
-        //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
-        System.setProperty("api.version", "1.41");
-    }
-
-    public TestContainerConfigurator testContainerConfigurator(
-            TestableContainerProperties testableContainerProperties,
-            String signerPath) {
+    @Bean
+    public TestContainerConfigurator testContainerConfigurator(TestableContainerProperties testableContainerProperties) {
         return new TestContainerConfigurator() {
-            @NotNull
+
             @Override
-            public ImageFromDockerfile imageDefinition() {
-                var appJarPath = Paths.get(signerPath);
+            public @NotNull ImageFromDockerfile imageDefinition() {
+                var appJarPath = Paths.get(SIGNER_RUNTIME_PATH);
 
                 log.info("Will use {} jar for container creation", appJarPath);
 
@@ -75,15 +73,15 @@ public abstract class BaseTestSignerSetup {
                         .withFileFromPath("files/app/", appJarPath);
             }
 
-            @NotNull
             @Override
-            public Map<String, String> environmentalVariables() {
+            public @NotNull Map<String, String> environmentalVariables() {
                 return new HashMap<>();
             }
 
-            @NotNull
+
             @Override
-            public List<Integer> exposedPorts() {
+            @SuppressWarnings("checkstyle:MagicNumber")
+            public @NotNull List<Integer> exposedPorts() {
                 return List.of(5560);
             }
 
@@ -93,13 +91,14 @@ public abstract class BaseTestSignerSetup {
                     case "aarch64", "arm64" -> "arm64";
                     default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
                 };
-                return Paths.get(getPksWrapperDir().formatted(archDir, PKCS11_WRAPPER_FILENAME));
+                return Paths.get(PKCS11_WRAPPER_DIR.formatted(archDir, PKCS11_WRAPPER_FILENAME));
 
             }
         };
     }
 
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener(boolean enableHwModule) {
+    @Bean
+    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
         return new TestContainerConfigurator.TestContainerInitListener() {
 
             @Override
@@ -112,7 +111,7 @@ public abstract class BaseTestSignerSetup {
                                 "-Xmx50m",
                                 "-XX:MaxMetaspaceSize=70m",
                                 "-Djava.library.path=/root/lib/",
-                                enableHwModule ? "-Dxroad.signer.addon.hwtoken.enabled=true" : "",
+                                "-Dxroad.signer.addon.hwtoken.enabled=true",
                                 "-Dxroad.common.rpc.use-tls=false",
                                 "-jar",
                                 "/root/app/quarkus-run.jar");
@@ -142,5 +141,5 @@ public abstract class BaseTestSignerSetup {
         };
     }
 
-    public abstract String getPksWrapperDir();
+
 }

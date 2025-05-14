@@ -53,6 +53,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -437,4 +438,14 @@ public final class TestCertUtil {
 
         return is;
     }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static Date getDefaultValidCertDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.clear(); // Let's clear the current time.
+        cal.set(2020, Calendar.JANUARY, 1);
+
+        return cal.getTime();
+    }
+
 }
