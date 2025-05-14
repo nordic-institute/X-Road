@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.15
+Version: 1.16
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                                                      | Author               |
@@ -28,7 +28,8 @@ Doc. ID: DM-CS
 | 14.06.2023 | 1.12    | New Central Server updates                                                       | Eneli Reimets        |
 | 08.12.2023 | 1.13    | Added enabled field to server_clients table                                      | Madis Loitmaa        |
 | 09.01.2025 | 1.14    | Restructure heading levels to work better with the documentation platform        | Raido Kaju           |
-| 21.03.2025 | 1.15    | Syntax and styling fixes                         								  | Pauline Dimmek		 |
+| 21.03.2025 | 1.15    | Syntax dand styling fixes                                                        | Pauline Dimmek       |
+| 30.04.2025 | 1.16    | Added maintenance mode related fields to security_servers table                  | Ovidijus Narkevičius |
 
 
 
@@ -662,20 +663,22 @@ A prerequisite for creating the record is that the authentication certificate re
 
 #### 2.21.1 Indexes
 
-| Name        | Columns           |
-|:----------- |:-----------------:|
+| Name                                      |     Columns     |
+|:------------------------------------------|:---------------:|
 | index_security_servers_on_xroad_member_id | xroad_member_id |
 
 #### 2.21.2 Attributes
 
-| Name        | Type           | Modifiers        | Description           |
-|:----------- |:-----------------:|:----------- |:-----------------:|
-| id [PK] | integer | NOT NULL | Primary key |
-| server_code  | character varying(255) |  | Security Server code, unique between Security Servers belonging to the same owner. Cannot be NULL. |
-| owner_id [FK] | integer |  | ID of the X-Road member that owns the Security Server. References id attribute of security_server_clients entity. Cannot be NULL. |
-| address  | character varying(255) |  | DNS name or IP-address of the Security Server.  |
-| created_at  | timestamp without time zone | NOT NULL | Record creation time, managed automatically.  |
-| updated_at  | timestamp without time zone | NOT NULL | Record last modified time, managed automatically.  |
+| Name                     |            Type             | Modifiers | Description                                                                                                                       |
+|:-------------------------|:---------------------------:|:----------|:----------------------------------------------------------------------------------------------------------------------------------|
+| id [PK]                  |           integer           | NOT NULL  | Primary key                                                                                                                       |
+| server_code              |   character varying(255)    |           | Security Server code, unique between Security Servers belonging to the same owner. Cannot be NULL.                                |
+| owner_id [FK]            |           integer           |           | ID of the X-Road member that owns the Security Server. References id attribute of security_server_clients entity. Cannot be NULL. |
+| address                  |   character varying(255)    |           | DNS name or IP-address of the Security Server.                                                                                    |
+| in_maintenance_mode      |           boolean           | NOT NULL  | Indicates whether Security server is in maintenance mode (true) or not (false)                                                    |
+| maintenance_mode_message |   character varying(255)    |           | Optional short message when in maintenance mod.                                                                                   |
+| created_at               | timestamp without time zone | NOT NULL  | Record creation time, managed automatically.                                                                                      |
+| updated_at               | timestamp without time zone | NOT NULL  | Record last modified time, managed automatically.                                                                                 |
 
 
 ### 2.22 SERVER_CLIENTS

@@ -50,6 +50,8 @@ public class SecurityServerDtoConverter extends UniDirectionalDtoConverter<Secur
                 .serverId(securityServerIdDtoConverter.toDto(source.getServerId()))
                 .ownerName(source.getOwner().getName())
                 .serverAddress(source.getAddress())
+                .inMaintenanceMode(source.isInMaintenanceMode())
+                .maintenanceModeMessage(source.getMaintenanceModeMessage())
                 .createdAt(source.getCreatedAt().atOffset(dtoZoneOffset))
                 .updatedAt(source.getUpdatedAt().atOffset(dtoZoneOffset));
     }

@@ -129,7 +129,7 @@ class ClientDisableRequestHandlerTest {
         Assertions.assertThatThrownBy(() -> handler.add(request))
                 .isInstanceOf(ConflictException.class)
                 .hasMessage("Error[code=management_request_server_client_not_found, "
-                        + "metadata=[SecurityServerId(), SUBSYSTEM:INSTANCE/MEMBER_CLASS/MEMBER_CODE/SUBSYSTEM-CODE-UNKNOWN]]");
+                        + "metadata=[%s, %s]]".formatted(securityServerId, unknownSubsystemId));
     }
 
 

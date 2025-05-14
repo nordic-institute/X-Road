@@ -40,7 +40,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @NoArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class AuthenticationCertificateDeletionRequest extends Request {
+public final class AuthenticationCertificateDeletionRequest extends Request {
     private byte[] authCert;
 
     public AuthenticationCertificateDeletionRequest(Origin origin, SecurityServerId identifier) {

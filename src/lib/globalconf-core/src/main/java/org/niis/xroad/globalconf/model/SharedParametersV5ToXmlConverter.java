@@ -43,6 +43,7 @@ import org.niis.xroad.globalconf.schema.sharedparameters.v5.ApprovedCATypeV3;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.ConfigurationSourceType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.GlobalGroupType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.GlobalSettingsType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v5.MaintenanceMode;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.MemberType;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v5.SecurityServerType;
@@ -70,8 +71,7 @@ abstract class SharedParametersV5ToXmlConverter {
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
     @Mapping(target = "any", ignore = true)
-    abstract SharedParametersTypeV5 convert(SharedParameters sharedParameters,
-                                          @Context Map<ClientId, Object> clientMap);
+    abstract SharedParametersTypeV5 convert(SharedParameters sharedParameters, @Context Map<ClientId, Object> clientMap);
 
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
@@ -88,6 +88,7 @@ abstract class SharedParametersV5ToXmlConverter {
     @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
     @Mapping(target = "owner", qualifiedByName = "clientById")
+    @Mapping(source = "maintenanceMode", target = "inMaintenanceMode")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);
 
     @Mapping(source = "groupMembers", target = "groupMember")
@@ -104,6 +105,16 @@ abstract class SharedParametersV5ToXmlConverter {
         return (MemberType) clientMap.get(member.getId());
     }
 
+    MaintenanceMode convertMaintenanceMode(SharedParameters.MaintenanceMode mode) {
+        if (mode != null && mode.isEnabled()) {
+            var maintenanceMode = OBJECT_FACTORY.createMaintenanceMode();
+            maintenanceMode.setMessage(mode.getMessage());
+            maintenanceMode.setMessage(mode.getMessage());
+            return maintenanceMode;
+        }
+        return null;
+    }
+
     @Named("clientById")
     Object xmlClientId(ClientId value, @Context Map<ClientId, Object> clientMap) {
         return clientMap.get(value);
@@ -115,7 +126,7 @@ abstract class SharedParametersV5ToXmlConverter {
             return List.of();
         }
         return clientIds.stream()
-                .map(clientId -> OBJECT_FACTORY.createSecurityServerTypeClient(xmlClientId(clientId, clientMap)))
+                .map(clientId -> OBJECT_FACTORY.createOriginalSecurityServerTypeClient(xmlClientId(clientId, clientMap)))
                 .toList();
     }
 

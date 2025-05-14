@@ -27,11 +27,6 @@
 package org.niis.xroad.cs.management.api;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.request.AddressChangeRequestType;
-import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
-import ee.ria.xroad.common.request.ClientRegRequestType;
-import ee.ria.xroad.common.request.ClientRenameRequestType;
-import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,23 +59,9 @@ public class ManagementRequestController {
     }
 
     private Integer process(ManagementRequestVerifier.Result result) {
-        var requestId = switch (result.requestType()) {
-            case AUTH_CERT_DELETION_REQUEST -> result.getRequest(AuthCertDeletionRequestType.class)
-                    .map(managementRequestService::addManagementRequest)
-                    .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertDeletionRequest is missing"));
-            case ADDRESS_CHANGE_REQUEST -> result.getRequest(AddressChangeRequestType.class)
-                    .map(managementRequestService::addManagementRequest)
-                    .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AddressChangeRequest is missing"));
-            case CLIENT_REGISTRATION_REQUEST -> result.getRequest(ClientRegRequestType.class)
-                    .map(managementRequestService::addManagementRequest)
-                    .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRenameRequest is missing"));
-            case CLIENT_RENAME_REQUEST -> result.getRequest(ClientRenameRequestType.class)
-                    .map(managementRequestService::addManagementRequest)
-                    .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRenameRequest is missing"));
-            default -> result.getRequest(ClientRequestType.class)
-                    .map(clientRequest -> managementRequestService.addManagementRequest(clientRequest, result.requestType()))
-                    .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "ClientRequest is missing"));
-        };
+        var requestId = result.getRequest()
+                .map(request -> managementRequestService.addManagementRequest(request, result.requestType()))
+                .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "Request of type: %s is missing".formatted(result.requestType())));
 
         log.info("Added new management request with id {}", requestId);
         return requestId;

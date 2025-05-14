@@ -43,6 +43,11 @@ check_restore_options () {
     echo "The backup archive does not contain database dump. Skipping database restore."
     SKIP_DB_RESTORE=true
   fi
+
+  if ! tar tf "$BACKUP_FILENAME" var/lib/xroad/openbao_dbdump.dat &>/dev/null || ! tar tf "$BACKUP_FILENAME" etc/openbao &>/dev/null; then
+    echo "The backup archive does not contain OpenBao database dump or configuration. Skipping OpenBao restore."
+    SKIP_OPENBAO_RESTORE=true
+  fi
 }
 
 decrypt_tarball_if_encrypted () {
@@ -123,9 +128,10 @@ select_commands () {
 stop_services () {
   echo "STOPPING REGISTERED SERVICES"
   select_commands
-  for entry in "/etc/xroad/backup.d/"* ; do
-    if  [[ -f ${entry} ]] ; then
-      servicename=$(basename "$entry" | sed 's/.*_//')
+  files=("/etc/xroad/backup.d/"*)
+  for ((i=${#files[@]}-1; i>=0; i--)); do
+    if  [[ -f ${files[$i]} ]] ; then
+      servicename=$(basename "${files[$i]}" | sed 's/.*_//')
       echo "${STOP_CMD}" "${servicename}"
       ${STOP_CMD} "${servicename}"
     fi
@@ -196,6 +202,13 @@ extract_to_tmp_restore_dir () {
   if [[ $SKIP_DB_RESTORE != true ]] ; then
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat
   fi
+
+  # OpenBao is optional
+  if [[ $SKIP_OPENBAO_RESTORE != true ]] ; then
+    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/openbao || die "Extracting etc/openbao failed"
+    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/openbao_dbdump.dat
+  fi
+
   # keep existing db.properties
   if [ -f /etc/xroad/db.properties ]
   then
@@ -208,6 +221,19 @@ extract_to_tmp_restore_dir () {
       cp /etc/xroad/xroad.properties ${RESTORE_DIR}/etc/xroad/xroad.properties
   fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
+
+  if [[ -d "${RESTORE_DIR}/etc/openbao" ]]; then
+    chown -R openbao:openbao ${RESTORE_DIR}/etc/openbao
+
+    # keep existing unseal-keys and root token
+    if [[ -f /etc/openbao/root-token ]]; then
+        cp /etc/openbao/root-token ${RESTORE_DIR}/etc/openbao/root-token
+    fi
+    if [[ -f /etc/openbao/unseal-keys ]]; then
+        cp /etc/openbao/unseal-keys ${RESTORE_DIR}/etc/openbao/unseal-keys
+    fi
+  fi
+
   # reset permissions of all files to fixed, "safe" values
   chmod -R a-x,o=,u=rwX,g-w,g+X "$RESTORE_DIR"
 }
@@ -246,6 +272,33 @@ restore_database () {
   fi
 }
 
+restore_openbao () {
+  if [[ -n ${SKIP_OPENBAO_RESTORE} && ${SKIP_OPENBAO_RESTORE} = true ]] ; then
+    echo "SKIPPING OPENBAO RESTORE AS REQUESTED"
+  else
+    # Restore configuration
+    Z=""
+    if cp --help | grep -q "\-Z"; then
+      Z="-Z"
+    fi
+    cp -v -a ${Z} ${RESTORE_DIR}/etc/openbao -t /etc
+
+    # Restore database
+    cp -v -a ${Z} ${RESTORE_DIR}/var/lib/xroad/openbao_dbdump.dat -t /var/lib/xroad/
+    if [[ -x ${OPENBAO_DATABASE_RESTORE_SCRIPT} && -e ${OPENBAO_DATABASE_DUMP_FILENAME} ]] ; then
+      echo "RESTORING OPENBAO DATABASE FROM ${OPENBAO_DATABASE_DUMP_FILENAME}"
+      if [[ $FORCE_RESTORE == true ]] ; then
+        RESTORE_FLAGS=-F
+      fi
+      if ! ${OPENBAO_DATABASE_RESTORE_SCRIPT} ${RESTORE_FLAGS} "${OPENBAO_DATABASE_DUMP_FILENAME}" 1>/dev/null; then
+        die "Failed to restore OpenBao database!"
+      fi
+    else
+      die "Failed to execute database restore script at ${OPENBAO_DATABASE_RESTORE_SCRIPT}"
+    fi
+  fi
+}
+
 remove_tmp_files() {
   rm -f "${RESTORE_IN_PROGRESS_FILENAME}"
   rm -rf "${RESTORE_DIR}"
@@ -254,17 +307,23 @@ remove_tmp_files() {
 
 restart_services () {
   echo "RESTARTING REGISTERED SERVICES"
-  files=("/etc/xroad/backup.d/"*)
-  for ((i=${#files[@]}-1; i>=0; i--)); do
-    if  [[ -f ${files[$i]} ]] ; then
-      servicename=$(basename "${files[$i]}" | sed 's/.*_//')
+  for entry in "/etc/xroad/backup.d/"* ; do
+    if  [[ -f ${entry} ]] ; then
+      servicename=$(basename "$entry" | sed 's/.*_//')
       echo "${START_CMD}" "${servicename}"
       ${START_CMD} "${servicename}"
+
+      # Unseal OpenBao after it has been started
+      if [[ "$servicename" == "openbao" ]]; then
+        /usr/share/xroad/scripts/secret-store-wait-for.sh
+
+        /usr/share/xroad/scripts/secret-store-unseal.sh /etc/openbao/unseal-keys 2
+      fi
     fi
   done
 }
 
-while getopts ":RFSt:i:s:n:f:bEN" opt ; do
+while getopts ":RFSOt:i:s:n:f:bEN" opt ; do
   case ${opt} in
     R)
       SKIP_REMOVAL=true
@@ -274,6 +333,9 @@ while getopts ":RFSt:i:s:n:f:bEN" opt ; do
       ;;
     S)
       SKIP_DB_RESTORE=true
+      ;;
+    O)
+      SKIP_OPENBAO_RESTORE=true
       ;;
     t)
       SERVER_TYPE=$OPTARG
@@ -326,6 +388,7 @@ extract_to_tmp_restore_dir
 remove_old_existing_files
 restore_configuration_files
 restore_database
+restore_openbao
 restart_services
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

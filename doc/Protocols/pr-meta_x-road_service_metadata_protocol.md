@@ -1,7 +1,7 @@
 # X-Road: Service Metadata Protocol <!-- omit in toc --> 
 **Technical Specification**
 
-Version: 2.14  
+Version: 2.15  
 Doc. ID: PR-META
 
 ---
@@ -29,6 +29,7 @@ Doc. ID: PR-META
 | 17.04.2023 | 2.12    | Remove central services support                                   | Justas Samuolis      |
 | 01.06.2023 | 2.13    | Update references                                                 | Petteri Kivimäki     |
 | 06.03.2025 | 2.14    | Update XML Schema for Messages                                    | Ovidijus Narkevičius |
+| 29.04.2025 | 2.15    | Update JSON Schema for *listClients* and XML and JSON examples    | Ovidijus Narkevičius |
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -476,6 +477,8 @@ components:
       properties:
         name:
           type: string
+        subsystem_name:
+          type: string
         id:
           type: object
           properties:
@@ -542,6 +545,7 @@ components:
             <ns1:subsystemCode>sub</ns1:subsystemCode>
         </ns2:id>
         <ns2:name>Client One</ns2:name>
+        <ns2:subsystemName>Client One Sub</ns2:subsystemName>
     </ns2:member>
 </ns2:clientList>
 ```
@@ -587,7 +591,8 @@ components:
         "object_type": "SUBSYSTEM",
         "xroad_instance": "AA"
       },
-      "name": "Client One"
+      "name": "Client One",
+      "subsystem_name": "Client One Sub"
     }
   ]
 }

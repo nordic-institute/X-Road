@@ -27,9 +27,11 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.mail.MailNotificationType;
 import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.converter.MailNotificationTypeMapping;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailStatusDto;
@@ -41,6 +43,8 @@ import org.springframework.mail.MailException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.Set;
 
 /**
  * mail api controller
@@ -61,9 +65,8 @@ public class MailApiController implements MailApi {
     public ResponseEntity<MailNotificationStatusDto> getMailNotificationStatus() {
         MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
         MailNotificationStatusDto mailNotificationStatusDto = new MailNotificationStatusDto();
-        mailNotificationStatusDto.acmeSuccessStatus(mailNotificationStatus.acmeSuccessStatus());
-        mailNotificationStatusDto.acmeFailureStatus(mailNotificationStatus.acmeFailureStatus());
-        mailNotificationStatusDto.authCertRegisteredStatus(mailNotificationStatus.authCertRegisteredStatus());
+        Set<MailNotificationType> enabledNotifications = mailNotificationStatus.enabledNotifications();
+        mailNotificationStatusDto.setEnabledNotifications(MailNotificationTypeMapping.map(enabledNotifications));
         mailNotificationStatusDto.configurationPresent(mailNotificationStatus.configurationPresent());
         if (mailNotificationStatus.recipientsEmails() != null) {
             mailNotificationStatusDto.recipientsEmails(mailNotificationStatus.recipientsEmails());

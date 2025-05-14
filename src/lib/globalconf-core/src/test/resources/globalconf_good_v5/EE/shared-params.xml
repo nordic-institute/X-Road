@@ -449,6 +449,9 @@
         <address>https://foo.bar.baz</address>
         <authCertHash>Q/wASEqban646kxZ0/uveKBv4h7U3FWnlKzsSJZU1f8=</authCertHash>
         <client>fooId</client>
+        <inMaintenanceMode>
+            <message>Test maintenance mode</message>
+        </inMaintenanceMode>
     </securityServer>
 
     <globalGroup>

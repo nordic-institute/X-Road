@@ -71,20 +71,8 @@ EOF
   } | psql_adminuser || abort "Restoring database failed. Could not drop schema."
 fi
 
-# PostgreSQL 9.2 and earlier do not support CREATE SCHEMA IF NOT EXISTS
 { cat <<EOF
-DO \$\$
-BEGIN
-    IF NOT EXISTS(
-        SELECT schema_name
-          FROM information_schema.schemata
-          WHERE schema_name = '$db_schema'
-      )
-    THEN
-      EXECUTE 'CREATE SCHEMA "$db_schema"';
-    END IF;
-END
-\$\$;
+CREATE SCHEMA IF NOT EXISTS "$db_schema";
 EOF
 } | psql_adminuser || abort "Restoring database failed. Could not create schema."
 

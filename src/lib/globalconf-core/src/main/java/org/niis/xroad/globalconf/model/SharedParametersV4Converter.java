@@ -232,6 +232,7 @@ public class SharedParametersV4Converter {
                 }
             }
             target.setClients(clients);
+            target.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
         }
         return target;
     }
