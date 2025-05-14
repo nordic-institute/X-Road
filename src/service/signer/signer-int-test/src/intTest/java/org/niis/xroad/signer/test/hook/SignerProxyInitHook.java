@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.test.signer.hook;
+package org.niis.xroad.signer.test.hook;
 
 import ee.ria.xroad.common.SystemProperties;
 

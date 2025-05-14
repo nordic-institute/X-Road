@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,41 +24,35 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.proxy.test.hook;
+package org.niis.xroad.signer.test.hook;
 
-import ee.ria.xroad.common.TestSecurityUtil;
-
-import com.nortal.test.core.services.hooks.BeforeSuiteHook;
+import com.nortal.test.core.services.hooks.AfterSuiteHook;
+import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.client.SignerRpcClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import static java.lang.String.format;
+import java.io.IOException;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
 @RequiredArgsConstructor
-public class BatchSignerInitHook implements BeforeSuiteHook {
-    private static final String CONTAINER_FILES_PATH = "build/resources/intTest/signer-container-files/%s";
+public class SignerProxyAfterSuiteHook implements AfterSuiteHook {
 
-    public static SignerRpcClient signerRpcClient;
-
-    @Override
-    @SneakyThrows
-    public void beforeSuite() {
-        System.setProperty("xroad.common.configuration-path", format(CONTAINER_FILES_PATH, "etc/xroad/globalconf"));
-        System.setProperty("xroad.signer.key-configuration-file", format(CONTAINER_FILES_PATH, "etc/xroad/signer/keyconf.xml"));
-
-        TestSecurityUtil.initSecurity();
-
-        signerRpcClient = new SignerRpcClient();
-        signerRpcClient.init();
-    }
+    private final TestableApplicationContainerProvider containerProvider;
 
     @Override
-    public int beforeSuiteOrder() {
-        return DEFAULT_ORDER + 100;
+    public void afterSuite() {
+        log.info("Setting permissions for signer files so they could be deleted");
+        try {
+            containerProvider.getContainer().execInContainer("chmod", "-R", "777", "/etc/xroad/signer/");
+        } catch (IOException e) {
+            log.error("Failed to change file permissions", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
+
 }
