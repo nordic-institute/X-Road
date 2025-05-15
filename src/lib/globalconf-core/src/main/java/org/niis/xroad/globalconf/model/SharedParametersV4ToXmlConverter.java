@@ -114,7 +114,7 @@ abstract class SharedParametersV4ToXmlConverter {
             return List.of();
         }
         return clientIds.stream()
-                .filter(id -> id.isMember() || !securityServer.getMaintenanceMode().isEnabled())
+                .filter(id -> id.isMember() || !securityServer.getMaintenanceMode().enabled())
                 .map(clientId -> xmlClientId(clientId, clientMap))
                 .map(OBJECT_FACTORY::createSecurityServerTypeClient)
                 .toList();

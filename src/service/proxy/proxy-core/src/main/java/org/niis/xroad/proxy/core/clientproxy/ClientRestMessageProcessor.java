@@ -119,6 +119,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     xRequestId
             );
 
+            verifyClientProxyStatus();
             // Check that incoming identifiers do not contain illegal characters
             checkRequestIdentifiers();
 
@@ -132,8 +133,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             if (response != null) {
                 sendResponse();
             }
-        } catch (Exception e) {
-            throw e;
         } finally {
             if (response != null) {
                 response.consume();

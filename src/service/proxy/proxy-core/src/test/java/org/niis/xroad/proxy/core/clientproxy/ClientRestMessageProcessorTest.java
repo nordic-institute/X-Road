@@ -90,6 +90,7 @@ public class ClientRestMessageProcessorTest {
                 new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);
         when(serverConfProvider.getIsAuthentication(any())).thenReturn(NOSSL);
+        when(serverConfProvider.getMaintenanceMode()).thenReturn(new ServerConfProvider.MaintenanceMode(false, null));
         return clientRestMessageProcessor;
     }
 
