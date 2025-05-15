@@ -57,7 +57,7 @@
         </thead>
         <tbody>
           <tr>
-            <td class="align-content-start pt-4" data-test="mail-notification-configuration-status">
+            <td class="vertical-align-top pt-4" data-test="mail-notification-configuration-status">
               <div
                 class="d-flex font-weight-bold"
                 v-if="
@@ -76,7 +76,7 @@
                 }}
               </div>
             </td>
-            <td>
+            <td class="vertical-align-top">
               <div v-for="mailNotificationType in Object.keys(MailNotificationType)">
                 <p
                   class="my-4 d-flex"
@@ -100,7 +100,7 @@
                 </p>
               </div>
             </td>
-            <td class="align-content-start pt-2" data-test="mail-notification-recipients">
+            <td class="vertical-align-top pt-2" data-test="mail-notification-recipients">
               <p v-for="recipient in mailNotificationStatus.recipients_emails">
                 {{ recipient }}
                 <xrd-button
@@ -217,6 +217,10 @@ h3 {
   &:first-of-type {
     margin-top: 40px;
   }
+}
+
+.vertical-align-top {
+  vertical-align: top;
 }
 
 .help-icon {
