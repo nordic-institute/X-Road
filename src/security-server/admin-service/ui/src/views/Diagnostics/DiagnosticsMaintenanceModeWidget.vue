@@ -34,7 +34,7 @@
             :model-value="enabled"
             :key="'maintenance-mode-switch' + key"
             :loading="pending"
-            :disabled="pending"
+            :disabled="pending || isManagementServiceProvider"
             hide-details
             @update:model-value="showConfirm=true">
             <template #prepend>
@@ -104,6 +104,7 @@ const key = ref(0);
 const updating = ref(false);
 const enabled = ref(false);
 const pending = ref(false);
+const isManagementServiceProvider = ref(false);
 const statusText = ref(undefined as string | undefined);
 
 const { meta, errors, value: noticeMessage, resetField } = useField(
@@ -114,7 +115,7 @@ const { meta, errors, value: noticeMessage, resetField } = useField(
 
 const { hasPermission } = useUser();
 const { fetchMaintenanceModeState, enableMaintenanceMode, disableMaintenanceMode } = useSystem();
-const { showError } = useNotifications();
+const { showError, showSuccess } = useNotifications();
 const { t } = i18n.global;
 
 const canToggleMaintenanceMode = computed(() => hasPermission(Permissions.TOGGLE_MAINTENANCE_MODE));
@@ -123,12 +124,14 @@ async function changeMode(enable: boolean) {
   updating.value = true;
   if (enable) {
     return enableMaintenanceMode(noticeMessage.value)
+      .then(() => showSuccess(t('diagnostics.maintenanceMode.enableSuccess')))
       .then(() => update())
       .catch((error) => showError(error))
       .finally(() => (updating.value = false))
       .finally(() => close());
   } else {
     return disableMaintenanceMode()
+      .then(() => showSuccess(t('diagnostics.maintenanceMode.disableSuccess')))
       .then(() => update())
       .catch((error) => showError(error))
       .finally(() => (close()))
@@ -140,7 +143,12 @@ async function update() {
   updating.value = true;
   return fetchMaintenanceModeState()
     .then(mode => {
-      statusText.value = t('diagnostics.maintenanceMode.status.' + mode.status);
+      if (mode.is_management_services_provider) {
+        statusText.value = t('diagnostics.maintenanceMode.forbiddenEnable');
+      } else {
+        statusText.value = t('diagnostics.maintenanceMode.status.' + mode.status);
+      }
+      isManagementServiceProvider.value = mode.is_management_services_provider
       switch (mode.status) {
         case MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE:
         case MaintenanceModeStatus.ENABLED_MAINTENANCE_MODE:

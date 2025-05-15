@@ -295,4 +295,9 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId) {
         return globalConfProvider.getMaintenanceMode(serverId);
     }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
+        return globalConfProvider.getMaintenanceMode(instanceIdentifier, serverAddress);
+    }
 }

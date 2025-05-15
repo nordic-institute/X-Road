@@ -337,6 +337,23 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' is in maintenance mode with message: 'Will be back up soon'
 
   @Modifying
+  Scenario: Enabling maintenance mode for management service security server should fail
+    Given Authentication header is set to REGISTRATION_OFFICER
+    And new subsystem "CS:E2E:member-1:Management" is added
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:E2E:member-1:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to SECURITY_OFFICER
+    And Management services provider id is set to "CS:E2E:member-1:Management"
+    And security server 'CS:E2E:member-1:SS0' is registered as management service provider
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS0' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS0' is put into maintenance mode
+    Then Response is of status code 409 and error code "mr_forbidden_enable_maintenance_mode_for_management_service"
+
+  @Modifying
   Scenario: View management request details
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
@@ -360,6 +377,23 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' client 'CS:E2E:member-1:subsystem-1' is enabled
     And Authentication header is set to REGISTRATION_OFFICER
     Then member 'CS:E2E:member-1' subsystem 'subsystem-1' status in server 'SS-X' is 'APPROVED'
+
+  @Modifying
+  Scenario: Disabling subsystem which is management service provider should fail
+    Given Authentication header is set to REGISTRATION_OFFICER
+    And new subsystem "CS:E2E:member-1:Management" is added
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:E2E:member-1:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to SECURITY_OFFICER
+    And Management services provider id is set to "CS:E2E:member-1:Management"
+    And security server 'CS:E2E:member-1:SS0' is registered as management service provider
+    Then Authentication header is set to REGISTRATION_OFFICER
+    And security server 'CS:E2E:member-1:SS0' is not in maintenance mode
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And security server 'CS:E2E:member-1:SS0' client 'CS:E2E:member-1:Management' is disabled
+    Then Response is of status code 409 and error code "mr_forbidden_disable_management_service_client"
 
   @Modifying
   Scenario: Renaming subsystem

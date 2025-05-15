@@ -40,8 +40,10 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
@@ -51,14 +53,15 @@ import org.niis.xroad.serverconf.model.Client;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
+import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
@@ -87,7 +90,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
-                                             OpMonitoringData opMonitoringData) throws Exception {
+                                             OpMonitoringData opMonitoringData) {
         super(commonBeanProxy, request, response, httpClient);
 
         this.clientCert = clientCert;
@@ -154,11 +157,10 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
-            throws Exception {
+    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+        var hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -173,8 +175,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             }
 
             if (!hostNames.contains(securityServerAddress)) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serviceProvider);
+                throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
             }
+
+            commonBeanProxy.globalConfProvider.getMaintenanceMode(serverId)
+                    .filter(SharedParameters.MaintenanceMode::enabled)
+                    .ifPresent(maintenanceMode -> {
+                        throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
+                    });
 
             hostNames = Collections.singleton(securityServerAddress);
         }
@@ -184,27 +192,69 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
 
-        for (String host : hostNames) {
+        var maintenanceModeErrors = new LinkedList<CodedException>();
+
+        for (var host : hostNames) {
+            var addedError = commonBeanProxy.globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
+                    .filter(SharedParameters.MaintenanceMode::enabled)
+                    .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
+                    .map(maintenanceModeErrors::add)
+                    .orElse(Boolean.FALSE);
+            if (addedError) {
+                continue;
+            }
             try {
                 addresses.add(new URI(protocol, null, host, port, "/", null, null));
             } catch (URISyntaxException e) {
-                log.warn("Invalid service provider hostname " + host);
+                log.warn("Invalid service provider hostname: {}", host);
             }
         }
 
         if (addresses.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find suitable address for service provider \"%s\"",
-                    serviceProvider);
+            if (maintenanceModeErrors.isEmpty()) {
+                throw new CodedException(X_UNKNOWN_MEMBER, "Could not find suitable address for service provider \"%s\"",
+                        serviceProvider);
+            } else {
+                throw maintenanceModeErrors.getFirst();
+            }
         }
 
         return addresses;
+    }
+
+    private CodedException buildMaintenanceModeException(SecurityServerId serverId, String address, String maintenanceModeMessage) {
+        var message = new StringBuilder("Security server");
+        if (serverId != null) {
+            message
+                    .append(" \"")
+                    .append(serverId)
+                    .append("\"");
+
+        }
+
+        if (StringUtils.isNotEmpty(address)) {
+            message
+                    .append(" with address \"")
+                    .append(address)
+                    .append("\"");
+        }
+
+        message.append("is in maintenance mode");
+
+        if (StringUtils.isNotEmpty(maintenanceModeMessage)) {
+            message
+                    .append(". ")
+                    .append(maintenanceModeMessage);
+        }
+
+        return new CodedException(X_MAINTENANCE_MODE, message.toString());
     }
 
     static DigestAlgorithm getHashAlgoId(HttpSender httpSender) {
         return DigestAlgorithm.ofName(httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID));
     }
 
-    protected void verifyClientStatus(ClientId client) throws Exception {
+    protected void verifyClientStatus(ClientId client) {
         if (client == null) {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
@@ -221,6 +271,17 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
         log.trace("verifyClientAuthentication()");
         verifyClientAuthentication(sender, clientCert);
+    }
+
+    protected void verifyClientProxyStatus() {
+        var mMode = commonBeanProxy.serverConfProvider.getMaintenanceMode();
+        if (mMode.enabled()) {
+            var message = "Server '%s' is in maintenance mode.".formatted(commonBeanProxy.serverConfProvider.getIdentifier());
+            if (StringUtils.isNotEmpty(mMode.message())) {
+                message += " " + mMode.message();
+            }
+            throw new CodedException(X_MAINTENANCE_MODE, message);
+        }
     }
 
     @EqualsAndHashCode

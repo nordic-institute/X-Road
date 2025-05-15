@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MaintenanceModeConverter {
 
-    public MaintenanceModeDto convert(MaintenanceMode maintenanceMode) {
+    public MaintenanceModeDto convert(MaintenanceMode maintenanceMode, boolean isManagementServicesProvider) {
         var target = new MaintenanceModeDto();
         target.setMessage(maintenanceMode.message());
         target.setStatus(switch (maintenanceMode.status()) {
@@ -45,6 +45,8 @@ public class MaintenanceModeConverter {
             case DISABLING -> MaintenanceModeStatusDto.PENDING_DISABLE_MAINTENANCE_MODE;
             case DISABLED -> MaintenanceModeStatusDto.DISABLED_MAINTENANCE_MODE;
         });
+
+        target.setIsManagementServicesProvider(isManagementServicesProvider);
 
         return target;
     }

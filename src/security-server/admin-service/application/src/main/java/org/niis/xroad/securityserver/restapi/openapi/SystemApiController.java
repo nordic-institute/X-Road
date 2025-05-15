@@ -207,7 +207,9 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
     @Override
     public ResponseEntity<MaintenanceModeDto> maintenanceMode() {
-        return ResponseEntity.ok(maintenanceModeConverter.convert(systemService.getMaintenanceMode()));
+        return ResponseEntity.ok(
+                maintenanceModeConverter.convert(systemService.getMaintenanceMode(), systemService.isManagementServiceProvider())
+        );
     }
 
     @Override

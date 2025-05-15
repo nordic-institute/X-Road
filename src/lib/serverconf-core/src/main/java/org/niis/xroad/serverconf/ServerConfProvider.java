@@ -82,7 +82,7 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProviderId the service provider identifier
-     * @param clientId the client identifier
+     * @param clientId          the client identifier
      * @return RestServiceDetailsListType containing list of allowed REST services
      */
     RestServiceDetailsListType getAllowedRestServices(ClientId serviceProviderId, ClientId clientId);
@@ -101,7 +101,7 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProviderId the service provider identifier
-     * @param clientId the client identifier
+     * @param clientId          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.
      */
@@ -109,7 +109,7 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProviderId the service provider identifier
-     * @param clientId the client identifier
+     * @param clientId          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke filtered by description type
      */
@@ -162,7 +162,7 @@ public interface ServerConfProvider {
     String getMemberStatus(ClientId memberId);
 
     /**
-     * @param senderId the sender identifier
+     * @param senderId  the sender identifier
      * @param serviceId the service identifier
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
@@ -170,10 +170,10 @@ public interface ServerConfProvider {
     boolean isQueryAllowed(ClientId senderId, ServiceId serviceId);
 
     /**
-     * @param senderId the sender identifier
+     * @param senderId  the sender identifier
      * @param serviceId the service identifier
-     * @param method the request method (can be null)
-     * @param path the request path (can be null)
+     * @param method    the request method (can be null)
+     * @param path      the request path (can be null)
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
@@ -222,5 +222,10 @@ public interface ServerConfProvider {
      */
     default boolean isAvailable() {
         return true;
+    }
+
+    MaintenanceMode getMaintenanceMode();
+
+    record MaintenanceMode(boolean enabled, String message) {
     }
 }

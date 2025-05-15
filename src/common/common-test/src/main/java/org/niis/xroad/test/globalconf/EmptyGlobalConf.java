@@ -325,4 +325,9 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId) {
         return Optional.empty();
     }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
+        return Optional.empty();
+    }
 }

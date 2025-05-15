@@ -138,7 +138,7 @@ import { XrdIconCopy, XrdIconErrorNotification, XrdIconWarning } from '@niis/sha
 import { computed, PropType } from 'vue';
 
 const errorCodePrefix = 'error_code.';
-const translatableMetaPrefix = 'error_meta.';
+const translatableMetaPrefix = 'tr.';
 
 const props = defineProps({
   notification: {

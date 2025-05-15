@@ -383,4 +383,9 @@ public interface GlobalConfProvider {
      */
     Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId);
 
+    /**
+     * @return Status of the maintenance mode
+     */
+    Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress);
+
 }
