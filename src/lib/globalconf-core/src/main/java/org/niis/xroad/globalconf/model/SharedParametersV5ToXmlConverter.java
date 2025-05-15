@@ -106,10 +106,10 @@ abstract class SharedParametersV5ToXmlConverter {
     }
 
     MaintenanceMode convertMaintenanceMode(SharedParameters.MaintenanceMode mode) {
-        if (mode != null && mode.isEnabled()) {
+        if (mode != null && mode.enabled()) {
             var maintenanceMode = OBJECT_FACTORY.createMaintenanceMode();
-            maintenanceMode.setMessage(mode.getMessage());
-            maintenanceMode.setMessage(mode.getMessage());
+            maintenanceMode.setMessage(mode.message());
+            maintenanceMode.setMessage(mode.message());
             return maintenanceMode;
         }
         return null;

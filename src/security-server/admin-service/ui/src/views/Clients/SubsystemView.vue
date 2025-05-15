@@ -32,7 +32,7 @@
       </template>
     </template>
     <template #header-buttons>
-      <DisableClientButton v-if="showDisable" class="ml-5" :id="id" @done="fetchData" />
+      <DisableClientButton v-if="showDisable" class="ml-5" :id="id" @done="fetchData" :disabled="client?.is_management_services_provider" v-tooltip="tooltip"/>
       <EnableClientButton v-if="showEnable" class="ml-5" :id="id" @done="fetchData" />
       <DeleteClientButton v-if="showDelete" class="ml-5" :id="id" />
       <UnregisterClientButton v-if="showUnregister" class="ml-5" :id="id" @done="fetchData" />
@@ -93,6 +93,9 @@ export default defineComponent({
         return this.client.subsystem_name;
       }
       return '';
+    },
+    tooltip(){
+      return { text: this.$t('client.forbiddenDisable'), 'open-delay': 500, 'open-on-hover': this.client?.is_management_services_provider }
     },
     subsystemName(): string {
       return this.client?.subsystem_name || '';

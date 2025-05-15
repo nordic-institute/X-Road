@@ -81,6 +81,7 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCH
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_ADDRESS_CHANGE_REQUEST;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SAME_ADDRESS_CHANGE_REQUEST;
 
@@ -435,10 +436,19 @@ public class SystemService {
         return SystemProperties.getServerNodeType();
     }
 
+    public boolean isManagementServiceProvider() {
+        var managementRequestService = globalConfProvider.getManagementRequestService();
+        return globalConfService.isSecurityServerClientForThisInstance(managementRequestService);
+    }
+
     public void enableMaintenanceMode(String message) {
         auditDataHelper.put(RestApiAuditProperty.MESSAGE, message);
 
         var mode = getMaintenanceMode();
+
+        if (isManagementServiceProvider()) {
+            throw new ConflictException(FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE.build());
+        }
 
         if (mode.status() == DISABLING || mode.status() == ENABLING) {
             throw new ConflictException(DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST.build());
@@ -477,7 +487,7 @@ public class SystemService {
                 var securityServerId = serverConfService.getSecurityServerId();
 
                 yield globalConfProvider.getMaintenanceMode(securityServerId)
-                        .map(mode -> new MaintenanceMode(mode.isEnabled() ? ENABLED : DISABLED, mode.getMessage()))
+                        .map(mode -> new MaintenanceMode(mode.enabled() ? ENABLED : DISABLED, mode.message()))
                         .orElseGet(() -> new MaintenanceMode(DISABLED, null));
             }
         };

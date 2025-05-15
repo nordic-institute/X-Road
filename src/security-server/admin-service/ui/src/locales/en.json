@@ -125,6 +125,7 @@
       }
     },
     "defaultSubsystemNameTooltip": "Subsystem name is not defined",
+    "forbiddenDisable": "The provider of management services is not eligible for deactivation.",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -259,23 +260,20 @@
       "status": "Status"
     },
     "maintenanceMode": {
+      "enableTitle": "Enable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "disableTitle": "Disable maintenance mode",
+      "disableConfirm": "Do you want to disable maintenance mode?",
+      "disableSuccess": "Maintenance mode disabling in progress",
+      "forbiddenEnable": "Maintenance mode cannot be enabled for a management services provider",
       "label": "Maintenance mode:",
       "status": {
         "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
         "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
-        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode requested is submitted",
-        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode requested is submitted"
-      },
-
-
-      "enable": "Enable maintenance mode",
-      "enableTitle": "Enable maintenance mode",
-      "enableConfirm": "Do you want to enable maintenance mode?",
-      "enableSuccess": "Maintenance mode enabling in progress",
-      "disable": "Disable maintenance mode",
-      "disableTitle": "Disable maintenance mode",
-      "disableConfirm": "Do you want to disable maintenance mode?",
-      "disableSuccess": "Maintenance mode disabling in progress"
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request is submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request is submitted"
+      }
     },
     "message": "Message",
     "nextUpdate": "Next Update",
@@ -400,6 +398,8 @@
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
+    "forbidden_disable_management_service_client": "The management services provider cannot be deactivated.",
+    "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
     "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
     "gpg_key_generation_failed": "GPG keypair generation failed",

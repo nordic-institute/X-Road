@@ -4679,207 +4679,6 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
-  /certificate-authorities:
-    get:
-      tags:
-        - certificate-authorities
-      summary: view the approved certificate authorities
-      operationId: getApprovedCertificateAuthorities
-      description: <h3>Administrator views the approved certificate authorities.</h3>
-      parameters:
-        - in: query
-          name: key_usage_type
-          description: return only CAs suitable for this type of key usage
-          required: false
-          schema:
-            $ref: '#/components/schemas/KeyUsageType'
-        - in: query
-          name: include_intermediate_cas
-          description: if true, include also intermediate CAs. Otherwise only top CAs are included. Default value is "false".
-          required: false
-          schema:
-            type: boolean
-            default: false
-      responses:
-        '200':
-          description: list of approved certificate authorities
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of certificate authority objects
-                items:
-                  $ref: '#/components/schemas/CertificateAuthority'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /certificate-authorities/{ca_name}/csr-subject-fields:
-    get:
-      tags:
-        - certificate-authorities
-      summary: get description of subject DN fields for CSR
-      operationId: getSubjectFieldDescriptions
-      description: <h3>List DN field descriptions to collect CSR parameters</h3>
-      parameters:
-        - in: path
-          name: ca_name
-          description: common name of the CA
-          example: X-Road Test CA CN
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: key_id
-          description: id of the key. If provided, used only for validating correct key usage
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-        - in: query
-          name: key_usage_type
-          description: which usage type this CSR is for
-          required: true
-          schema:
-            $ref: '#/components/schemas/KeyUsageType'
-        - in: query
-          name: member_id
-          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
-          example: FI:GOV:123
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 767
-        - in: query
-          name: is_new_member
-          description: whether or not the member in the member_id parameter is a new member
-          required: false
-          schema:
-            type: boolean
-            default: false
-      responses:
-        '200':
-          description: csr subject field objects
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of CsrSubjectFieldDescription objects
-                items:
-                  $ref: '#/components/schemas/CsrSubjectFieldDescription'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /certificate-authorities/{ca_name}/has-acme-eab-credentials:
-    get:
-      tags:
-        - certificate-authorities
-      summary: Does the member have external CA account credentials for its ACME server in the configurations.
-      operationId: hasAcmeExternalAccountBindingCredentials
-      description: <h3>Check whether given member has external CA account credentials for its ACME server.</h3>
-        <p>Determines whether the administrator can order the certificate from ACME server with the generated CSR. The credentials are stored in the acme.yml configuration file</p>
-      parameters:
-        - in: path
-          name: ca_name
-          description: common name of the CA
-          example: X-Road Test CA CN
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-        - in: query
-          name: key_usage_type
-          description: which usage type this CSR is for
-          example: SIGNING
-          required: true
-          schema:
-            $ref: '#/components/schemas/KeyUsageType'
-        - in: query
-          name: member_id
-          description: <instance_id>:<member_class>:<member_code>
-          example: FI:GOV:123
-          required: false
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      responses:
-        '200':
-          description: acme eab credentials status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AcmeEabCredentialsStatus'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /certificate-authorities/{ca_name}/acme-order:
-    post:
-      tags:
-        - certificate-authorities
-      summary: order certificate from CA hosted ACME server with the given CSR
-      operationId: orderAcmeCertificate
-      description: <h3>Administrator orders the certificate with previously generated CSR whose certificate profile matches chosen CA-s configured profile.</h3>
-      parameters:
-        - in: path
-          name: ca_name
-          description: common name of the CA
-          example: X-Road Test CA CN
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 255
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AcmeOrder'
-      responses:
-        '200':
-          description: acme certificate order was successful
-        '400':
-          description: request was invalid
-        '403':
-          description: request has been refused
-        '409':
-          description: an existing item already exists, outdated global conf or token not logged in
-        '500':
-          description: internal server error
   /system/timestamping-services:
     get:
       tags:
@@ -5087,6 +4886,207 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
+  /certificate-authorities:
+    get:
+      tags:
+        - certificate-authorities
+      summary: view the approved certificate authorities
+      operationId: getApprovedCertificateAuthorities
+      description: <h3>Administrator views the approved certificate authorities.</h3>
+      parameters:
+        - in: query
+          name: key_usage_type
+          description: return only CAs suitable for this type of key usage
+          required: false
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: include_intermediate_cas
+          description: if true, include also intermediate CAs. Otherwise only top CAs are included. Default value is "false".
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: list of approved certificate authorities
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of certificate authority objects
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificate-authorities/{ca_name}/csr-subject-fields:
+    get:
+      tags:
+        - certificate-authorities
+      summary: get description of subject DN fields for CSR
+      operationId: getSubjectFieldDescriptions
+      description: <h3>List DN field descriptions to collect CSR parameters</h3>
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_id
+          description: id of the key. If provided, used only for validating correct key usage
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: query
+          name: key_usage_type
+          description: which usage type this CSR is for
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: member_id
+          description: member client id for signing CSRs. <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 767
+        - in: query
+          name: is_new_member
+          description: whether or not the member in the member_id parameter is a new member
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: csr subject field objects
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of CsrSubjectFieldDescription objects
+                items:
+                  $ref: '#/components/schemas/CsrSubjectFieldDescription'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificate-authorities/{ca_name}/has-acme-eab-credentials:
+    get:
+      tags:
+        - certificate-authorities
+      summary: Does the member have external CA account credentials for its ACME server in the configurations.
+      operationId: hasAcmeExternalAccountBindingCredentials
+      description: <h3>Check whether given member has external CA account credentials for its ACME server.</h3>
+        <p>Determines whether the administrator can order the certificate from ACME server with the generated CSR. The credentials are stored in the acme.yml configuration file</p>
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_usage_type
+          description: which usage type this CSR is for
+          example: SIGNING
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: member_id
+          description: <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: acme eab credentials status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcmeEabCredentialsStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificate-authorities/{ca_name}/acme-order:
+    post:
+      tags:
+        - certificate-authorities
+      summary: order certificate from CA hosted ACME server with the given CSR
+      operationId: orderAcmeCertificate
+      description: <h3>Administrator orders the certificate with previously generated CSR whose certificate profile matches chosen CA-s configured profile.</h3>
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcmeOrder'
+      responses:
+        '200':
+          description: acme certificate order was successful
+        '400':
+          description: request was invalid
+        '403':
+          description: request has been refused
+        '409':
+          description: an existing item already exists, outdated global conf or token not logged in
+        '500':
+          description: internal server error
   /mail/mail-notification-status:
     get:
       tags:
@@ -5156,7 +5156,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-
   /tokens:
     get:
       tags:
@@ -6492,6 +6491,11 @@ components:
           description: if this client has a valid (registered and with good OCSP response) sign cert stored on this security server
           example: false
           readOnly: true
+        is_management_services_provider:
+          type: boolean
+          description: if this client is management services provider
+          example: false
+          readOnly: true
         rename_status:
           $ref: '#/components/schemas/RenameStatus'
         connection_type:
@@ -7257,9 +7261,18 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/MaintenanceModeStatus'
+        is_management_services_provider:
+          type: boolean
+          description: is this Security server provider of management services
+          example: false
+          readOnly: true
+      required:
+        - status
+        - is_management_services_provider
       example:
         status: ENABLED_MAINTENANCE_MODE
         message: End on 14. May
+        is_management_services_provider: false
     MaintenanceModeStatus:
       type: string
       format: enum

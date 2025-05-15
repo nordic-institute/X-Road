@@ -146,11 +146,11 @@ public class GlobalConfChecker {
 
         switch (maintenanceModeStatus.getStatus()) {
             case MaintenanceModeStatus.DisableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
-                    .filter(not(SharedParameters.MaintenanceMode::isEnabled))
+                    .filter(not(SharedParameters.MaintenanceMode::enabled))
                     .ifPresent(mode -> maintenanceModeStatus.clear());
 
             case MaintenanceModeStatus.EnableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
-                    .filter(SharedParameters.MaintenanceMode::isEnabled)
+                    .filter(SharedParameters.MaintenanceMode::enabled)
                     .ifPresent(mode -> maintenanceModeStatus.clear());
 
             case null -> {
