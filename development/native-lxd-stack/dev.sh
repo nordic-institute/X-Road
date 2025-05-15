@@ -19,13 +19,21 @@ Examples:
 
 BUILD=false
 DEPLOY=false
+INVENTORY_PATH="config/ansible_hosts.txt"
 
 # If s -option is provided find source packages from s3 bucket with given argument
-while getopts ":m:bdh" opt; do
+while getopts ":m:bdhi:" opt; do
   case $opt in
     b) BUILD=true ;;
     d) DEPLOY=true ;;
     m) MODULE=${OPTARG} ;;
+    i)
+        INVENTORY_PATH=${OPTARG}
+        if [ ! -f "$INVENTORY_PATH" ]; then
+          log_error "Inventory file not found: $INVENTORY_PATH"
+          exit 1
+        fi
+        ;;
     h)
        printf "$usage"
        exit 0
@@ -44,6 +52,6 @@ if [ "$BUILD" = true ] ; then
 fi
 
 if [ "$DEPLOY" = true ] ; then
-  echo "Deploying module $MODULE"
-  source scripts/deploy-module.sh $MODULE
+  echo "Deploying module $MODULE using inventory $INVENTORY_PATH"
+  source scripts/deploy-module.sh $(realpath $INVENTORY_PATH) $MODULE
 fi
