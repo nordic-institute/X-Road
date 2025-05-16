@@ -37,18 +37,8 @@ Feature: 0900 - SS:Diagnostics
     And At least one member should have encryption key configured
     And At least one member should use default encryption key
 
-  Scenario: Administrator can turn on and of maintenance mode with message
-    Given Diagnostics tab is selected
-    And maintenance mode toggle is off
-    When maintenance mode toggle is clicked
-    And message: 'Will be back soon' for maintenance mode is entered
-    And Dialog data is saved and error message 'Sending of management request failed' is shown
+  Scenario: Administrator cannot turn on maintenance mode for management services provider
+    When Diagnostics tab is selected
     Then maintenance mode toggle is off
+    And maintenance mode toggle is disabled
 
-  Scenario: Administrator can turn on and of maintenance mode without message
-    Given Diagnostics tab is selected
-    And maintenance mode toggle is off
-    When maintenance mode toggle is clicked
-    And message: '' for maintenance mode is entered
-    And Dialog data is saved and error message 'Sending of management request failed' is shown
-    Then maintenance mode toggle is off
