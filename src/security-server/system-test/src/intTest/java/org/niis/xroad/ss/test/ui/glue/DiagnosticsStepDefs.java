@@ -54,7 +54,6 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
@@ -230,20 +229,10 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                 .shouldBeOff();
     }
 
-    @Step("maintenance mode toggle is clicked")
+    @Step("maintenance mode toggle is disabled")
     public void maintenanceModeToggleIsClicked() {
         vSwitch(diagnosticsPage.toggleMaintenanceMode())
                 .shouldBe(visible)
-                .shouldBeEnabled()
-                .click();
+                .shouldBeDisabled();
     }
-
-    @Step("message: {string} for maintenance mode is entered")
-    public void confirmMaintenanceModeEnable(String message) {
-        vTextField(diagnosticsPage.enableMaintenanceModeDialog.messageField())
-                .shouldBe(visible)
-                .clear()
-                .setValue(message);
-    }
-
 }

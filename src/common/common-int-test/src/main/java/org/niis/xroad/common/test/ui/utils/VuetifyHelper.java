@@ -31,6 +31,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.or;
@@ -136,8 +137,8 @@ public final class VuetifyHelper {
             return this;
         }
 
-        public Switch shouldBeEnabled() {
-            input.shouldBe(enabled);
+        public Switch shouldBeDisabled() {
+            input.shouldBe(disabled);
             return this;
         }
 
@@ -149,11 +150,6 @@ public final class VuetifyHelper {
         public Switch shouldBe(WebElementCondition condition) {
             controlElement.shouldBe(condition);
             return this;
-        }
-
-        public void click() {
-            controlElement.shouldBe(visible);
-            input.click();
         }
     }
 
