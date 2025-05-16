@@ -354,7 +354,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySecurityServer() throws Exception {
+    private void verifySecurityServer() {
         final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
 
         if (requestServerId != null) {
