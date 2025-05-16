@@ -1,6 +1,10 @@
 #!/bin/bash
 
-ansible-playbook -i $XROAD_HOME/development/native-lxd-stack/config/ansible_hosts.txt \
+INVENTORY=$1
+shift
+MODULES=$@
+
+ansible-playbook -i $INVENTORY \
 $XROAD_HOME/ansible/xroad_dev_partial.yml \
 --skip-tags compile,build-packages \
--e selected_modules=$@ -vv
+-e selected_modules=$MODULES -vv

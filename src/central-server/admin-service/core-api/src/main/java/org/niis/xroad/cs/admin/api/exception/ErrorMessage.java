@@ -66,6 +66,8 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     MR_INVALID_SUBSYSTEM_NAME("management_request_invalid_subsystem_name"),
     MR_ONLY_SUBSYSTEM_RENAME_ALLOWED("management_request_only_subsystem_rename_allowed"),
     MR_SERVER_CLIENT_NOT_FOUND("management_request_server_client_not_found"),
+    MR_FORBIDDEN_DISABLE_MANAGEMENT_SERVICE_CLIENT("mr_forbidden_disable_management_service_client"),
+    MR_FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE("mr_forbidden_enable_maintenance_mode_for_management_service"),
     MR_UNKNOWN_TYPE("management_request_unknown_type"),
     MR_SECURITY_SERVER_ALREADY_IN_MAINTENANCE_MODE("management_request_server_already_in_maintenance_mode"),
     MR_SECURITY_SERVER_NOT_IN_MAINTENANCE_MODE("management_request_server_not_in_maintenance_mode"),

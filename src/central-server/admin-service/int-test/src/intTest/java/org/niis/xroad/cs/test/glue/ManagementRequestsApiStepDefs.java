@@ -29,6 +29,7 @@ package org.niis.xroad.cs.test.glue;
 
 import com.nortal.test.asserts.Assertion;
 import com.nortal.test.asserts.ValidationHelper;
+import feign.FeignException;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -171,13 +172,17 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setOrigin(SECURITY_SERVER);
         managementRequest.setSecurityServerId(securityServerId);
         managementRequest.setClientId(clientId);
+        try {
+            final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+            this.managementRequestId = response.getBody().getId();
 
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
-        this.managementRequestId = response.getBody().getId();
-
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .execute();
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
     }
 
     @Step("security server {string} is put into maintenance mode with message: {string}")
@@ -188,13 +193,18 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
                 .securityServerId(securityServerId)
                 .message(message);
 
-        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        try {
+            final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
 
-        this.managementRequestId = response.getBody().getId();
+            this.managementRequestId = response.getBody().getId();
 
-        validate(response)
-                .assertion(equalsStatusCodeAssertion(ACCEPTED))
-                .execute();
+            validate(response)
+                    .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                    .execute();
+        } catch (FeignException feignException) {
+            putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
+            putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
+        }
     }
 
     @Step("security server {string} is put into maintenance mode")

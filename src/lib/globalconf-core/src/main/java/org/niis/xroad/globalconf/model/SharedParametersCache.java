@@ -66,6 +66,7 @@ public class SharedParametersCache {
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
+    private final Map<String, SharedParameters.SecurityServer> securityServersByAddress = new HashMap<>();
 
     public String getInstanceIdentifier() {
         return sharedParameters.getInstanceIdentifier();
@@ -150,6 +151,7 @@ public class SharedParametersCache {
                     securityServer.getOwner().getMemberCode(), securityServer.getServerCode()
             );
             securityServersById.put(securityServerId, securityServer);
+            securityServersByAddress.put(securityServer.getAddress(), securityServer);
 
             securityServer.getClients().forEach(client -> addServerClient(client, securityServer));
         }

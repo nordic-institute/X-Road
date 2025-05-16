@@ -96,6 +96,7 @@ import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CANN
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CANNOT_UNREGISTER_OWNER;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CLIENT_ALREADY_EXISTS;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CLIENT_RENAME_ALREADY_SUBMITTED;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FORBIDDEN_DISABLE_MANAGEMENT_SERVICE_CLIENT;
 import static org.niis.xroad.securityserver.restapi.util.ClientUtils.doesSupportSubsystemNames;
 import static org.niis.xroad.serverconf.model.Client.STATUS_DELINPROG;
 import static org.niis.xroad.serverconf.model.Client.STATUS_DISABLED;
@@ -606,10 +607,19 @@ public class ClientService {
             throw new ActionNotPossibleException("cannot disable client with status " + client.getClientStatus());
         }
 
+        if (isManagementServiceProvider(client.getIdentifier())) {
+            throw new ConflictException(FORBIDDEN_DISABLE_MANAGEMENT_SERVICE_CLIENT.build());
+        }
+
         Integer requestId = managementRequestSenderService.sendClientDisableRequest(clientId);
         putClientStatusToAudit(client);
         auditDataHelper.putManagementRequestId(requestId);
         client.setClientStatus(STATUS_DISABLING_INPROG);
+    }
+
+    public boolean isManagementServiceProvider(ClientId subsystemId) {
+        var managementRequestService = globalConfProvider.getManagementRequestService();
+        return managementRequestService != null && managementRequestService.equals(subsystemId);
     }
 
     /**

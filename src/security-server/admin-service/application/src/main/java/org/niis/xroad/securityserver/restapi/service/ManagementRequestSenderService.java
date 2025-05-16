@@ -123,7 +123,7 @@ public class ManagementRequestSenderService {
 
     /**
      * Sends a client register request as a normal X-Road message
-     * @param clientId the client id that will be registered
+     * @param clientId      the client id that will be registered
      * @param subsystemName subsystem name (in case of a subsystem)
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -227,4 +227,23 @@ public class ManagementRequestSenderService {
                 SystemProperties.getProxyUiSecurityServerUrl());
     }
 
+    public Integer sendMaintenanceModeEnableRequest(String message) {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendMaintenanceModeEnableRequest(currentSecurityServerId.getServerId(), message);
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    public Integer sendMaintenanceModeDisableRequest() {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendMaintenanceModeDisableRequest(currentSecurityServerId.getServerId());
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
 }

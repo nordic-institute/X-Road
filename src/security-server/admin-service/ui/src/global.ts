@@ -161,6 +161,7 @@ export enum Permissions {
   VIEW_TSPS = 'VIEW_TSPS', // settings > system parameters > timestamping services
   CHANGE_SS_ADDRESS = 'CHANGE_SS_ADDRESS', // settings > system parameters > server address
   DOWNLOAD_DIAGNOSTICS_REPORT = 'DOWNLOAD_DIAGNOSTICS_REPORT', // diagnostics > download diagnostics report
+  TOGGLE_MAINTENANCE_MODE = 'TOGGLE_MAINTENANCE_MODE', // diagnostics > enable / disable maintenance mode button
 }
 
 export enum UsageTypes {

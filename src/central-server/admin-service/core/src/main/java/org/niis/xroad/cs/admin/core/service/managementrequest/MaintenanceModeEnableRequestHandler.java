@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MaintenanceModeEnableRequest;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.MaintenanceModeEnableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
@@ -41,6 +42,7 @@ import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.springframework.stereotype.Service;
 
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SECURITY_SERVER_ALREADY_IN_MAINTENANCE_MODE;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_NOT_FOUND;
 
@@ -49,6 +51,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MR_SERVER_NOT_F
 @RequiredArgsConstructor
 public class MaintenanceModeEnableRequestHandler implements RequestHandler<MaintenanceModeEnableRequest> {
 
+    private final SystemParameterService systemParameterService;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final SecurityServerRepository servers;
     private final RequestRepository<MaintenanceModeEnableRequestEntity> maintenanceModeEnableRequests;
@@ -63,7 +66,13 @@ public class MaintenanceModeEnableRequestHandler implements RequestHandler<Maint
     public MaintenanceModeEnableRequest add(MaintenanceModeEnableRequest request) {
         SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
 
-        final SecurityServerEntity securityServer = servers.findBy(serverId)
+        var managementServiceProviderId = systemParameterService.getManagementServiceProviderId();
+        if (managementServiceProviderId != null && servers.findBy(request.getSecurityServerId(), managementServiceProviderId).isPresent()) {
+            throw new ConflictException(MR_FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE
+                    .build(managementServiceProviderId, request.getSecurityServerId()));
+        }
+
+        final SecurityServerEntity securityServer = servers.findBy(request.getSecurityServerId())
                 .orElseThrow(() -> new NotFoundException(MR_SERVER_NOT_FOUND.build(request.getSecurityServerId())));
 
         if (securityServer.isInMaintenanceMode()) {
