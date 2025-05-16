@@ -53,10 +53,12 @@ import org.niis.xroad.serverconf.model.Client;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
@@ -160,31 +162,10 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        var hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
-
-        if (hostNames == null || hostNames.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
-                    serviceProvider);
-        }
+        var hostNames = hostNamesByProvider(serviceProvider);
 
         if (serverId != null) {
-            final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
-
-            if (securityServerAddress == null) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
-            }
-
-            if (!hostNames.contains(securityServerAddress)) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
-            }
-
-            commonBeanProxy.globalConfProvider.getMaintenanceMode(serverId)
-                    .filter(SharedParameters.MaintenanceMode::enabled)
-                    .ifPresent(maintenanceMode -> {
-                        throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
-                    });
-
-            hostNames = Collections.singleton(securityServerAddress);
+            hostNames = hostNamesBySecurityServer(serverId, hostNames);
         }
 
         String protocol = isSslEnabled() ? "https" : "http";
@@ -195,18 +176,13 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         var maintenanceModeErrors = new LinkedList<CodedException>();
 
         for (var host : hostNames) {
-            var addedError = commonBeanProxy.globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
+            var inMaintenance = commonBeanProxy.globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
                     .filter(SharedParameters.MaintenanceMode::enabled)
                     .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
                     .map(maintenanceModeErrors::add)
                     .orElse(Boolean.FALSE);
-            if (addedError) {
-                continue;
-            }
-            try {
-                addresses.add(new URI(protocol, null, host, port, "/", null, null));
-            } catch (URISyntaxException e) {
-                log.warn("Invalid service provider hostname: {}", host);
+            if (!inMaintenance) {
+                buildUri(protocol, host, port).ifPresent(addresses::add);
             }
         }
 
@@ -220,6 +196,46 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
 
         return addresses;
+    }
+
+    private Optional<URI> buildUri(String protocol, String host, int port) {
+        try {
+            return Optional.of(new URI(protocol, null, host, port, "/", null, null));
+        } catch (URISyntaxException e) {
+            log.warn("Invalid service provider hostname: {}", host);
+            return Optional.empty();
+        }
+    }
+
+    private Collection<String> hostNamesByProvider(ServiceId serviceProvider) {
+        var hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+
+        if (hostNames == null || hostNames.isEmpty()) {
+            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
+                    serviceProvider);
+        }
+
+        return hostNames;
+    }
+
+    private Collection<String> hostNamesBySecurityServer(SecurityServerId serverId, Collection<String> hostNamesByProvider) {
+        final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
+
+        if (securityServerAddress == null) {
+            throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
+        }
+
+        if (!hostNamesByProvider.contains(securityServerAddress)) {
+            throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
+        }
+
+        commonBeanProxy.globalConfProvider.getMaintenanceMode(serverId)
+                .filter(SharedParameters.MaintenanceMode::enabled)
+                .ifPresent(maintenanceMode -> {
+                    throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
+                });
+
+        return Collections.singleton(securityServerAddress);
     }
 
     private CodedException buildMaintenanceModeException(SecurityServerId serverId, String address, String maintenanceModeMessage) {
