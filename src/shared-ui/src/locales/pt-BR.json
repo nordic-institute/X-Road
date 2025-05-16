@@ -1,201 +1,201 @@
 {
   "action": {
-    "activate": "Activate",
-    "add": "Add",
-    "addClient": "Add client",
-    "addMember": "Add member",
-    "addSubsystem": "Add subsystem",
-    "cancel": "Cancel",
-    "close": "Close",
-    "confirm": "Confirm",
-    "continue": "Continue",
-    "copy": "Copy",
-    "copyId": "Copy ID",
-    "deactivate": "Disable",
-    "delete": "Delete",
-    "done": "Done",
+    "activate": "Ativar",
+    "add": "Adicionar",
+    "addClient": "Adicionar cliente",
+    "addMember": "Adicionar membro",
+    "addSubsystem": "Adicionar subsistema",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "copy": "Copiar",
+    "copyId": "Copiar ID",
+    "deactivate": "Desativar",
+    "delete": "Excluir",
+    "done": "Concluído",
     "download": "Download",
-    "edit": "Edit",
-    "emptySearch": "Your search for {msg} found no results.",
-    "export": "Export",
-    "finish": "Finish",
-    "goToFront": "Go to the front page",
-    "next": "Next",
-    "no": "No",
-    "noData": "No data",
+    "edit": "Editar",
+    "emptySearch": "Sua pesquisa por {msg} não encontrou resultados.",
+    "export": "Exportar",
+    "finish": "Finalizar",
+    "goToFront": "Ir para a página inicial",
+    "next": "Próximo",
+    "no": "Não",
+    "noData": "Sem dados",
     "ok": "Ok",
-    "previous": "Previous",
-    "refresh": "Refresh",
-    "register": "Register",
-    "remove": "Remove",
-    "removeAll": "Remove All",
-    "restore": "Restore",
-    "save": "Save",
-    "search": "Search",
-    "searching": "Searching...",
-    "submit": "Submit",
-    "unregister": "Unregister",
+    "previous": "Anterior",
+    "refresh": "Atualizar",
+    "register": "Registrar",
+    "remove": "Remover",
+    "removeAll": "Remover tudo",
+    "restore": "Restaurar",
+    "save": "Salvar",
+    "search": "Pesquisar",
+    "searching": "Pesquisando...",
+    "submit": "Enviar",
+    "unregister": "Cancelar registro",
     "upload": "Upload",
-    "yes": "Yes"
+    "yes": "Sim"
   },
   "alert": {
-    "count": "Amount of same errors:",
+    "count": "Quantidade de erros iguais:",
     "id": "ID"
   },
   "apiKey": {
     "createApiKey": {
-      "button": "CREATE API KEY",
+      "button": "CRIAR API KEY",
       "step": {
         "keyDetails": {
-          "apiKey": "API key",
-          "apiKeyID": "API key ID",
-          "assignedRoles": "Roles assigned",
-          "createKeyButton": "Create Key",
-          "name": "Key Details",
-          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
+          "apiKey": "Chave API",
+          "apiKeyID": "ID da chave API",
+          "assignedRoles": "Papéis atribuídos",
+          "createKeyButton": "Criar chave",
+          "name": "Detalhes da chave",
+          "note": "ATENÇÃO: salve a chave API em um local seguro. A chave será exibida apenas no momento da geração e não poderá ser recuperada posteriormente."
         },
         "roles": {
-          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key.",
-          "name": "Roles",
-          "selectRoles": "Select roles"
+          "description": "Selecione os papéis associados à chave API. Os papéis definem as permissões concedidas.",
+          "name": "Papéis",
+          "selectRoles": "Selecionar papéis"
         }
       },
-      "success": "API key successfully created",
-      "title": "Create API key"
+      "success": "Chave API criada com sucesso",
+      "title": "Criar chave API"
     },
     "edit": {
-      "roleRemoveOnly": "(remove only)"
+      "roleRemoveOnly": "(remover apenas)"
     },
     "role": {
-      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
-      "XROAD_SECURITY_OFFICER": "Security Officer",
-      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
+      "XROAD_REGISTRATION_OFFICER": "Oficial de Registro",
+      "XROAD_SECURITY_OFFICER": "Oficial de Segurança",
+      "XROAD_SYSTEM_ADMINISTRATOR": "Administrador do Sistema"
     },
     "table": {
       "action": {
         "edit": {
-          "button": "Edit",
+          "button": "Editar",
           "dialog": {
-            "message": "Roles associated with the API key:",
-            "title": "Edit API Key (ID: {id})"
+            "message": "Papéis associados à chave API:",
+            "title": "Editar chave API (ID: {id})"
           },
-          "success": "API key with ID {id} saved"
+          "success": "Chave API com ID {id} salva"
         },
         "revoke": {
-          "button": "Revoke key",
+          "button": "Revogar chave",
           "confirmationDialog": {
-            "message": "Are you sure you want to revoke the API key with ID {id}?",
-            "title": "Are you sure?"
+            "message": "Tem certeza que deseja revogar a chave API com ID {id}?",
+            "title": "Tem certeza?"
           },
-          "success": "API key with ID {id} successfully revoked"
+          "success": "Chave API com ID {id} revogada com sucesso"
         }
       },
       "header": {
         "id": "ID",
-        "roles": "Roles"
+        "roles": "Papéis"
       }
     }
   },
   "backup": {
     "createBackup": {
-      "button": "Back up config.",
+      "button": "Fazer backup da configuração",
       "messages": {
-        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead.",
-        "success": "Backup {file} successfully created"
+        "localConfWarning": "Atenção! O arquivo “/etc/xroad/services/local.conf” usado para sobrescrever configurações está obsoleto e não será incluído no backup. Utilize o arquivo “/etc/xroad/services/local.properties”.",
+        "success": "Backup {file} criado com sucesso"
       }
     },
     "deleteBackup": {
       "dialog": {
-        "confirmation": "Are you sure you want to delete backup {file}?",
-        "title": "Are you sure?"
+        "confirmation": "Tem certeza que deseja excluir o backup {file}?",
+        "title": "Tem certeza?"
       },
-      "success": "Backup {file} deleted"
+      "success": "Backup {file} excluído"
     },
     "restoreFromBackup": {
       "dialog": {
-        "confirmation": "Are you sure you want to restore from {file}?",
-        "title": "Are you sure?"
+        "confirmation": "Tem certeza que deseja restaurar do backup {file}?",
+        "title": "Tem certeza?"
       },
-      "success": "Configuration restored from {file}"
+      "success": "Configuração restaurada do backup {file}"
     },
     "uploadBackup": {
-      "button": "Upload backup",
+      "button": "Enviar backup",
       "confirmationDialog": {
-        "confirmation": "File {name} already exists, are you sure you want to overwrite it?",
-        "title": "File already exists"
+        "confirmation": "O arquivo {name} já existe. Deseja substituí-lo?",
+        "title": "Arquivo já existe"
       },
-      "success": "Backup {file} uploaded successfully"
+      "success": "Backup {file} enviado com sucesso"
     }
   },
   "cert": {
-    "certificate": "Certificate",
-    "ecParameters": "EC Public Key Parameters",
-    "ecPoint": "EC Public Key Point",
+    "certificate": "Certificado",
+    "ecParameters": "Parâmetros da Chave Pública EC",
+    "ecPoint": "Ponto da Chave Pública EC",
     "hashInfo": "Hash (SHA-256)",
     "keyUsage": {
-      "CRL_SIGN": "CRL Sign",
-      "DATA_ENCIPHERMENT": "Data Encipherment",
-      "DECIPHER_ONLY": "Decipher Only",
-      "DIGITAL_SIGNATURE": "Digital Signature",
-      "ENCIPHER_ONLY": "Encipher Only",
-      "KEY_AGREEMENT": "Key Agreement",
-      "KEY_CERT_SIGN": "Certificate Sign",
-      "KEY_ENCIPHERMENT": "Key Encipherment",
-      "NON_REPUDIATION": "Non Repudiation"
+      "CRL_SIGN": "Assinatura de CRL",
+      "DATA_ENCIPHERMENT": "Cifragem de Dados",
+      "DECIPHER_ONLY": "Apenas Decifragem",
+      "DIGITAL_SIGNATURE": "Assinatura Digital",
+      "ENCIPHER_ONLY": "Apenas Cifragem",
+      "KEY_AGREEMENT": "Acordo de Chave",
+      "KEY_CERT_SIGN": "Assinatura de Certificado",
+      "KEY_ENCIPHERMENT": "Cifragem de Chave",
+      "NON_REPUDIATION": "Não Repúdio"
     },
-    "rsaExp": "RSA Public Key Exponent",
-    "rsaModulus": "RSA Public Key Modulus"
+    "rsaExp": "Expoente da Chave Pública RSA",
+    "rsaModulus": "Módulo da Chave Pública RSA"
   },
   "error_code": {
-    "api_key_not_found": "API key not found",
-    "backup_file_not_found": "Backup was not found",
-    "backup_generation_failed": "Failed to generate backup",
-    "backup_restore_interrupted": "Backup restoration has been interrupted",
+    "api_key_not_found": "Chave API não encontrada",
+    "backup_file_not_found": "Backup não encontrado",
+    "backup_generation_failed": "Falha ao gerar backup",
+    "backup_restore_interrupted": "Restauração de backup interrompida",
     "core": {
       "Signer": {
-        "CertNotFound": "Certification is not found",
-        "KeyNotFound": "Key is not found",
-        "NetworkError": "Signer is not currently reachable.",
-        "PinIncorrect": "Invalid PIN",
-        "TokenNotAvailable": "Token is not available",
-        "TokenNotFound": "Token is not found",
-        "UnknownMember": "X-Road core - signer: Unknown member"
+        "CertNotFound": "Certificado não encontrado",
+        "KeyNotFound": "Chave não encontrada",
+        "NetworkError": "Signer não está acessível no momento.",
+        "PinIncorrect": "PIN inválido",
+        "TokenNotAvailable": "Token não disponível",
+        "TokenNotFound": "Token não encontrado",
+        "UnknownMember": "Signer do X-Road: Membro desconhecido"
       }
     },
-    "generate_backup_interrupted": "Backup generation has been interrupted",
-    "internal_error": "Internal error. See server logs for more details",
-    "invalid_backup_file": "Invalid backup file",
-    "invalid_certificate": "Invalid X.509 certificate",
-    "invalid_distinguished_name": "Distinguished name is invalid",
-    "invalid_filename": "Invalid filename",
-    "resource_read_failed": "Failed to read resource",
-    "restore_process_failed": "Restore process failed",
-    "token_fetch_failed": "Error getting tokens.",
-    "token_not_found": "Token not found.",
-    "token_weak_pin": "The provided pin code was too weak",
+    "generate_backup_interrupted": "Geração de backup interrompida",
+    "internal_error": "Erro interno. Veja os logs do servidor para mais detalhes",
+    "invalid_backup_file": "Arquivo de backup inválido",
+    "invalid_certificate": "Certificado X.509 inválido",
+    "invalid_distinguished_name": "Nome distinto inválido",
+    "invalid_filename": "Nome de arquivo inválido",
+    "resource_read_failed": "Falha ao ler recurso",
+    "restore_process_failed": "Falha no processo de restauração",
+    "token_fetch_failed": "Erro ao obter tokens.",
+    "token_not_found": "Token não encontrado.",
+    "token_weak_pin": "O PIN fornecido é muito fraco",
     "tr": {
-      "check_signer_logs": "Please check the signer log for details.",
-      "code": "Code: {0}",
-      "pin_min_char_classes_count": "PIN minimum character classes count: {0}",
-      "pin_min_length": "PIN minimum length: {0}"
+      "check_signer_logs": "Verifique o log do signer para detalhes.",
+      "code": "Código: {0}",
+      "pin_min_char_classes_count": "Mínimo de classes de caracteres no PIN: {0}",
+      "pin_min_length": "Comprimento mínimo do PIN: {0}"
     },
-    "validation_failure": "Validation failure"
+    "validation_failure": "Falha de validação"
   },
   "fields": {
-    "code": "Code",
-    "description": "Description",
-    "memberClass": "Member Class",
-    "password": "Password",
-    "securityServerCode": "Security Server Code",
-    "shared": "sharedlib",
-    "subsystemName": "Subsystem Name",
-    "username": "LIB-Username"
+    "code": "Código",
+    "description": "Descrição",
+    "memberClass": "Classe de Membro",
+    "password": "Senha",
+    "securityServerCode": "Código do Servidor de Segurança",
+    "shared": "biblioteca compartilhada",
+    "subsystemName": "Nome do Subsistema",
+    "username": "Usuário"
   },
   "footer": {
     "copyright": {
-      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Licence info",
-      "title": "Copyright"
+      "company": "Instituto Nórdico de Soluções de Interoperabilidade (NIIS)",
+      "licenceInfo": "Informações de licença",
+      "title": "Direitos autorais"
     },
     "software": {
       "feedback": "Feedback",
@@ -204,73 +204,73 @@
     }
   },
   "global": {
-    "all": "All",
-    "name": "Name"
+    "all": "Todos",
+    "name": "Nome"
   },
   "keys": {
-    "gotIt": "Got it",
+    "gotIt": "Entendi",
     "token": {
       "label": "Token:"
     }
   },
-  "locals_demo": "This is localised in library",
+  "locals_demo": "Este é um exemplo localizado na biblioteca",
   "login": {
-    "errorMsg401": "Wrong username or password",
-    "generalError": "Login failed. Please try again.",
-    "logIn": "Log in",
-    "logOut": "Log out"
+    "errorMsg401": "Usuário ou senha incorretos",
+    "generalError": "Falha no login. Por favor, tente novamente.",
+    "logIn": "Entrar",
+    "logOut": "Sair"
   },
   "logout": {
-    "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
-    "sessionExpired": "Session expired"
+    "idleWarning": "Você ficou inativo por 30 minutos e sua sessão expirou. Por segurança, você será desconectado.",
+    "sessionExpired": "Sessão expirada"
   },
   "noData": {
-    "loading": "Loading... Please wait",
-    "noBackups": "No backups yet",
-    "noCertificate": "No certificate",
-    "noCertificates": "No certificates",
-    "noData": "No data",
-    "noMatches": "No items matching criteria",
-    "noServices": "No services",
-    "noTokens": "No tokens"
+    "loading": "Carregando... Por favor, aguarde",
+    "noBackups": "Nenhum backup ainda",
+    "noCertificate": "Sem certificado",
+    "noCertificates": "Sem certificados",
+    "noData": "Sem dados",
+    "noMatches": "Nenhum item correspondente",
+    "noServices": "Sem serviços",
+    "noTokens": "Sem tokens"
   },
-  "type": "Type",
+  "type": "Tipo",
   "validation": {
     "messages": {
-      "address": "The {field} field contains invalid characters"
+      "address": "O campo {field} contém caracteres inválidos"
     }
   },
   "validationError": {
-    "AssertFalse": "value should be 'false'",
-    "AssertTrue": "value should be 'true'",
-    "DecimalMax": "numeric value exceeds the maximum allowed",
-    "DecimalMin": "numeric value is under the minimum allowed",
-    "Digits": "value should contain only digits",
-    "Email": "value does not meet the email format",
-    "Future": "datetime value should be in the future",
-    "FutureOrPresent": "datetime value should be now or in the future",
-    "Max": "numeric value exceeds the maximum allowed",
-    "Min": "numeric value is under the minimum allowed",
-    "Negative": "numeric value should be less than zero",
-    "NegativeOrZero": "numeric value should be less or equal to zero",
-    "NoBackslashes": "value should not contain backslash (\\) symbols",
-    "NoColons": "value should not contain colon (:) symbols",
-    "NoForwardslashes": "value should not contain forward slash (/) symbols",
-    "NoPercents": "value should not contain percentage (%) symbols",
-    "NoSemicolons": "value should not contain semicolon (;) symbols",
-    "Normalized": "value should be normalized",
-    "NotBlank": "value should not be blank",
-    "NotEmpty": "value should not be empty",
-    "NotNull": "value is required",
-    "Null": "value should not be set",
-    "Past": "datetime value should be in the past",
-    "PastOrPresent": "datetime value should be now or in the past",
-    "Pattern": "value did not match the required format",
-    "Positive": "numeric value should be greater that zero",
-    "PositiveOrZero": "numeric value should be greater or equal to zero",
-    "Size": "value does not meet length requirements",
-    "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
-    "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
+    "AssertFalse": "O valor deve ser 'falso'",
+    "AssertTrue": "O valor deve ser 'verdadeiro'",
+    "DecimalMax": "Valor numérico excede o máximo permitido",
+    "DecimalMin": "Valor numérico abaixo do mínimo permitido",
+    "Digits": "O valor deve conter apenas dígitos",
+    "Email": "Valor não está em formato de e-mail",
+    "Future": "O valor de data/hora deve estar no futuro",
+    "FutureOrPresent": "O valor de data/hora deve ser agora ou no futuro",
+    "Max": "Valor numérico excede o máximo permitido",
+    "Min": "Valor numérico abaixo do mínimo permitido",
+    "Negative": "O valor numérico deve ser menor que zero",
+    "NegativeOrZero": "O valor numérico deve ser menor ou igual a zero",
+    "NoBackslashes": "O valor não deve conter barras invertidas (\\)",
+    "NoColons": "O valor não deve conter dois pontos (:)",
+    "NoForwardslashes": "O valor não deve conter barra (/)",
+    "NoPercents": "O valor não deve conter porcentagem (%)",
+    "NoSemicolons": "O valor não deve conter ponto e vírgula (;)",
+    "Normalized": "O valor deve ser normalizado",
+    "NotBlank": "O valor não deve estar em branco",
+    "NotEmpty": "O valor não deve estar vazio",
+    "NotNull": "O valor é obrigatório",
+    "Null": "O valor não deve ser definido",
+    "Past": "O valor de data/hora deve estar no passado",
+    "PastOrPresent": "O valor de data/hora deve ser agora ou no passado",
+    "Pattern": "O valor não corresponde ao formato exigido",
+    "Positive": "O valor numérico deve ser maior que zero",
+    "PositiveOrZero": "O valor numérico deve ser maior ou igual a zero",
+    "Size": "O valor não atende aos requisitos de tamanho",
+    "ValidHostAddress": "Nome de domínio totalmente qualificado (ex. host.exemplo.org) ou endereço IP público (ex. 192.168.123.123) necessários",
+    "ValidHostAddressField": "Endereço IP ou nome de domínio totalmente qualificado necessário"
   },
-  "warning": "Warning"
+  "warning": "Aviso"
 }
