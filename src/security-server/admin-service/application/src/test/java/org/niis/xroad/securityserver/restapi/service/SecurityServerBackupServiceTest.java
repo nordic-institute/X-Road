@@ -25,90 +25,77 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
-import java.time.OffsetDateTime;
-
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
 
-public class SecurityServerConfigurationRestorationServiceTest extends AbstractServiceTestContext {
-    private static final String MOCK_SUCCESS_SCRIPT = "src/test/resources/script/success.sh";
-    private static final String MOCK_FAIL_SCRIPT = "src/test/resources/script/fail.sh";
+public class SecurityServerBackupServiceTest extends AbstractServiceTestContext {
 
     @Autowired
-    ConfigurationRestorationService configurationRestorationService;
+    private SecurityServerBackupService backupService;
 
-    @Autowired
-    TokenService tokenService;
+    private final String tempBackupFilename = "backup.tar";
 
-    private NotificationService notificationService;
+    @Test
+    public void addBackupFails() {
+        when(backupManagerRpcClient.createBackup(any(String.class)))
+                .thenThrow(new InternalServerErrorException(""));
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private String tempBackupFilename = "backup.tar";
-
-    @Before
-    public void setup() throws Exception {
-        configurationRestorationService.setConfigurationRestoreScriptPath(MOCK_SUCCESS_SCRIPT);
-        File tempBackupFile = tempFolder.newFile(tempBackupFilename);
-        when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
-        notificationService = new NotificationService(globalConfProvider, tokenService) {
-            @Override
-            public synchronized OffsetDateTime getBackupRestoreRunningSince() {
-                return null;
-            }
-        };
+        assertThatThrownBy(() -> backupService.generateBackup())
+                .isInstanceOf(DeviationAwareRuntimeException.class);
     }
 
     @Test
-    public void restoreFromBackup() throws Exception {
-        configurationRestorationService.restoreFromBackup(tempBackupFilename);
-        assertTrue(true);
+    public void restoreFromBackup() {
+        backupService.restoreFromBackup(tempBackupFilename);
     }
 
     @Test
-    public void restoreFromNonExistingBackup() throws Exception {
+    public void restoreFromNonExistingBackup() {
+        doThrow(new NotFoundException(BACKUP_FILE_NOT_FOUND.build("no-backups-here.tar")))
+                .when(backupManagerRpcClient).restoreFromBackup(anyString(), anyString());
         try {
-            configurationRestorationService.restoreFromBackup("no-backups-here.tar");
+            backupService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
         } catch (NotFoundException e) {
-            Assert.assertEquals(BACKUP_FILE_NOT_FOUND.code(), e.getErrorDeviation().code());
+            assertEquals(BACKUP_FILE_NOT_FOUND.code(), e.getErrorDeviation().code());
         }
     }
 
     @Test
     public void restoreFromBackupFail() throws Exception {
-        configurationRestorationService.setConfigurationRestoreScriptPath(MOCK_FAIL_SCRIPT);
+        doThrow(new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build()))
+                .when(backupManagerRpcClient).restoreFromBackup(anyString(), anyString());
         try {
-            configurationRestorationService.restoreFromBackup(tempBackupFilename);
+            backupService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (InternalServerErrorException e) {
-            Assert.assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
+            assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
         }
     }
 
     @Test
     public void restoreFromBackupNotExecutable() throws Exception {
-        configurationRestorationService.setConfigurationRestoreScriptPath("path/to/nowhere.sh");
+        doThrow(new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build()))
+                .when(backupManagerRpcClient).restoreFromBackup(anyString(), anyString());
         try {
-            configurationRestorationService.restoreFromBackup(tempBackupFilename);
+            backupService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (InternalServerErrorException e) {
-            Assert.assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
+            assertEquals(BACKUP_RESTORATION_FAILED.code(), e.getErrorDeviation().code());
         }
     }
+
 }

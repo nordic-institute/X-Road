@@ -40,7 +40,7 @@ public class ConfigUtils {
 
     public static <T> T defaultConfiguration(Class<T> clazz) {
         return new SmallRyeConfigBuilder()
-                .withMapping(clazz)
+                .withMapping(clazz).withConverter(Duration.class, 200, new DurationConverter())
                 .build()
                 .getConfigMapping(clazz);
     }

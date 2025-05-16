@@ -37,31 +37,12 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
-
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_DELETION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_BACKUP_FILE;
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILENAME;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WARNINGS_DETECTED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -97,8 +78,10 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
             return response.getBackupItemsList().stream()
                     .map(item -> new BackupInfo(item.getName(), toInstant(item.getCreatedAt())))
                     .toList();
+        } catch (CodedException ce) {
+            throw ce;
         } catch (Exception e) {
-            throw new InternalServerErrorException("Failed to list backups", e);
+            throw new RuntimeException("Failed to list backups", e);
         }
     }
 
@@ -106,9 +89,9 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         try {
             exec(() -> backupServiceBlockingStub.deleteBackup(DeleteBackupReq.newBuilder().setBackupName(name).build()));
         } catch (CodedException ce) {
-            throw mapException(ce, new InternalServerErrorException(ce, BACKUP_DELETION_FAILED.build(ce.getFaultString())));
+            throw ce;
         } catch (Exception e) {
-            throw new InternalServerErrorException(e, BACKUP_DELETION_FAILED.build(name));
+            throw new RuntimeException("Failed to delete backup", e);
         }
     }
 
@@ -120,9 +103,9 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
                             .build()));
             return response.getBackupFile().toByteArray();
         } catch (CodedException ce) {
-            throw mapException(ce, new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getFaultString())));
+            throw ce;
         } catch (Exception e) {
-            throw new InternalServerErrorException("Failed to download backup", e);
+            throw new RuntimeException("Failed to download backup", e);
         }
     }
 
@@ -137,13 +120,9 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
 
             return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
         } catch (CodedException ce) {
-            if (ce.getFaultCode().equals(WARNING_FILE_ALREADY_EXISTS)) {
-                throw new BadRequestException(new DeviationAwareException("Warnings detected",
-                        new ErrorDeviation(ERROR_WARNINGS_DETECTED), List.of(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, name))));
-            }
-            throw mapException(ce, new InternalServerErrorException("Failed to upload backup", ce));
+            throw ce;
         } catch (Exception e) {
-            throw new InternalServerErrorException("Failed to upload backup", e);
+            throw new RuntimeException("Failed to upload backup", e);
         }
     }
 
@@ -156,9 +135,9 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
             var response = exec(() -> backupServiceBlockingStub.createBackup(request));
             return new BackupInfo(response.getName(), toInstant(response.getCreatedAt()));
         } catch (CodedException ce) {
-            throw mapException(ce, new InternalServerErrorException(ce, BACKUP_GENERATION_FAILED.build()));
+            throw ce;
         } catch (Exception e) {
-            throw new InternalServerErrorException("Failed to create backup", e);
+            throw new RuntimeException("Failed to create backup", e);
         }
     }
 
@@ -170,31 +149,9 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
                     .build();
             exec(() -> backupServiceBlockingStub.restoreFromBackup(request));
         } catch (CodedException ce) {
-            throw mapException(ce, new InternalServerErrorException(ce, BACKUP_RESTORATION_FAILED.build()));
+            throw ce;
         } catch (Exception e) {
-            throw new InternalServerErrorException(e, BACKUP_RESTORATION_FAILED.build());
-        }
-    }
-
-    private DeviationAwareRuntimeException mapException(CodedException ce, DeviationAwareRuntimeException defaultEx) {
-        if (ce.getFaultCode().equals(INVALID_FILENAME.code())) {
-            return new BadRequestException(INVALID_FILENAME.build(ce.getFaultString()));
-        } else if (ce.getFaultCode().equals(INVALID_BACKUP_FILE.code())) {
-            throw new InternalServerErrorException(INVALID_BACKUP_FILE.build(ce.getFaultString()));
-        } else if (ce.getFaultCode().equals(BACKUP_FILE_NOT_FOUND.code())) {
-            throw new NotFoundException(BACKUP_FILE_NOT_FOUND.build(ce.getFaultString()));
-        } else if (ce.getFaultCode().equals(BACKUP_GENERATION_FAILED.code())) {
-            return new InternalServerErrorException(BACKUP_GENERATION_FAILED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_GENERATION_INTERRUPTED.code())) {
-            return new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_RESTORATION_FAILED.code())) {
-            return new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_RESTORATION_INTERRUPTED.code())) {
-            return new InternalServerErrorException(BACKUP_RESTORATION_INTERRUPTED.build());
-        } else if (ce.getFaultCode().equals(BACKUP_DELETION_FAILED.code())) {
-            throw new NotFoundException(BACKUP_DELETION_FAILED.build(ce.getFaultString()));
-        } else {
-            return defaultEx;
+            throw new RuntimeException("Failed to restore from backup", e);
         }
     }
 

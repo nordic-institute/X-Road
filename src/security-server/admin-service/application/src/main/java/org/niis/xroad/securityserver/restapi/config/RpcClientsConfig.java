@@ -28,6 +28,8 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Setter;
+import org.niis.xroad.backupmanager.proto.BackupManagerRpcChannelProperties;
+import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.spring.SpringRpcConfig;
 import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
@@ -48,6 +50,7 @@ import org.springframework.context.annotation.Import;
         SpringSignerClientConfiguration.class})
 @EnableConfigurationProperties({
         RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
+        RpcClientsConfig.SpringBackupManagerRpcChannelProperties.class,
         RpcClientsConfig.SpringConfClientRpcChannelProperties.class,
         RpcClientsConfig.SpringProxyRpcChannelProperties.class})
 class RpcClientsConfig {
@@ -117,6 +120,35 @@ class RpcClientsConfig {
     @Setter
     @ConfigurationProperties(prefix = ProxyRpcChannelProperties.PREFIX)
     static class SpringProxyRpcChannelProperties implements ProxyRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
+    }
+
+    @Bean
+    BackupManagerRpcClient backupManagerRpcClient(RpcChannelFactory rpcChannelFactory,
+                                                  SpringBackupManagerRpcChannelProperties backupManagerRpcChannelProperties) {
+        return new BackupManagerRpcClient(rpcChannelFactory, backupManagerRpcChannelProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = BackupManagerRpcChannelProperties.PREFIX)
+    static class SpringBackupManagerRpcChannelProperties implements BackupManagerRpcChannelProperties {
         private String host = DEFAULT_HOST;
         private int port = Integer.parseInt(DEFAULT_PORT);
         private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
