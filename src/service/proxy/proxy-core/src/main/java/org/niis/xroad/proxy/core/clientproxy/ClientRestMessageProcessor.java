@@ -119,7 +119,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                     xRequestId
             );
 
-            verifyClientProxyStatus();
             // Check that incoming identifiers do not contain illegal characters
             checkRequestIdentifiers();
 

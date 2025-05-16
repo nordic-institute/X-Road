@@ -183,7 +183,6 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             // If the handler thread excepted, do not continue.
             checkError();
 
-            verifyClientProxyStatus();
             // Check that incoming identifiers do not contain illegal characters
             checkRequestIdentifiers();
 
