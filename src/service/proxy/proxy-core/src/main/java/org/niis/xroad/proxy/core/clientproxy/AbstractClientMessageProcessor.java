@@ -239,7 +239,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
                     .append("\"");
         }
 
-        message.append("is in maintenance mode");
+        message.append(" is in maintenance mode");
 
         if (StringUtils.isNotEmpty(maintenanceModeMessage)) {
             message
