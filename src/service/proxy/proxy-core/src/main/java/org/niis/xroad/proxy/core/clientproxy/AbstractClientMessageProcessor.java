@@ -289,17 +289,6 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         verifyClientAuthentication(sender, clientCert);
     }
 
-    protected void verifyClientProxyStatus() {
-        var mMode = commonBeanProxy.serverConfProvider.getMaintenanceMode();
-        if (mMode.enabled()) {
-            var message = "Server '%s' is in maintenance mode.".formatted(commonBeanProxy.serverConfProvider.getIdentifier());
-            if (StringUtils.isNotEmpty(mMode.message())) {
-                message += " " + mMode.message();
-            }
-            throw new CodedException(X_MAINTENANCE_MODE, message);
-        }
-    }
-
     @EqualsAndHashCode
     public static final class TargetHostsUserToken {
         private final Set<URI> targetHosts;

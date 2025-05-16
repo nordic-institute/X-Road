@@ -27,7 +27,9 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
 public class MaintenanceModeStatusCollector implements DiagnosticCollector<MaintenanceMode> {
     private final SystemService systemService;
