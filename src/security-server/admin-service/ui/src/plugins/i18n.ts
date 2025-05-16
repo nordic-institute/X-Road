@@ -25,8 +25,7 @@
  */
 import { prepareI18n } from '@niis/shared-ui';
 
-export const availableLanguages = ['en', 'es', 'et', 'ru', 'tk'];
-
+export const availableLanguages = ['en', 'es', 'et', 'ru', 'tk','pt']; // adicionado suporte para pt (Português do Brasil)
 export const { i18n, languageHelper } = prepareI18n(loadMessages);
 
 // Fetches all language-specific messages for the given language
