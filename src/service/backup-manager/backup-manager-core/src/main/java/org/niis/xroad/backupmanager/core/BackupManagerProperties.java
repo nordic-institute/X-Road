@@ -70,5 +70,12 @@ public interface BackupManagerProperties {
     @WithDefault("/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh")
     String restoreScriptPath();
 
+    @WithName("generate-gpg-keypair-path")
+    @WithDefault("/usr/share/xroad/scripts/generate_gpg_keypair.sh")
+    String generateGpgKeypairScriptPath();
+
+    @WithName("gpgkeys-home")
+    @WithDefault("/etc/xroad/gpghome")
+    String gpgKeysHomePath();
 
 }

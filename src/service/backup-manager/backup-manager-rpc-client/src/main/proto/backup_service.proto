@@ -41,6 +41,8 @@ service BackupService {
 
   rpc CreateBackup(CreateBackupReq) returns (BackupItem) {}
   rpc RestoreFromBackup(RestoreBackupReq) returns (Empty) {}
+
+  rpc GenerateGgpKey(GenerateGpgKeyReq) returns (Empty) {}
 }
 
 message ListBackupsResp {
@@ -78,4 +80,8 @@ message CreateBackupReq {
 message RestoreBackupReq {
   string backup_name = 1;
   string security_server_id = 2;
+}
+
+message GenerateGpgKeyReq {
+  string key_name = 1;
 }

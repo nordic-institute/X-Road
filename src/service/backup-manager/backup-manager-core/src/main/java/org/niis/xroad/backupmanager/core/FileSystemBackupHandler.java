@@ -48,6 +48,8 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 @ApplicationScoped
@@ -144,6 +146,25 @@ public class FileSystemBackupHandler {
             throw new CodedException(WARNING_FILE_ALREADY_EXISTS, "Backup with this name already exists");
         }
         return backupRepository.storeBackup(name, content);
+    }
+
+    public void generateGpgKey(String keyName) {
+        String[] args = new String[]{backupManagerProperties.gpgKeysHomePath(), keyName};
+        try {
+            log.info("Generating GPG keypair with command '{} {}'", backupManagerProperties.generateGpgKeypairScriptPath(),
+                    Arrays.toString(args));
+
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(backupManagerProperties.generateGpgKeypairScriptPath(), args);
+
+            log.info(" --- Generate GPG keypair script console output - START --- ");
+            log.info(String.join("\n", processResult.getProcessOutput()));
+            log.info(" --- Generate GPG keypair script console output - END --- ");
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            throw new CodedException(GPG_KEY_GENERATION_FAILED.code(), e);
+        } catch (InterruptedException e) {
+            throw new CodedException(ERROR_GPG_KEY_GENERATION_INTERRUPTED, e);
+        }
     }
 
     private Optional<BackupItem> getBackupItem(String name) {

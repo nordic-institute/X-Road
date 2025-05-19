@@ -155,6 +155,19 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
         }
     }
 
+    public void generateGpgKey(String keyName) {
+        try {
+            GenerateGpgKeyReq request = GenerateGpgKeyReq.newBuilder()
+                    .setKeyName(keyName)
+                    .build();
+            exec(() -> backupServiceBlockingStub.generateGgpKey(request));
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate GPG key", e);
+        }
+    }
+
     private Instant toInstant(Timestamp timestamp) {
         return Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
     }

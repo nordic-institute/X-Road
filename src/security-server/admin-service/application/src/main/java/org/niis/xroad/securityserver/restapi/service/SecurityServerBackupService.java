@@ -55,9 +55,12 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_BACKUP_FILE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_FILENAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.GPG_KEY_GENERATION_INTERRUPTED;
 
 @Component
 @RequiredArgsConstructor
@@ -136,6 +139,14 @@ public class SecurityServerBackupService {
         }
     }
 
+    public void generateGpgKey(String keyName) {
+        try {
+            backupManagerRpcClient.generateGpgKey(keyName);
+        } catch (CodedException ce) {
+            throw mapException(ce, new InternalServerErrorException(ce, GPG_KEY_GENERATION_FAILED.build()));
+        }
+    }
+
     private DeviationAwareRuntimeException mapException(CodedException ce, DeviationAwareRuntimeException defaultEx) {
         if (ce.getFaultCode().equals(INVALID_FILENAME.code())) {
             return new BadRequestException(INVALID_FILENAME.build(ce.getFaultString()));
@@ -147,6 +158,10 @@ public class SecurityServerBackupService {
             return new InternalServerErrorException(BACKUP_GENERATION_FAILED.build());
         } else if (ce.getFaultCode().equals(BACKUP_GENERATION_INTERRUPTED.code())) {
             return new InternalServerErrorException(BACKUP_GENERATION_INTERRUPTED.build());
+        } else if (ce.getFaultCode().equals(ERROR_GPG_KEY_GENERATION_INTERRUPTED)) {
+            return new InternalServerErrorException(GPG_KEY_GENERATION_INTERRUPTED.build());
+        } else if (ce.getFaultCode().equals(GPG_KEY_GENERATION_FAILED.code())) {
+            return new InternalServerErrorException(GPG_KEY_GENERATION_FAILED.build());
         } else if (ce.getFaultCode().equals(BACKUP_RESTORATION_FAILED.code())) {
             return new InternalServerErrorException(BACKUP_RESTORATION_FAILED.build());
         } else if (ce.getFaultCode().equals(BACKUP_RESTORATION_INTERRUPTED.code())) {

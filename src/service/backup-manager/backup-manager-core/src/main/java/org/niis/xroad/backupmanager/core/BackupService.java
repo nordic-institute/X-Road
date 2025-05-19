@@ -37,6 +37,7 @@ import org.niis.xroad.backupmanager.proto.BackupServiceGrpc;
 import org.niis.xroad.backupmanager.proto.CreateBackupReq;
 import org.niis.xroad.backupmanager.proto.DeleteBackupReq;
 import org.niis.xroad.backupmanager.proto.DownloadBackupReq;
+import org.niis.xroad.backupmanager.proto.GenerateGpgKeyReq;
 import org.niis.xroad.backupmanager.proto.ListBackupsResp;
 import org.niis.xroad.backupmanager.proto.RestoreBackupReq;
 import org.niis.xroad.backupmanager.proto.UploadBackupReq;
@@ -54,7 +55,10 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void deleteBackup(DeleteBackupReq request, StreamObserver<Empty> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> performDeleteBackup(request));
+        commonRpcHandler.handleRequest(responseObserver, () -> {
+            backupHandler.deleteBackup(request.getBackupName());
+            return Empty.getDefaultInstance();
+        });
     }
 
     @Override
@@ -64,45 +68,46 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     @Override
     public void downloadBackup(DownloadBackupReq request, StreamObserver<BackupData> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> readBackup(request));
-    }
-
-    private BackupData readBackup(DownloadBackupReq request) {
-        byte[] data = backupHandler.readBackup(request.getBackupName());
-        return BackupData.newBuilder()
-                .setBackupName(request.getBackupName())
-                .setBackupFile(ByteString.copyFrom(data))
-                .build();
+        commonRpcHandler.handleRequest(responseObserver, () -> {
+            byte[] data = backupHandler.readBackup(request.getBackupName());
+            return BackupData.newBuilder()
+                    .setBackupName(request.getBackupName())
+                    .setBackupFile(ByteString.copyFrom(data))
+                    .build();
+        });
     }
 
     @Override
     public void uploadBackup(UploadBackupReq request, StreamObserver<org.niis.xroad.backupmanager.proto.BackupItem> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> saveBackup(request));
+        commonRpcHandler.handleRequest(responseObserver, () -> {
+            BackupItem backupItem = backupHandler.saveBackup(request.getBackupName(),
+                    request.getBackupFile().toByteArray(), request.getIgnoreWarnings());
+            return mapBackupItem(backupItem);
+        });
     }
 
     @Override
     public void createBackup(CreateBackupReq request, StreamObserver<org.niis.xroad.backupmanager.proto.BackupItem> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> performBackup(request));
+        commonRpcHandler.handleRequest(responseObserver, () -> {
+            BackupItem backupItem = backupHandler.performBackup(request.getSecurityServerId());
+            return mapBackupItem(backupItem);
+        });
     }
 
     @Override
     public void restoreFromBackup(RestoreBackupReq request, StreamObserver<Empty> responseObserver) {
-        commonRpcHandler.handleRequest(responseObserver, () -> performRestore(request));
+        commonRpcHandler.handleRequest(responseObserver, () -> {
+            backupHandler.performRestore(request.getBackupName(), request.getSecurityServerId());
+            return Empty.getDefaultInstance();
+        });
     }
 
-    private org.niis.xroad.backupmanager.proto.BackupItem performBackup(CreateBackupReq request) {
-        BackupItem backupItem = backupHandler.performBackup(request.getSecurityServerId());
-        return mapBackupItem(backupItem);
-    }
-
-    private Empty performRestore(RestoreBackupReq request) {
-        backupHandler.performRestore(request.getBackupName(), request.getSecurityServerId());
-        return Empty.getDefaultInstance();
-    }
-
-    private Empty performDeleteBackup(DeleteBackupReq request) {
-        backupHandler.deleteBackup(request.getBackupName());
-        return Empty.getDefaultInstance();
+    @Override
+    public void generateGgpKey(GenerateGpgKeyReq request, StreamObserver<Empty> responseObserver) {
+        commonRpcHandler.handleRequest(responseObserver, () -> {
+            backupHandler.generateGpgKey(request.getKeyName());
+            return Empty.getDefaultInstance();
+        });
     }
 
     private ListBackupsResp listBackups() {
@@ -110,12 +115,6 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
         backupHandler.listBackups().forEach(item ->
                 responseBuilder.addBackupItems(mapBackupItem(item)));
         return responseBuilder.build();
-    }
-
-    private org.niis.xroad.backupmanager.proto.BackupItem saveBackup(UploadBackupReq request) {
-        BackupItem backupItem = backupHandler.saveBackup(request.getBackupName(),
-                request.getBackupFile().toByteArray(), request.getIgnoreWarnings());
-        return mapBackupItem(backupItem);
     }
 
     private org.niis.xroad.backupmanager.proto.BackupItem mapBackupItem(BackupItem item) {
