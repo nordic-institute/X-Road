@@ -98,13 +98,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy.jar
 /usr/share/xroad/jlib/proxy/
-/usr/share/xroad/scripts/backup_db.sh
-/usr/share/xroad/scripts/restore_db.sh
-/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
-/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
-/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh
-/usr/share/xroad/scripts/get_security_server_id.sh
-/usr/share/xroad/scripts/read_db_properties.sh
 /usr/share/xroad/scripts/proxy_memory_helper.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -130,20 +123,8 @@ if [ $1 -gt 1 ] ; then
 fi
 
 %define execute_init_or_update_resources()                                            \
-    echo "Update resources: DB & GPG";                                                \
+    echo "Update resources: DB";                                                      \
     /usr/share/xroad/scripts/setup_serverconf_db.sh;                                  \
-                                                                                      \
-    if [ $1 -gt 1 ]; then                                                             \
-      `# upgrade, generate gpg keypair when needed`                                   \
-      if [ ! -d /etc/xroad/gpghome ] ; then                                           \
-        ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)                      \
-        if [[ -n "${ID}" ]] ; then                                                    \
-          /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}" \
-        fi                                                                            \
-      fi                                                                              \
-      `# always fix gpghome ownership`;                                               \
-      [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome            \
-    fi                                                                                \
                                                                                       \
     if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then                              \
         `# initial installation`;                                                     \
