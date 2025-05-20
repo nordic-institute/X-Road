@@ -23,33 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.test.container;
 
-import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
-import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
+package org.niis.xroad.signer.test.hook;
+
+import com.nortal.test.core.services.hooks.AfterSuiteHook;
+import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.test.signer.container.BaseTestSignerSetup;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 @Slf4j
-@Configuration
-public class ContainerSetup extends BaseTestSignerSetup {
+@Component
+@ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
+@RequiredArgsConstructor
+public class SignerAfterSuiteHook implements AfterSuiteHook {
 
-    @Bean
-    public TestContainerConfigurator testContainerConfigurator(
-            TestableContainerProperties testableContainerProperties) {
-        return super.testContainerConfigurator(testableContainerProperties,
-                "../signer-application/build/quarkus-app");
-    }
-
-    @Bean
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
-        return super.testContainerInitListener(true);
-    }
+    private final TestableApplicationContainerProvider containerProvider;
 
     @Override
-    public String getPksWrapperDir() {
-        return "../../../libs/pkcs11wrapper/%s/%s";
+    public void afterSuite() {
+        log.info("Setting permissions for signer files so they could be deleted");
+        try {
+            containerProvider.getContainer().execInContainer("chmod", "-R", "777", "/etc/xroad/signer/");
+        } catch (IOException e) {
+            log.error("Failed to change file permissions", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
+
 }

@@ -79,6 +79,7 @@ include("service:signer:signer-core")
 include("service:signer:signer-cli")
 include("service:signer:signer-client")
 include("service:signer:signer-client-spring")
+include("service:signer:signer-int-test")
 
 include("service:message-log-archiver:message-log-archiver-core")
 include("service:message-log-archiver:message-log-archiver-application")

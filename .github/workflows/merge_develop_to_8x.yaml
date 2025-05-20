@@ -5,6 +5,7 @@ on:
       - develop
 permissions:
   contents: write
+  pull-requests: write
 jobs:
   AutoMergeToDevelop8x:
     name: Auto-merge to develop-8.x
@@ -39,7 +40,8 @@ jobs:
           --base develop-8.x \
           --head "$BRANCH_NAME" \
           --title "Merge develop into develop-8.x" \
-          --assignee "${{ github.event.pusher.name }}" \
+          "${{ github.event.pusher.name != 'dependabot[bot]' && format('--assignee "{0}"', github.event.pusher.name) || '' }}" \
+          "${{ github.event.pusher.name == 'dependabot[bot]' && '--reviewer "nordic-institute/xrd-developers"' || '' }}" \
           --body "This PR was created because an attempt to automatically merge develop into develop-8.x resulted in conflicts.
             Please resolve them manually."
         env:
