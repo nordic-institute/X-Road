@@ -37,10 +37,6 @@ public interface ConfigurationClientProperties {
     @WithDefault("60")
     int updateInterval();
 
-    @WithName("proxy-configuration-backup-cron")
-    @WithDefault("0 15 3 * * ?")
-    String proxyConfigurationBackupCron();
-
     @WithName("configuration-anchor-file")
     @WithDefault("/etc/xroad/configuration-anchor.xml")
     String configurationAnchorFile();

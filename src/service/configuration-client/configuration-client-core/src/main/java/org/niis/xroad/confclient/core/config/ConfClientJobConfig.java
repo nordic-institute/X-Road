@@ -35,7 +35,6 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
-import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -60,9 +59,6 @@ public class ConfClientJobConfig {
 
                 jobManager.registerRepeatingJob(ConfigurationClientJob.class,
                         configurationClientProperties.updateInterval(), new JobDataMap());
-
-                jobManager.registerJob(ProxyConfigurationBackupJob.class,
-                        configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
             }
         }
     }

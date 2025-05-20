@@ -77,13 +77,11 @@ class FileSystemBackupHandlerTest {
         fileSystemBackupHandler = new FileSystemBackupHandler(externalProcessRunner, backupManagerProperties, backupRepository);
     }
 
-
     @Captor
     private ArgumentCaptor<String[]> argsCaptor;
 
     @Captor
     private ArgumentCaptor<String> cmdCaptor;
-
 
     @Test
     void performBackup() throws Exception {

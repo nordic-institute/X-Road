@@ -56,7 +56,6 @@ public class OldAutoBackupsRemovalJob {
     private static final String FILE_PREFIX = "ss-automatic-backup";
     private static final String FILE_SUFFIX = ".gpg";
 
-
     private final Scheduler scheduler;
     private final BackupManagerProperties backupManagerProperties;
 

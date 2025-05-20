@@ -85,7 +85,6 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/rsyslog.d/40-xroad.conf
 %config %attr(644,root,root) /etc/rsyslog.d/90-udp.conf
 %config %attr(644,root,root) /etc/sudoers.d/xroad-proxy
-%config %attr(644,root,root) /etc/cron.d/xroad-proxy
 
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-proxy
 %attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
