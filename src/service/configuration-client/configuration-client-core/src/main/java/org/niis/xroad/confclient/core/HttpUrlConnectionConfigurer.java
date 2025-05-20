@@ -84,8 +84,8 @@ public class HttpUrlConnectionConfigurer {
     }
 
     private static void logSystemPropertiesInfo() {
-        log.info("Global conf download TLS certificate verification is " + isEnabled(isTlsCertificationVerificationEnabled())
-                + ", hostname verification is " + isEnabled(isHostNameVerificationEnabled()));
+        log.info("Global conf download TLS certificate verification is {}, hostname verification is {}",
+                isEnabled(isTlsCertificationVerificationEnabled()), isEnabled(isHostNameVerificationEnabled()));
     }
 
     private static String isEnabled(boolean paramValue) {

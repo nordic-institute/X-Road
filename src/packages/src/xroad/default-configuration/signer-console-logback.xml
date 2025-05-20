@@ -31,6 +31,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="org.niis.xroad" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="FILE" />
