@@ -5,6 +5,7 @@ ARG A2C_VER=0.35
 ADD https://github.com/grindsa/acme2certifier/releases/download/${A2C_VER}/acme2certifier_${A2C_VER}-1_all.deb /tmp/
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV ORGANIZATION_NAME=Test
 
 RUN apt-get -qq update \
   && apt-get -qq install --no-install-recommends  \
