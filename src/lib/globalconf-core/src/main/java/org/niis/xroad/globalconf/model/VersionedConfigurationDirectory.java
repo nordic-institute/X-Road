@@ -50,11 +50,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -129,7 +127,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return privateParams;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersProvider> basePrivateParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path privateParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
@@ -173,7 +170,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return sharedParams;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersProvider> baseSharedParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path sharedParametersPath = Paths.get(instanceDir.toString(),
@@ -225,15 +221,25 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
         log.trace("findShared(instance = {}, directory = {})", instanceId, safeInstanceId);
 
-        Predicate<SharedParametersProvider> isMainInstance = params ->
-                params.getSharedParameters() != null && instanceIdentifier.equals(params.getSharedParameters().getInstanceIdentifier());
-        Predicate<SharedParametersProvider> notExpired = params ->
-                params.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow());
-
         SharedParametersProvider provider = sharedParameters.get(safeInstanceId);
         return Optional.ofNullable(provider)
-                .filter(isMainInstance.or(notExpired))
+                .filter(p -> isMainInstance(p) || notExpired(p))
                 .map(SharedParametersProvider::getSharedParameters);
+    }
+
+    private boolean isMainInstance(SharedParametersProvider params) {
+        boolean result = params.getSharedParameters() != null
+                && instanceIdentifier.equals(params.getSharedParameters().getInstanceIdentifier());
+        log.trace("isMainInstance = {}", result);
+        return result;
+    }
+
+    private boolean notExpired(SharedParametersProvider params) {
+        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
+        OffsetDateTime expiresOn = params.getExpiresOn();
+        boolean result = expiresOn.isAfter(now);
+        log.trace("Checking notExpired: {}, now = {}, expiresOn = {}", result, now, expiresOn);
+        return result;
     }
 
     /**
@@ -347,15 +353,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
         }
-    }
-
-    public static boolean isCurrentVersion(Path filePath) {
-        return isVersion(filePath, CURRENT_GLOBAL_CONFIGURATION_VERSION);
-    }
-
-    public static boolean isVersion(Path filePath, int version) {
-        Integer confVersion = getVersion(filePath);
-        return confVersion != null && confVersion == version;
     }
 
     public static Integer getVersion(Path filePath) {
