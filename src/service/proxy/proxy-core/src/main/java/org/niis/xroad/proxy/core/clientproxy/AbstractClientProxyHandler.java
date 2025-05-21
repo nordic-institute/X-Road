@@ -61,19 +61,17 @@ import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.C
  */
 @Slf4j
 @RequiredArgsConstructor
-abstract class AbstractClientProxyHandler extends HandlerBase {
+public abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 
     protected final CommonBeanProxy commonBeanProxy;
-
     protected final HttpClient client;
-
     protected final boolean storeOpMonitoringData;
 
-    abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
-                                                         ResponseWrapper response,
-                                                         OpMonitoringData opMonitoringData) throws Exception;
+    protected abstract MessageProcessorBase createRequestProcessor(RequestWrapper request,
+                                                                   ResponseWrapper response,
+                                                                   OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
     @WithSpan
@@ -172,7 +170,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         sendPlainTextErrorResponse(response, callback, e.getStatus(), e.getFaultString());
     }
 
-    static boolean isGetRequest(RequestWrapper request) {
+    protected boolean isGetRequest(RequestWrapper request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
 
@@ -180,7 +178,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         return request.getMethod().equalsIgnoreCase("POST");
     }
 
-    static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
+    public static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
         var cert = request.getPeerCertificates()
                 .filter(ArrayUtils::isNotEmpty)

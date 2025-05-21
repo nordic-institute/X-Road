@@ -42,7 +42,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
@@ -50,11 +49,8 @@ import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -76,12 +72,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 
 /**
  * Tests the OCSP client.
  */
-@ExtendWith(SpringExtension.class)
-@SpringJUnitConfig(classes = {OcspClientTest.TestConfiguration.class})
 class OcspClientTest {
     private static final int RESPONDER_PORT = 8091;
 
@@ -93,63 +88,16 @@ class OcspClientTest {
     private static final Map<String, OCSPResp> OCSP_RESPONSES = new HashMap<>();
     private static X509Certificate ocspResponderCert;
 
-    @Autowired
-    private OcspClientWorker ocspClientWorker;
-    @Autowired
-    private OcspClient ocspClient;
-    @Autowired
-    private GlobalConfProvider globalConfProvider;
+    private final GlobalConfProvider globalConfProvider = globalConfProvider();
+    private final OcspClient ocspClient = new OcspClient(globalConfProvider);
+    private final TokenManager tokenManager = mock(TokenManager.class);
+    private final OcspClientWorker ocspClientWorker = new TestOcspClient(globalConfProvider,
+            new OcspResponseManager(globalConfProvider, tokenManager, ocspClient,
+                    new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class))),
+            tokenManager, ocspClient);
 
-    @Configuration
-    static class TestConfiguration {
-
-        @Bean
-        GlobalConfProvider globalConfProvider() throws Exception {
-            GlobalConfProvider testConf = mock(GlobalConfProvider.class);
-
-            when(testConf.getInstanceIdentifier()).thenReturn("TEST");
-
-            when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
-                    List.of(RESPONDER_URI));
-
-            ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
-            when(testConf.getOcspResponderCertificates()).thenReturn(List.of(ocspResponderCert));
-
-            when(testConf.getCaCert(Mockito.any(String.class), Mockito.any(X509Certificate.class))).thenReturn(
-                    TestCertUtil.getCaCert());
-
-            when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
-                    Mockito.any(X509Certificate.class))).thenReturn(true);
-
-            FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(getConfigurationPath());
-            when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
-            return testConf;
-        }
-
-        @Bean
-        TestOcspClient testOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
-                                      OcspClient ocspClient) {
-            return new TestOcspClient(globalConfProvider, ocspResponseManager, ocspClient);
-        }
-
-        @Bean
-        OcspClient ocspClient(GlobalConfProvider globalConfProvider) {
-            return new OcspClient(globalConfProvider);
-        }
-
-        @Bean
-        FileBasedOcspCache ocspCache(GlobalConfProvider globalConfProvider) {
-            return new FileBasedOcspCache(globalConfProvider);
-        }
-
-        @Bean
-        OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, FileBasedOcspCache fileBasedOcspCache,
-                                                OcspClient ocspClient) {
-            return new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache);
-        }
+    OcspClientTest() throws Exception {
     }
-
-    // --- test cases
 
     /**
      * Test.
@@ -350,8 +298,9 @@ class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager, OcspClient ocspClient) {
-            super(globalConfProvider, ocspResponseManager, ocspClient);
+        TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
+                       TokenManager tokenManager, OcspClient ocspClient) {
+            super(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
         }
 
         @Override
@@ -378,5 +327,27 @@ class OcspClientTest {
             }
             return true;
         }
+    }
+
+    private GlobalConfProvider globalConfProvider() throws Exception {
+        GlobalConfProvider testConf = mock(GlobalConfProvider.class);
+
+        when(testConf.getInstanceIdentifier()).thenReturn("TEST");
+
+        when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
+                List.of(RESPONDER_URI));
+
+        ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
+        when(testConf.getOcspResponderCertificates()).thenReturn(List.of(ocspResponderCert));
+
+        when(testConf.getCaCert(Mockito.any(String.class), Mockito.any(X509Certificate.class))).thenReturn(
+                TestCertUtil.getCaCert());
+
+        when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
+                Mockito.any(X509Certificate.class))).thenReturn(true);
+
+        FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(getConfigurationPath());
+        when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
+        return testConf;
     }
 }

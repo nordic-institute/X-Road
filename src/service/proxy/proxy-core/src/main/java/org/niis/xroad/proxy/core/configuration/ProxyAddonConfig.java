@@ -25,20 +25,20 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 
-import java.util.ServiceLoader;
-
-@Configuration
 public class ProxyAddonConfig {
 
-    @Bean
-    public AddOn.BindableServiceRegistry bindableServiceRegistry() {
-        AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
-        ServiceLoader.load(AddOn.class)
-                .forEach(addOn -> addOn.init(bindableServiceRegistry));
+    @ApplicationScoped
+    public BindableServiceRegistry bindableServiceRegistry(ProxyProperties.ProxyAddonProperties addonProperties) {
+        BindableServiceRegistry bindableServiceRegistry = new BindableServiceRegistry();
+
+        if (addonProperties.proxyMonitor().enabled()) {
+            bindableServiceRegistry.register(new ProxyMonitorService());
+        }
 
         return bindableServiceRegistry;
     }

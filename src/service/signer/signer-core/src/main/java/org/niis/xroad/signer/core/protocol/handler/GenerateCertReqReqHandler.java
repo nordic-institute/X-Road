@@ -28,16 +28,15 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
@@ -46,14 +45,14 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  * Handles certificate request generations.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateCertRequestReq, GenerateCertRequestResp> {
 
     @Override
     protected GenerateCertRequestResp handle(GenerateCertRequestReq request) throws Exception {
-        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenManager.findTokenAndKey(request.getKeyId());
 
-        if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
+        if (!tokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
@@ -67,7 +66,7 @@ public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateC
         PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
                 request.getSubjectAltName(), request.getKeyUsage());
 
-        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
+        String certReqId = tokenManager.addCertRequest(tokenAndKey.getKeyId(),
                 request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
                 request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
                 request.getCertificateProfile());

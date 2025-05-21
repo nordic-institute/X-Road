@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,10 +39,13 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 /**
  * test ClientRepository
@@ -51,6 +56,7 @@ import static org.junit.Assert.assertEquals;
 @Slf4j
 @EntityScan(basePackages = {"org.niis.xroad.serverconf.impl.entity", "org.niis.xroad.restapi.entity"})
 @Transactional
+@ActiveProfiles("test")
 public class ExampleJpaTest {
 
     // TestEntityManager only works with DataJpaTests (?)
@@ -62,6 +68,9 @@ public class ExampleJpaTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @MockitoBean(name = SERVER_CONF_DB_CTX)
+    DatabaseCtx databaseCtx;
 
     @Test
     public void testTestEntityManager() {

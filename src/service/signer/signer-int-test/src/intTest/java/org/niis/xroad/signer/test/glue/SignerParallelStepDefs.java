@@ -64,7 +64,7 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
             var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
 
             var stopWatch = StopWatch.createStarted();
-            byte[] result = signerRpcClient.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+            byte[] result = clientHolder.getSignClient().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
             log.trace("Executed sign in {} ms.", stopWatch.getDuration().toMillis());
             return result;

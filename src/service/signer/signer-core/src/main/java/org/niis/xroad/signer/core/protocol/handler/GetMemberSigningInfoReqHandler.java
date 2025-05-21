@@ -29,20 +29,19 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -55,7 +54,7 @@ import static org.niis.xroad.signer.api.dto.CertificateInfo.STATUS_REGISTERED;
  * Handles requests for member signing info.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
     private final GlobalConfProvider globalConfProvider;
@@ -66,7 +65,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     @Override
     protected GetMemberSigningInfoResp handle(GetMemberSigningInfoReq request) throws Exception {
         var memberId = ClientIdMapper.fromDto(request.getMemberId());
-        List<KeyInfo> memberKeys = TokenManager.getKeyInfo(memberId);
+        List<KeyInfo> memberKeys = tokenManager.getKeyInfo(memberId);
 
         if (memberKeys.isEmpty()) {
             throw CodedException.tr(X_UNKNOWN_MEMBER, "member_certs_not_found",
@@ -91,7 +90,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     private SelectedCertificate selectMemberCert(List<KeyInfo> memberKey, ClientId memberId) {
         for (KeyInfo keyInfo : memberKey) {
             for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                if (TokenManager.certBelongsToMember(certInfo, memberId)
+                if (certInfo.belongsToMember(memberId)
                         && isSuitableCertificate(memberId.getXRoadInstance(), certInfo)) {
                     log.info("Found suitable certificate for member '{}' under key {}", memberId, keyInfo.getId());
 

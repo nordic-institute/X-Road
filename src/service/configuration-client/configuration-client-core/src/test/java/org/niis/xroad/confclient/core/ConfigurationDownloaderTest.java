@@ -32,13 +32,20 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -47,19 +54,29 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for configuration downloader
  */
+@ExtendWith(MockitoExtension.class)
 class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
     private static final String LOCATION_URL_SUCCESS = "http://x-road.global/";
     private static final String LOCATION_HTTPS_URL_SUCCESS = "https://x-road.global/";
+
+    @TempDir
+    File tempDir;
+    @Mock
+    ConfigurationClientProperties clientProperties;
+
+    @BeforeEach
+    void setup() {
+        when(clientProperties.globalConfDir()).thenReturn(tempDir.getAbsolutePath());
+    }
 
     /**
      * For better HA, the order of sources to be tried to download configuration
@@ -118,8 +135,9 @@ class ConfigurationDownloaderTest {
 
     @Test
     void connectionShouldWorkAfterDisablingTlsCertificationAndHostnameVerification() throws IOException {
-        System.setProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, "false");
-        System.setProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "false");
+        when(clientProperties.globalConfHostnameVerification()).thenReturn(false);
+        when(clientProperties.globalConfTlsCertVerification()).thenReturn(false);
+
         HttpsURLConnection connection =
                 (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationLocationTest.com"));
         assertEquals("NO_OP", connection.getHostnameVerifier().toString());
@@ -127,7 +145,7 @@ class ConfigurationDownloaderTest {
 
     @Test
     void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
-        System.setProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "false");
+        when(clientProperties.globalConfHostnameVerification()).thenReturn(false);
         HttpsURLConnection connection =
                 (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationDownloaderTest.com"));
         assertThat(connection.getHostnameVerifier()).isInstanceOf(NoopHostnameVerifier.class);
@@ -135,7 +153,7 @@ class ConfigurationDownloaderTest {
 
     @Test
     void downloaderWithDefaultHostnameVerifier() throws IOException {
-        System.setProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true");
+        when(clientProperties.globalConfHostnameVerification()).thenReturn(true);
         HttpsURLConnection connection =
                 (HttpsURLConnection) getDownloader().getDownloadURLConnection(createURL("https://ConfigurationDownloaderTest.com"));
         assertThat(connection.getHostnameVerifier()).isInstanceOf(HostnameVerifier.class);
@@ -267,7 +285,8 @@ class ConfigurationDownloaderTest {
     }
 
     private ConfigurationDownloader getDownloader(int confVersion, String... successfulLocationUrls) {
-        return new ConfigurationDownloader("f", confVersion) {
+        var connectionConfigurer = new HttpUrlConnectionConfigurer(clientProperties);
+        return new ConfigurationDownloader(connectionConfigurer, clientProperties.globalConfDir(), confVersion) {
 
             final ConfigurationParser parser = new TestConfigurationParser(this, successfulLocationUrls);
 

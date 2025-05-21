@@ -1,0 +1,53 @@
+quarkus:
+  application:
+    name: proxy
+  config:
+    locations:
+      - /etc/xroad/conf.d/local.yaml
+      - /etc/xroad/db.properties
+      - xroad-common.yaml
+      - xroad-logging.yaml
+
+"%containerized":
+  xroad:
+    proxy:
+      rpc:
+        listen-address: 0.0.0.0
+
+"%native":
+  quarkus:
+    log:
+      console:
+        enable: false
+      file:
+        enable: true
+        path: /var/log/xroad/proxy.log
+      category:
+        "org.niis.xroad.proxy.core.clientproxy.RequestLog":
+          level: INFO
+          handlers: [ clientproxy-access-log ]
+          use-parent-handlers: false
+        "org.niis.xroad.proxy.core.serverproxy.RequestLog":
+          level: INFO
+          handlers: [ serverproxy-access-log ]
+          use-parent-handlers: false
+      handler:
+        file:
+          "clientproxy-access-log":
+            enable: true
+            path: /var/log/xroad/clientproxy_access.log
+            format: "%s%e%n"
+            encoding: utf-8
+            rotation:
+              max-file-size: 100m
+              file-suffix: .yyyy-MM-dd.zip
+              rotate-on-boot: false
+          "serverproxy-access-log":
+            enable: true
+            path: /var/log/xroad/serverproxy_access.log
+            format: "%s%e%n"
+            encoding: utf-8
+            rotation:
+              max-file-size: 100m
+              file-suffix: .yyyy-MM-dd.zip
+              rotate-on-boot: false

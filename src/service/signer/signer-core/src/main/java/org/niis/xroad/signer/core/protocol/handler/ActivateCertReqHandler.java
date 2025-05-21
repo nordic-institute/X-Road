@@ -28,15 +28,14 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.ActivateCertReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 
@@ -50,7 +49,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component
+@ApplicationScoped
 public class ActivateCertReqHandler
         extends AbstractRpcHandler<ActivateCertReq, Empty> {
 
@@ -59,7 +58,7 @@ public class ActivateCertReqHandler
     @Override
     protected Empty handle(ActivateCertReq request) throws Exception {
         if (request.getActive()) {
-            CertificateInfo certificateInfo = TokenManager.getCertificateInfo(request.getCertIdOrHash());
+            CertificateInfo certificateInfo = tokenManager.getCertificateInfo(request.getCertIdOrHash());
             if (certificateInfo == null) {
                 throw certWithIdNotFound(request.getCertIdOrHash());
             }
@@ -68,11 +67,11 @@ public class ActivateCertReqHandler
                 try {
                     ocspResponseManager.verifyOcspResponses(x509Certificate);
                     if (isNotBlank(certificateInfo.getOcspVerifyBeforeActivationError())) {
-                        TokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), "");
+                        tokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), "");
                     }
                 } catch (Exception e) {
                     log.error("Failed to verify OCSP responses for certificate {}", certificateInfo.getCertificateDisplayName(), e);
-                    TokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), e.getMessage());
+                    tokenManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), e.getMessage());
                     throw new CodedException(X_INTERNAL_ERROR,
                             "Failed to verify OCSP responses for certificate. Error: %s",
                             e.getMessage());
@@ -80,7 +79,7 @@ public class ActivateCertReqHandler
             }
         }
 
-        TokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
+        tokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
 
         return Empty.getDefaultInstance();
     }

@@ -25,115 +25,67 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.auth.AuthKeyChangeManager;
-import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
-import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
-import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
-import org.niis.xroad.proxy.core.conf.SigningCtxProviderImpl;
+import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBuffer;
+import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
-import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
-import org.niis.xroad.proxy.core.signature.BatchSigner;
-import org.niis.xroad.proxy.core.signature.MessageSigner;
-import org.niis.xroad.proxy.core.util.CertHashBasedOcspResponder;
-import org.niis.xroad.proxy.core.util.CommonBeanProxy;
+import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
+import org.niis.xroad.serverconf.impl.ServerConfFactory;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-})
-@Configuration
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
+
+@Slf4j
 public class ProxyConfig {
 
-    @Bean
-    MessageSigner messageSigner(SignerRpcClient signerRpcClient) {
-        return new BatchSigner(signerRpcClient);
-    }
-
-    @Bean
-    SigningCtxProvider signingCtxProvider(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                          MessageSigner messageSigner) {
-        return new SigningCtxProviderImpl(globalConfProvider, keyConfProvider, messageSigner);
-    }
-
-    @Bean
-    CommonBeanProxy commonBeanProxy(GlobalConfProvider globalConfProvider,
-                                    KeyConfProvider keyConfProvider,
-                                    SigningCtxProvider signingCtxProvider,
-                                    ServerConfProvider serverConfProvider,
-                                    CertChainFactory certChainFactory,
-                                    CertHelper certHelper) {
-        return new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, signingCtxProvider, certChainFactory,
-                certHelper);
-    }
-
-    @Bean
-    ClientProxy clientProxy(CommonBeanProxy commonBeanProxy,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(commonBeanProxy, globalConfProvider, keyConfProvider, serverConfProvider, authTrustVerifier);
-    }
-
-    @Bean
+    @ApplicationScoped
     CertHelper certHelper(GlobalConfProvider globalConfProvider) {
         return new CertHelper(globalConfProvider);
     }
 
-    @Bean
-    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
-        return new CertChainFactory(globalConfProvider);
+    @ApplicationScoped
+    @Startup
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
+                                                  OpMonitorCommonProperties opMonitorCommonProperties,
+                                                  ServerConfProvider serverConfProvider,
+                                                  VaultKeyProvider vaultKeyProvider) throws Exception {
+        AbstractOpMonitoringBuffer opMonitorBuffer;
+        if (addonProperties.opMonitor().enabled()) {
+            log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
+            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
+        } else {
+            log.debug("Initializing NullOpMonitoringBuffer");
+            opMonitorBuffer = new NullOpMonitoringBuffer(serverConfProvider);
+        }
+
+        return OpMonitoring.init(opMonitorBuffer);
     }
 
-    @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
-    }
-
-    @Bean
-    ServerProxy serverProxy(CommonBeanProxy commonBeanProxy) throws Exception {
-        return new ServerProxy(commonBeanProxy);
-    }
-
-    @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        return new CertHashBasedOcspResponder(keyConfProvider);
-    }
-
-    @Bean
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
-        return OpMonitoring.init(serverConfProvider);
-    }
-
-    @Bean
+    @ApplicationScoped
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
+                                    SignerRpcClient signerRpcClient) {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
-    @Bean
-    AuthKeyChangeManager authKeyChangeManager(KeyConfProvider keyConfProvider, ClientProxy clientProxy, ServerProxy serverProxy) {
-        return new AuthKeyChangeManager(keyConfProvider, clientProxy, serverProxy);
+    @ApplicationScoped
+    ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
+                                          ServerConfCommonProperties serverConfProperties,
+                                          GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
     }
+
 }

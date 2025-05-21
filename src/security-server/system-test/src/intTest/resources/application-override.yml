@@ -22,20 +22,7 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      reuse-between-runs: ${reuse-between-runs}
-      directory-mounts:
-        - "/var/log/xroad/:build/ss-container-logs/" # useful for debugging. This will attach logs
-    context-containers:
-      reverse-proxy:
-        enabled: true
-        reuse-between-runs: ${reuse-between-runs}
-      ca-server:
-        enabled: true
-        relative-a2c-path: "../../../development/acme2certifier"
-        reuse-between-runs: ${reuse-between-runs}
-      mail-server:
-        enabled: true
-        reuse-between-runs: ${reuse-between-runs}
+      enabled: false
   selenide:
     browser: CHROME # Options: CHROME, EDGE, FIREFOX, OPERA, SAFARI (works only with Mac)
     browser-size: "1920x1080"

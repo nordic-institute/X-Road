@@ -28,19 +28,18 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -51,14 +50,14 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  * Handles certificate request re-generations.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<RegenerateCertRequestReq, RegenerateCertRequestResp> {
 
     @Override
     protected RegenerateCertRequestResp handle(RegenerateCertRequestReq message) throws Exception {
         TokenAndKey tokenAndKey = findTokenAndKeyForCsrId(message.getCertRequestId());
 
-        if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
+        if (!tokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
@@ -70,7 +69,7 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
 
         String csrId = message.getCertRequestId();
 
-        CertRequestInfo certRequestInfo = TokenManager.getCertRequestInfo(csrId);
+        CertRequestInfo certRequestInfo = tokenManager.getCertRequestInfo(csrId);
         if (certRequestInfo == null) {
             throw CodedException.tr(X_CSR_NOT_FOUND,
                     "csr_not_found", "Certificate request '%s' not found", csrId);
@@ -92,8 +91,8 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
     }
 
     private TokenAndKey findTokenAndKeyForCsrId(String certRequestId) {
-        TokenInfoAndKeyId tokenInfoAndKeyId = TokenManager.findTokenAndKeyIdForCertRequestId(certRequestId);
-        KeyInfo keyInfo = TokenManager.getKeyInfo(tokenInfoAndKeyId.getKeyId());
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenManager.findTokenAndKeyIdForCertRequestId(certRequestId);
+        KeyInfo keyInfo = tokenManager.getKeyInfo(tokenInfoAndKeyId.getKeyId());
         return new TokenAndKey(tokenInfoAndKeyId.getTokenInfo().getId(),
                 keyInfo);
     }

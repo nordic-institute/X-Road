@@ -26,32 +26,32 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.SignerProtoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Handles requests for software token initialization.
  */
-@Component
+@ApplicationScoped
 public class InitSoftwareTokenReqHandler
         extends AbstractRpcHandler<InitSoftwareTokenReq, Empty> {
 
     @Override
     protected Empty handle(InitSoftwareTokenReq request) throws Exception {
-        String softwareTokenId = TokenManager.getSoftwareTokenId();
+        String softwareTokenId = tokenManager.getSoftwareTokenId();
 
         if (softwareTokenId != null) {
             final TokenWorker tokenWorker = getTokenWorker(softwareTokenId);
             if (tokenWorker.isSoftwareToken()) {
                 try {
-                    tokenWorker.initializeToken(request.getPin().toCharArray());
+                    tokenWorker.initializeToken(SignerProtoUtils.byteToChar(request.getPin().toByteArray()));
                     return Empty.getDefaultInstance();
                 } catch (Exception e) {
                     throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker

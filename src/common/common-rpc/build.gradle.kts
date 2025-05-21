@@ -1,49 +1,27 @@
 plugins {
   id("xroad.java-conventions")
-  alias(libs.plugins.protobuf)
-}
-
-sourceSets {
-  main {
-    java.srcDirs(
-      "build/generated-sources",
-      "build/generated/source/proto/main/grpc",
-      "build/generated/source/proto/main/java"
-    )
-  }
+  id("xroad.test-fixtures-conventions")
+  id("xroad.rpc-schema-generator-conventions")
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
-  implementation(libs.slf4j.api)
+  api(project(":common:common-domain"))
+  api(project(":common:common-properties"))
 
+  api(libs.slf4j.api)
   api(libs.grpc.protobuf)
   api(libs.grpc.stub)
+  api(libs.grpc.util)
   api(libs.grpc.nettyShaded)
   api(libs.protobuf.javaUtil)
   api(libs.jakarta.annotationApi)
-}
 
-protobuf {
-  protoc {
-    artifact = libs.protobuf.protoc.get().toString()
-  }
-  plugins {
-    create("grpc") {
-      artifact = libs.grpc.protocGenGrpcJava.get().toString()
-    }
-  }
-  generateProtoTasks {
-    all().forEach {
-      it.plugins {
-        create("grpc") {
-          option("@generated=omit")
-        }
-      }
-    }
-  }
-}
+  api(libs.jakarta.cdiApi)
+  api(libs.smallrye.config.core)
+  api(libs.resilience4j.retry)
 
-tasks.compileJava {
-  dependsOn(tasks.named("generateProto"))
+  testFixturesImplementation(libs.quarkus.junit5)
+  testImplementation(testFixtures(project(":common:common-properties")))
+  testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.assertj.core)
 }

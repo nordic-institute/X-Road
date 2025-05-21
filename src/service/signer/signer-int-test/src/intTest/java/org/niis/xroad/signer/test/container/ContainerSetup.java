@@ -49,11 +49,9 @@ import java.util.Map;
 @Slf4j
 @Configuration
 public class ContainerSetup {
-    private static final boolean HWTOKEN_ENABLED = true;
     private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11wrapper.so";
     private static final String PKCS11_WRAPPER_DIR = "../../../libs/pkcs11wrapper/%s/%s";
-    private static final String SIGNER_JAR_PATH = "../signer-application/build/libs/signer-1.0.jar";
-    private static final String HWTOKEN_JAR_PATH = "../../../addons/hwtoken/build/libs/hwtoken-1.0.jar";
+    private static final String SIGNER_RUNTIME_PATH = "../signer-application/build/quarkus-app";
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(TestableContainerProperties testableContainerProperties) {
@@ -61,8 +59,7 @@ public class ContainerSetup {
 
             @Override
             public @NotNull ImageFromDockerfile imageDefinition() {
-                var appJarPath = Paths.get(SIGNER_JAR_PATH);
-                var hwTokenJarPath = Paths.get(HWTOKEN_JAR_PATH);
+                var appJarPath = Paths.get(SIGNER_RUNTIME_PATH);
 
                 log.info("Will use {} jar for container creation", appJarPath);
 
@@ -73,8 +70,7 @@ public class ContainerSetup {
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
                         .withFileFromPath("files/lib/%s".formatted(PKCS11_WRAPPER_FILENAME), getPkcsWrapperPath())
-                        .withFileFromPath("files/lib/hwtoken.jar", hwTokenJarPath)
-                        .withFileFromPath("files/app.jar", appJarPath);
+                        .withFileFromPath("files/app/", appJarPath);
             }
 
             @Override
@@ -86,7 +82,7 @@ public class ContainerSetup {
             @Override
             @SuppressWarnings("checkstyle:MagicNumber")
             public @NotNull List<Integer> exposedPorts() {
-                return List.of(5558, 5560);
+                return List.of(5560);
             }
 
             private Path getPkcsWrapperPath() {
@@ -108,28 +104,17 @@ public class ContainerSetup {
             @Override
             @SuppressWarnings("squid:S2068")
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                var modulemanager = HWTOKEN_ENABLED
-                        ? "-Dxroad.signer.moduleManagerImpl=org.niis.xroad.signer.core.tokenmanager.module.HardwareModuleManagerImpl"
-                        : "";
-
                 genericContainer
-                        .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
+                        .waitingFor(Wait.forLogMessage(".*signer .* started in.*", 1));
                 genericContainer
                         .withCommand("java",
                                 "-Xmx50m",
                                 "-XX:MaxMetaspaceSize=70m",
-                                "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
-                                "-Dxroad.internal.passwordstore-provider=file",
-                                "-Dxroad.common.grpc-internal-host=0.0.0.0",
-                                "-Dxroad.common.grpc-internal-keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                                "-Dxroad.common.grpc-internal-keystore-password=111111",
-                                "-Dxroad.common.grpc-internal-truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                                "-Dxroad.common.grpc-internal-truststore-password=111111",
                                 "-Djava.library.path=/root/lib/",
-                                modulemanager,
-                                "-cp",
-                                "/root/lib/hwtoken.jar:/root/app.jar",
-                                "org.niis.xroad.signer.application.SignerMain");
+                                "-Dxroad.signer.addon.hwtoken.enabled=true",
+                                "-Dxroad.common.rpc.use-tls=false",
+                                "-jar",
+                                "/root/app/quarkus-run.jar");
 
                 prepareSignerDirs();
             }

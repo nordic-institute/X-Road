@@ -275,14 +275,14 @@
     },
     "previousUpdate": "Previous Update",
     "proxyMemoryUsage": {
-      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold",
-      "max": "Maximum memory",
-      "ok": "Everything ok",
-      "threshold": "Threshold",
       "title": "Proxy memory usage",
+      "max": "Maximum memory",
       "total": "Total allocated memory",
+      "used": "Used memory",
+      "threshold": "Threshold",
       "usagePercent": "Used memory (%)",
-      "used": "Used memory"
+      "ok": "Everything ok",
+      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold"
     },
     "serviceUrl": "Service URL",
     "status": "Status",

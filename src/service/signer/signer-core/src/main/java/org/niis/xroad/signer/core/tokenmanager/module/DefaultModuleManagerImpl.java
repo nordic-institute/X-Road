@@ -28,6 +28,10 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 import ee.ria.xroad.common.CodedException;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.config.SignerProperties;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 
 import java.util.Optional;
 
@@ -39,10 +43,15 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 @Slf4j
 public class DefaultModuleManagerImpl extends AbstractModuleManager {
 
+    public DefaultModuleManagerImpl(ModuleConf moduleConf, TokenManager tokenManager, TokenRegistry tokenRegistry,
+                                    SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+        super(moduleConf, tokenManager, tokenRegistry, signerProperties, ocspResponseManager);
+    }
+
     @Override
     protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
-        if (module instanceof SoftwareModuleType) {
-            return createSoftwareModule((SoftwareModuleType) module);
+        if (module instanceof SoftwareModuleType softwareModuleType) {
+            return createSoftwareModule(softwareModuleType);
         }
 
         throw new CodedException(X_INTERNAL_ERROR, "unrecognized module type found!");
@@ -50,7 +59,7 @@ public class DefaultModuleManagerImpl extends AbstractModuleManager {
 
     AbstractModuleWorker createSoftwareModule(SoftwareModuleType softwareModule) {
         log.debug("Initializing software module");
-        return new SoftwareModuleWorker(softwareModule);
+        return new SoftwareModuleWorker(softwareModule, signerProperties, tokenManager);
     }
 
     @Override

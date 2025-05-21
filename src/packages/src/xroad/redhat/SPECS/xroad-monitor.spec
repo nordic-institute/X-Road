@@ -11,6 +11,7 @@ Summary:            X-Road Monitoring
 Group:              Applications/Internet
 License:            MIT
 Requires:           systemd, xroad-base = %version-%release
+Requires:           (xroad-secret-store-local = %version-%release or xroad-secret-store-remote = %version-%release)
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
@@ -27,20 +28,19 @@ X-Road monitoring component
 
 %install
 mkdir -p %{buildroot}%{jlib}
+mkdir -p %{buildroot}%{jlib}/monitor
 mkdir -p %{buildroot}%{_sysconfdir}
 mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
-cp -p %{srcdir}/../../../service/monitor/monitor-application/build/libs/monitor-1.0.jar %{buildroot}%{jlib}
+cp -p -r %{srcdir}/../../../service/monitor/monitor-application/build/quarkus-app/* %{buildroot}%{jlib}/monitor/
 cp -a %{srcdir}/common/monitor/etc/* %{buildroot}%{_sysconfdir}
 cp -p %{srcdir}/common/monitor/systemd/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/monitor/usr/share/xroad/bin/xroad-monitor %{buildroot}/usr/share/xroad/bin
-cp -p %{srcdir}/default-configuration/addons/monitor.ini %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
-cp -p %{srcdir}/default-configuration/addons/monitor-logback.xml %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 cp -p %{srcdir}/common/monitor/etc/xroad/backup.d/??_xroad-monitor %{buildroot}%{_sysconfdir}/xroad/backup.d/
-ln -s %{jlib}/monitor-1.0.jar %{buildroot}%{jlib}/monitor.jar
+ln -s %{jlib}/monitor/quarkus-run.jar %{buildroot}%{jlib}/monitor.jar
 
 %clean
 rm -rf %{buildroot}
@@ -48,12 +48,10 @@ rm -rf %{buildroot}
 %files
 %defattr(-,xroad,xroad,-)
 %config %{_sysconfdir}/xroad/services/monitor.conf
-%config %{_sysconfdir}/xroad/conf.d/addons/monitor.ini
-%config %{_sysconfdir}/xroad/conf.d/addons/monitor-logback.xml
 %attr(0440,xroad,xroad) %config %{_sysconfdir}/xroad/backup.d/??_xroad-monitor
 %defattr(-,root,root,-)
 %attr(644,root,root) %{_unitdir}/xroad-monitor.service
-%{jlib}/monitor-1.0.jar
+%{jlib}/monitor/
 %{jlib}/monitor.jar
 %attr(754,root,xroad) /usr/share/xroad/bin/%{name}
 

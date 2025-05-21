@@ -56,7 +56,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      */
     @Before
     public void beginTransaction() {
-        session = OpMonitorDaemonDatabaseCtx.get().beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -65,7 +65,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
      */
     @After
     public void rollbackTransaction() {
-        OpMonitorDaemonDatabaseCtx.get().rollbackTransaction();
+        DATABASE_CTX.rollbackTransaction();
     }
 
     @SuppressWarnings("squid:S2699")

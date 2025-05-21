@@ -25,22 +25,21 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.GetTokenByIdReq;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for token info.
  */
-@Component
+@ApplicationScoped
 public class GetTokenInfoReqHandler
         extends AbstractRpcHandler<GetTokenByIdReq, TokenInfoProto> {
 
     @Override
     protected TokenInfoProto handle(GetTokenByIdReq request) throws Exception {
-        var token = TokenManager.findTokenInfo(request.getTokenId());
+        var token = tokenManager.findTokenInfo(request.getTokenId());
         return token.asMessage();
     }
 }

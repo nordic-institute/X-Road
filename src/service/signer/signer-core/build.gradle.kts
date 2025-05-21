@@ -1,5 +1,6 @@
 plugins {
   id("xroad.java-conventions")
+  alias(libs.plugins.jandex)
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -13,22 +14,21 @@ sourceSets {
 }
 
 dependencies {
-  api(platform(libs.springBoot.bom))
-
   implementation(project(":common:common-core"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":lib:globalconf-spring"))
-  implementation(project(":common:common-rpc"))
+
+  implementation(project(":lib:globalconf-impl"))
   implementation(project(":service:signer:signer-api"))
 
-  api("org.springframework:spring-context-support")
+  implementation(libs.quarkus.arc)
+  implementation(libs.quarkus.scheduler)
+  implementation(libs.apache.commonsPool2)
+
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 
   testImplementation(project(":common:common-test"))
+  testImplementation(testFixtures(project(":common:common-properties")))
   testImplementation(libs.mockito.core)
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-
 
   xjc(libs.bundles.jaxb)
 }

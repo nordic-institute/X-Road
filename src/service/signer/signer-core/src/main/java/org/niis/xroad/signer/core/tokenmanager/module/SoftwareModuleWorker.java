@@ -25,10 +25,11 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.module;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
@@ -43,35 +44,35 @@ import java.util.Map;
  * Worker for software module. Always lists only one software token.
  */
 public class SoftwareModuleWorker extends AbstractModuleWorker {
+    private final List<TokenType> tokenTypes;
 
-    private static final List<TokenType> TOKENS = List.of(new SoftwareTokenType(
-            Map.of(
-                    KeyAlgorithm.EC, SystemProperties.getSofTokenEcSignMechanism(),
-                    KeyAlgorithm.RSA, SystemProperties.getSoftTokenRsaSignMechanism()
-            )
-    ));
-
-    public SoftwareModuleWorker(ModuleType moduleType) {
-        super(moduleType);
+    public SoftwareModuleWorker(ModuleType moduleType, SignerProperties signerProperties, TokenManager tokenManager) {
+        super(moduleType, signerProperties, tokenManager);
+        this.tokenTypes = List.of(new SoftwareTokenType(
+                Map.of(
+                        KeyAlgorithm.EC, SignMechanism.valueOf(signerProperties.softTokenEcSignMechanism()),
+                        KeyAlgorithm.RSA, SignMechanism.valueOf(signerProperties.softTokenRsaSignMechanism())
+                )
+        ));
     }
 
     @Override
     protected List<TokenType> listTokens() throws Exception {
-        return TOKENS;
+        return tokenTypes;
     }
 
     @Override
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         initTokenInfo(tokenInfo);
 
-        return new SoftwareTokenWorker(tokenInfo, tokenType);
+        return new SoftwareTokenWorker(tokenInfo, tokenType, signerProperties, tokenManager);
     }
 
     private void initTokenInfo(TokenInfo tokenInfo) {
         Map<String, String> info = new HashMap<>();
         info.put("Type", "Software");
 
-        TokenManager.setTokenInfo(tokenInfo.getId(), info);
+        tokenManager.setTokenInfo(tokenInfo.getId(), info);
     }
 
 }

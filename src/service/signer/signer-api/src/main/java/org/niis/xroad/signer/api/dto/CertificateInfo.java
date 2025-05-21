@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
 import lombok.Value;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 
 import java.io.Serializable;
@@ -134,4 +134,11 @@ public class CertificateInfo implements Serializable {
         String issuerCommonName = getIssuerCommonName(x509Certificate);
         return joinWith(" ", issuerCommonName, x509Certificate.getSerialNumber().toString());
     }
+
+    @JsonIgnore
+    public boolean belongsToMember(ClientId member) {
+        return member.equals(getMemberId())
+                || member.subsystemContainsMember(getMemberId());
+    }
+
 }

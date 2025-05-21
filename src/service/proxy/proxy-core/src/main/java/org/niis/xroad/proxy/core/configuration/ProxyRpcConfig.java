@@ -25,32 +25,41 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import io.grpc.BindableService;
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.AddOn;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
+import org.niis.xroad.proxy.core.admin.AdminService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
-@Configuration
 public class ProxyRpcConfig {
 
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry) throws Exception {
-        return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getProxyGrpcPort(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
+    @ApplicationScoped
+    @Startup
+    RpcServer proxyRpcServer(BindableServiceRegistry bindableServiceRegistry,
+                             AdminService adminService,
+                             ProxyRpcServerProperties rpcServerProperties,
+                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
+        List<BindableService> rpcServices = new ArrayList<>(bindableServiceRegistry.getRegisteredServices());
+        rpcServices.add(adminService);
+        var rpcServer = new RpcServer(
+                rpcServerProperties.listenAddress(),
+                rpcServerProperties.port(),
+                rpcCredentialsConfigurer.createServerCredentials(),
+                builder -> rpcServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+        if (rpcServerProperties.enabled()) {
+            rpcServer.afterPropertiesSet();
+        }
+        return rpcServer;
     }
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
-    }
 }

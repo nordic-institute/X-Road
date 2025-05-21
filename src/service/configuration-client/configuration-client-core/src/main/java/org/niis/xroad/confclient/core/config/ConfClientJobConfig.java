@@ -26,59 +26,54 @@
 package org.niis.xroad.confclient.core.config;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
-import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
+import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-@Configuration
+@NoArgsConstructor(access = lombok.AccessLevel.PACKAGE)
 public class ConfClientJobConfig {
 
-    @Bean
-    JobManager jobManager(ConfigurationClientJobListener listener,
-                          SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
+    @ApplicationScoped
+    @Startup
+    public static class JobManagerInitializer {
 
-        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+        public JobManagerInitializer(@ConfigProperty(name = "quarkus.scheduler.enabled") boolean schedulerEnabled,
+                                     ConfigurationClientJobListener listener,
+                                     ConfigurationClientProperties configurationClientProperties,
+                                     JobManager jobManager) throws SchedulerException {
+            if (schedulerEnabled) {
+                jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
 
-        jobManager.registerRepeatingJob(ConfigurationClientJob.class,
-                SystemProperties.getConfigurationClientUpdateIntervalSeconds(), new JobDataMap());
+                jobManager.registerRepeatingJob(ConfigurationClientJob.class,
+                        configurationClientProperties.updateInterval(), new JobDataMap());
 
-        jobManager.registerJob(ProxyConfigurationBackupJob.class,
-                SystemProperties.getConfigurationClientProxyConfigurationBackupCron(), new JobDataMap());
-
-        return jobManager;
-    }
-
-    @Bean
-    ConfigurationClientJobListener getConfigurationClientJobListener() {
-        return new ConfigurationClientJobListener();
-    }
-
-    @Bean
-    public SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
+                jobManager.registerJob(ProxyConfigurationBackupJob.class,
+                        configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
+            }
+        }
     }
 
     /**
      * Listens for daemon job completions and collects results.
      */
     @Slf4j
+    @ApplicationScoped
     public static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
-
         // Access only via synchronized getter/setter.
         private DiagnosticsStatus status;
 
@@ -90,9 +85,9 @@ public class ConfClientJobConfig {
             return status;
         }
 
-        ConfigurationClientJobListener() {
+        ConfigurationClientJobListener(ConfigurationClientProperties configurationClientProperties) {
             status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+                    TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
         }
 
         @Override
@@ -118,5 +113,10 @@ public class ConfClientJobConfig {
                 setStatus(diagnosticsStatus);
             }
         }
+    }
+
+    @ApplicationScoped
+    JobManager jobManager(Scheduler scheduler) throws SchedulerException {
+        return new JobManager(scheduler);
     }
 }

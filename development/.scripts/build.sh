@@ -8,7 +8,7 @@ gradleModule=""
 gradleArgs="clean build -x check "
 case $1 in
 "proxy")
-  gradleModule="service/proxy"
+  gradleModule="service/proxy/proxy-application"
   ;;
 "addon-messagelog")
   gradleModule="addons/messagelog/messagelog-addon"
@@ -17,10 +17,10 @@ case $1 in
   gradleModule="addons/metaservice"
   ;;
 "configuration-client")
-  gradleModule="service/configuration-client"
+  gradleModule="service/configuration-client/configuration-client-application"
   ;;
 "signer")
-  gradleModule="signer"
+  gradleModule="service/signer/signer-application"
   ;;
 "proxy-ui-api")
   gradleModule="security-server/admin-service"
