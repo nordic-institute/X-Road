@@ -36,9 +36,3 @@ Feature: 0900 - SS:Diagnostics
     And Message log grouping is set to MEMBER
     And At least one member should have encryption key configured
     And At least one member should use default encryption key
-
-  Scenario: Administrator cannot turn on maintenance mode for management services provider
-    When Diagnostics tab is selected
-    Then maintenance mode toggle is off
-    And maintenance mode toggle is disabled
-

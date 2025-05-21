@@ -25,6 +25,9 @@
  -->
 <template>
   <XrdTitledView data-test="system-parameters-tab-view" title-key="systemParameters.title">
+    <template #header-buttons>
+      <maintenance-mode-widget />
+    </template>
     <v-card flat class="xrd-card" v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)">
       <v-card-text class="card-text">
         <v-row no-gutters class="px-4">
@@ -342,9 +345,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import { sortTimestampingServices } from "@/util/sorting";
+import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
 
 export default defineComponent({
   components: {
+    MaintenanceModeWidget,
     EditSecurityServerAddressDialog,
     XrdButton,
     XrdIconDownload,
