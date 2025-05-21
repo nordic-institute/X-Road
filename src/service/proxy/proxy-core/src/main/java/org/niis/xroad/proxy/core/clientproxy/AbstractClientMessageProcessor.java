@@ -239,11 +239,12 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     private CodedException buildMaintenanceModeException(SecurityServerId serverId, String address, String maintenanceModeMessage) {
+        var serverIdStr = serverId != null ? serverId.toString() : null;
         var message = new StringBuilder("Security server");
         if (serverId != null) {
             message
                     .append(" \"")
-                    .append(serverId)
+                    .append(serverIdStr)
                     .append("\"");
 
         }
@@ -259,7 +260,9 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         if (StringUtils.isNotEmpty(maintenanceModeMessage)) {
             message
-                    .append(". ")
+                    .append(". Message from \"")
+                    .append(StringUtils.defaultIfEmpty(serverIdStr, address))
+                    .append("\" administrator: ")
                     .append(maintenanceModeMessage);
         }
 

@@ -271,8 +271,8 @@
       "status": {
         "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
         "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
-        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request is submitted",
-        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request is submitted"
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request was submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request was submitted"
       }
     },
     "message": "Message",

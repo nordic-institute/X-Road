@@ -36,6 +36,7 @@
             :loading="pending"
             :disabled="pending || isManagementServiceProvider"
             hide-details
+            density="compact"
             @update:model-value="showConfirm=true">
             <template #prepend>
               {{ $t('diagnostics.maintenanceMode.label') }}
@@ -106,6 +107,7 @@ const enabled = ref(false);
 const pending = ref(false);
 const isManagementServiceProvider = ref(false);
 const statusText = ref(undefined as string | undefined);
+let refreshHandle = 0;
 
 const { meta, errors, value: noticeMessage, resetField } = useField(
   'message',
@@ -162,9 +164,18 @@ async function update() {
           break;
         default:
       }
+      return mode;
     })
     .catch((error) => showError(error))
-    .finally(() => (updating.value = false));
+    .finally(() => (updating.value = false))
+    .finally(() => {
+      if (pending.value && !refreshHandle) {
+        refreshHandle = window.setInterval(() => update(), 10000);
+      } else if (!pending.value && refreshHandle) {
+        clearInterval(refreshHandle);
+        refreshHandle = 0;
+      }
+    });
 }
 
 function close() {
