@@ -27,10 +27,11 @@ Alternatively, it's possible to use the image (`niis/xroad-central-server`) avai
 
 ## Container parameters
 
-| Port   | Description                         |
-|--------|-------------------------------------|
-| `2222` | Management REST API endpoint        | 
-| `4000` | Additional Management REST API port |
+| Port   | Description                                                                      |
+|--------|----------------------------------------------------------------------------------|
+| `80`   | Ports for outbound connections (from the Central Server to the external network) | 
+| `2222` | Management REST API endpoint                                                     | 
+| `4000` | Main UI                                                                          |
 
 ## Running
 
