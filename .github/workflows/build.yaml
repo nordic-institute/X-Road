@@ -249,7 +249,6 @@ jobs:
         with:
           task: display-results
           pr-comment: true
-          json-output: true
       - name: Upload GMT jsons
         uses: actions/upload-artifact@v4
         with:
@@ -342,7 +341,6 @@ jobs:
         with:
           task: display-results
           pr-comment: true
-          json-output: true
   RunE2ETests:
     name: Run E2E tests
     needs: BuildAndPackageWithUnitTests
@@ -442,4 +440,3 @@ jobs:
         with:
           task: display-results
           pr-comment: true
-          json-output: true
