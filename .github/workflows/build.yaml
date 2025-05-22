@@ -172,6 +172,11 @@ jobs:
         ports:
           - 5000:5000
     steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: start-measurement
+          label: 'Central Server system tests'
       - uses: actions/checkout@v4
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -204,9 +209,19 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
+      - name: Central Server test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: get-measurement
+          label: 'Set up Central Server tests'
       - name: Run Central Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
+      - name: Test Central Server measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: get-measurement
+          label: 'Test Central Server'
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -229,6 +244,18 @@ jobs:
           name: CS System Test report
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: display-results
+          pr-comment: true
+      - name: Upload GMT jsons
+        uses: actions/upload-artifact@v4
+        with:
+          name: CS System Test GMT jsons
+          path: |
+            /tmp/eco-ci/lap-data.json
+            /tmp/eco-ci/total-data.json
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
@@ -239,6 +266,11 @@ jobs:
         ports:
           - 5000:5000
     steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: start-measurement
+          label: 'Security Server system tests'
       - uses: actions/checkout@v4
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -269,9 +301,19 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+      - name: Security Server test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: get-measurement
+          label: 'Set up Security Server tests'
       - name: Run Security Server system tests
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
+      - name: Test Security Server measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: get-measurement
+          label: 'Test Security Server'
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -294,6 +336,11 @@ jobs:
             src/security-server/system-test/build/ss-container-logs/
             src/security-server/system-test/build/ca-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: display-results
+          pr-comment: true
   RunE2ETests:
     name: Run E2E tests
     needs: BuildAndPackageWithUnitTests
@@ -304,6 +351,11 @@ jobs:
         ports:
           - 5000:5000
     steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: start-measurement
+          label: 'E2E tests'
       # Setup
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -350,6 +402,11 @@ jobs:
           build-args: |
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
+      - name: E2E test setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: get-measurement
+          label: 'Set up E2E tests'
       # Execute and report
       - name: Run E2E tests
         working-directory: ./src
@@ -357,6 +414,11 @@ jobs:
           ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:e2e-test:e2eTest 
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
           -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
+      - name: E2E test measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: get-measurement
+          label: 'E2E tests'
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -373,3 +435,8 @@ jobs:
           name: E2E report
           path: |
             src/security-server/e2e-test/build/allure-report/
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        with:
+          task: display-results
+          pr-comment: true
