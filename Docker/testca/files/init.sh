@@ -5,12 +5,13 @@ if [ -f .init ]; then
 fi
 
 # dn parameters
-DN_CA_O="Test"
-DN_CA_CN="Test CA"
-DN_OCSP_O="Test"
-DN_OCSP_CN="Test OCSP"
-DN_TSA_O="Test"
-DN_TSA_CN="Test TSA"
+ORGANIZATION_NAME=${ORGANIZATION_NAME: -"Test"}
+DN_CA_O="$ORGANIZATION_NAME"
+DN_CA_CN="$ORGANIZATION_NAME CA"
+DN_OCSP_O="$ORGANIZATION_NAME"
+DN_OCSP_CN="$ORGANIZATION_NAME OCSP"
+DN_TSA_O="$ORGANIZATION_NAME"
+DN_TSA_CN="$ORGANIZATION_NAME TSA"
 
 rm -rf private certs newcerts crl csr
 rm -f index.* serial

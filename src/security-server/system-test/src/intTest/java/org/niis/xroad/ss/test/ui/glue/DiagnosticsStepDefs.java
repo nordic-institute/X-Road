@@ -53,6 +53,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
@@ -66,7 +67,8 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "OCSP responders",
             "Global configuration",
             "Configuration overrides from local.ini",
-            "Authentication certificates"
+            "Authentication certificates",
+            "Maintenance mode"
     };
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
@@ -218,7 +220,20 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             }
             assertThat(actualItems).contains(EXPECTED_REPORT_ITEMS);
         }
+    }
 
+    @Step("maintenance mode toggle is off")
+    public void maintenanceModeToggleIsOff() {
+        vSwitch(diagnosticsPage.toggleMaintenanceMode())
+                .shouldBe(visible)
+                .shouldNotBeLoading()
+                .shouldBeOff();
+    }
 
+    @Step("maintenance mode toggle is disabled")
+    public void maintenanceModeToggleIsClicked() {
+        vSwitch(diagnosticsPage.toggleMaintenanceMode())
+                .shouldBe(visible)
+                .shouldBeDisabled();
     }
 }

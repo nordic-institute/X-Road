@@ -33,3 +33,7 @@ Feature: 0400 - SS: System Parameters
     And First timestamping option is selected
     Then  Timestamping services table has 1 entries
     And Timestamping services table row 0 has service "Test TSA" and url "http://testca:8899"
+
+  Scenario: Administrator cannot turn on maintenance mode for management services provider
+    Then maintenance mode toggle is off
+    And maintenance mode toggle is disabled

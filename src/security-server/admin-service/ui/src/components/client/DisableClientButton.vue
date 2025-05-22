@@ -28,10 +28,11 @@
     <xrd-button
       data-test="disable-client-button"
       outlined
+      :disabled="disabled"
       @click="confirmDisableClient = true"
-    >{{ $t('action.disable') }}
-    </xrd-button
     >
+      {{ $t('action.disable') }}
+    </xrd-button>
 
     <!-- Confirm dialog for disable client -->
     <xrd-confirm-dialog
@@ -59,6 +60,10 @@ export default defineComponent({
     id: {
       type: String,
       required: true,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['done'],

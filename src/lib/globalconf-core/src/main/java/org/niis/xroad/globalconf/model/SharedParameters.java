@@ -148,12 +148,7 @@ public class SharedParameters {
         private MaintenanceMode maintenanceMode;
     }
 
-    @Data
-    @AllArgsConstructor
-    public static class MaintenanceMode {
-        private boolean enabled;
-        private String message;
-
+    public record MaintenanceMode(boolean enabled, String message) {
         public static MaintenanceMode enabled(String message) {
             return new MaintenanceMode(true, message);
         }

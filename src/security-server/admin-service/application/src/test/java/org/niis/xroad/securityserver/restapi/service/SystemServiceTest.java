@@ -41,13 +41,17 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
+import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -57,15 +61,19 @@ import org.niis.xroad.serverconf.model.TimestampingService;
 
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MISSING_PRIVATE_PARAMS;
 
@@ -82,6 +90,8 @@ public class SystemServiceTest {
     @Mock
     private GlobalConfService globalConfService;
     @Mock
+    private GlobalConfProvider globalConfProvider;
+    @Mock
     private AnchorRepository anchorRepository;
     @Mock
     private ConfigurationVerifier configurationVerifier;
@@ -92,6 +102,7 @@ public class SystemServiceTest {
     @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
+    private final MaintenanceModeStatus maintenanceModeStatus = new MaintenanceModeStatus();
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -104,13 +115,13 @@ public class SystemServiceTest {
 
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(TimestampingServiceMapper.get().toTargets(List.of(tsa1, tsa2)));
         ClientId.Conf ownerId = ClientId.Conf.create("CS", "GOV", "1111");
-        when(serverConfService.getConfiguredTimestampingServiceEntities()).thenReturn(new ArrayList<>(Arrays.asList(tsa1)));
+        when(serverConfService.getConfiguredTimestampingServiceEntities()).thenReturn(new ArrayList<>(List.of(tsa1)));
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
                 configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus);
+                addressChangeStatus, maintenanceModeStatus, globalConfProvider);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
         systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
@@ -242,7 +253,7 @@ public class SystemServiceTest {
     }
 
     @Test
-    public void changeSecurityServerAddress() throws Exception {
+    public void changeSecurityServerAddress() {
         when(globalConfService.getSecurityServerAddress(any())).thenReturn("ss.address");
 
         systemService.changeSecurityServerAddress(SERVER_ADDRESS);
@@ -252,7 +263,7 @@ public class SystemServiceTest {
     }
 
     @Test
-    public void changeSecurityServerAddressAlreadySubmitted() throws Exception {
+    public void changeSecurityServerAddressAlreadySubmitted() {
         addressChangeStatus.setAddress(SERVER_ADDRESS);
 
         try {
@@ -265,7 +276,7 @@ public class SystemServiceTest {
     }
 
     @Test
-    public void changeSecurityServerAddressSameAddress() throws Exception {
+    public void changeSecurityServerAddressSameAddress() {
         when(globalConfService.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
 
         try {
@@ -275,5 +286,145 @@ public class SystemServiceTest {
             assertEquals("Error[code=same_address_change_request]", e.getMessage());
             // ok
         }
+    }
+
+    @Test
+    public void getMaintenanceModeWhenEnabling() {
+        final var message = "Test message";
+
+        maintenanceModeStatus.enableRequested(message);
+        var result = systemService.getMaintenanceMode();
+        assertEquals(MaintenanceMode.Status.ENABLING, result.status());
+        assertEquals(message, result.message());
+        verifyNoInteractions(globalConfProvider);
+    }
+
+    @Test
+    public void getMaintenanceModeWhenDisabling() {
+        maintenanceModeStatus.disableRequested();
+        var result = systemService.getMaintenanceMode();
+        assertEquals(MaintenanceMode.Status.DISABLING, result.status());
+        assertNull(result.message());
+        verifyNoInteractions(globalConfProvider);
+    }
+
+    @Test
+    public void getMaintenanceModeWhenNoData() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.empty());
+
+        var result = systemService.getMaintenanceMode();
+        assertEquals(MaintenanceMode.Status.DISABLED, result.status());
+        assertNull(result.message());
+    }
+
+    @Test
+    public void getMaintenanceModeWhenDisabled() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.of(SharedParameters.MaintenanceMode.disabled()));
+
+        var result = systemService.getMaintenanceMode();
+        assertEquals(MaintenanceMode.Status.DISABLED, result.status());
+        assertNull(result.message());
+    }
+
+    @Test
+    public void getMaintenanceModeWhenEnabled() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        final var message = "Test message";
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.of(SharedParameters.MaintenanceMode.enabled(message)));
+
+        var result = systemService.getMaintenanceMode();
+        assertEquals(MaintenanceMode.Status.ENABLED, result.status());
+        assertEquals(message, result.message());
+    }
+
+    @Test
+    public void enableMaintenanceModeWhenPendingChange() {
+        final var message = "Test message";
+
+        maintenanceModeStatus.enableRequested(message);
+
+        var err = assertThrows(ConflictException.class, () -> systemService.enableMaintenanceMode(message));
+        assertEquals("Error[code=maintenance_mode_change_request_already_submitted]", err.getMessage());
+
+        maintenanceModeStatus.disableRequested();
+
+        err = assertThrows(ConflictException.class, () -> systemService.enableMaintenanceMode(message));
+        assertEquals("Error[code=maintenance_mode_change_request_already_submitted]", err.getMessage());
+    }
+
+    @Test
+    public void enableMaintenanceModeWhenEnabled() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        final var message = "Test message";
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.of(SharedParameters.MaintenanceMode.enabled(message)));
+
+        var err = assertThrows(ConflictException.class, () -> systemService.enableMaintenanceMode(message));
+        assertEquals("Error[code=already_enabled_maintenance_mode]", err.getMessage());
+    }
+
+    @Test
+    public void enableMaintenanceMode() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+        final var message = "Test message";
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.of(SharedParameters.MaintenanceMode.disabled()));
+
+        systemService.enableMaintenanceMode(message);
+        verify(managementRequestSenderService).sendMaintenanceModeEnableRequest(eq(message));
+        assertInstanceOf(MaintenanceModeStatus.EnableRequested.class, maintenanceModeStatus.getStatus());
+    }
+
+    @Test
+    public void disableMaintenanceModeWhenPendingChange() {
+        maintenanceModeStatus.disableRequested();
+
+        var err = assertThrows(ConflictException.class, () -> systemService.disableMaintenanceMode());
+        assertEquals("Error[code=maintenance_mode_change_request_already_submitted]", err.getMessage());
+
+        maintenanceModeStatus.enableRequested(null);
+
+        err = assertThrows(ConflictException.class, () -> systemService.disableMaintenanceMode());
+        assertEquals("Error[code=maintenance_mode_change_request_already_submitted]", err.getMessage());
+    }
+
+    @Test
+    public void disableMaintenanceModeWhenDisabled() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.of(SharedParameters.MaintenanceMode.disabled()));
+
+        var err = assertThrows(ConflictException.class, () -> systemService.disableMaintenanceMode());
+        assertEquals("Error[code=already_disabled_maintenance_mode]", err.getMessage());
+    }
+
+    @Test
+    public void disableMaintenanceMode() {
+        maintenanceModeStatus.clear();
+        final var ssId = SecurityServerId.Conf.create("DEV", "CLS", "MEMBER", "SS");
+
+        when(serverConfService.getSecurityServerId()).thenReturn(ssId);
+        when(globalConfProvider.getMaintenanceMode(ssId)).thenReturn(Optional.of(SharedParameters.MaintenanceMode.enabled(null)));
+
+        systemService.disableMaintenanceMode();
+        verify(managementRequestSenderService).sendMaintenanceModeDisableRequest();
+        assertInstanceOf(MaintenanceModeStatus.DisableRequested.class, maintenanceModeStatus.getStatus());
     }
 }

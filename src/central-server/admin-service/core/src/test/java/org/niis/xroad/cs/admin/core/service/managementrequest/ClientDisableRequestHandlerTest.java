@@ -39,6 +39,7 @@ import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
+import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ClientDisableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
@@ -73,15 +74,15 @@ class ClientDisableRequestHandlerTest {
     private RequestRepository<ClientDisableRequestEntity> disableRequests;
     @Mock
     private RequestMapper requestMapper;
+    @Mock
+    private SystemParameterService systemParameterService;
 
     private ClientDisableRequestHandler handler;
 
-
     @BeforeEach
     void setup() {
-        handler = new ClientDisableRequestHandler(servers, serverIds, clientIds, disableRequests, requestMapper);
+        handler = new ClientDisableRequestHandler(systemParameterService, servers, serverIds, clientIds, disableRequests, requestMapper);
     }
-
 
     @Test
     void add() {
@@ -132,5 +133,31 @@ class ClientDisableRequestHandlerTest {
                         + "metadata=[%s, %s]]".formatted(securityServerId, unknownSubsystemId));
     }
 
+    @Test
+    void clientIsManagementServiceProvider() {
+        var request = new ClientDisableRequest(Origin.SECURITY_SERVER, securityServerId, subsystemId);
+
+        var mockServerId = mock(SecurityServerIdEntity.class);
+        var mockClientId = mock(ClientIdEntity.class);
+
+        var server = mock(SecurityServerEntity.class);
+        var serverClient = mock(ServerClientEntity.class);
+        var securityServerClient = mock(SecurityServerClientEntity.class);
+
+        when(securityServerClient.getIdentifier()).thenReturn(mockClientId);
+        when(serverClient.getSecurityServerClient()).thenReturn(securityServerClient);
+        when(server.getServerClients()).thenReturn(Set.of(serverClient));
+
+        when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(mockServerId);
+        when(clientIds.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
+        when(servers.findBy(mockServerId, mockClientId)).thenReturn(Optional.of(server));
+
+        when(systemParameterService.getManagementServiceProviderId()).thenReturn(subsystemId);
+
+        Assertions.assertThatThrownBy(() -> handler.add(request))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Error[code=mr_forbidden_disable_management_service_client, metadata=[%s]]"
+                        .formatted(subsystemId));
+    }
 
 }

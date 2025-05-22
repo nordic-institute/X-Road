@@ -29,13 +29,13 @@
         <MakeOwnerButton
           v-if="showMakeOwner"
           :id="id"
-          class="first-button"
           @done="fetchData"
         />
-        <DeleteClientButton v-if="showDelete" :id="id" />
+        <DeleteClientButton v-if="showDelete" :id="id" class="ml-5" />
         <UnregisterClientButton
           v-if="showUnregister"
           :id="id"
+          class="ml-5"
           @done="fetchData"
         />
       </template>

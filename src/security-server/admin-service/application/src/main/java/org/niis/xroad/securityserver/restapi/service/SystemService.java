@@ -41,14 +41,17 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
+import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
@@ -71,10 +74,18 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MALFORMED_ANCHOR;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLED;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.DISABLING;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.ENABLED;
+import static org.niis.xroad.securityserver.restapi.dto.MaintenanceMode.Status.ENABLING;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ALREADY_DISABLED_MAINTENANCE_MODE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ALREADY_ENABLED_MAINTENANCE_MODE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_EXISTS;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.ANCHOR_UPLOAD_FAILED;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_ADDRESS_CHANGE_REQUEST;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
 import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.SAME_ADDRESS_CHANGE_REQUEST;
 
@@ -96,6 +107,8 @@ public class SystemService {
     private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final MaintenanceModeStatus maintenanceModeStatus;
+    private final GlobalConfProvider globalConfProvider;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
@@ -450,6 +463,63 @@ public class SystemService {
      */
     public SystemProperties.NodeType getServerNodeType() {
         return SystemProperties.getServerNodeType();
+    }
+
+    public boolean isManagementServiceProvider() {
+        var managementRequestService = globalConfProvider.getManagementRequestService();
+        return globalConfService.isSecurityServerClientForThisInstance(managementRequestService);
+    }
+
+    public void enableMaintenanceMode(String message) {
+        auditDataHelper.put(RestApiAuditProperty.MESSAGE, message);
+
+        var mode = getMaintenanceMode();
+
+        if (isManagementServiceProvider()) {
+            throw new ConflictException(FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE.build());
+        }
+
+        if (mode.status() == DISABLING || mode.status() == ENABLING) {
+            throw new ConflictException(DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST.build());
+        }
+
+        if (mode.status() == ENABLED) {
+            throw new ConflictException(ALREADY_ENABLED_MAINTENANCE_MODE.build());
+        }
+
+        Integer requestId = managementRequestSenderService.sendMaintenanceModeEnableRequest(message);
+        maintenanceModeStatus.enableRequested(message);
+        auditDataHelper.putManagementRequestId(requestId);
+    }
+
+    public void disableMaintenanceMode() {
+        var mode = getMaintenanceMode();
+
+        if (mode.status() == DISABLING || mode.status() == ENABLING) {
+            throw new ConflictException(DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST.build());
+        }
+
+        if (mode.status() == DISABLED) {
+            throw new ConflictException(ALREADY_DISABLED_MAINTENANCE_MODE.build());
+        }
+
+        Integer requestId = managementRequestSenderService.sendMaintenanceModeDisableRequest();
+        maintenanceModeStatus.disableRequested();
+        auditDataHelper.putManagementRequestId(requestId);
+    }
+
+    public MaintenanceMode getMaintenanceMode() {
+        return switch (maintenanceModeStatus.getStatus()) {
+            case MaintenanceModeStatus.EnableRequested enableRequested -> new MaintenanceMode(ENABLING, enableRequested.message());
+            case MaintenanceModeStatus.DisableRequested ignore -> new MaintenanceMode(DISABLING, null);
+            case null -> {
+                var securityServerId = serverConfService.getSecurityServerId();
+
+                yield globalConfProvider.getMaintenanceMode(securityServerId)
+                        .map(mode -> new MaintenanceMode(mode.enabled() ? ENABLED : DISABLED, mode.message()))
+                        .orElseGet(() -> new MaintenanceMode(DISABLED, null));
+            }
+        };
     }
 
     /**
