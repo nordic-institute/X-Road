@@ -23,42 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.dao;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.niis.xroad.restapi.entity.AdminUserEntity;
 
-/**
- * password related config
- */
-@Configuration
-public class PasswordEncoderConfig {
+import java.util.Optional;
 
-    public static final String API_KEY_ENCODER = "apiKeyEncoder";
-    public static final String PASSWORD_ENCODER = "passwordEncoder";
+public class AdminUserDAOImpl {
 
-    /**
-     * For API KEYS encoding we use saltless SHA-256 instead of recommended and default BCrypt
-     * to guarantee that even with heavy REST API usage, hashing does consume large amount of resources.
-     * We are not encoding passwords, but random numbers / UUIDs, so dictionary attacks
-     * or other weaknesses of SHA-256 in relation to password encoding are not relevant.
-     *
-     * @return PasswordEncoder
-     */
-    @Bean(API_KEY_ENCODER)
-    public PasswordEncoder apiKeyEncoder() {
-        return new SaltlessPasswordEncoder();
+    public Optional<AdminUserEntity> findByUsername(Session session, String username) {
+        Query<AdminUserEntity> query = session.createQuery(
+                "FROM " + AdminUserEntity.class.getName() + " WHERE username = :username", AdminUserEntity.class);
+        query.setParameter("username", username);
+        return query.uniqueResultOptional();
     }
 
-    /**
-     * To encode passwords for database backed user/pass authentication
-     *
-     * @return PasswordEncoder
-     */
-    @Bean(PASSWORD_ENCODER)
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }

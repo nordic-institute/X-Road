@@ -23,42 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.auth;
+package org.niis.xroad.restapi.service;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.domain.AdminUser;
+import org.niis.xroad.restapi.entity.AdminUserEntity;
+import org.niis.xroad.restapi.mapper.AdminUserMapper;
+import org.niis.xroad.restapi.repository.AdminUserRepository;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-/**
- * password related config
- */
-@Configuration
-public class PasswordEncoderConfig {
+@RequiredArgsConstructor
+public class AdminUserService implements UserDetailsService {
 
-    public static final String API_KEY_ENCODER = "apiKeyEncoder";
-    public static final String PASSWORD_ENCODER = "passwordEncoder";
+    private final AdminUserRepository userRepository;
+    private final AdminUserMapper mapper;
 
-    /**
-     * For API KEYS encoding we use saltless SHA-256 instead of recommended and default BCrypt
-     * to guarantee that even with heavy REST API usage, hashing does consume large amount of resources.
-     * We are not encoding passwords, but random numbers / UUIDs, so dictionary attacks
-     * or other weaknesses of SHA-256 in relation to password encoding are not relevant.
-     *
-     * @return PasswordEncoder
-     */
-    @Bean(API_KEY_ENCODER)
-    public PasswordEncoder apiKeyEncoder() {
-        return new SaltlessPasswordEncoder();
+    @Override
+    public AdminUser loadUserByUsername(String username) throws UsernameNotFoundException {
+        AdminUserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return mapper.toDto(user);
     }
 
-    /**
-     * To encode passwords for database backed user/pass authentication
-     *
-     * @return PasswordEncoder
-     */
-    @Bean(PASSWORD_ENCODER)
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }

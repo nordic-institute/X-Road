@@ -68,6 +68,7 @@ import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.FORM_LOGIN_AUTHENTICATION;
 import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -97,7 +98,7 @@ public class CsrfWebMvcTest {
     private GrantedAuthorityMapper grantedAuthorityMapper;
 
     @MockitoSpyBean
-    @Qualifier(PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION)
+    @Qualifier(FORM_LOGIN_AUTHENTICATION)
     private PamAuthenticationProvider pamAuthenticationProvider;
 
     @MockitoSpyBean
