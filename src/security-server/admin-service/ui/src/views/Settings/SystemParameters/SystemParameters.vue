@@ -26,7 +26,7 @@
 <template>
   <XrdTitledView data-test="system-parameters-tab-view" title-key="systemParameters.title">
     <template #header-buttons>
-      <maintenance-mode-widget />
+      <maintenance-mode-widget class="pr-1" />
     </template>
     <v-card flat class="xrd-card" v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)">
       <v-card-text class="card-text">
