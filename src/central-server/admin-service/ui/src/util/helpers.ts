@@ -207,6 +207,10 @@ export function managementTypeToText(
       return t('managementRequests.changeAddress') as string;
     case ManagementRequestType.CLIENT_RENAME_REQUEST:
       return t('managementRequests.renameClient') as string;
+    case ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST:
+      return t('managementRequests.maintenanceModeEnable') as string;
+    case ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST:
+      return t('managementRequests.maintenanceModeDisable') as string;
     default:
       return '';
   }

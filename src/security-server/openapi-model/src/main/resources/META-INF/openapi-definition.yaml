@@ -5835,15 +5835,12 @@ components:
       type: object
       description: automatic e-mail notification status
       properties:
-        acme_failure_status:
-          type: boolean
-          description: status of ACME automatic renewal failure notifications
-        acme_success_status:
-          type: boolean
-          description: status of ACME automatic renewal success notifications
-        auth_cert_registered_status:
-          type: boolean
-          description: status of authentication certificates registration notifications
+        enabled_notifications:
+          type: array
+          uniqueItems: true
+          description: array containing the mail notification types that are enabled
+          items:
+            $ref: '#/components/schemas/MailNotificationType'
         configuration_present:
           type: boolean
           description: whether automatic e-mail has been configured
@@ -5855,6 +5852,17 @@ components:
             format: text
             minLength: 1
             maxLength: 255
+    MailNotificationType:
+      type: string
+      format: enum
+      description: types of mail notifications that can be turned on or off via configuration
+      example: ACME_FAILURE
+      enum:
+        - ACME_FAILURE
+        - ACME_SUCCESS
+        - AUTH_CERT_REGISTERED
+        - ACME_CERT_AUTOMATICALLY_ACTIVATED
+        - ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE
     MailRecipient:
       type: object
       required:

@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 2.11
+Version: 2.12
 Doc. ID: PR-GCONF
 
 | Date       | Version | Description                                           | Author               |
@@ -20,6 +20,7 @@ Doc. ID: PR-GCONF
 | 08.11.2018 | 2.9     | Deprecated global configuration V1                    | Ilkka Seppälä        |
 | 08.11.2018 | 2.10    | Introduction of V3                                    | Andres Rosenthal     |
 | 07.03.2025 | 2.11    | Introduction of V5                                    | Ovidijus Narkevičius |
+| 29.04.2025 | 2.12    | Update of V5 with additional elements                 | Ovidijus Narkevičius |
 
 ## Table of Contents
 
@@ -182,7 +183,7 @@ A configuration client can download the configuration by making HTTP GET request
 
 ### 2.7 Versioning
 
-The current version of the configuration is 3.
+The current version of the configuration is 5.
 
 Configuration source MAY support several versions of the configuration. The configuration client SHOULD signal the version it supports by appending a "version" query parameter in the download URI specified in the configuration anchor. The version number is an integer which is incremented when a backwards-incompatible change is made to the PRIVATE-PARAMETERS or SHARED-PARAMETERS configuration part.
 
@@ -295,6 +296,7 @@ D1XfU3UXTFxS8s8iVW9+ePJhcuYTgpN4+Ze4oZgjbt...=
 
 - Changes in version 5:
     - optional *subsystemName* element of type *string* was added into *SubsystemType* to allow naming of subsystems.
+    - optional *inMaintenanceMode* element with optional inner *message* element of type *string* was added into *SecurityServerType* to allow marking security server as in maintenance mode and providing a message to be displayed to clients.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -493,6 +495,21 @@ D1XfU3UXTFxS8s8iVW9+ePJhcuYTgpN4+Ze4oZgjbt...=
                         this security server. Client can be either a
                         member or a subsystem.
                     </documentation>
+                </annotation>
+            </element>
+            <element name="inMaintenanceMode" type="tns:MaintenanceMode" minOccurs="0" >
+                <annotation>
+                    <documentation>If present marks security server as in maintenance mode and not available.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="MaintenanceMode">
+        <sequence>
+            <element name="message" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>The optional message that is shown to consumers when the server is in maintenance mode.</documentation>
                 </annotation>
             </element>
         </sequence>

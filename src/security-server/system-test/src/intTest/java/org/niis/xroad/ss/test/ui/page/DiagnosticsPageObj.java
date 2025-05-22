@@ -65,11 +65,11 @@ public class DiagnosticsPageObj {
     }
 
     public SelenideElement mailNotificationOnSuccessEnabled() {
-        return $x("//td[@data-test='mail-success-notification-status']");
+        return $x("//span[@data-test='enabled-ACME_SUCCESS']");
     }
 
     public SelenideElement mailNotificationOnFailureEnabled() {
-        return $x("//td[@data-test='mail-failure-notification-status']");
+        return $x("//span[@data-test='enabled-ACME_FAILURE']");
     }
 
     public SelenideElement mailNotificationConfigurationStatus() {

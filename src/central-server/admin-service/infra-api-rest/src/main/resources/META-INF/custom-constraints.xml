@@ -51,45 +51,64 @@
 
     <bean class="MemberAddDto" ignore-annotations="false">
         <field name="memberName">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
         </field>
     </bean>
     <bean class="MemberNameDto" ignore-annotations="false">
         <field name="memberName">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
         </field>
     </bean>
 
     <bean class="MemberClassDto" ignore-annotations="false">
         <field name="code">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
     </bean>
 
     <bean class="NewMemberIdDto" ignore-annotations="false">
         <field name="memberClass">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
         <field name="memberCode">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
     </bean>
 
     <bean class="NewSubsystemIdDto" ignore-annotations="false">
         <field name="subsystemCode">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
         <field name="memberClass">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
         <field name="memberCode">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
     </bean>
     <bean class="GlobalGroupCodeAndDescriptionDto" ignore-annotations="false">
         <field name="code">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
     </bean>
-
+    <bean class="SubsystemAddDto" ignore-annotations="false">
+        <field name="subsystemName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
+        </field>
+    </bean>
+    <bean class="SubsystemNameDto" ignore-annotations="false">
+        <field name="subsystemName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
+        </field>
+    </bean>
+    <bean class="ClientRenameRequestDto" ignore-annotations="false">
+        <field name="subsystemName">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
+        </field>
+    </bean>
+    <bean class="MaintenanceModeEnableRequestDto" ignore-annotations="false">
+        <field name="message">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
+        </field>
+    </bean>
 </constraint-mappings>

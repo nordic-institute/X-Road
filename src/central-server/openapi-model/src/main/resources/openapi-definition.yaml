@@ -4263,8 +4263,17 @@ components:
         owner_name:
           type: string
           readOnly: true
+        in_maintenance_mode:
+          description: true if the security server is in maintenance mode, false otherwise
+          type: boolean
+          readOnly: true
+        maintenance_mode_message:
+          description: optional message of maintenance mode
+          type: string
+          readOnly: true
       required:
         - server_id
+        - in_maintenance_mode
       type: object
     PagedClients:
       description: array of Clients with paging metadata
@@ -4696,7 +4705,7 @@ components:
         member_class:
           description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: GOV
-          format: text§
+          format: text
           maxLength: 255
           minLength: 1
           type: string
@@ -4754,6 +4763,8 @@ components:
           CLIENT_RENAME_REQUEST: "ClientRenameRequest"
           OWNER_CHANGE_REQUEST: "OwnerChangeRequest"
           ADDRESS_CHANGE_REQUEST: "AddressChangeRequest"
+          MAINTENANCE_MODE_ENABLE_REQUEST: "MaintenanceModeEnableRequest"
+          MAINTENANCE_MODE_DISABLE_REQUEST: "MaintenanceModeDisableRequest"
       properties:
         id:
           type: integer
@@ -4828,6 +4839,8 @@ components:
         - CLIENT_RENAME_REQUEST
         - AUTH_CERT_DELETION_REQUEST
         - ADDRESS_CHANGE_REQUEST
+        - MAINTENANCE_MODE_ENABLE_REQUEST
+        - MAINTENANCE_MODE_DISABLE_REQUEST
     ManagementRequestStatus:
       type: string
       readOnly: true
@@ -5049,6 +5062,21 @@ components:
           type: string
       required:
         - server_address
+    MaintenanceModeEnableRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        message:
+          description: Optional short message about maintenance mode
+          example: Short maintenance procedure
+          format: text
+          maxLength: 255
+          type: string
+    MaintenanceModeDisableRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
   securitySchemes:
     ApiKeyAuth:
       description: X-Road-ApiKey token=<api key>

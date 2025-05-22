@@ -40,6 +40,8 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRegRequestType;
 import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
@@ -91,6 +93,25 @@ public class TestManagementRequestBuilder {
         request.setAddress(address);
 
         return buildMessage(element(ManagementRequestType.ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
+    }
+
+    public SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) {
+        var request = FACTORY.createMaintenanceModeEnableRequestType();
+        request.setServer(securityServer);
+        request.setMessage(message);
+
+        return buildMessage(element(ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST,
+                MaintenanceModeEnableRequestType.class,
+                request));
+    }
+
+    public SoapMessageImpl buildMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) {
+        var request = FACTORY.createMaintenanceModeDisableRequestType();
+        request.setServer(securityServer);
+
+        return buildMessage(element(ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST,
+                MaintenanceModeDisableRequestType.class,
+                request));
     }
 
     public SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {

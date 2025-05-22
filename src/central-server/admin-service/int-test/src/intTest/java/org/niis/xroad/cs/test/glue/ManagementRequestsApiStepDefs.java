@@ -40,6 +40,8 @@ import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDetailedViewDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestListViewDto;
@@ -80,6 +82,8 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DI
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_RENAME_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_DISABLE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
 import static org.niis.xroad.cs.test.utils.AssertionUtils.isTheListSorted;
 import static org.springframework.http.HttpStatus.ACCEPTED;
@@ -169,6 +173,44 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
         managementRequest.setClientId(clientId);
 
         final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .execute();
+    }
+
+    @Step("security server {string} is put into maintenance mode with message: {string}")
+    public void securityServerToMaintenanceMode(String securityServerId, String message) {
+        final var managementRequest = new MaintenanceModeEnableRequestDto()
+                .type(MAINTENANCE_MODE_ENABLE_REQUEST)
+                .origin(SECURITY_SERVER)
+                .securityServerId(securityServerId)
+                .message(message);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+
+        this.managementRequestId = response.getBody().getId();
+
+        validate(response)
+                .assertion(equalsStatusCodeAssertion(ACCEPTED))
+                .execute();
+    }
+
+    @Step("security server {string} is put into maintenance mode")
+    public void securityServerToMaintenanceMode(String securityServerId) {
+        securityServerToMaintenanceMode(securityServerId, null);
+    }
+
+    @Step("security server {string} is taken out of maintenance mode")
+    public void securityServerOutOfMaintenanceMode(String securityServerId) {
+        final var managementRequest = new MaintenanceModeDisableRequestDto()
+                .type(MAINTENANCE_MODE_DISABLE_REQUEST)
+                .origin(SECURITY_SERVER)
+                .securityServerId(securityServerId);
+
+        final ResponseEntity<ManagementRequestDto> response = managementRequestsApi.addManagementRequest(managementRequest);
+
         this.managementRequestId = response.getBody().getId();
 
         validate(response)

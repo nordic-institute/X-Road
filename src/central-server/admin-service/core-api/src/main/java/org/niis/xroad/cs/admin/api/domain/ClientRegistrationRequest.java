@@ -38,7 +38,7 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @NoArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class ClientRegistrationRequest extends RequestWithProcessing {
+public final class ClientRegistrationRequest extends RequestWithProcessing {
 
     private ClientId clientId;
     private String subsystemName;
