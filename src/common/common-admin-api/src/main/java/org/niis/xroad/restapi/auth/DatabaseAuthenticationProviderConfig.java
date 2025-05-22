@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,62 +25,68 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.mapper.AdminUserMapper;
+import org.niis.xroad.restapi.repository.AdminUserRepository;
+import org.niis.xroad.restapi.service.AdminUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 
 import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
+import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.PASSWORD_ENCODER;
 import static org.niis.xroad.restapi.auth.securityconfigurer.FormLoginWebSecurityConfig.FORM_LOGIN_AUTHENTICATION;
 import static org.niis.xroad.restapi.auth.securityconfigurer.ManageApiKeysWebSecurityConfig.KEY_MANAGEMENT_AUTHENTICATION;
 
-/**
- * PAM authentication provider configuration.
- * Configures PAM authentication beans for key management API and for form login,
- * with different configurations.
- */
 @Slf4j
 @Configuration
-@Profile("!containerized")
-@RequiredArgsConstructor
-public class PamAuthenticationProviderConfig {
+@Profile("containerized")
+public class DatabaseAuthenticationProviderConfig {
 
     // allow all ipv4 and ipv6
     private static final Iterable<String> FORM_LOGIN_IP_WHITELIST = Arrays.asList("::/0", "0.0.0.0/0");
 
+    private final AdminUserService adminUserService;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
-    private final UserRoleConfig userRoleConfig;
+
+    public DatabaseAuthenticationProviderConfig(AdminUserRepository userRepository,
+                                                AdminUserMapper mapper,
+                                                GrantedAuthorityMapper grantedAuthorityMapper,
+                                                AuditEventLoggingFacade auditEventLoggingFacade) {
+        // Marking UserDetailsService as bean causes the autoconfiguration of DaoAuthenticationProvider in addition to our custom one
+        this.adminUserService = new AdminUserService(userRepository, mapper);
+        this.grantedAuthorityMapper = grantedAuthorityMapper;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
+    }
 
     /**
-     * PAM authentication for form login, with corresponding IP whitelist
-     * @return PamAuthenticationProvider
+     * Database authentication for form login, with corresponding IP whitelist
+     * @return DatabaseAuthenticationProvider
      */
     @Bean(FORM_LOGIN_AUTHENTICATION)
-    public PamAuthenticationProvider formLoginPamAuthentication() {
+    public DatabaseAuthenticationProvider formLoginDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new PamAuthenticationProvider(
-                formLoginWhitelist, grantedAuthorityMapper, userRoleConfig.getUserRoleMappings(), RestApiAuditEvent.FORM_LOGIN,
-                auditEventLoggingFacade);
+        return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, formLoginWhitelist,
+                grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
     }
 
     /**
-     * PAM authentication for key management API, with corresponding IP whitelist
-     * @return PamAuthenticationProvider
+     * Database authentication for key management API, with corresponding IP whitelist
+     * @return DatabaseAuthenticationProvider
      */
     @Bean(KEY_MANAGEMENT_AUTHENTICATION)
-    public PamAuthenticationProvider keyManagementPamAuthentication(
+    public DatabaseAuthenticationProvider keyManagementDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder,
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper, userRoleConfig.getUserRoleMappings(),
-                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade);
+        return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, keyManagementWhitelist,
+                grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
     }
-}
 
+}
