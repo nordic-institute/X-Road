@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -38,6 +37,7 @@ import org.niis.xroad.restapi.entity.ApiKeyEntity;
 import org.niis.xroad.restapi.mapper.ApiKeyMapper;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.util.SecurityHelper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,6 +51,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.API_KEY_NOT_FOUND;
+import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.API_KEY_ENCODER;
 import static org.niis.xroad.restapi.config.ApiCachingConfiguration.LIST_ALL_KEYS_CACHE;
 
 /**
@@ -60,7 +61,6 @@ import static org.niis.xroad.restapi.config.ApiCachingConfiguration.LIST_ALL_KEY
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class ApiKeyService {
 
     private final PasswordEncoder passwordEncoder;
@@ -69,6 +69,20 @@ public class ApiKeyService {
     private final AuditDataHelper auditDataHelper;
     private final SecurityHelper securityHelper;
     private final ApiKeyMapper apiKeyMapper;
+
+    public ApiKeyService(@Qualifier(API_KEY_ENCODER) PasswordEncoder passwordEncoder,
+                         ApiKeyRepository apiKeyRepository,
+                         CacheManager cacheManager,
+                         AuditDataHelper auditDataHelper,
+                         SecurityHelper securityHelper,
+                         ApiKeyMapper apiKeyMapper) {
+        this.passwordEncoder = passwordEncoder;
+        this.apiKeyRepository = apiKeyRepository;
+        this.cacheManager = cacheManager;
+        this.auditDataHelper = auditDataHelper;
+        this.securityHelper = securityHelper;
+        this.apiKeyMapper = apiKeyMapper;
+    }
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,

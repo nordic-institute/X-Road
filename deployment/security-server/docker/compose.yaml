@@ -48,6 +48,8 @@ services:
       - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - db_user=serverconf
       - db_schema=public
+      - admin_superuser=xrd
+      - admin_superuser_password=$$2a$$12$$HEJMkBt8Iwhoy6GvJc9pReYP5ANzxicNXOy76UMi874cxlEhxJUwG # bcrypt hash of "secret" (a $ is escaped with another $)
     depends_on:
       - db-serverconf
     networks:

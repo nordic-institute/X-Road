@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="006-admin-users">
+        <createTable tableName="admin_user">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="admin_user_role">
+            <column name="id" autoIncrement="true" type="SERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="admin_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseColumnNames="admin_user_id" baseTableName="admin_user_role" constraintName="fk_admin_user_role_admin_user_id" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="admin_user"/>
+        <addUniqueConstraint columnNames="admin_user_id, role" constraintName="unique_admin_user_role" tableName="admin_user_role" />
+
+        <sql splitStatements="false">
+            <![CDATA[
+            ALTER TABLE APIKEY_ROLES ADD CONSTRAINT VALID_ROLE
+                CHECK (ROLE IN (
+                                'XROAD_SECURITY_OFFICER',
+                                'XROAD_REGISTRATION_OFFICER',
+                                'XROAD_SERVICE_ADMINISTRATOR',
+                                'XROAD_SYSTEM_ADMINISTRATOR',
+                                'XROAD_SECURITYSERVER_OBSERVER')
+                    );
+            DROP TRIGGER IF EXISTS update_history ON admin_user;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON admin_user
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+
+            DROP TRIGGER IF EXISTS update_history ON admin_user_role;
+            CREATE TRIGGER update_history AFTER INSERT OR UPDATE OR DELETE ON admin_user_role
+                FOR EACH ROW EXECUTE PROCEDURE add_history_rows();
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
