@@ -101,6 +101,10 @@ fi
     fi
 
 %post -p /bin/bash
+
+mkdir -p /var/lib/xroad/backup
+chown xroad:xroad /var/lib/xroad/backup
+
 %systemd_post xroad-backup-manager.service
 
 %execute_init_or_update_resources

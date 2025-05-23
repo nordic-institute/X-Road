@@ -20,9 +20,8 @@ if [ "$1" = configure ]; then
     usermod --append -G shadow xroad
 
     # ensure home directory ownership
-    mkdir -p /var/lib/xroad/backup
+    mkdir -p /var/lib/xroad
     chown xroad:xroad /var/lib/xroad
-    chown xroad:xroad /var/lib/xroad/backup
     chmod 0755 /var/lib/xroad
     chmod -R go-w /var/lib/xroad
 

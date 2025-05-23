@@ -5,6 +5,9 @@ log () { echo >&2 "$@"; }
 case "$1" in
  configure|reconfigure)
 
+   mkdir -p /var/lib/xroad/backup
+   chown xroad:xroad /var/lib/xroad/backup
+
    # generate gpg keypair when needed - directory does not exist and server is initialised
    if [[ -n "$2" ]]; then
      if [ ! -d /etc/xroad/gpghome ] ; then

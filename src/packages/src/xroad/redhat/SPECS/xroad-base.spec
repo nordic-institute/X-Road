@@ -47,7 +47,7 @@ mkdir -p %{buildroot}/etc/xroad/services
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/ssl
-mkdir -p %{buildroot}/var/lib/xroad/backup
+mkdir -p %{buildroot}/var/lib/xroad
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
@@ -76,7 +76,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad/conf.d
 %dir /etc/xroad/conf.d/addons
 %dir /var/lib/xroad
-%dir /var/lib/xroad/backup
 %config /etc/xroad/services/global.conf
 %config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
@@ -179,9 +178,8 @@ fi
 umask 027
 
 # ensure home directory ownership
-mkdir -p /var/lib/xroad/backup
+mkdir -p /var/lib/xroad
 su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
-chown xroad:xroad /var/lib/xroad/backup
 chmod 0755 /var/lib/xroad
 chmod -R go-w /var/lib/xroad
 
