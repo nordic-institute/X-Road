@@ -33,6 +33,7 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
+import io.quarkus.scheduler.common.runtime.util.SchedulerUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,8 @@ public class AutoBackupJob {
     @PostConstruct
     public void init() {
         if (StringUtils.isNoneBlank(backupManagerProperties.autoBackupCronExpression(),
-                backupManagerProperties.autoBackupScriptPath())) {
+                backupManagerProperties.autoBackupScriptPath())
+                && !SchedulerUtils.isOff(backupManagerProperties.autoBackupCronExpression())) {
             log.info("Scheduling automatic backups with cron expression: '{}'",
                     backupManagerProperties.autoBackupCronExpression());
             externalProcessRunner = new ExternalProcessRunner();
