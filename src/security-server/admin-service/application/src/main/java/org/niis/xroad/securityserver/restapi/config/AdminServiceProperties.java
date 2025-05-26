@@ -33,6 +33,7 @@ import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
+import org.niis.xroad.restapi.config.AuthProviderConfig;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserRoleConfig;
@@ -66,7 +67,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         LimitRequestSizesFilter.Config,
         IdentifierValidationConfiguration.Config,
         UserRoleConfig,
-        KeyAlgorithmConfig {
+        KeyAlgorithmConfig,
+        AuthProviderConfig {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -133,6 +135,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
     private KeyAlgorithm authenticationKeyAlgorithm;
     /** Algorithm that will be used when creating signing certificate. */
     private KeyAlgorithm signingKeyAlgorithm;
+
+    private AuthenticationProviderType authenticationProvider;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {

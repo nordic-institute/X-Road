@@ -26,6 +26,8 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.AuthProviderConfig;
+import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.mapper.AdminUserMapper;
@@ -34,7 +36,7 @@ import org.niis.xroad.restapi.service.AdminUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
@@ -46,47 +48,68 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.ManageApiKeysWebSec
 
 @Slf4j
 @Configuration
-@Profile("containerized")
-public class DatabaseAuthenticationProviderConfig {
+public class AuthenticationProviderConfig {
 
     // allow all ipv4 and ipv6
     private static final Iterable<String> FORM_LOGIN_IP_WHITELIST = Arrays.asList("::/0", "0.0.0.0/0");
 
+    private final AuthProviderConfig authProviderConfig;
     private final AdminUserService adminUserService;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final UserRoleConfig userRoleConfig;
 
-    public DatabaseAuthenticationProviderConfig(AdminUserRepository userRepository,
-                                                AdminUserMapper mapper,
-                                                GrantedAuthorityMapper grantedAuthorityMapper,
-                                                AuditEventLoggingFacade auditEventLoggingFacade) {
-        // Marking UserDetailsService as bean causes the autoconfiguration of DaoAuthenticationProvider in addition to our custom one
+    public AuthenticationProviderConfig(AuthProviderConfig authProviderConfig,
+                                        AdminUserRepository userRepository,
+                                        AdminUserMapper mapper,
+                                        GrantedAuthorityMapper grantedAuthorityMapper,
+                                        AuditEventLoggingFacade auditEventLoggingFacade,
+                                        UserRoleConfig userRoleConfig) {
+        /*
+          Marking an implementation of UserDetailsService as a bean triggers the autoconfiguration of DaoAuthenticationProvider,
+          causing it to be registered in addition to the given custom-defined provider
+         */
         this.adminUserService = new AdminUserService(userRepository, mapper);
+
+        this.authProviderConfig = authProviderConfig;
         this.grantedAuthorityMapper = grantedAuthorityMapper;
         this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.userRoleConfig = userRoleConfig;
     }
 
     /**
-     * Database authentication for form login, with corresponding IP whitelist
-     * @return DatabaseAuthenticationProvider
+     * Authentication for form login, with corresponding IP whitelist
+     * @return AuthenticationProvider
      */
     @Bean(FORM_LOGIN_AUTHENTICATION)
-    public DatabaseAuthenticationProvider formLoginDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
+    public AuthenticationProvider formLoginDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
-        return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, formLoginWhitelist,
-                grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
+
+        if (AuthProviderConfig.AuthenticationProviderType.DATABASE == authProviderConfig.getAuthenticationProvider()) {
+            return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, formLoginWhitelist,
+                    grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
+        } else {
+            return new PamAuthenticationProvider(formLoginWhitelist,
+                    grantedAuthorityMapper, userRoleConfig.getUserRoleMappings(), RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
+        }
     }
 
     /**
-     * Database authentication for key management API, with corresponding IP whitelist
-     * @return DatabaseAuthenticationProvider
+     * Authentication for key management API, with corresponding IP whitelist
+     * @return AuthenticationProvider
      */
     @Bean(KEY_MANAGEMENT_AUTHENTICATION)
-    public DatabaseAuthenticationProvider keyManagementDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder,
+    public AuthenticationProvider keyManagementDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder,
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
-        return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, keyManagementWhitelist,
-                grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
+
+        if (AuthProviderConfig.AuthenticationProviderType.DATABASE == authProviderConfig.getAuthenticationProvider()) {
+            return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, keyManagementWhitelist,
+                    grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
+        } else {
+            return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper, userRoleConfig.getUserRoleMappings(),
+                    RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade);
+        }
     }
 
 }
