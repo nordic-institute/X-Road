@@ -1,0 +1,21 @@
+ARG REGISTRY_URL=localhost:5555
+
+FROM ${REGISTRY_URL}/ss-baseline-runtime:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -qq update && \
+    apt-get -qq install --no-install-recommends curl postgresql-client && \
+    apt-get -qq clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN ARCH=$(dpkg --print-architecture) && \
+    KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt) && \
+    curl -sSLo /tmp/kubectl https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl && \
+    curl -sSLo /tmp/kubectl.sha256 https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256 && \
+    echo "$(cat /tmp/kubectl.sha256)  /tmp/kubectl" | sha256sum -c - && \
+    install -m 0755 /tmp/kubectl /usr/local/bin/kubectl && \
+    rm /tmp/kubectl /tmp/kubectl.sha256
+
+RUN mkdir -p /var/lib/xroad/backup && \
+    chown -R xroad:xroad /var/lib/xroad/backup
