@@ -93,7 +93,7 @@ services:
       - db_user=serverconf
       - db_schema=public
       - admin_superuser=xrd
-      - admin_superuser_password=$$2a$$12$$HEJMkBt8Iwhoy6GvJc9pReYP5ANzxicNXOy76UMi874cxlEhxJUwG # bcrypt hash of "secret" (a $ is escaped with another $)
+      - admin_superuser_password=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0 # argon2 hash of "secret" (a $ is escaped with another $)
     depends_on:
       - db-serverconf
     networks:

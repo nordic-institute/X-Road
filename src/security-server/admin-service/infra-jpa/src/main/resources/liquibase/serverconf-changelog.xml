@@ -19,6 +19,7 @@
     <include file="serverconf/005-configuration-properties.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/006-admin-users.xml" relativeToChangelogFile="true"/>
 
+    <!-- TODO: Move the initial admin superuser creation to initialization -->
     <changeSet author="niis" id="insert-admin-superuser-equipped-with-all-roles">
         <preConditions onFail="CONTINUE">
             <and>
