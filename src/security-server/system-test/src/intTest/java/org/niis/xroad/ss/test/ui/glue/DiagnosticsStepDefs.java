@@ -222,19 +222,4 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             assertThat(actualItems).contains(EXPECTED_REPORT_ITEMS);
         }
     }
-
-    @Step("maintenance mode toggle is off")
-    public void maintenanceModeToggleIsOff() {
-        vSwitch(diagnosticsPage.toggleMaintenanceMode())
-                .shouldBe(visible)
-                .shouldNotBeLoading()
-                .shouldBeOff();
-    }
-
-    @Step("maintenance mode toggle is disabled")
-    public void maintenanceModeToggleIsClicked() {
-        vSwitch(diagnosticsPage.toggleMaintenanceMode())
-                .shouldBe(visible)
-                .shouldBeDisabled();
-    }
 }

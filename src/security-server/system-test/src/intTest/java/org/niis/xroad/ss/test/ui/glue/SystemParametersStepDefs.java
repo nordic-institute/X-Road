@@ -34,6 +34,7 @@ import org.niis.xroad.ss.test.ui.page.SystemParametersPageObj;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
 public class SystemParametersStepDefs extends BaseUiStepDefs {
@@ -107,6 +108,21 @@ public class SystemParametersStepDefs extends BaseUiStepDefs {
 
         commonPageObj.dialog.btnSave().shouldBe(enabled);
         commonPageObj.dialog.btnSave().click();
+    }
+
+    @Step("maintenance mode toggle is off")
+    public void maintenanceModeToggleIsOff() {
+        vSwitch(systemParametersPageObj.toggleMaintenanceMode())
+                .shouldBe(visible)
+                .shouldNotBeLoading()
+                .shouldBeOff();
+    }
+
+    @Step("maintenance mode toggle is disabled")
+    public void maintenanceModeToggleIsClicked() {
+        vSwitch(systemParametersPageObj.toggleMaintenanceMode())
+                .shouldBe(visible)
+                .shouldBeDisabled();
     }
 
 }
