@@ -111,4 +111,5 @@ public class DiagnosticsPageObj {
     public SelenideElement btnDownloadDiagnoticsReport() {
         return $x("//button[@data-test='download-diagnostics-report-button']");
     }
+
 }

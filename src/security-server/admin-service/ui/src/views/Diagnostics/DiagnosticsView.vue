@@ -24,37 +24,37 @@
    THE SOFTWARE.
  -->
 <template>
-    <XrdTitledView title-key="tab.main.diagnostics" data-test="diagnostics-view">
-      <template #header-buttons>
-        <DiagnosticsDownloadSystemInfoBtn />
-      </template>
+  <XrdTitledView title-key="tab.main.diagnostics" data-test="diagnostics-view">
+    <template #header-buttons>
+      <DiagnosticsDownloadSystemInfoBtn />
+    </template>
 
-      <DiagnosticsJavaVersionCard class="mt-0" />
+    <DiagnosticsJavaVersionCard class="mt-0" />
 
-      <DiagnosticsMailNotificationCard />
+    <DiagnosticsMailNotificationCard />
 
-      <DiagnosticsGlobalConfigurationCard />
+    <DiagnosticsGlobalConfigurationCard />
 
-      <DiagnosticsTimestampingServiceCard
-        :addon-status-loading="addonStatusLoading"
-      />
+    <DiagnosticsTimestampingServiceCard
+      :addon-status-loading="addonStatusLoading"
+    />
 
-      <DiagnosticsOcspRespondersCard />
+    <DiagnosticsOcspRespondersCard />
 
-      <DiagnosticsBackupEncryptionCard />
+    <DiagnosticsBackupEncryptionCard />
 
-      <DiagnosticsMessageLogArchiveCard
-        :addon-status-loading="addonStatusLoading"
-        :message-log-encryption-loading="messageLogEncryptionLoading"
-      />
+    <DiagnosticsMessageLogArchiveCard
+      :addon-status-loading="addonStatusLoading"
+      :message-log-encryption-loading="messageLogEncryptionLoading"
+    />
 
-      <DiagnosticsMessageLogDatabaseCard
-        :message-log-encryption-loading="messageLogEncryptionLoading"
-      />
+    <DiagnosticsMessageLogDatabaseCard
+      :message-log-encryption-loading="messageLogEncryptionLoading"
+    />
 
-      <DiagnosticsProxyMemoryUsageCard />
+    <DiagnosticsProxyMemoryUsageCard />
 
-    </XrdTitledView>
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -111,7 +111,6 @@ export default defineComponent({
     fetchData(): void {
       this.addonStatusLoading = true;
       this.messageLogEncryptionLoading = true;
-
       this.fetchAddonStatus()
         .catch((error) => {
           this.showError(error);

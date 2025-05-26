@@ -125,6 +125,7 @@
       }
     },
     "defaultSubsystemNameTooltip": "Subsystem name is not defined",
+    "forbiddenDisable": "The provider of management services is not eligible for deactivation.",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -258,6 +259,22 @@
       "types": "Mail notification types",
       "status": "Status"
     },
+    "maintenanceMode": {
+      "enableTitle": "Enable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "disableTitle": "Disable maintenance mode",
+      "disableConfirm": "Do you want to disable maintenance mode?",
+      "disableSuccess": "Maintenance mode disabling in progress",
+      "forbiddenEnable": "Maintenance mode cannot be enabled for a management services provider",
+      "label": "Maintenance mode:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
+        "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request is submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request is submitted"
+      }
+    },
     "message": "Message",
     "nextUpdate": "Next Update",
     "ocspResponders": {
@@ -336,6 +353,8 @@
     },
     "action_not_possible": "Action is not possible",
     "additional_member_already_exists": "Additional member already exists",
+    "already_disabled_maintenance_mode": "Maintenance mode is already disabled",
+    "already_enabled_maintenance_mode": "Maintenance mode is already enabled",
     "anchor_already_exists": "Anchor already exists",
     "anchor_file_not_found": "Anchor file not found",
     "anchor_not_found": "Anchor not found",
@@ -381,6 +400,8 @@
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
+    "forbidden_disable_management_service_client": "The management services provider cannot be deactivated.",
+    "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
     "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
     "gpg_key_generation_failed": "GPG keypair generation failed",
@@ -408,6 +429,7 @@
     "local_group_member_not_found": "Local group member not found",
     "local_group_not_found": "Local group not found",
     "malformed_anchor": "Malformed anchor",
+    "maintenance_mode_change_request_already_submitted": "Maintenance mode change is already pending",
     "malformed_url": "Malformed URL",
     "management_request_sending_failed": "Sending of management request failed",
     "member_already_owner": "Member is already the owner",
@@ -479,6 +501,7 @@
     "keys": {
       "name": "Name"
     },
+    "maintenanceModeMessage": "Maintenance mode message",
     "memberCode": "Member Code",
     "path": "path",
     "pin": "PIN",

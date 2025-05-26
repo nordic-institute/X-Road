@@ -191,6 +191,7 @@ public class ClientsApiController implements ClientsApi {
     public ResponseEntity<ClientDto> getClient(String id) {
         Client client = getClientFromDb(id);
         ClientDto clientDto = clientConverter.convert(client);
+        clientDto.setIsManagementServicesProvider(clientService.isManagementServiceProvider(client.getIdentifier()));
         return new ResponseEntity<>(clientDto, HttpStatus.OK);
     }
 

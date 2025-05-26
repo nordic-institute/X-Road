@@ -132,8 +132,6 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             if (response != null) {
                 sendResponse();
             }
-        } catch (Exception e) {
-            throw e;
         } finally {
             if (response != null) {
                 response.consume();

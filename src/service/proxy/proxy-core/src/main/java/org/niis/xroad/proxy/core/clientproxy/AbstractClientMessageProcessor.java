@@ -40,8 +40,10 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
@@ -54,11 +56,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
+import static ee.ria.xroad.common.ErrorCodes.X_MAINTENANCE_MODE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
@@ -87,7 +92,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     protected AbstractClientMessageProcessor(CommonBeanProxy commonBeanProxy,
                                              RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
-                                             OpMonitoringData opMonitoringData) throws Exception {
+                                             OpMonitoringData opMonitoringData) {
         super(commonBeanProxy, request, response, httpClient);
 
         this.clientCert = clientCert;
@@ -154,29 +159,13 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
-            throws Exception {
+    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
-
-        if (hostNames == null || hostNames.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
-                    serviceProvider);
-        }
+        var hostNames = hostNamesByProvider(serviceProvider);
 
         if (serverId != null) {
-            final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
-
-            if (securityServerAddress == null) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
-            }
-
-            if (!hostNames.contains(securityServerAddress)) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serviceProvider);
-            }
-
-            hostNames = Collections.singleton(securityServerAddress);
+            hostNames = hostNamesBySecurityServer(serverId, hostNames);
         }
 
         String protocol = isSslEnabled() ? "https" : "http";
@@ -184,27 +173,107 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
 
-        for (String host : hostNames) {
-            try {
-                addresses.add(new URI(protocol, null, host, port, "/", null, null));
-            } catch (URISyntaxException e) {
-                log.warn("Invalid service provider hostname " + host);
+        var maintenanceModeErrors = new LinkedList<CodedException>();
+
+        for (var host : hostNames) {
+            var inMaintenance = commonBeanProxy.globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
+                    .filter(SharedParameters.MaintenanceMode::enabled)
+                    .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
+                    .map(maintenanceModeErrors::add)
+                    .orElse(Boolean.FALSE);
+            if (!inMaintenance) {
+                buildUri(protocol, host, port).ifPresent(addresses::add);
             }
         }
 
         if (addresses.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find suitable address for service provider \"%s\"",
-                    serviceProvider);
+            if (maintenanceModeErrors.isEmpty()) {
+                throw new CodedException(X_UNKNOWN_MEMBER, "Could not find suitable address for service provider \"%s\"",
+                        serviceProvider);
+            } else {
+                throw maintenanceModeErrors.getFirst();
+            }
         }
 
         return addresses;
+    }
+
+    private Optional<URI> buildUri(String protocol, String host, int port) {
+        try {
+            return Optional.of(new URI(protocol, null, host, port, "/", null, null));
+        } catch (URISyntaxException e) {
+            log.warn("Invalid service provider hostname: {}", host);
+            return Optional.empty();
+        }
+    }
+
+    private Collection<String> hostNamesByProvider(ServiceId serviceProvider) {
+        var hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+
+        if (hostNames == null || hostNames.isEmpty()) {
+            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
+                    serviceProvider);
+        }
+
+        return hostNames;
+    }
+
+    private Collection<String> hostNamesBySecurityServer(SecurityServerId serverId, Collection<String> hostNamesByProvider) {
+        final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
+
+        if (securityServerAddress == null) {
+            throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
+        }
+
+        if (!hostNamesByProvider.contains(securityServerAddress)) {
+            throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
+        }
+
+        commonBeanProxy.globalConfProvider.getMaintenanceMode(serverId)
+                .filter(SharedParameters.MaintenanceMode::enabled)
+                .ifPresent(maintenanceMode -> {
+                    throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
+                });
+
+        return Collections.singleton(securityServerAddress);
+    }
+
+    private CodedException buildMaintenanceModeException(SecurityServerId serverId, String address, String maintenanceModeMessage) {
+        var serverIdStr = serverId != null ? serverId.toString() : null;
+        var message = new StringBuilder("Security server");
+        if (serverId != null) {
+            message
+                    .append(" \"")
+                    .append(serverIdStr)
+                    .append("\"");
+
+        }
+
+        if (StringUtils.isNotEmpty(address)) {
+            message
+                    .append(" with address \"")
+                    .append(address)
+                    .append("\"");
+        }
+
+        message.append(" is in maintenance mode");
+
+        if (StringUtils.isNotEmpty(maintenanceModeMessage)) {
+            message
+                    .append(". Message from \"")
+                    .append(StringUtils.defaultIfEmpty(serverIdStr, address))
+                    .append("\" administrator: ")
+                    .append(maintenanceModeMessage);
+        }
+
+        return new CodedException(X_MAINTENANCE_MODE, message.toString());
     }
 
     static DigestAlgorithm getHashAlgoId(HttpSender httpSender) {
         return DigestAlgorithm.ofName(httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID));
     }
 
-    protected void verifyClientStatus(ClientId client) throws Exception {
+    protected void verifyClientStatus(ClientId client) {
         if (client == null) {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }

@@ -117,6 +117,11 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
 
     INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID(ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID),
 
+    FORBIDDEN_DISABLE_MANAGEMENT_SERVICE_CLIENT("forbidden_disable_management_service_client"),
+    FORBIDDEN_ENABLE_MAINTENANCE_MODE_FOR_MANAGEMENT_SERVICE("forbidden_enable_maintenance_mode_for_management_service"),
+    DUPLICATE_MAINTENANCE_MODE_CHANGE_REQUEST("maintenance_mode_change_request_already_submitted"),
+    ALREADY_ENABLED_MAINTENANCE_MODE("already_enabled_maintenance_mode"),
+    ALREADY_DISABLED_MAINTENANCE_MODE("already_disabled_maintenance_mode"),
     DUPLICATE_ADDRESS_CHANGE_REQUEST("address_change_request_already_submitted"),
     SAME_ADDRESS_CHANGE_REQUEST("same_address_change_request"),
     CANNOT_REGISTER_OWNER(ERROR_CANNOT_REGISTER_OWNER),
