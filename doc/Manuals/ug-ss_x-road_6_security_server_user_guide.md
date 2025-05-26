@@ -218,7 +218,7 @@ Doc. ID: UG-SS
   - [10.3 Managing the Timestamping Services](#103-managing-the-timestamping-services)
   - [10.4 Changing the Internal TLS Key and Certificate](#104-changing-the-internal-tls-key-and-certificate)
   - [10.5 Approved Certificate Authorities](#105-approved-certificate-authorities)
-  - [10.6 Enable/Disable maintenance mode for the Security server](#106-enable-disable-maintenance-mode-for-the-security-server)
+  - [10.6 Enable/Disable maintenance mode for the Security Server](#106-enabledisable-maintenance-mode-for-the-security-server)
 - [11 Message Log](#11-message-log)
   - [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
     - [11.1.1 Common Parameters](#1111-common-parameters)
@@ -1907,7 +1907,7 @@ Lists approved certificate authorities. The listing contains the following infor
   * Additional status "not available" if the OCSP response is not available at all, e.g. due to an error.
 * Certificate expiration date.
 
-### 10.6 Enable/Disable maintenance mode for the Security server
+### 10.6 Enable/Disable maintenance mode for the Security Server
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
@@ -1915,11 +1915,11 @@ To enable or disable maintenance mode for the Security Server, follow these step
 1. In the **Navigation tabs**, select **SETTINGS**.
 2. In the opening view select **SYSTEM PARAMETERS** tab.
 3. At the top of the **SYSTEM PARAMETERS** tab, click the switch for Maintenance mode to turn it on or off.
-4. The confirmation dialog will open with optional field for message (only when enabling maintenance mode) which will be included in error messages returned to clients when they will try to access the services.
+4. The confirmation dialog will open with an optional field for message (only when enabling maintenance mode) which will be included in error messages returned to clients when they try to access services when the maintenance mode is enabled.
 5. Click **Confirm** to proceed.
-6. Next, the maintenance mode request is submitted. This does not affect the Security Server functionality until the change is propagated through the global configuration refresh. Once propagated, the Security Server will have the maintenance mode set to "On" or "Off." Other Security Servers will recognize the change and stop sending requests to the Security Server if needed.
+6. Next, the maintenance mode request is submitted to the Central Server. This does not affect the Security Server functionality until the change is propagated through the global configuration - the Security Server downloads a new version of the global configuration where the maintenance mode is enabled. Once propagated, the Security Server will have the maintenance mode set to "On" or "Off." Other Security Servers will recognize the change and start/stop sending requests to the Security Server depending on the maintenance mode status.
 
-Notice that if the Security server is provider of management services, then the maintenance mode is disabled without possibility to enable it.
+Notice that if the Security Server is provider of management services, then the maintenance mode is disabled without possibility to enable it.
 
 ## 11 Message Log
 
@@ -2576,7 +2576,7 @@ The status colors indicate the following:
 
 ### 14.4 Download diagnostics report
 
-It is possible to download a diagnostics report file which can be included as additional information when registering issues for the Security server.
+It is possible to download a diagnostics report file which can be included as additional information when registering issues for the Security Server.
 File includes following information:
 - X-Road and Java version
 - OS version
@@ -2585,10 +2585,10 @@ File includes following information:
 - Global configuration status
 - OCSP responders status
 - Timestamping status
-- Does it runs in container
+- Deployment mode (native / container)
 - Installed X-Road packages
-- JAVA Processes
-- Does maintenance mode is enabled
+- Running Java processes
+- Is maintenance mode enabled
 
 File is in JSON format and can be downloaded by clicking the **Download diagnostics report** button.
 
