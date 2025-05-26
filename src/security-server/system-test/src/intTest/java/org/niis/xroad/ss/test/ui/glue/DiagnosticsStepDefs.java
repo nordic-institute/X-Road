@@ -53,7 +53,6 @@ import static com.codeborne.selenide.Condition.visible;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.given;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSwitch;
 
 @SuppressWarnings("checkstyle:MagicNumber")
 public class DiagnosticsStepDefs extends BaseUiStepDefs {
