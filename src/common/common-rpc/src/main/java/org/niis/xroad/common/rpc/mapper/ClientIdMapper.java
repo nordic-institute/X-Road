@@ -23,33 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.mapper;
+package org.niis.xroad.common.rpc.mapper;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
+import org.niis.xroad.signer.protocol.dto.ClientIdProto;
 import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SecurityServerIdMapper {
+public final class ClientIdMapper {
 
-    public static SecurityServerId.Conf fromDto(final SecurityServerIdProto input) {
-        return SecurityServerId.Conf.create(
-                input.getXroadInstance(),
-                input.getMemberClass(),
-                input.getMemberCode(),
-                input.getServerCode());
+    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
+        if (clientIdProto.hasSubsystemCode()) {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode(),
+                    clientIdProto.getSubsystemCode());
+        } else {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode());
+        }
     }
 
-    public static SecurityServerIdProto toDto(final SecurityServerId input) {
-        return SecurityServerIdProto.newBuilder()
+    public static ClientIdProto toDto(ClientId input) {
+        var builder = ClientIdProto.newBuilder()
                 .setMemberClass(input.getMemberClass())
                 .setMemberCode(input.getMemberCode())
-                .setServerCode(input.getServerCode())
                 .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()))
-                .build();
+                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
+
+        if (input.getSubsystemCode() != null) {
+            builder.setSubsystemCode(input.getSubsystemCode());
+        }
+        return builder.build();
     }
 }
