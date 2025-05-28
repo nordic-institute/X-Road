@@ -33,6 +33,11 @@ jobs:
     name: Build, test and package code
     runs-on: ubuntu-22.04
     steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: start-measurement
+          label: 'Build, unit tests and packaging'
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # SonarCloud: Shallow clones should be disabled for a better relevancy of analysis
@@ -58,6 +63,11 @@ jobs:
           gradle-home-cache-cleanup: true
           dependency-graph: generate-and-submit
           add-job-summary-as-pr-comment: always
+      - name: Build, test and package code setup measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: get-measurement
+          label: 'Build environment setup'
       - name: Build and test source
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -75,6 +85,11 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Build, test and package code execution measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: get-measurement
+          label: 'Build, unit tests and packaging'
       - name: Store files for arm packaging
         uses: pyTooling/upload-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
         with:
@@ -114,11 +129,26 @@ jobs:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
+      - name: Packaging and upload artifacts measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: get-measurement
+          label: 'Packaging and upload artifacts'
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: display-results
+          pr-comment: true
   BuildAndPackageOnArm:
     name: Build and package code for arm architecture
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04-arm
     steps:
+      - name: Start Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: start-measurement
+          label: 'Packaging for arm architecture'
       - name: Ensure required packages
         env:
           DEBIAN_FRONTEND: noninteractive # Less output to log
@@ -139,6 +169,11 @@ jobs:
         uses: pyTooling/download-artifact@v4 # https://github.com/actions/upload-artifact/issues/38
         with:
           name: workspace-for-arm
+      - name: Set up measurement for arm packaging
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: get-measurement
+          label: 'Set up arm packaging'
       - name: Build native dependencies
         working-directory: ./src
         run: ./gradlew :service:signer:signer-api:make
@@ -162,6 +197,16 @@ jobs:
           name: debian-packages-arm
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
+      - name: Measurement for arm packaging
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: get-measurement
+          label: 'Packaging for arm architecture'
+      - name: Show Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
+        with:
+          task: display-results
+          pr-comment: true
   RunCSSystemTests:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
