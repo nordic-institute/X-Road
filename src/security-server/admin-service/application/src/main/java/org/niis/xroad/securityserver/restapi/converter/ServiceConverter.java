@@ -28,6 +28,9 @@ package org.niis.xroad.securityserver.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
+
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
@@ -132,6 +135,17 @@ public class ServiceConverter {
         return clientIdConverter.convertId(encodedClientId);
     }
 
+    public ServiceId parseServiceId(String encodedId) {
+        validateEncodedString(encodedId);
+        String fullServiceCode = parseFullServiceCode(encodedId);
+        String[] parts = fullServiceCode.split("\\.");
+        if (parts.length == 2) {
+          return ServiceId.Conf.create(parseClientId(encodedId), parts[0], parts[1]);
+        } else {
+          return ServiceId.Conf.create(parseClientId(encodedId), parts[0]);
+        }
+    }
+
     /**
      * parse service code including version from encoded service id
      * @param encodedId
@@ -139,10 +153,9 @@ public class ServiceConverter {
      */
     public String parseFullServiceCode(String encodedId) {
         validateEncodedString(encodedId);
-        List<String> parts = new ArrayList<>(
-                Arrays.asList(encodedId.split(
-                        String.valueOf(ENCODED_ID_SEPARATOR))));
-        return parts.get(parts.size() - 1);
+        List<String> parts = Arrays.asList(encodedId.split(
+                        String.valueOf(ENCODED_ID_SEPARATOR)));
+        return parts.getLast();
     }
 
     private void validateEncodedString(String encodedId) {

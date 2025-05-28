@@ -35,13 +35,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.OperationalInfoConverter;
 import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
+import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
@@ -49,6 +53,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatu
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
@@ -61,6 +66,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
@@ -88,6 +94,9 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final BackupEncryptionStatusConverter backupEncryptionStatusConverter;
     private final MessageLogEncryptionStatusConverter messageLogEncryptionStatusConverter;
     private final ProxyMemoryUsageStatusConverter proxyMemoryUsageStatusConverter;
+    private final OperationalInfoConverter operationalInfoConverter;
+    private final ClientIdConverter clientIdConverter;
+    private final ServiceConverter serviceConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -152,6 +161,24 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     public ResponseEntity<ProxyMemoryUsageStatusDto> getProxyMemoryUsage() {
         ProxyMemory proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
         return new ResponseEntity<>(proxyMemoryUsageStatusConverter.convert(proxyMemoryUsage), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<List<OperationalDataIntervalDto>> getOperationalDataIntervals(OffsetDateTime recordsFrom,
+                                                                                        OffsetDateTime recordsTo,
+                                                                                        Integer interval,
+                                                                                        String securityServerType,
+                                                                                        String memberId,
+                                                                                        String serviceId) {
+        List<OperationalDataInterval> opDataIntervals = diagnosticService.getOperationalDataIntervals(
+                recordsFrom.toInstant().toEpochMilli(),
+                recordsTo.toInstant().toEpochMilli(),
+                interval,
+                securityServerType,
+                memberId != null ? clientIdConverter.convertId(memberId) : null,
+                serviceId != null ? serviceConverter.parseServiceId(serviceId) : null);
+        return new ResponseEntity<>(operationalInfoConverter.convert(opDataIntervals), HttpStatus.OK);
     }
 
     private String systemInformationFilename() {

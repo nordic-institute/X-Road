@@ -2390,6 +2390,82 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /diagnostics/operational-monitoring:
+    get:
+      tags:
+        - diagnostics
+      summary: view operational information
+      operationId: getOperationalDataIntervals
+      description: <h3>Administrator views the Security Server's operational information on diagnostics page</h3>
+      parameters:
+        - in: query
+          name: records_from
+          description: the earliest time for the queried requests being made
+          required: true
+          schema:
+            type: string
+            format: date-time
+            example: '2025-05-15T00:00:00.001Z'
+        - in: query
+          name: records_to
+          description: the latest time for the queried requests being made
+          required: true
+          schema:
+            type: string
+            format: date-time
+            example: '2025-05-15T00:00:00.001Z'
+        - in: query
+          name: interval
+          description: interval in minutes the requests are divided into
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: '15'
+        - in: query
+          name: security_server_type
+          description: whether this Security Server was a 'Client' or a 'Producer'
+          example: 'Client'
+          required: false
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: member_id
+          description: clientId of the Member who made or received the request. <instance_id>:<member_class>:<member_code>:<subsystem_code>. Subsystem code is optional.
+          example: FI:GOV:123:Subsystem
+          required: false
+          schema:
+            type: string
+            format: text
+        - in: query
+          name: service_id
+          description: serviceId of the Service that received the request. <instance_id>:<member_class>:<member_code>:<subsystem_code>:<service_code>.<version_number>. Version number is optional.
+          example: FI:GOV:123:Subsystem:MyService.V1
+          required: false
+          schema:
+            type: string
+            format: text
+      responses:
+        '200':
+          description: operational information to be visualized
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of operational info objects
+                items:
+                  $ref: '#/components/schemas/OperationalDataInterval'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /initialization:
     post:
       tags:
@@ -5967,6 +6043,22 @@ components:
       enum:
         - success # Sending mail was a success
         - error # Sending mail failed
+    OperationalDataInterval:
+      type: object
+      description: Operational information to be visualized
+      properties:
+        interval_start_time:
+          type: string
+          format: date-time
+          description: The beginning of this time window
+        success_count:
+          description: number of successful requests in this time window
+          type: integer
+          format: int64
+        failure_count:
+          description: number of failed requests in this time window
+          type: integer
+          format: int64
     Anchor:
       type: object
       description: security server anchor

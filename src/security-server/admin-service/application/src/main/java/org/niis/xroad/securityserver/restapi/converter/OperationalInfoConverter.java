@@ -23,48 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.securityserver.restapi.converter;
 
-option java_multiple_files = true;
-option java_package = "org.niis.xroad.signer.protocol.dto";
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
+import org.springframework.stereotype.Component;
 
-/* Generic empty request/response. */
-message Empty {
-}
+import java.time.ZoneOffset;
+import java.util.List;
 
-message ClientIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  optional string subsystem_code = 3;
+@Component
+public class OperationalInfoConverter {
 
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
+    public OperationalDataIntervalDto convert(OperationalDataInterval operationalDataInterval) {
+        OperationalDataIntervalDto operationalDataIntervalDto = new OperationalDataIntervalDto();
+        operationalDataIntervalDto.intervalStartTime(operationalDataInterval.getIntervalStart().atOffset(ZoneOffset.UTC));
+        operationalDataIntervalDto.successCount(operationalDataInterval.getSuccessCount());
+        operationalDataIntervalDto.failureCount(operationalDataInterval.getFailureCount());
+        return operationalDataIntervalDto;
+    }
 
-message ServiceIdProto {
-  string xroad_instance = 1;
-  string service_code = 2;
-  string member_class = 3;
-  string member_code = 4;
-  string subsystem_code = 5;
-  optional string service_version = 6;
-}
-
-message SecurityServerIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  string server_code = 3;
-
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
-
-enum XRoadObjectType {
-  XROAD_OBJECT_TYPE_UNSPECIFIED = 0;
-  SERVER = 1;
-  SERVICE = 2;
-  MEMBER = 3;
-  SUBSYSTEM = 4;
-  GLOBALGROUP = 5;
-  LOCALGROUP = 6 [deprecated = true]; // Deprecated
+    public List<OperationalDataIntervalDto> convert(List<OperationalDataInterval> operationalInfos) {
+        return operationalInfos.stream()
+                .map(this::convert)
+                .toList();
+    }
 }

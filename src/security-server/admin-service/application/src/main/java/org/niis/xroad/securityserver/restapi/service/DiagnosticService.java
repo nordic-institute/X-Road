@@ -31,6 +31,8 @@ import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +41,9 @@ import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
 import org.niis.xroad.globalconf.status.CertificationServiceStatus;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.globalconf.status.OcspResponderStatus;
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.OpMonitorClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -82,6 +86,7 @@ public class DiagnosticService {
     private final String backupEncryptionStatusUrl;
     private final String messageLogEncryptionStatusUrl;
     private final String proxyMemoryUsageUrl;
+    private final OpMonitorClient opMonitorClient;
 
     @Autowired
     public DiagnosticService(
@@ -92,7 +97,8 @@ public class DiagnosticService {
             @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             @Value("${url.diagnostics-proxy-memory-usage}") String proxyMemoryUsageUrl,
-            RestTemplateBuilder restTemplateBuilder) {
+            RestTemplateBuilder restTemplateBuilder,
+            OpMonitorClient opMonitorClient) {
 
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
@@ -118,6 +124,7 @@ public class DiagnosticService {
                 .readTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
                 .messageConverters(converter)
                 .build();
+        this.opMonitorClient = opMonitorClient;
     }
 
     /**
@@ -252,6 +259,20 @@ public class DiagnosticService {
         status.setOcspResponderStatusMap(statuses);
 
         return status;
+    }
+
+    public List<OperationalDataInterval> getOperationalDataIntervals(Long recordsFromTimestamp,
+                                                                     Long recordsToTimestamp,
+                                                                     Integer interval,
+                                                                     String securityServerType,
+                                                                     ClientId memberId,
+                                                                     ServiceId serviceId) {
+        return opMonitorClient.getOperationalDataIntervals(recordsFromTimestamp,
+                recordsToTimestamp,
+                interval,
+                securityServerType,
+                memberId,
+                serviceId);
     }
 
     /**
