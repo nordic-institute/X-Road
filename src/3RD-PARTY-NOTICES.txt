@@ -63,7 +63,6 @@ Copyright (C) AJ ONeal
 copyright 2012-2018 AJ ONeal
 Copyright 2015 AJ ONeal
 Copyright (c) 2015 AJ ONeal
-Copyright 2023 Abdullah Atta
 Copyright 2004-2006, 2009 Acegi Technology Pty Limited
 Copyright (C) Adobe
 Copyright (C) Alexander Maslov
@@ -73,7 +72,7 @@ Copyright (c) 2017 Anatoly Pulyaevskiy
 Copyright (c) 2015 Andreas Lubbe
 Copyright (C) Andrey Somov
 Copyright (C) Ant Elder
-Copyright (c) 2022 Anthony Fu <https://github.com/antfu>
+Copyright (c) 2022 Anthony Fu https://github.com/antfu
 Copyright (c) 2022 Anton Kastritskiy
 Copyright (C) Apache
 Copyright (C) Apache Software Foundation
@@ -204,7 +203,7 @@ Copyright (c) 2013-2017 Jared Hanson
 Copyright (C) Jason van Zyl
 Copyright (c) 2018 Jennifer Thakar
 Copyright (C) Jeremias Maerki
-copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors <http://underscorejs.org/>
+copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors http://underscorejs.org
 Copyright (c) 2013 Jesper S Moller and others
 Copyright (C) Jet Infosystems
 Copyright 2000-2021 JetBrains s.r.o.
@@ -252,7 +251,6 @@ Copyright (c) 2006-2025 Lukas Renggli
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (https://lukeed.com)
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
 Copyright (c) 2018 Made With MOXY Lda
-Copyright (c) 2024 Madeline Gurriaran
 Copyright (C) Manfred Hanke
 Copyright MapStruct Authors
 Copyright (C) Marc Philipp
@@ -264,7 +262,7 @@ Copyright (C) Mark Struberg
 Copyright (C) Marko Bekhta
 Copyright (C) Martin Cooper
 Copyright (C) Marvin Herman Froeder
-Copyright Mathias Bynens <https://mathiasbynens.be/>
+Copyright Mathias Bynens https://mathiasbynens.be
 Copyright (C) Matt Benson
 Copyright (C) Matt Sicker
 Copyright (C) Matthew Hawthorne
@@ -415,7 +413,7 @@ Copyright (C) The Javassist Project
 Copyright 2012-2013, 2017 The Netty Project
 Copyright 2013-2024 The OpenZipkin Authors
 Copyright 2014-2023 The gRPC
-Copyright 2014-2024 The gRPC Authors
+Copyright 2014-2025 The gRPC Authors
 Copyright (C) Thomas Neidhart
 Copyright 2013 Thorsten Lorenz
 Copyright (c) 2012-2019 Thorsten Lorenz, Paul Miller (https://paulmillr.com)
@@ -466,11 +464,11 @@ Copyright 2018 gRPC
 Copyright (C) gRPC Authors
 Copyright (c) 1999-2017 http://www.oracle.com' Oracle and/or its affiliates
 Copyright (C) integral Source
-Copyright jQuery Foundation and other contributors <https://jquery.org/>
+Copyright jQuery Foundation and other contributors https://jquery.org
 Copyright 2015 present Alexander Madyankin <alexander@madyankin.name>
 Copyright 2014 present Olivier Lalonde <olalonde@gmail.com> , James Talmage <james@talmage.io> , Ruben Verborgh
 Copyright (c) 2021 present dominikg and contributors (https://github.com/dominikg/tsconfck/graphs/contributors)
-Copyright (c) 2014-2015, 2017 present, Jon Schlinkert
+Copyright (c) 2014-2015 present, Jon Schlinkert
 Copyright (c) 2019 present, VoidZero Inc. and Vite contributors
 Copyright (c) 2017, 2020 present, Yuxi
 Copyright (c) 2023 present, sapphi-red
@@ -893,10 +891,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----
 
-Copyright 2023 Abdullah Atta
 Copyright (c) 2015 Alexey Litvinov
 Copyright (c) 2015 Andreas Lubbe
-Copyright (c) 2022 Anthony Fu <https://github.com/antfu>
+Copyright (c) 2022 Anthony Fu https://github.com/antfu
 Copyright (c) 2022 Anton Kastritskiy
 Copyright (c) 2014 Arnout Kazemier
 Copyright (c) 2013 Arnout Kazemier and contributors
@@ -924,7 +921,7 @@ Copyright (c) 2013-2019 Ivan Nikulin (ifaaan@gmail.com, https://github.com/iniku
 Copyright JS Foundation and other contributors
 Copyright (c) 2013 James Halliday (mail@substack.net)
 Copyright (c) 2013-2017 Jared Hanson
-copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors <http://underscorejs.org/>
+copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors http://underscorejs.org
 Copyright (c) 2014-2018 Jon Schlinkert
 Copyright (c) 2013-2014 Jonathan Ong <me@jongleberry.com>
 Copyright (c) 2018-2021 Josh Junon
@@ -937,9 +934,8 @@ Copyright (c) 2016 Luigi Pinca and contributors
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (https://lukeed.com)
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
 Copyright (c) 2018 Made With MOXY Lda
-Copyright (c) 2024 Madeline Gurriaran
 Copyright 2015 Mark Dalgleish <mark.john.dalgleish@gmail.com>
-Copyright Mathias Bynens <https://mathiasbynens.be/>
+Copyright Mathias Bynens https://mathiasbynens.be
 Copyright (c) 2014 Matt Warren
 Copyright (c) 2014 Maxime Thirouin, Jason Campbell & Kevin Martensson
 Copyright (c) 2014 Michael Barker
@@ -973,11 +969,11 @@ Copyright (c) 2015 Unshift.io, Arnout Kazemier
 Copyright (c) 2020 Vercel, Inc.
 Copyright (C) Vladimir Sitnikov
 Copyright (C) fasterxml.com
-Copyright jQuery Foundation and other contributors <https://jquery.org/>
+Copyright jQuery Foundation and other contributors https://jquery.org
 Copyright 2015 present Alexander Madyankin <alexander@madyankin.name>
 Copyright 2014 present Olivier Lalonde <olalonde@gmail.com> , James Talmage <james@talmage.io> , Ruben Verborgh
 Copyright (c) 2021 present dominikg and contributors (https://github.com/dominikg/tsconfck/graphs/contributors)
-Copyright (c) 2014-2015, 2017 present, Jon Schlinkert
+Copyright (c) 2014-2015 present, Jon Schlinkert
 Copyright (c) 2019 present, VoidZero Inc. and Vite contributors
 Copyright (c) 2017, 2020 present, Yuxi
 Copyright (c) 2023 present, sapphi-red
@@ -5281,11 +5277,10 @@ Public License instead of this License.
 
 ----
 
-Copyright 2023 Abdullah Atta
 Copyright (c) 2015 Alexey Litvinov
 Copyright (C) Alexey Raspopov
 Copyright (c) 2015 Andreas Lubbe
-Copyright (c) 2022 Anthony Fu <https://github.com/antfu>
+Copyright (c) 2022 Anthony Fu https://github.com/antfu
 Copyright (c) 2022 Anton Kastritskiy
 Copyright (c) 2014 Arnout Kazemier
 Copyright (c) 2013 Arnout Kazemier and contributors
@@ -5318,7 +5313,7 @@ Copyright (c) 2013-2019 Ivan Nikulin (ifaaan@gmail.com, https://github.com/iniku
 Copyright JS Foundation and other contributors
 Copyright (c) 2013 James Halliday (mail@substack.net)
 Copyright (c) 2013-2017 Jared Hanson
-copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors <http://underscorejs.org/>
+copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors http://underscorejs.org
 Copyright (c) 2014-2018 Jon Schlinkert
 Copyright (c) 2013-2014 Jonathan Ong <me@jongleberry.com>
 Copyright (c) 2018-2021 Josh Junon
@@ -5333,9 +5328,9 @@ Copyright (c) 2016 Luigi Pinca and contributors
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (https://lukeed.com)
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
 Copyright (c) 2018 Made With MOXY Lda
-Copyright (c) 2024 Madeline Gurriaran
 Copyright 2015 Mark Dalgleish <mark.john.dalgleish@gmail.com>
 Copyright Mathias Bynens <https://mathiasbynens.be/>
+Copyright Mathias Bynens https://mathiasbynens.be
 Copyright (C) Matteo Collina
 Copyright (c) 2015-2020 Matteo Collina <matteo.collina@gmail.com>
 Copyright (c) 2014 Maxime Thirouin, Jason Campbell & Kevin Martensson
@@ -5363,7 +5358,7 @@ Copyright (c) 2015 Tiancheng Timothy Gu
 Copyright (c) 2013 Troy Goode <troygoode@gmail.com>
 Copyright (c) 2015 Unshift.io, Arnout Kazemier
 Copyright (c) 2020 Vercel, Inc.
-Copyright jQuery Foundation and other contributors <https://jquery.org/>
+Copyright jQuery Foundation and other contributors https://jquery.org
 Copyright (c) 2017-2023 npm, Inc., Isaac Z. Schlueter, and Contributors
 Copyright 2015 present Alexander Madyankin <alexander@madyankin.name>
 Copyright 2014 present Olivier Lalonde <olalonde@gmail.com> , James Talmage <james@talmage.io> , Ruben Verborgh
@@ -7554,6 +7549,7 @@ Copyright (C) Abdelrahman Awad
 (c) 2024 Abdelrahman Awad
 Copyright (c) Abdelrahman Awad <logaretm1@gmail.com>
 Copyright 2023 Abdullah Atta
+Copyright (c) 2024 Abdullah Atta
 Copyright (C) Alex Indigo
 Copyright (c) 2016 Alex Indigo
 Copyright (c) 2015 Alexey Litvinov
@@ -7600,7 +7596,7 @@ Copyright (c) 2022, 2024 ECMAScript Shims
 Copyright (c) EGOIST
 Copyright (c) 2022 Eclipse Foundation
 Copyright (C) Eduardo San Martin Morote
-(c) 2024-2025 Eduardo San Martin Morote
+(c) 2025 Eduardo San Martin Morote
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
 Copyright (c) 2015, 2019 Elan Shanker
 Copyright (c) 2019 Elan Shanker, Paul Miller (https://paulmillr.com)
@@ -7639,7 +7635,7 @@ Copyright (c) 2021 Jason Miller
 (c) Jason Miller (https://jasonformat.com/)
 Copyright (c) 2018 Jennifer Thakar
 Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
-copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors <http://underscorejs.org/>
+copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors http://underscorejs.org
 Copyright (c) 2016-2023 John Jeremy Leider
 Copyright (C) John Leider
 Copyright (C) Jon Schlinkert
@@ -7688,6 +7684,7 @@ Copyright (c) 2024 Madeline Gurriaran
 Copyright 2015 Mark Dalgleish <mark.john.dalgleish@gmail.com>
 Copyright (C) Mathias Bynens
 Copyright Mathias Bynens <https://mathiasbynens.be/>
+Copyright Mathias Bynens https://mathiasbynens.be
 Copyright (C) Matt Zabriskie
 Copyright (c) 2025 Matt Zabriskie and contributors
 Copyright (C) Matteo Collina
@@ -7711,7 +7708,7 @@ Copyright (c) 2017 Node.js
 Copyright Node.js contributors
 Copyright (c) 2019 Nordic Institute for Interoperability Solutions (NIIS)
 Copyright (c) 2021-2024 Oleksii Raspopov, Kostiantyn Denysov, Anton Verinov
-Copyright (c) 2018, 2021-2022 Oracle and/or its affiliates
+Copyright (c) 2018, 2021 Oracle and/or its affiliates
 Copyright (c) 2021 PRESENT Nuxt Contrib
 Copyright (C) Paul Miller
 Copyright (c) Paul Miller (https://paulmillr.com)
@@ -7768,6 +7765,7 @@ Copyright (C) Stephen Sugden
 Copyright (c) Stephen Sugden <me@stephensugden.com> (stephensugden.com)
 Copyright (c) 2009 Sun Microsystems, Inc.
 Copyright 2011 Sun Microsystems, Inc.
+Copyright (C) Superchupu
 Copyright (c) 2017 SysGears
 Copyright (C) SysGears INC
 Copyright (c) 2017 SysGears INC
@@ -7836,6 +7834,7 @@ copyright rfdc (https://github.com/davidmarkclements/rfdc)
 Copyright 2012-2021, 2023-2024 the Dart project
 Copyright (c) 2014 the Dart project
 Copyright 2012, 2014, 2017, 2019 the Dart project authors
+Copyright (C) thecodrr
 Copyright (c) 2015-2020 these people (https://github.com/Rich-Harris/estree-walker/graphs/contributors)
 Copyright (c) 2017 these people (https://github.com/rollup/rollup/graphs/contributors)
 Copyright (C) webfansplz
