@@ -137,18 +137,15 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 Introduction
 
-
 ### 1.1 Target Audience
 
 The intended audience of this Installation Guide are X-Road Security Server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the Security Server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
-
 ### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
-
 
 ### 1.3 References
 
@@ -273,36 +270,46 @@ Requirements to software and settings:
 
 * Add an X-Road system administrator user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
-        sudo adduser <username>
+  ```bash
+  sudo adduser <username>
+  ```
 
     User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\]. Do not use the user name `xroad`, it is reserved for the X-Road system user.
 
 * Set the operating system locale. Add following line to the `/etc/environment` file.
 
-        LC_ALL=en_US.UTF-8
+  ```bash
+  LC_ALL=en_US.UTF-8
+  ```
 
 * Ensure that the packages `locales` and `software-properties-common` are present
-
-        sudo apt-get install locales software-properties-common
+  
+  ```bash
+  sudo apt-get install locales software-properties-common
+  ```
 
 * Ensure that the locale is available
-
-        sudo locale-gen en_US.UTF-8
-
+  
+  ```bash
+  sudo locale-gen en_US.UTF-8
+  ```
 
 ### 2.5 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
+
 ```bash
 curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
+
 ```bash
 sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 ```
 
 Update package repository metadata:
+
 ```bash
 sudo apt update
 ```
@@ -314,11 +321,13 @@ If you are installing the default setup with local PostgreSQL database and want 
 *This is an optional step.* 
 
 Optionally, the Security Server can use a remote database server. To avoid installing the default local PostgreSQL server during Security Server installation, first install the `xroad-database-remote` -package.
+
 ```bash
 sudo apt install xroad-database-remote
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
+
 ```bash
 psql --version
 psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
@@ -327,11 +336,12 @@ psql -h <database host> -U <superuser> -tAc 'show server_version'
 10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
 ```
 
-The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
+The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials.
 
 For advanced setup, e.g. when using separate servers for the databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
 
 Create the property file:
+
 ```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
@@ -339,13 +349,16 @@ sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
+
 ```properties
 postgres.connection.password = <database superuser password>
 postgres.connection.user = <database superuser name, postgres by default>
 ```
+
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
 Before continuing, test that the connection to the database works, e.g.
+
 ```bash
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
@@ -379,22 +392,30 @@ Upon the first installation of the packages, the system asks for the following i
 
   * The *Subject DN* must be entered in the format:
 
-            /CN=server.domain.tld
-
+    ```bash
+    /CN=server.domain.tld
+    ```
+  
   * All IP addresses and domain names in use must be entered as alternative names in the format:
 
-            IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+    ```bash
+    IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+    ```
 
 * The Distinguished Name of the owner of the TLS certificate that is used for securing the HTTPS access point of information systems (**reference data: 1.8; 1.11**).
     The name and IP addresses detected from the system are suggested as default values.
 
     * The *Subject DN* must be entered in the format:
 
-            /CN=server.domain.tld
+      ```bash
+      /CN=server.domain.tld
+      ```
 
     * All IP addresses and domain names in use must be entered as alternative names in the format:
 
-            IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+      ```bash
+      IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+      ```
 
 * The memory allocation configuration for the Java Virtual Machine (JVM) used by the proxy service.
   Allowed values are:
@@ -415,6 +436,7 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
+
   ```bash
   sudo systemctl list-units "xroad-*"
 
@@ -427,6 +449,7 @@ The installation is successful if system services are started and the user inter
   xroad-proxy.service            loaded active running X-Road Proxy
   xroad-signer.service           loaded active running X-Road signer
   ```
+
 * Ensure that the Security Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 ### 2.10 Installing the Support for Hardware Tokens
@@ -435,7 +458,9 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-        sudo apt-get install xroad-addon-hwtokens
+    ```bash
+    sudo apt-get install xroad-addon-hwtokens
+    ```
 
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
@@ -443,7 +468,9 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 4.  After installing and configuring the driver, the `xroad-signer` service must be restarted:
 
-        sudo systemctl restart xroad-signer
+    ```bash
+    sudo systemctl restart xroad-signer
+    ```
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
@@ -481,11 +508,9 @@ The support for environmental monitoring functionality on a Security Server is p
 
 During the Security Server initial configuration, the server’s X-Road membership information and the software token’s PIN are set.
 
-
 ### 3.1 Prerequisites
 
 Configuring the Security Server assumes that the Security Server owner is a member of the X-Road.
-
 
 ### 3.2 Reference Data
 
@@ -504,8 +529,9 @@ The Security Server code and the software token’s PIN will be determined durin
 ### 3.3 Configuration
 
 To perform the initial configuration, open the address
-
-    https://SECURITYSERVER:4000/
+```
+https://SECURITYSERVER:4000/
+```
 
 in a Web browser (**reference data: 1.8; 1.6**). To log in, use the account name chosen during the installation (**reference data: 1.3).**
 
@@ -543,7 +569,7 @@ firewall access rules for specific hosts based on their descriptions.
 
 The Security Server has a special `[proxy]` parameter [connector-host](ug-syspar_x-road_v6_system_parameters.md#32-proxy-parameters-proxy) which determines
 the interfaces that the Security Server uses to listen for incoming connections. The default value for this parameter in the default X-Road packages is `0.0.0.0`,
-which makes the Security Server accept connections from any server. For country-specific defaults, please refer to the system parameters documentation. 
+which makes the Security Server accept connections from any server. For country-specific defaults, please refer to the system parameters documentation.
 
 The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
@@ -553,9 +579,11 @@ It is possible to automatically encrypt Security Server configuration backups. S
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
-    [proxy]
-    backup-encryption-enabled = true
-    backup-encryption-keyids = <keyid1>, <keyid2>, ...
+```ini
+[proxy]
+backup-encryption-enabled = true
+backup-encryption-keyids = <keyid1>, <keyid2>, ...
+```
 
 To turn backup encryption on, please change the `backup-encryption-enabled` property value to `true`.
 By default, backups are encrypted using Security Server's backup encryption key. Additional encryption keys can be imported in the /etc/xroad/gpghome keyring and key identifiers listed using the backup-encryption-keyids parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case Security Server's private key is lost. It is up to Security Server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
@@ -571,13 +599,17 @@ Security Server backup encryption key is generated during initialisation.
 
 To export Security Server's backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+```
 
 where `AA/GOV/TS1OWNER/TS1` is the Security Server id.
 
 The key can then be moved to an external host and imported to GPG keyring with the following command:
 
-    gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+```bash
+gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+```
 
 ### 3.6 Enabling ACME Support
 
@@ -591,70 +623,87 @@ More information about the required configuration is available in the [Security 
 
 ## 4 Installation Error handling
 
-
 ### 4.1 Cannot Set LC\_ALL to Default Locale
 
 If running the locale command results in the error message
 
-    locale: Cannot set LC_ALL to default locale: No such file or directory,
+```bash
+locale: Cannot set LC_ALL to default locale: No such file or directory,
+```
 
 then the support for this particular language has not been installed. To install it, run the command (the example uses the English language):
 
-    sudo apt-get install language-pack-en
+```bash
+sudo apt-get install language-pack-en
+```
 
 Then, to update the system’s locale files, run the following commands (the example uses the US locale):
 
-    sudo locale-gen en_US.UTF-8
-    sudo update-locale en_US.UTF-8
+```bash
+sudo locale-gen en_US.UTF-8
+sudo update-locale en_US.UTF-8
+```
 
 Set operating system locale. Add following line to `/etc/environment` file:
 
-    LC_ALL=en_US.UTF-8
+```bash
+LC_ALL=en_US.UTF-8
+```
 
 After updating the system’s locale settings, it is recommended to restart the operating system.
-
 
 ### 4.2 PostgreSQL Is Not UTF8 Compatible
 
 If the Security Server installation is aborted with the error message
 
-    postgreSQL is not UTF8 compatible,
+```bash
+postgreSQL is not UTF8 compatible,
+```
 
 then the PostgreSQL package is installed with a wrong locale. One way to resolve it is to remove the data store created upon the PostgreSQL installation and recreate it with the correct encoding.
 
 **WARNING**: All data in the database will be erased!
 
-    sudo pg_dropcluster --stop 10 main
-    LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 10 main
+```bash
+sudo pg_dropcluster --stop 10 main
+LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 10 main
+```
 
 To complete the interrupted installation, run the command
 
-    sudo apt-get -f install
-
+```bash
+sudo apt-get -f install
+```
 
 ### 4.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation:
 
-    Error: The locale requested by the environment is invalid.
-    Error: could not create default cluster. Please create it manually with pg_createcluster 10 main –start,
+```
+Error: The locale requested by the environment is invalid.
+Error: could not create default cluster. Please create it manually with pg_createcluster 10 main –start,
+```
 
 use the following command to create the PostgreSQL data cluster:
 
-    LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 10 main
+```bash
+LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 10 main
+```
 
 The interrupted installation can be finished using
 
-    sudo apt-get -f install
-
+```bash
+sudo apt-get -f install
+```
 
 ### 4.4 Is Postgres Running On Port 5432?
 
 If the following error message appears during installation
 
-    Is postgres running on port 5432 ?
-    Aborting installation! please fix issues and rerun with apt-get -f install,
-
+```
+Is postgres running on port 5432 ?
+Aborting installation! please fix issues and rerun with apt-get -f install,
+```
 check if any of the following errors occurred during the installation of PostgreSQL.
 
 * Error installing the data cluster. Refer to section [“Could not create default cluster”](#43-could-not-create-default-cluster).
@@ -663,21 +712,24 @@ check if any of the following errors occurred during the installation of Postgre
 
 The interrupted installation can be finished using
 
-    sudo apt-get -f install
-
+```bash
+sudo apt-get -f install
+```
 
 ### 4.5 Different versions of xroad-\* packages after successful upgrade
 
 Sometimes, after using `sudo apt-get upgrade` command, some of the packages are not upgraded. In the following example `xroad-securityserver` package version is still 6.8.3 although other packages are upgraded to 6.8.5:
 
-    # sudo dpkg -l | grep xroad-
-    ii xroad-addon-messagelog 6.8.5.20160929134539gitfe60f90
-    ii xroad-addon-metaservices 6.8.5.20160929134539gitfe60f90
-    ii xroad-addon-wsdlvalidator 6.8.5.20160929134539gitfe60f90
-    ii xroad-common 6.8.5.20160929134539gitfe60f90
-    ii xroad-jetty9 6.8.5.20160929134539gitfe60f90
-    ii xroad-proxy 6.8.5.20160929134539gitfe60f90
-    ii xroad-securityserver 6.8.3-3-201605131138
+```bash
+# sudo dpkg -l | grep xroad-
+ii xroad-addon-messagelog 6.8.5.20160929134539gitfe60f90
+ii xroad-addon-metaservices 6.8.5.20160929134539gitfe60f90
+ii xroad-addon-wsdlvalidator 6.8.5.20160929134539gitfe60f90
+ii xroad-common 6.8.5.20160929134539gitfe60f90
+ii xroad-jetty9 6.8.5.20160929134539gitfe60f90
+ii xroad-proxy 6.8.5.20160929134539gitfe60f90
+ii xroad-securityserver 6.8.3-3-201605131138
+```
 
 `apt-get upgrade` command doesn’t install new packages - in this particular case new packages `xroad-monitor` and `xroad-addon-proxymonitor` installation is needed for upgrade of `xroad-securityserver` package.
 
@@ -740,7 +792,6 @@ Finally, we can upgrade to our target version 7.3.x as follows.
 apt upgrade xroad-securityserver
 ```
 
-
 ## Annex A Security Server Default Database Properties
 
 `/etc/xroad/db.properties`
@@ -772,7 +823,6 @@ op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
 op-monitor.hibernate.jdbc.use_streams_for_binary = true
 ```
 
-
 ## Annex B Default Database Users
 
 | User             | Database   | Privileges               | Description                                                                              |
@@ -785,21 +835,17 @@ op-monitor.hibernate.jdbc.use_streams_for_binary = true
 | opmonitor_admin  | op-monitor | CREATE,TEMPORARY,CONNECT | The database user used to create/update the op-monitor schema.                           |
 | postgres         | ALL        | ALL                      | PostgreSQL database default superuser.                                                   |
 
-
 ## Annex C Deployment Options
-
 
 ### C.1 General
 
 X-Road Security Server has multiple deployment options. The simplest choice is to have a single Security Server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
-
 
 ### C.2 Local Database
 
 The simplest deployment option is to use a single Security Server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security Server with local database](img/ig-ss_local_db.svg)
-
 
 ### C.3 Remote Database
 
@@ -809,20 +855,17 @@ Security Server supports a variety of cloud databases including AWS RDS and Azur
 
 ![Security Server with remote database](img/ig-ss_remote_db.svg)
 
-
 ### C.4 High Availability Setup
 
 In production systems it's rarely acceptable to have a single point of failure. Security Server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security Server high-availability setup](img/ig-ss_high_availability.svg)
 
-
 ### C.5 Load Balancing Setup
 
 Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a Security Server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
 ![Security Server load balancing setup](img/ig-ss_load_balancing.svg)
-
 
 ### C.6 Summary
 
@@ -846,6 +889,7 @@ Depending on installed components, the Security Server uses one to three databas
 These databases can be hosted on one database server (default setup), or you can use several servers. 
 
 Login to the database server(s) as the superuser (`postgres` by default) to run the commands, e.g.
+
 ```bash
 psql -h <database host>:<port> -U <superuser> -d postgres
 ```
@@ -932,6 +976,7 @@ Lastly, customize the database connection properties to match the values used wh
 Note. When using Microsoft Azure PostgreSQL, the user names need to be in format `username@hostname` in the properties files.
 
 Create the configuration file `/etc/xroad.properties`.
+
 ```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
@@ -939,6 +984,7 @@ sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own). The admin users are used to run database migrations during the install and upgrades.
+
 ```properties
 serverconf.database.admin_user = <serverconf_admin_user>
 serverconf.database.admin_password = <serverconf_admin_user password>
@@ -949,6 +995,7 @@ op-monitor.database.admin_password = <opmonitor_admin_user password>
 ```
 
 Create the `/etc/xroad/db.properties` file
+
 ```bash
 sudo mkdir /etc/xroad
 sudo chown xroad:xroad /etc/xroad
@@ -960,6 +1007,7 @@ sudo chown xroad:xroad /etc/xroad/db.properties
 
 Edit the `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
 The database connection url format is `jdbc:postgresql://<database host>:<port>/<database name>`
+
 ```properties
 serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/<serverconf_database>
 serverconf.hibernate.connection.username = <serverconf_database_user>

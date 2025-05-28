@@ -352,15 +352,19 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-        sudo apt install xroad-addon-hwtokens
-
+    ```bash
+    sudo apt install xroad-addon-hwtokens
+    ```
+    
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
 3.  Add the path to the PKCS\#11 driver to the file `/etc/xroad/devices.ini` (as described in the example given in the file).
 
 4.  After installing and configuring the driver, the xroad-signer service must be restarted:
 
-        sudo service xroad-signer restart
+    ```bash
+    sudo service xroad-signer restart
+    ```
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
@@ -478,7 +482,7 @@ appoint the subsystem as the management service provider - [UG-CS](#Ref_UG-CS) s
 It is possible to automatically encrypt Central Server configuration backups. Central Server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[center]` section (add or edit this section).
-```bash
+```ini
 [center]
 
 backup-encryption-enabled = true
@@ -604,7 +608,7 @@ Upgrading the packages from the current version to the target version is not sup
 
 For example, the following Central Server packages are currently installed.
 
-```bash
+```
 root@test-cs:~# dpkg -l | grep xroad
 ii  xroad-autologin                    7.3.0-1.ubuntu22.04 all          Automatic token pin code entry
 ii  xroad-base                         7.3.0-1.ubuntu22.04 amd64        X-Road base components
@@ -622,7 +626,7 @@ ii  xroad-signer                       7.3.0-1.ubuntu22.04 amd64        X-Road s
 
 The following packages are available in the repository.
 
-```bash
+```
 root@test-cs:~# apt-cache madison xroad-centralserver
 xroad-centralserver | 7.3.0-1.ubuntu20.04 | https://artifactory.niis.org/xroad-release-deb focal-current/main amd64 Packages
 xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://artifactory.niis.org/xroad-release-deb focal-current/main amd64 Packages
@@ -630,7 +634,7 @@ xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://artifactory.niis.org/xroad-r
 
 Now trying to upgrade the Central Server packages directly will produce the following error.
 
-```bash
+```
 root@test-cs:~# apt upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu20.04_all.deb ...
@@ -661,7 +665,7 @@ Before upgrading the packages from the current version to the target version, in
 
 For example, if the error message says:
 
-```bash
+```
 root@test-cs:~# apt upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-center_7.4.0-1.ubuntu22.04_all.deb ...
