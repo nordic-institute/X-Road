@@ -173,7 +173,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: start-measurement
           label: 'Central Server system tests'
@@ -210,7 +210,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Central Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: get-measurement
           label: 'Set up Central Server tests'
@@ -218,7 +218,7 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :central-server:admin-service:ui-system-test:systemTest -PsystemTestCsImageName=localhost:5000/xrd-centralserver:${{ github.sha }}
       - name: Test Central Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: get-measurement
           label: 'Test Central Server'
@@ -245,7 +245,7 @@ jobs:
           path: |
             src/central-server/admin-service/ui-system-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: display-results
           pr-comment: true
@@ -267,7 +267,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: start-measurement
           label: 'Security Server system tests'
@@ -302,7 +302,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Security Server test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: get-measurement
           label: 'Set up Security Server tests'
@@ -310,7 +310,7 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx1g :security-server:system-test:systemTest -PsystemTestSsImageName=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: Test Security Server measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: get-measurement
           label: 'Test Security Server'
@@ -337,7 +337,7 @@ jobs:
             src/security-server/system-test/build/ca-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: display-results
           pr-comment: true
@@ -352,7 +352,7 @@ jobs:
           - 5000:5000
     steps:
       - name: Start Measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: start-measurement
           label: 'E2E tests'
@@ -403,7 +403,7 @@ jobs:
             PACKAGE_SOURCE=internal
           tags: localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test setup measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: get-measurement
           label: 'Set up E2E tests'
@@ -415,7 +415,7 @@ jobs:
           -Pe2eTestCSImage=localhost:5000/xrd-centralserver:${{ github.sha }} 
           -Pe2eTestSSImage=localhost:5000/xrd-securityserver:${{ github.sha }}
       - name: E2E test measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: get-measurement
           label: 'E2E tests'
@@ -436,7 +436,7 @@ jobs:
           path: |
             src/security-server/e2e-test/build/allure-report/
       - name: Show Energy Results
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
+        uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
           task: display-results
           pr-comment: true
