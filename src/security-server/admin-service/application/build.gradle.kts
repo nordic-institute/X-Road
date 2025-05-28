@@ -34,6 +34,7 @@ dependencies {
   implementation(project(":common:common-mail"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))
+  implementation(project(":service:op-monitor:op-monitor-api"))
 
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-web")

@@ -23,53 +23,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.opmonitor.api;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.ToString;
+import lombok.Value;
 
-/**
- * This interface contains global constants, such as port numbers
- * and configuration locations.
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PortNumbers {
-    /** Client proxy listens for HTTP queries. */
-    public static final int CLIENT_HTTP_PORT = 8080;
+import java.io.Serializable;
+import java.time.Instant;
 
-    /** Client proxy listens for HTTPS queries. */
-    public static final int CLIENT_HTTPS_PORT = 8443;
+@Value
+@ToString(onlyExplicitlyIncluded = true)
+public class OperationalDataInterval implements Serializable {
 
-    /** Port for connection between client and server proxy. */
-    public static final int PROXY_PORT = 5500;
+    @JsonIgnore
+    OperationalDataIntervalProto message;
 
-    /** Server proxy listens for OCSP requests. */
-    public static final int PROXY_OCSP_PORT = 5577;
+    public Instant getIntervalStart() {
+        return Instant.ofEpochSecond(message.getTimeIntervalStart().getSeconds(), message.getTimeIntervalStart().getNanos());
+    }
 
-    /** Admin port for proxy. */
-    public static final int ADMIN_PORT = 5566;
+    public Long getSuccessCount() {
+        return message.getSuccessCount();
+    }
 
-    /** Signer Admin port. */
-    public static final int SIGNER_ADMIN_PORT = 5559;
+    public Long getFailureCount() {
+        return message.getFailureCount();
+    }
 
-    /**
-     * Signer grpc service port.
-     */
-    public static final int SIGNER_GRPC_PORT = 5560;
+    public Long getIncomingCount() {
+        return message.getIncomingCount();
+    }
 
-    /** Port for Distributed Files Client. */
-    public static final int CONFIGURATION_CLIENT_PORT = 5665;
 
-    /** Port for Configuration Admin Port. */
-    public static final int CONFIGURATION_CLIENT_ADMIN_PORT = 5675;
+    public Long getOutgoingCount() {
+        return message.getOutgoingCount();
+    }
 
-    /** Port of the operational monitoring daemon. */
-    public static final int OP_MONITOR_DAEMON_PORT = 2080;
-    public static final int OP_MONITOR_DAEMON_GRPC_PORT = 2081;
 
-    /**
-     * Proxy grpc port
-     */
-    public static final int PROXY_GRPC_PORT = 5567;
+    public OperationalDataIntervalProto asMessage() {
+        return message;
+    }
 
 }
