@@ -6,7 +6,7 @@ Copyright (c) 2002-2015 Copyright (c) Stiftung SIC.
 Copyright (c) 2002 Graz University of Technology
 Copyright 2001-2004 IAIK, Graz University of Technology
 Copyright (c) 1996 Netscape Communications Corporation
-Copyright (c) 2018, 2020-2021 Oracle and/or its affiliates
+Copyright (c) 2018, 2021 Oracle and/or its affiliates
 Copyright 1996-2000 Sun Microsystems, Inc.
 Copyright (c) 2001, 2016-2017 The Apache Software Foundation
 Graz, Austria Copyright IAIK 2001 - 2013
@@ -77,13 +77,12 @@ Copyright (c) 2022 Anthony Fu <https://github.com/antfu>
 Copyright (c) 2022 Anton Kastritskiy
 Copyright (C) Apache
 Copyright (C) Apache Software Foundation
-Copyright (c) 1999-2024 Apache Software Foundation
+Copyright (c) 1999-2025 Apache Software Foundation
 Copyright (C) Apple
 Copyright (C) Ariane Software
 Copyright (c) 2014 Arnout Kazemier
 Copyright (c) 2013 Arnout Kazemier and contributors
 Copyright (C) Arpit Garg
-Copyright (C) Artem Labazin
 Copyright (C) Artem Prigoda
 Copyright (C) Arthur Zagretdinov
 Copyright (C) Asankha C. Perera
@@ -124,7 +123,6 @@ Copyright (c) 2002-2019 Contributors
 Copyright (C) Damjan Jovanovic
 Copyright (C) Daniel Rall
 Copyright (C) Dave Meikle
-Copyright (C) Dave Syer
 Copyright (C) David Graham
 Copyright (C) Dishara Wijewardana
 Copyright (c) 2014-2017 Douglas Christopher Wilson
@@ -133,7 +131,7 @@ Copyright (C) Duncan Jones
 Copyright (c) EGOIST
 Copyright (C) ESHA Research
 Copyright (C) Eclipse Foundation
-Copyright (c) 2018-2020, 2022-2023 Eclipse Foundation
+Copyright (c) 2018-2020, 2022 Eclipse Foundation
 Copyright (C) Eddie Aftandilian
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
 Copyright (c) 2015, 2019 Elan Shanker
@@ -159,12 +157,13 @@ Copyright 2015, 2018 Glen Maddern
 Copyright (c) 2015 Glen Maddern
 Copyright (c) 2013, 2016 GoPivotal, Inc.
 Copyright (C) Google
+copyright (c) 2010-2011 Google Corporation. Digitized
+copyright (c) 2010-2011 Google Corporation. OpenSansEmoji OpenSansEmoji
 Copyright (c) 2008-2012, 2014-2016, 2018, 2020-2022 Google Inc.
 Copyright 2010-2013 Google Inc.
 Copyright (C) Google LLC
-Copyright 2008, 2019-2020, 2024 Google LLC
+Copyright 2008, 2019-2020, 2024-2025 Google LLC
 Copyright (c) 2016, 2020 Google, Inc. and others
-Copyright (C) Guillaume Simard
 Copyright (C) Gunnar Morling
 Copyright (c) 2018-2022 Guy Bedford
 Copyright (C) Henri Tremblay
@@ -193,6 +192,7 @@ Copyright (C) Intuit
 Copyright (c) Isaac Z. Schlueter and Contributors
 Copyright (c) 2013-2019 Ivan Nikulin (ifaaan@gmail.com, https://github.com/inikulin)
 Copyright (C) JBoss
+Copyright 2014 JBoss Inc
 Copyright (C) JBoss by Red Hat
 Copyright (C) JBoss by Red Hat, Inc.
 Copyright (C) JBoss.org
@@ -233,6 +233,7 @@ Copyright 2022 Justin Ridgewell <justin@ridgewell.name>
 Copyright (C) Jörg Schaible
 Copyright (C) Karl Wright
 Copyright (C) Keith Bennett
+Copyright (C) Kevin Bourrillion
 Copyright (C) Kevin Davis
 Copyright (c) Kevin Martensson <kevinmartensson@gmail.com>
 Copyright (c) 2021 Kilian Schulte
@@ -247,7 +248,7 @@ Copyright (C) Loic Guibert
 Copyright (C) Lovell Fuller
 Copyright 2017 Lovell Fuller
 Copyright (c) 2016 Luigi Pinca and contributors
-Copyright (c) 2006-2023 Lukas Renggli
+Copyright (c) 2006-2025 Lukas Renggli
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (https://lukeed.com)
 Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
 Copyright (c) 2018 Made With MOXY Lda
@@ -313,7 +314,6 @@ Copyright (C) Pivotal Software, Inc.
 Copyright (c) 2010-2021 Pivotal Software, Inc.
 Copyright (c) Pooya Parsa <pooya@pi0.io>
 Copyright (c) 2023 PostgreSQL Global Development Group
-Copyright 2014 Present Rafael Winterhalter
 Copyright (C) QOS.ch
 Copyright (c) 2004-2011 QOS.ch
 Copyright Rafael Winterhalter
@@ -374,7 +374,6 @@ Copyright (c) 2001-2002 SourceForge ISO-RELAX Project (ASAMI Tomoharu, Daisuke O
 Copyright (C) SpiritSoft, Inc.
 Copyright (C) Spotify
 Copyright (C) Spring IO
-Copyright (C) SpringSource
 Copyright (c) 2010 SpringSource, Contributors
 Copyright (c) 2015-2016 Square, Inc.
 Copyright (C) Stefan Bechtold
@@ -401,20 +400,19 @@ Copyright (c) 2010, 2012 The Android Open Source Project
 Copyright (C) The Android Open Source Projects
 Copyright (C) The Apache Software Foundation
 Copyright 1999-2009, 2011 The Apache Software Foundation
-Copyright (c) 1999-2024 The Apache Software Foundation
+Copyright (c) 1999-2025 The Apache Software Foundation
 Copyright (c) 2006-2012 The Authors
-Copyright 2014-2017, 2021, 2023 The Error Prone
-Copyright 2015 The Error Prone Authors
-Copyright 2012-2024 The Feign Authors
+Copyright 2014-2017, 2021 The Error Prone
+Copyright 2015, 2023 The Error Prone Authors
 Copyright (c) 2012 The Feign Authors (feign@commonhaus.dev)
 Copyright (c) 2017-2018 The Gson authors
 Copyright (c) 2005-2021, 2023-2024 The Guava Authors
 Copyright 2019 The Guava Authors
 Copyright (C) The Henning Schmiedehausen Organization
 Copyright (c) 2009 The JSR-330 Expert Group
+Copyright 2018-2020, 2022 The JSpecify
 Copyright (C) The Javassist Project
 Copyright 2012-2013, 2017 The Netty Project
-Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans) OFL-1.1 (https://openfontlicense.org)
 Copyright 2013-2024 The OpenZipkin Authors
 Copyright 2014-2023 The gRPC
 Copyright 2014-2024 The gRPC Authors
@@ -428,7 +426,6 @@ Copyright (C) Tim Allison
 Copyright (C) Tim OBrien
 Copyright (C) Timothy Wall
 Copyright (c) 2007-2015 Timothy Wall
-Copyright (C) Tomasz Juchniewicz
 Copyright (C) Tommy Ludwig
 Copyright (C) Tony Tam
 Copyright (C) Torsten Curdt
@@ -480,7 +477,8 @@ Copyright (c) 2023 present, sapphi-red
 Copyright 2012-2021, 2023-2024 the Dart project
 Copyright (c) 2014 the Dart project
 Copyright 2012, 2014, 2017, 2019 the Dart project authors
-Copyright 2002-2024 the original author or authors
+Copyright (c) 2015-2021 the original
+Copyright 2002-2025 the original author or authors
 Copyright (c) 2015-2020 these people (https://github.com/Rich-Harris/estree-walker/graphs/contributors)
 Copyright (C) tucana.at
 Copyright (C) upstate.com
@@ -928,7 +926,6 @@ Copyright (c) 2013 James Halliday (mail@substack.net)
 Copyright (c) 2013-2017 Jared Hanson
 copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors <http://underscorejs.org/>
 Copyright (c) 2014-2018 Jon Schlinkert
-Copyright (c) 2013-2014 Jonathan Ong
 Copyright (c) 2013-2014 Jonathan Ong <me@jongleberry.com>
 Copyright (c) 2018-2021 Josh Junon
 Copyright 2019, 2022 Justin Ridgewell <jridgewell@google.com>
@@ -961,9 +958,7 @@ Copyright (c) 2015, 2018, 2023 Richard Shred Korber http://acme4j.shredzone.org
 Copyright (c) 2019 RollupJS Plugin Contributors (https://github.com/rollup/plugins/graphs/contributors)
 Copyright (c) 2015-2016 Scott Motte
 Copyright (c) 2010 Sencha Inc.
-Copyright 2014-2023 Simon Lydell
 Copyright (c) 2014-2024 Simon Lydell
-(c) Sindre Sorhus
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 Copyright (c) 2019 Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com), Paul Miller (https://paulmillr.com)
 Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
@@ -982,7 +977,6 @@ Copyright jQuery Foundation and other contributors <https://jquery.org/>
 Copyright 2015 present Alexander Madyankin <alexander@madyankin.name>
 Copyright 2014 present Olivier Lalonde <olalonde@gmail.com> , James Talmage <james@talmage.io> , Ruben Verborgh
 Copyright (c) 2021 present dominikg and contributors (https://github.com/dominikg/tsconfck/graphs/contributors)
-Copyright (c) 2015 present, Facebook, Inc.
 Copyright (c) 2014-2015, 2017 present, Jon Schlinkert
 Copyright (c) 2019 present, VoidZero Inc. and Vite contributors
 Copyright (c) 2017, 2020 present, Yuxi
@@ -1051,7 +1045,7 @@ Copyright (c) 2013-2021 Brendan Duncan
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
 Copyright (c) 2021 Contributors to the Eclipse Foundation
 Copyright (C) Eclipse Foundation
-Copyright (c) 2019-2021, 2024 Eclipse Foundation
+Copyright (c) 2019-2020, 2022-2024 Eclipse Foundation
 Copyright (c) 2007 Eclipse Foundation, Inc.
 Copyright (C) Eric Bruneton
 Copyright (C) Eric Vergnaud
@@ -1073,7 +1067,7 @@ Copyright (c) 2021 Kilian Schulte
 Copyright (c) 2006 Kirill Simonov
 Copyright (c) 2020 Leo Farias
 Copyright (C) Lukas Jungmann
-Copyright (c) 2006-2023 Lukas Renggli
+Copyright (c) 2006-2025 Lukas Renggli
 Copyright (C) Manfred Hanke
 Copyright (c) 2015 Michael Bullington
 Copyright (c) Microsoft
@@ -1104,7 +1098,7 @@ Copyright (c) Squirrel Chat et al
 Copyright (C) Steve Freeman
 Copyright (C) TNG Technology Consulting GmbH
 Copyright (C) Terence Parr
-Copyright (c) 2001-2003, 2005, 2010 Thai Open Source Software Center Ltd
+Copyright (c) 2001-2003, 2005, 2010, 2022 Thai Open Source Software Center Ltd
 Copyright (c) 2012-2017 The ANTLR Project
 Copyright (c) 2006-2012 The Authors
 Copyright 2011 The Closure Compiler Authors
@@ -3028,7 +3022,6 @@ Copyright (C) Ceki Gulcu
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
 Copyright (c) 2002-2018 Contributors
 Copyright (C) David Saff
-Copyright (c) 2019-2020 Eclipse Foundation
 Copyright (c) 2007 Eclipse Foundation, Inc.
 Copyright (c) 2008-2009 Freescale Semiconductor and others
 Copyright (C) George Gastaldi
@@ -3042,11 +3035,11 @@ Copyright (C) Koen Aers
 Copyright (C) Lincoln Baxter, III
 Copyright (C) Marc Philipp
 Copyright (C) Matt Benson
-Copyright (c) 1998, 2008, 2013, 2018-2022 Oracle and/or its affiliates
+Copyright (c) 2008, 2018-2022 Oracle and/or its affiliates
 Copyright (c) 2002 Palo Alto Research Center, Incorporated
 Copyright (c) 2002, 2010 Palo Alto Research Center, Incorporated (PARC)
 Copyright (C) QOS.ch
-Copyright (c) 1999-2024 QOS.ch
+Copyright (c) 1999-2025 QOS.ch
 Copyright 2012-2018 Red Hat, Inc. and/or its affiliates
 Copyright (C) Stale Pedersen
 Copyright (C) Stefan Birkner
@@ -3054,7 +3047,6 @@ Copyright (c) 2013 VMware
 Copyright (c) 1999-2002 Xerox Corporation, Palo Alto Research Center, Incorporated
 Copyright (c) 1998-2002 Xerox Corporation, Palo Alto Research Center, Incorporated (PARC)
 Copyright (c) 2019 current.year Eclipse Foundation
-Copyright 2015-2024 the original author or authors
 
 Eclipse Public License - v 1.0
 
@@ -3161,7 +3153,7 @@ Copyright (c) 2022 Christoph Laubrich and others
 Copyright (c) 2006, 2012, 2016, 2020-2021 Cognos Incorporated, IBM Corporation and others
 Copyright (c) 2018 Connexta, LLC and others
 Copyright (c) 2002-2019, 2021 Contributors
-Copyright (c) 2021-2023 Contributors to the Eclipse Foundation
+Copyright (c) 2021-2024 Contributors to the Eclipse Foundation
 Copyright (C) EE4J Community
 Copyright (C) Eclipse Foundation
 Copyright (c) 2018-2021, 2024 Eclipse Foundation
@@ -3514,7 +3506,7 @@ and exceptions or additional permissions here}."
 
 ----
 
-Copyright (c) 2018, 2020-2021 Oracle and/or its affiliates
+Copyright (c) 2018, 2021 Oracle and/or its affiliates
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -4132,7 +4124,7 @@ Public License instead of this License.
 ----
 
 Copyright (c) 2021 Contributors
-Copyright (c) 2021-2023 Contributors to the Eclipse Foundation
+Copyright (c) 2021-2024 Contributors to the Eclipse Foundation
 Copyright (C) EE4J Community
 Copyright (C) Eclipse Foundation
 Copyright (c) 2018-2021, 2024 Eclipse Foundation
@@ -4932,6 +4924,7 @@ are in compliance with the applicable open source license.
 ----
 
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
+Copyright (c) 2016 Richard Shred Korber http://acme4j.shredzone.org
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -5418,6 +5411,10 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ----
+
+Copyright (c) 2006-2011, 2013-2015 Red Hat Inc.
+(c) 2023 Red Hat Inc.
+Copyright (c) year, Red Hat Inc.
 
 This library is free software; you can redistribute it and/or modify it under
 the terms of the GNU Library General Public License as published by the Free
@@ -5918,10 +5915,13 @@ That's all there is to it!
 
 Copyright (C) JBoss
 Copyright (C) Matthias Bläsing
-Copyright (c) 1999-2024 QOS.ch
+Copyright (c) 1999-2025 QOS.ch
+Copyright (c) 2006-2011, 2013-2015 Red Hat Inc.
+(c) 2023 Red Hat Inc.
 Copyright (C) Shigeru Chiba, www.javassist.org
 Copyright (C) The Javassist Project
 Copyright (C) Timothy Wall
+Copyright (c) year, Red Hat Inc.
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
@@ -6437,17 +6437,29 @@ That's all there is to it!
 
 ----
 
+Copyright (c) 2001 $currentYear https://redhat.com > Red Hat, Inc.
+(c) 2008 Adam Warski, JBoss Inc.
 Copyright (c) 2004 Bill Burke
 Copyright (C) Ceki Gulcu
 Copyright 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland
+Copyright (c) DATE, Red Hat Inc.
+Copyright (c) 1991, 1999 Free Software Foundation, Inc.
+Copyright (c) 2007-2013 Geovise BVBA
 Copyright (C) Hibernate.org
 Copyright (C) Joern Huxhorn
 Copyright (c) 2008, 2020, 2022 Oracle and/or its affiliates
 Copyright (C) QOS.ch
+Copyright (c) 2006-2011, 2013-2015 Red Hat Inc.
+(c) 2011, 2015, 2023 Red Hat Inc.
+Copyright Red Hat Inc. and Hibernate
 Copyright (c) 2015-2021, 2023-2024 Richard Shred Korber http://acme4j.shredzone.org
 Copyright (c) 1999-2020 Shigeru Chiba
 Copyright (c) 2007-2015 Timothy Wall
 Copyright (c) 2007 Wayne Meissner
+copyrighted by the Free Software Foundation
+Copyright (c) 2015-2021 the original
+Copyright 2015 the original author or authors
+Copyright (c) year, Red Hat Inc.
 
 This library is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the Free
@@ -7148,31 +7160,6 @@ Library.
 
 ----
 
-Copyright (c) 2018, 2020 Oracle and/or its affiliates
-
-Indiana University Extreme! Lab Software License Version 1.1.1
-
-Copyright (c) 2002 Extreme! Lab, Indiana University. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
-3. The end-user documentation included with the redistribution, if any, must include the following acknowledgment:
-
-"This product includes software developed by the Indiana University Extreme! Lab (http://www.extreme.indiana.edu/)."
-
-Alternately, this acknowledgment may appear in the software itself, if and wherever such third-party acknowledgments normally appear.
-
-4. The names "Indiana University" and "Indiana University Extreme! Lab" must not be used to endorse or promote products derived from this software without prior written permission. For written permission, please contact (http://www.extreme.indiana.edu/).
-
-5. Products derived from this software may not use "Indiana University" name nor may "Indiana University" appear in their name, without prior written permission of the Indiana University.
-
-THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS, COPYRIGHT HOLDERS OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-----
-
 Copyright (c) 1986-1987, 1989-1992, 1994-1995 Ian F. Darwin
 Copyright 2010 International Press Telecommunications Council
 
@@ -7415,106 +7402,6 @@ These notices must be retained in any copies of any part of this
 documentation and/or software.
 ----
 
-Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans) OFL-1.1 (https://openfontlicense.org)
-
--------------------------------
-UBUNTU FONT LICENCE Version 1.0
--------------------------------
-
-PREAMBLE
-This licence allows the licensed fonts to be used, studied, modified and
-redistributed freely. The fonts, including any derivative works, can be
-bundled, embedded, and redistributed provided the terms of this licence
-are met. The fonts and derivatives, however, cannot be released under
-any other licence. The requirement for fonts to remain under this
-licence does not require any document created using the fonts or their
-derivatives to be published under this licence, as long as the primary
-purpose of the document is not to be a vehicle for the distribution of
-the fonts.
-
-DEFINITIONS
-"Font Software" refers to the set of files released by the Copyright
-Holder(s) under this licence and clearly marked as such. This may
-include source files, build scripts and documentation.
-
-"Original Version" refers to the collection of Font Software components
-as received under this licence.
-
-"Modified Version" refers to any derivative made by adding to, deleting,
-or substituting -- in part or in whole -- any of the components of the
-Original Version, by changing formats or by porting the Font Software to
-a new environment.
-
-"Copyright Holder(s)" refers to all individuals and companies who have a
-copyright ownership of the Font Software.
-
-"Substantially Changed" refers to Modified Versions which can be easily
-identified as dissimilar to the Font Software by users of the Font
-Software comparing the Original Version with the Modified Version.
-
-To "Propagate" a work means to do anything with it that, without
-permission, would make you directly or secondarily liable for
-infringement under applicable copyright law, except executing it on a
-computer or modifying a private copy. Propagation includes copying,
-distribution (with or without modification and with or without charging
-a redistribution fee), making available to the public, and in some
-countries other activities as well.
-
-PERMISSION & CONDITIONS
-This licence does not grant any rights under trademark law and all such
-rights are reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of the Font Software, to propagate the Font Software, subject to
-the below conditions:
-
-1) Each copy of the Font Software must contain the above copyright
-notice and this licence. These can be included either as stand-alone
-text files, human-readable headers or in the appropriate machine-
-readable metadata fields within text or binary files as long as those
-fields can be easily viewed by the user.
-
-2) The font name complies with the following:
-(a) The Original Version must retain its name, unmodified.
-(b) Modified Versions which are Substantially Changed must be renamed to
-avoid use of the name of the Original Version or similar names entirely.
-(c) Modified Versions which are not Substantially Changed must be
-renamed to both (i) retain the name of the Original Version and (ii) add
-additional naming elements to distinguish the Modified Version from the
-Original Version. The name of such Modified Versions must be the name of
-the Original Version, with "derivative X" where X represents the name of
-the new work, appended to that name.
-
-3) The name(s) of the Copyright Holder(s) and any contributor to the
-Font Software shall not be used to promote, endorse or advertise any
-Modified Version, except (i) as required by this licence, (ii) to
-acknowledge the contribution(s) of the Copyright Holder(s) or (iii) with
-their explicit written permission.
-
-4) The Font Software, modified or unmodified, in part or in whole, must
-be distributed entirely under this licence, and must not be distributed
-under any other licence. The requirement for fonts to remain under this
-licence does not affect any document created using the Font Software,
-except any version of the Font Software extracted from a document
-created using the Font Software may only be distributed under this
-licence.
-
-TERMINATION
-This licence becomes null and void if any of the above conditions are
-not met.
-
-DISCLAIMER
-THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
-COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
-COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
-DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER
-DEALINGS IN THE FONT SOFTWARE.
-----
-
 Copyright (c) 2018 The Khronos Group Inc.
 Copyright (c) 1991-2017 Unicode, Inc.
 Copyright (c) 2018 WHATWG
@@ -7679,7 +7566,7 @@ Copyright (C) André Cruz
 Copyright (C) Angelos Pikoulas
 Copyright (c) 2014-2020 Angelos Pikoulas (agelos.pikoulas@gmail.com)
 Copyright (C) Anthony Fu
-(c) 2020-2022 Anthony Fu (https://github.com/antfu)
+(c) 2021-2022 Anthony Fu (https://github.com/antfu)
 Copyright (c) 2021-2022 Anthony Fu <https://github.com/antfu>
 Copyright (c) 2009 Anton Grigoryev
 Copyright (c) 2022 Anton Kastritskiy
@@ -7709,9 +7596,11 @@ copyright (c) 2019 Denis Pushkarev
 Copyright (c) 2014-2022 Douglas Christopher Wilson
 Copyright (c) 2014-2022 Douglas Christopher Wilson <doug@somethingdoug.com>
 Copyright Dr B. R Gladman (gladman@seven77.demon.co.uk) and Sam Simpson (s.simpson@mia.co.uk)
+Copyright (c) 2022, 2024 ECMAScript Shims
 Copyright (c) EGOIST
+Copyright (c) 2022 Eclipse Foundation
 Copyright (C) Eduardo San Martin Morote
-(c) 2024 Eduardo San Martin Morote
+(c) 2024-2025 Eduardo San Martin Morote
 Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
 Copyright (c) 2015, 2019 Elan Shanker
 Copyright (c) 2019 Elan Shanker, Paul Miller (https://paulmillr.com)
@@ -7735,6 +7624,7 @@ Copyright (c) 2016 Google Inc.
 Copyright (C) Guillaume Chau
 Copyright (c) 2018-2022 Guy Bedford
 Copyright (c) 2014 Hugh Kennedy
+Copyright (c) 2021 Inspect JS
 Copyright (C) Isaac Z. Schlueter
 Copyright Isaac Z. Schlueter and Contributors
 Copyright (c) Isaac Z. Schlueter and Contributors
@@ -7757,6 +7647,9 @@ Copyright (c) 2014-2018 Jon Schlinkert
 Copyright (c) 2016, 2018-2019, 2024 Jon Schlinkert (https://github.com/jonschlinkert)
 Copyright (c) 2013-2014 Jonathan Ong
 Copyright (c) 2013-2014 Jonathan Ong <me@jongleberry.com>
+Copyright (C) Jordan Harband
+Copyright (c) 2016, 2020, 2022, 2024 Jordan Harband
+Copyright (c) Jordan Harband and contributors
 Copyright (c) Jorge Bucaran <https://jorgebucaran.com>
 Copyright (C) Josh Junon
 Copyright (c) 2018-2021 Josh Junon
@@ -7784,7 +7677,7 @@ Copyright 2018 Logan Smyth <loganfsmyth@gmail.com>
 Copyright (c) 2018 Luca Ban
 Copyright (C) Luca Ban - Mesqueeb
 Copyright (c) 2016 Luigi Pinca and contributors
-Copyright (c) 2006-2023 Lukas Renggli
+Copyright (c) 2006-2025 Lukas Renggli
 Copyright (C) Lukas Taegert-Atkinson
 Copyright (C) Luke Edwards
 (c) Luke Edwards (https://lukeed.com)
@@ -7796,7 +7689,7 @@ Copyright 2015 Mark Dalgleish <mark.john.dalgleish@gmail.com>
 Copyright (C) Mathias Bynens
 Copyright Mathias Bynens <https://mathiasbynens.be/>
 Copyright (C) Matt Zabriskie
-Copyright (c) 2024 Matt Zabriskie and contributors
+Copyright (c) 2025 Matt Zabriskie and contributors
 Copyright (C) Matteo Collina
 Copyright (c) 2015 Matteo Collina
 Copyright (c) Matteo Collina and Undici contributors
@@ -7818,14 +7711,14 @@ Copyright (c) 2017 Node.js
 Copyright Node.js contributors
 Copyright (c) 2019 Nordic Institute for Interoperability Solutions (NIIS)
 Copyright (c) 2021-2024 Oleksii Raspopov, Kostiantyn Denysov, Anton Verinov
-Copyright (c) 2018-2022 Oracle and/or its affiliates
+Copyright (c) 2018, 2021-2022 Oracle and/or its affiliates
 Copyright (c) 2021 PRESENT Nuxt Contrib
 Copyright (C) Paul Miller
 Copyright (c) Paul Miller (https://paulmillr.com)
 Copyright (c) 2012-2019 Paul Miller (https://paulmillr.com), Elan Shanker
 (c) 2012 Paul Miller (paulmillr.com)
 (c) Paul Miller <https://paulmillr.com>
-Copyright (c) 2004-2015 Permission
+Copyright (c) 2004-2024 Permission
 Copyright (c) 2014-2015 Petka Antonov Sindre Sorhus
 (c) Petka Antonov, John-David Dalton, Sindre Sorhus
 Copyright (C) Piotr Olaszewski
@@ -7833,10 +7726,12 @@ Copyright (c) 2022 Pooya Parsa <pooya@pi0.io>
 Copyright (C) PraZ
 Copyright (c) 2023 PraZ
 Copyright (C) QOS.ch
-Copyright (c) 2004-2024 QOS.ch
+Copyright (c) 2004-2011 QOS.ch
 Copyright (c) 2004-2022 QOS.ch Sarl (Switzerland)
 Copyright 2014 R. Tyler Croy, Sun Microsystems, Inc.
 Copyright 2018-2020 Raffaello Giulietti
+Copyright (C) Raynos
+Copyright (c) 2013 Raynos
 Copyright (C) Rich Harris
 Copyright (c) 2015, 2019 Rich Harris
 Copyright 2018 Rich Harris
@@ -7891,6 +7786,7 @@ Copyright (C) The Legion of the Bouncy Castle Inc.
 Copyright 2012-2013 The Netty Project
 Copyright (C) Thorsten Lorenz
 Copyright 2013 Thorsten Lorenz
+(c) 2012-2019 Thorsten Lorenz, Paul Miller (https://paulmillr.com)
 Copyright (c) 2012-2019 Thorsten Lorenz, Paul Miller (https://paulmillr.com)
 Copyright (c) 2015 Tiancheng Timothy Gu
 Copyright (c) 2021 Titus Wormer
@@ -7905,17 +7801,17 @@ Copyright (c) 2018 WHATWG
 Copyright (c) 2023 Werner Randelshofer, Switzerland
 Copyright (c) YEAR W3C(r) (MIT, ERCIM, Keio, Beihang). Disclaimers
 Copyright (c) 2019 ZHAO Jinxiang
-Copyright (c) 2016 Zeit, Inc.
 Copyright (c) 2011-2015 by Vitaly Puzrin
 (c) by W3C
 Copyright (c) 2012-2022 by various contributors
 Copyright (c) 2009 codehaus.org
 Copyright (C) iamkun
 Copyright jQuery Foundation and other contributors <https://jquery.org/>
+Copyright jQuery Foundation and other contributors https://jquery.org
 Copyright (C) kael
 Copyright (C) kazuya kawaguchi
 Copyright (c) 2020 kazuya kawaguchi
-(c) 2024 kazuya kawaguchi
+(c) 2025 kazuya kawaguchi
 Copyright (c) 2016 present - Nuxt Team
 Copyright 2015 present Alexander Madyankin <alexander@madyankin.name>
 Copyright (c) 2017 present Devon Govett
@@ -7926,8 +7822,8 @@ Copyright 2014 present Olivier Lalonde <olalonde@gmail.com> , James Talmage <jam
 Copyright (c) 2014 present Sebastian McKenzie and other contributors
 (c) 2018 present Yuxi
 Copyright 2004 present by the Checker Framework
+Copyright 2004 present by the Checker Framework developers
 Copyright (c) 2021 present dominikg and contributors (https://github.com/dominikg/tsconfck/graphs/contributors)
-Copyright (c) 2020 present, Anthony Fu
 Copyright (c) 2014-2015 present, Facebook, Inc.
 Copyright (c) 2014-2015, 2017 present, Jon Schlinkert
 Copyright (c) 2017 present, Jon Schlinkert (https://github.com/jonschlinkert)
@@ -8512,9 +8408,6 @@ purpose. It is provided "as is" without express or implied warranty.
 ----
 
 Copyright (C) Google Inc.
-Copyright 2020 The Open Sans Project
-Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
-Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans) OFL-1.1 (https://openfontlicense.org)
 
 -----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
@@ -8662,6 +8555,105 @@ Copyright (c) 2015-2016, 2019-2020 Richard Shred Korber http://acme4j.shredzone.
 
 ----
 
+-------------------------------
+UBUNTU FONT LICENCE Version 1.0
+-------------------------------
+
+PREAMBLE
+This licence allows the licensed fonts to be used, studied, modified and
+redistributed freely. The fonts, including any derivative works, can be
+bundled, embedded, and redistributed provided the terms of this licence
+are met. The fonts and derivatives, however, cannot be released under
+any other licence. The requirement for fonts to remain under this
+licence does not require any document created using the fonts or their
+derivatives to be published under this licence, as long as the primary
+purpose of the document is not to be a vehicle for the distribution of
+the fonts.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this licence and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Original Version" refers to the collection of Font Software components
+as received under this licence.
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to
+a new environment.
+
+"Copyright Holder(s)" refers to all individuals and companies who have a
+copyright ownership of the Font Software.
+
+"Substantially Changed" refers to Modified Versions which can be easily
+identified as dissimilar to the Font Software by users of the Font
+Software comparing the Original Version with the Modified Version.
+
+To "Propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy. Propagation includes copying,
+distribution (with or without modification and with or without charging
+a redistribution fee), making available to the public, and in some
+countries other activities as well.
+
+PERMISSION & CONDITIONS
+This licence does not grant any rights under trademark law and all such
+rights are reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of the Font Software, to propagate the Font Software, subject to
+the below conditions:
+
+1) Each copy of the Font Software must contain the above copyright
+notice and this licence. These can be included either as stand-alone
+text files, human-readable headers or in the appropriate machine-
+readable metadata fields within text or binary files as long as those
+fields can be easily viewed by the user.
+
+2) The font name complies with the following:
+(a) The Original Version must retain its name, unmodified.
+(b) Modified Versions which are Substantially Changed must be renamed to
+avoid use of the name of the Original Version or similar names entirely.
+(c) Modified Versions which are not Substantially Changed must be
+renamed to both (i) retain the name of the Original Version and (ii) add
+additional naming elements to distinguish the Modified Version from the
+Original Version. The name of such Modified Versions must be the name of
+the Original Version, with "derivative X" where X represents the name of
+the new work, appended to that name.
+
+3) The name(s) of the Copyright Holder(s) and any contributor to the
+Font Software shall not be used to promote, endorse or advertise any
+Modified Version, except (i) as required by this licence, (ii) to
+acknowledge the contribution(s) of the Copyright Holder(s) or (iii) with
+their explicit written permission.
+
+4) The Font Software, modified or unmodified, in part or in whole, must
+be distributed entirely under this licence, and must not be distributed
+under any other licence. The requirement for fonts to remain under this
+licence does not affect any document created using the Font Software,
+except any version of the Font Software extracted from a document
+created using the Font Software may only be distributed under this
+licence.
+
+TERMINATION
+This licence becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER
+DEALINGS IN THE FONT SOFTWARE.
+
+----
+
 Copyright (c) 2018 The Khronos Group Inc.
 Copyright (c) 1991-2017 Unicode, Inc.
 Copyright (c) 2018 WHATWG
@@ -8733,7 +8725,7 @@ Copyright 2005 ?? World Wide Web Consortium
 Copyright (C) Apache Software Foundation
 (c) 1999 COPYRIGHT World Wide Web Consortium (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
 (c) Copyright 2002 International Business Machines Corporation
-Copyright (c) 2009-2018, 2020-2021 Oracle and/or its affiliates
+Copyright (c) 2009-2018, 2021 Oracle and/or its affiliates
 Copyright (c) 2004, 2006, 2009 World Wide Web Consortium
 Copyright (c) 2004, 2011 World Wide Web Consortium (Massachusetts Institute of Technology, European Research Consortium for Informatics and Mathematics, Keio University)
 Copyright (c) 1998-1999 World Wide Web Consortium (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
