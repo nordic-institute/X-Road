@@ -125,6 +125,7 @@ export default defineComponent({
 });
 </script>
 
+<!-- eslint-disable-next-line  vue-scoped-css/enforce-style-type -->
 <style lang="scss">
 @use './assets/global-style.scss';
 </style>

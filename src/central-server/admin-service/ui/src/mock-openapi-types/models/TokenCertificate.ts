@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { CertificateDetails } from './CertificateDetails';
 import type { CertificateOcspStatus } from './CertificateOcspStatus';

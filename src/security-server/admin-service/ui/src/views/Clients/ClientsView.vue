@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-    <clientsDataTable />
+  <clientsDataTable />
 </template>
 
 <script lang="ts">

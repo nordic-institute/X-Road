@@ -31,10 +31,9 @@
     :max-width="maxWidth"
   >
     <v-card>
-      <v-card-title
-        class="text-h5"
-        data-test="service-warning-dialog-title"
-      >{{ $t('services.warning') }}</v-card-title>
+      <v-card-title class="text-h5" data-test="service-warning-dialog-title">{{
+        $t('services.warning')
+      }}</v-card-title>
       <v-card-text>
         <div v-for="warning in warnings" :key="warning.code">
           <!-- create the localisation key from warning code -->
@@ -51,7 +50,8 @@
           variant="outlined"
           data-test="dialog-cancel-button"
           @click="cancel()"
-        >{{ $t(cancelButtonText) }}</xrd-button>
+          >{{ $t(cancelButtonText) }}</xrd-button
+        >
         <xrd-button
           color="primary"
           variant="outlined"

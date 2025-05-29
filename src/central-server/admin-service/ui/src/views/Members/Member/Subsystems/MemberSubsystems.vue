@@ -76,7 +76,8 @@
               <rename-subsystem-btn
                 v-if="allowMemberSubsystemRename"
                 :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)" />
+                @click="renameClicked(item)"
+              />
             </td>
             <td class="unregistered-subsystem" />
             <td class="unregistered-subsystem" />
@@ -113,7 +114,8 @@
               <rename-subsystem-btn
                 v-if="allowMemberSubsystemRename"
                 :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)" />
+                @click="renameClicked(item)"
+              />
             </td>
             <td>{{ subitem.server_code }}</td>
             <td>{{ subitem.server_owner }}</td>
@@ -302,6 +304,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
 
     this.loading = true;
@@ -325,8 +328,9 @@ export default defineComponent({
       this.showDeleteDialog = true;
     },
     renameClicked(subsystem: Subsystem) {
-      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
-      this.clickedSubsystemName= subsystem.subsystem_name as string;
+      this.clickedSubsystemCode = subsystem.subsystem_id
+        ?.subsystem_code as string;
+      this.clickedSubsystemName = subsystem.subsystem_name as string;
       this.showRenameDialog = true;
     },
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {
@@ -415,11 +419,6 @@ export default defineComponent({
   }
 }
 
-.card-corner-button {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .status {
   text-transform: uppercase;
   font-weight: bold;
@@ -427,20 +426,12 @@ export default defineComponent({
 
 .subsystem-actions {
   text-align: right;
-
-  .xrd-clickable {
-    color: colors.$Link;
-    margin-left: 10px;
-  }
 }
 
 .unregistered-subsystem {
   background-color: colors.$WarmGrey30;
 }
 
-.custom-footer {
-  height: 16px;
-}
 tbody tr:last-child td {
   border-bottom: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
 }

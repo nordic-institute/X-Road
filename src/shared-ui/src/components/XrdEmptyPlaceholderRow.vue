@@ -90,7 +90,7 @@ export default defineComponent({
       return this.showNoItems;
     },
   },
-  methods: {}
+  methods: {},
 });
 </script>
 

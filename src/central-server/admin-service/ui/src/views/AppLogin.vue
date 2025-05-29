@@ -27,7 +27,7 @@
 <template>
   <v-container fluid class="login-view-wrap fill-height">
     <alerts-container class="alerts" />
-    <language-dropdown class="language-dropdown"/>
+    <language-dropdown class="language-dropdown" />
     <v-row no-gutters class="fill-height">
       <v-col cols="3">
         <div class="graphics">

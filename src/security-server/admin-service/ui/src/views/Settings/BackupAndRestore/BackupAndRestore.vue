@@ -24,7 +24,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdTitledView data-test="backup-restore-view" class="xrd-view-common" title-key="tab.settings.backupAndRestore">
+  <XrdTitledView
+    data-test="backup-restore-view"
+    class="xrd-view-common"
+    title-key="tab.settings.backupAndRestore"
+  >
     <template #append-title>
       <xrd-search v-model="search" class="ml-5 mb-1" />
     </template>
@@ -61,7 +65,12 @@ import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { saveResponseAsFile } from '@/util/helpers';
-import { BackupHandler, BackupItem, XrdBackupsDataTable, XrdBackupsToolbar } from '@niis/shared-ui';
+import {
+  BackupHandler,
+  BackupItem,
+  XrdBackupsDataTable,
+  XrdBackupsToolbar,
+} from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();

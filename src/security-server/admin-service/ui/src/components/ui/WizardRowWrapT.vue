@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <wizard-row-wrap :label="$t(label)" :tooltip="tooltip?$t(tooltip):''">
+  <wizard-row-wrap :label="$t(label)" :tooltip="tooltip ? $t(tooltip) : ''">
     <slot></slot>
   </wizard-row-wrap>
 </template>

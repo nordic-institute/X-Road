@@ -112,7 +112,7 @@ import { Permissions } from '@/global';
 import { TimestampingService } from '@/openapi-types';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { sortTimestampingServices } from "@/util/sorting";
+import { sortTimestampingServices } from '@/util/sorting';
 
 export default defineComponent({
   name: 'AddTimestampingServiceDialog',
@@ -157,7 +157,12 @@ export default defineComponent({
     fetchApprovedTimestampingServices(): void {
       api
         .get<TimestampingService[]>('/timestamping-services')
-        .then((resp) => (this.approvedTimestampingServices = sortTimestampingServices(resp.data)))
+        .then(
+          (resp) =>
+            (this.approvedTimestampingServices = sortTimestampingServices(
+              resp.data,
+            )),
+        )
         .catch((error) => this.showError(error));
     },
     add(): void {

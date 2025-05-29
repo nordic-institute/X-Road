@@ -104,14 +104,6 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
-.success-snackbar > .v-snack__wrapper {
-  // Customised size for snackbar
-  min-height: 88px;
-  min-width: 760px;
-}
-</style>
-
 <style lang="scss" scoped>
 .row-wrapper-top {
   display: flex;

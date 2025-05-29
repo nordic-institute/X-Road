@@ -141,7 +141,9 @@ export const useClient = defineStore('client', {
     },
 
     async renameClient(clientId: string, newName: string) {
-      return api.put(`/clients/${encodePathParameter(clientId)}/rename`, { client_name: newName })
+      return api.put(`/clients/${encodePathParameter(clientId)}/rename`, {
+        client_name: newName,
+      });
     },
   },
 });

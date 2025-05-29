@@ -47,7 +47,7 @@
  */
 
 import type { PropType } from 'vue';
-import XrdSimpleDialog from "./XrdSimpleDialog.vue";
+import XrdSimpleDialog from './XrdSimpleDialog.vue';
 
 defineProps({
   modelValue: {
@@ -83,12 +83,10 @@ defineProps({
   },
   focusOnAccept: {
     type: Boolean,
-    default: false
+    default: false,
   },
 });
 
 defineEmits(['accept', 'cancel']);
-
 </script>
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

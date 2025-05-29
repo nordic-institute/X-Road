@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 /**
  * response that tells if hsm tokens were logged out during the restore process

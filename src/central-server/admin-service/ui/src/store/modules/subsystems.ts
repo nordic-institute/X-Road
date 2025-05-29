@@ -41,7 +41,7 @@ export const useSubsystem = defineStore('subsystem', {
           throw error;
         });
     },
-    renameSubsystem(subsystemId: string, newName:SubsystemName) {
+    renameSubsystem(subsystemId: string, newName: SubsystemName) {
       return axios.patch(`/subsystems/${subsystemId}`, newName);
     },
     deleteById(subsystemId: string) {

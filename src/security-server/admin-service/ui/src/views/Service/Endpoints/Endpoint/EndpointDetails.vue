@@ -75,8 +75,7 @@
       </div>
     </div>
     <div class="xrd-footer-buttons-wrap">
-      <xrd-button outlined @click="close()"
-      >
+      <xrd-button outlined @click="close()">
         {{ $t('action.cancel') }}
       </xrd-button>
       <xrd-button

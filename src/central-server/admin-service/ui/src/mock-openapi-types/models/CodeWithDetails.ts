@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 /**
  * object that contains a code identifier and possibly collection of associated metadata or validation errors. Used to relay error and warning information.

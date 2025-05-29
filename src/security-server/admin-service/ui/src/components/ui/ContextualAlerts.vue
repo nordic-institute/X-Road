@@ -26,13 +26,18 @@
 <template>
   <!-- Error -->
   <v-container
-    v-if="notifications.errorNotifications && notifications.errorNotifications.length > 0"
+    v-if="
+      notifications.errorNotifications &&
+      notifications.errorNotifications.length > 0
+    "
     fluid
     class="alerts-container px-3"
   >
-    <error-notification v-for="notification in notifications.errorNotifications"
-                        :key="notification.timeAdded"
-                        :notification="notification" />
+    <error-notification
+      v-for="notification in notifications.errorNotifications"
+      :key="notification.timeAdded"
+      :notification="notification"
+    />
   </v-container>
 </template>
 
@@ -42,7 +47,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import ErrorNotification from '@/components/ui/ErrorNotification.vue';
 
 const notifications = useNotifications();
-
 </script>
 
 <style lang="scss" scoped>
@@ -55,5 +59,4 @@ const notifications = useNotifications();
     margin-bottom: 4px;
   }
 }
-
 </style>

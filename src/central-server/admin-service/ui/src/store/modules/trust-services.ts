@@ -216,9 +216,9 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
       if (!this.currentCs) return;
 
       return axios
-        .get<CertificateAuthority[]>(
-          `/certification-services/${this.currentCs.id}/intermediate-cas`,
-        )
+        .get<
+          CertificateAuthority[]
+        >(`/certification-services/${this.currentCs.id}/intermediate-cas`)
         .then((resp) => (this.currentIntermediateCas = resp.data));
     },
     getIntermediateCa(id: number) {

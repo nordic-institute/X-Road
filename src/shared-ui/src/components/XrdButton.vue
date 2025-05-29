@@ -45,10 +45,11 @@
   </v-btn>
 </template>
 
-<script lang="ts" setup>/**
+<script lang="ts" setup>
+/**
  * Wrapper for vuetify button with x-road look
  * */
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from 'vue';
 
 const props = defineProps({
   // Button color
@@ -105,7 +106,7 @@ const props = defineProps({
   },
 });
 const emits = defineEmits(['click']);
-const showGradient = computed(() => props.disabled ? false : props.gradient);
+const showGradient = computed(() => (props.disabled ? false : props.gradient));
 const variant = computed(() => {
   if (props.outlined) {
     return 'outlined';
@@ -122,7 +123,7 @@ function click(event: MouseEvent): void {
   emits('click', event);
 }
 
-const button = ref<VBtn>()
+const button = ref<VBtn>();
 
 function focus() {
   if (button.value && button.value.$el) {

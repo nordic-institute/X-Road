@@ -104,8 +104,8 @@ export default defineComponent({
         return true;
       }
       return this.showNoItems;
-    }
-  }
+    },
+  },
 });
 </script>
 

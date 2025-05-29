@@ -79,7 +79,7 @@ export const useAlerts = defineStore('alerts', {
     },
     signCertificateIdsWithErrors(state): string[] {
       return state.alertStatus.signCertificateIdsWithErrors || '';
-    }
+    },
   },
 
   actions: {
@@ -92,9 +92,12 @@ export const useAlerts = defineStore('alerts', {
             softTokenPinEntered: resp.data.soft_token_pin_entered,
             backupRestoreRunningSince: resp.data.backup_restore_running_since,
             currentTime: resp.data.current_time,
-            certificateRenewalJobSuccess: resp.data.certificate_renewal_job_success,
-            authCertificateIdsWithErrors: resp.data.auth_certificate_ids_with_errors,
-            signCertificateIdsWithErrors: resp.data.sign_certificate_ids_with_errors,
+            certificateRenewalJobSuccess:
+              resp.data.certificate_renewal_job_success,
+            authCertificateIdsWithErrors:
+              resp.data.auth_certificate_ids_with_errors,
+            signCertificateIdsWithErrors:
+              resp.data.sign_certificate_ids_with_errors,
           };
 
           this.queried = true;

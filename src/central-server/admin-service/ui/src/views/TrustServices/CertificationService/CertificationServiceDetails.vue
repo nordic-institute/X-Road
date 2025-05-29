@@ -183,15 +183,6 @@ export default defineComponent({
 @use '@/assets/colors';
 @use '@/assets/tables' as *;
 
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
 .delete-action {
   margin-top: 34px;
   color: colors.$Link;
@@ -213,6 +204,7 @@ export default defineComponent({
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 

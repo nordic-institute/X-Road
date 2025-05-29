@@ -70,11 +70,11 @@
         <!-- Step 3 -->
         <v-stepper-window-item :value="3">
           <WizardPageGenerateCsr
+            :key="csrGenPageKey"
             key-and-csr
             @cancel="cancel"
             @previous="currentStep = 2"
             @done="done"
-            :key="csrGenPageKey"
           />
         </v-stepper-window-item>
       </v-stepper-window>

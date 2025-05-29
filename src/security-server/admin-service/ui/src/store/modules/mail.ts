@@ -24,15 +24,12 @@
  * THE SOFTWARE.
  */
 
-import {
-  MailNotificationStatus,
-  TestMailResponse,
-} from "@/openapi-types";
+import { MailNotificationStatus, TestMailResponse } from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface MailState {
-  mailNotificationStatus: MailNotificationStatus,
+  mailNotificationStatus: MailNotificationStatus;
 }
 
 export const useMail = defineStore('mail', {
@@ -54,10 +51,9 @@ export const useMail = defineStore('mail', {
         });
     },
     async sendTestMail(mailAddress: string) {
-      return api
-        .put<TestMailResponse>('/mail/send-test-mail', {
-          mail_address: mailAddress,
-        });
+      return api.put<TestMailResponse>('/mail/send-test-mail', {
+        mail_address: mailAddress,
+      });
     },
   },
 });

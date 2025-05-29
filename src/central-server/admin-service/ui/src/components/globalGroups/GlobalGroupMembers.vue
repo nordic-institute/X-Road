@@ -254,6 +254,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {

@@ -58,6 +58,7 @@ export default defineComponent({
     helpImage: {
       type: String,
       required: false,
+      default: '',
     },
     helpTitle: {
       type: String,

@@ -39,6 +39,4 @@ import { createApp } from 'vue';
 // Plugins
 import { i18n } from './plugins/i18n';
 
-createApp(App)
-  .use(i18n)
-  .mount('#app');
+createApp(App).use(i18n).mount('#app');

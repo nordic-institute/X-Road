@@ -51,13 +51,13 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { BackupHandler } from '../../types';
-import XrdButton from "../XrdButton.vue";
-import XrdConfirmDialog from "../XrdConfirmDialog.vue";
+import XrdButton from '../XrdButton.vue';
+import XrdConfirmDialog from '../XrdConfirmDialog.vue';
 
 export default defineComponent({
   components: {
     XrdButton,
-    XrdConfirmDialog
+    XrdConfirmDialog,
   },
   props: {
     canBackup: {
@@ -91,8 +91,8 @@ export default defineComponent({
         .then(() => this.$emit('delete'))
         .catch((error) => this.backupHandler.showError(error))
         .finally(() => (this.deleting = false));
-    }
-  }
+    },
+  },
 });
 </script>
 

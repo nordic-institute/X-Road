@@ -122,21 +122,4 @@ export default defineComponent({
   align-items: center;
   margin-left: 57px;
 }
-
-.cert-row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 2px;
-  white-space: nowrap;
-}
 </style>

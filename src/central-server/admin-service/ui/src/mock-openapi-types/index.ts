@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+
 export type { AccessRight } from './models/AccessRight';
 export type { AccessRights } from './models/AccessRights';
 export type { Anchor } from './models/Anchor';

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { saveResponseAsFile } from "@/util/helpers";
+import { saveResponseAsFile } from '@/util/helpers';
 import {
   AcmeEabCredentialsStatus,
   CertificateAuthority,
@@ -37,11 +37,14 @@ import {
   KeyWithCertificateSigningRequestId,
   TokenCertificateSigningRequest,
   TokenType,
-} from "@/openapi-types";
-import { defineStore } from "pinia";
-import * as api from "@/util/api";
-import { encodePathParameter } from "@/util/api";
-import { sorCertificateAuthorities, sortCsrSubjectFields } from "@/util/sorting";
+} from '@/openapi-types';
+import { defineStore } from 'pinia';
+import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
+import {
+  sorCertificateAuthorities,
+  sortCsrSubjectFields,
+} from '@/util/sorting';
 
 export interface CsrState {
   csrKey: Key | undefined;
@@ -94,8 +97,7 @@ export const useCsr = defineStore('csr', {
           certificateAuthority.name == state.certificationService,
       )?.acme_capable,
 
-    eabRequired: (state) =>
-      state.acmeEabCredentialsStatus?.acme_eab_required,
+    eabRequired: (state) => state.acmeEabCredentialsStatus?.acme_eab_required,
 
     csrRequestBody(state): CsrGenerate {
       // Creates an object that can be used as body for generate CSR request
@@ -274,20 +276,32 @@ export const useCsr = defineStore('csr', {
         });
     },
 
-    orderAcmeCertificate(csr: TokenCertificateSigningRequest, caName: string, usage?: KeyUsageType) {
+    orderAcmeCertificate(
+      csr: TokenCertificateSigningRequest,
+      caName: string,
+      usage?: KeyUsageType,
+    ) {
       if (!usage) {
         throw new Error('Key usage is missing');
       }
-      return api.post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`, {
-        csr_id: csr.id,
-        key_usage_type: usage,
-      })
+      return api
+        .post(
+          `/certificate-authorities/${encodePathParameter(caName)}/acme-order`,
+          {
+            csr_id: csr.id,
+            key_usage_type: usage,
+          },
+        )
         .catch((error) => {
           throw error;
         });
     },
 
-    hasAcmeEabCredentials(caName?: string, csrClientId?: string, keyUsage?: KeyUsageType) {
+    hasAcmeEabCredentials(
+      caName?: string,
+      csrClientId?: string,
+      keyUsage?: KeyUsageType,
+    ) {
       this.failedFetchAcmeMetadata = false;
 
       return api
@@ -307,7 +321,9 @@ export const useCsr = defineStore('csr', {
           return res.data;
         })
         .catch((error) => {
-          this.failedFetchAcmeMetadata = error?.response?.data?.error?.code === 'acme.fetching_metadata_error';
+          this.failedFetchAcmeMetadata =
+            error?.response?.data?.error?.code ===
+            'acme.fetching_metadata_error';
           throw error;
         });
     },

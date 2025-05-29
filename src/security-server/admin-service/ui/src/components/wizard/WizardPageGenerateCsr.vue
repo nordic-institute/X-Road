@@ -51,11 +51,12 @@
           data-test="generate-csr-button"
           :loading="generateCsrLoading"
           @click="generateCsr(false)"
-        >{{ $t('csr.generateCsr') }}
+          >{{ $t('csr.generateCsr') }}
         </xrd-button>
       </div>
       <div v-if="acmeCapable" class="generate-row">
-        <div>{{ $t('csr.orderAcmeCertificate') }}
+        <div>
+          {{ $t('csr.orderAcmeCertificate') }}
           <v-alert
             v-if="externalAccountBindingRequiredButMissing"
             border="start"
@@ -71,7 +72,7 @@
           data-test="acme-order-certificate-button"
           :loading="orderCertificateLoading"
           @click="generateCsr(true)"
-        >{{ $t('keys.orderAcmeCertificate') }}
+          >{{ $t('keys.orderAcmeCertificate') }}
         </xrd-button>
       </div>
     </div>
@@ -81,7 +82,7 @@
         :disabled="!disableDone"
         data-test="cancel-button"
         @click="cancel"
-      >{{ $t('action.cancel') }}
+        >{{ $t('action.cancel') }}
       </xrd-button>
 
       <xrd-button
@@ -90,10 +91,10 @@
         data-test="previous-button"
         :disabled="!disableDone"
         @click="previous"
-      >{{ $t('action.previous') }}
+        >{{ $t('action.previous') }}
       </xrd-button>
       <xrd-button :disabled="disableDone" data-test="save-button" @click="done"
-      >{{ $t(saveButtonText) }}
+        >{{ $t(saveButtonText) }}
       </xrd-button>
     </div>
   </div>
@@ -184,21 +185,19 @@ export default defineComponent({
     },
     generateCsrDisabled(): boolean {
       return (
-        !this.meta.valid ||
-        !this.disableDone ||
-        this.orderCertificateLoading
+        !this.meta.valid || !this.disableDone || this.orderCertificateLoading
       );
     },
     orderCertificateLoading(): boolean {
-      return (this.genCsrLoading && this.acmeOrder);
+      return this.genCsrLoading && this.acmeOrder;
     },
     generateCsrLoading(): boolean {
-      return (this.genCsrLoading && !this.acmeOrder);
+      return this.genCsrLoading && !this.acmeOrder;
     },
     autofocusField(): string | undefined {
       return this.csrForm
-        .filter(field => !field.read_only)
-        .map(field => field.id)
+        .filter((field) => !field.read_only)
+        .map((field) => field.id)
         .shift();
     },
   },

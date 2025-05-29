@@ -54,12 +54,14 @@ import {
   XrdIconChecked,
   XrdIconChecker,
   XrdIconClose,
-  XrdIconCopy, XrdIconEdit,
+  XrdIconCopy,
+  XrdIconEdit,
   XrdIconFolderOutline,
   XrdSearch,
   XrdSimpleDialog,
   XrdSubViewContainer,
-  XrdSubViewTitle, XrdTitledView,
+  XrdSubViewTitle,
+  XrdTitledView,
 } from '@niis/shared-ui';
 import { useLanguage } from '@/store/modules/language';
 
@@ -102,5 +104,6 @@ app.component('XrdTitledView', XrdTitledView);
 
 // translations
 const languageStorage = useLanguage();
-languageHelper.selectLanguage(languageStorage.getLanguage)
-  .finally(() => app.mount('#app'))
+languageHelper
+  .selectLanguage(languageStorage.getLanguage)
+  .finally(() => app.mount('#app'));

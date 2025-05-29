@@ -42,9 +42,9 @@ export const useSecurityServerAuthCert = defineStore('securityServerAuthCert', {
   actions: {
     async fetch(securityServerId: string) {
       return axios
-        .get<SecurityServerAuthenticationCertificateDetails[]>(
-          `/security-servers/${securityServerId}/authentication-certificates`,
-        )
+        .get<
+          SecurityServerAuthenticationCertificateDetails[]
+        >(`/security-servers/${securityServerId}/authentication-certificates`)
         .then((resp) => {
           this.authenticationCertificates = resp.data || [];
         });

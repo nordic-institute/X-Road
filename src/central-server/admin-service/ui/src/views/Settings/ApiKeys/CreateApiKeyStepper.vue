@@ -283,12 +283,6 @@ export default defineComponent({
   box-shadow: colors.$DefaultShadow;
 }
 
-.stepper-header {
-  box-shadow: unset;
-  width: 50%;
-  margin: auto;
-}
-
 .underline {
   border-bottom: solid 1px colors.$WarmGrey30;
 }

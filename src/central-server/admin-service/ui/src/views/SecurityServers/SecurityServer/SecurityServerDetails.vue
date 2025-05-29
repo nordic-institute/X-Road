@@ -83,7 +83,7 @@
         <xrd-icon-base v-if="securityServer.in_maintenance_mode" class="mr-4">
           <xrd-icon-checked :color="colors.Success100" />
         </xrd-icon-base>
-        {{securityServer.maintenance_mode_message}}
+        {{ securityServer.maintenance_mode_message }}
       </info-card>
 
       <info-card
@@ -210,6 +210,7 @@ export default defineComponent({
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 
@@ -220,12 +221,6 @@ export default defineComponent({
     &:last-child {
       margin-left: 30px;
     }
-  }
-}
-
-#global-groups-table {
-  tbody tr td:last-child {
-    width: 50px;
   }
 }
 

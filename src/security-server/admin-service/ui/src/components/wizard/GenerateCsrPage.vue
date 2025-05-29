@@ -81,7 +81,7 @@ import { defineComponent, Ref } from 'vue';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { PublicPathState, useForm } from 'vee-validate';
 import { CsrSubjectFieldDescription } from '@/openapi-types';
-import { mapState, mapWritableState } from "pinia";
+import { mapState, mapWritableState } from 'pinia';
 
 export default defineComponent({
   props: {
@@ -130,18 +130,27 @@ export default defineComponent({
     return { meta, values, ...componentBinds, csrForm, setCsrForm };
   },
   computed: {
-    ...mapState(useCsr, ["acmeCapable", "eabRequired", "acmeEabCredentialsStatus"]),
-    ...mapWritableState(useCsr, ["acmeOrder"]),
+    ...mapState(useCsr, [
+      'acmeCapable',
+      'eabRequired',
+      'acmeEabCredentialsStatus',
+    ]),
+    ...mapWritableState(useCsr, ['acmeOrder']),
     externalAccountBindingRequiredButMissing(): boolean {
-      return !!this.eabRequired && !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials;
+      return (
+        !!this.eabRequired &&
+        !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials
+      );
     },
     externalAccountBindingRequiredButMissingHint(): string | undefined {
-      return this.externalAccountBindingRequiredButMissing ? this.$t('csr.eabCredRequired') : undefined;
+      return this.externalAccountBindingRequiredButMissing
+        ? this.$t('csr.eabCredRequired')
+        : undefined;
     },
     autofocusField(): string | undefined {
       return this.csrForm
-        .filter(field => !field.read_only)
-        .map(field => field.id)
+        .filter((field) => !field.read_only)
+        .map((field) => field.id)
         .shift();
     },
   },

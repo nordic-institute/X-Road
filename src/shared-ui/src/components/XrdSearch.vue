@@ -36,7 +36,7 @@
     hide-details
     :label="label"
     :class="{ closed }"
-    @click:prepend-inner="hide=false"
+    @click:prepend-inner="hide = false"
     @focus="hide = false"
     @blur="hide = true"
     @update:model-value="$emit('update:model-value', $event)"
@@ -99,7 +99,7 @@ export default defineComponent({
     width: 5px;
   }
 
-  :deep(.v-field__prepend-inner>i) {
+  :deep(.v-field__prepend-inner > i) {
     color: colors.$Purple100;
     opacity: 1;
   }

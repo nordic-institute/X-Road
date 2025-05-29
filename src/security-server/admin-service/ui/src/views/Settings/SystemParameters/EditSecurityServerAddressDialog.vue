@@ -103,16 +103,20 @@ export default defineComponent({
     saveAddress: async function () {
       this.loading = true;
       api
-        .put('/system/server-address', { address: this.values.securityServerAddress })
+        .put('/system/server-address', {
+          address: this.values.securityServerAddress,
+        })
         .then(() => {
-          this.showSuccess(this.$t('systemParameters.securityServer.updateSubmitted'));
+          this.showSuccess(
+            this.$t('systemParameters.securityServer.updateSubmitted'),
+          );
           this.$emit('addressUpdated');
         })
         .catch((error) => {
           this.showError(error);
           this.close();
         })
-        .finally(() => this.loading = false)
+        .finally(() => (this.loading = false));
     },
   },
 });

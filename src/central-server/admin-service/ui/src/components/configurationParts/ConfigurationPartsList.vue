@@ -168,9 +168,4 @@ export default defineComponent({
 <style lang="scss" scoped>
 @use '@/assets/tables' as *;
 @use '@/assets/colors';
-
-.internal-conf-icon {
-  margin-right: 15px;
-  color: colors.$Purple100;
-}
 </style>

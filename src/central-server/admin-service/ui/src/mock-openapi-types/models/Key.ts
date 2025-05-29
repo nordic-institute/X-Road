@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { KeyUsageType } from './KeyUsageType';
 import type { PossibleActions } from './PossibleActions';

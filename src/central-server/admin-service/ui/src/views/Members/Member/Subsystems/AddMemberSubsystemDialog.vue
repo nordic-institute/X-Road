@@ -42,15 +42,17 @@
           :label="$t('members.member.subsystems.subsystemcode')"
           variant="outlined"
           autofocus
-          data-test="add-subsystem-input" />
+          data-test="add-subsystem-input"
+        />
 
         <v-text-field
-          class="mt-2"
           v-model="subsystemName"
+          class="mt-2"
           v-bind="subsystemNameAttrs"
           :label="$t('members.member.subsystems.subsystemname')"
           variant="outlined"
-          data-test="add-subsystem-name-input" />
+          data-test="add-subsystem-name-input"
+        />
       </div>
     </template>
   </xrd-simple-dialog>

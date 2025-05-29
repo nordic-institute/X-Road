@@ -29,7 +29,8 @@
       <help-button
         :help-image="helpImg"
         help-title="keys.helpTitleApi"
-        help-text="keys.helpTextApi" />
+        help-text="keys.helpTextApi"
+      />
     </template>
     <template #header-buttons>
       <xrd-button
@@ -80,7 +81,7 @@
             :data-test="`api-key-row-${item.id}-edit-button`"
             :outlined="false"
             @click="editKey(item)"
-          >{{ $t('action.edit') }}
+            >{{ $t('action.edit') }}
           </xrd-button>
 
           <xrd-button
@@ -89,7 +90,7 @@
             :data-test="`api-key-row-${item.id}-revoke-button`"
             :outlined="false"
             @click="showRevokeDialog(item)"
-          >{{ $t('apiKey.table.action.revoke.button') }}
+            >{{ $t('apiKey.table.action.revoke.button') }}
           </xrd-button>
         </div>
       </template>
@@ -158,7 +159,6 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-
   </XrdTitledView>
 </template>
 

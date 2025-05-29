@@ -26,7 +26,7 @@
  -->
 <template>
   <v-alert
-    v-model="notification.show"
+    :model-value="notification.show"
     data-test="contextual-alert"
     border="start"
     variant="outlined"
@@ -103,8 +103,7 @@
           <XrdIconCopy />
         </xrd-icon-base>
         {{ $t('action.copyId') }}
-      </xrd-button
-      >
+      </xrd-button>
 
       <!-- Handle possible action -->
       <div v-if="notification.action" class="buttons">
@@ -114,7 +113,7 @@
           data-test="action-icon-snackbar"
           @click="routeAction()"
         >
-          <v-icon dark>{{ notification.action.icon }}</v-icon>
+          <v-icon theme="dark">{{ notification.action.icon }}</v-icon>
           {{ $t(notification.action.text) }}
         </xrd-button>
       </div>
@@ -132,11 +131,9 @@
       </v-btn>
     </template>
   </v-alert>
-
 </template>
 
 <script lang="ts" setup>
-
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 import { useRouter } from 'vue-router';
@@ -162,10 +159,10 @@ interface Meta {
 const groupedMetas = computed(() => {
   const groups: Meta[] = [];
   let group: Meta | undefined = undefined;
-  for (const meta of (props.notification.metaData || [])) {
+  for (const meta of props.notification.metaData || []) {
     if (meta.startsWith(translatableMetaPrefix)) {
       group = { translatable: true, key: errorCodePrefix + meta, args: [] };
-      groups.push(group)
+      groups.push(group);
     } else if (group) {
       group.args.push(meta);
     } else {
@@ -175,7 +172,6 @@ const groupedMetas = computed(() => {
         args: [],
       });
     }
-
   }
   return groups;
 });
@@ -202,7 +198,6 @@ function routeAction(): void {
   }
   closeError(props.notification.timeAdded);
 }
-
 </script>
 
 <style lang="scss" scoped>

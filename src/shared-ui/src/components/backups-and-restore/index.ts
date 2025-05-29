@@ -31,7 +31,6 @@ import XrdBackupsToolbar from './XrdBackupsToolbar.vue';
 import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
 import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
 
-
 export {
   XrdDownloadBackupButton,
   XrdBackupsDataTable,

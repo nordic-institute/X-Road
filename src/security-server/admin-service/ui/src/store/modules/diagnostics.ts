@@ -31,8 +31,8 @@ import {
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
   ProxyMemoryUsageStatus,
-  TimestampingServiceDiagnostics
-} from "@/openapi-types";
+  TimestampingServiceDiagnostics,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
@@ -116,9 +116,7 @@ export const useDiagnostics = defineStore('diagnostics', {
     },
     async fetchProxyMemoryDiagnostics() {
       return api
-        .get<ProxyMemoryUsageStatus>(
-          '/diagnostics/proxy-memory-usage-status',
-        )
+        .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
         .then((res) => {
           this.proxyMemoryUsageStatus = res.data;
         });

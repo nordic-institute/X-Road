@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { Service } from './Service';
 import type { ServiceType } from './ServiceType';

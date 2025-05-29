@@ -125,34 +125,6 @@ export default defineComponent({
 @use '@/assets/tables' as *;
 @use '@/assets/colors';
 
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-main-title {
-  color: colors.$Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .internal-conf-icon {
   margin-right: 15px;
   color: colors.$Purple100;

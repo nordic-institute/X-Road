@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { ConfigurationStatus } from './ConfigurationStatus';
 import type { DiagnosticStatusClass } from './DiagnosticStatusClass';

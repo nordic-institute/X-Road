@@ -34,7 +34,7 @@
           size="small"
           class="no-hover rounded-circle"
           :disabled="disabled"
-          :style="{ color }"
+          :style="style"
           @click="toggle"
         >
           <v-icon v-if="opened" color="primary" icon="mdi-chevron-down" />
@@ -74,6 +74,7 @@ export default defineComponent({
     },
     color: {
       type: String,
+      default: '',
     },
     disabled: {
       type: Boolean,
@@ -83,13 +84,18 @@ export default defineComponent({
   emits: ['open'],
   data() {
     return {
-      opened: this.isOpen
-    }
+      opened: this.isOpen,
+    };
+  },
+  computed: {
+    style() {
+      return this.color ? { color: this.color } : {};
+    },
   },
   watch: {
     isOpen(newVal) {
       this.opened = newVal;
-    }
+    },
   },
   methods: {
     toggle() {
@@ -98,8 +104,8 @@ export default defineComponent({
       }
       this.opened = !this.opened;
       this.$emit('open', this.opened);
-    }
-  }
+    },
+  },
 });
 </script>
 

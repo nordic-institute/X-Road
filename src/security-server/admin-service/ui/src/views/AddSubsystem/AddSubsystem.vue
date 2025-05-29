@@ -43,30 +43,42 @@
             outlined
             data-test="select-subsystem-button"
             @click="showSelectClient = true"
-          >{{ $t('wizard.subsystem.selectSubsystem') }}
+            >{{ $t('wizard.subsystem.selectSubsystem') }}
           </xrd-button>
         </div>
       </div>
 
-      <wizard-row-wrap-t label="wizard.memberName" tooltip="wizard.client.memberNameTooltip">
+      <wizard-row-wrap-t
+        label="wizard.memberName"
+        tooltip="wizard.client.memberNameTooltip"
+      >
         <div data-test="selected-member-name" class="identifier-wrap">
           {{ memberName }}
         </div>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t label="wizard.memberClass" tooltip="wizard.client.memberClassTooltip">
+      <wizard-row-wrap-t
+        label="wizard.memberClass"
+        tooltip="wizard.client.memberClassTooltip"
+      >
         <div data-test="selected-member-class" class="identifier-wrap">
           {{ memberClass }}
         </div>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t label="wizard.memberCode" tooltip="wizard.client.memberCodeTooltip">
+      <wizard-row-wrap-t
+        label="wizard.memberCode"
+        tooltip="wizard.client.memberCodeTooltip"
+      >
         <div data-test="selected-member-code" class="identifier-wrap">
           {{ memberCode }}
         </div>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t label="wizard.subsystemCode" tooltip="wizard.client.subsystemCodeTooltip">
+      <wizard-row-wrap-t
+        label="wizard.subsystemCode"
+        tooltip="wizard.client.subsystemCodeTooltip"
+      >
         <v-text-field
           v-model="subsystemCode"
           v-bind="subsystemCodeAttrs"
@@ -79,7 +91,11 @@
         ></v-text-field>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t v-if="doesSupportSubsystemNames" label="wizard.subsystemName" tooltip="wizard.client.subsystemNameTooltip">
+      <wizard-row-wrap-t
+        v-if="doesSupportSubsystemNames"
+        label="wizard.subsystemName"
+        tooltip="wizard.client.subsystemNameTooltip"
+      >
         <v-text-field
           v-model="subsystemName"
           v-bind="subsystemNameAttrs"
@@ -103,9 +119,8 @@
 
     <div class="button-footer">
       <div class="button-group">
-        <xrd-button outlined data-test="cancel-button" @click="exitView">{{
-            $t('action.cancel')
-          }}
+        <xrd-button outlined data-test="cancel-button" @click="exitView"
+          >{{ $t('action.cancel') }}
         </xrd-button>
       </div>
       <xrd-button
@@ -113,7 +128,7 @@
         data-test="submit-add-subsystem-button"
         :loading="submitLoading"
         @click="done"
-      >{{ $t('action.addSubsystem') }}
+        >{{ $t('action.addSubsystem') }}
       </xrd-button>
     </div>
 
@@ -178,20 +193,21 @@ function uniqueClient(subsystemCode: string) {
     return true;
   }
 
-  if (containsClient(
-    existingSubsystems.value,
-    props.memberClass,
-    props.memberCode,
-    subsystemCode,
-  )) {
-    console.error('Subsystem already exists');
+  if (
+    containsClient(
+      existingSubsystems.value,
+      props.memberClass,
+      props.memberCode,
+      subsystemCode,
+    )
+  ) {
     return t('wizard.subsystem.subsystemExists');
   }
 
   return true;
 }
 
-defineRule('uniqueClient', uniqueClient)
+defineRule('uniqueClient', uniqueClient);
 
 const { meta, handleSubmit, defineField, setFieldValue } = useForm({
   validationSchema: {
@@ -204,13 +220,19 @@ const { meta, handleSubmit, defineField, setFieldValue } = useForm({
   },
 });
 
-const [subsystemCode, subsystemCodeAttrs] = defineField('addClient.subsystemCode', {
-  props: (state) => ({ 'error-messages': state.errors }),
-});
+const [subsystemCode, subsystemCodeAttrs] = defineField(
+  'addClient.subsystemCode',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
 
-const [subsystemName, subsystemNameAttrs] = defineField('addClient.subsystemName', {
-  props: (state) => ({ 'error-messages': state.errors }),
-});
+const [subsystemName, subsystemNameAttrs] = defineField(
+  'addClient.subsystemName',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
 
 const showSelectClient = ref(false);
 const registerChecked = ref(true);
@@ -226,7 +248,7 @@ const router = useRouter();
 
 fetchData();
 
-const done = handleSubmit(values => {
+const done = handleSubmit((values) => {
   submitLoading.value = true;
 
   const body = {
@@ -240,7 +262,8 @@ const done = handleSubmit(values => {
     ignore_warnings: false,
   };
 
-  api.post('/clients', body)
+  api
+    .post('/clients', body)
     .then(() => {
       submitLoading.value = false;
       showSuccess(t('wizard.subsystem.subsystemAdded'));
@@ -251,10 +274,9 @@ const done = handleSubmit(values => {
       }
     })
     .catch((error) => {
-        submitLoading.value = false;
-        showError(error);
-      },
-    );
+      submitLoading.value = false;
+      showError(error);
+    });
 });
 
 function registerSubsystem(): void {
@@ -266,16 +288,16 @@ function registerSubsystem(): void {
     props.memberCode,
     subsystemCode.value,
   );
-  api.put(`/clients/${encodePathParameter(clientId)}/register`, {})
+  api
+    .put(`/clients/${encodePathParameter(clientId)}/register`, {})
     .then(() => {
       exitView();
       showSuccess(t('wizard.subsystem.subsystemAdded'));
     })
     .catch((error) => {
-        exitView();
-        showError(error);
-      },
-    );
+      exitView();
+      showError(error);
+    });
 }
 
 function exitView(): void {
@@ -294,16 +316,18 @@ function saveSelectedClient(selectedMember: Client): void {
 
 function fetchData(): void {
   // Fetch selectable subsystems
-  api.get<Client[]>(
-    `/clients?instance=${props.instanceId}&member_class=${props.memberClass}&member_code=${props.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
-  )
+  api
+    .get<Client[]>(
+      `/clients?instance=${props.instanceId}&member_class=${props.memberClass}&member_code=${props.memberCode}&show_members=false&exclude_local=true&internal_search=false`,
+    )
     .then((res) => (selectableSubsystems.value = res.data))
     .catch((error) => showError(error));
 
   // Fetch existing subsystems
-  api.get<Client[]>(
-    `/clients?instance=${props.instanceId}&member_class=${props.memberClass}&member_code=${props.memberCode}&internal_search=true`,
-  )
+  api
+    .get<Client[]>(
+      `/clients?instance=${props.instanceId}&member_class=${props.memberClass}&member_code=${props.memberCode}&internal_search=true`,
+    )
     .then((res) => (existingSubsystems.value = res.data))
     .catch((error) => showError(error));
 }

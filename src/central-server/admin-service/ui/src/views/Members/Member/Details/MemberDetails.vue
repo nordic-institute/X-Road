@@ -55,16 +55,22 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <ServersList title-key="members.member.details.ownedServers" :loading="loadingOwnedServers"
-                   :servers="ownedServers"
-                   data-test="owned-servers-table" />
+      <ServersList
+        title-key="members.member.details.ownedServers"
+        :loading="loadingOwnedServers"
+        :servers="ownedServers"
+        data-test="owned-servers-table"
+      />
     </div>
 
     <!-- Used Servers -->
     <div id="used-servers">
-      <ServersList title-key="members.member.details.usedServers" :loading="loadingUsedServers"
-                   :servers="usedServers"
-                   data-test="used-servers-table">
+      <ServersList
+        title-key="members.member.details.usedServers"
+        :loading="loadingUsedServers"
+        :servers="usedServers"
+        data-test="used-servers-table"
+      >
         <template #actions="{ server }">
           <xrd-button
             v-if="allowUnregisterMember"
@@ -84,9 +90,11 @@
         :server="unregisterFromServer"
         data-test="unregister-member"
         @cancel="unregisterFromServer = null"
-        @unregister="unregisterFromServer = null; loadClientServers()"
+        @unregister="
+          unregisterFromServer = null;
+          loadClientServers();
+        "
       />
-
     </div>
 
     <!-- Global Groups -->
@@ -173,7 +181,6 @@ import { DataTableHeader } from '@/ui-types';
 import ServersList from './ServersList.vue';
 import UnregisterMemberDialog from './UnregisterMemberDialog.vue';
 
-
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
@@ -249,6 +256,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
 
     this.loadingGroups = true;
@@ -265,10 +273,11 @@ export default defineComponent({
       });
 
     this.loadingOwnedServers = true;
-    this.memberStore.getMemberOwnedServers(this.memberid)
-      .then((resp) => this.ownedServers = resp)
+    this.memberStore
+      .getMemberOwnedServers(this.memberid)
+      .then((resp) => (this.ownedServers = resp))
       .catch((error) => this.showError(error))
-      .finally(() => this.loadingOwnedServers = false);
+      .finally(() => (this.loadingOwnedServers = false));
 
     this.loadClientServers();
   },
@@ -285,10 +294,11 @@ export default defineComponent({
     },
     loadClientServers() {
       this.loadingUsedServers = true;
-      this.memberStore.getUsedServers(this.memberid)
-        .then((resp) => this.usedServers = resp)
+      this.memberStore
+        .getUsedServers(this.memberid)
+        .then((resp) => (this.usedServers = resp))
         .catch((error) => this.showError(error))
-        .finally(() => this.loadingUsedServers = false);
+        .finally(() => (this.loadingUsedServers = false));
     },
   },
 });
@@ -297,28 +307,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 @use '@/assets/colors';
 @use '@/assets/tables' as *;
-
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-  justify-content: flex-end;
-}
 
 .delete-action {
   margin-top: 34px;
@@ -338,6 +326,7 @@ export default defineComponent({
   justify-content: space-between;
   align-items: flex-end;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 
@@ -348,12 +337,6 @@ export default defineComponent({
     &:last-child {
       margin-left: 30px;
     }
-  }
-}
-
-#global-groups-table {
-  tbody tr td:last-child {
-    width: 50px;
   }
 }
 </style>

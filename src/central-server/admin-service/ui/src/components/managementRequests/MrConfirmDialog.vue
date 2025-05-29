@@ -34,7 +34,7 @@
     @accept="approve()"
   >
     <template #text>
-     {{$t('managementRequests.dialog.approve.bodyMessage', messageData)}}
+      {{ $t('managementRequests.dialog.approve.bodyMessage', messageData) }}
       <v-alert
         v-if="newMember"
         data-test="new-member-warning"

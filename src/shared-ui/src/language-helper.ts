@@ -30,8 +30,11 @@ import merge from 'deepmerge';
 import axios from 'axios';
 import { nextTick } from 'vue';
 
+export type Translation = string | Record<string, string>;
+export type Translations = Record<string, Translation>;
+
 interface MessageLoader {
-  (language: string): Promise<any>
+  (language: string): Promise<Translations>;
 }
 
 interface LanguageHelper {
@@ -43,14 +46,21 @@ interface LanguageHelper {
 }
 
 export const defaultLanguage = import.meta.env.VITE_I18N_LOCALE || 'en';
-export const defaultFallbackLanguage = import.meta.env.VITE_FALLBACK_LOCALE || defaultLanguage;
+export const defaultFallbackLanguage =
+  import.meta.env.VITE_FALLBACK_LOCALE || defaultLanguage;
 
 export function prepareI18n(...loaders: MessageLoader[]) {
   const loadedLanguages = new Set();
 
-  const _loaders = [loadValidationMessages, loadVuetifyMessages, loadSharedMessages, ...loaders];
+  const _loaders = [
+    loadValidationMessages,
+    loadVuetifyMessages,
+    loadSharedMessages,
+    ...loaders,
+  ];
 
-  const missingAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
+  const missingAndFallbackWarn =
+    import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
 
   const i18n = createI18n({
     legacy: false,
@@ -64,9 +74,9 @@ export function prepareI18n(...loaders: MessageLoader[]) {
   loadLanguage(defaultLanguage);
 
   async function load(language: string) {
-    return Promise.all(_loaders.map(loader => loader(language)))
-      .then(msgs => {
-        return msgs
+    return Promise.all(_loaders.map((loader) => loader(language)))
+      .then((msgs) => {
+        return msgs;
       })
       .then((msgs) => merge.all(msgs));
   }
@@ -75,7 +85,7 @@ export function prepareI18n(...loaders: MessageLoader[]) {
     if (!loadedLanguages.has(language)) {
       const messages = await load(language);
       i18n.global.setLocaleMessage(language, messages);
-      loadedLanguages.add(language)
+      loadedLanguages.add(language);
     }
     return nextTick();
   }
@@ -84,8 +94,8 @@ export function prepareI18n(...loaders: MessageLoader[]) {
     await loadLanguage(language);
     i18n.global.locale.value = language;
 
-    axios.defaults.headers.common['Accept-Language'] = language
-    document.querySelector('html')?.setAttribute('lang', language)
+    axios.defaults.headers.common['Accept-Language'] = language;
+    document.querySelector('html')?.setAttribute('lang', language);
   }
 
   const languageHelper: LanguageHelper = {
@@ -94,7 +104,7 @@ export function prepareI18n(...loaders: MessageLoader[]) {
     getCurrentLanguage() {
       return i18n.global.locale.value;
     },
-  }
+  };
 
   return { i18n, languageHelper };
 }
@@ -104,31 +114,38 @@ async function loadSharedMessages(language: string) {
     const module = await import(`./locales/${language}.json`);
     return module.default;
   } catch (e) {
-    console.warn("Failed to load shared translations for: " + language);
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load shared translations for: ' + language);
     return {};
   }
 }
 
 async function loadValidationMessages(language: string) {
   try {
-    const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`);
+    const msg = await import(
+      `../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`
+    );
     return { validation: msg.default };
   } catch (e) {
-    console.warn("Failed to load veeValidate translations for: " + language);
-    return {}
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load veeValidate translations for: ' + language);
+    return {};
   }
 }
 
 async function loadVuetifyMessages(language: string) {
   try {
-    const locales = await import('vuetify/locale') as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const locales = (await import('vuetify/locale')) as any;
     if (!locales[language]) {
-      console.warn("Missing Vuetify translations for: " + language);
+      // eslint-disable-next-line no-console
+      console.warn('Missing Vuetify translations for: ' + language);
     }
-    return { $vuetify: (locales[language] || {}) };
+    return { $vuetify: locales[language] || {} };
   } catch (e) {
-    console.warn("Failed to load Vuetify translations for: " + language);
-    return {}
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load Vuetify translations for: ' + language);
+    return {};
   }
 }
 
@@ -142,12 +159,12 @@ function getUserLanguages(): string[] {
 
 export function pickDefaultLanguage(supportedLanguages: string[]) {
   if (import.meta.env.VITE_I18N_STOP_USER_LOCALE != 'true') {
-
-    const userLanguages = getUserLanguages()
-      .map(lang => lang.replace('_', '-'));
-    const lcSupportedLanguages = supportedLanguages
-      .map(lang => lang.toLowerCase());
-
+    const userLanguages = getUserLanguages().map((lang) =>
+      lang.replace('_', '-'),
+    );
+    const lcSupportedLanguages = supportedLanguages.map((lang) =>
+      lang.toLowerCase(),
+    );
 
     for (const lang of userLanguages) {
       //language+region(if present) match

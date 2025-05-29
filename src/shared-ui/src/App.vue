@@ -24,6 +24,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
 <template>
   <v-app>
     <v-main style="max-width: 50%; margin: 0 auto">
@@ -233,15 +234,14 @@ import XrdBackupsDataTable from './components/backups-and-restore/XrdBackupsData
 import XrdBackupsToolbar from './components/backups-and-restore/XrdBackupsToolbar.vue';
 import { BackupHandler } from './types';
 
-let loading = ref(false);
-let simpleDialog = ref(false);
-let confirmDialog = ref(false);
-let helpDialog = ref(false);
-let search = ref('');
-let backups = ref([{ filename: 'safafaf.gpg' }]);
-let backupsHandler = ref({
+const loading = ref(false);
+const simpleDialog = ref(false);
+const confirmDialog = ref(false);
+const helpDialog = ref(false);
+const search = ref('');
+const backups = ref([{ filename: 'safafaf.gpg' }]);
+const backupsHandler = ref({
   download(filename: string): Promise<unknown> {
-    console.log('download', filename);
     return new Promise((resolveOuter) => {
       resolveOuter(
         new Promise((resolveInner) => {
