@@ -53,7 +53,7 @@ defineProps({
   },
 });
 
-const slots = useSlots()
+const slots = useSlots();
 
 const router = useRouter();
 

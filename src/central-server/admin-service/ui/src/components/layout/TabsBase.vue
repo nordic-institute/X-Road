@@ -73,23 +73,13 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss">
-@use '@/assets/colors';
-.v-tabs-slider.xrd-main-tabs-slider {
-  width: 70px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
 <style lang="scss" scoped>
 .main-content {
   background-color: #ffffff;
   height: 56px;
   padding-left: 92px;
   @media only screen and (max-width: 920px) {
-    padding-left: 0px;
+    padding-left: 0;
   }
 
   .main-tabs {

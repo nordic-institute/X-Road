@@ -32,10 +32,11 @@
   </div>
 </template>
 
-<script lang="ts">/**
+<script lang="ts">
+/**
  * View wrapper component for sub views. See SettingsView.vue for example
  */
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 
 export default defineComponent({});
 </script>

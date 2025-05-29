@@ -25,7 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-titled-view :title="globalGroup.code" :loading="loading" :data="globalGroup">
+  <xrd-titled-view
+    :title="globalGroup.code"
+    :loading="loading"
+    :data="globalGroup"
+  >
     <template #header-buttons>
       <xrd-button
         v-if="allowGroupDelete"

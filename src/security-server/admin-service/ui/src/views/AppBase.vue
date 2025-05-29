@@ -27,22 +27,20 @@
 <template>
   <div>
     <router-view name="top" />
-    <transition name="fade" mode="out-in">
-      <div class="base-full-width">
-        <router-view name="subTabs" />
+    <div class="base-full-width">
+      <router-view name="subTabs" />
 
-        <div class="sticky">
-          <router-view name="alerts" />
-        </div>
-        <v-row align="center" class="base-full-width" no-gutters>
-          <v-col class="d-flex justify-center align-center">
-            <xrd-sub-view-container>
-              <router-view />
-            </xrd-sub-view-container>
-          </v-col>
-        </v-row>
+      <div class="sticky">
+        <router-view name="alerts" />
       </div>
-    </transition>
+      <v-row align="center" class="base-full-width" no-gutters>
+        <v-col class="d-flex justify-center align-center">
+          <xrd-sub-view-container>
+            <router-view />
+          </xrd-sub-view-container>
+        </v-col>
+      </v-row>
+    </div>
 
     <v-dialog v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
@@ -127,17 +125,5 @@ export default defineComponent({
 .base-full-width {
   width: 100%;
   padding-bottom: 40px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
-
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
 }
 </style>

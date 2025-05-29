@@ -38,6 +38,7 @@
       <v-text-field
         v-model="code"
         v-bind="codeAttrs"
+        class="pb-2"
         variant="outlined"
         :label="$t('globalResources.code')"
         autofocus
@@ -96,8 +97,4 @@ const save = handleSubmit((values) => {
 </script>
 <style lang="scss" scoped>
 @use '@/assets/tables' as *;
-
-div.v-input {
-  padding-bottom: 8px;
-}
 </style>

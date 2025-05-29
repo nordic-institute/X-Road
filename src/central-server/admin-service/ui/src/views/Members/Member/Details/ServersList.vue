@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <searchable-titled-view
-    v-model="search"
-    :title-key="titleKey"
-  >
+  <searchable-titled-view v-model="search" :title-key="titleKey">
     <v-data-table
       :loading="loading"
       :headers="headers"
@@ -101,7 +98,7 @@ const headers = [
     align: 'end',
     key: 'action',
   },
-] as DataTableHeader[]
+] as DataTableHeader[];
 
 function toSecurityServerDetails(securityServer: SecurityServer): void {
   router.push({
@@ -109,5 +106,4 @@ function toSecurityServerDetails(securityServer: SecurityServer): void {
     params: { serverId: securityServer.server_id.encoded_id || '' },
   });
 }
-
 </script>

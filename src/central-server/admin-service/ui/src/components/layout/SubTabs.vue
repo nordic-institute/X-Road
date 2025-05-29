@@ -51,12 +51,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 :deep(.v-tab) {
   text-transform: none;
   font-weight: 600;

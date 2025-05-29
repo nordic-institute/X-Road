@@ -27,7 +27,7 @@ import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives'
+import * as directives from 'vuetify/directives';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import { Colors } from '@/global';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';

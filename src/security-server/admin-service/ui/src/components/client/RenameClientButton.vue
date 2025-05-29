@@ -25,11 +25,7 @@
  -->
 <template>
   <div class="d-inline-block">
-    <xrd-button
-      data-test="rename-client-button"
-      outlined
-      @click="openDialog"
-    >
+    <xrd-button data-test="rename-client-button" outlined @click="openDialog">
       <xrd-icon-base class="xrd-large-button-icon">
         <xrd-icon-edit />
       </xrd-icon-base>
@@ -50,13 +46,14 @@
       <template #content>
         <div class="dlg-input-width">
           <v-text-field
-            class="mt-2"
             v-model="name"
+            class="mt-2"
             v-bind="nameAttrs"
             :label="$t('client.subsystemName')"
             variant="outlined"
             autofocus
-            data-test="subsystem-name-input" />
+            data-test="subsystem-name-input"
+          />
         </div>
       </template>
     </xrd-simple-dialog>
@@ -78,9 +75,11 @@ const props = defineProps({
   },
   subsystemName: {
     type: String,
+    default: '',
   },
   clientStatus: {
     type: String as PropType<ClientStatus>,
+    default: '',
   },
 });
 
@@ -102,7 +101,12 @@ resetForm();
 const loading = ref(false);
 const showDialog = ref(false);
 
-const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
+const canSave = computed(
+  () =>
+    meta.value.valid &&
+    meta.value.dirty &&
+    (name.value ? true : props.subsystemName),
+);
 
 const { t } = i18n.global;
 const client = useClient();
@@ -114,7 +118,8 @@ function openDialog() {
 
 const rename = handleSubmit((values) => {
   loading.value = true;
-  client.renameClient(props.id, values.subsystemName)
+  client
+    .renameClient(props.id, values.subsystemName)
     .then(() => {
       if (props.clientStatus === ClientStatus.REGISTERED) {
         showSuccess(t('client.action.renameSubsystem.changeSubmitted'));
@@ -132,4 +137,3 @@ const rename = handleSubmit((values) => {
     });
 });
 </script>
-

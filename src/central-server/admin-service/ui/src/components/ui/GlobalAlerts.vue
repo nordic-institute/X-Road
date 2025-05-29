@@ -105,9 +105,4 @@ export default defineComponent({
   color: colors.$Black100;
   display: block;
 }
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
-}
 </style>

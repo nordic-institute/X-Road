@@ -23,8 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { App } from "vue";
-import { i18n } from "./plugins/i18n";
+import { App } from 'vue';
+import { i18n } from './plugins/i18n';
 
 export class Filters {
   capitalize(value: string): string {
@@ -147,7 +147,11 @@ export class Filters {
     return value.join(', ');
   }
 
-  bytes(value, byteFormat: ByteFormat = ByteFormat.MB, fractionDigits: number = 1): string {
+  bytes(
+    value,
+    byteFormat: ByteFormat = ByteFormat.MB,
+    fractionDigits: number = 1,
+  ): string {
     switch (byteFormat) {
       case ByteFormat.kB:
         return (data / 1024).toFixed(fractionDigits) + ByteFormat.kB;

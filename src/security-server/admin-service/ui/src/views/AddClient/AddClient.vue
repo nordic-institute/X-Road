@@ -235,7 +235,6 @@ function done(): void {
 }
 </script>
 
-
 <style lang="scss" scoped>
 @use '@/assets/wizards';
 </style>

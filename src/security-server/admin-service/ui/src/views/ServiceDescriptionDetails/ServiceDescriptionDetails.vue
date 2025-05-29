@@ -54,7 +54,7 @@
           data-test="service-description-details-delete-button"
           outlined
           @click="showDeletePopup(serviceDescription.type)"
-        >{{ $t('action.delete') }}
+          >{{ $t('action.delete') }}
         </xrd-button>
       </div>
     </div>
@@ -122,14 +122,14 @@
           data-test="service-description-details-cancel-button"
           outlined
           @click="close()"
-        >{{ $t('action.cancel') }}
+          >{{ $t('action.cancel') }}
         </xrd-button>
         <xrd-button
           :loading="saving"
           data-test="service-description-details-save-button"
           :disabled="!meta.dirty || !meta.valid"
           @click="save()"
-        >{{ $t('action.save') }}
+          >{{ $t('action.save') }}
         </xrd-button>
       </div>
     </v-card>
