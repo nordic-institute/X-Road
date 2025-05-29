@@ -553,30 +553,13 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
-@use '@/assets/colors';
-
-.xrd-table-header {
-  border-bottom: 1px solid colors.$WarmGrey30 !important;
-}
-
-// Override Vuetify default table cell height
-.v-data-table > .v-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-table__wrapper > table > tfoot > tr > td {
-  height: 56px;
-  color: colors.$Black100;
-}
-
-// Override Vuetify table row hover color
-.v-data-table > .v-table__wrapper > table > tbody > tr:hover {
-  background: colors.$Purple10 !important;
-}
-</style>
-
 <style lang="scss" scoped>
 @use '@/assets/colors';
 @use '@/assets/tables';
+
+:deep(.data-table .v-data-table__td) {
+  height: 56px;
+}
 
 .icon-member {
   padding-left: 0;
@@ -592,15 +575,6 @@ export default defineComponent({
 .icon-size {
   font-size: 20px;
   padding-bottom: 4px;
-}
-
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 24px;
 }
 
 .data-table {

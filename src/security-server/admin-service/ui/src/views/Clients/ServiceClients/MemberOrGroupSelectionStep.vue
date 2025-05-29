@@ -92,11 +92,10 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import SubsystemName from '@/components/client/SubsystemName.vue';
 import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
-  components: { ClientName, SubsystemName },
+  components: { ClientName },
   props: {
     id: {
       type: String,

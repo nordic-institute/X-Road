@@ -201,7 +201,6 @@ function uniqueClient(subsystemCode: string) {
       subsystemCode,
     )
   ) {
-    console.error('Subsystem already exists');
     return t('wizard.subsystem.subsystemExists');
   }
 

@@ -125,13 +125,12 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useClient } from '@/store/modules/client';
 import { useUser } from '@/store/modules/user';
-import { XrdIconEdit } from '@niis/shared-ui';
 import ClientStatus from '@/views/Clients/ClientStatus.vue';
 import { useSystem } from '@/store/modules/system';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
-  components: { SubsystemName, ClientStatus, XrdIconEdit },
+  components: { SubsystemName, ClientStatus },
   props: {
     id: {
       type: String,
@@ -186,9 +185,5 @@ export default defineComponent({
 .cert-name {
   color: colors.$Link;
   cursor: pointer;
-}
-
-.actions {
-  width: 15%;
 }
 </style>

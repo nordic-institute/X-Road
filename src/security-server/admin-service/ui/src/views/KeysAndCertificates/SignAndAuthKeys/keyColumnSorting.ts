@@ -103,9 +103,9 @@ export const sortKeysByName = (keys: Key[], sortDirection: boolean): Key[] => {
 
   temp.forEach((key: Key) => {
     if (key.certificates) {
-      sortDirection
-        ? (key.certificates = sortCertsByNameAsc(key.certificates))
-        : (key.certificates = sortCertsByNameAsc(key.certificates).reverse());
+      key.certificates = sortDirection
+        ? sortCertsByNameAsc(key.certificates)
+        : sortCertsByNameAsc(key.certificates).reverse();
     }
   });
 

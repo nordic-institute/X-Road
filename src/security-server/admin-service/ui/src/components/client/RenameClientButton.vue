@@ -75,9 +75,11 @@ const props = defineProps({
   },
   subsystemName: {
     type: String,
+    default: '',
   },
   clientStatus: {
     type: String as PropType<ClientStatus>,
+    default: '',
   },
 });
 

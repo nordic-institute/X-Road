@@ -25,7 +25,7 @@
  -->
 <template>
   <v-alert
-    v-model="notification.show"
+    :model-value="notification.show"
     data-test="contextual-alert"
     :color="notificationColor(notification)"
     border="start"

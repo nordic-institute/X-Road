@@ -308,7 +308,10 @@
                       approvedCA.acme_server_ip_addresses.length > 0
                     "
                   >
-                    <p v-for="ipAddress in approvedCA.acme_server_ip_addresses">
+                    <p
+                      v-for="ipAddress in approvedCA.acme_server_ip_addresses"
+                      :key="ipAddress"
+                    >
                       {{ ipAddress }}
                     </p>
                   </td>
@@ -494,7 +497,7 @@ export default defineComponent({
         api
           .get<SecurityServerAddressStatus>('/system/server-address')
           .then((resp) => {
-            this.serverAddress = resp.data.current_address?.address!;
+            this.serverAddress = resp.data.current_address?.address || '';
             this.addressChangeInProgress =
               resp.data.requested_change !== undefined;
           })

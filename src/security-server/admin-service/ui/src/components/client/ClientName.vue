@@ -34,13 +34,18 @@ import SubsystemName from '@/components/client/SubsystemName.vue';
 import { Client, ServiceClient, ServiceClientType } from '@/openapi-types';
 
 const props = defineProps({
-  name: String,
+  name: {
+    type: String,
+    default: undefined,
+  },
   subsystem: { type: Boolean, default: false },
   serviceClient: {
     type: Object as PropType<ServiceClient>,
+    default: undefined,
   },
   client: {
     type: Object as PropType<Client>,
+    default: undefined,
   },
 });
 
@@ -78,4 +83,4 @@ const displayName = computed(() => {
   return props.name;
 });
 </script>
-<style lang="scss"></style>
+<style lang="scss" scoped></style>

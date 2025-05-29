@@ -66,39 +66,4 @@ function download(): void {
     .finally(() => (downloading.value = false));
 }
 </script>
-<style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.status-column {
-  width: 80px;
-}
-
-.level-column {
-  @media only screen and (min-width: 1200px) {
-    width: 20%;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

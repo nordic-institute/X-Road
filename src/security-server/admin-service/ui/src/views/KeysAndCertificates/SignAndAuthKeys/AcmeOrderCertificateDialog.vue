@@ -69,6 +69,7 @@ export default defineComponent({
     },
     keyUsage: {
       type: String as PropType<KeyUsageType>,
+      default: '',
     },
   },
   emits: ['cancel', 'save'],

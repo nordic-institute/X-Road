@@ -233,12 +233,6 @@ export default defineComponent({
 @use '@/assets/detail-views';
 @use '@/assets/colors';
 
-.title-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-}
-
 .content-title {
   color: colors.$Black100;
   font-size: colors.$DefaultFontSize;

@@ -162,11 +162,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { FileUploadResult, XrdIconAdd, XrdIconFolder } from '@niis/shared-ui';
+import { FileUploadResult, XrdIconAdd } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: { XrdIconFolder, XrdIconAdd },
+  components: { XrdIconAdd },
   props: {
     id: {
       type: String,

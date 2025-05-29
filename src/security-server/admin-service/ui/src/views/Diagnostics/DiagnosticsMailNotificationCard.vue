@@ -82,6 +82,7 @@
                 v-for="mailNotificationType in Object.keys(
                   MailNotificationType,
                 )"
+                :key="mailNotificationType"
               >
                 <p
                   v-if="
@@ -121,7 +122,10 @@
               class="vertical-align-top pt-2"
               data-test="mail-notification-recipients"
             >
-              <p v-for="recipient in mailNotificationStatus.recipients_emails">
+              <p
+                v-for="recipient in mailNotificationStatus.recipients_emails"
+                :key="recipient"
+              >
                 {{ recipient }}
                 <xrd-button
                   v-if="mailNotificationStatus.configuration_present"
@@ -129,7 +133,9 @@
                   variant="text"
                   data-test="send-test-mail"
                   @click="sendTestMailNotification(recipient)"
-                  >Send test e-mail</xrd-button
+                  >{{
+                    $t('diagnostics.mailNotificationConfiguration.sentTestMail')
+                  }}</xrd-button
                 >
                 <v-alert
                   v-if="testMailStatuses[recipient]"
@@ -170,16 +176,16 @@ export default defineComponent({
   components: {
     HelpButton,
   },
+  data() {
+    return {
+      testMailStatuses: {} as TestMailStatuses,
+    };
+  },
   computed: {
     MailNotificationType() {
       return MailNotificationType;
     },
     ...mapState(useMail, ['mailNotificationStatus']),
-  },
-  data() {
-    return {
-      testMailStatuses: {} as TestMailStatuses,
-    };
   },
   created() {
     this.fetchMailNotificationStatus().catch((error) => {
@@ -216,14 +222,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 @use '@/assets/colors';
 @use '@/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
 
 .xrd-card-text {
   padding-left: 0;

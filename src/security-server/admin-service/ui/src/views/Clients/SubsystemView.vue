@@ -28,7 +28,7 @@
     <template #title>
       <subsystem-name :name="title" />
       <template v-if="!clientLoading">
-        &nbsp;({{ $t('general.subsystem') }})
+        {{ $t('client.subsystemTitleSuffix') }}
       </template>
     </template>
     <template #header-buttons>

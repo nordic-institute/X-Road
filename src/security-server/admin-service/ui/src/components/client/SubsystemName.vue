@@ -28,7 +28,7 @@
     v-tooltip="tooltip"
     class="subsystem-name"
     :class="{ 'undefined-name': !hasName }"
-    >{{ hasName ? name : 'undefined' }}</span
+    >{{ subsystemName }}</span
   >
 </template>
 
@@ -37,7 +37,10 @@ import { computed } from 'vue';
 import { i18n } from '@/plugins/i18n';
 
 const props = defineProps({
-  name: String,
+  name: {
+    type: String,
+    default: '',
+  },
 });
 
 const { t } = i18n.global;
@@ -48,8 +51,11 @@ const tooltip = computed(() => ({
   'open-delay': 500,
   'open-on-hover': !hasName.value,
 }));
+const subsystemName = computed(() =>
+  hasName.value ? props.name : t('general.undefinedSubsystemName'),
+);
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .undefined-name {
   font-style: italic;
 }
