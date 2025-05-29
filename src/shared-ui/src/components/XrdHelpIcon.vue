@@ -31,7 +31,7 @@
         <v-icon
           color="#202020"
           size="small"
-          dark
+          theme="dark"
           v-bind="props"
           icon="mdi-help-circle"
         />

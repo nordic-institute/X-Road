@@ -24,6 +24,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
 <template>
   <v-app>
     <v-main style="max-width: 50%; margin: 0 auto">
@@ -241,7 +242,6 @@ const search = ref('');
 const backups = ref([{ filename: 'safafaf.gpg' }]);
 const backupsHandler = ref({
   download(filename: string): Promise<unknown> {
-    console.log('download', filename);
     return new Promise((resolveOuter) => {
       resolveOuter(
         new Promise((resolveInner) => {

@@ -97,12 +97,6 @@ export default defineComponent({
   margin-top: 20px;
 }
 
-.title-wrap {
-  margin-bottom: 10px;
-  width: 100%;
-  text-align: center;
-}
-
 .text-wrap {
   margin: 10px;
 }

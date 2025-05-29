@@ -30,8 +30,11 @@ import merge from 'deepmerge';
 import axios from 'axios';
 import { nextTick } from 'vue';
 
+export type Translation = string | Record<string, string>;
+export type Translations = Record<string, Translation>;
+
 interface MessageLoader {
-  (language: string): Promise<any>;
+  (language: string): Promise<Translations>;
 }
 
 interface LanguageHelper {
@@ -111,6 +114,7 @@ async function loadSharedMessages(language: string) {
     const module = await import(`./locales/${language}.json`);
     return module.default;
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.warn('Failed to load shared translations for: ' + language);
     return {};
   }
@@ -123,6 +127,7 @@ async function loadValidationMessages(language: string) {
     );
     return { validation: msg.default };
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.warn('Failed to load veeValidate translations for: ' + language);
     return {};
   }
@@ -130,12 +135,15 @@ async function loadValidationMessages(language: string) {
 
 async function loadVuetifyMessages(language: string) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const locales = (await import('vuetify/locale')) as any;
     if (!locales[language]) {
+      // eslint-disable-next-line no-console
       console.warn('Missing Vuetify translations for: ' + language);
     }
     return { $vuetify: locales[language] || {} };
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.warn('Failed to load Vuetify translations for: ' + language);
     return {};
   }

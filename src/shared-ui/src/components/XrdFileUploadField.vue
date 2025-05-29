@@ -26,7 +26,7 @@
  -->
 <template>
   <XrdFileUpload
-    v-slot="{ upload, filedrop, errors }"
+    v-slot="{ upload, filedrop }"
     :accepts="accept"
     @file-changed="onFileSelected"
   >

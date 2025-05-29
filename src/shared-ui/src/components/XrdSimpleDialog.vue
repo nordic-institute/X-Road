@@ -269,6 +269,7 @@ onBeforeMount(() => blur());
       letter-spacing: normal;
     }
 
+    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
     .v-card-text.xrd-card-text {
       font-size: 14px;
       letter-spacing: normal;
@@ -280,6 +281,7 @@ onBeforeMount(() => blur());
       }
     }
 
+    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
     .v-card-item.xrd-card-content {
       padding: 0 24px 0;
 
@@ -289,15 +291,6 @@ onBeforeMount(() => blur());
       }
     }
   }
-}
-
-.dlg-button-margin {
-  margin-right: 14px;
-}
-
-.close-button {
-  margin-left: auto;
-  margin-right: 0;
 }
 
 .alert-slot {
