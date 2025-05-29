@@ -83,13 +83,13 @@ export default defineComponent({
   emits: ['open'],
   data() {
     return {
-      opened: this.isOpen
-    }
+      opened: this.isOpen,
+    };
   },
   watch: {
     isOpen(newVal) {
       this.opened = newVal;
-    }
+    },
   },
   methods: {
     toggle() {
@@ -98,8 +98,8 @@ export default defineComponent({
       }
       this.opened = !this.opened;
       this.$emit('open', this.opened);
-    }
-  }
+    },
+  },
 });
 </script>
 
