@@ -23,33 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.mapper;
+syntax = "proto3";
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.opmonitor.api;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
+import "common_messages.proto";
+import "google/protobuf/timestamp.proto";
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SecurityServerIdMapper {
+option java_multiple_files = true;
 
-    public static SecurityServerId.Conf fromDto(final SecurityServerIdProto input) {
-        return SecurityServerId.Conf.create(
-                input.getXroadInstance(),
-                input.getMemberClass(),
-                input.getMemberCode(),
-                input.getServerCode());
-    }
+service OpMonitorService {
+  rpc GetOperationalDataIntervals(GetOperationalDataIntervalsReq) returns (GetOperationalDataIntervalsResp) {}
+}
 
-    public static SecurityServerIdProto toDto(final SecurityServerId input) {
-        return SecurityServerIdProto.newBuilder()
-                .setMemberClass(input.getMemberClass())
-                .setMemberCode(input.getMemberCode())
-                .setServerCode(input.getServerCode())
-                .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()))
-                .build();
-    }
+message GetOperationalDataIntervalsReq {
+  int64 recordsFrom = 1;
+  int64 recordsTo = 2;
+  int64 intervalInMinutes = 3;
+  optional SecurityServerType securityServerType = 4;
+  optional bool succeeded = 5;
+  optional ClientIdProto client_id = 6;
+}
+
+enum SecurityServerType {
+  CLIENT = 0;
+  PRODUCER = 1;
+}
+
+message GetOperationalDataIntervalsResp {
+  repeated OperationalDataIntervalProto operationalDataInterval = 1;
+}
+
+message OperationalDataIntervalProto {
+  google.protobuf.Timestamp timeIntervalStart = 1;
+  int64 successCount = 2;
+  int64 failureCount = 3;
+  int64 incomingCount = 4;
+  int64 outgoingCount = 5;
 }

@@ -23,54 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.dto;
+package org.niis.xroad.common.rpc.mapper;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.ToString;
-import lombok.Value;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
+import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
-import java.io.Serializable;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SecurityServerIdMapper {
 
-/**
- * Certificate request info DTO.
- */
-@Value
-@ToString(onlyExplicitlyIncluded = true)
-public class CertRequestInfo implements Serializable {
-
-    @JsonIgnore
-    CertRequestInfoProto message;
-
-    @ToString.Include
-    public String getId() {
-        return message.getId();
+    public static SecurityServerId.Conf fromDto(final SecurityServerIdProto input) {
+        return SecurityServerId.Conf.create(
+                input.getXroadInstance(),
+                input.getMemberClass(),
+                input.getMemberCode(),
+                input.getServerCode());
     }
 
-    @ToString.Include
-    public ClientId getMemberId() {
-        if (message.hasMemberId()) {
-            return ClientIdMapper.fromDto(message.getMemberId());
-        }
-        return null;
+    public static SecurityServerIdProto toDto(final SecurityServerId input) {
+        return SecurityServerIdProto.newBuilder()
+                .setMemberClass(input.getMemberClass())
+                .setMemberCode(input.getMemberCode())
+                .setServerCode(input.getServerCode())
+                .setXroadInstance(input.getXRoadInstance())
+                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()))
+                .build();
     }
-
-    @ToString.Include
-    public String getSubjectName() {
-        return message.getSubjectName();
-    }
-
-
-    @ToString.Include
-    public String getSubjectAltName() {
-        return message.getSubjectAltName();
-    }
-
-    public String getCertificateProfile() {
-        return message.getCertificateProfile();
-    }
-
 }
