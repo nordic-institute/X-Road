@@ -33,121 +33,121 @@
       />
 
       <tbody v-for="key in sortedKeys" :key="key.id">
-      <!-- SOFTWARE token table body -->
-      <template v-if="tokenType === tokenTypes.SOFTWARE">
-        <KeyRow
-          :token-logged-in="tokenLoggedIn"
-          :token-key="key"
-          @generate-csr="generateCsr(key)"
-          @key-click="keyClick(key)"
-        />
+        <!-- SOFTWARE token table body -->
+        <template v-if="tokenType === tokenTypes.SOFTWARE">
+          <KeyRow
+            :token-logged-in="tokenLoggedIn"
+            :token-key="key"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
+          />
 
-        <CertificateRow
-          v-for="cert in key.certificates"
-          :key="cert.certificate_details.hash"
-          :cert="cert"
-          :is-acme-certificate="isAcmeCertificate(cert)"
-          @certificate-click="certificateClick(cert, key)"
-        >
-          <template #certificateAction>
-            <xrd-button
-              v-if="
+          <CertificateRow
+            v-for="cert in key.certificates"
+            :key="cert.certificate_details.hash"
+            :cert="cert"
+            :is-acme-certificate="isAcmeCertificate(cert)"
+            @certificate-click="certificateClick(cert, key)"
+          >
+            <template #certificateAction>
+              <xrd-button
+                v-if="
                   showRegisterCertButton &&
                   cert.possible_actions?.includes(PossibleAction.REGISTER)
                 "
-              class="table-button-fix test-register"
-              :outlined="false"
-              text
-              @click="showRegisterCertDialog(cert)"
-            >{{ $t('action.register') }}
-            </xrd-button>
-          </template>
-        </CertificateRow>
-      </template>
+                class="table-button-fix test-register"
+                :outlined="false"
+                text
+                @click="showRegisterCertDialog(cert)"
+                >{{ $t('action.register') }}
+              </xrd-button>
+            </template>
+          </CertificateRow>
+        </template>
 
-      <!-- HARDWARE token table body -->
-      <template v-if="tokenType === 'HARDWARE'">
-        <KeyRow
-          :token-logged-in="tokenLoggedIn"
-          :token-key="key"
-          @generate-csr="generateCsr(key)"
-          @key-click="keyClick(key)"
-        />
+        <!-- HARDWARE token table body -->
+        <template v-if="tokenType === 'HARDWARE'">
+          <KeyRow
+            :token-logged-in="tokenLoggedIn"
+            :token-key="key"
+            @generate-csr="generateCsr(key)"
+            @key-click="keyClick(key)"
+          />
 
-        <CertificateRow
-          v-for="cert in key.certificates"
-          :key="cert.certificate_details.hash"
-          :cert="cert"
-          :is-acme-certificate="isAcmeCertificate(cert)"
-          @certificate-click="certificateClick(cert, key)"
-        >
-          <template #certificateAction>
-            <template v-if="canImportFromToken">
-              <xrd-button
-                v-if="
+          <CertificateRow
+            v-for="cert in key.certificates"
+            :key="cert.certificate_details.hash"
+            :cert="cert"
+            :is-acme-certificate="isAcmeCertificate(cert)"
+            @certificate-click="certificateClick(cert, key)"
+          >
+            <template #certificateAction>
+              <template v-if="canImportFromToken">
+                <xrd-button
+                  v-if="
                     cert.possible_actions?.includes(
                       PossibleAction.IMPORT_FROM_TOKEN,
                     )
                   "
-                class="table-button-fix"
-                :outlined="false"
-                text
-                @click="importCert(cert.certificate_details.hash)"
-              >{{ $t('keys.importCert') }}
-              </xrd-button>
+                  class="table-button-fix"
+                  :outlined="false"
+                  text
+                  @click="importCert(cert.certificate_details.hash)"
+                  >{{ $t('keys.importCert') }}
+                </xrd-button>
 
-              <!-- Special case where HW cert has auth usage -->
-              <div v-else-if="key.usage === 'AUTHENTICATION'">
-                {{ $t('keys.authNotSupported') }}
-              </div>
+                <!-- Special case where HW cert has auth usage -->
+                <div v-else-if="key.usage === 'AUTHENTICATION'">
+                  {{ $t('keys.authNotSupported') }}
+                </div>
+              </template>
             </template>
-          </template>
-        </CertificateRow>
-      </template>
+          </CertificateRow>
+        </template>
 
-      <!-- CSRs -->
-      <template
-        v-if="
+        <!-- CSRs -->
+        <template
+          v-if="
             key.certificate_signing_requests &&
             key.certificate_signing_requests.length > 0
           "
-      >
-        <tr v-for="req in key.certificate_signing_requests" :key="req.id">
-          <td class="td-name">
-            <div class="name-wrap">
-              <i class="icon-Certificate cert-icon" />
-              <div>{{ $t('keys.request') }}</div>
-            </div>
-          </td>
-          <td colspan="5">{{ req.id }}</td>
-          <td class="td-align-right">
-            <xrd-button
-              v-if="isAcmeCapable(req, key)"
-              :disabled="!canImportCertificate(key) || !tokenLoggedIn"
-              class="table-button-fix"
-              :outlined="false"
-              text
-              data-test="order-acme-certificate-button"
-              :loading="acmeOrderLoading[req.id]"
-              @click="openAcmeOrderCertificateDialog(req, key)"
-            >
-              {{ $t('keys.orderAcmeCertificate') }}
-            </xrd-button>
-            <xrd-button
-              v-if="
+        >
+          <tr v-for="req in key.certificate_signing_requests" :key="req.id">
+            <td class="td-name">
+              <div class="name-wrap">
+                <i class="icon-Certificate cert-icon" />
+                <div>{{ $t('keys.request') }}</div>
+              </div>
+            </td>
+            <td colspan="5">{{ req.id }}</td>
+            <td class="td-align-right">
+              <xrd-button
+                v-if="isAcmeCapable(req, key)"
+                :disabled="!canImportCertificate(key) || !tokenLoggedIn"
+                class="table-button-fix"
+                :outlined="false"
+                text
+                data-test="order-acme-certificate-button"
+                :loading="acmeOrderLoading[req.id]"
+                @click="openAcmeOrderCertificateDialog(req, key)"
+              >
+                {{ $t('keys.orderAcmeCertificate') }}
+              </xrd-button>
+              <xrd-button
+                v-if="
                   req.possible_actions.includes(PossibleAction.DELETE) &&
                   canDeleteCsr(key)
                 "
-              class="table-button-fix"
-              :outlined="false"
-              text
-              data-test="delete-csr-button"
-              @click="showDeleteCsrDialog(req, key)"
-            >{{ $t('keys.deleteCsr') }}
-            </xrd-button>
-          </td>
-        </tr>
-      </template>
+                class="table-button-fix"
+                :outlined="false"
+                text
+                data-test="delete-csr-button"
+                @click="showDeleteCsrDialog(req, key)"
+                >{{ $t('keys.deleteCsr') }}
+              </xrd-button>
+            </td>
+          </tr>
+        </template>
       </tbody>
     </table>
 
@@ -160,7 +160,7 @@
     <AcmeOrderCertificateDialog
       v-if="selectedCsr && showAcmeOrderCertificateDialog"
       :csr="selectedCsr as TokenCertificateSigningRequest"
-      :keyUsage="selectedKey?.usage"
+      :key-usage="selectedKey?.usage"
       @cancel="showAcmeOrderCertificateDialog = false"
       @save="orderCertificateViaAcme($event)"
     />
@@ -191,8 +191,8 @@ import {
   PossibleAction,
   TokenCertificate,
   TokenCertificateSigningRequest,
-  TokenType
-} from "@/openapi-types";
+  TokenType,
+} from '@/openapi-types';
 import { Permissions } from '@/global';
 import * as Sorting from './keyColumnSorting';
 import { KeysSortColumn } from './keyColumnSorting';
@@ -203,7 +203,7 @@ import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import XrdButton from '@niis/shared-ui/src/components/XrdButton.vue';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import AcmeOrderCertificateDialog from "@/views/KeysAndCertificates/SignAndAuthKeys/AcmeOrderCertificateDialog.vue";
+import AcmeOrderCertificateDialog from '@/views/KeysAndCertificates/SignAndAuthKeys/AcmeOrderCertificateDialog.vue';
 
 export default defineComponent({
   components: {
@@ -290,24 +290,33 @@ export default defineComponent({
       }
       return this.hasPermission(Permissions.DELETE_SIGN_CERT);
     },
-    isAcmeCapable(certificateRequest: TokenCertificateSigningRequest, key: Key): boolean {
+    isAcmeCapable(
+      certificateRequest: TokenCertificateSigningRequest,
+      key: Key,
+    ): boolean {
       return this.certificationServiceList.some(
         (certificationService) =>
-          certificationService.certificate_profile_info == certificateRequest.certificate_profile
-          && certificationService.acme_capable
-          && (key.usage == KeyUsageType.AUTHENTICATION || !certificationService.authentication_only),
+          certificationService.certificate_profile_info ==
+            certificateRequest.certificate_profile &&
+          certificationService.acme_capable &&
+          (key.usage == KeyUsageType.AUTHENTICATION ||
+            !certificationService.authentication_only),
       );
     },
     isAcmeCertificate(cert: TokenCertificate): boolean {
       const certIssuer = this.certificationServiceList.find(
-        (certificationService) => certificationService.name == cert.certificate_details.issuer_common_name,
+        (certificationService) =>
+          certificationService.name ==
+          cert.certificate_details.issuer_common_name,
       );
       return certIssuer?.acme_capable ?? false;
     },
     canImportCertificate(key: Key): boolean {
       return (
-        key.usage == KeyUsageType.AUTHENTICATION && this.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
-        key.usage == KeyUsageType.SIGNING && this.hasPermission(Permissions.IMPORT_SIGN_CERT)
+        (key.usage == KeyUsageType.AUTHENTICATION &&
+          this.hasPermission(Permissions.IMPORT_AUTH_CERT)) ||
+        (key.usage == KeyUsageType.SIGNING &&
+          this.hasPermission(Permissions.IMPORT_SIGN_CERT))
       );
     },
     keyClick(key: Key): void {
@@ -350,16 +359,23 @@ export default defineComponent({
       this.selectedCsr = req;
       this.selectedKey = key;
     },
-    openAcmeOrderCertificateDialog(req: TokenCertificateSigningRequest, key: Key): void {
+    openAcmeOrderCertificateDialog(
+      req: TokenCertificateSigningRequest,
+      key: Key,
+    ): void {
       this.selectedCsr = req;
       this.selectedKey = key;
       this.showAcmeOrderCertificateDialog = true;
     },
     orderCertificateViaAcme(caName: string): void {
       this.showAcmeOrderCertificateDialog = false;
-      let csrId = this.selectedCsr?.id || '';
+      const csrId = this.selectedCsr?.id || '';
       this.acmeOrderLoading[csrId] = true;
-      this.orderAcmeCertificate(this.selectedCsr as TokenCertificateSigningRequest, caName, this.selectedKey?.usage)
+      this.orderAcmeCertificate(
+        this.selectedCsr as TokenCertificateSigningRequest,
+        caName,
+        this.selectedKey?.usage,
+      )
         .then(() => {
           this.showSuccess(this.$t('keys.acmeCertOrdered'));
           this.$emit('refresh-list');

@@ -37,18 +37,23 @@
           outlined
           data-test="select-client-button"
           @click="showSelectClient = true"
-        >{{ $t('wizard.selectClient') }}
+          >{{ $t('wizard.selectClient') }}
         </xrd-button>
       </div>
     </div>
 
     <div class="wizard-step-form-content">
-
-      <wizard-row-wrap-t label="wizard.memberName" tooltip="wizard.client.memberNameTooltip">
+      <wizard-row-wrap-t
+        label="wizard.memberName"
+        tooltip="wizard.client.memberNameTooltip"
+      >
         <div data-test="selected-member-name">{{ selectedMemberName }}</div>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t label="wizard.memberClass" tooltip="wizard.client.memberClassTooltip">
+      <wizard-row-wrap-t
+        label="wizard.memberClass"
+        tooltip="wizard.client.memberClassTooltip"
+      >
         <v-select
           v-model="memberClassMdl"
           v-bind="memberClassAttr"
@@ -60,7 +65,10 @@
         ></v-select>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t label="wizard.memberCode" tooltip="wizard.client.memberCodeTooltip">
+      <wizard-row-wrap-t
+        label="wizard.memberCode"
+        tooltip="wizard.client.memberCodeTooltip"
+      >
         <v-text-field
           v-model="memberCodeMdl"
           v-bind="memberCodeAttr"
@@ -73,7 +81,10 @@
         ></v-text-field>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t label="wizard.subsystemCode" tooltip="wizard.client.subsystemCodeTooltip">
+      <wizard-row-wrap-t
+        label="wizard.subsystemCode"
+        tooltip="wizard.client.subsystemCodeTooltip"
+      >
         <v-text-field
           v-model="subsystemCodeMdl"
           v-bind="subsystemCodeAttr"
@@ -85,7 +96,11 @@
         ></v-text-field>
       </wizard-row-wrap-t>
 
-      <wizard-row-wrap-t v-if="doesSupportSubsystemNames" label="wizard.subsystemName" tooltip="wizard.client.subsystemNameTooltip">
+      <wizard-row-wrap-t
+        v-if="doesSupportSubsystemNames"
+        label="wizard.subsystemName"
+        tooltip="wizard.client.subsystemNameTooltip"
+      >
         <v-text-field
           v-model="subsystemNameMdl"
           v-bind="subsystemNameAttr"
@@ -99,13 +114,10 @@
     </div>
     <div class="button-footer">
       <xrd-button outlined data-test="cancel-button" @click="cancel"
-      >{{ $t('action.cancel') }}
+        >{{ $t('action.cancel') }}
       </xrd-button>
-      <xrd-button
-        :disabled="!meta.valid"
-        data-test="next-button"
-        @click="done"
-      >{{ $t('action.next') }}
+      <xrd-button :disabled="!meta.valid" data-test="next-button" @click="done"
+        >{{ $t('action.next') }}
       </xrd-button>
     </div>
 
@@ -150,19 +162,22 @@ export default defineComponent({
     const { reservedClients, memberClass, memberCode } = useAddClient();
 
     function uniqueClient(subsystemCode: string) {
-      if (containsClient(reservedClients, memberClass, memberCode, subsystemCode)) {
+      if (
+        containsClient(reservedClients, memberClass, memberCode, subsystemCode)
+      ) {
         return i18n.global.t('wizard.client.clientExists');
       }
       return true;
     }
 
-    defineRule('uniqueClient', uniqueClient)
-    const { meta, values, validateField, setFieldValue, defineField } =
-      useForm({
+    defineRule('uniqueClient', uniqueClient);
+    const { meta, values, validateField, setFieldValue, defineField } = useForm(
+      {
         validationSchema: {
           'addClient.memberClass': 'required',
           'addClient.memberCode': 'required|max:255|xrdIdentifier',
-          'addClient.subsystemCode': 'required|max:255|xrdIdentifier|uniqueClient',
+          'addClient.subsystemCode':
+            'required|max:255|xrdIdentifier|uniqueClient',
           'addClient.subsystemName': 'max:255|xrdIdentifier',
         },
         initialValues: {
@@ -173,7 +188,8 @@ export default defineComponent({
             subsystemName: '',
           },
         },
-      });
+      },
+    );
     const componentConfig = {
       props: (state: PublicPathState) => ({ 'error-messages': state.errors }),
     };
@@ -198,10 +214,14 @@ export default defineComponent({
       values,
       validateField,
       setFieldValue,
-      memberClassMdl, memberClassAttr,
-      memberCodeMdl, memberCodeAttr,
-      subsystemCodeMdl, subsystemCodeAttr,
-      subsystemNameMdl, subsystemNameAttr,
+      memberClassMdl,
+      memberClassAttr,
+      memberCodeMdl,
+      memberCodeAttr,
+      subsystemCodeMdl,
+      subsystemCodeAttr,
+      subsystemNameMdl,
+      subsystemNameAttr,
     };
   },
   data() {
@@ -212,10 +232,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useAddClient, [
-      'selectableClients',
-      'selectedMemberName',
-    ]),
+    ...mapState(useAddClient, ['selectableClients', 'selectedMemberName']),
     ...mapWritableState(useAddClient, [
       'memberClass',
       'memberCode',
@@ -299,9 +316,17 @@ export default defineComponent({
       this.setSelectedMember(selectedMember);
       this.setFieldValue('addClient.memberClass', selectedMember.member_class);
       this.setFieldValue('addClient.memberCode', selectedMember.member_code);
-      this.setFieldValue('addClient.subsystemCode', selectedMember.subsystem_code ?? '');
-      this.setFieldValue('addClient.subsystemName', selectedMember.subsystem_name ?? '');
-      this.fetchReservedClients(selectedMember).catch((error) => this.showError(error));
+      this.setFieldValue(
+        'addClient.subsystemCode',
+        selectedMember.subsystem_code ?? '',
+      );
+      this.setFieldValue(
+        'addClient.subsystemName',
+        selectedMember.subsystem_name ?? '',
+      );
+      this.fetchReservedClients(selectedMember).catch((error) =>
+        this.showError(error),
+      );
 
       this.showSelectClient = false;
     },

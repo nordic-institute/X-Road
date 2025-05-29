@@ -27,21 +27,22 @@
 
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import vue from '@vitejs/plugin-vue';
-import {readdirSync} from 'node:fs';
-import {resolve} from 'node:path';
-import {defineConfig, loadEnv} from 'vite';
+import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { defineConfig, loadEnv } from 'vite';
 import vuetify from 'vite-plugin-vuetify';
 
 // https://vitejs.dev/config/
-export default defineConfig(({mode}) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const lang = /\/locales?\/([a-z]{2})\.(js|json)$/;
 
-  const supportedLangs = readdirSync(resolve(__dirname, 'src/locales'))
-    .map((file) => file.split('.')[0]);
+  const supportedLangs = readdirSync(resolve(__dirname, 'src/locales')).map(
+    (file) => file.split('.')[0],
+  );
 
   return {
-    plugins: [vue(), vuetify({autoImport: false}), basicSsl()],
+    plugins: [vue(), vuetify({ autoImport: false }), basicSsl()],
     css: {
       preprocessorOptions: {
         scss: {
@@ -63,18 +64,18 @@ export default defineConfig(({mode}) => {
             }
 
             if (id.includes('/shared-ui/')) {
-              return "shared-ui";
+              return 'shared-ui';
             }
 
             if (id.includes('/vuetify/')) {
-              return "vuetify";
+              return 'vuetify';
             }
             if (id.includes('/vue/')) {
-              return "vue";
+              return 'vue';
             }
 
             if (id.includes('/node_modules/')) {
-              return "vendor";
+              return 'vendor';
             }
 
             return null;

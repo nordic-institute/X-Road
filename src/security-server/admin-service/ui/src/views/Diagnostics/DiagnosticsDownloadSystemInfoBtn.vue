@@ -24,20 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-
   <xrd-button
     v-if="canDownload"
     :loading="downloading"
-    @click="download"
     data-test="download-diagnostics-report-button"
     outlined
+    @click="download"
   >
     <xrd-icon-base class="xrd-large-button-icon">
       <xrd-icon-download />
     </xrd-icon-base>
     {{ $t('diagnostics.downloadReport') }}
   </xrd-button>
-
 </template>
 <script lang="ts" setup>
 import { Permissions } from '@/global';
@@ -53,18 +51,20 @@ const { hasPermission } = useUser();
 
 const downloading = ref(false);
 
-const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT));
+const canDownload = computed(() =>
+  hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT),
+);
 
 function download(): void {
   downloading.value = true;
-  api.get('/diagnostics/info/download', { responseType: 'blob' })
+  api
+    .get('/diagnostics/info/download', { responseType: 'blob' })
     .then((res) => saveResponseAsFile(res, 'diagnostic-report.json'))
     .catch((error) => {
       showError(error);
     })
     .finally(() => (downloading.value = false));
 }
-
 </script>
 <style lang="scss" scoped>
 @use '@/assets/colors';

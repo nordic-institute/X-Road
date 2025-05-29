@@ -26,45 +26,60 @@
 <template>
   <div>
     <div class="search-field">
-      <v-text-field v-model="search" :label="$t('serviceClients.memberGroupStep')" single-line hide-details autofocus
-                    data-test="search-service-client" variant="underlined" density="compact" class="search-input"
-                    append-inner-icon="mdi-magnify">
+      <v-text-field
+        v-model="search"
+        :label="$t('serviceClients.memberGroupStep')"
+        single-line
+        hide-details
+        autofocus
+        data-test="search-service-client"
+        variant="underlined"
+        density="compact"
+        class="search-input"
+        append-inner-icon="mdi-magnify"
+      >
       </v-text-field>
     </div>
 
     <table class="xrd-table service-clients-table">
       <thead>
-      <tr>
-        <th class="checkbox-column"></th>
-        <th>{{ $t('serviceClients.name') }}</th>
-        <th>{{ $t('serviceClients.id') }}</th>
-      </tr>
+        <tr>
+          <th class="checkbox-column"></th>
+          <th>{{ $t('serviceClients.name') }}</th>
+          <th>{{ $t('serviceClients.id') }}</th>
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="candidate in filteredCandidates" :key="candidate.id">
-        <td class="checkbox-column">
-          <div class="checkbox-wrap">
-            <v-radio :key="candidate.id" :disabled="isDisabled(candidate)" data-test="candidate-selection"
-                     v-model="selection" @click="updateSelection(candidate)" />
-          </div>
-        </td>
-        <td class="identifier-wrap">
-          <client-name :service-client="candidate" />
-        </td>
-        <td class="identifier-wrap">{{ candidate.id }}</td>
-      </tr>
+        <tr v-for="candidate in filteredCandidates" :key="candidate.id">
+          <td class="checkbox-column">
+            <div class="checkbox-wrap">
+              <v-radio
+                :key="candidate.id"
+                v-model="selection"
+                :disabled="isDisabled(candidate)"
+                data-test="candidate-selection"
+                @click="updateSelection(candidate)"
+              />
+            </div>
+          </td>
+          <td class="identifier-wrap">
+            <client-name :service-client="candidate" />
+          </td>
+          <td class="identifier-wrap">{{ candidate.id }}</td>
+        </tr>
       </tbody>
     </table>
 
     <div class="button-footer full-width">
-      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
-          $t('action.cancel')
-        }}
+      <xrd-button outlined data-test="cancel-button" @click="cancel"
+        >{{ $t('action.cancel') }}
       </xrd-button>
 
-      <xrd-button :disabled="!selection" data-test="next-button" @click="$emit('set-step', selection)">{{
-          $t('action.next')
-        }}
+      <xrd-button
+        :disabled="!selection"
+        data-test="next-button"
+        @click="$emit('set-step', selection)"
+        >{{ $t('action.next') }}
       </xrd-button>
     </div>
   </div>

@@ -75,18 +75,23 @@
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <xrd-icon-base
             class="icon-member icon-size"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             <xrd-icon-folder />
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
             class="client-name member-name identifier-wrap clickable"
             data-test="btn-client-details"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             {{ item.visibleName }}
             <span class="owner-box">{{ $t('client.owner') }}</span>
           </span>
-          <span v-else class="client-name member-name identifier-wrap owner-box">
+          <span
+            v-else
+            class="client-name member-name identifier-wrap owner-box"
+          >
             {{ item.visibleName }} {{ $t('client.owner') }}
           </span>
         </template>
@@ -94,14 +99,16 @@
         <template v-else-if="item.type === clientTypes.MEMBER">
           <xrd-icon-base
             class="icon-member icon-size"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             <xrd-icon-folder-outline />
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
             class="client-name member-name identifier-wrap clickable"
             data-test="btn-client-details"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             {{ item.visibleName }}
           </span>
           <span v-else class="client-name name identifier-wrap">
@@ -129,7 +136,8 @@
             v-if="canOpenClient"
             class="name identifier-wrap clickable"
             data-test="btn-client-details"
-            @click="openSubsystem(item)">
+            @click="openSubsystem(item)"
+          >
             <subsystem-name class="client-name" :name="item.visibleName" />
           </span>
           <span v-else class="name">
@@ -175,7 +183,8 @@
             "
             text
             :outlined="false"
-            @click="registerClient(item)">
+            @click="registerClient(item)"
+          >
             {{ $t('action.register') }}
           </xrd-button>
         </div>
@@ -200,7 +209,6 @@
       @cancel="confirmRegisterClient = false"
       @accept="registerAccepted(selectedClient)"
     />
-
   </XrdTitledView>
 </template>
 
@@ -489,8 +497,9 @@ export default defineComponent({
             index !== 'visibleName' ? 1 : sortDirection;
 
           return (
-            orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
-            groupSortDirection
+            orUndefinedStr(clientA.visibleName).localeCompare(
+              orUndefinedStr(clientB.visibleName),
+            ) * groupSortDirection
           );
         });
 
@@ -505,8 +514,9 @@ export default defineComponent({
                 switch (index) {
                   case 'visibleName':
                     return (
-                      orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
-                      sortDirection
+                      orUndefinedStr(clientA.visibleName).localeCompare(
+                        orUndefinedStr(clientB.visibleName),
+                      ) * sortDirection
                     );
                   case 'id':
                     return clientA.id.localeCompare(clientB.id) * sortDirection;

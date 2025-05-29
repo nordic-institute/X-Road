@@ -53,7 +53,7 @@
       >
         <xrd-button outlined color="primary" @click="upload">
           <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add/>
+            <xrd-icon-add />
           </xrd-icon-base>
           {{ $t('action.add') }}
         </xrd-button>
@@ -73,18 +73,18 @@
       :no-data-text="$t('noData.noCertificates')"
       data-test="tls-certificate-table"
     >
-
       <template #[`item.hash`]="{ item }">
         <td class="pr-12 pt-2">
-          <i class="icon-Certificate icon"/>
+          <i class="icon-Certificate icon" />
         </td>
         <td>
           <span
             v-if="canViewTlsCertDetails"
             class="certificate-link"
-            @click="openCertificate(item)"
             data-test="tls-certificate-link"
-          >{{ $filters.colonize(item.hash) }}</span>
+            @click="openCertificate(item)"
+            >{{ $filters.colonize(item.hash) }}</span
+          >
           <span v-else>{{ $filters.colonize(item.hash) }}</span>
         </td>
       </template>
@@ -106,7 +106,6 @@
           {{ $filters.formatDate(item.not_after) }}
         </span>
       </template>
-
     </v-data-table>
   </v-card>
 
@@ -163,11 +162,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import {FileUploadResult, XrdIconAdd, XrdIconFolder} from '@niis/shared-ui';
-import {DataTableHeader} from "@/ui-types";
+import { FileUploadResult, XrdIconAdd, XrdIconFolder } from '@niis/shared-ui';
+import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
-  components: {XrdIconFolder, XrdIconAdd },
+  components: { XrdIconFolder, XrdIconAdd },
   props: {
     id: {
       type: String,

@@ -65,7 +65,8 @@
               {{ $t('diagnostics.proxyMemoryUsage.ok') }}
             </td>
             <td data-test="proxy-memory-usage">
-              {{ $filters.bytes(proxyMemoryUsageStatus?.used_memory) }} {{ `(${proxyMemoryUsageStatus?.usage_percent}%)` }}
+              {{ $filters.bytes(proxyMemoryUsageStatus?.used_memory) }}
+              {{ `(${proxyMemoryUsageStatus?.usage_percent}%)` }}
             </td>
             <td data-test="proxy-memory-max">
               {{ $filters.bytes(proxyMemoryUsageStatus?.max_memory) }}
@@ -80,11 +81,11 @@
   </v-card>
 </template>
 <script lang="ts">
-import { mapActions, mapState } from "pinia";
+import { mapActions, mapState } from 'pinia';
 import { defineComponent } from 'vue';
-import { useDiagnostics } from "@/store/modules/diagnostics";
-import { useNotifications } from "@/store/modules/notifications";
-import { ByteFormat } from "@/filters";
+import { useDiagnostics } from '@/store/modules/diagnostics';
+import { useNotifications } from '@/store/modules/notifications';
+import { ByteFormat } from '@/filters';
 
 export default defineComponent({
   data: () => ({
@@ -107,9 +108,11 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError']),
     ...mapActions(useDiagnostics, ['fetchProxyMemoryDiagnostics']),
     threshold(): string {
-      return !!this.proxyMemoryUsageStatus?.threshold ? `${this.proxyMemoryUsageStatus.threshold}%` : 'Not set.';
+      return this.proxyMemoryUsageStatus?.threshold
+        ? `${this.proxyMemoryUsageStatus.threshold}%`
+        : 'Not set.';
     },
-  }
+  },
 });
 </script>
 <style lang="scss" scoped>
@@ -141,5 +144,4 @@ h3 {
 .status-column {
   width: 80px;
 }
-
 </style>

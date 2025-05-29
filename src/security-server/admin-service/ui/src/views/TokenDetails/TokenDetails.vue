@@ -34,11 +34,10 @@
           data-test="token-delete-button"
           outlined
           @click="confirmDelete = true"
-        >{{ $t('action.delete') }}
+          >{{ $t('action.delete') }}
         </xrd-button>
       </div>
-      <v-row class="empty">
-      </v-row>
+      <v-row class="empty"> </v-row>
       <v-row>
         <v-col>
           <h3>{{ $t('keys.token.info') }}</h3>
@@ -88,7 +87,7 @@
                 </div>
               </template>
               <template #content>
-                <v-row no-gutters v-if="isEnforceTokenPolicyEnabled">
+                <v-row v-if="isEnforceTokenPolicyEnabled" no-gutters>
                   <v-alert
                     data-test="alert-token-policy-enabled"
                     class="mb-6"
@@ -152,7 +151,7 @@
         :disabled="isSaveDisabled"
         data-test="token-details-save"
         @click="save()"
-      >{{ $t('action.save') }}
+        >{{ $t('action.save') }}
       </xrd-button>
     </div>
 
@@ -180,8 +179,8 @@ import { useNotifications } from '@/store/modules/notifications';
 import { AxiosError } from 'axios';
 import { PublicPathState, useForm } from 'vee-validate';
 import { useTokens } from '@/store/modules/tokens';
-import * as api from "@/util/api";
-import {encodePathParameter} from "@/util/api";
+import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 
 export default defineComponent({
   props: {
@@ -337,17 +336,20 @@ export default defineComponent({
     },
 
     canDelete(): boolean {
-      if (!this.token?.possible_actions?.includes(PossibleAction.TOKEN_DELETE)) {
+      if (
+        !this.token?.possible_actions?.includes(PossibleAction.TOKEN_DELETE)
+      ) {
         return false;
       }
 
-      return this.hasDeletePermission
+      return this.hasDeletePermission;
     },
 
     deleteToken(): void {
       this.deleting = true;
       this.confirmDelete = false;
-      api.remove(`/tokens/${encodePathParameter(this.id)}`)
+      api
+        .remove(`/tokens/${encodePathParameter(this.id)}`)
         .then(() => {
           this.showSuccess(this.$t('keys.token.deleteSuccess'));
           this.$router.back();

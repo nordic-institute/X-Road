@@ -32,10 +32,10 @@ export const { i18n, languageHelper } = prepareI18n(loadMessages);
 // Fetches all language-specific messages for the given language
 async function loadMessages(language: string) {
   try {
-    let module = await import(`@/locales/${language}.json`);
+    const module = await import(`@/locales/${language}.json`);
     return await module.default;
   } catch (e) {
-    console.warn("Failed to load translations for: " + language);
+    console.warn('Failed to load translations for: ' + language);
     return {};
   }
 }

@@ -24,109 +24,109 @@
    THE SOFTWARE.
  -->
 <template>
-    <v-alert
-      v-model="notification.show"
-      data-test="contextual-alert"
-      :color="notificationColor(notification)"
-      border="start"
-      border-color="error"
-      variant="outlined"
-      class="alert mb-2"
-    >
-      <div class="row-wrapper-top scrollable identifier-wrap">
-        <div class="icon-wrapper">
-          <xrd-icon-base v-if="notification.isWarning" class="warning-icon">
-            <xrd-icon-warning />
-          </xrd-icon-base>
-          <xrd-icon-base v-else class="error-icon">
-            <xrd-icon-error-notification />
-          </xrd-icon-base>
-          <div class="row-wrapper">
-            <!-- Show message text -->
-            <div v-if="notification.errorMessage">
-              {{ notification.errorMessage }}
-            </div>
+  <v-alert
+    v-model="notification.show"
+    data-test="contextual-alert"
+    :color="notificationColor(notification)"
+    border="start"
+    border-color="error"
+    variant="outlined"
+    class="alert mb-2"
+  >
+    <div class="row-wrapper-top scrollable identifier-wrap">
+      <div class="icon-wrapper">
+        <xrd-icon-base v-if="notification.isWarning" class="warning-icon">
+          <xrd-icon-warning />
+        </xrd-icon-base>
+        <xrd-icon-base v-else class="error-icon">
+          <xrd-icon-error-notification />
+        </xrd-icon-base>
+        <div class="row-wrapper">
+          <!-- Show message text -->
+          <div v-if="notification.errorMessage">
+            {{ notification.errorMessage }}
+          </div>
 
-            <!-- Show localised text by id from error object -->
-            <div v-else-if="notification.errorCode">
-              {{ $t(errorCodePrefix + notification.errorCode) }}
-            </div>
+          <!-- Show localised text by id from error object -->
+          <div v-else-if="notification.errorCode">
+            {{ $t(errorCodePrefix + notification.errorCode) }}
+          </div>
 
-            <!-- If error doesn't have a text or localisation key then just print the error object -->
-            <div v-else-if="notification.errorObjectAsString">
-              {{ notification.errorObjectAsString }}
-            </div>
+          <!-- If error doesn't have a text or localisation key then just print the error object -->
+          <div v-else-if="notification.errorObjectAsString">
+            {{ notification.errorObjectAsString }}
+          </div>
 
-            <!-- Special case for pin code validation -->
-            <div v-for="meta in groupedMetas" :key="meta.key">
-              {{ meta.translatable ? $t(meta.key, meta.args) : meta.key }}
-            </div>
+          <!-- Special case for pin code validation -->
+          <div v-for="meta in groupedMetas" :key="meta.key">
+            {{ meta.translatable ? $t(meta.key, meta.args) : meta.key }}
+          </div>
 
-            <!-- Show validation errors -->
-            <ul v-if="notification.validationErrors">
-              <li
-                v-for="validationError in notification.validationErrors"
-                :key="validationError.field"
-              >
-                {{ $t(`fields.${validationError.field}`) + ':' }}
-                <template v-if="validationError.errorCodes.length === 1">
-                  {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-                </template>
-                <template v-else>
-                  <ul>
-                    <li
-                      v-for="errCode in validationError.errorCodes"
-                      :key="`${validationError.field}.${errCode}`"
-                    >
-                      {{ $t(`validationError.${errCode}`) }}
-                    </li>
-                  </ul>
-                </template>
-              </li>
-            </ul>
+          <!-- Show validation errors -->
+          <ul v-if="notification.validationErrors">
+            <li
+              v-for="validationError in notification.validationErrors"
+              :key="validationError.field"
+            >
+              {{ $t(`fields.${validationError.field}`) + ':' }}
+              <template v-if="validationError.errorCodes.length === 1">
+                {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+              </template>
+              <template v-else>
+                <ul>
+                  <li
+                    v-for="errCode in validationError.errorCodes"
+                    :key="`${validationError.field}.${errCode}`"
+                  >
+                    {{ $t(`validationError.${errCode}`) }}
+                  </li>
+                </ul>
+              </template>
+            </li>
+          </ul>
 
-            <!-- Error ID -->
-            <div v-if="notification.errorId">
-              {{ $t('alert.id') + ':' }}
-              {{ notification.errorId }}
-            </div>
+          <!-- Error ID -->
+          <div v-if="notification.errorId">
+            {{ $t('alert.id') + ':' }}
+            {{ notification.errorId }}
+          </div>
 
-            <!-- count -->
-            <div v-if="notification.count > 1 && !notification.isWarning">
-              {{ $t('alert.count') }}
-              {{ notification.count }}
-            </div>
+          <!-- count -->
+          <div v-if="notification.count > 1 && !notification.isWarning">
+            {{ $t('alert.count') }}
+            {{ notification.count }}
           </div>
         </div>
-        <xrd-button
-          v-if="notification.errorId"
-          text
-          :outlined="false"
-          class="id-button"
-          data-test="copy-id-button"
-          @click.prevent="copyId(notification)"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-copy />
-          </xrd-icon-base>
-          {{ $t('action.copyId') }}
-        </xrd-button>
       </div>
+      <xrd-button
+        v-if="notification.errorId"
+        text
+        :outlined="false"
+        class="id-button"
+        data-test="copy-id-button"
+        @click.prevent="copyId(notification)"
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-copy />
+        </xrd-icon-base>
+        {{ $t('action.copyId') }}
+      </xrd-button>
+    </div>
 
-      <template #close>
-        <v-btn
-          icon
-          variant="plain"
-          color="primary"
-          data-test="close-alert"
-          @click="closeError(notification.timeAdded)"
-        >
-          <xrd-icon-base dark>
-            <xrd-icon-close />
-          </xrd-icon-base>
-        </v-btn>
-      </template>
-    </v-alert>
+    <template #close>
+      <v-btn
+        icon
+        variant="plain"
+        color="primary"
+        data-test="close-alert"
+        @click="closeError(notification.timeAdded)"
+      >
+        <xrd-icon-base dark>
+          <xrd-icon-close />
+        </xrd-icon-base>
+      </v-btn>
+    </template>
+  </v-alert>
 </template>
 
 <script lang="ts" setup>
@@ -134,7 +134,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 import { Colors } from '@/global';
-import { XrdIconCopy, XrdIconErrorNotification, XrdIconWarning } from '@niis/shared-ui';
+import {
+  XrdIconCopy,
+  XrdIconErrorNotification,
+  XrdIconWarning,
+} from '@niis/shared-ui';
 import { computed, PropType } from 'vue';
 
 const errorCodePrefix = 'error_code.';
@@ -156,10 +160,10 @@ interface Meta {
 const groupedMetas = computed(() => {
   const groups: Meta[] = [];
   let group: Meta | undefined = undefined;
-  for (const meta of (props.notification.metaData || [])) {
+  for (const meta of props.notification.metaData || []) {
     if (meta.startsWith(translatableMetaPrefix)) {
       group = { translatable: true, key: errorCodePrefix + meta, args: [] };
-      groups.push(group)
+      groups.push(group);
     } else if (group) {
       group.args.push(meta);
     } else {
@@ -169,7 +173,6 @@ const groupedMetas = computed(() => {
         args: [],
       });
     }
-
   }
   return groups;
 });

@@ -54,11 +54,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { useField } from "vee-validate";
-import { mapActions, mapState } from "pinia";
-import { useCsr } from "@/store/modules/certificateSignRequest";
-import { KeyUsageType, TokenCertificateSigningRequest } from "@/openapi-types";
+import { defineComponent, PropType } from 'vue';
+import { useField } from 'vee-validate';
+import { mapActions, mapState } from 'pinia';
+import { useCsr } from '@/store/modules/certificateSignRequest';
+import { KeyUsageType, TokenCertificateSigningRequest } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
@@ -83,26 +83,32 @@ export default defineComponent({
   data() {
     return {
       hasAcmeEabRequiredButNoCredentials: false,
-    }
+    };
   },
   computed: {
     ...mapState(useCsr, ['certificationServiceList']),
     acmeCertificateServices() {
       return this.certificationServiceList.filter(
         (certificationService) =>
-          certificationService.certificate_profile_info == this.csr.certificate_profile
-          && certificationService.acme_capable
-          && (this.keyUsage == KeyUsageType.AUTHENTICATION || !certificationService.authentication_only),
+          certificationService.certificate_profile_info ==
+            this.csr.certificate_profile &&
+          certificationService.acme_capable &&
+          (this.keyUsage == KeyUsageType.AUTHENTICATION ||
+            !certificationService.authentication_only),
       );
-    }
+    },
   },
   watch: {
     certificateService(newValue: string) {
-      const newCA = this.acmeCertificateServices.find(ca => ca.name == newValue);
+      const newCA = this.acmeCertificateServices.find(
+        (ca) => ca.name == newValue,
+      );
       if (newCA?.acme_capable) {
         this.hasAcmeEabCredentials(newCA.name, this.csr.owner_id, this.keyUsage)
           .then((res) => {
-            this.hasAcmeEabRequiredButNoCredentials = res.acme_eab_required && !res.has_acme_external_account_credentials;
+            this.hasAcmeEabRequiredButNoCredentials =
+              res.acme_eab_required &&
+              !res.has_acme_external_account_credentials;
             if (this.hasAcmeEabRequiredButNoCredentials) {
               this.setErrors(this.$t('csr.eabCredRequired'));
             }
