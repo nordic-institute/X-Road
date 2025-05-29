@@ -76,13 +76,18 @@
           {{ $t('fields.authenticationCertificateProfileId') }}
         </v-col>
         <v-col cols="6" data-test="authentication-certificate-profile-id">
-          {{ currentCertificationService?.authentication_certificate_profile_id || '-' }}
+          {{
+            currentCertificationService?.authentication_certificate_profile_id ||
+            '-'
+          }}
         </v-col>
         <v-col cols="6">
           {{ $t('fields.signingCertificateProfileId') }}
         </v-col>
         <v-col cols="6" data-test="signing-certificate-profile-id">
-          {{ currentCertificationService?.signing_certificate_profile_id || '-' }}
+          {{
+            currentCertificationService?.signing_certificate_profile_id || '-'
+          }}
         </v-col>
       </v-row>
     </info-card>

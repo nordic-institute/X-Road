@@ -160,7 +160,8 @@ import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import {
   XrdIconDownload,
   XrdIconUpload,
-  XrdIconCertificate, XrdTitledView,
+  XrdIconCertificate,
+  XrdTitledView,
 } from '@niis/shared-ui';
 import { useManagementServices } from '@/store/modules/management-services';
 import ManagementServiceUploadCertificateDialog from '@/components/tlsCertificates/ManagementServiceUploadCertificateDialog.vue';

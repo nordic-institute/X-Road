@@ -26,7 +26,6 @@
  -->
 <template>
   <xrd-titled-view title-key="keys.title">
-
     <tokens-list
       :configuration-type="configurationType"
       @update-keys="refreshAnchor"

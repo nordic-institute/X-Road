@@ -56,10 +56,10 @@
           </div>
         </template>
         <template #[`item.in_maintenance_mode`]="{ item }">
-            <xrd-icon-base v-if="item.in_maintenance_mode" class="mr-4">
-              <xrd-icon-checked :color="colors.Success100" />
-            </xrd-icon-base>
-          {{item.maintenance_mode_message}}
+          <xrd-icon-base v-if="item.in_maintenance_mode" class="mr-4">
+            <xrd-icon-checked :color="colors.Success100" />
+          </xrd-icon-base>
+          {{ item.maintenance_mode_message }}
         </template>
       </v-data-table-server>
     </searchable-titled-view>

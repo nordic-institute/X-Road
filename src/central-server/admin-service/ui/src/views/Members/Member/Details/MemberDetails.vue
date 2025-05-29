@@ -55,16 +55,22 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <ServersList title-key="members.member.details.ownedServers" :loading="loadingOwnedServers"
-                   :servers="ownedServers"
-                   data-test="owned-servers-table" />
+      <ServersList
+        title-key="members.member.details.ownedServers"
+        :loading="loadingOwnedServers"
+        :servers="ownedServers"
+        data-test="owned-servers-table"
+      />
     </div>
 
     <!-- Used Servers -->
     <div id="used-servers">
-      <ServersList title-key="members.member.details.usedServers" :loading="loadingUsedServers"
-                   :servers="usedServers"
-                   data-test="used-servers-table">
+      <ServersList
+        title-key="members.member.details.usedServers"
+        :loading="loadingUsedServers"
+        :servers="usedServers"
+        data-test="used-servers-table"
+      >
         <template #actions="{ server }">
           <xrd-button
             v-if="allowUnregisterMember"
@@ -84,9 +90,11 @@
         :server="unregisterFromServer"
         data-test="unregister-member"
         @cancel="unregisterFromServer = null"
-        @unregister="unregisterFromServer = null; loadClientServers()"
+        @unregister="
+          unregisterFromServer = null;
+          loadClientServers();
+        "
       />
-
     </div>
 
     <!-- Global Groups -->
@@ -172,7 +180,6 @@ import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
 import ServersList from './ServersList.vue';
 import UnregisterMemberDialog from './UnregisterMemberDialog.vue';
-
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -265,10 +272,11 @@ export default defineComponent({
       });
 
     this.loadingOwnedServers = true;
-    this.memberStore.getMemberOwnedServers(this.memberid)
-      .then((resp) => this.ownedServers = resp)
+    this.memberStore
+      .getMemberOwnedServers(this.memberid)
+      .then((resp) => (this.ownedServers = resp))
       .catch((error) => this.showError(error))
-      .finally(() => this.loadingOwnedServers = false);
+      .finally(() => (this.loadingOwnedServers = false));
 
     this.loadClientServers();
   },
@@ -285,10 +293,11 @@ export default defineComponent({
     },
     loadClientServers() {
       this.loadingUsedServers = true;
-      this.memberStore.getUsedServers(this.memberid)
-        .then((resp) => this.usedServers = resp)
+      this.memberStore
+        .getUsedServers(this.memberid)
+        .then((resp) => (this.usedServers = resp))
         .catch((error) => this.showError(error))
-        .finally(() => this.loadingUsedServers = false);
+        .finally(() => (this.loadingUsedServers = false));
     },
   },
 });

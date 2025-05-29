@@ -78,7 +78,10 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { ManagementRequestListView, ManagementRequestType } from '@/openapi-types';
+import {
+  ManagementRequestListView,
+  ManagementRequestType,
+} from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';

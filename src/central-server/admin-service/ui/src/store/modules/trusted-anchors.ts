@@ -29,7 +29,7 @@ import { defineStore } from 'pinia';
 import { saveResponseAsFile } from '@/util/helpers';
 import axios from 'axios';
 import { TrustedAnchor } from '@/openapi-types';
-import {encodePathParameter} from "@/util/api";
+import { encodePathParameter } from '@/util/api';
 
 export const useTrustedAnchor = defineStore('trustedAnchor', {
   actions: {

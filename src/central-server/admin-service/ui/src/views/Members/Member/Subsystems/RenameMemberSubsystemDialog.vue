@@ -38,13 +38,14 @@
     <template #content>
       <div class="dlg-input-width">
         <v-text-field
-          class="mt-2"
           v-model="name"
+          class="mt-2"
           v-bind="nameAttrs"
           :label="$t('members.member.subsystems.subsystemname')"
           variant="outlined"
           autofocus
-          data-test="subsystem-name-input" />
+          data-test="subsystem-name-input"
+        />
       </div>
     </template>
   </xrd-simple-dialog>
@@ -88,7 +89,12 @@ const [name, nameAttrs] = defineField('subsystemName', {
 
 const loading = ref(false);
 
-const canSave = computed(() => meta.value.valid && meta.value.dirty && (name.value ? true : props.subsystemName));
+const canSave = computed(
+  () =>
+    meta.value.valid &&
+    meta.value.dirty &&
+    (name.value ? true : props.subsystemName),
+);
 
 function cancel() {
   emits('cancel');
@@ -99,10 +105,12 @@ const { t } = i18n.global;
 
 const rename = handleSubmit((values) => {
   loading.value = true;
-  renameSubsystem(props.member.client_id.encoded_id + ':' + props.subsystemCode,
+  renameSubsystem(
+    props.member.client_id.encoded_id + ':' + props.subsystemCode,
     {
       subsystem_name: values.subsystemName,
-    })
+    },
+  )
     .then(() => {
       showSuccess(
         t('members.member.subsystems.subsystemSuccessfullyRenamed', {

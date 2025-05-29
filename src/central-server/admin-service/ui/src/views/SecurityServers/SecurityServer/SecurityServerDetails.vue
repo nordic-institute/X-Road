@@ -83,7 +83,7 @@
         <xrd-icon-base v-if="securityServer.in_maintenance_mode" class="mr-4">
           <xrd-icon-checked :color="colors.Success100" />
         </xrd-icon-base>
-        {{securityServer.maintenance_mode_message}}
+        {{ securityServer.maintenance_mode_message }}
       </info-card>
 
       <info-card

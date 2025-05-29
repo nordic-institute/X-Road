@@ -48,7 +48,6 @@
 </template>
 
 <script lang="ts" setup>
-
 import { i18n } from '@/plugins/i18n';
 
 defineProps({
@@ -56,7 +55,4 @@ defineProps({
 });
 const emits = defineEmits(['click']);
 const tooltip = i18n.global.t('action.rename');
-
 </script>
-
-

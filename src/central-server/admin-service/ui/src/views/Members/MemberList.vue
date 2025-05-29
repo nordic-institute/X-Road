@@ -129,8 +129,9 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: `${this.$t('global.memberName')} (${this.clientStore.clients
-            ?.length})`,
+          title: `${this.$t('global.memberName')} (${
+            this.clientStore.clients?.length
+          })`,
           align: 'start',
           key: 'member_name',
         },

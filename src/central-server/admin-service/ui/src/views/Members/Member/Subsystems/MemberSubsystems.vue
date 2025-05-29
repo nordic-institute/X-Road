@@ -76,7 +76,8 @@
               <rename-subsystem-btn
                 v-if="allowMemberSubsystemRename"
                 :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)" />
+                @click="renameClicked(item)"
+              />
             </td>
             <td class="unregistered-subsystem" />
             <td class="unregistered-subsystem" />
@@ -113,7 +114,8 @@
               <rename-subsystem-btn
                 v-if="allowMemberSubsystemRename"
                 :subsystem-name="item.subsystem_name"
-                @click="renameClicked(item)" />
+                @click="renameClicked(item)"
+              />
             </td>
             <td>{{ subitem.server_code }}</td>
             <td>{{ subitem.server_owner }}</td>
@@ -325,8 +327,9 @@ export default defineComponent({
       this.showDeleteDialog = true;
     },
     renameClicked(subsystem: Subsystem) {
-      this.clickedSubsystemCode = subsystem.subsystem_id?.subsystem_code as string;
-      this.clickedSubsystemName= subsystem.subsystem_name as string;
+      this.clickedSubsystemCode = subsystem.subsystem_id
+        ?.subsystem_code as string;
+      this.clickedSubsystemName = subsystem.subsystem_name as string;
       this.showRenameDialog = true;
     },
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {

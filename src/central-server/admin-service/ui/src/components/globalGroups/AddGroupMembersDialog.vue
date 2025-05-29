@@ -87,7 +87,6 @@ import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { useBasicForm } from '@/util/composables';
 
 // To provide the Vue instance to debounce
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 const props = defineProps({
   groupCode: {
