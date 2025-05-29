@@ -304,6 +304,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
 
     this.loading = true;
@@ -418,11 +419,6 @@ export default defineComponent({
   }
 }
 
-.card-corner-button {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .status {
   text-transform: uppercase;
   font-weight: bold;
@@ -430,20 +426,12 @@ export default defineComponent({
 
 .subsystem-actions {
   text-align: right;
-
-  .xrd-clickable {
-    color: colors.$Link;
-    margin-left: 10px;
-  }
 }
 
 .unregistered-subsystem {
   background-color: colors.$WarmGrey30;
 }
 
-.custom-footer {
-  height: 16px;
-}
 tbody tr:last-child td {
   border-bottom: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
 }

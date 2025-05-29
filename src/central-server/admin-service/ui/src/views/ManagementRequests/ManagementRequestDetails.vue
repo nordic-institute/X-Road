@@ -216,6 +216,7 @@ fetchData();
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-block {
     width: 100%;
 

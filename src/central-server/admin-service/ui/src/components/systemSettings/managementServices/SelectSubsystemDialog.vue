@@ -174,6 +174,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {
@@ -197,7 +198,6 @@ export default defineComponent({
           this.loading = false;
         });
     },
-    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;

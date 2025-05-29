@@ -199,10 +199,6 @@ function showSuccessMessage(identifiers: string[]) {
 <style lang="scss" scoped>
 @use '@/assets/tables' as *;
 
-.checkbox-column {
-  width: 50px;
-}
-
 .search-input {
   width: 300px;
 }

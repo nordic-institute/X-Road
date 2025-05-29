@@ -274,14 +274,6 @@ export default defineComponent({
   justify-content: flex-end;
 }
 
-.cert-row {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  padding-left: 56px;
-  height: 56px;
-}
-
 .internal-conf-icon {
   margin-right: 15px;
   color: colors.$Purple100;

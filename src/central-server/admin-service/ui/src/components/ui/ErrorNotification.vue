@@ -26,7 +26,7 @@
  -->
 <template>
   <v-alert
-    v-model="notification.show"
+    :model-value="notification.show"
     data-test="contextual-alert"
     border="start"
     variant="outlined"
@@ -113,7 +113,7 @@
           data-test="action-icon-snackbar"
           @click="routeAction()"
         >
-          <v-icon dark>{{ notification.action.icon }}</v-icon>
+          <v-icon theme="dark">{{ notification.action.icon }}</v-icon>
           {{ $t(notification.action.text) }}
         </xrd-button>
       </div>

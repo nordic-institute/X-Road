@@ -256,6 +256,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
 
     this.loadingGroups = true;
@@ -307,28 +308,6 @@ export default defineComponent({
 @use '@/assets/colors';
 @use '@/assets/tables' as *;
 
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .delete-action {
   margin-top: 34px;
   color: colors.$Link;
@@ -347,6 +326,7 @@ export default defineComponent({
   justify-content: space-between;
   align-items: flex-end;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 
@@ -357,12 +337,6 @@ export default defineComponent({
     &:last-child {
       margin-left: 30px;
     }
-  }
-}
-
-#global-groups-table {
-  tbody tr td:last-child {
-    width: 50px;
   }
 }
 </style>

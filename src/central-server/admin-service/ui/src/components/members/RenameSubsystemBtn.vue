@@ -51,7 +51,10 @@
 import { i18n } from '@/plugins/i18n';
 
 defineProps({
-  subsystemName: String,
+  subsystemName: {
+    type: String,
+    default: '',
+  },
 });
 const emits = defineEmits(['click']);
 const tooltip = i18n.global.t('action.rename');

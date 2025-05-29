@@ -70,6 +70,7 @@ const props = defineProps({
   },
   subsystemName: {
     type: String,
+    default: '',
   },
 });
 

@@ -216,10 +216,4 @@ async function fetchItems() {
 
 <style lang="scss" scoped>
 @use '@/assets/tables' as *;
-
-.custom-checkbox {
-  .v-label {
-    font-size: 14px;
-  }
-}
 </style>
