@@ -11,7 +11,7 @@ OPENBAO_DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/containerised/backup_op
 BACKED_UP_PATHS=()
 
 die() {
-  log "$@"
+  echo >&2 "$@"
   exit 1
 }
 
