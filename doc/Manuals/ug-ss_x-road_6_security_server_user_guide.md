@@ -2186,7 +2186,7 @@ The archive file has been successfully transferred when the archiving server ret
 
 Override the configuration parameter archive-transfer-command (create or edit the file `etc/xroad/conf.d/local.ini`) to set up a transferring script. For example:
 
-```
+```ini
 [message-log]
 archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
 ```
@@ -2313,7 +2313,7 @@ The default behavior can be changed by editing the *rsyslog* configuration file
 
 Restart the *rsyslog* service to apply the changes made to the configuration file
 
-```
+```bash
 service rsyslog restart
 ```
 
@@ -2690,7 +2690,7 @@ All overrides to the default configuration values must be made in the file `/etc
 
 If, for any reason, operational data should not be collected and forwarded to the operational monitoring daemon, the parameter size can be set to 0:
 
-```
+```ini
 [op-monitor-buffer]
 size = 0
 ```

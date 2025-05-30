@@ -152,7 +152,7 @@ To harden the user account security, make sure that users are not allowed to acc
 
 It is also recommended to disable SSH password login and allow key-based authentication only. Before this modification, add users' public keys to the server. Edit `/etc/ssh/sshd_config` and add the following lines:
 
-```bash
+```
 ChallengeResponseAuthentication no
 PasswordAuthentication no
 ```

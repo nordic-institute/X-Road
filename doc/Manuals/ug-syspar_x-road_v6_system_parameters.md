@@ -234,19 +234,19 @@ psql -U centerui -h localhost centerui_production
 
 The default value of a system parameter can be overridden by adding the parameter name and value to the *system_parameters* table:
 
-```bash
+```sql
 INSERT INTO system_parameters (key, value, created_at, updated_at) VALUES ('parameter_name', 'parameter_value', (now() at time zone 'utc'), (now() at time zone 'utc'));
 ```
 
 To edit the value of a system parameter already inserted into the *system_parameters* table:
 
-```bash
+```sql
 UPDATE system_parameters SET value = '*parameter_value*', updated_at = (now() at time zone 'utc') WHERE key = 'parameter_name';
 ```
 
 To restore the default value of a system parameter, delete the parameter from the *system_parameters* table:
 
-```bash
+```sql
 DELETE FROM system_parameters WHERE key = 'parameter_name';
 ```
 

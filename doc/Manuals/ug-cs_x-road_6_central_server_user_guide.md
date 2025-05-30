@@ -1247,7 +1247,8 @@ gpg --homedir /etc/xroad/gpghome/ --edit-key <key id>
 At the `gpg>` prompt, type `trust`, then type `5` for ultimate trust, then `y` to confirm, then `quit`.
 
 Add the key id to `/etc/xroad/conf.d/local.ini` file (editing the file requires restarting X-Road services), e.g.:
-```basinih
+
+```ini
 [center]
 backup-encryption-enabled = true
 backup-encryption-keyids = 87268CC66939CFF3
@@ -1682,19 +1683,19 @@ Prerequisites
 * Same version (12 or later) of PostgreSQL installed on the remote database host.
 * Network connections to PostgreSQL port (tcp/5432) are allowed from the Central Server to the remote database server.
 
-1.  Shutdown X-Road processes.
+1. Shutdown X-Road processes.
 
     ```bash
     systemctl stop "xroad*"
     ```
 
-2.  Dump the local database centerui_production to be migrated. The credentials of the database admin user can be found in `/etc/xroad.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
+2. Dump the local database centerui_production to be migrated. The credentials of the database admin user can be found in `/etc/xroad.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
     ```bash
     pg_dump -F t -h 127.0.0.1 -p 5432 -U centerui_admin -f centerui_production.dat centerui_production
     ```
 
-3.  Shut down and mask local postgresql so it won't start when xroad-proxy starts.
+3. Shut down and mask local postgresql so it won't start when xroad-proxy starts.
 
     ```bash
     systemctl stop postgresql
@@ -1704,7 +1705,7 @@ Prerequisites
     systemctl mask postgresql
     ```
 
-4.  Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows.
+4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows.
 
     ```bash
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
@@ -1728,13 +1729,13 @@ Prerequisites
     GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA centerui to centerui;
     ```
 
-5.  Restore the database dumps on the remote database host.
+5. Restore the database dumps on the remote database host.
 
     ```bash
     pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n centerui -1 -d centerui_production centerui_production.dat
     ```
 
-6.  Create properties file `/etc/xroad.properties` if it does not exist.
+6. Create properties file `/etc/xroad.properties` if it does not exist.
 
     ```bash
     sudo touch /etc/xroad.properties
@@ -1742,14 +1743,14 @@ Prerequisites
     sudo chmod 600 /etc/xroad.properties
     ```
 
-7.  Make sure `/etc/xroad.properties` is containing the admin user & its password.
+7. Make sure `/etc/xroad.properties` is containing the admin user & its password.
 
     ```properties
     centerui.database.admin_user = centerui_admin
     centerui.database.admin_password = <centerui_admin password>
     ```
 
-8.  Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
+8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
     ```properties
     spring.datasource.username=<database_username>
@@ -1758,7 +1759,7 @@ Prerequisites
     spring.datasource.url=jdbc:postgresql://<database_host>:<database_port>/<database>
     ```
 
-9.  Start again the X-Road services.
+9. Start again the X-Road services.
 
     ```bash
     systemctl start "xroad*"

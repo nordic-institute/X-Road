@@ -417,7 +417,8 @@ Configuration parameters for management web service are specified in the [UG-SYS
 
 The installation is successful if the system services are started and the user interface is responding.
 
--   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Central Server since it operates in one-shot mode.    
+-   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Central Server since it operates in one-shot mode.
+    
     ```bash
     sudo systemctl list-units "xroad*"
 
@@ -608,7 +609,7 @@ Upgrading the packages from the current version to the target version is not sup
 
 For example, the following Central Server packages are currently installed.
 
-```
+```bash
 root@test-cs:~# dpkg -l | grep xroad
 ii  xroad-autologin                    7.3.0-1.ubuntu22.04 all          Automatic token pin code entry
 ii  xroad-base                         7.3.0-1.ubuntu22.04 amd64        X-Road base components
@@ -626,7 +627,7 @@ ii  xroad-signer                       7.3.0-1.ubuntu22.04 amd64        X-Road s
 
 The following packages are available in the repository.
 
-```
+```bash
 root@test-cs:~# apt-cache madison xroad-centralserver
 xroad-centralserver | 7.3.0-1.ubuntu20.04 | https://artifactory.niis.org/xroad-release-deb focal-current/main amd64 Packages
 xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://artifactory.niis.org/xroad-release-deb focal-current/main amd64 Packages
@@ -634,7 +635,7 @@ xroad-centralserver | 7.1.2-1.ubuntu20.04 | https://artifactory.niis.org/xroad-r
 
 Now trying to upgrade the Central Server packages directly will produce the following error.
 
-```
+```bash
 root@test-cs:~# apt upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu20.04_all.deb ...
@@ -665,7 +666,7 @@ Before upgrading the packages from the current version to the target version, in
 
 For example, if the error message says:
 
-```
+```bash
 root@test-cs:~# apt upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-center_7.4.0-1.ubuntu22.04_all.deb ...
