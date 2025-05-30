@@ -44,7 +44,7 @@ export const useUser = defineStore('user', {
   state: () => {
     return {
       authenticated: false,
-      sessionAlive: undefined as boolean | undefined,
+      sessionAlive: false,
       permissions: [] as string[],
       roles: [] as string[],
       username: '',
