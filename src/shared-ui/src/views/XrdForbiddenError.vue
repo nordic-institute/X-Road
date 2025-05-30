@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,42 +25,51 @@
  -->
 
 <template>
-  <XrdForbiddenError @go-home="home" @go-back="goBack">
-    <template #top>
-      <TabsBase />
-      <AlertsContainer />
-    </template>
-  </XrdForbiddenError>
+  <div class="xrd-view-common" data-test="forbidden-view">
+    <slot name="top" />
+    <v-container>
+      <div class="xrd-view-title pt-6">{{ $t('403.topTitle') }}</div>
+      <v-card flat class="xrd-card custom-card">
+        <v-card-text>
+          <div class="content-wrap">
+            <div class="main-title">{{ $t('403.mainTitle') }}</div>
+            <div class="permission-text">
+              {{ $t('403.text') }}
+            </div>
+            <div class="buttons-wrap my-13">
+              <xrd-button
+                test-data="go-back-button"
+                color="primary"
+                large
+                rounded
+                @click="emit('go-back')"
+              >
+                {{ $t('403.goBack') }}
+              </xrd-button>
+
+              <xrd-button
+                test-data="go-to-front-page-button"
+                color="primary"
+                outlined
+                large
+                class="ml-4"
+                rounded
+                @click="emit('go-home')"
+              >
+                {{ $t('action.goToFront') }}
+              </xrd-button>
+            </div>
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-container>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import TabsBase from '@/components/layout/TabsBase.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import { XrdForbiddenError } from '@niis/shared-ui';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
+<script lang="ts" setup>
+import { XrdButton } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: {
-    TabsBase,
-    AlertsContainer,
-    XrdForbiddenError,
-  },
-  computed: {
-    ...mapState(useUser, ['getFirstAllowedTab']),
-  },
-  methods: {
-    home(): void {
-      this.$router.replace({
-        name: this.getFirstAllowedTab.to.name,
-      });
-    },
-    goBack(): void {
-      this.$router.go(-2); // needs to be two steps
-    },
-  },
-});
+const emit = defineEmits(['go-home', 'go-back']);
 </script>
 
 <style lang="scss" scoped>
@@ -77,7 +85,7 @@ export default defineComponent({
 }
 
 .main-title {
-  font-family: Open Sans;
+  font-family: 'Open Sans', sans-serif;
   font-style: normal;
   font-weight: bold;
   font-size: 40px;

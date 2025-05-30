@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "topTitle": "Forbidden"
-  },
   "action": {
     "addName": "Add subsystem name",
     "approve": "Approve",
@@ -195,7 +189,6 @@
     "navigation": {
       "back": "Back"
     },
-    "pageNotFound": "oops, page not found",
     "register": "Register",
     "search": "Search",
     "server": "Server",
