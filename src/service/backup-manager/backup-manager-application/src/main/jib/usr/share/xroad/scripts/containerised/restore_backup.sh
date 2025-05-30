@@ -23,6 +23,8 @@ TEMP_GPG_STATUS=${TEMP_GPG_DIR}/gpg_status.tar
 
 ENCRYPTED_BACKUP=true
 
+declare -a deployed_services
+
 die () {
   echo >&2 "$@"
   exit 1
@@ -224,10 +226,38 @@ restore_openbao_database () {
   fi
 }
 
+stop_services () {
+  if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serviceaccount/token ]; then
+    echo "Stopping services in Kubernetes environment"
+    while read -r deploy; do
+      name=$(basename "$deploy")
+      # do not stop backup-manager and proxy-ui-api services
+      # todo: do not skip signer after migrating data to DB
+      if [[ "$name" == "backup-manager" || "$name" == "proxy-ui-api" || "$name" == "signer " ]]; then
+        echo "Skipping $name"
+        continue
+      fi
+
+      replicas=$(kubectl get "$deploy" -o jsonpath='{.spec.replicas}')
+      deployed_services+=("$deploy $replicas")
+      kubectl scale "$deploy" --replicas=0
+    done < <(kubectl get deploy -o name)
+  else
+    echo "Skipping stop services, not in Kubernetes environment"
+  fi
+}
+
 restart_services () {
-  # todo: fixme: trigger restart
   echo "Triggering restart of services"
-  echo "todo: "
+  if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serviceaccount/token ]; then
+    echo "Starting services in Kubernetes environment"
+    for entry in "${deployed_services[@]}"; do
+      read -r deploy replicas <<< "$entry"
+      kubectl scale "$deploy" --replicas="$replicas"
+    done
+  else
+    echo "Skip starting up services, not in Kubernetes environment"
+  fi
 }
 
 remove_tmp_files() {
@@ -291,11 +321,10 @@ decrypt_tarball_if_encrypted
 check_is_correct_tarball
 check_restore_options
 make_tarball_label
+stop_services
 create_pre_restore_backup
 setup_tmp_restore_dir
 extract_to_tmp_restore_dir
 restore_serverconf_database
 restore_openbao_database
 restart_services
-
-#todo: run liquibase on existing serverconf DB

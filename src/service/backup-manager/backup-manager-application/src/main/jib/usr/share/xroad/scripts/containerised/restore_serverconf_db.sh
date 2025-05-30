@@ -99,6 +99,7 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
   metadata:
     name: "${jobname}"
   spec:
+    ttlSecondsAfterFinished: 86400  # 24 hours
     backoffLimit: 1
     template:
       spec:

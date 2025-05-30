@@ -303,6 +303,9 @@ services:
         - apiGroups: ["batch"]
           resources: ["jobs"]
           verbs: ["create", "get", "list", "watch"]
+        - apiGroups: [ "apps" ]
+          resources: [ "deployments","deployments/scale" ]
+          verbs: [ "get", "list", "update", "watch", "patch" ]
     ports:
       - port: 4099
         name: http
