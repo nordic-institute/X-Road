@@ -45,8 +45,7 @@ public interface BackupManagerProperties {
     String validFilenamePattern();
 
     @WithName("autobackup-cron-expression")
-//    @WithDefault("0 15 3 * * ?")  todo: use this one
-    @WithDefault("0 */15 * * * ?")
+    @WithDefault("0 15 3 * * ?")
     String autoBackupCronExpression();
 
     @WithName("autobackup-script-path")

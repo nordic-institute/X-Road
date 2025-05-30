@@ -58,6 +58,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String CONFIGURATION_CLIENT = "configuration-client";
     public static final String PROXY = "proxy";
     public static final String MONITOR = "monitor";
+    public static final String BACKUP_MANAGER = "backup-manager";
     public static final String TESTCA = "testca";
     public static final String DB_MESSAGELOG = "db-messagelog";
     public static final String OP_MONITOR = "op-monitor";
@@ -92,6 +93,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(CONFIGURATION_CLIENT))
                 .withLogConsumer(MONITOR, createLogConsumer(MONITOR))
+                .withLogConsumer(BACKUP_MANAGER, createLogConsumer(BACKUP_MANAGER))
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR));
 
         env.start();

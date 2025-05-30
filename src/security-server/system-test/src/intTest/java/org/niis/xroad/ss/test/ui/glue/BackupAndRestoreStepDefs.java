@@ -26,6 +26,7 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
 
@@ -65,10 +66,11 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
+        Selenide.sleep(5000); // wait for the global conf reload (every 3s)
     }
 
     @Step("Configuration backup is downloaded")
-    public void downloadConfigurationBackup() throws FileNotFoundException {
+    public void downloadConfigurationBackup() {
         downloadedBackup = backupAndRestorePageObj.btnDownloadConfigurationBackup().download();
         assertThat(downloadedBackup)
                 .exists()

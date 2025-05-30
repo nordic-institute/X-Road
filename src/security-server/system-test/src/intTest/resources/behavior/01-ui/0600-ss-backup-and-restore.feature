@@ -1,6 +1,6 @@
 @SecurityServer
 @BackupAndRestore
-@Skip
+#@Skip
 #todo backups not implemented on containers yet. https://nordic-institute.atlassian.net/browse/XRDDEV-2676
 Feature: 0600 - SS: Backup and Restore
 

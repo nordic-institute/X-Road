@@ -26,11 +26,17 @@ services:
   ui:
     environment:
       - SERVER_SERVLET_SESSION_TIMEOUT=1m
+    ports:
+      - 0:9999 # debug port
     volumes:
       - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d:/etc/xroad/conf.d
     depends_on:
       testca:
         condition: service_healthy
+
+  backup-manager:
+    ports:
+      - 0:9999 # debug port
 
   db-opmonitor:
     image: postgres:17
