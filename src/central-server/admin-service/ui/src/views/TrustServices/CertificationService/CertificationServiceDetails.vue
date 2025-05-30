@@ -123,9 +123,10 @@ import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { Colors } from '@niis/shared-ui';
 import DateTime from '@/components/ui/DateTime.vue';
 
 /**
@@ -180,8 +181,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .delete-action {
   margin-top: 34px;

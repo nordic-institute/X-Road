@@ -179,8 +179,7 @@ import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
-import { Colors } from '@/global';
-import { XrdExpandable } from '@niis/shared-ui';
+import { Colors, XrdExpandable } from '@niis/shared-ui';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 
 const initialState = () => {
@@ -304,7 +303,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 @use '@/assets/add-dialogs';
 
 .cursor-pointer {

@@ -25,14 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    v-if="canBackup"
-    data-test="backup-restore"
-    class="xrd-table-button"
-    :min-width="50"
-    text
-    @click="showConfirmation = true"
-  >
+  <xrd-button v-if="canBackup" data-test="backup-restore" class="xrd-table-button" :min-width="50" text @click="showConfirmation = true">
     {{ $t('action.restore') }}
     <xrd-confirm-dialog
       v-if="showConfirmation"
@@ -49,7 +42,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { BackupHandler } from '../../types';
+import { BackupHandler } from '../../utils';
 import XrdButton from '../XrdButton.vue';
 import XrdConfirmDialog from '../XrdConfirmDialog.vue';
 export default defineComponent({

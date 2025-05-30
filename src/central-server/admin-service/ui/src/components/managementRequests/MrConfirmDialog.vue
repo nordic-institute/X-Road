@@ -53,7 +53,7 @@
 import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useNotifications } from '@/store/modules/notifications';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 /**
  * General component for Management request actions
@@ -84,7 +84,7 @@ const messageData = computed(() => ({
 }));
 
 const loading = ref(false);
-const { t } = i18n.global;
+const { t } = useI18n();
 
 function approve() {
   loading.value = true;

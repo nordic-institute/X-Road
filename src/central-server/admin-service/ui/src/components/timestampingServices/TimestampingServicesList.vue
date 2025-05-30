@@ -99,7 +99,7 @@
         </template>
 
         <template #bottom>
-          <custom-data-table-footer />
+          <XrdDataTableFooter />
         </template>
       </v-data-table>
     </xrd-titled-view>
@@ -141,14 +141,13 @@ import { useUser } from '@/store/modules/user';
 import { TimestampingService } from '@/openapi-types';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { Permissions, RouteName } from '@/global';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     XrdTitledView,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     AddTimestampingServiceDialog,
     EditTimestampingServiceDialog,
   },
@@ -271,5 +270,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

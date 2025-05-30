@@ -209,8 +209,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '@/assets/dialogs';
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .delete-wrap {
   margin-top: 50px;

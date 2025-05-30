@@ -64,7 +64,7 @@
 import { computed, PropType, ref } from 'vue';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { ClientStatus } from '@/openapi-types';
 import { useClient } from '@/store/modules/client';
 
@@ -108,7 +108,7 @@ const canSave = computed(
     (name.value ? true : props.subsystemName),
 );
 
-const { t } = i18n.global;
+const { t } = useI18n();
 const client = useClient();
 
 function openDialog() {

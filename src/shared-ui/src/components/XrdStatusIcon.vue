@@ -26,90 +26,24 @@
  -->
 <template>
   <div>
-    <v-icon
-      v-if="status === 'ok'"
-      size="small"
-      color="#0CC177"
-      icon="icon-Checked"
-    />
-    <v-icon
-      v-if="status === 'ok-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-Checked"
-    />
-    <v-icon
-      v-else-if="status === 'saved'"
-      size="x-large"
-      color="#211E1E"
-      icon="icon-Checkmark"
-    />
-    <v-icon
-      v-else-if="status === 'progress-register'"
-      size="small"
-      color="#0CC177"
-      icon="icon-In-progress"
-    />
-    <v-icon
-      v-else-if="status === 'progress-register-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-In-progress"
-    />
-    <v-icon
-      v-else-if="status === 'progress-delete'"
-      size="small"
-      color="#211E1E"
-      icon="icon-Cancel"
-    />
-    <v-icon
-      v-else-if="status === 'name-set'"
-      size="small"
-      color="#211E1E"
-      icon="icon-Edit"
-    />
-    <v-icon
-      v-else-if="status === 'name-submitted'"
-      size="small"
-      color="#0CC177"
-      icon="icon-Edit"
-    />
-    <v-icon
-      v-else-if="status === 'error'"
-      size="small"
-      color="#EC4040"
-      icon="icon-Error"
-    />
-    <v-icon
-      v-else-if="status === 'error-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-Error"
-    />
-    <v-icon
-      v-else-if="status === 'pending'"
-      size="small"
-      color="#F5A623"
-      icon="icon-Error"
-    />
-    <v-icon
-      v-else-if="status === 'pending-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-Error"
-    />
+    <v-icon v-if="status === 'ok'" size="small" color="#0CC177" icon="icon-Checked" />
+    <v-icon v-if="status === 'ok-disabled'" size="small" color="#575169" icon="icon-Checked" />
+    <v-icon v-else-if="status === 'saved'" size="x-large" color="#211E1E" icon="icon-Checkmark" />
+    <v-icon v-else-if="status === 'progress-register'" size="small" color="#0CC177" icon="icon-In-progress" />
+    <v-icon v-else-if="status === 'progress-register-disabled'" size="small" color="#575169" icon="icon-In-progress" />
+    <v-icon v-else-if="status === 'progress-delete'" size="small" color="#211E1E" icon="icon-Cancel" />
+    <v-icon v-else-if="status === 'name-set'" size="small" color="#211E1E" icon="icon-Edit" />
+    <v-icon v-else-if="status === 'name-submitted'" size="small" color="#0CC177" icon="icon-Edit" />
+    <v-icon v-else-if="status === 'error'" size="small" color="#EC4040" icon="icon-Error" />
+    <v-icon v-else-if="status === 'error-disabled'" size="small" color="#575169" icon="icon-Error" />
+    <v-icon v-else-if="status === 'pending'" size="small" color="#F5A623" icon="icon-Error" />
+    <v-icon v-else-if="status === 'pending-disabled'" size="small" color="#575169" icon="icon-Error" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import {
-  XrdIconCancel,
-  XrdIconChecked,
-  XrdIconCheckmark,
-  XrdIconError,
-  XrdIconInProgress,
-} from './icons';
+import { XrdIconCancel, XrdIconChecked, XrdIconCheckmark, XrdIconError, XrdIconInProgress } from './icons';
 
 /**
  * General purpose component for status icon with color

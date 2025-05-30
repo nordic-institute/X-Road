@@ -73,7 +73,7 @@
         />
       </template>
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </article>
@@ -91,7 +91,7 @@ import { DataTableHeader, SortItem } from '@/ui-types';
 import { useUser } from '@/store/modules/user';
 import ConfigurationPartDownloadButton from './ConfigurationPartDownloadButton.vue';
 import ConfigurationPartUploadButton from './ConfigurationPartUploadButton.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import DateTime from '@/components/ui/DateTime.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
@@ -99,7 +99,7 @@ export default defineComponent({
   components: {
     DataTableToolbar,
     DateTime,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     ConfigurationPartUploadButton,
     ConfigurationPartDownloadButton,
   },
@@ -166,6 +166,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 </style>

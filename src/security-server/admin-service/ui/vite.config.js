@@ -35,9 +35,16 @@ import vuetify from 'vite-plugin-vuetify';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const lang = /\/locales?\/([a-z]{2}([-_][A-Z]+))\.(js|json)$/;
-
   return {
-    plugins: [vue(), vuetify(), basicSsl()],
+    plugins: [
+      vue(),
+      vuetify({
+        styles: {
+          configFile: 'src/assets/settings.scss',
+        },
+      }),
+      basicSsl(),
+    ],
     css: {
       preprocessorOptions: {
         scss: {

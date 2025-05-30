@@ -26,30 +26,12 @@
  -->
 <template>
   <div>
-    <xrd-button
-      v-if="canBackup"
-      data-test="backup-create-configuration"
-      color="primary"
-      outlined
-      :loading="creating"
-      @click="createBackup"
-    >
+    <xrd-button v-if="canBackup" data-test="backup-create-configuration" color="primary" outlined :loading="creating" @click="createBackup">
       <v-icon class="xrd-large-button-icon" icon="icon-Database-backup" />
       {{ $t('backup.createBackup.button') }}
     </xrd-button>
-    <xrd-file-upload
-      v-slot="{ upload }"
-      :accepts="accepts"
-      @file-changed="onFileUploaded"
-    >
-      <xrd-button
-        v-if="canBackup"
-        color="primary"
-        :loading="uploading"
-        class="button-spacing"
-        data-test="backup-upload"
-        @click="upload"
-      >
+    <xrd-file-upload v-slot="{ upload }" :accepts="accepts" @file-changed="onFileUploaded">
+      <xrd-button v-if="canBackup" color="primary" :loading="uploading" class="button-spacing" data-test="backup-upload" @click="upload">
         <v-icon class="xrd-large-button-icon" icon="icon-Upload" />
 
         {{ $t('backup.uploadBackup.button') }}
@@ -70,7 +52,7 @@
 </template>
 
 <script lang="ts">
-import { BackupHandler, FileUploadResult } from '../../types';
+import { BackupHandler, FileUploadResult } from '../../utils';
 import { defineComponent, PropType } from 'vue';
 import XrdButton from '../XrdButton.vue';
 import XrdConfirmDialog from '../XrdConfirmDialog.vue';
@@ -111,16 +93,11 @@ export default defineComponent({
       return this.backupHandler
         .create()
         .then((data) => {
-          this.backupHandler.showSuccess(
-            'backup.createBackup.messages.success',
-            {
-              file: data.filename,
-            },
-          );
+          this.backupHandler.showSuccess('backup.createBackup.messages.success', {
+            file: data.filename,
+          });
           if (data.local_conf_present) {
-            this.backupHandler.showWarning(
-              'backup.createBackup.messages.localConfWarning',
-            );
+            this.backupHandler.showWarning('backup.createBackup.messages.localConfWarning');
           }
         })
         .then(() => this.$emit('create-backup'))
@@ -142,12 +119,7 @@ export default defineComponent({
           const warnings = error.response?.data?.warnings as Array<{
             code: string;
           }>;
-          if (
-            error.response?.status === 400 &&
-            warnings?.some(
-              (warning) => warning.code === 'warning_file_already_exists',
-            )
-          ) {
+          if (error.response?.status === 400 && warnings?.some((warning) => warning.code === 'warning_file_already_exists')) {
             this.needsConfirmation = true;
             return;
           }

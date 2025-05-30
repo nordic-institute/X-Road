@@ -37,34 +37,17 @@
       <v-card class="xrd-card" data-test="dialog-simple">
         <template #title>
           <slot name="title">
-            <span class="dialog-title" data-test="dialog-title">{{
-              $t(title)
-            }}</span>
+            <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
           </slot>
         </template>
         <template #append>
-          <v-icon
-            v-if="showClose"
-            icon="mdi-close"
-            data-test="dlg-close-x"
-            color="primary"
-            size="default"
-            @click="cancel"
-          />
+          <v-icon v-if="showClose" icon="mdi-close" data-test="dlg-close-x" color="primary" size="default" @click="cancel" />
         </template>
-        <v-progress-linear
-          v-if="showProgressBar"
-          height="10"
-          :indeterminate="true"
-        />
+        <v-progress-linear v-if="showProgressBar" height="10" :indeterminate="true" />
         <div class="alert-slot">
           <slot name="alert" />
         </div>
-        <v-card-text
-          v-if="hasText"
-          class="content-wrapper xrd-card-text"
-          :class="{ 'no-content': !hasContent }"
-        >
+        <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{ 'no-content': !hasContent }">
           <slot name="text" />
         </v-card-text>
         <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
@@ -72,13 +55,7 @@
         </v-card-item>
         <v-card-actions class="xrd-card-actions">
           <v-spacer />
-          <xrd-button
-            data-test="dialog-cancel-button"
-            class="mr-3"
-            variant="outlined"
-            :disabled="cancelDisabled"
-            @click="cancel"
-          >
+          <xrd-button data-test="dialog-cancel-button" class="mr-3" variant="outlined" :disabled="cancelDisabled" @click="cancel">
             {{ $t(cancelButtonText) }}
           </xrd-button>
           <xrd-button
@@ -181,31 +158,17 @@ const slots = useSlots();
 
 const hasText = computed(() => !!slots['text']);
 const hasContent = computed(() => !!slots['content']);
-const cancelDisabled = computed(() =>
-  props.allowLoadingCancellation ? false : props.loading,
-);
-const canEscape = computed(() =>
-  props.escapable ? cancelDisabled.value : false,
-);
+const cancelDisabled = computed(() => (props.allowLoadingCancellation ? false : props.loading));
+const canEscape = computed(() => (props.escapable ? cancelDisabled.value : false));
 
 function submit() {
-  if (
-    props.submittable &&
-    !props.disableSave &&
-    !props.loading &&
-    !props.hideSaveButton
-  ) {
+  if (props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
     emits('save');
   }
 }
 
 function save() {
-  if (
-    !props.submittable &&
-    !props.disableSave &&
-    !props.loading &&
-    !props.hideSaveButton
-  ) {
+  if (!props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
     emits('save');
   }
 }

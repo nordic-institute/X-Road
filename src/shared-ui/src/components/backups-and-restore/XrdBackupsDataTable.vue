@@ -40,16 +40,8 @@
     >
       <template #item.buttons="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-download-backup-button
-            :backup-handler="backupHandler"
-            :filename="item.filename"
-            :can-backup="canBackup"
-          />
-          <xrd-restore-backup-button
-            :backup-handler="backupHandler"
-            :filename="item.filename"
-            :can-backup="canBackup"
-          />
+          <xrd-download-backup-button :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
+          <xrd-restore-backup-button :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
           <xrd-delete-backup-button
             :backup-handler="backupHandler"
             :filename="item.filename"
@@ -60,7 +52,7 @@
       </template>
 
       <template #bottom>
-        <div class="cs-table-custom-footer" />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </v-card>
@@ -68,16 +60,18 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { BackupHandler, BackupItem } from '../../types';
+import { BackupHandler, BackupItem } from '../../utils';
 import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
 import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
 import XrdDownloadBackupButton from './XrdDownloadBackupButton.vue';
+import { XrdDataTableFooter } from '../../components';
 
 export default defineComponent({
   components: {
     XrdDownloadBackupButton,
     XrdRestoreBackupButton,
     XrdDeleteBackupButton,
+    XrdDataTableFooter,
   },
   props: {
     backups: {
@@ -124,10 +118,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.cs-table-custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
-</style>

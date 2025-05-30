@@ -32,7 +32,7 @@
     />
 
     <!-- Internal configuration -->
-    <div class="header-row mt-7">
+    <div class="header-row mt-6">
       <div class="xrd-view-title">{{ title }}</div>
     </div>
 
@@ -93,5 +93,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 </style>

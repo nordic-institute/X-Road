@@ -31,8 +31,7 @@ import { createVuetify } from 'vuetify';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { Colors } from '@/global';
-import { i18n } from '@/plugins/i18n';
+import { i18n, Colors } from '@niis/shared-ui';
 
 export default createVuetify({
   defaults: {
@@ -67,6 +66,7 @@ export default createVuetify({
           primary: Colors.Purple100,
           secondary: Colors.Purple70,
           error: Colors.Error,
+          success: Colors.Success10,
         },
       },
     },
