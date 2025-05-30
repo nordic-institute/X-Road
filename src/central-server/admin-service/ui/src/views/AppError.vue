@@ -24,14 +24,20 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <v-layout align-center justify-center column>
-    {{ $t('global.pageNotFound') }}
-  </v-layout>
+  <XrdNotFoundError @go-home="home" />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { XrdNotFoundError } from '@niis/shared-ui';
+import { useRouter } from 'vue-router';
+import { useUser } from '@/store/modules/user';
 
-export default defineComponent({});
+const userStore = useUser();
+const router = useRouter();
+
+function home(): void {
+  router.replace(userStore.getFirstAllowedTab.to);
+}
 </script>

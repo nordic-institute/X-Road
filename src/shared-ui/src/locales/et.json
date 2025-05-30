@@ -1,4 +1,15 @@
 {
+  "403": {
+    "goBack": " Tagasi",
+    "mainTitle": " Toiming ei ole lubatud",
+    "text": "Näib, et teil pole selle lehekülje vaatamiseks luba. Kui teie arvates on tegemist veaga, siis kontrollige, kas olete õige kontoga sisse logitud või võtke ühendust oma administraatoriga.",
+    "topTitle": "Keelatud"
+  },
+  "404": {
+    "pageNotFound": "404 – lehekülge ei leitud",
+    "text": "Näib, et olete leidnud",
+    "textUnicorn": "ükssarviku"
+  },
   "action": {
     "activate": "Aktiveeri",
     "add": "Lisa",

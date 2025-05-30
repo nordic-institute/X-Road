@@ -25,16 +25,7 @@
  * THE SOFTWARE.
  */
 
-//resources&assets
-import '@fontsource/open-sans';
-import '@mdi/font/css/materialdesignicons.css';
-import './assets/icons.css';
+import XrdNotFoundError from './XrdNotFoundError.vue';
+import XrdForbiddenError from './XrdForbiddenError.vue';
 
-export * from './language-helper';
-
-export * from './components';
-export * from './components/icons';
-export * from './components/backups-and-restore';
-export * from './layouts';
-export * from './types';
-export * from './views';
+export { XrdNotFoundError, XrdForbiddenError };

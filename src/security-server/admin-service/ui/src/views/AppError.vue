@@ -25,63 +25,30 @@
  -->
 
 <template>
-  <div class="xrd-view-common" data-test="404-view">
-    <TabsBase />
-    <AlertsContainer />
-    <v-container>
-      <div class="xrd-view-title pt-6">{{ $t('404.pageNotFound') }}</div>
-      <v-card flat class="xrd-card custom-card">
-        <v-card-text>
-          <div class="content-wrap">
-            <v-img
-              :src="image404"
-              width="100%"
-              height="auto"
-              max-height="259"
-              max-width="665"
-            ></v-img>
-
-            <div class="unicorn-text">
-              {{ $t('404.text') }}
-              <span class="unicorn-gradient">{{ $t('404.textUnicorn') }}</span>
-            </div>
-            <xrd-button
-              test-data="error-404-button"
-              color="primary"
-              gradient
-              large
-              :min_width="401"
-              :width="401"
-              class="button"
-              rounded
-              @click="home"
-              >{{ $t('action.goToFront') }}</xrd-button
-            >
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-container>
-  </div>
+  <XrdNotFoundError @go-home="home">
+    <template #top>
+      <TabsBase />
+      <AlertsContainer />
+    </template>
+  </XrdNotFoundError>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { XrdNotFoundError } from '@niis/shared-ui';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import image404 from '@/assets/404.png';
 
 export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
+    XrdNotFoundError,
   },
   computed: {
     ...mapState(useUser, ['firstAllowedTab']),
-    image404(): string {
-      return image404;
-    },
   },
   methods: {
     home(): void {
@@ -90,52 +57,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/colors';
-
-.xrd-view-common {
-  width: 100%;
-}
-
-.unicorn-text {
-  text-transform: uppercase;
-  color: colors.$Purple100;
-  width: 450px;
-  font-style: normal;
-  font-weight: 800;
-  font-size: 34.6667px;
-  line-height: 150%;
-  text-align: center;
-  letter-spacing: 0.02em;
-  margin-top: 60px;
-}
-
-.custom-card {
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 30px;
-}
-
-.content-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.button {
-  width: 200px;
-  margin: 70px;
-}
-
-.unicorn-gradient {
-  background-color: #f3ec78;
-  background-image: linear-gradient(108deg, #e29ae6 5.28%, #663bdb 94.72%);
-  background-size: 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
-}
-</style>
