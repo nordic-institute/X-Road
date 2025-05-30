@@ -241,48 +241,59 @@ Sample installation steps are provided below.
 
 * Check the current java version:
 
-        java -version
+  ```bash
+  java -version
+  ```
 
 If the current Java version is 21, following steps should be skipped. If not, install Java 21 (OpenJDK):
 
-        sudo yum install openjdk-21-jre-headless
+```bash
+sudo yum install openjdk-21-jre-headless
+```
 
 After the installation, verify the current java version:
-    
-        java -version
+
+```bash
+java -version
+```
 
 The output should contain Java version 21. If it does not, set the default Java version to 21 using *alternatives*:
 
-        sudo alternatives --config java
+```bash
+sudo alternatives --config java
+```
 
 ### 2.4 Preparing OS
 
 * Set the operating system locale. Add following line to the `/etc/environment` file.
 
-        LC_ALL=en_US.UTF-8
+```bash
+LC_ALL=en_US.UTF-8
+```
 
 * Install `yum-utils`, a collection of utilities that integrate with yum to extend its native features.
 
-        sudo yum install yum-utils
-
+```bash
+sudo yum install yum-utils
+```
 
 ### 2.5 Setup Package Repository
 
 Add X-Road package repository (**reference data: 1.1**) and Extra Packages for Enterprise Linux (EPEL) repository:
 
-  ```bash
-  RHEL_MAJOR_VERSION=$(source /etc/os-release;echo ${VERSION_ID%.*})
-  sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
-  sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
-  ```
+```bash
+RHEL_MAJOR_VERSION=$(source /etc/os-release;echo ${VERSION_ID%.*})
+sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
+sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
+```
 
 The following packages are fetched from EPEL: `crudini`, and `rlwrap`.
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-  ```bash
-  sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
-  ```
+```bash
+sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
+```
 
 ### 2.6 Database Setup
 
@@ -301,6 +312,7 @@ sudo yum install postgresql-server postgresql-contrib
 *This is an optional step.* 
 
 Optionally, the Security Server can use a remote database server. To avoid installing the default local PostgreSQL server during Security Server installation, install the `xroad-database-remote` -package, which will also install the PostgreSQL client and create the `xroad` system user and configuration directories (`/etc/xroad`).
+
 ```bash
 sudo yum install xroad-database-remote
 ```
@@ -312,6 +324,7 @@ sudo yum install postgresql-contrib
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql` package (see https://www.postgresql.org/download/linux/redhat/)
+
 ```bash
 psql --version
 psql (PostgreSQL) 10.16
@@ -325,6 +338,7 @@ The Security Server installer can create the database and users for you, but you
 For advanced setup, e.g. when using separate instances for the different databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
 
 Create the property file for database credentials:
+
 ```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
@@ -332,10 +346,12 @@ sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
+
 ```properties
 postgres.connection.password = <database superuser password>
 postgres.connection.user = <database superuser name, postgres by default>
 ```
+
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
 
@@ -343,6 +359,7 @@ For additional security, the `postgresql.connection.*` properties can be removed
 
 
 Create the `/etc/xroad/db.properties` file
+
 ```bash
 sudo touch /etc/xroad/db.properties
 sudo chmod 0640 /etc/xroad/db.properties
@@ -350,16 +367,20 @@ sudo chown xroad:xroad /etc/xroad/db.properties
 ```
 
 Add the following properties to the `/etc/xroad/db.properties` file (replace parameters with your own):
+
 ```properties
 serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
 messagelog.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/messagelog
 ```
+
 If installing the optional xroad-opmonitor component, also add the following line
+
 ```properties
 op-monitor.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/op-monitor
 ```
 
 Before continuing, test that the connection to the database works, e.g.
+
 ```bash
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
@@ -378,17 +399,17 @@ echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
 
 Issue the following command to install the Security Server packages (use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland; there's no Estonia-specific package for RHEL):
 
-  ```bash
-  sudo yum install xroad-securityserver
-  ```
+```bash
+sudo yum install xroad-securityserver
+```
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-packages `xroad-securityserver-fi`, `xroad-securityserver-is`, and `xroad-securityserver-fo` install operational data monitoring module `xroad-addon-opmonitoring`.
 
 Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
-  ```bash
-  sudo xroad-add-admin-user <username>
-  ```
+```bash
+sudo xroad-add-admin-user <username>
+```
 
 User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
@@ -396,9 +417,9 @@ User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS
 
 Once the installation is completed, start the Security Server
 
-  ```bash
-  sudo systemctl start xroad-proxy
-  ```
+```bash
+sudo systemctl start xroad-proxy
+```
 
 
 ### 2.9 Post-Installation Checks
@@ -458,7 +479,9 @@ The Security Server code and the software token’s PIN will be determined durin
 
 To perform the initial configuration, open the address
 
-    https://SECURITYSERVER:4000/
+```
+https://SECURITYSERVER:4000/
+```
 
 in a Web browser (**reference data: 1.8; 1.6**). To log in, use the account name chosen during the installation (**reference data: 1.3).**
 
@@ -484,9 +507,11 @@ It is possible to automatically encrypt Security Server configuration backups. S
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
-    [proxy]
-    backup-encryption-enabled = true
-    backup-encryption-keyids = <keyid1>, <keyid2>, ...
+```ini
+[proxy]
+backup-encryption-enabled = true
+backup-encryption-keyids = <keyid1>, <keyid2>, ...
+```
 
 To turn backup encryption on, please change the `backup-encryption-enabled` property value to `true`.
 By default, backups are encrypted using Security Server's backup encryption key. Additional encryption keys can be imported in the /etc/xroad/gpghome keyring and key identifiers listed using the backup-encryption-keyids parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case Security Server's private key is lost. It is up to Security Server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
@@ -502,13 +527,17 @@ Security Server backup encryption key is generated during initialisation.
 
 To export Security Server's backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+```bash
+gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+```
 
 where `AA/GOV/TS1OWNER/TS1` is the Security Server id.
 
 The key can then be moved to an external host and imported to GPG keyring with the following command:
 
-    gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+```bash
+gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+```
 
 ### 3.5 Enabling ACME Support
 
@@ -685,6 +714,7 @@ Depending on installed components, the Security Server uses one to three databas
 These databases can be hosted on one database server (default setup), or you can use several servers. 
 
 Login to the database server(s) as the superuser (`postgres` by default) to run the commands, e.g.
+
 ```bash
 psql -h <database host>:<port> -U <superuser> -d postgres
 ```
@@ -757,6 +787,7 @@ Lastly, customize the database connection properties to match the values used wh
 Note. When using Microsoft Azure PostgreSQL, the user names need to be in format `username@hostname` in the properties files.
 
 Create the configuration file `/etc/xroad.properties`.
+
 ```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
@@ -764,6 +795,7 @@ sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own). The admin users are used to run database migrations during the install and upgrades.
+
 ```properties
 serverconf.database.admin_user = serverconf_admin
 serverconf.database.admin_password = <serverconf_admin password>
@@ -774,6 +806,7 @@ messagelog.database.admin_password = <messagelog_admin password>
 ```
 
 Create the `/etc/xroad/db.properties` file
+
 ```bash
 sudo mkdir /etc/xroad
 sudo chown xroad:xroad /etc/xroad
@@ -785,6 +818,7 @@ sudo chown xroad:xroad /etc/xroad/db.properties
 
 Edit the `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
 The database connection url format is `jdbc:postgresql://<database host>:<port>/<database name>`
+
 ```properties
 serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
 serverconf.hibernate.connection.username = serverconf
