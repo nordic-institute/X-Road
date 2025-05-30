@@ -18,6 +18,9 @@ quarkus:
     backup-manager:
       rpc:
         listen-address: 0.0.0.0
+      autobackup-script-path: /usr/share/xroad/scripts/containerised/autobackup.sh
+      backup-script-path: /usr/share/xroad/scripts/containerised/create_backup.sh
+      restore-script-path: /usr/share/xroad/scripts/containerised/restore_backup.sh
 
 "%native":
   quarkus:

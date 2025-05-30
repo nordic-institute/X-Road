@@ -18,4 +18,4 @@ RUN ARCH=$(dpkg --print-architecture) && \
     rm /tmp/kubectl /tmp/kubectl.sha256
 
 RUN mkdir -p /var/lib/xroad/backup && \
-    chown -R xroad:xroad /var/lib/xroad/backup
+    chown -R xroad:xroad /var/lib/xroad

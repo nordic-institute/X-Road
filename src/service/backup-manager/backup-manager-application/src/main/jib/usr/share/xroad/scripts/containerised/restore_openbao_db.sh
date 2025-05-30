@@ -67,8 +67,14 @@ pgrestore || abort "Restoring database failed."
 # PostgreSQL does not in all cases detect that prepared statements in open sessions
 # need to be re-parsed. Therefore, try to forcibly close any connections.
 { cat <<EOF
-SELECT pg_terminate_backend(pid)
-FROM pg_stat_activity
-WHERE usename='$db_user' and datname='$db_database' and pid <> pg_backend_pid();
+DO \$\$
+BEGIN
+  PERFORM pg_terminate_backend(pid)
+  FROM pg_stat_activity
+  WHERE usename = '$db_user'
+    AND datname = '$db_database'
+    AND pid <> pg_backend_pid();
+END
+\$\$;
 EOF
 } | psql_dbuser || true

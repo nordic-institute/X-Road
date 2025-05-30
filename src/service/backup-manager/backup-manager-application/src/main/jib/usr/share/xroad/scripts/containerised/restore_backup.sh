@@ -195,7 +195,7 @@ restore_serverconf_database () {
       if [[ $FORCE_RESTORE == true ]] ; then
         RESTORE_FLAGS=-F
       fi
-      if ! ${SERVERCONF_DATABASE_RESTORE_SCRIPT} ${RESTORE_FLAGS} "${SERVERCONF_DATABASE_DUMP_FILENAME}" 1>/dev/null; then
+      if ! ${SERVERCONF_DATABASE_RESTORE_SCRIPT} ${RESTORE_FLAGS} "${SERVERCONF_DATABASE_DUMP_FILENAME}"; then
         die "Failed to restore database!"
       fi
     else
