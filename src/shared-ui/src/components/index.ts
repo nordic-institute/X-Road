@@ -40,7 +40,6 @@ import XrdHelpIcon from './XrdHelpIcon.vue';
 import XrdSearch from './XrdSearch.vue';
 import XrdSimpleDialog from './XrdSimpleDialog.vue';
 import XrdStatusIcon from './XrdStatusIcon.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
 import XrdSubViewTitle from './XrdSubViewTitle.vue';
 import XrdTable from './XrdTable.vue';
 import XrdTitledView from './XrdTitledView.vue';
@@ -61,7 +60,6 @@ export {
   XrdSearch,
   XrdSimpleDialog,
   XrdStatusIcon,
-  XrdSubViewContainer,
   XrdSubViewTitle,
   XrdTable,
   XrdTitledView,

@@ -25,17 +25,7 @@
  * THE SOFTWARE.
  */
 
-// Variables
-$view-area-max-width: 1600px;
+import XrdAppBase from './XrdAppBase.vue';
+import XrdSubViewContainer from './XrdSubViewContainer.vue';
 
-.tab-max-width {
-  max-width: 850px;
-  width: 100%;
-}
-
-.full-width-centered {
-  width: 100%;
-  max-width: $view-area-max-width;
-  display: flex;
-  justify-content: center;
-}
+export { XrdAppBase, XrdSubViewContainer };

@@ -26,136 +26,62 @@
  -->
 
 <template>
-  <div>
-    <router-view name="top" />
-    <v-row align="center" justify="center" style="margin-top: 0">
-      <transition name="fade" mode="out-in">
-        <div v-if="true" class="base-full-width">
-          <router-view name="subTabs" />
-          <div class="sticky">
-            <router-view name="alerts" />
-          </div>
-          <v-row
-            no-gutters
-            align="center"
-            justify="center"
-            class="base-full-width bottom-pad"
-          >
-            <router-view />
-          </v-row>
-        </div>
-      </transition>
-    </v-row>
-
-    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
-      <v-card class="xrd-card">
-        <v-card-title>
-          <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
-        </v-card-title>
-        <v-card-text class="logout-text pt-4">{{
-          $t('logout.idleWarning')
-        }}</v-card-text>
-        <v-card-actions class="xrd-card-actions">
-          <v-spacer></v-spacer>
-          <xrd-button autofocus @click="logout()">{{
-            $t('action.ok')
-          }}</xrd-button>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+  <xrd-app-base
+    :is-session-alive="userStore.isSessionAlive"
+    @logout="logoutApp"
+  >
+    <template #top>
+      <router-view name="top" />
+    </template>
+    <template #subTabs>
+      <router-view name="subTabs" />
+    </template>
+    <template #alerts>
+      <router-view name="alerts" />
+    </template>
+    <router-view />
+  </xrd-app-base>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { RouteName, Timeouts } from '@/global';
-import { get } from '@/util/api';
-import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
+import { XrdAppBase } from '@niis/shared-ui';
+import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  data() {
-    return {
-      sessionPollInterval: 0,
-      alertsPollInterval: 0,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['isSessionAlive']),
-    showDialog(): boolean {
-      return this.isSessionAlive === false;
-    },
-  },
-  created() {
-    this.sessionPollInterval = setInterval(
-      () => this.pollSessionStatus(),
-      Timeouts.POLL_SESSION_TIMEOUT,
-    );
-    this.pollSessionStatus();
-    this.fetchSystemStatus();
-    this.checkAlerts();
-    // Set interval to poll backend for session
-  },
-  methods: {
-    ...mapActions(useUser, ['setSessionAlive']),
-    ...mapActions(useUser, { storeLogout: 'logout' }),
-    ...mapActions(useAlerts, ['checkAlerts']),
-    ...mapActions(useSystem, [
-      'fetchSystemStatus',
-      'updateCentralServerAddress',
-    ]),
-    pollSessionStatus() {
-      return get('/notifications/session-status')
-        .then(() => {
-          // Fetch any statuses from backend that are
-          // needed with POLL_SESSION_TIMEOUT periods
-          this.checkAlerts();
-        })
-        .catch((error) => {
-          if (error?.response?.status === 401) {
-            this.setSessionAlive(false);
-            clearInterval(this.sessionPollInterval);
-          }
-        });
-    },
-    logout(): void {
-      this.storeLogout();
-      this.$router.replace({ name: RouteName.Login });
-    },
-  },
-});
+const userStore = useUser();
+const { checkAlerts } = useAlerts();
+const { fetchSystemStatus } = useSystem();
+
+const router = useRouter();
+
+const sessionPollInterval = setInterval(
+  () => pollSessionStatus(),
+  Timeouts.POLL_SESSION_TIMEOUT,
+);
+pollSessionStatus();
+fetchSystemStatus();
+checkAlerts();
+
+function logoutApp(): void {
+  userStore.logout();
+  router.replace({ name: RouteName.Login });
+}
+
+async function pollSessionStatus() {
+  return userStore
+    .fetchSessionStatus()
+    .then(() => {
+      // Fetch any statuses from backend that are
+      // needed with POLL_SESSION_TIMEOUT periods
+      checkAlerts();
+    })
+    .finally(() => {
+      if (!userStore.isSessionAlive) {
+        clearInterval(sessionPollInterval);
+      }
+    });
+}
 </script>
-
-<style lang="scss" scoped>
-@use '@/assets/shared' as *;
-
-.logout-text {
-  font-size: 14px !important;
-}
-
-.sticky {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 4px;
-  z-index: 7; // Vuetify drop menu has z-index 8 so this goes just under those. Modals/dialogs have z-index 202
-}
-
-.base-full-width {
-  width: 100%;
-  padding-bottom: 40px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
-
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
-}
-</style>

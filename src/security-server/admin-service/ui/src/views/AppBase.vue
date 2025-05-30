@@ -25,105 +25,54 @@
  -->
 
 <template>
-  <div>
-    <router-view name="top" />
-    <div class="base-full-width">
+  <xrd-app-base :is-session-alive="userStore.sessionAlive" @logout="logoutApp">
+    <template #top>
+      <router-view name="top" />
+    </template>
+    <template #subTabs>
       <router-view name="subTabs" />
-
-      <div class="sticky">
-        <router-view name="alerts" />
-      </div>
-      <v-row align="center" class="base-full-width" no-gutters>
-        <v-col class="d-flex justify-center align-center">
-          <xrd-sub-view-container>
-            <router-view />
-          </xrd-sub-view-container>
-        </v-col>
-      </v-row>
-    </div>
-
-    <v-dialog v-model="showDialog" width="500" persistent>
-      <v-card class="xrd-card">
-        <v-card-title>
-          <span class="text-h5">{{ $t('logout.sessionExpired') }}</span>
-        </v-card-title>
-        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
-        <v-card-actions class="xrd-card-actions">
-          <v-spacer></v-spacer>
-          <xrd-button data-test="session-expired-ok-button" @click="logout()">
-            {{ $t('action.ok') }}
-          </xrd-button>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </div>
+    </template>
+    <template #alerts>
+      <router-view name="alerts" />
+    </template>
+    <router-view />
+  </xrd-app-base>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { RouteName } from '@/global';
-import * as api from '@/util/api';
-import { mapActions, mapState } from 'pinia';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
+import { XrdAppBase } from '@niis/shared-ui';
+import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  data() {
-    return {
-      sessionPollInterval: 0,
-      alertsPollInterval: 0,
-    };
-  },
-  computed: {
-    ...mapState(useUser, ['sessionAlive']),
-    showDialog(): boolean {
-      return this.sessionAlive === false;
-    },
-  },
-  created() {
-    // Set interval to poll backend for session
-    this.sessionPollInterval = window.setInterval(
-      () => this.pollSessionStatus(),
-      30000,
-    );
-    this.checkAlertStatus(); // Poll immediately to get initial alerts state
-  },
-  methods: {
-    ...mapActions(useAlerts, ['checkAlertStatus']),
-    ...mapActions(useUser, ['logoutUser', 'setSessionAlive']),
-    async pollSessionStatus() {
-      return api
-        .get('/notifications/session-status')
-        .then(() => {
-          // Check alert status after a successful session-status call
-          this.checkAlertStatus();
-        })
-        .catch((error) => {
-          if (error?.response?.status === 401) {
-            this.setSessionAlive(false);
-            clearInterval(this.sessionPollInterval);
-            clearInterval(this.alertsPollInterval);
-          }
-        });
-    },
-    logout(): void {
-      this.logoutUser();
-      this.$router.replace({ name: RouteName.Login });
-    },
-  },
-});
+const userStore = useUser();
+const { checkAlertStatus } = useAlerts();
+const router = useRouter();
+
+// Set interval to poll backend for session
+const sessionPollInterval = window.setInterval(
+  () => pollSessionStatus(),
+  30000,
+);
+// Poll immediately to get initial alerts state
+checkAlertStatus();
+
+async function pollSessionStatus() {
+  return userStore.fetchSessionStatus()
+    .then(() => {
+      // Check alert status after a successful session-status call
+      checkAlertStatus();
+    })
+    .finally(() => {
+      if (!userStore.sessionAlive) {
+        clearInterval(sessionPollInterval);
+      }
+    });
+}
+
+function logoutApp(): void {
+  userStore.logoutUser();
+  router.replace({ name: RouteName.Login });
+}
 </script>
-
-<style lang="scss" scoped>
-.sticky {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 4px;
-  z-index: 7; // Vuetify drop menu has z-index 8 so this goes just under those. Modals/dialogs have z-index 202
-}
-
-.base-full-width {
-  width: 100%;
-  padding-bottom: 40px;
-}
-</style>
