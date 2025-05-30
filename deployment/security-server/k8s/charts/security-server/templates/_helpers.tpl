@@ -179,4 +179,7 @@ subjects:
     - {{ printf "%s-common-xroad-config" .root.Release.Name | quote }}
     - {{ printf "%s-%s-config" .root.Release.Name .service | quote }}
   verbs: ["get", "watch", "list"]
+{{- if and .config.rbac (hasKey .config.rbac "extraRules") }}
+{{- toYaml .config.rbac.extraRules | nindent 0 }}
+{{- end }}
 {{- end }}

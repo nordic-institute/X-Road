@@ -298,6 +298,11 @@ services:
         memory: 64Mi
       limits:
         memory: 512Mi
+    rbac:
+      extraRules:
+        - apiGroups: ["batch"]
+          resources: ["jobs"]
+          verbs: ["create", "get", "list", "watch"]
     ports:
       - port: 4099
         name: http
