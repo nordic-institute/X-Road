@@ -27,6 +27,7 @@
 
 package org.niis.xroad.backupmanager.proto;
 
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.CodedException;
 
 import com.google.protobuf.ByteString;
@@ -165,6 +166,20 @@ public class BackupManagerRpcClient extends AbstractRpcClient {
             throw ce;
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate GPG key", e);
+        }
+    }
+
+    public BackupEncryptionStatusDiagnostics getEncryptionStatus() {
+        try {
+            var response = exec(() -> backupServiceBlockingStub.getBackupEncryptionStatus(Empty.getDefaultInstance()));
+            return new BackupEncryptionStatusDiagnostics(
+                    response.getBackupEncryptionStatus(),
+                    response.getBackupEncryptionKeysList().stream().toList()
+            );
+        } catch (CodedException ce) {
+            throw ce;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get backup encryption status", e);
         }
     }
 

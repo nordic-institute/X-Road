@@ -32,6 +32,8 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 
 @ConfigMapping(prefix = "xroad.backup-manager")
 public interface BackupManagerProperties {
@@ -75,6 +77,13 @@ public interface BackupManagerProperties {
 
     @WithName("gpgkeys-home")
     @WithDefault("/etc/xroad/gpghome")
-    String gpgKeysHomePath();
+    String gpgKeysHomePath(); //also hardcoded in the scripts
+
+    @WithName("backup-encryption-enabled")
+    @WithDefault("false")
+    boolean backupEncryptionEnabled();
+
+    @WithName("backup-encryption-keyids")
+    Optional<List<String>> backupEncryptionKeyids();
 
 }

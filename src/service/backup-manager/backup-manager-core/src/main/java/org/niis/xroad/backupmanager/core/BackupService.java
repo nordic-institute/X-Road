@@ -33,6 +33,7 @@ import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.backupmanager.proto.BackupData;
+import org.niis.xroad.backupmanager.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.backupmanager.proto.BackupServiceGrpc;
 import org.niis.xroad.backupmanager.proto.CreateBackupReq;
 import org.niis.xroad.backupmanager.proto.DeleteBackupReq;
@@ -45,6 +46,9 @@ import org.niis.xroad.common.rpc.server.CommonRpcHandler;
 import org.niis.xroad.rpc.common.Empty;
 
 import java.time.Instant;
+import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -52,6 +56,7 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
 
     private final CommonRpcHandler commonRpcHandler = new CommonRpcHandler();
     private final FileSystemBackupHandler backupHandler;
+    private final BackupManagerProperties backupManagerProperties;
 
     @Override
     public void deleteBackup(DeleteBackupReq request, StreamObserver<Empty> responseObserver) {
@@ -108,6 +113,14 @@ public class BackupService extends BackupServiceGrpc.BackupServiceImplBase {
             backupHandler.generateGpgKey(request.getKeyName());
             return Empty.getDefaultInstance();
         });
+    }
+
+    @Override
+    public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
+        commonRpcHandler.handleRequest(responseObserver, () -> BackupEncryptionStatusResp.newBuilder()
+                .setBackupEncryptionStatus(backupManagerProperties.backupEncryptionEnabled())
+                .addAllBackupEncryptionKeys(unmodifiableList(backupManagerProperties.backupEncryptionKeyids().orElse(List.of())))
+                .build());
     }
 
     private ListBackupsResp listBackups() {

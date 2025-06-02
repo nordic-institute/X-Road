@@ -31,7 +31,6 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.ss.test.ui.page.BackupAndRestorePageObj;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
@@ -59,6 +58,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
     }
 
     @Step("Configuration can be successfully restored from backup")
+    @SuppressWarnings("checkstyle:MagicNumber")
     public void configurationIsSuccessfullyRestoredFromBackup() {
         backupAndRestorePageObj.btnRestoreConfigurationFromBackup().click();
         commonPageObj.dialog.btnCancel().shouldBe(enabled);
@@ -66,7 +66,7 @@ public class BackupAndRestoreStepDefs extends BaseUiStepDefs {
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
         commonPageObj.snackBar.btnClose().click();
-        Selenide.sleep(5000); // wait for the global conf reload (every 3s)
+        Selenide.sleep(4000); // wait for the global conf reload (every 3s)
     }
 
     @Step("Configuration backup is downloaded")

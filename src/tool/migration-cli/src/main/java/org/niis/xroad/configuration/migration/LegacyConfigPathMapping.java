@@ -81,6 +81,9 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.server-conf-acl-cache-size", "common.server-conf.acl-cache-size");
         MAPPING.put("proxy.grpc-port", "proxy.rpc.port");
 
+        MAPPING.put("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");
+        MAPPING.put("proxy.backup-encryption-keyids", "backup-manager.backup-encryption-keyids");
+
         MAPPING.put("proxy-ui-api.wsdl-validator-command", "proxy-ui-api.addon.wsdl-validator.command");
 
         // message-log-archiver

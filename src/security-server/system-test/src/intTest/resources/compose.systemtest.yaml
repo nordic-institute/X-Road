@@ -37,6 +37,8 @@ services:
   backup-manager:
     ports:
       - 0:9999 # debug port
+    volumes:
+      - ../../../src/security-server/system-test/src/intTest/resources/container-files/etc/xroad/conf.d/local.yaml:/etc/xroad/conf.d/local.yaml
 
   db-opmonitor:
     image: postgres:17
