@@ -25,7 +25,7 @@
  -->
 
 <template>
-  <XrdForbiddenError @go-home="home" @go-back="goBack">
+  <XrdForbiddenError>
     <template #top>
       <TabsBase />
       <AlertsContainer />
@@ -38,25 +38,12 @@ import { defineComponent } from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { XrdForbiddenError } from '@niis/shared-ui';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
     XrdForbiddenError,
-  },
-  computed: {
-    ...mapState(useUser, ['firstAllowedTab']),
-  },
-  methods: {
-    home(): void {
-      this.$router.replace(this.firstAllowedTab.to);
-    },
-    goBack(): void {
-      this.$router.go(-2); // needs to be two steps
-    },
   },
 });
 </script>

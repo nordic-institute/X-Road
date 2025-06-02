@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,17 +24,53 @@
  * THE SOFTWARE.
  */
 
-//resources&assets
-import '@fontsource/open-sans';
-import '@mdi/font/css/materialdesignicons.css';
-import './assets/icons.css';
+import { Plugin } from 'vue';
+import { useUser } from '@/store/modules/user';
+import { routingKey, systemKey, userKey } from '@niis/shared-ui';
+import { RouteName } from '@/global';
+import { useRouter } from 'vue-router';
+import { useSystem } from '@/store/modules/system';
 
-export * from './components';
-export * from './components/icons';
-export * from './components/backups-and-restore';
-export * from './layouts';
-export * from './types';
-export * from './views';
+export default {
+  install(app) {
+    app.runWithContext(() => {
 
-export * from './plugins/i18n';
-export * from './keys';
+      const user = useUser();
+      const system = useSystem();
+      const router = useRouter();
+
+      app.provide(routingKey, {
+        toLogin() {
+          return router.replace({ name: RouteName.Login });
+        },
+        toHome() {
+          return router.replace(user.firstAllowedTab.to);
+        },
+        goBack(steps: number) {
+          return router.go(steps);
+        },
+      });
+
+      app.provide(userKey, {
+        login(username: string, password: string) {
+          return user.loginUser({ username, password });
+        },
+        logout() {
+          return user.logoutUser();
+        },
+        username() {
+          return user.username;
+        },
+        isSessionAlive(): boolean {
+          return user.sessionAlive;
+        },
+      });
+
+      app.provide(systemKey, {
+        version() {
+          return system.securityServerVersion.info;
+        },
+      });
+    });
+  },
+} as Plugin;

@@ -23,7 +23,6 @@ server:
       cookie:
         secure: true
         same-site: Strict
-      timeout: 1m
 
 xroad:
   proxy-ui-api:

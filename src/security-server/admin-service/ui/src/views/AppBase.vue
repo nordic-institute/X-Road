@@ -25,7 +25,7 @@
  -->
 
 <template>
-  <xrd-app-base :is-session-alive="userStore.sessionAlive" @logout="logoutApp">
+  <xrd-app-base>
     <template #top>
       <router-view name="top" />
     </template>
@@ -40,15 +40,12 @@
 </template>
 
 <script lang="ts" setup>
-import { RouteName } from '@/global';
 import { useAlerts } from '@/store/modules/alerts';
 import { useUser } from '@/store/modules/user';
 import { XrdAppBase } from '@niis/shared-ui';
-import { useRouter } from 'vue-router';
 
 const userStore = useUser();
 const { checkAlertStatus } = useAlerts();
-const router = useRouter();
 
 // Set interval to poll backend for session
 const sessionPollInterval = window.setInterval(
@@ -69,10 +66,5 @@ async function pollSessionStatus() {
         clearInterval(sessionPollInterval);
       }
     });
-}
-
-function logoutApp(): void {
-  userStore.logoutUser();
-  router.replace({ name: RouteName.Login });
 }
 </script>

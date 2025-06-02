@@ -26,23 +26,14 @@
  -->
 <template>
   <v-layout class="main-content" align-left>
-    <app-icon />
+    <XrdAppIcon />
     <div class="tabs-wrap"></div>
-    <app-drop-menu />
+    <XrdAppDropMenu />
   </v-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import AppIcon from './AppIcon.vue';
-import AppDropMenu from './UserDropMenu.vue';
-
-export default defineComponent({
-  components: {
-    AppIcon,
-    AppDropMenu,
-  },
-});
+<script lang="ts" setup>
+import { XrdAppDropMenu, XrdAppIcon } from '@niis/shared-ui';
 </script>
 
 <style lang="scss" scoped>

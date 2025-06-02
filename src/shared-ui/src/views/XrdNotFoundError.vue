@@ -32,13 +32,7 @@
       <v-card flat class="xrd-card custom-card">
         <v-card-text>
           <div class="content-wrap">
-            <v-img
-              :src="image404Url"
-              width="100%"
-              height="auto"
-              max-height="259"
-              max-width="665"
-            ></v-img>
+            <v-img :src="image404Url" width="100%" height="auto" max-height="259" max-width="665"></v-img>
 
             <div class="unicorn-text">
               {{ $t('404.text') }}
@@ -53,7 +47,7 @@
               :width="401"
               class="button"
               rounded
-              @click="emit('go-home')"
+              @click="routing?.toHome()"
             >
               {{ $t('action.goToFront') }}
             </xrd-button>
@@ -67,9 +61,12 @@
 <script lang="ts" setup>
 import XrdButton from '../components/XrdButton.vue';
 import image404 from '../assets/404.png';
+import { inject } from 'vue';
+import { routingKey } from '../keys';
 
-const emit = defineEmits(['go-home']);
 const image404Url = image404;
+
+const routing = inject(routingKey);
 </script>
 
 <style lang="scss" scoped>

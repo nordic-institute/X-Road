@@ -36,7 +36,7 @@
       </router-view>
     </v-main>
     <snack-bar />
-    <app-footer v-if="loginView" />
+    <XrdAppFooter v-if="loginView" />
   </v-app>
 </template>
 
@@ -44,7 +44,7 @@
 // The root component of the Vue app
 import { defineComponent } from 'vue';
 import SnackBar from '@/components/ui/SnackBar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
+import { XrdAppFooter } from '@niis/shared-ui';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
 
@@ -52,7 +52,7 @@ export default defineComponent({
   name: 'App',
 
   components: {
-    AppFooter,
+    XrdAppFooter,
     AppToolbar,
     SnackBar,
   },

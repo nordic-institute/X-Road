@@ -105,10 +105,14 @@
 
 <script lang="ts" setup>
 import xroad7Logo from '../assets/xroad7_logo.svg';
+import { computed, inject } from 'vue';
+import { systemKey } from '../keys';
 
 const xroad7LogoUrl = xroad7Logo;
 
-defineProps({ appInfo: { type: String, default: '' } });
+const system = inject(systemKey);
+
+const appInfo = computed(() => system?.version());
 </script>
 
 <style lang="scss" scoped>

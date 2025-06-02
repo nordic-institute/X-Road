@@ -42,7 +42,7 @@
                 color="primary"
                 large
                 rounded
-                @click="emit('go-back')"
+                @click="routing?.goBack(-2)"
               >
                 {{ $t('403.goBack') }}
               </xrd-button>
@@ -54,7 +54,7 @@
                 large
                 class="ml-4"
                 rounded
-                @click="emit('go-home')"
+                @click="routing?.toHome()"
               >
                 {{ $t('action.goToFront') }}
               </xrd-button>
@@ -67,9 +67,11 @@
 </template>
 
 <script lang="ts" setup>
-import { XrdButton } from '@niis/shared-ui';
+import { routingKey, XrdButton } from '@niis/shared-ui';
+import { inject } from 'vue';
 
-const emit = defineEmits(['go-home', 'go-back']);
+const routing = inject(routingKey);
+
 </script>
 
 <style lang="scss" scoped>

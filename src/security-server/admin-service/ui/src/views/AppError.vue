@@ -25,7 +25,7 @@
  -->
 
 <template>
-  <XrdNotFoundError @go-home="home">
+  <XrdNotFoundError>
     <template #top>
       <TabsBase />
       <AlertsContainer />
@@ -38,22 +38,12 @@ import { defineComponent } from 'vue';
 import { XrdNotFoundError } from '@niis/shared-ui';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
     XrdNotFoundError,
-  },
-  computed: {
-    ...mapState(useUser, ['firstAllowedTab']),
-  },
-  methods: {
-    home(): void {
-      this.$router.replace(this.firstAllowedTab.to);
-    },
   },
 });
 </script>

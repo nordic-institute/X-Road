@@ -52,3 +52,25 @@ export interface BackupHandler {
 
   restore(filename: string): Promise<unknown>;
 }
+
+export interface CommonUser {
+  login(username: string, password: string): Promise<unknown>;
+
+  logout(): Promise<unknown>;
+
+  username(): string;
+
+  isSessionAlive(): boolean;
+}
+
+export interface CommonRouting {
+  toLogin(): void;
+
+  toHome(): void;
+
+  goBack(steps: number): void;
+}
+
+export interface CommonSystem {
+  version(): string | undefined;
+}
