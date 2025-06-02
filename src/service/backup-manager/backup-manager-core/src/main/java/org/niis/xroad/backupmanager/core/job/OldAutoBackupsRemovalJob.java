@@ -38,14 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.backupmanager.core.BackupManagerProperties;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
-import java.time.Instant;
-import java.util.stream.Stream;
+import org.niis.xroad.backupmanager.core.FileSystemBackupHandler;
 
 @Startup
 @ApplicationScoped
@@ -53,11 +46,9 @@ import java.util.stream.Stream;
 @Slf4j
 public class OldAutoBackupsRemovalJob {
 
-    private static final String FILE_PREFIX = "ss-automatic-backup";
-    private static final String FILE_SUFFIX = ".gpg";
-
     private final Scheduler scheduler;
     private final BackupManagerProperties backupManagerProperties;
+    private final FileSystemBackupHandler backupHandler;
 
     @PostConstruct
     public void init() {
@@ -76,40 +67,7 @@ public class OldAutoBackupsRemovalJob {
 
     private void execute(ScheduledExecution execution) {
         log.info("Executing old automatic backups removal job");
-
-        if (!Files.isDirectory(Paths.get(backupManagerProperties.backupLocation()))) {
-            log.warn("Backups folder does not exist or is not a directory: {}", backupManagerProperties.backupLocation());
-            return;
-        }
-        Instant cutoff = Instant.now().minus(backupManagerProperties.autoBackupKeepFor());
-
-        try (Stream<Path> files = Files.list(Paths.get(backupManagerProperties.backupLocation()))) {
-            files.filter(Files::isRegularFile)
-                    .filter(path -> {
-                        String fileName = path.getFileName().toString();
-                        return fileName.startsWith(FILE_PREFIX) && fileName.endsWith(FILE_SUFFIX);
-                    })
-                    .filter(path -> {
-                        try {
-                            FileTime lastModifiedTime = Files.getLastModifiedTime(path);
-                            return lastModifiedTime.toInstant().isBefore(cutoff);
-                        } catch (IOException e) {
-                            log.error("Failed to read file time: {} - {}", path, e.getMessage());
-                            return false;
-                        }
-                    })
-                    .forEach(path -> {
-                        try {
-                            Files.delete(path);
-                            log.info("Deleted: {}", path);
-                        } catch (IOException e) {
-                            log.error("Failed to delete: {} - {}", path, e.getMessage());
-                        }
-                    });
-        } catch (IOException e) {
-            log.error("Error listing files: {}", e.getMessage());
-        }
-
+        backupHandler.cleanOldAutomaticBackups();
     }
 
 }

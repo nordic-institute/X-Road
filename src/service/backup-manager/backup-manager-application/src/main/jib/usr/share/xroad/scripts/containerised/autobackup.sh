@@ -22,6 +22,6 @@ EOF
 if [[ -n "${SECURITY_SERVER_ID}" ]] ; then
   SCRIPT="/usr/share/xroad/scripts/containerised/create_backup.sh"
   FILENAME="/var/lib/xroad/backup/ss-automatic-backup-$(date +%Y_%m_%d_%H%M%S).gpg"
-  ${SCRIPT} -s "${SECURITY_SERVER_ID}" -f "${FILENAME}"
+  ${SCRIPT} -s "${SECURITY_SERVER_ID}" -f "${FILENAME}" "$@"
 fi
 

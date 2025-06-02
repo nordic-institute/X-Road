@@ -27,8 +27,6 @@
 
 package org.niis.xroad.backupmanager.core.job;
 
-import ee.ria.xroad.common.util.process.ExternalProcessRunner;
-
 import io.quarkus.runtime.Startup;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.ScheduledExecution;
@@ -40,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.backupmanager.core.BackupManagerProperties;
+import org.niis.xroad.backupmanager.core.FileSystemBackupHandler;
 
 @Startup
 @ApplicationScoped
@@ -49,8 +48,7 @@ public class AutoBackupJob {
 
     private final Scheduler scheduler;
     private final BackupManagerProperties backupManagerProperties;
-
-    private ExternalProcessRunner externalProcessRunner;
+    private final FileSystemBackupHandler fileSystemBackupHandler;
 
     @PostConstruct
     public void init() {
@@ -59,7 +57,6 @@ public class AutoBackupJob {
                 && !SchedulerUtils.isOff(backupManagerProperties.autoBackupCronExpression())) {
             log.info("Scheduling automatic backups with cron expression: '{}'",
                     backupManagerProperties.autoBackupCronExpression());
-            externalProcessRunner = new ExternalProcessRunner();
             scheduler.newJob(getClass().getSimpleName())
                     .setCron(backupManagerProperties.autoBackupCronExpression())
                     .setTask(this::execute)
@@ -71,13 +68,7 @@ public class AutoBackupJob {
     }
 
     private void execute(ScheduledExecution execution) {
-        try {
-            log.info("Executing security server configuration auto-backup...");
-            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
-                    .executeAndThrowOnFailure(backupManagerProperties.autoBackupScriptPath());
-            log.info("Auto-backup execution output: {}", String.join("\n", processResult.getProcessOutput()));
-        } catch (Exception e) {
-            log.error("Error executing auto-backup script", e);
-        }
+        fileSystemBackupHandler.createAutomaticBackup();
     }
+
 }

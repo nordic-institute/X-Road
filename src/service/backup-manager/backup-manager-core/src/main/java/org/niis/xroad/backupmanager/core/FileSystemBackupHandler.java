@@ -36,13 +36,21 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.niis.xroad.backupmanager.core.repository.BackupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_FAILED;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
@@ -57,6 +65,9 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALRE
 @Slf4j
 public class FileSystemBackupHandler {
     private static final String BACKUP_FILENAME_DATE_TIME_FORMAT = "yyyyMMdd-HHmmss";
+
+    private static final String AUTOMATIC_BACKUP_FILE_PREFIX = "ss-automatic-backup";
+    private static final String AUTOMATIC_BACKUP_FILE_SUFFIX = ".gpg";
 
     private final ExternalProcessRunner externalProcessRunner;
     private final BackupManagerProperties backupManagerProperties;
@@ -89,7 +100,21 @@ public class FileSystemBackupHandler {
 
     private String[] createBackupArgs(String securityServerId, String name) {
         String fullPath = backupRepository.getAbsoluteBackupFilePath(name).toString();
-        return new String[]{"-s", securityServerId, "-f", fullPath};
+
+        String[] params = new String[]{"-s", securityServerId, "-f", fullPath};
+
+        params = ArrayUtils.addAll(params, encryptionParams(backupManagerProperties));
+
+        if (backupManagerProperties.backupEncryptionEnabled()) {
+            params = ArrayUtils.addAll(params, "-E", "encrypt");
+        }
+
+        if (backupManagerProperties.backupEncryptionKeyids().isPresent()) {
+            params = ArrayUtils.addAll(params, "-k",
+                    String.join(",", backupManagerProperties.backupEncryptionKeyids().get()));
+        }
+
+        return params;
     }
 
     public void performRestore(String name, String securityServerId) {
@@ -167,6 +192,54 @@ public class FileSystemBackupHandler {
         }
     }
 
+    public void createAutomaticBackup() {
+        try {
+            String[] args = encryptionParams(backupManagerProperties);
+            log.info("Executing security server configuration auto-backup with command '{} {}'",
+                    backupManagerProperties.autoBackupScriptPath(), Arrays.toString(args));
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(backupManagerProperties.autoBackupScriptPath(), args);
+            log.info("Auto-backup execution output: {}", String.join("\n", processResult.getProcessOutput()));
+        } catch (Exception e) {
+            log.error("Error executing auto-backup script", e);
+        }
+    }
+
+    public void cleanOldAutomaticBackups() {
+        if (!Files.isDirectory(Paths.get(backupManagerProperties.backupLocation()))) {
+            log.warn("Backups folder does not exist or is not a directory: {}", backupManagerProperties.backupLocation());
+            return;
+        }
+        Instant cutoff = Instant.now().minus(backupManagerProperties.autoBackupKeepFor());
+
+        try (Stream<Path> files = Files.list(Paths.get(backupManagerProperties.backupLocation()))) {
+            files.filter(Files::isRegularFile)
+                    .filter(path -> {
+                        String fileName = path.getFileName().toString();
+                        return fileName.startsWith(AUTOMATIC_BACKUP_FILE_PREFIX) && fileName.endsWith(AUTOMATIC_BACKUP_FILE_SUFFIX);
+                    })
+                    .filter(path -> {
+                        try {
+                            FileTime lastModifiedTime = Files.getLastModifiedTime(path);
+                            return lastModifiedTime.toInstant().isBefore(cutoff);
+                        } catch (IOException e) {
+                            log.error("Failed to read file time: {} - {}", path, e.getMessage());
+                            return false;
+                        }
+                    })
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                            log.info("Deleted: {}", path);
+                        } catch (IOException e) {
+                            log.error("Failed to delete: {} - {}", path, e.getMessage());
+                        }
+                    });
+        } catch (IOException e) {
+            log.error("Error listing files: {}", e.getMessage());
+        }
+    }
+
     private Optional<BackupItem> getBackupItem(String name) {
         return backupRepository.listBackups().stream()
                 .filter(b -> b.name().equals(name))
@@ -176,6 +249,20 @@ public class FileSystemBackupHandler {
     private String generateBackupFileName() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
         return "conf_backup_" + TimeUtils.localDateTimeNow().format(dtf) + ".gpg";
+    }
+
+
+    private String[] encryptionParams(BackupManagerProperties backupManagerProperties) {
+        String[] params = new String[0];
+        if (backupManagerProperties.backupEncryptionEnabled()) {
+            params = ArrayUtils.addAll(params, "-E", "encrypt");
+        }
+
+        if (backupManagerProperties.backupEncryptionKeyids().isPresent()) {
+            params = ArrayUtils.addAll(params, "-k",
+                    String.join(",", backupManagerProperties.backupEncryptionKeyids().get()));
+        }
+        return params;
     }
 
 }
