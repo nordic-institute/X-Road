@@ -34,15 +34,18 @@
     @update:model-value="modelValueUpdated"
   >
     <v-form @submit.prevent="submit">
-      <v-card class="xrd-card " data-test="dialog-simple">
+      <v-card class="xrd-card" data-test="dialog-simple">
         <template #title>
           <slot name="title">
-            <span class="dialog-title" data-test="dialog-title">{{ $t(title) }}</span>
+            <span class="dialog-title" data-test="dialog-title">{{
+              $t(title)
+            }}</span>
           </slot>
         </template>
         <template #append>
           <v-icon
-            v-if="showClose" icon="mdi-close"
+            v-if="showClose"
+            icon="mdi-close"
             data-test="dlg-close-x"
             color="primary"
             size="default"
@@ -57,7 +60,11 @@
         <div class="alert-slot">
           <slot name="alert" />
         </div>
-        <v-card-text v-if="hasText" class="content-wrapper xrd-card-text" :class="{'no-content': !hasContent }">
+        <v-card-text
+          v-if="hasText"
+          class="content-wrapper xrd-card-text"
+          :class="{ 'no-content': !hasContent }"
+        >
           <slot name="text" />
         </v-card-text>
         <v-card-item v-if="hasContent" class="content-wrapper xrd-card-content">
@@ -91,10 +98,11 @@
   </v-dialog>
 </template>
 
-<script lang="ts" setup>/** Base component for simple dialogs */
+<script lang="ts" setup>
+/** Base component for simple dialogs */
 
-import XrdButton from "./XrdButton.vue";
-import { computed, onBeforeMount, onMounted, ref, useSlots } from "vue";
+import XrdButton from './XrdButton.vue';
+import { computed, onBeforeMount, onMounted, ref, useSlots } from 'vue';
 
 const props = defineProps({
   // Title of the dialog
@@ -173,17 +181,31 @@ const slots = useSlots();
 
 const hasText = computed(() => !!slots['text']);
 const hasContent = computed(() => !!slots['content']);
-const cancelDisabled = computed(() => props.allowLoadingCancellation ? false : props.loading);
-const canEscape = computed(() => props.escapable ? cancelDisabled.value : false);
+const cancelDisabled = computed(() =>
+  props.allowLoadingCancellation ? false : props.loading,
+);
+const canEscape = computed(() =>
+  props.escapable ? cancelDisabled.value : false,
+);
 
 function submit() {
-  if (props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
+  if (
+    props.submittable &&
+    !props.disableSave &&
+    !props.loading &&
+    !props.hideSaveButton
+  ) {
     emits('save');
   }
 }
 
 function save() {
-  if (!props.submittable && !props.disableSave && !props.loading && !props.hideSaveButton) {
+  if (
+    !props.submittable &&
+    !props.disableSave &&
+    !props.loading &&
+    !props.hideSaveButton
+  ) {
     emits('save');
   }
 }
@@ -214,7 +236,6 @@ function blur() {
 
 defineExpose({
   focusOnSave() {
-
     if (saveButton.value) {
       blur();
       saveButton.value.focus();
@@ -229,7 +250,6 @@ onMounted(() => {
 });
 
 onBeforeMount(() => blur());
-
 </script>
 
 <style lang="scss" scoped>
@@ -249,10 +269,11 @@ onBeforeMount(() => blur());
       letter-spacing: normal;
     }
 
+    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
     .v-card-text.xrd-card-text {
       font-size: 14px;
       letter-spacing: normal;
-      color: rgba(0, 0, 0, .6);
+      color: rgba(0, 0, 0, 0.6);
       padding: 16px 24px 8px;
 
       &.no-content {
@@ -260,6 +281,7 @@ onBeforeMount(() => blur());
       }
     }
 
+    /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
     .v-card-item.xrd-card-content {
       padding: 0 24px 0;
 
@@ -269,15 +291,6 @@ onBeforeMount(() => blur());
       }
     }
   }
-}
-
-.dlg-button-margin {
-  margin-right: 14px;
-}
-
-.close-button {
-  margin-left: auto;
-  margin-right: 0;
 }
 
 .alert-slot {

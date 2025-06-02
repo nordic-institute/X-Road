@@ -102,11 +102,10 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { DataTableHeader } from '@/ui-types';
-import SubsystemName from '@/components/client/SubsystemName.vue';
 import ClientName from '@/components/client/ClientName.vue';
 
 export default defineComponent({
-  components: { ClientName, SubsystemName },
+  components: { ClientName },
   props: {
     id: {
       type: String,

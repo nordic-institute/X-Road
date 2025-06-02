@@ -72,16 +72,15 @@
 <script lang="ts">
 import { BackupHandler, FileUploadResult } from '../../types';
 import { defineComponent, PropType } from 'vue';
-import XrdButton from "../XrdButton.vue";
-import XrdConfirmDialog from "../XrdConfirmDialog.vue";
-import XrdFileUpload from "../XrdFileUpload.vue";
-
+import XrdButton from '../XrdButton.vue';
+import XrdConfirmDialog from '../XrdConfirmDialog.vue';
+import XrdFileUpload from '../XrdFileUpload.vue';
 
 export default defineComponent({
   components: {
     XrdButton,
     XrdConfirmDialog,
-    XrdFileUpload
+    XrdFileUpload,
   },
   props: {
     accepts: {
@@ -103,7 +102,7 @@ export default defineComponent({
       creating: false,
       uploading: false,
       needsConfirmation: false,
-      uploadedFile: null as File | null
+      uploadedFile: null as File | null,
     };
   },
   methods: {
@@ -112,9 +111,12 @@ export default defineComponent({
       return this.backupHandler
         .create()
         .then((data) => {
-          this.backupHandler.showSuccess('backup.createBackup.messages.success', {
-            file: data.filename,
-          });
+          this.backupHandler.showSuccess(
+            'backup.createBackup.messages.success',
+            {
+              file: data.filename,
+            },
+          );
           if (data.local_conf_present) {
             this.backupHandler.showWarning(
               'backup.createBackup.messages.localConfWarning',
@@ -126,51 +128,51 @@ export default defineComponent({
         .finally(() => (this.creating = false));
     },
     onFileUploaded(result: FileUploadResult) {
-    this.uploading = true;
-    this.uploadedFile = result.file;
-    this.backupHandler
-      .upload(result.file)
-      .then(() =>
-        this.backupHandler.showSuccess('backup.uploadBackup.success', {
-          file: this.uploadedFile?.name,
-        }),
-      )
-      .then(() => this.$emit('upload-backup'))
-      .catch((error) => {
-        const warnings = error.response?.data?.warnings as Array<{
-          code: string;
-        }>;
-        if (
-          error.response?.status === 400 &&
-          warnings?.some(
-            (warning) => warning.code === 'warning_file_already_exists',
-          )
-        ) {
-          this.needsConfirmation = true;
-          return;
-        }
-        this.backupHandler.showError(error);
-      })
-      .finally(() => (this.uploading = false));
+      this.uploading = true;
+      this.uploadedFile = result.file;
+      this.backupHandler
+        .upload(result.file)
+        .then(() =>
+          this.backupHandler.showSuccess('backup.uploadBackup.success', {
+            file: this.uploadedFile?.name,
+          }),
+        )
+        .then(() => this.$emit('upload-backup'))
+        .catch((error) => {
+          const warnings = error.response?.data?.warnings as Array<{
+            code: string;
+          }>;
+          if (
+            error.response?.status === 400 &&
+            warnings?.some(
+              (warning) => warning.code === 'warning_file_already_exists',
+            )
+          ) {
+            this.needsConfirmation = true;
+            return;
+          }
+          this.backupHandler.showError(error);
+        })
+        .finally(() => (this.uploading = false));
+    },
+    overwriteBackup(): void {
+      this.uploading = true;
+      this.backupHandler
+
+        .upload(this.uploadedFile!, true)
+        .then(() =>
+          this.backupHandler.showSuccess('backup.uploadBackup.success', {
+            file: this.uploadedFile?.name,
+          }),
+        )
+        .then(() => this.$emit('upload-backup'))
+        .catch((error) => this.backupHandler.showError(error))
+        .finally(() => {
+          this.uploading = false;
+          this.needsConfirmation = false;
+        });
+    },
   },
-  overwriteBackup(): void {
-    this.uploading = true;
-    this.backupHandler
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      .upload(this.uploadedFile!, true)
-      .then(() =>
-        this.backupHandler.showSuccess('backup.uploadBackup.success', {
-          file: this.uploadedFile?.name,
-        }),
-      )
-      .then(() => this.$emit('upload-backup'))
-      .catch((error) => this.backupHandler.showError(error))
-      .finally(() => {
-        this.uploading = false;
-        this.needsConfirmation = false;
-      });
-  }
-  }
 });
 </script>
 

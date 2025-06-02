@@ -27,9 +27,9 @@
   <div>
     <!-- Success -->
     <v-snackbar
-      v-model="notification.show"
       v-for="notification in currentSuccessNotifications"
       :key="notification.timeAdded"
+      v-model="notification.show"
       :transition="transitionName"
       :timeout="snackbarTimeout(notification.timeout)"
       :color="colors.Success10"
@@ -89,7 +89,8 @@ export default defineComponent({
   computed: {
     ...mapState(useNotifications, ['currentSuccessNotifications']),
     // Check global window value to see if e2e testing mode should be enabled
-    transitionName: () => (window.e2eTestingMode === true ? 'no-transition' : 'fade-transition'),
+    transitionName: () =>
+      window.e2eTestingMode === true ? 'no-transition' : 'fade-transition',
   },
   methods: {
     ...mapActions(useNotifications, ['deleteSuccessNotification']),
@@ -103,14 +104,6 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss">
-.success-snackbar > .v-snack__wrapper {
-  // Customised size for snackbar
-  min-height: 88px;
-  min-width: 760px;
-}
-</style>
 
 <style lang="scss" scoped>
 .row-wrapper-top {

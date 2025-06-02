@@ -47,7 +47,8 @@ import {
   XrdIconChecker,
   XrdIconClose,
   XrdIconCopy,
-  XrdIconDeclined, XrdIconEdit,
+  XrdIconDeclined,
+  XrdIconEdit,
   XrdIconError,
   XrdIconFolderOutline,
   XrdIconSortingArrow,
@@ -56,7 +57,8 @@ import {
   XrdSimpleDialog,
   XrdStatusIcon,
   XrdSubViewContainer,
-  XrdSubViewTitle, XrdTitledView,
+  XrdSubViewTitle,
+  XrdTitledView,
 } from '@niis/shared-ui';
 import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
@@ -120,5 +122,6 @@ app.component('XrdExpandable', XrdExpandable);
 app.component('XrdTitledView', XrdTitledView);
 // translations
 const languageStorage = useLanguage();
-languageHelper.selectLanguage(languageStorage.getLanguage)
-  .finally(() => app.mount('#app'))
+languageHelper
+  .selectLanguage(languageStorage.getLanguage)
+  .finally(() => app.mount('#app'));

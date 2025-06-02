@@ -28,15 +28,39 @@
     <template #title>
       <subsystem-name :name="title" />
       <template v-if="!clientLoading">
-        &nbsp;({{ $t('general.subsystem') }})
+        {{ $t('client.subsystemTitleSuffix') }}
       </template>
     </template>
     <template #header-buttons>
-      <DisableClientButton v-if="showDisable" class="ml-5" :id="id" @done="fetchData" :disabled="client?.is_management_services_provider" v-tooltip="tooltip"/>
-      <EnableClientButton v-if="showEnable" class="ml-5" :id="id" @done="fetchData" />
-      <DeleteClientButton v-if="showDelete" class="ml-5" :id="id" />
-      <UnregisterClientButton v-if="showUnregister" class="ml-5" :id="id" @done="fetchData" />
-      <RenameClientButton v-if="showRename" class="pl-5" :id="id" :subsystem-name="subsystemName" :client-status="client?.status" @done="fetchData" />
+      <DisableClientButton
+        v-if="showDisable"
+        :id="id"
+        v-tooltip="tooltip"
+        class="ml-5"
+        :disabled="client?.is_management_services_provider"
+        @done="fetchData"
+      />
+      <EnableClientButton
+        v-if="showEnable"
+        :id="id"
+        class="ml-5"
+        @done="fetchData"
+      />
+      <DeleteClientButton v-if="showDelete" :id="id" class="ml-5" />
+      <UnregisterClientButton
+        v-if="showUnregister"
+        :id="id"
+        class="ml-5"
+        @done="fetchData"
+      />
+      <RenameClientButton
+        v-if="showRename"
+        :id="id"
+        class="pl-5"
+        :subsystem-name="subsystemName"
+        :client-status="client?.status"
+        @done="fetchData"
+      />
     </template>
 
     <router-view />
@@ -94,8 +118,12 @@ export default defineComponent({
       }
       return '';
     },
-    tooltip(){
-      return { text: this.$t('client.forbiddenDisable'), 'open-delay': 500, 'open-on-hover': this.client?.is_management_services_provider }
+    tooltip() {
+      return {
+        text: this.$t('client.forbiddenDisable'),
+        'open-delay': 500,
+        'open-on-hover': this.client?.is_management_services_provider,
+      };
     },
     subsystemName(): string {
       return this.client?.subsystem_name || '';
@@ -104,7 +132,8 @@ export default defineComponent({
       if (!this.client) return false;
       return (
         this.client &&
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && [
+        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        [
           ClientStatus.REGISTERED,
           ClientStatus.REGISTRATION_IN_PROGRESS,
           ClientStatus.DISABLED,
@@ -112,23 +141,28 @@ export default defineComponent({
       );
     },
     showRename(): boolean {
-      return this.client &&
+      return (
+        this.client &&
         this.doesSupportSubsystemNames &&
         this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
         RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
-        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(this.client.status);
+        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(
+          this.client.status,
+        )
+      );
     },
 
     showDelete(): boolean {
       if (
         !this.client ||
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && [
-          ClientStatus.REGISTERED,
-          ClientStatus.REGISTRATION_IN_PROGRESS,
-          ClientStatus.ENABLING_IN_PROGRESS,
-          ClientStatus.DISABLING_IN_PROGRESS,
-          ClientStatus.DISABLED,
-        ].includes(this.client.status)
+        (this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+          [
+            ClientStatus.REGISTERED,
+            ClientStatus.REGISTRATION_IN_PROGRESS,
+            ClientStatus.ENABLING_IN_PROGRESS,
+            ClientStatus.DISABLING_IN_PROGRESS,
+            ClientStatus.DISABLED,
+          ].includes(this.client.status))
       ) {
         return false;
       }
@@ -167,6 +201,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

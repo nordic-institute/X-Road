@@ -74,13 +74,6 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss">
-.main-toolbar > .v-toolbar__content {
-  justify-content: space-between;
-}
-</style>
-
 <style lang="scss" scoped>
 @use '@/assets/colors';
 

@@ -97,7 +97,6 @@ export function swallowRedirectedNavigationError(
 ): void {
   // NavigationFailureType.redirected = 2, but does not work here?
   //TODO maybe irrelevant?
-  // @ts-expect-error
   if (2 == error.type) {
     // ignore errors caused by redirect in beforeEach route guard
     // eslint-disable-next-line no-console

@@ -201,27 +201,8 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss">
-/* Override default vuetify paddings so the horizontal line doesn't cut off  */
-.v-dialog > .v-card > .filters-content-wrapper {
-  margin-left: 0;
-  margin-right: 0;
-  padding-left: 0;
-  padding-right: 0;
-}
-</style>
-
 <style lang="scss" scoped>
 @use '@/assets/colors';
-
-.xrd-card {
-  .xrd-card-actions {
-    background-color: colors.$WarmGrey10;
-    height: 72px;
-    padding-right: 24px;
-  }
-}
 
 .filter-title-row {
   margin: 20px;
@@ -232,20 +213,6 @@ export default defineComponent({
   margin-right: 10px;
 }
 
-.dlg-button-margin {
-  margin-right: 14px;
-}
-
-.close-button {
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.alert-slot {
-  margin-left: 20px;
-  margin-right: 20px;
-}
-
 .custom-divider {
   width: 100%;
 }
@@ -254,12 +221,5 @@ export default defineComponent({
   color: colors.$WarmGrey100;
   font-weight: 600;
   font-size: 14px;
-}
-
-.dialog-title-text {
-  color: colors.$WarmGrey100;
-  font-weight: bold;
-  font-size: 24px;
-  line-height: 32px;
 }
 </style>

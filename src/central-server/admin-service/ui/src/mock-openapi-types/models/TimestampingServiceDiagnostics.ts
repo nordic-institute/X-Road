@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { DiagnosticStatusClass } from './DiagnosticStatusClass';
 import type { TimestampingStatus } from './TimestampingStatus';

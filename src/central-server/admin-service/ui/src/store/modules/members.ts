@@ -25,7 +25,14 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import { Client, ClientId, MemberAdd, MemberGlobalGroup, MemberName, SecurityServer } from '@/openapi-types';
+import {
+  Client,
+  ClientId,
+  MemberAdd,
+  MemberGlobalGroup,
+  MemberName,
+  SecurityServer,
+} from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export interface State {

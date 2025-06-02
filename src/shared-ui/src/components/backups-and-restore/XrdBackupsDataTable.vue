@@ -69,9 +69,9 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { BackupHandler, BackupItem } from '../../types';
-import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
-import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
-import XrdDownloadBackupButton from "./XrdDownloadBackupButton.vue";
+import XrdDeleteBackupButton from './XrdDeleteBackupButton.vue';
+import XrdRestoreBackupButton from './XrdRestoreBackupButton.vue';
+import XrdDownloadBackupButton from './XrdDownloadBackupButton.vue';
 
 export default defineComponent({
   components: {
@@ -79,7 +79,7 @@ export default defineComponent({
     XrdRestoreBackupButton,
     XrdDeleteBackupButton,
   },
-  props:{
+  props: {
     backups: {
       type: Array as PropType<BackupItem[]>,
       required: true,
@@ -101,8 +101,8 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['delete'],
-  data(){
+  emits: ['delete'],
+  data() {
     return {};
   },
   computed: {
@@ -119,9 +119,9 @@ export default defineComponent({
           align: 'end' as const,
           sortable: false,
         },
-      ]
-    }
-  }
+      ];
+    },
+  },
 });
 </script>
 

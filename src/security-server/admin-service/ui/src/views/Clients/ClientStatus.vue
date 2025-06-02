@@ -58,9 +58,9 @@ export default defineComponent({
         case 'disabling_in_progress':
           return 'progress-delete';
         case 'name_set':
-          return 'name-set'
+          return 'name-set';
         case 'name_submitted':
-          return 'name-submitted'
+          return 'name-submitted';
         case 'disabled':
           return 'error-disabled';
         case 'global_error':
