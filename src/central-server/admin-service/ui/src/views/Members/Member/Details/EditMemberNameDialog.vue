@@ -57,7 +57,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { toIdentifier } from '@/util/helpers';
 import { PropType, ref } from 'vue';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   member: {
@@ -82,7 +82,7 @@ function cancelEdit() {
   emits('cancel');
 }
 
-const { t } = i18n.global;
+const { t } = useI18n();
 const saveNewMemberName = handleSubmit((values) => {
   loading.value = true;
   editMemberName(toIdentifier(props.member.client_id), {

@@ -71,7 +71,7 @@
  * View for 'security servers' tab
  */
 import { defineComponent } from 'vue';
-import { RouteName } from '@/global';
+import { Colors, RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
@@ -81,7 +81,6 @@ import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
 import { XrdIconChecked, XrdIconSecurityServer } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
-import { Colors } from '@/global';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,9 +130,7 @@ export default defineComponent({
       ];
     },
     emptyListReasoning(): string {
-      return this.search
-        ? this.$t('noData.noMatches')
-        : this.$t('noData.noSecurityServers');
+      return this.search ? 'noData.noMatches' : 'noData.noSecurityServers';
     },
   },
 

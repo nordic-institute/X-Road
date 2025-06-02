@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts" setup>
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 defineProps({
   subsystemName: {
@@ -57,5 +57,5 @@ defineProps({
   },
 });
 const emits = defineEmits(['click']);
-const tooltip = i18n.global.t('action.rename');
+const tooltip = useI18n().t('action.rename');
 </script>

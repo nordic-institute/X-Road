@@ -57,7 +57,7 @@ import { ClientId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   member: {
@@ -102,7 +102,7 @@ function cancel() {
   resetForm();
 }
 
-const { t } = i18n.global;
+const { t } = useI18n();
 
 const rename = handleSubmit((values) => {
   loading.value = true;

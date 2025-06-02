@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,30 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { createI18n } from 'vue-i18n';
 
-import { defineStore } from 'pinia';
-import { availableLanguages, languageHelper } from '@/plugins/i18n';
-import { pickDefaultLanguage } from '@niis/shared-ui';
+import en from '../locales/en.json';
 
-export const useLanguage = defineStore('language', {
-  state: () => ({
-    language: pickDefaultLanguage(availableLanguages),
-  }),
+type MessageSchema = typeof en;
 
-  persist: {
-    storage: localStorage,
-  },
-
-  getters: {
-    getLanguage(state): string {
-      return state.language;
-    },
-  },
-
-  actions: {
-    async changeLanguage(language: string) {
-      this.language = language;
-      await languageHelper.selectLanguage(language);
-    },
-  },
+export default createI18n<[MessageSchema], 'en'>({
+  legacy: false,
+  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
+  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true,
+  allowComposition: true,
+  messages: { en },
 });

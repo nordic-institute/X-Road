@@ -145,7 +145,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
 import { useUser } from '@/store/modules/user';
 import WizardRowWrapT from '@/components/ui/WizardRowWrapT.vue';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { useSystem } from '@/store/modules/system';
 
 // To provide the Vue instance to debounce
@@ -160,12 +160,13 @@ export default defineComponent({
   emits: ['cancel', 'done'],
   setup() {
     const { reservedClients, memberClass, memberCode } = useAddClient();
+    const { t } = useI18n();
 
     function uniqueClient(subsystemCode: string) {
       if (
         containsClient(reservedClients, memberClass, memberCode, subsystemCode)
       ) {
-        return i18n.global.t('wizard.client.clientExists');
+        return t('wizard.client.clientExists');
       }
       return true;
     }

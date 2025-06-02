@@ -99,7 +99,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { MaintenanceModeStatus } from '@/openapi-types';
 import { XrdConfirmDialog } from '@niis/shared-ui';
 import { useField } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 
@@ -127,7 +127,7 @@ const {
   disableMaintenanceMode,
 } = useSystem();
 const { showError, showSuccess } = useNotifications();
-const { t } = i18n.global;
+const { t } = useI18n();
 
 const canToggleMaintenanceMode = computed(() =>
   hasPermission(Permissions.TOGGLE_MAINTENANCE_MODE),

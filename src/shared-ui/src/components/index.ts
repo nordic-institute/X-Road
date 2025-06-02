@@ -44,6 +44,7 @@ import XrdSubViewTitle from './XrdSubViewTitle.vue';
 import XrdTable from './XrdTable.vue';
 import XrdTitledView from './XrdTitledView.vue';
 import XrdAppIcon from './XrdAppIcon.vue';
+import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
 
 export {
   XrdAppIcon,
@@ -65,4 +66,5 @@ export {
   XrdSubViewTitle,
   XrdTable,
   XrdTitledView,
+  XrdLanguageDropdown,
 };

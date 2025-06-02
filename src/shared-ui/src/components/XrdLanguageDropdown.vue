@@ -28,12 +28,7 @@
   <div v-if="languages.length > 1" class="language-changer">
     <v-menu location="bottom">
       <template #activator="{ props }">
-        <v-btn
-          class="no-uppercase"
-          data-test="language-button"
-          v-bind="props"
-          variant="text"
-        >
+        <v-btn class="no-uppercase" data-test="language-button" v-bind="props" variant="text">
           <strong>{{ currentLanguage }}</strong>
           <v-icon icon="mdi-chevron-down" />
         </v-btn>
@@ -41,11 +36,11 @@
 
       <v-list>
         <v-list-item
-          v-for="language in languages"
-          :key="language.code"
-          :active="language.code === currentLanguage"
-          data-test="language-list-tile"
-          @click="switchLanguage(language.code)"
+            v-for="language in languages"
+            :key="language.code"
+            :active="language.code === currentLanguage"
+            data-test="language-list-tile"
+            @click="changeLanguage(language.code)"
         >
           <v-tooltip activator="parent" location="right">
             <span class="text-capitalize">{{ language.display }}</span>
@@ -57,39 +52,29 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions } from 'pinia';
-import { useLanguage } from '@/store/modules/language';
-import { availableLanguages, languageHelper } from '@/plugins/i18n';
+<script lang="ts" setup>
+import { computed } from 'vue';
+import { useLanguageHelper } from '../plugins/i18n';
 
-export default defineComponent({
-  computed: {
-    // Using a computed property for the current language for reactivity
-    currentLanguage() {
-      return languageHelper.getCurrentLanguage();
-    },
-    displayName() {
-      return new Intl.DisplayNames([this.currentLanguage], {
-        type: 'language',
-      });
-    },
-    languages() {
-      return availableLanguages.map((lang) => ({
-        code: lang,
-        display: this.displayName.of(lang),
-      }));
-    },
-  },
-  methods: {
-    ...mapActions(useLanguage, ['changeLanguage']),
-    switchLanguage(language: string): void {
-      if (language !== this.currentLanguage) {
-        this.changeLanguage(language);
-      }
-    },
-  },
+const { selectLanguage, supportedLanguages, currentLanguage } = useLanguageHelper();
+
+const displayName = computed(() => {
+  return new Intl.DisplayNames([currentLanguage.value], {
+    type: 'language',
+  });
 });
+const languages = computed(() => {
+  return supportedLanguages.map((lang) => ({
+    code: lang,
+    display: displayName.value.of(lang),
+  }));
+});
+
+function changeLanguage(language: string) {
+  if (language !== currentLanguage.value) {
+    selectLanguage(language);
+  }
+}
 </script>
 
 <style lang="scss" scoped>
