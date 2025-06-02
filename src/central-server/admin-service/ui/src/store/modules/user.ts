@@ -149,7 +149,7 @@ export const useUser = defineStore('user', {
       sessionStorage.clear();
 
       // Call backend for logout
-      axiosAuth
+      return axiosAuth
         .post('/logout')
         .catch(() => {
           // Nothing to do

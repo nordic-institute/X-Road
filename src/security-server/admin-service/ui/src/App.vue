@@ -36,7 +36,7 @@
       </router-view>
     </v-main>
     <SnackBar />
-    <AppFooter v-if="loginView" />
+    <XrdAppFooter v-if="loginView" />
   </v-app>
 </template>
 
@@ -44,7 +44,7 @@
 import { defineComponent } from 'vue';
 import axios from 'axios';
 import SnackBar from '@/components/ui/SnackBar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
+import { XrdAppFooter } from '@niis/shared-ui';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
 import { mapActions } from 'pinia';
@@ -53,7 +53,7 @@ import { useUser } from '@/store/modules/user';
 export default defineComponent({
   name: 'App',
   components: {
-    AppFooter,
+    XrdAppFooter,
     AppToolbar,
     SnackBar,
   },

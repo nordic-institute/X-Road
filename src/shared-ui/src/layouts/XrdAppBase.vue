@@ -59,7 +59,7 @@
         </v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <xrd-button autofocus @click="emit('logout')">
+          <xrd-button autofocus @click="logoutApp">
             {{ $t('action.ok') }}
           </xrd-button>
         </v-card-actions>
@@ -69,20 +69,20 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import XrdButton from '../components/XrdButton.vue';
 import XrdSubViewContainer from './XrdSubViewContainer.vue';
+import { routingKey, userKey } from '../keys';
 
-const props = defineProps({
-  isSessionAlive: {
-    type: Boolean,
-    required: true,
-  },
-});
+const user = inject(userKey);
+const routing = inject(routingKey);
 
-const emit = defineEmits(['check-session', 'logout']);
+const showDialog = computed(() => user?.isSessionAlive() === false);
 
-const showDialog = computed(() => props.isSessionAlive === false);
+function logoutApp(): void {
+  user?.logout();
+  routing?.toLogin();
+}
 </script>
 
 <style lang="scss" scoped>

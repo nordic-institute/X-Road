@@ -64,6 +64,7 @@ import {
   XrdTitledView,
 } from '@niis/shared-ui';
 import { createLanguageHelper } from '@/plugins/i18n';
+import provider from '@/plugins/provider';
 
 const pinia = createPinia();
 pinia.use(
@@ -81,6 +82,7 @@ app.use(router);
 app.use(vuetify);
 app.use(validation);
 app.use(createFilters());
+app.use(provider);
 //icons
 app.component('XrdIconFolderOutline', XrdIconFolderOutline);
 app.component('XrdIconBase', XrdIconBase);

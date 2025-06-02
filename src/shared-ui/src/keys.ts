@@ -25,17 +25,9 @@
  * THE SOFTWARE.
  */
 
-//resources&assets
-import '@fontsource/open-sans';
-import '@mdi/font/css/materialdesignicons.css';
-import './assets/icons.css';
+import { InjectionKey } from 'vue';
+import { CommonUser, CommonRouting, CommonSystem } from './types';
 
-export * from './components';
-export * from './components/icons';
-export * from './components/backups-and-restore';
-export * from './layouts';
-export * from './types';
-export * from './views';
-
-export * from './plugins/i18n';
-export * from './keys';
+export const systemKey = Symbol() as InjectionKey<CommonSystem>;
+export const userKey = Symbol() as InjectionKey<CommonUser>;
+export const routingKey = Symbol() as InjectionKey<CommonRouting>;

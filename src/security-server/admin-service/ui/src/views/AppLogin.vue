@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container fluid class="login-view-wrap fill-height">
-    <alerts-container class="alerts" />
+    <AlertsContainer class="alerts" />
     <XrdLanguageDropdown class="language-dropdown" />
     <v-row no-gutters class="fill-height">
       <v-col cols="3">

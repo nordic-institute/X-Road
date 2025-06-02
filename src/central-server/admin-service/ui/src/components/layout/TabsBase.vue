@@ -26,7 +26,7 @@
  -->
 <template>
   <v-layout class="main-content">
-    <app-icon />
+    <XrdAppIcon />
     <v-tabs
       v-model="currentTab"
       class="main-tabs"
@@ -41,7 +41,7 @@
       </v-tab>
     </v-tabs>
     <XrdLanguageDropdown />
-    <app-drop-menu />
+    <XrdAppDropMenu />
   </v-layout>
 </template>
 
@@ -49,16 +49,14 @@
 import { defineComponent } from 'vue';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
-import AppIcon from './AppIcon.vue';
-import AppDropMenu from './UserDropMenu.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { XrdLanguageDropdown } from '@niis/shared-ui';
+import { XrdLanguageDropdown, XrdAppDropMenu, XrdAppIcon } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    AppIcon,
-    AppDropMenu,
+    XrdAppIcon,
+    XrdAppDropMenu,
     XrdLanguageDropdown,
   },
   data() {

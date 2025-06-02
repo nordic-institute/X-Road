@@ -25,20 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-img
-    :src="xrdLogoUrl"
-    height="35"
-    width="132"
-    max-height="35"
-    max-width="132"
-    class="xrd-logo"
-  ></v-img>
+  <v-img :src="xrdLogoUrl" height="35" width="132" max-height="35" max-width="132" class="xrd-logo" @click="routing?.toHome()"></v-img>
 </template>
 
 <script lang="ts" setup>
 import xrdLogo from '../assets/xroad7_logo.svg';
+import { inject } from 'vue';
+import { routingKey } from '../keys';
 
 const xrdLogoUrl = xrdLogo;
+
+const routing = inject(routingKey);
 </script>
 
 <style lang="scss" scoped>
