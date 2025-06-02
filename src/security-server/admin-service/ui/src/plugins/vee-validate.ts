@@ -25,14 +25,14 @@
  */
 import { configure, defineRule } from 'vee-validate';
 import {
-  required,
+  between,
+  confirmed,
   email,
   max,
   min,
-  between,
-  confirmed,
+  required,
 } from '@vee-validate/rules';
-import { i18n } from './i18n';
+import { i18n } from '@niis/shared-ui';
 import * as Helpers from '@/util/helpers';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 

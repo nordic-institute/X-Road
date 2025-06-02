@@ -36,10 +36,11 @@
       show-arrows
     >
       <v-tab v-for="tab in allowedTabs" :key="tab.key" :to="tab.to">{{
-        $t(tab.name)
-      }}</v-tab>
+          $t(tab.name)
+        }}
+      </v-tab>
     </v-tabs>
-    <language-dropdown />
+    <XrdLanguageDropdown />
     <app-drop-menu />
   </v-layout>
 </template>
@@ -52,13 +53,13 @@ import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import LanguageDropdown from './LanguageDropdown.vue';
+import { XrdLanguageDropdown } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     AppIcon,
     AppDropMenu,
-    LanguageDropdown,
+    XrdLanguageDropdown,
   },
   data() {
     return {
@@ -87,6 +88,7 @@ export default defineComponent({
     max-width: 1000px;
   }
 }
+
 :deep(.v-tab) {
   text-transform: none;
   font-weight: 600;

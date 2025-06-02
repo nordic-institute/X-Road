@@ -68,7 +68,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { ref, PropType } from 'vue';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   authenticationCertificateId: {
@@ -106,7 +106,7 @@ function cancel() {
 }
 
 const loading = ref(false);
-const { t } = i18n.global;
+const { t } = useI18n();
 const deleteCert = handleSubmit(() => {
   loading.value = true;
   deleteAuthenticationCertificate(

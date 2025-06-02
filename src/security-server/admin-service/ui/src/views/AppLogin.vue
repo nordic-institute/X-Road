@@ -26,7 +26,7 @@
 <template>
   <v-container fluid class="login-view-wrap fill-height">
     <alerts-container class="alerts" />
-    <language-dropdown class="language-dropdown" />
+    <XrdLanguageDropdown class="language-dropdown" />
     <v-row no-gutters class="fill-height">
       <v-col cols="3">
         <div class="graphics">
@@ -109,13 +109,13 @@ import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
+import { XrdLanguageDropdown } from '@niis/shared-ui';
 import xroad7Large from '@/assets/xroad7_large.svg';
 import { PublicPathState, useForm } from 'vee-validate';
-import LanguageDropdown from '@/components/layout/LanguageDropdown.vue';
 
 export default defineComponent({
   components: {
-    LanguageDropdown,
+    XrdLanguageDropdown,
     AlertsContainer,
   },
   setup() {

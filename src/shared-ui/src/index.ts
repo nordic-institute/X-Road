@@ -30,11 +30,11 @@ import '@fontsource/open-sans';
 import '@mdi/font/css/materialdesignicons.css';
 import './assets/icons.css';
 
-export * from './language-helper';
-
 export * from './components';
 export * from './components/icons';
 export * from './components/backups-and-restore';
 export * from './layouts';
 export * from './types';
 export * from './views';
+
+export * from './plugins/i18n';

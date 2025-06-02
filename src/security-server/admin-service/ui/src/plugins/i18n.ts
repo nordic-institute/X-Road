@@ -23,11 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { prepareI18n } from '@niis/shared-ui';
 
-export const availableLanguages = ['en', 'es', 'et', 'ru', 'tk'];
+import { createLanguageHelper as _createLanguageHelper } from '@niis/shared-ui';
 
-export const { i18n, languageHelper } = prepareI18n(loadMessages);
+const availableLanguages = ['en', 'es', 'et', 'ru', 'tk'];
+
+export async function createLanguageHelper() {
+  return _createLanguageHelper(availableLanguages, loadMessages);
+}
 
 // Fetches all language-specific messages for the given language
 async function loadMessages(language: string) {

@@ -162,7 +162,7 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineRule, useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useSystem } from '@/store/modules/system';
 import WizardRowWrapT from '@/components/ui/WizardRowWrapT.vue';
@@ -186,7 +186,7 @@ const props = defineProps({
   },
 });
 
-const { t } = i18n.global;
+const { t } = useI18n();
 
 function uniqueClient(subsystemCode: string) {
   if (!subsystemCode) {

@@ -43,8 +43,8 @@ import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import validation from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
-import { i18n, languageHelper } from '@/plugins/i18n';
 import {
+  i18n,
   XrdButton,
   XrdCloseButton,
   XrdConfirmDialog,
@@ -63,7 +63,7 @@ import {
   XrdSubViewTitle,
   XrdTitledView,
 } from '@niis/shared-ui';
-import { useLanguage } from '@/store/modules/language';
+import { createLanguageHelper } from '@/plugins/i18n';
 
 const pinia = createPinia();
 pinia.use(
@@ -79,7 +79,6 @@ const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.use(vuetify);
-app.use(i18n);
 app.use(validation);
 app.use(createFilters());
 //icons
@@ -103,7 +102,6 @@ app.component('XrdSubViewTitle', XrdSubViewTitle);
 app.component('XrdTitledView', XrdTitledView);
 
 // translations
-const languageStorage = useLanguage();
-languageHelper
-  .selectLanguage(languageStorage.getLanguage)
+createLanguageHelper()
+  .then((plugin) => app.use(plugin))
   .finally(() => app.mount('#app'));
