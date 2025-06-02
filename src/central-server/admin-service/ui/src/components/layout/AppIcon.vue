@@ -25,29 +25,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-img
-    :src="xrdLogo"
-    height="35"
-    width="132"
-    max-height="35"
-    max-width="132"
-    class="xrd-logo"
-    @click="home()"
-  ></v-img>
+  <XrdAppIcon @click="home" />
 </template>
 
 <script lang="ts">
-import xrdLogo from '@/assets/xroad7_logo.svg';
 import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { XrdAppIcon } from '@niis/shared-ui';
 
 export default defineComponent({
-  data() {
-    return {
-      xrdLogo,
-    };
-  },
+  components: { XrdAppIcon },
   computed: {
     ...mapState(useUser, ['getFirstAllowedTab']),
   },
@@ -71,14 +59,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.xrd-logo {
-  margin-top: auto;
-  margin-bottom: auto;
-  cursor: pointer;
-  @media only screen and (max-width: 920px) {
-    display: none;
-  }
-}
-</style>

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,12 +25,29 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdAppFooter :app-info="system.securityServerVersion.info" />
+  <v-img
+    :src="xrdLogoUrl"
+    height="35"
+    width="132"
+    max-height="35"
+    max-width="132"
+    class="xrd-logo"
+  ></v-img>
 </template>
 
 <script lang="ts" setup>
-import { XrdAppFooter } from '@niis/shared-ui';
-import { useSystem } from '@/store/modules/system';
+import xrdLogo from '../assets/xroad7_logo.svg';
 
-const system = useSystem();
+const xrdLogoUrl = xrdLogo;
 </script>
+
+<style lang="scss" scoped>
+.xrd-logo {
+  margin-top: auto;
+  margin-bottom: auto;
+  cursor: pointer;
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
+}
+</style>

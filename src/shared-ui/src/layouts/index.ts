@@ -27,5 +27,6 @@
 
 import XrdAppBase from './XrdAppBase.vue';
 import XrdSubViewContainer from './XrdSubViewContainer.vue';
+import XrdAppFooter from './XrdAppFooter.vue';
 
-export { XrdAppBase, XrdSubViewContainer };
+export { XrdAppBase, XrdSubViewContainer, XrdAppFooter };

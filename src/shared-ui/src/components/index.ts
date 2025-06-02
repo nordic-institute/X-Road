@@ -43,8 +43,10 @@ import XrdStatusIcon from './XrdStatusIcon.vue';
 import XrdSubViewTitle from './XrdSubViewTitle.vue';
 import XrdTable from './XrdTable.vue';
 import XrdTitledView from './XrdTitledView.vue';
+import XrdAppIcon from './XrdAppIcon.vue';
 
 export {
+  XrdAppIcon,
   XrdAlert,
   XrdButton,
   XrdCloseButton,
