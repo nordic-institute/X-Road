@@ -105,7 +105,7 @@ if [ -n "$KUBERNETES_SERVICE_HOST" ] || [ -f /var/run/secrets/kubernetes.io/serv
       spec:
         restartPolicy: Never
         containers:
-          - name: liquibase-runner
+          - name: serverconf-liquibase-runner
             image: localhost:5555/ss-db-serverconf-init:latest
             env:
               - name: LIQUIBASE_COMMAND_URL
