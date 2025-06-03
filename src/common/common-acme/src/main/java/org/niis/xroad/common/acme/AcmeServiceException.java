@@ -26,20 +26,19 @@
 package org.niis.xroad.common.acme;
 
 import lombok.NonNull;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class AcmeServiceException extends ServiceException {
+public class AcmeServiceException extends InternalServerErrorException {
 
-    public AcmeServiceException(@NonNull DeviationProvider deviationProvider,
-                                Object... metadata) {
-        super(deviationProvider, metadata);
+    public AcmeServiceException(@NonNull final ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    public AcmeServiceException(@NonNull final DeviationProvider deviationProvider,
-                                final Throwable cause,
-                                final Object... metadata) {
-        super(deviationProvider, cause, metadata);
+    public AcmeServiceException(final Throwable cause,
+                                @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
     }
+
 }
 

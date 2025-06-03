@@ -38,17 +38,15 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
+import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -61,12 +59,12 @@ import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -82,9 +80,6 @@ public class MetadataClientRequestProcessorTest {
     private static final String EXPECTED_XR_INSTANCE = "EE";
 
     private static Unmarshaller unmarshaller;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     private RequestWrapper mockRequest;
     private RequestWrapper mockJsonRequest;
@@ -192,9 +187,8 @@ public class MetadataClientRequestProcessorTest {
                 .getValue()
                 .getMember()
                 .stream()
-                .map(clientType -> new MemberInfo(clientType.getId(), clientType.getName()))
+                .map(clientType -> new MemberInfo(clientType.getId(), clientType.getName(), clientType.getSubsystemName()))
                 .collect(Collectors.toList());
-
 
         assertThat("Wrong amount of clients",
                 members.size(), is(expectedMembers.size()));
@@ -252,7 +246,8 @@ public class MetadataClientRequestProcessorTest {
                                         "subsystem_code": "subsystem",
                                         "xroad_instance": "EE"
                                     },
-                                    "name": "producer-name"
+                                    "name": "producer-name",
+                                    "subsystem_name": "subsystem-name"
                                 }
                             ]
                         }""");
@@ -288,7 +283,7 @@ public class MetadataClientRequestProcessorTest {
 
     private static MemberInfo createMember(String member, String subsystem) {
         return new MemberInfo(ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
-                member, subsystem), member + "-name");
+                member, subsystem), member + "-name", subsystem == null ? null : (subsystem + "-name"));
     }
 
 

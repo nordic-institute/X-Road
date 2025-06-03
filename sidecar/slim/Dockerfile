@@ -6,7 +6,7 @@ RUN apt-get -qq update \
   && apt-get -qq install \
     sudo ca-certificates gnupg supervisor net-tools iproute2 locales \
     openjdk-21-jre-headless rlwrap ca-certificates-java \
-    crudini adduser expect curl wget openssl nano-tiny \
+    crudini adduser expect curl wget openssl nano-tiny bc \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql \
@@ -29,6 +29,9 @@ ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && apt-key add '/tmp/repokey.gpg' \
+  # Do not exclude man pages & other documentation
+  && rm -f /etc/dpkg/dpkg.cfg.d/excludes \
+  # Install
   && apt-get -qq update \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
     xroad-proxy \

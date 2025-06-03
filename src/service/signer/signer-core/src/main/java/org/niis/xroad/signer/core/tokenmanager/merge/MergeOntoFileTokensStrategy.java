@@ -42,7 +42,6 @@ import static java.util.stream.Collectors.toMap;
 /**
  * A {@link TokenMergeStrategy} for merging an in-memory token list to tokens from a key conf xml file.
  * This strategy merges existing memory data onto new file based data.
- *
  */
 @Slf4j
 public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
@@ -62,13 +61,11 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
         Map<String, Token> fileTokensMap = fileTokens.stream()
                 .collect(toMap(Token::getId, Function.identity()));
 
-
         memoryTokens.stream()
-                .filter(token -> token.isActive() || isTokenExistsInFile(token, fileTokens))
-                .forEach(
+                // except inactive and unavailable and deleted from file tokens we will not merge back from memory
+                .filter(token -> token.isActive() || token.isAvailable() || isTokenExistsInFile(token, fileTokens))
                 // add any missing tokens from memory to file, match tokens based on token id
-                memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken,
-                        this::mergeToken));
+                .forEach(memoryToken -> fileTokensMap.merge(memoryToken.getId(), memoryToken, this::mergeToken));
 
         return new MergeResult(new ArrayList<>(fileTokensMap.values()), this.newCertsFromFile);
     }
@@ -119,7 +116,7 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
         Map<String, Key> memKeysMap = mapKeyListToMap(memoryKeyList, keyMapperFunction);
 
         // ..certs from new keys are definitely new certs, so add them
-        fileKeysMap.entrySet().stream().map(Map.Entry::getKey).filter(keyString -> !memKeysMap.containsKey(keyString))
+        fileKeysMap.keySet().stream().filter(keyString -> !memKeysMap.containsKey(keyString))
                 .flatMap(key -> fileKeysMap.get(key).getCerts().stream())
                 .forEach(newCertsFromFile::add);
 
@@ -139,7 +136,8 @@ public class MergeOntoFileTokensStrategy implements TokenMergeStrategy {
         return fileTokenInfo;
     }
 
-    /** Merge key memoryKey onto fileKey
+    /**
+     * Merge key memoryKey onto fileKey
      * @param fileKey
      * @param memoryKey
      */

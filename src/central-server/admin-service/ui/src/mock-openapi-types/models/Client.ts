@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { ClientStatus } from './ClientStatus';
 import type { ConnectionType } from './ConnectionType';

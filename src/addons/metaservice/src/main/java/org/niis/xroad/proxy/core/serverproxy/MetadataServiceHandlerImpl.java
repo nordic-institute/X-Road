@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -64,8 +65,9 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.impl.mapper.ServiceDescriptionMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
-import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceDescription;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -74,6 +76,7 @@ import org.xml.sax.ext.DefaultHandler2;
 import org.xml.sax.ext.LexicalHandler;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -84,6 +87,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -157,9 +162,18 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
         return switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS, ALLOWED_METHODS, GET_WSDL -> {
-                requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
-                        requestProxyMessage.getSoapContentType(),
-                        requestProxyMessage.getSoapContent());
+                try (var in = new PipedInputStream()) {
+                    @SuppressWarnings("java:S2095")// out is closed in try-with-resources
+                    var out = new PipedOutputStream(in);
+                    Thread.startVirtualThread(() -> {
+                        try (out) {
+                            requestProxyMessage.writeSoapContent(out);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Failed to write soap content", e);
+                        }
+                    });
+                    requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(requestProxyMessage.getSoapContentType(), in);
+                }
                 yield true;
             }
             default -> false;
@@ -185,7 +199,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
         opMonitoringData.setServiceType(DescriptionType.WSDL.name());
 
-
         switch (serviceCode) {
             case LIST_METHODS -> handleListMethods(requestMessage);
             case ALLOWED_METHODS -> handleAllowedMethods(requestMessage);
@@ -210,15 +223,14 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         return new ByteArrayInputStream(responseOut.toByteArray());
     }
 
-    // ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
     private void handleListMethods(SoapMessageImpl request) throws Exception {
         log.trace("handleListMethods()");
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                serverConfProvider.getServicesByDescriptionType(
-                        request.getService().getClientId(), DescriptionType.WSDL));
+                serverConfProvider.getServicesByDescriptionType(request.getService().getClientId(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
@@ -273,11 +285,14 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
         }
     }
 
-    // ------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
     private String getWsdlUrl(ServiceId service) throws Exception {
-        ServiceDescriptionType wsdl = ServerConfDatabaseCtx.doInTransaction(
-                session -> new ServiceDescriptionDAOImpl().getServiceDescription(session, service));
+        ServiceDescription wsdl = ServerConfDatabaseCtx.doInTransaction(
+                session -> ServiceDescriptionMapper.get().toTarget(
+                        new ServiceDescriptionDAOImpl().getServiceDescription(session, service)
+                )
+        );
         if (wsdl != null && wsdl.getType() != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and does not have a WSDL");
@@ -335,7 +350,6 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
-     *
      * @param wsdl
      * @return
      */
@@ -362,7 +376,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
             // offer InputStream into processed String
             return new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException | SAXException | TransformerConfigurationException e) {
+        } catch (IOException | SAXException | TransformerConfigurationException | ParserConfigurationException e) {
             throw new RuntimeException(e);
         }
     }

@@ -46,10 +46,7 @@
           data-test="language-list-tile"
           @click="switchLanguage(language.code)"
         >
-          <v-tooltip
-            activator="parent"
-            location="right"
-          >
+          <v-tooltip activator="parent" location="right">
             <span class="text-capitalize">{{ language.display }}</span>
           </v-tooltip>
           {{ language.code }}
@@ -72,10 +69,15 @@ export default defineComponent({
       return languageHelper.getCurrentLanguage();
     },
     displayName() {
-      return new Intl.DisplayNames([this.currentLanguage], { type: 'language' });
+      return new Intl.DisplayNames([this.currentLanguage], {
+        type: 'language',
+      });
     },
     languages() {
-      return availableLanguages.map(lang => ({ code: lang, display: this.displayName.of(lang) }));
+      return availableLanguages.map((lang) => ({
+        code: lang,
+        display: this.displayName.of(lang),
+      }));
     },
   },
   methods: {

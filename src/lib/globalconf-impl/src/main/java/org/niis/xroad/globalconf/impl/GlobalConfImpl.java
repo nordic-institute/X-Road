@@ -49,6 +49,7 @@ import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.globalconf.model.PrivateParameters;
@@ -61,10 +62,10 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -73,7 +74,6 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -157,10 +157,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
         for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
             for (SharedParameters.Member member : p.getMembers()) {
-                clients.add(new MemberInfo(createMemberId(p, member), member.getName()));
+                var memberId = createMemberId(p.getInstanceIdentifier(), member);
+                clients.add(new MemberInfo(memberId, member.getName(), null));
 
                 for (SharedParameters.Subsystem subsystem : member.getSubsystems()) {
-                    clients.add(new MemberInfo(createSubsystemId(p, member, subsystem), member.getName()));
+                    var subsystemId = createSubsystemId(p.getInstanceIdentifier(), member, subsystem);
+                    clients.add(new MemberInfo(subsystemId, member.getName(), subsystem.getSubsystemName()));
                 }
             }
         }
@@ -168,32 +170,45 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return clients;
     }
 
-    ClientId.Conf createMemberId(SharedParameters p, SharedParameters.Member member) {
-        return ClientId.Conf.create(p.getInstanceIdentifier(), member.getMemberClass().getCode(), member.getMemberCode());
+    ClientId.Conf createMemberId(String instanceIdentifier, SharedParameters.Member member) {
+        return ClientId.Conf.create(instanceIdentifier, member.getMemberClass().getCode(), member.getMemberCode());
     }
 
-    ClientId.Conf createSubsystemId(SharedParameters p, SharedParameters.Member member, SharedParameters.Subsystem subsystem) {
+    ClientId.Conf createSubsystemId(String instanceIdentifier, SharedParameters.Member member, SharedParameters.Subsystem subsystem) {
         return ClientId.Conf.create(
-                p.getInstanceIdentifier(), member.getMemberClass().getCode(),
+                instanceIdentifier, member.getMemberClass().getCode(),
                 member.getMemberCode(), subsystem.getSubsystemCode()
         );
     }
 
     @Override
     public String getMemberName(ClientId clientId) {
-        Optional<SharedParameters> p;
-        try {
-            p = globalConfSource.findShared(clientId.getXRoadInstance());
-        } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
-        }
-
-        return p.flatMap(params -> params.getMembers().stream()
-                .filter(m -> createMemberId(p.get(), m).memberEquals(clientId))
-                .map(SharedParameters.Member::getName)
+        return findShared(clientId.getXRoadInstance()).stream()
+                .map(SharedParameters::getMembers)
+                .flatMap(List::stream)
+                .filter(m -> createMemberId(clientId.getXRoadInstance(), m).memberEquals(clientId))
                 .findFirst()
-        ).orElse(null);
+                .map(SharedParameters.Member::getName)
+                .orElse(null);
     }
+
+    @Override
+    public String getSubsystemName(ClientId clientId) {
+        return internalGetSubsystemName(clientId).orElse(null);
+    }
+
+    private Optional<String> internalGetSubsystemName(ClientId clientId) {
+        return findShared(clientId.getXRoadInstance()).stream()
+                .map(SharedParameters::getMembers)
+                .flatMap(List::stream)
+                .filter(m -> createMemberId(clientId.getXRoadInstance(), m).memberEquals(clientId))
+                .map(SharedParameters.Member::getSubsystems)
+                .flatMap(List::stream)
+                .filter(s -> s.getSubsystemCode().equals(clientId.getSubsystemCode()))
+                .findFirst()
+                .map(SharedParameters.Subsystem::getSubsystemName);
+    }
+
 
     @Override
     public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
@@ -214,18 +229,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getGlobalGroupDescription(GlobalGroupId globalGroupId) {
-        Optional<SharedParameters> p;
-        try {
-            p = globalConfSource.findShared(globalGroupId.getXRoadInstance());
-        } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
-        }
-
-        return p.flatMap(params -> params.getGlobalGroups().stream()
-                .filter(g -> g.getGroupCode().equals(globalGroupId.getGroupCode()))
-                .map(SharedParameters.GlobalGroup::getDescription)
-                .findFirst()
-        ).orElse(null);
+        return findShared(globalGroupId.getXRoadInstance())
+                .flatMap(params -> params.getGlobalGroups().stream()
+                        .filter(g -> g.getGroupCode().equals(globalGroupId.getGroupCode()))
+                        .map(SharedParameters.GlobalGroup::getDescription)
+                        .findFirst()
+                ).orElse(null);
     }
 
     @Override
@@ -239,7 +248,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Collection<String> getProviderAddress(ClientId clientId) {
         if (clientId == null) {
-            return emptySet();
+            return Set.of();
         }
 
         return getSharedParametersCache(clientId.getXRoadInstance()).getMemberAddresses().get(clientId);
@@ -330,7 +339,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             }
         } catch (Exception e) {
             log.error("Error while getting OCSP responder certificates", e);
-            return Collections.emptyList();
+            return List.of();
         }
 
         return responderCerts;
@@ -575,10 +584,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
-        Optional<SharedParameters> sharedParameters = globalConfSource.findShared(groupId.getXRoadInstance());
-        return sharedParameters.flatMap(params -> params.getGlobalGroups().stream()
-                .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
-                .findFirst());
+        return globalConfSource.findShared(groupId.getXRoadInstance())
+                .flatMap(params -> params.getGlobalGroups().stream()
+                        .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))
+                        .findFirst());
     }
 
     @Override
@@ -635,6 +644,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
         return getPrivateParameters().getTimeStampingIntervalSeconds();
     }
 
+    private Optional<SharedParameters> findShared(String xroadInstance) {
+        try {
+            return globalConfSource.findShared(xroadInstance);
+        } catch (Exception e) {
+            throw new CodedException(X_INTERNAL_ERROR, e);
+        }
+    }
+
     // ------------------------------------------------------------------------
 
     protected PrivateParameters getPrivateParameters() {
@@ -650,15 +667,9 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     protected SharedParameters getSharedParameters(String instanceIdentifier) {
-        Optional<SharedParameters> p;
-        try {
-            p = globalConfSource.findShared(instanceIdentifier);
-        } catch (Exception e) {
-            throw new CodedException(X_INTERNAL_ERROR, e);
-        }
-
-        return p.orElseThrow(() ->
-                new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
+        return findShared(instanceIdentifier)
+                .orElseThrow(() ->
+                        new CodedException(X_INTERNAL_ERROR, "Shared params for instance identifier %s not found", instanceIdentifier));
     }
 
     protected List<SharedParameters> getSharedParameters(
@@ -726,5 +737,31 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public GlobalConfExtensions getGlobalConfExtensions() {
         return globalConfExtensions;
+    }
+
+    @Override
+    public OptionalInt getVersion() {
+        try {
+            return Optional.ofNullable(globalConfSource.getVersion()).stream()
+                    .mapToInt(Integer::intValue)
+                    .findFirst();
+        } catch (GlobalConfInitException e) {
+            log.warn("Error getting global configuration version", e);
+            return OptionalInt.empty();
+        }
+    }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId) {
+        return Optional.ofNullable(serverId)
+                .map(id -> getSharedParametersCache(id.getXRoadInstance()).getSecurityServersById().get(id))
+                .map(SharedParameters.SecurityServer::getMaintenanceMode);
+    }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
+        return Optional.ofNullable(serverAddress)
+                .map(addr -> getSharedParametersCache(instanceIdentifier).getSecurityServersByAddress().get(addr))
+                .map(SharedParameters.SecurityServer::getMaintenanceMode);
     }
 }

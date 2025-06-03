@@ -36,9 +36,9 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.test.AbstractSpringMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collections;
 import java.util.List;
@@ -59,13 +59,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test ApiKeysController
  */
 class ApiKeysControllerTest extends AbstractSpringMvcTest {
-    @MockBean
+    @MockitoBean
     private ApiKeyService apiKeyService;
-    @MockBean
+    @MockitoBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
-    @MockBean
+    @MockitoBean
     private AllowedHostnamesConfig allowedHostnamesConfig;
-    @MockBean
+    @MockitoBean
     private UserRoleConfig userRoleConfig;
 
     private static final String AUTHORITY_WRONG = "AUTHORITY_WRONG";

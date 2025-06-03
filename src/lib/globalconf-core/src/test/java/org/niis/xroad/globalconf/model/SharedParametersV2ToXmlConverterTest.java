@@ -35,12 +35,10 @@ import jakarta.xml.bind.Marshaller;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.ObjectFactory;
 import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.List;
@@ -71,7 +69,7 @@ class SharedParametersV2ToXmlConverterTest {
     );
 
     @Test
-    void shouldConvertAllFields() throws IOException, OperatorCreationException {
+    void shouldConvertAllFields() {
         var sharedParameters = getSharedParameters();
         var xmlType = SharedParametersV2ToXmlConverter.INSTANCE.convert(sharedParameters);
 
@@ -99,8 +97,8 @@ class SharedParametersV2ToXmlConverterTest {
                 .allFieldsSatisfy(Objects::nonNull);
 
         assertIdReferences(xmlType);
-        assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA1));
+        assertThat(xmlType.getSecurityServer().getFirst().getAuthCertHash().getFirst())
+                .isEqualTo(sharedParameters.getSecurityServers().getFirst().getAuthCertHashes().getFirst().getHash(SHA1));
     }
 
     @Test
@@ -124,8 +122,8 @@ class SharedParametersV2ToXmlConverterTest {
     }
 
     private static void assertIdReferences(SharedParametersTypeV2 xmlType) {
-        var ownerMember = xmlType.getMember().get(0);
-        var client = ownerMember.getSubsystem().get(0);
+        var ownerMember = xmlType.getMember().getFirst();
+        var client = ownerMember.getSubsystem().getFirst();
 
         assertThat(ownerMember).isNotNull();
         assertThat(client).isNotNull();
@@ -193,6 +191,7 @@ class SharedParametersV2ToXmlConverterTest {
         securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
+        securityServer.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
         return securityServer;
     }
 
@@ -201,7 +200,7 @@ class SharedParametersV2ToXmlConverterTest {
     }
 
     private static SharedParameters.Subsystem subsystem(ClientId.Conf clientId, String subsystemCode) {
-        return new SharedParameters.Subsystem(subsystemCode, subsystemId(clientId, subsystemCode));
+        return new SharedParameters.Subsystem(subsystemCode, null, subsystemId(clientId, subsystemCode));
     }
 
     private static ClientId.Conf subsystemId(ClientId.Conf clientId, String subsystemCode) {

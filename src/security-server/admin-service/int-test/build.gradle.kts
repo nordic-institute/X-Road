@@ -55,6 +55,7 @@ tasks.register<Test>("intTest") {
     junitXml.required.set(false) // defaults to true
   }
 
+  dependsOn(":security-server:admin-service:application:bootJar")
   shouldRunAfter(tasks.test)
 }
 

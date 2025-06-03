@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202502071313-requests-client-name.xml">
+    <changeSet author="niis" id="202502071313-requests-client-name">
+        <comment>Add clientname column that is used to transfer subsystem name on client registration or when renaming it.
+        </comment>
+        <addColumn tableName="requests">
+            <column name="subsystem_name" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

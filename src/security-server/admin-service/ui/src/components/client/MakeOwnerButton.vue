@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div class="d-inline-block">
     <xrd-button
       data-test="make-owner-button"
       outlined

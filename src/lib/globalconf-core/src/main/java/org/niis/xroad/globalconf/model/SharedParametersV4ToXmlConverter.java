@@ -58,7 +58,7 @@ abstract class SharedParametersV4ToXmlConverter {
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     SharedParametersTypeV4 convert(SharedParameters sharedParameters) {
-        return sharedParameters != null ? convert(sharedParameters, createClientIdMap(sharedParameters)) : null;
+        return sharedParameters == null ? null : convert(sharedParameters, createClientIdMap(sharedParameters));
     }
 
     @Mapping(source = "sources", target = "source")
@@ -83,7 +83,7 @@ abstract class SharedParametersV4ToXmlConverter {
     abstract ApprovedCATypeV3 convert(SharedParameters.ApprovedCA approvedCa);
 
     @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
-    @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
+    @Mapping(source = ".", target = "client", qualifiedByName = "clientsById")
     @Mapping(target = "owner", qualifiedByName = "clientById")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);
 
@@ -107,12 +107,16 @@ abstract class SharedParametersV4ToXmlConverter {
     }
 
     @Named("clientsById")
-    List<JAXBElement<Object>> xmlClientIds(List<ClientId> clientIds, @Context Map<ClientId, Object> clientMap) {
+    List<JAXBElement<Object>> xmlClientIds(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap) {
+        var clientIds = securityServer.getClients();
+
         if (clientIds == null) {
             return List.of();
         }
         return clientIds.stream()
-                .map(clientId -> OBJECT_FACTORY.createSecurityServerTypeClient(xmlClientId(clientId, clientMap)))
+                .filter(id -> id.isMember() || !securityServer.getMaintenanceMode().enabled())
+                .map(clientId -> xmlClientId(clientId, clientMap))
+                .map(OBJECT_FACTORY::createSecurityServerTypeClient)
                 .toList();
     }
 

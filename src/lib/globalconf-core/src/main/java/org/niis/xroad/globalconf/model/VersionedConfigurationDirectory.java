@@ -50,11 +50,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static org.niis.xroad.globalconf.model.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -129,7 +127,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return privateParams;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersProvider> basePrivateParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path privateParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
@@ -173,7 +170,6 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return sharedParams;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersProvider> baseSharedParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path sharedParametersPath = Paths.get(instanceDir.toString(),
@@ -225,15 +221,25 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
         log.trace("findShared(instance = {}, directory = {})", instanceId, safeInstanceId);
 
-        Predicate<SharedParametersProvider> isMainInstance = params ->
-                params.getSharedParameters() != null && instanceIdentifier.equals(params.getSharedParameters().getInstanceIdentifier());
-        Predicate<SharedParametersProvider> notExpired = params ->
-                params.getExpiresOn().isAfter(TimeUtils.offsetDateTimeNow());
-
         SharedParametersProvider provider = sharedParameters.get(safeInstanceId);
         return Optional.ofNullable(provider)
-                .filter(isMainInstance.or(notExpired))
+                .filter(p -> isMainInstance(p) || notExpired(p))
                 .map(SharedParametersProvider::getSharedParameters);
+    }
+
+    private boolean isMainInstance(SharedParametersProvider params) {
+        boolean result = params.getSharedParameters() != null
+                && instanceIdentifier.equals(params.getSharedParameters().getInstanceIdentifier());
+        log.trace("isMainInstance = {}", result);
+        return result;
+    }
+
+    private boolean notExpired(SharedParametersProvider params) {
+        OffsetDateTime now = TimeUtils.offsetDateTimeNow();
+        OffsetDateTime expiresOn = params.getExpiresOn();
+        boolean result = expiresOn.isAfter(now);
+        log.trace("Checking notExpired: {}, now = {}, expiresOn = {}", result, now, expiresOn);
+        return result;
     }
 
     /**
@@ -307,7 +313,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
      * Applies the given function to all files belonging to the configuration directory.
      * @param consumer the function instance that should be applied to all files belonging to the
      *         configuration directory.
-     * @throws Exception if an error occurs
+     * @throws IOException if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws IOException {
         eachFile(filepath -> {
@@ -319,17 +325,17 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                 try {
                     metadata = getMetadata(filepath);
                 } catch (IOException e) {
-                    log.error("Could not open configuration file '{}' metadata: {}", filepath, e);
+                    log.error("Could not open configuration file '{}' metadata: {}", filepath, e, e);
                     throw e;
                 }
 
                 consumer.consume(metadata, is);
             } catch (RuntimeException e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e);
+                log.error("Error processing configuration file '{}': {}", filepath, e, e);
 
                 throw e;
             } catch (Exception e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e);
+                log.error("Error processing configuration file '{}': {}", filepath, e, e);
 
                 throw new RuntimeException(e);
             }
@@ -340,22 +346,13 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
      * Gets the metadata for the given file.
      * @param fileName the file name
      * @return the metadata for the given file or null if metadata file does not exist.
-     * @throws Exception if the metadata cannot be loaded
+     * @throws IOException if the metadata cannot be loaded
      */
     public static ConfigurationPartMetadata getMetadata(Path fileName) throws IOException {
         File file = new File(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA);
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
         }
-    }
-
-    public static boolean isCurrentVersion(Path filePath) {
-        return isVersion(filePath, CURRENT_GLOBAL_CONFIGURATION_VERSION);
-    }
-
-    public static boolean isVersion(Path filePath, int version) {
-        Integer confVersion = getVersion(filePath);
-        return confVersion != null && confVersion == version;
     }
 
     public static Integer getVersion(Path filePath) {

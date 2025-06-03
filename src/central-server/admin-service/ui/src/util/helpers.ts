@@ -97,7 +97,6 @@ export function swallowRedirectedNavigationError(
 ): void {
   // NavigationFailureType.redirected = 2, but does not work here?
   //TODO maybe irrelevant?
-  // @ts-expect-error
   if (2 == error.type) {
     // ignore errors caused by redirect in beforeEach route guard
     // eslint-disable-next-line no-console
@@ -205,6 +204,12 @@ export function managementTypeToText(
       return t('managementRequests.addClient') as string;
     case ManagementRequestType.ADDRESS_CHANGE_REQUEST:
       return t('managementRequests.changeAddress') as string;
+    case ManagementRequestType.CLIENT_RENAME_REQUEST:
+      return t('managementRequests.renameClient') as string;
+    case ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST:
+      return t('managementRequests.maintenanceModeEnable') as string;
+    case ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST:
+      return t('managementRequests.maintenanceModeDisable') as string;
     default:
       return '';
   }

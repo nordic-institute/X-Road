@@ -36,7 +36,11 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.request.ClientRegRequestType;
+import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
@@ -56,6 +60,9 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_DISABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_RENAME_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST;
 import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.OWNER_CHANGE_REQUEST;
 
 @Slf4j
@@ -77,7 +84,7 @@ final class ManagementRequestBuilder {
             throws Exception {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
-        AuthCertRegRequestType request = FACTORY.createAuthCertRegRequestType();
+        var request = FACTORY.createAuthCertRegRequestType();
         request.setServer(securityServer);
         request.setAddress(address);
         request.setAuthCert(authCert);
@@ -89,28 +96,29 @@ final class ManagementRequestBuilder {
                                                  byte[] authCert) throws Exception {
         log.debug("buildAuthCertDeletionRequest(server: {})", securityServer);
 
-        AuthCertDeletionRequestType request = FACTORY.createAuthCertDeletionRequestType();
+        var request = FACTORY.createAuthCertDeletionRequestType();
         request.setServer(securityServer);
         request.setAuthCert(authCert);
 
         return buildMessage(element(AUTH_CERT_DELETION_REQUEST, AuthCertDeletionRequestType.class, request));
     }
 
-    SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf client) throws Exception {
+    SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf client, String clientName) throws Exception {
         log.debug("buildClientRegRequest(server: {}, client: {})", securityServer, client);
 
-        ClientRequestType request = FACTORY.createClientRequestType();
+        var request = FACTORY.createClientRegRequestType();
         request.setServer(securityServer);
         request.setClient(client);
+        request.setSubsystemName(clientName);
 
-        return buildMessage(element(CLIENT_REGISTRATION_REQUEST, ClientRequestType.class, request));
+        return buildMessage(element(CLIENT_REGISTRATION_REQUEST, ClientRegRequestType.class, request));
     }
 
     SoapMessageImpl buildClientDeletionRequest(SecurityServerId.Conf securityServer,
                                                ClientId.Conf client) throws Exception {
         log.debug("buildClientDeletionRequest(server: {}, client: {})", securityServer, client);
 
-        ClientRequestType request = FACTORY.createClientRequestType();
+        var request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(client);
 
@@ -121,7 +129,7 @@ final class ManagementRequestBuilder {
                                             ClientId.Conf client) throws Exception {
         log.debug("buildOwnerChangeRequest(server: {}, client: {})", securityServer, client);
 
-        ClientRequestType request = FACTORY.createClientRequestType();
+        var request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(client);
 
@@ -132,7 +140,7 @@ final class ManagementRequestBuilder {
                                               ClientId.Conf client) throws Exception {
         log.debug("buildClientDisableRequest(server: {}, client: {})", securityServer, client);
 
-        ClientRequestType request = FACTORY.createClientRequestType();
+        var request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(client);
 
@@ -143,20 +151,50 @@ final class ManagementRequestBuilder {
                                              ClientId.Conf client) throws Exception {
         log.debug("buildClientEnableRequest(server: {}, client: {})", securityServer, client);
 
-        ClientRequestType request = FACTORY.createClientRequestType();
+        var request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(client);
 
         return buildMessage(element(CLIENT_ENABLE_REQUEST, ClientRequestType.class, request));
     }
 
+    SoapMessageImpl buildClientRenameRequest(SecurityServerId.Conf securityServer,
+                                             ClientId.Conf client, String subsystemName) throws Exception {
+        log.debug("buildClientRenameRequest(server: {}, client: {}, clientName: {})", securityServer, client, subsystemName);
+
+        var request = FACTORY.createClientRenameRequestType();
+        request.setServer(securityServer);
+        request.setClient(client);
+        request.setSubsystemName(subsystemName);
+
+        return buildMessage(element(CLIENT_RENAME_REQUEST, ClientRenameRequestType.class, request));
+    }
+
+
     SoapMessageImpl buildAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
         log.debug("buildAddressChangeRequest(server: {}, address: {})", securityServer, address);
 
-        AddressChangeRequestType request = FACTORY.createAddressChangeRequestType();
+        var request = FACTORY.createAddressChangeRequestType();
         request.setServer(securityServer);
         request.setAddress(address);
         return buildMessage(element(ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
+    }
+
+    SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
+        log.debug("buildMaintenanceModeEnableRequest(server: {}, message: {})", securityServer, message);
+
+        var request = FACTORY.createMaintenanceModeEnableRequestType();
+        request.setServer(securityServer);
+        request.setMessage(message);
+        return buildMessage(element(MAINTENANCE_MODE_ENABLE_REQUEST, MaintenanceModeEnableRequestType.class, request));
+    }
+
+    SoapMessageImpl buildMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
+        log.debug("buildMaintenanceModeDisableRequest(server: {})", securityServer);
+
+        var request = FACTORY.createMaintenanceModeDisableRequestType();
+        request.setServer(securityServer);
+        return buildMessage(element(MAINTENANCE_MODE_DISABLE_REQUEST, MaintenanceModeDisableRequestType.class, request));
     }
 
     // -- Private helper methods ----------------------------------------------

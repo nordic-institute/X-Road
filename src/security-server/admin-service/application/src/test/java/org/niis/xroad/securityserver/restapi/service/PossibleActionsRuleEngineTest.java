@@ -41,7 +41,7 @@ import java.util.EnumSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.niis.xroad.signer.client.SignerRpcClient.SSL_TOKEN_ID;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
@@ -236,14 +236,12 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
     }
 
     @Test
-    public void requirePossibleAction() throws Exception {
+    public void requirePossibleAction() {
         EnumSet<PossibleActionEnum> actions = EnumSet.of(PossibleActionEnum.ACTIVATE);
         possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.ACTIVATE, actions);
-        try {
-            possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.DELETE, actions);
-            fail("should throw exception");
-        } catch (ActionNotPossibleException expected) {
-        }
+
+        assertThrows(ActionNotPossibleException.class,
+                () -> possibleActionsRuleEngine.requirePossibleAction(PossibleActionEnum.DELETE, actions));
     }
 
     @Test
@@ -328,12 +326,14 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertTrue(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(false)
+                                .available(false)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
 
         assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(false)
+                                .available(false)
                                 .id(SSL_TOKEN_ID)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
@@ -341,6 +341,13 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
                         new TokenTestUtils.TokenInfoBuilder()
                                 .active(true)
+                                .available(false)
+                                .build())
+                .contains(PossibleActionEnum.TOKEN_DELETE));
+        assertFalse(possibleActionsRuleEngine.getPossibleTokenActions(
+                        new TokenTestUtils.TokenInfoBuilder()
+                                .active(false)
+                                .available(true)
                                 .build())
                 .contains(PossibleActionEnum.TOKEN_DELETE));
     }

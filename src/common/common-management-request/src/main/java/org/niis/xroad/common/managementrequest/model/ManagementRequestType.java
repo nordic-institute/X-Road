@@ -40,7 +40,10 @@ public enum ManagementRequestType {
     AUTH_CERT_DELETION_REQUEST("authCertDeletion"),
     ADDRESS_CHANGE_REQUEST("addressChange"),
     CLIENT_DISABLE_REQUEST("clientDisable"),
-    CLIENT_ENABLE_REQUEST("clientEnable");
+    CLIENT_ENABLE_REQUEST("clientEnable"),
+    CLIENT_RENAME_REQUEST("clientRename"),
+    MAINTENANCE_MODE_ENABLE_REQUEST("maintenanceModeEnable"),
+    MAINTENANCE_MODE_DISABLE_REQUEST("maintenanceModeDisable");
 
     @Getter
     private final String serviceCode;

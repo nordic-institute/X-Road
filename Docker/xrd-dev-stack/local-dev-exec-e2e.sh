@@ -4,8 +4,8 @@ set -e # Exit immediately if a command exits with a non-zero status.
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then
-  echo "XROAD_HOME is not set. Exiting."
-  exit 1
+  XROAD_HOME=$(realpath "$(pwd)/../..")
+  echo "XROAD_HOME is not set. Setting it to $XROAD_HOME"
 fi
 
 ADDITIONAL_GRADLE_ARGS=""
@@ -26,5 +26,4 @@ cd "$XROAD_HOME"/src && ./gradlew :security-server:e2e-test:e2eTest --rerun-task
   -Pe2eTestCSImage=xrd-centralserver-dev \
   -Pe2eTestSSImage=xrd-securityserver-dev \
   -Pe2eTestTestCAImage=xrd-testca \
-  -Pe2eTestISSOAPImage=example-adapter-v2:latest \
   $ADDITIONAL_GRADLE_ARGS

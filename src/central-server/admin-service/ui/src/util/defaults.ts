@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 // Ok to ignore any here because that is the axios contract as well
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types */
 
 import { toPagingOptions } from '@/util/helpers';
 

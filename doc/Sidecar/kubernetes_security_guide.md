@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.5  
+Version: 1.6
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -13,6 +13,7 @@ Doc. ID: UG-K-SS-SEC-SIDECAR
 | 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute           |
 | 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets             |
 | 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
+| 26.03.2025 | 1.6     | Syntax and styling                           | Pauline Dimmek            |
 
 ## License
 
@@ -266,7 +267,7 @@ You can access Dashboard using the kubectl command-line tool by running the foll
 kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 4433:443
 ```
 
-Kubectl will make Dashboard available at <https://localhost:4433>.
+Kubectl will make Dashboard available at `<https://localhost:4433>`.
 
 In the login view, you will be required to enter a token. To try out Kubernetes Dashboard you can [create a sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md) and get the token with the following command:
 

@@ -35,7 +35,10 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public abstract class Request extends Auditable {
+@SuppressWarnings("javaarchitecture:S7027")
+public abstract sealed class Request extends Auditable
+        permits AddressChangeRequest, AuthenticationCertificateDeletionRequest, ClientDeletionRequest, ClientDisableRequest,
+        ClientEnableRequest, ClientRenameRequest, MaintenanceModeDisableRequest, MaintenanceModeEnableRequest, RequestWithProcessing {
 
     private int id;
     private SecurityServerId securityServerId;

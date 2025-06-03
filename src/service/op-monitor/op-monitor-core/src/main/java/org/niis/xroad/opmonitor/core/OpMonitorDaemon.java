@@ -113,8 +113,9 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
         connector.setHost(listenAddress);
         connector.setPort(port);
         connector.getConnectionFactories().stream()
-                .filter(cf -> cf instanceof HttpConnectionFactory)
-                .forEach(httpCf -> ((HttpConnectionFactory) httpCf).getHttpConfiguration().setSendServerVersion(false));
+                .filter(HttpConnectionFactory.class::isInstance)
+                .map(HttpConnectionFactory.class::cast)
+                .forEach(httpCf -> httpCf.getHttpConfiguration().setSendServerVersion(false));
 
         server.addConnector(connector);
 

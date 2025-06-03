@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -30,7 +31,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAddDto;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -65,7 +66,7 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
     @Test
     @WithMockUser(authorities = {"ADD_LOCAL_GROUP"})
     public void validationWorksForAddLocalGroup() throws Exception {
-        LocalGroupAdd groupWithTooLongCode = new LocalGroupAdd()
+        LocalGroupAddDto groupWithTooLongCode = new LocalGroupAddDto()
                 .code(RandomStringUtils.secure().nextAlphabetic(256))
                 .description("foo");
         ResponseEntity<Object> response = restTemplate.postForEntity(
@@ -92,9 +93,9 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
         assertNotNull(errorResponse);
         assertEquals("validation_failure", errorResponse.getError().getCode());
         assertEquals(1, errorResponse.getError().getValidationErrors().size());
-        String localGroupAddCodeError = "localGroupAdd.code";
+        String localGroupAddCodeError = "localGroupAddDto.code";
         assertTrue(errorResponse.getError().getValidationErrors().containsKey(localGroupAddCodeError));
         assertEquals(1, errorResponse.getError().getValidationErrors().get(localGroupAddCodeError).size());
-        assertEquals("Size", errorResponse.getError().getValidationErrors().get("localGroupAdd.code").get(0));
+        assertEquals("Size", errorResponse.getError().getValidationErrors().get("localGroupAddDto.code").get(0));
     }
 }

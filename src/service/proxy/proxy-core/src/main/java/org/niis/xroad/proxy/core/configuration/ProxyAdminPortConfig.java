@@ -31,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -83,6 +84,8 @@ public class ProxyAdminPortConfig {
 
         addMessageLogEncryptionStatus(adminPort);
 
+        addMemoryUsageHandler(adminPort);
+
         return adminPort;
     }
 
@@ -109,6 +112,16 @@ public class ProxyAdminPortConfig {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
                 writeJsonResponse(messageLogEncryptionStatusDiagnostics, response);
+            }
+        });
+    }
+
+    private void addMemoryUsageHandler(AdminPort adminPort) {
+        adminPort.addHandler("/memory-usage", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(RequestWrapper request, ResponseWrapper response) {
+                ProxyMemory proxyMemory = ProxyMemory.get();
+                writeJsonResponse(proxyMemory, response);
             }
         });
     }

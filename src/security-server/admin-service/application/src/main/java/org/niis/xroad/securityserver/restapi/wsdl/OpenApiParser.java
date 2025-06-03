@@ -34,10 +34,8 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -53,8 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_PARSING;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_UNSUPPORTED_OPENAPI_VERSION;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.OPENAPI_PARSING;
 
 /**
  * Parser for OpenAPI descriptions
@@ -74,7 +71,6 @@ public class OpenApiParser {
 
     /**
      * Parse openapi3 description
-     *
      * @return OpenApiParser.Result
      * @throws ParsingException                   if parsing cannot be done
      * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
@@ -130,8 +126,7 @@ public class OpenApiParser {
         final String openapiVersion = node.get("openapi").asText();
         if (openapiVersion != null && !versionSupported(openapiVersion)) {
             String errorMsg = String.format("OpenAPI version %s not supported", openapiVersion);
-            throw new UnsupportedOpenApiVersionException(errorMsg,
-                    new ErrorDeviation(ERROR_UNSUPPORTED_OPENAPI_VERSION));
+            throw new UnsupportedOpenApiVersionException(errorMsg);
         }
     }
 
@@ -189,13 +184,11 @@ public class OpenApiParser {
 
     /**
      * OpenAPI parsing result
+     * @param baseUrl
+     * @param operations
+     * @param warnings
      */
-    @Value
-    public static class Result {
-
-        private final String baseUrl;
-        private final List<Operation> operations;
-        private final List<String> warnings;
+    public record Result(String baseUrl, List<Operation> operations, List<String> warnings) {
 
         /**
          * @return true if the result has non-fatal errors
@@ -208,23 +201,22 @@ public class OpenApiParser {
 
     /**
      * Operation (method + path) in the API
+     * @param method
+     * @param path
      */
-    @Value
-    public static class Operation {
-        private final String method;
-        private final String path;
+    public record Operation(String method, String path) {
     }
 
     /**
      * OpenAPI Parsing Exception
      */
-    public static class ParsingException extends ServiceException {
+    public static class ParsingException extends BadRequestException {
         public ParsingException(String message) {
-            super(new ErrorDeviation(ERROR_OPENAPI_PARSING, message));
+            super(OPENAPI_PARSING.build(message));
         }
 
         public ParsingException(String message, Throwable cause) {
-            super(cause, new ErrorDeviation(ERROR_OPENAPI_PARSING, message));
+            super(cause, OPENAPI_PARSING.build(message));
         }
 
     }

@@ -27,15 +27,14 @@
 package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.CollectionCondition;
+import com.codeborne.selenide.Condition;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Step;
+import org.assertj.core.api.Assertions;
 import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.ClientPageObj;
 
-import java.util.List;
-
 import static com.codeborne.selenide.Condition.focused;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -49,6 +48,13 @@ public class ClientListStepDefs extends BaseUiStepDefs {
                 .click();
     }
 
+    @Step("Client with id: {string} is opened")
+    public void openClientById(String client) {
+        clientPageObj.linkClientDetailsOfId(client)
+                .shouldBe(visible)
+                .click();
+    }
+
     @Step("Client {string} is {selenideValidation} in the list")
     public void validateClient(String client, ParameterMappers.SelenideValidation selenideValidation) {
         clientPageObj.linkClientDetailsOfName(client)
@@ -58,6 +64,12 @@ public class ClientListStepDefs extends BaseUiStepDefs {
     @Step("Client {string} with status {string} is {selenideValidation} in the list")
     public void validateClient(String client, String status, ParameterMappers.SelenideValidation selenideValidation) {
         clientPageObj.tableRowWithNameAndStatus(client, status)
+                .shouldBe(selenideValidation.getSelenideCondition());
+    }
+
+    @Step("Client {string} with id {string} and status {string} is {selenideValidation} in the list")
+    public void validateClient(String client, String id, String status, ParameterMappers.SelenideValidation selenideValidation) {
+        clientPageObj.tableRowWithNameAndStatus(client, status, id)
                 .shouldBe(selenideValidation.getSelenideCondition());
     }
 
@@ -91,9 +103,22 @@ public class ClientListStepDefs extends BaseUiStepDefs {
 
     @Step("Client table is ordered as follows:")
     public void validateTable(DataTable dataTable) {
-        final List<String> values = dataTable.asList();
+        final var values = dataTable.asMaps();
         for (int i = 0; i < values.size(); i++) {
-            clientPageObj.groupByPos(i + 1).shouldBe(text(values.get(i)));
+            var rowTr = clientPageObj.groupByPos(i + 1);
+            for (var entry : values.get(i).entrySet()) {
+                switch (entry.getKey()) {
+                    case "$memberName" -> rowTr
+                            .$x("./td[@data-test='client-name']//span[contains(@class, 'client-name')]")
+                            .shouldHave(Condition.text(entry.getValue()));
+
+                    case "$id" -> rowTr
+                            .$x("./td[@data-test='client-id']/span")
+                            .shouldHave(Condition.text(entry.getValue()));
+
+                    default -> Assertions.fail("Unknown column: " + entry.getKey());
+                }
+            }
         }
 
         clientPageObj.groups().shouldBe(CollectionCondition.size(values.size()));

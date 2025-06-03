@@ -66,7 +66,8 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "OCSP responders",
             "Global configuration",
             "Configuration overrides from local.ini",
-            "Authentication certificates"
+            "Authentication certificates",
+            "Maintenance mode"
     };
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
@@ -130,9 +131,9 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
 
     @Step("Mail notification status should be ok")
     public void mailNotificationStatus() {
+        diagnosticsPage.mailNotificationConfigurationStatus().shouldHave(partialText("Configured"));
         diagnosticsPage.mailNotificationOnSuccessEnabled().shouldHave(partialText("Enabled"));
         diagnosticsPage.mailNotificationOnFailureEnabled().shouldHave(partialText("Enabled"));
-        diagnosticsPage.mailNotificationConfigurationStatus().shouldHave(partialText("Configured"));
     }
 
     @Step("Sending test mail is a success")
@@ -174,6 +175,15 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
                         partialText("not sent yet")));
     }
 
+    @Step("Proxy memory usage should be ok")
+    public void proxyMemoryUsageStatus() {
+        diagnosticsPage.proxyMemoryUsageMessage()
+                .scrollIntoView(false)
+                .shouldHave(partialText("ok"));
+        diagnosticsPage.proxyMemoryUsageMax().shouldHave(partialText("512.0MB"));
+        diagnosticsPage.proxyMemoryUsageThreshold().shouldHave(partialText("Not set"));
+    }
+
     @Step("download diagnostic report button is clicked")
     public void clickDiagnosticReportButton() {
         var file = diagnosticsPage.btnDownloadDiagnoticsReport()
@@ -209,7 +219,5 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             }
             assertThat(actualItems).contains(EXPECTED_REPORT_ITEMS);
         }
-
-
     }
 }

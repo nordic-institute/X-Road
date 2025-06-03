@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="wrapper">
-    <div class="search-row">
+    <div class="search-row mb-5">
       <v-text-field
         v-model="search"
         :label="$t('services.service')"
@@ -127,34 +127,33 @@
                 class="xrd-table-button"
                 data-test="refresh-button"
                 @click="refresh(serviceDesc)"
-              >{{ $t('action.refresh') }}
-              </xrd-button
-              >
+                >{{ $t('action.refresh') }}
+              </xrd-button>
             </div>
 
             <table class="xrd-table">
               <thead>
-              <tr>
-                <th>{{ $t('services.serviceCode') }}</th>
-                <th>{{ $t('services.url') }}</th>
-                <th>{{ $t('services.timeout') }}</th>
-              </tr>
+                <tr>
+                  <th>{{ $t('services.serviceCode') }}</th>
+                  <th>{{ $t('services.url') }}</th>
+                  <th>{{ $t('services.timeout') }}</th>
+                </tr>
               </thead>
               <tbody>
-              <tr v-for="service in serviceDesc.services" :key="service.id">
-                <td
-                  class="clickable-link"
-                  data-test="service-link"
-                  @click="serviceClick(serviceDesc, service)"
-                >
-                  {{ service.full_service_code }}
-                </td>
-                <td class="service-url" data-test="service-url">
-                  <serviceIcon :service="service" />
-                  {{ service.url }}
-                </td>
-                <td>{{ service.timeout }}</td>
-              </tr>
+                <tr v-for="service in serviceDesc.services" :key="service.id">
+                  <td
+                    class="clickable-link"
+                    data-test="service-link"
+                    @click="serviceClick(serviceDesc, service)"
+                  >
+                    {{ service.full_service_code }}
+                  </td>
+                  <td class="service-url" data-test="service-url">
+                    <serviceIcon :service="service" />
+                    {{ service.url }}
+                  </td>
+                  <td>{{ service.timeout }}</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -219,7 +218,12 @@ import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
-import { CodeWithDetails, Service, ServiceDescription, ServiceType } from '@/openapi-types';
+import {
+  CodeWithDetails,
+  Service,
+  ServiceDescription,
+  ServiceType,
+} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { deepClone } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
@@ -686,7 +690,6 @@ export default defineComponent({
 @use '@/assets/colors';
 
 .wrapper {
-  margin-top: 20px;
 }
 
 .search-row {
@@ -695,8 +698,6 @@ export default defineComponent({
   justify-content: space-between;
   align-items: flex-end;
   width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
 }
 
 .rest-button {

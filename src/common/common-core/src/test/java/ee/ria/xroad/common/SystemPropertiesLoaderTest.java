@@ -26,9 +26,7 @@
 package ee.ria.xroad.common;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
 import java.io.FileNotFoundException;
@@ -42,15 +40,13 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify system properties loading.
  */
 public class SystemPropertiesLoaderTest {
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     private final List<Path> testFiles = ImmutableList.of(
             Paths.get("src/test/resources/loading_order_inis/override-x.ini"),
@@ -122,7 +118,7 @@ public class SystemPropertiesLoaderTest {
                 Paths.get("src/test/resources/loading_order_inis"), testGlob);
 
         //order does not matter here
-        assertEquals(testFilePaths.size(), testFilePaths.size());
+        assertEquals(testFilePaths.size(), testFiles.size());
         assertTrue(testFilePaths.containsAll(testFiles));
     }
 
@@ -147,7 +143,6 @@ public class SystemPropertiesLoaderTest {
     /**
      * Test loading a mix of existing and non-existing files. Expectation is to receive load calls
      * for the existing files in entry order.
-     *
      * @throws FileNotFoundException If none of the input files can be loaded
      * @throws Exception             If something goes wrong with capturing calls to load
      */
@@ -172,7 +167,6 @@ public class SystemPropertiesLoaderTest {
     /**
      * Test loading non-existing files with the mutually alternative file loading mechanism. Expectation is that
      * FileNotFoundException is thrown listing all the attempted files in the message.
-     *
      * @throws FileNotFoundException Expected exception when loader is unable to find any of the input files
      */
     @Test
@@ -184,12 +178,11 @@ public class SystemPropertiesLoaderTest {
                 "not/even/close/to/finding/this.one"
         );
 
-        expectedException.expect(FileNotFoundException.class);
-        expectedException.expectMessage("None of the following configuration files were found: "
-                + String.join(", ", initialFileNames));
-
         SystemPropertiesLoader testLoader = SystemPropertiesLoader.create("");
-        testLoader.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames);
+        var exc = assertThrows(FileNotFoundException.class, () -> testLoader.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames));
+
+        assertEquals("None of the following configuration files were found: " + String.join(", ", initialFileNames),
+                exc.getMessage());
 
     }
 

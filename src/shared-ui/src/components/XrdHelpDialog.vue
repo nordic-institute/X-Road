@@ -54,17 +54,18 @@
   </v-dialog>
 </template>
 
-<script lang="ts">/** Component for help dialogs */
-import { defineComponent } from "vue";
-import XrdButton from "./XrdButton.vue";
-import XrdCloseButton from "./XrdCloseButton.vue";
+<script lang="ts">
+/** Component for help dialogs */
+import { defineComponent } from 'vue';
+import XrdButton from './XrdButton.vue';
+import XrdCloseButton from './XrdCloseButton.vue';
 
 export default defineComponent({
-  components:{
+  components: {
     XrdButton,
-    XrdCloseButton
+    XrdCloseButton,
   },
-  props:{
+  props: {
     // Title of the dialog
     title: {
       type: String,
@@ -85,7 +86,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['cancel'],
+  emits: ['cancel'],
 });
 </script>
 
@@ -94,12 +95,6 @@ export default defineComponent({
 
 .content-wrapper {
   margin-top: 20px;
-}
-
-.title-wrap {
-  margin-bottom: 10px;
-  width: 100%;
-  text-align: center;
 }
 
 .text-wrap {

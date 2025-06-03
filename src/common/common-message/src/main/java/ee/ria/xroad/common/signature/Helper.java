@@ -198,7 +198,6 @@ public final class Helper {
 
     /**
      * Verifies the digest contained in the digest algorithm and value element against the provided data.
-     *
      * @param digAlgAndValueElement the element that contains the digest method
      *                              as the first child and digest value as the second child
      * @param data                  the data
@@ -236,21 +235,20 @@ public final class Helper {
         // ------- xades:OCSPRefs
         // -------- xades:OCSPRef
 
-        StringBuilder xpath = new StringBuilder();
-        xpath.append(PREFIX_XADES);
-        xpath.append(QUALIFYING_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(COMPLETE_REVOCATION_REFS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(OCSP_REFS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(OCSP_REF_TAG);
+        String xpath = PREFIX_XADES
+                + QUALIFYING_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + UNSIGNED_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + UNSIGNED_SIGNATURE_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + COMPLETE_REVOCATION_REFS_TAG + "/"
+                + PREFIX_XADES
+                + OCSP_REFS_TAG + "/"
+                + PREFIX_XADES
+                + OCSP_REF_TAG;
 
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath, getNamespaceCtx());
     }
 
     /**
@@ -268,21 +266,20 @@ public final class Helper {
         // ------- xades:OCSPValues
         // -------- xades:EncapsulatedOCSPValue
 
-        StringBuilder xpath = new StringBuilder();
-        xpath.append(PREFIX_XADES);
-        xpath.append(QUALIFYING_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(REVOCATION_VALUES_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(OCSP_VALUES_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(ENCAPSULATED_OCSP_VALUE_TAG);
+        String xpath = PREFIX_XADES
+                + QUALIFYING_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + UNSIGNED_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + UNSIGNED_SIGNATURE_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + REVOCATION_VALUES_TAG + "/"
+                + PREFIX_XADES
+                + OCSP_VALUES_TAG + "/"
+                + PREFIX_XADES
+                + ENCAPSULATED_OCSP_VALUE_TAG;
 
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath, getNamespaceCtx());
     }
 
     /**
@@ -300,21 +297,20 @@ public final class Helper {
         // ------- xades:CertRefs
         // -------- xades:Cert
 
-        StringBuilder xpath = new StringBuilder();
-        xpath.append(PREFIX_XADES);
-        xpath.append(QUALIFYING_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(COMPLETE_CERTIFICATE_REFS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(CERT_REFS_TAG).append("/");
-        xpath.append(PREFIX_XADES);
-        xpath.append(CERT_TAG);
+        String xpath = PREFIX_XADES
+                + QUALIFYING_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + UNSIGNED_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + UNSIGNED_SIGNATURE_PROPS_TAG + "/"
+                + PREFIX_XADES
+                + COMPLETE_CERTIFICATE_REFS_TAG + "/"
+                + PREFIX_XADES
+                + CERT_REFS_TAG + "/"
+                + PREFIX_XADES
+                + CERT_TAG;
 
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath, getNamespaceCtx());
     }
 
     /***
@@ -333,7 +329,6 @@ public final class Helper {
 
     /**
      * Returns the first element by tag name.
-     *
      * @param document the document
      * @param tagName  the tag name
      * @throws Exception throws CodedException with code MALFORMED_SIGNATURE if the element cannot be found.
@@ -359,9 +354,8 @@ public final class Helper {
                 };
             }
 
-            @SuppressWarnings("rawtypes")
             @Override
-            public Iterator getPrefixes(String val) {
+            public Iterator<String> getPrefixes(String val) {
                 return null;
             }
 

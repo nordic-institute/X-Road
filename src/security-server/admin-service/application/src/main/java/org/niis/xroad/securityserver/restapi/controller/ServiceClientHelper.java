@@ -28,12 +28,10 @@ package org.niis.xroad.securityserver.restapi.controller;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientsDto;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.springframework.stereotype.Component;
@@ -55,16 +53,15 @@ public class ServiceClientHelper {
     /**
      * Transform ServiceClients object into a set of XRoadIds.
      * Capable of handling local group ids.
-     *
      * @throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException if any encoded service client id
-     * was badly formatted
-     * @throws ServiceClientNotFoundException if any local group with given ID (PK) does not exist
+     *                                                                              was badly formatted
+     * @throws ServiceClientNotFoundException                                       if any local group with given ID (PK) does not exist
      */
-    public Set<XRoadId.Conf> processServiceClientXRoadIds(ServiceClients serviceClients)
+    public Set<XRoadId.Conf> processServiceClientXRoadIds(ServiceClientsDto serviceClients)
             throws ServiceClientNotFoundException,
-            ServiceClientIdentifierConverter.BadServiceClientIdentifierException {
+                   ServiceClientIdentifierConverter.BadServiceClientIdentifierException {
         Set<XRoadId.Conf> ids = new HashSet<>();
-        for (ServiceClient serviceClient : serviceClients.getItems()) {
+        for (ServiceClientDto serviceClient : serviceClients.getItems()) {
             ids.add(processServiceClientXRoadId(serviceClient.getId()));
         }
         return ids;
@@ -73,29 +70,15 @@ public class ServiceClientHelper {
     /**
      * Transform single encoded service client id into XRoadId.
      * Capable of handling local group ids.
-     *
      * @throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException if encoded service client id
-     * was badly formatted
-     * @throws ServiceClientNotFoundException if a local group with given ID (PK) does not exist
+     *                                                                              was badly formatted
+     * @throws ServiceClientNotFoundException                                       if a local group with given ID (PK) does not exist
      */
     public XRoadId.Conf processServiceClientXRoadId(String encodedServiceClientId)
             throws ServiceClientIdentifierConverter.BadServiceClientIdentifierException,
-            ServiceClientNotFoundException {
+                   ServiceClientNotFoundException {
         ServiceClientIdentifierDto dto = serviceClientIdentifierConverter.convertId(encodedServiceClientId);
         return serviceClientService.convertServiceClientIdentifierDtoToXroadId(dto);
     }
 
-    public static final String ERROR_INVALID_SERVICE_CLIENT_ID = "invalid_service_client_id";
-    private static final String INVALID_SERVICE_CLIENT_ID = "Invalid service client id: ";
-
-    /**
-     * Take ServiceClientIdentifierConverter.BadServiceClientIdentifierException and wrap it in
-     * BadRequestException.
-     * Error code = invalid_service_client_id
-     */
-    public BadRequestException wrapInBadRequestException(
-            ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
-        return new BadRequestException(INVALID_SERVICE_CLIENT_ID + e.getServiceClientIdentifier(),
-                new ErrorDeviation(ERROR_INVALID_SERVICE_CLIENT_ID));
-    }
 }

@@ -34,19 +34,21 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
-import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
+import org.niis.xroad.securityserver.restapi.dto.ServiceClient;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientTypeDto;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INVALID_CLIENT_TYPE;
 
 /**
  * converter for ServiceClient and related objects
@@ -62,84 +64,73 @@ public class ServiceClientConverter {
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Convert ServiceClientDto to ServiceClient.
-     * @param serviceClientDto
-     * @return {@link ServiceClient}
+     * Convert ServiceClient to ServiceClientDto.
+     * @param serviceClient
+     * @return {@link ServiceClientDto}
      */
-    public ServiceClient convertServiceClientDto(ServiceClientDto serviceClientDto) {
-        ServiceClient serviceClient = new ServiceClient();
-        serviceClient.setRightsGivenAt(serviceClientDto.getRightsGiven());
+    public ServiceClientDto convertServiceClientDto(ServiceClient serviceClient) {
+        ServiceClientDto serviceClientDto = new ServiceClientDto();
+        serviceClientDto.setRightsGivenAt(serviceClient.getRightsGiven());
 
-        XRoadId subjectId = serviceClientDto.getSubjectId();
+        XRoadId subjectId = serviceClient.getSubjectId();
 
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setName(globalConfProvider.getMemberName(serviceClientId));
-                serviceClient.setId(clientIdConverter.convertId(serviceClientId));
-                serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
+                serviceClientDto.setName(serviceClient.getSubsystemName());
+                serviceClientDto.setId(clientIdConverter.convertId(serviceClientId));
+                serviceClientDto.setServiceClientType(ServiceClientTypeDto.SUBSYSTEM);
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                serviceClient.setName(serviceClientDto.getGlobalGroupDescription());
-                serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
-                serviceClient.setServiceClientType(ServiceClientType.GLOBALGROUP);
+                serviceClientDto.setName(serviceClient.getGlobalGroupDescription());
+                serviceClientDto.setId(globalGroupConverter.convertId(globalGroupId));
+                serviceClientDto.setServiceClientType(ServiceClientTypeDto.GLOBALGROUP);
                 break;
             case LOCALGROUP:
-                serviceClient.setId(serviceClientDto.getLocalGroupId());
-                serviceClient.setLocalGroupCode(serviceClientDto.getLocalGroupCode());
-                serviceClient.setName(serviceClientDto.getLocalGroupDescription());
-                serviceClient.setServiceClientType(ServiceClientType.LOCALGROUP);
+                serviceClientDto.setId(serviceClient.getLocalGroupId());
+                serviceClientDto.setLocalGroupCode(serviceClient.getLocalGroupCode());
+                serviceClientDto.setName(serviceClient.getLocalGroupDescription());
+                serviceClientDto.setServiceClientType(ServiceClientTypeDto.LOCALGROUP);
                 break;
             default:
                 break;
         }
 
-        return serviceClient;
+        return serviceClientDto;
     }
 
     /**
-     * Convert a group of ServiceClientDtos to ServiceClients
-     * @param serviceClientDtos
-     * @return
+     * Convert a group of ServiceClients to ServiceClientsDtos
+     * @param serviceClients
+     * @return Set<ServiceClientDto>
      */
-    public Set<ServiceClient> convertServiceClientDtos(Iterable<ServiceClientDto> serviceClientDtos) {
-        return Streams.stream(serviceClientDtos)
+    public Set<ServiceClientDto> convertServiceClientDtos(Iterable<ServiceClient> serviceClients) {
+        return Streams.stream(serviceClients)
                 .map(this::convertServiceClientDto)
                 .sorted(serviceClientSortingComparator)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
-     * Convert ServiceClient into XroadId (based on serviceClientType, id and localGroupCode)
-     * @param serviceClient
+     * Convert ServiceClientDto into XroadId (based on serviceClientType, id and localGroupCode)
+     * @param serviceClientDto
      * @return
      */
-    public XRoadId convertId(ServiceClient serviceClient) {
-        XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
-        String encodedId = serviceClient.getId();
+    public XRoadId convertId(ServiceClientDto serviceClientDto) {
+        XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClientDto.getServiceClientType()).get();
+        String encodedId = serviceClientDto.getId();
         return switch (serviceClientType) {
             case SUBSYSTEM -> {
                 if (!clientIdConverter.isEncodedSubsystemId(encodedId)) {
-                    throw new BadRequestException("Invalid subsystem id " + encodedId);
+                    throw new BadRequestException("Invalid subsystem id " + encodedId, INVALID_ENCODED_ID.build());
                 }
                 yield clientIdConverter.convertId(encodedId);
             }
             case GLOBALGROUP -> globalGroupConverter.convertId(encodedId);
-            case LOCALGROUP -> LocalGroupId.Conf.create(serviceClient.getLocalGroupCode());
-            default -> throw new BadRequestException("Invalid service client type");
+            case LOCALGROUP -> LocalGroupId.Conf.create(serviceClientDto.getLocalGroupCode());
+            default -> throw new BadRequestException("Invalid service client type", INVALID_CLIENT_TYPE.build());
         };
-    }
-
-    /**
-     * Convert ServiceClients into XroadIds (based on serviceClientType, id and localGroupCode)
-     * @param serviceClients
-     * @return
-     */
-    public List<XRoadId> convertIds(Iterable<ServiceClient> serviceClients) {
-        return Streams.stream(serviceClients)
-                .map(this::convertId)
-                .collect(Collectors.toList());
     }
 
 }

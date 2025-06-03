@@ -24,20 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-
   <xrd-button
     v-if="canDownload"
     :loading="downloading"
-    @click="download"
     data-test="download-diagnostics-report-button"
     outlined
+    @click="download"
   >
     <xrd-icon-base class="xrd-large-button-icon">
       <xrd-icon-download />
     </xrd-icon-base>
     {{ $t('diagnostics.downloadReport') }}
   </xrd-button>
-
 </template>
 <script lang="ts" setup>
 import { Permissions } from '@/global';
@@ -53,52 +51,19 @@ const { hasPermission } = useUser();
 
 const downloading = ref(false);
 
-const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT));
+const canDownload = computed(() =>
+  hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT),
+);
 
 function download(): void {
   downloading.value = true;
-  api.get('/diagnostics/info/download', { responseType: 'blob' })
+  api
+    .get('/diagnostics/info/download', { responseType: 'blob' })
     .then((res) => saveResponseAsFile(res, 'diagnostic-report.json'))
     .catch((error) => {
       showError(error);
     })
     .finally(() => (downloading.value = false));
 }
-
 </script>
-<style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
-
-.xrd-card-text {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.diagnostic-card {
-  width: 100%;
-  margin-bottom: 30px;
-
-  &:first-of-type {
-    margin-top: 40px;
-  }
-}
-
-.status-column {
-  width: 80px;
-}
-
-.level-column {
-  @media only screen and (min-width: 1200px) {
-    width: 20%;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

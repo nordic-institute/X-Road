@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.SecurityServerNotFoundException;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
@@ -65,13 +65,11 @@ public class AuthenticationCertificateDeletionRequestHandler implements
     public AuthenticationCertificateDeletionRequest add(AuthenticationCertificateDeletionRequest request) {
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
 
-
         authCertRepository.findByCert(request.getAuthCert())
                 .ifPresentOrElse(
                         cert -> deleteAuthCert(serverId, cert),
                         () -> tryToRevokeAuthCertRegistration(serverId, request.getAuthCert())
                 );
-
 
         final var requestEntity = new AuthenticationCertificateDeletionRequestEntity(request.getOrigin(), serverId,
                 request.getAuthCert(), request.getComments());
@@ -115,6 +113,6 @@ public class AuthenticationCertificateDeletionRequestHandler implements
     }
 
     private void mrInvalidAuthCertificate() {
-        throw new DataIntegrityException(MR_INVALID_AUTH_CERTIFICATE);
+        throw new ConflictException(MR_INVALID_AUTH_CERTIFICATE.build());
     }
 }

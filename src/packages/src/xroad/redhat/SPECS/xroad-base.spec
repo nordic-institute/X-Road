@@ -95,6 +95,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
+/usr/share/xroad/scripts/_setup_memory.sh
 /usr/share/xroad/scripts/xroad-base.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar

@@ -43,6 +43,8 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -58,8 +60,7 @@ public interface GlobalConfProvider {
     /**
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
-     * Configuration is considered valid if main/home instance parameteres are valid
-     *
+     * Configuration is considered valid if main/home instance parameters are valid
      * @return true if the global configuration is valid
      */
     boolean isValid();
@@ -90,6 +91,12 @@ public interface GlobalConfProvider {
     String getMemberName(ClientId clientId);
 
     /**
+     * @param clientId the client identifier
+     * @return subsystem name for the given client identifier
+     */
+    String getSubsystemName(ClientId clientId);
+
+    /**
      * @param instanceIdentifiers the optional instance identifiers
      * @return global groups of a given instance or all global groups if no
      * instance identifiers are specified
@@ -111,7 +118,6 @@ public interface GlobalConfProvider {
 
     /**
      * Returns address of the given service provider's proxy.
-     *
      * @param serviceProvider the service provider identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -119,7 +125,6 @@ public interface GlobalConfProvider {
 
     /**
      * Returns address of the given security server
-     *
      * @param serverId the security server identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -138,7 +143,6 @@ public interface GlobalConfProvider {
     /**
      * Returns a list of OCSP responder addresses for the given member
      * certificate.
-     *
      * @param member the member certificate
      * @return list of OCSP responder addresses
      * @throws Exception if an error occurs
@@ -149,7 +153,6 @@ public interface GlobalConfProvider {
 
     /**
      * Returns a list of OCSP responder addresses for the given CA certificate
-     *
      * @param caCert the CA certificate
      * @return list of OCSP responder addresses
      * @throws Exception if an error occurs
@@ -356,7 +359,6 @@ public interface GlobalConfProvider {
 
     /**
      * Get ApprovedCAInfo matching given CA certificate
-     *
      * @param instanceIdentifier instance id
      * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
@@ -367,8 +369,23 @@ public interface GlobalConfProvider {
 
     /**
      * Returns access to various GlobalConf extensions.
-     *
      * @return the global configuration extensions
      */
     GlobalConfExtensions getGlobalConfExtensions();
+
+    /**
+     * @return the version of the global configuration
+     */
+    OptionalInt getVersion();
+
+    /**
+     * @return Status of the maintenance mode
+     */
+    Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId);
+
+    /**
+     * @return Status of the maintenance mode
+     */
+    Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress);
+
 }

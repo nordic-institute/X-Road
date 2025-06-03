@@ -24,27 +24,47 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container fluid class="xrd-view-common mt-7">
-      <v-row class="title-action mx-0">
-        <div v-if="clientLoading" class="xrd-view-title mb-3">
-          {{ $t('noData.loading') }}
-        </div>
+  <XrdTitledView>
+    <template #title>
+      <subsystem-name :name="title" />
+      <template v-if="!clientLoading">
+        {{ $t('client.subsystemTitleSuffix') }}
+      </template>
+    </template>
+    <template #header-buttons>
+      <DisableClientButton
+        v-if="showDisable"
+        :id="id"
+        v-tooltip="tooltip"
+        class="ml-5"
+        :disabled="client?.is_management_services_provider"
+        @done="fetchData"
+      />
+      <EnableClientButton
+        v-if="showEnable"
+        :id="id"
+        class="ml-5"
+        @done="fetchData"
+      />
+      <DeleteClientButton v-if="showDelete" :id="id" class="ml-5" />
+      <UnregisterClientButton
+        v-if="showUnregister"
+        :id="id"
+        class="ml-5"
+        @done="fetchData"
+      />
+      <RenameClientButton
+        v-if="showRename"
+        :id="id"
+        class="pl-5"
+        :subsystem-name="subsystemName"
+        :client-status="client?.status"
+        @done="fetchData"
+      />
+    </template>
 
-        <div v-else-if="client" class="xrd-view-title mb-3">
-          {{ `${client.subsystem_code} (${$t('general.subsystem')})` }}
-        </div>
-        <div>
-          <DisableClientButton v-if="showDisable" :id="id" @done="fetchData" />
-          <EnableClientButton v-if="showEnable" :id="id" @done="fetchData" />
-          <DeleteClientButton v-if="showDelete" :id="id" />
-          <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchData" />
-        </div>
-      </v-row>
-
-      <router-view />
-    </v-container>
-  </div>
+    <router-view />
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -58,10 +78,17 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { ClientStatus } from '@/openapi-types';
+import { ClientStatus, RenameStatus } from '@/openapi-types';
+import { XrdTitledView } from '@niis/shared-ui';
+import RenameClientButton from '@/components/client/RenameClientButton.vue';
+import { useSystem } from '@/store/modules/system';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
+    RenameClientButton,
+    XrdTitledView,
     EnableClientButton,
     DisableClientButton,
     UnregisterClientButton,
@@ -82,28 +109,60 @@ export default defineComponent({
   computed: {
     ...mapState(useClient, ['client', 'clientLoading']),
     ...mapState(useUser, ['hasPermission']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
+    title(): string | undefined {
+      if (this.clientLoading) {
+        return this.$t('noData.loading');
+      } else if (this.client) {
+        return this.client.subsystem_name;
+      }
+      return '';
+    },
+    tooltip() {
+      return {
+        text: this.$t('client.forbiddenDisable'),
+        'open-delay': 500,
+        'open-on-hover': this.client?.is_management_services_provider,
+      };
+    },
+    subsystemName(): string {
+      return this.client?.subsystem_name || '';
+    },
     showUnregister(): boolean {
       if (!this.client) return false;
       return (
         this.client &&
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && [
+        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        [
           ClientStatus.REGISTERED,
           ClientStatus.REGISTRATION_IN_PROGRESS,
           ClientStatus.DISABLED,
         ].includes(this.client.status)
       );
     },
+    showRename(): boolean {
+      return (
+        this.client &&
+        this.doesSupportSubsystemNames &&
+        this.hasPermission(Permissions.RENAME_SUBSYSTEM) &&
+        RenameStatus.NAME_SUBMITTED !== this.client.rename_status &&
+        [ClientStatus.SAVED, ClientStatus.REGISTERED].includes(
+          this.client.status,
+        )
+      );
+    },
 
     showDelete(): boolean {
       if (
         !this.client ||
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && [
-          ClientStatus.REGISTERED,
-          ClientStatus.REGISTRATION_IN_PROGRESS,
-          ClientStatus.ENABLING_IN_PROGRESS,
-          ClientStatus.DISABLING_IN_PROGRESS,
-          ClientStatus.DISABLED,
-        ].includes(this.client.status)
+        (this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+          [
+            ClientStatus.REGISTERED,
+            ClientStatus.REGISTRATION_IN_PROGRESS,
+            ClientStatus.ENABLING_IN_PROGRESS,
+            ClientStatus.DISABLING_IN_PROGRESS,
+            ClientStatus.DISABLED,
+          ].includes(this.client.status))
       ) {
         return false;
       }
@@ -142,10 +201,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.title-action {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-</style>
+<style lang="scss" scoped></style>

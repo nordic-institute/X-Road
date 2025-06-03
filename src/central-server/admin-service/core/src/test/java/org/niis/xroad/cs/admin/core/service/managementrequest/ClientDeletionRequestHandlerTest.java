@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +55,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -110,9 +111,8 @@ class ClientDeletionRequestHandlerTest {
         when(clientIdRepository.findOne(ClientIdEntity.ensure(subsystemId))).thenReturn(mockClientId);
         when(serverRepository.findBy(mockServerId, mockClientId)).thenReturn(Optional.empty());
 
-        Assertions.assertThatThrownBy(() -> handler.add(request))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage(MR_CLIENT_REGISTRATION_NOT_FOUND.getDescription());
+        var err = assertThrows(NotFoundException.class, () -> handler.add(request));
+        assertEquals(MR_CLIENT_REGISTRATION_NOT_FOUND.code(), err.getErrorDeviation().code());
     }
 
     @Test

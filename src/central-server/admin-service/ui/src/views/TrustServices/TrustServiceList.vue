@@ -190,12 +190,6 @@ export default defineComponent({
 @use '@/assets/tables' as *;
 @use '@/assets/colors';
 
-.server-code {
-  color: colors.$Purple100;
-  font-weight: 600;
-  font-size: 14px;
-}
-
 .tsa-list {
   margin-top: 20px;
 }

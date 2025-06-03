@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://x-road.eu/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="centralservice" targetNamespace="http://x-road.eu/centralservice/">
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://x-road.eu/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="centralservice"
+                  targetNamespace="http://x-road.eu/centralservice/">
     <wsdl:types>
         <!-- Schema for identifiers (reduced) -->
         <xsd:schema xmlns="http://x-road.eu/xsd/identifiers" elementFormDefault="qualified" targetNamespace="http://x-road.eu/xsd/identifiers">
@@ -128,16 +130,19 @@
             </xsd:complexType>
         </xsd:schema>
         <!-- Schema for requests (reduced) -->
-        <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" targetNamespace="http://x-road.eu/xsd/xroad.xsd" elementFormDefault="qualified">
+        <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
+                    targetNamespace="http://x-road.eu/xsd/xroad.xsd" elementFormDefault="qualified">
             <xsd:import namespace="http://x-road.eu/xsd/identifiers" id="id"/>
-            <xsd:element name="clientReg" type="tns:ClientRequestType"/>
-            <xsd:element name="clientRegResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="clientReg" type="tns:ClientRegRequestType"/>
+            <xsd:element name="clientRegResponse" type="tns:ClientRegRequestType"/>
             <xsd:element name="clientDeletion" type="tns:ClientRequestType"/>
             <xsd:element name="clientDeletionResponse" type="tns:ClientRequestType"/>
             <xsd:element name="clientDisable" type="tns:ClientRequestType"/>
             <xsd:element name="clientDisableResponse" type="tns:ClientRequestType"/>
             <xsd:element name="clientEnable" type="tns:ClientRequestType"/>
             <xsd:element name="clientEnableResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="clientRename" type="tns:ClientRenameRequestType"/>
+            <xsd:element name="clientRenameResponse" type="tns:ClientRenameRequestType"/>
             <xsd:element name="authCertReg" type="tns:AuthCertRegRequestType"/>
             <xsd:element name="authCertRegResponse" type="tns:AuthCertRegRequestType"/>
             <xsd:element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
@@ -146,6 +151,10 @@
             <xsd:element name="ownerChangeResponse" type="tns:ClientRequestType"/>
             <xsd:element name="addressChange" type="tns:AddressChangeRequestType"/>
             <xsd:element name="addressChangeResponse" type="tns:AddressChangeRequestType"/>
+            <xsd:element name="maintenanceModeEnable" type="tns:MaintenanceModeEnableRequestType"/>
+            <xsd:element name="maintenanceModeEnableResponse" type="tns:MaintenanceModeEnableRequestType"/>
+            <xsd:element name="maintenanceModeDisable" type="tns:MaintenanceModeDisableRequestType"/>
+            <xsd:element name="maintenanceModeDisableResponse" type="tns:MaintenanceModeDisableRequestType"/>
             <!-- Header fields -->
             <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
             <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
@@ -171,11 +180,11 @@
                     <xsd:element name="authCert" type="base64Binary">
                         <xsd:annotation>
                             <xsd:documentation>
-                              Contents (in DER encoding) of
-                              the authentication certificate that will
-                              be added to the list of certificates
-                              authenticating the Security Server.
-                          </xsd:documentation>
+                                Contents (in DER encoding) of
+                                the authentication certificate that will
+                                be added to the list of certificates
+                                authenticating the Security Server.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
@@ -226,23 +235,104 @@
                     <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:complexType>
-            <xsd:complexType name="AddressChangeRequestType">
-              <xsd:sequence>
-                <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
-                  <xsd:annotation>
-                    <xsd:documentation>Identifier of the Security Server the
-                      authentication certificate will be associated with.
-                    </xsd:documentation>
-                  </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="address" type="string">
-                  <xsd:annotation>
-                    <xsd:documentation>New address of the Security Server</xsd:documentation>
-                  </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0" />
-              </xsd:sequence>
+            <xsd:complexType name="ClientRegRequestType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifier of the security
+                                server where the client is added to or removed
+                                from (depending on the request type).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="client" type="id:XRoadClientIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifier of the client
+                                associated with the Security Server. When the
+                                request is for registering client, the client is
+                                added to the Security Server. When the request
+                                is for deleting client, the client is removed
+                                from the clients' list of the Security Server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subsystemName" type="string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Optional new name for client subsystem.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+                </xsd:sequence>
             </xsd:complexType>
+            <xsd:complexType name="ClientRenameRequestType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifier of the security
+                                server where the client is added to or removed
+                                from (depending on the request type).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="client" type="id:XRoadClientIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifier of the client
+                                associated with the Security Server. When the
+                                request is for registering client, the client is
+                                added to the Security Server. When the request
+                                is for deleting client, the client is removed
+                                from the clients' list of the Security Server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="subsystemName" type="string">
+                        <xsd:annotation>
+                            <xsd:documentation>New name of client subsystem.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AddressChangeRequestType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                        <xsd:annotation>
+                          <xsd:documentation>Identifier of the security server for which the address will be changed.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="address" type="string">
+                        <xsd:annotation>
+                            <xsd:documentation>New address of the Security Server</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+          <xsd:complexType name="MaintenanceModeEnableRequestType">
+            <xsd:sequence>
+              <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <xsd:annotation>
+                  <xsd:documentation>Identifier of the security server which will be put into maintenance mode.</xsd:documentation>
+                </xsd:annotation>
+              </xsd:element>
+              <xsd:element name="message" type="string" minOccurs="0">
+                <xsd:annotation>
+                  <xsd:documentation>Optional message for maintenance mode</xsd:documentation>
+                </xsd:annotation>
+              </xsd:element>
+              <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+            </xsd:sequence>
+          </xsd:complexType>
+          <xsd:complexType name="MaintenanceModeDisableRequestType">
+            <xsd:sequence>
+              <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                <xsd:annotation>
+                  <xsd:documentation>Identifier of the security server which will be taken out of maintenance mode.</xsd:documentation>
+                </xsd:annotation>
+              </xsd:element>
+              <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+            </xsd:sequence>
+          </xsd:complexType>
             <xsd:simpleType name="RequestIdType">
                 <xsd:annotation>
                     <xsd:documentation>For responses only, unique identifier
@@ -284,6 +374,12 @@
     <wsdl:message name="clientEnableResponse">
         <wsdl:part element="xroad:clientEnableResponse" name="parameters"/>
     </wsdl:message>
+    <wsdl:message name="clientRename">
+        <wsdl:part element="xroad:clientRename" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="clientRenameResponse">
+        <wsdl:part element="xroad:clientRenameResponse" name="parameters"/>
+    </wsdl:message>
     <wsdl:message name="authCertReg">
         <wsdl:part element="xroad:authCertReg" name="parameters"/>
     </wsdl:message>
@@ -303,10 +399,22 @@
         <wsdl:part element="xroad:ownerChangeResponse" name="parameters"/>
     </wsdl:message>
     <wsdl:message name="addressChange">
-      <wsdl:part element="xroad:addressChange" name="parameters"/>
+        <wsdl:part element="xroad:addressChange" name="parameters"/>
     </wsdl:message>
     <wsdl:message name="addressChangeResponse">
-      <wsdl:part element="xroad:addressChangeResponse" name="parameters"/>
+        <wsdl:part element="xroad:addressChangeResponse" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeEnable">
+      <wsdl:part element="xroad:maintenanceModeEnable" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeEnableResponse">
+      <wsdl:part element="xroad:maintenanceModeEnableResponse" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeDisable">
+      <wsdl:part element="xroad:maintenanceModeDisable" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="maintenanceModeDisableResponse">
+      <wsdl:part element="xroad:maintenanceModeDisableResponse" name="parameters"/>
     </wsdl:message>
     <wsdl:portType name="centralservice">
         <wsdl:operation name="clientReg">
@@ -325,6 +433,10 @@
             <wsdl:input message="tns:clientEnable"/>
             <wsdl:output message="tns:clientEnableResponse"/>
         </wsdl:operation>
+        <wsdl:operation name="clientRename">
+            <wsdl:input message="tns:clientRename"/>
+            <wsdl:output message="tns:clientRenameResponse"/>
+        </wsdl:operation>
         <wsdl:operation name="authCertDeletion">
             <wsdl:input message="tns:authCertDeletion"/>
             <wsdl:output message="tns:authCertDeletionResponse"/>
@@ -334,8 +446,16 @@
             <wsdl:output message="tns:ownerChangeResponse"/>
         </wsdl:operation>
         <wsdl:operation name="addressChange">
-          <wsdl:input message="tns:addressChange"/>
-          <wsdl:output message="tns:addressChangeResponse"/>
+            <wsdl:input message="tns:addressChange"/>
+            <wsdl:output message="tns:addressChangeResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeEnable">
+          <wsdl:input message="tns:maintenanceModeEnable"/>
+          <wsdl:output message="tns:maintenanceModeEnableResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeDisable">
+          <wsdl:input message="tns:maintenanceModeDisable"/>
+          <wsdl:output message="tns:maintenanceModeDisableResponse"/>
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
@@ -412,6 +532,24 @@
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="clientRename">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="authCertDeletion">
             <soap:operation soapAction=""/>
             <wsdl:input>
@@ -448,24 +586,60 @@
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-      <wsdl:operation name="addressChange">
-        <soap:operation soapAction=""/>
-        <wsdl:input>
-          <soap:body use="literal"/>
-          <soap:header message="tns:requestheader" part="client" use="literal"/>
-          <soap:header message="tns:requestheader" part="service" use="literal"/>
-          <soap:header message="tns:requestheader" part="id" use="literal"/>
-          <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-        </wsdl:input>
-        <wsdl:output>
-          <soap:body use="literal"/>
-          <soap:header message="tns:requestheader" part="client" use="literal"/>
-          <soap:header message="tns:requestheader" part="service" use="literal"/>
-          <soap:header message="tns:requestheader" part="id" use="literal"/>
-          <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
-          <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
-        </wsdl:output>
-      </wsdl:operation>
+        <wsdl:operation name="addressChange">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeEnable">
+          <soap:operation soapAction=""/>
+          <wsdl:input>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+          </wsdl:input>
+          <wsdl:output>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+          </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="maintenanceModeDisable">
+          <soap:operation soapAction=""/>
+          <wsdl:input>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+          </wsdl:input>
+          <wsdl:output>
+            <soap:body use="literal"/>
+            <soap:header message="tns:requestheader" part="client" use="literal"/>
+            <soap:header message="tns:requestheader" part="service" use="literal"/>
+            <soap:header message="tns:requestheader" part="id" use="literal"/>
+            <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
+          </wsdl:output>
+        </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="centralservice">
         <wsdl:port binding="tns:centralserviceSOAP" name="centralserviceSOAP">

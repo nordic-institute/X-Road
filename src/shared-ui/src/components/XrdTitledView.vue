@@ -26,15 +26,15 @@
  -->
 <template>
   <div>
-    <header class="header-row d-flex mb-6 align-center">
-      <div class="xrd-header-title ma-2 pa-2 me-auto">
+    <header class="header-row d-flex mt-5 mb-5 align-center">
+      <div class="xrd-header-title">
         <div class="xrd-view-title">
           <slot name="title">{{ titleKey ? $t(titleKey) : title }}</slot>
         </div>
         <slot name="append-title" />
       </div>
 
-      <div class="xrd-header-buttons ma-2 pa-2 me-6">
+      <div class="xrd-header-buttons">
         <slot name="header-buttons" />
       </div>
     </header>
@@ -50,7 +50,6 @@
 </template>
 
 <script lang="ts" setup>
-
 defineProps({
   title: {
     type: String,
@@ -71,7 +70,6 @@ defineProps({
     },
   },
 });
-
 </script>
 
 <style lang="scss" scoped>
@@ -86,8 +84,7 @@ header.header-row {
   justify-content: space-between;
   align-items: flex-end;
   width: 100%;
-  margin-bottom: 0 !important;
-  min-height: 80px;
+  min-height: 45px;
 
   .xrd-header-title {
     margin-left: 0 !important;

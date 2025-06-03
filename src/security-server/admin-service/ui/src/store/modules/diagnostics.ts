@@ -30,6 +30,7 @@ import {
   GlobalConfDiagnostics,
   MessageLogEncryptionStatus,
   OcspResponderDiagnostics,
+  ProxyMemoryUsageStatus,
   TimestampingServiceDiagnostics,
 } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -42,6 +43,7 @@ export interface DiagnosticsState {
   ocspResponderDiagnostics: OcspResponderDiagnostics[];
   backupEncryptionDiagnostics: BackupEncryptionStatus;
   messageLogEncryptionDiagnostics: MessageLogEncryptionStatus;
+  proxyMemoryUsageStatus: ProxyMemoryUsageStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
@@ -110,6 +112,13 @@ export const useDiagnostics = defineStore('diagnostics', {
         )
         .then((res) => {
           this.messageLogEncryptionDiagnostics = res.data;
+        });
+    },
+    async fetchProxyMemoryDiagnostics() {
+      return api
+        .get<ProxyMemoryUsageStatus>('/diagnostics/proxy-memory-usage-status')
+        .then((res) => {
+          this.proxyMemoryUsageStatus = res.data;
         });
     },
   },

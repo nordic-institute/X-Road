@@ -33,6 +33,9 @@ import org.junit.Test;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_WEAK_PIN;
+
 /**
  * test token pin validator
  */
@@ -56,15 +59,15 @@ public class TokenPinValidatorTest {
 
     @Test
     public void validateSoftwareTokenPinWeak() throws Exception {
-        try {
-            tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray());
-        } catch (WeakPinException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(
-                    DeviationCodes.ERROR_WEAK_PIN, expected, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
-                    String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-                    DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-                    String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
-        }
+        WeakPinException exception = assertThrows(
+                WeakPinException.class,
+                () -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_WEAK_PIN.toCharArray())
+        );
+        DeviationTestUtils.assertErrorWithMetadata(
+                TOKEN_WEAK_PIN.code(), exception, DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH,
+                String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
+                DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
+                String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
     }
 
     @Test
@@ -75,10 +78,9 @@ public class TokenPinValidatorTest {
 
     @Test
     public void validateSoftwareTokenPinInvalid() throws Exception {
-        try {
-            tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray());
-        } catch (InvalidCharactersException expected) {
-            // done
-        }
+        assertThrows(
+                InvalidCharactersException.class,
+                () -> tokenPinValidator.validateSoftwareTokenPin(SOFTWARE_TOKEN_INVALID_PIN.toCharArray())
+        );
     }
 }

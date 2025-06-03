@@ -1,6 +1,5 @@
 plugins {
   id("xroad.java-conventions")
-  id("xroad.int-test-conventions")
 }
 
 val schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -10,11 +9,6 @@ val xjc by configurations.creating
 sourceSets {
   main {
     java.srcDirs(schemaTargetDir)
-  }
-  named("intTest") {
-    resources {
-      srcDir("../../../common/common-int-test/src/main/resources/")
-    }
   }
 }
 
@@ -34,9 +28,7 @@ dependencies {
   testImplementation(libs.mockito.core)
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-  "intTestRuntimeOnly"(project(":addons:hwtoken"))
-  "intTestImplementation"(project(":common:common-test"))
-  "intTestImplementation"(project(":common:common-int-test"))
+
 
   xjc(libs.bundles.jaxb)
 }
@@ -76,36 +68,4 @@ tasks.named("xjcTask") {
 
 tasks.compileJava {
   dependsOn(xjcTask)
-}
-
-tasks.register<Test>("intTest") {
-  useJUnitPlatform()
-
-  description = "Runs integration tests."
-  group = "verification"
-
-  testClassesDirs = sourceSets["intTest"].output.classesDirs
-  classpath = sourceSets["intTest"].runtimeClasspath
-
-  val intTestArgs = mutableListOf<String>()
-  if (project.hasProperty("intTestProfilesInclude")) {
-    intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"
-  }
-
-  jvmArgs(intTestArgs)
-
-  testLogging {
-    showStackTraces = true
-    showExceptions = true
-    showCauses = true
-    showStandardStreams = true
-  }
-
-  reports {
-    junitXml.required.set(false)
-  }
-}
-
-tasks.named("check") {
-  dependsOn(tasks.named("intTest"))
 }

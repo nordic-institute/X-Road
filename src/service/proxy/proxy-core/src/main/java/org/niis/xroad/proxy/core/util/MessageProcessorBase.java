@@ -27,6 +27,7 @@ package org.niis.xroad.proxy.core.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -111,7 +112,6 @@ public abstract class MessageProcessorBase {
 
     /**
      * Processes the incoming message.
-     *
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
@@ -119,7 +119,6 @@ public abstract class MessageProcessorBase {
     /**
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
-     *
      * @param opMonitoringData monitoring data to update
      * @param soapMessage      SOAP message
      */
@@ -137,6 +136,7 @@ public abstract class MessageProcessorBase {
                     soapMessage.getProtocolVersion());
             opMonitoringData.setServiceType(DescriptionType.WSDL.name());
             opMonitoringData.setRequestSize(soapMessage.getBytes().length);
+            opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
         }
     }
 
@@ -155,7 +155,10 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setServiceType(Optional.ofNullable(
                     commonBeanProxy.serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
-            opMonitoringData.setRestPath(getNormalizedServicePath(request.getServicePath()));
+            // we log rest path data only for PRODUCER
+            opMonitoringData.setRestPath(opMonitoringData.isProducer()
+                    ? getNormalizedServicePath(request.getServicePath()) : null);
+            opMonitoringData.setXRoadVersion(Version.XROAD_VERSION);
         }
     }
 
@@ -179,13 +182,12 @@ public abstract class MessageProcessorBase {
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
-     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
      */
     protected static String validateSoapActionHeader(String soapAction) {
-        if (soapAction == null || "".equals(soapAction) || "\"\"".equals(soapAction)) {
+        if (soapAction == null || soapAction.isEmpty() || "\"\"".equals(soapAction)) {
             //allow missing, empty and "" SoapAction
             return soapAction;
         }
@@ -205,7 +207,6 @@ public abstract class MessageProcessorBase {
 
     /**
      * Logs a warning if identifier contains invalid characters.
-     *
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
@@ -228,7 +229,6 @@ public abstract class MessageProcessorBase {
 
     /**
      * Verifies the authentication for the client certificate.
-     *
      * @param client the client identifier
      * @param auth   the authentication data of the information system
      * @throws Exception if verification fails

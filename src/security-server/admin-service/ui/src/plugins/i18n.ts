@@ -24,19 +24,19 @@
  * THE SOFTWARE.
  */
 import { prepareI18n } from '@niis/shared-ui';
-import enMessages from '@/locales/en.json';
 
-export const availableLanguages = ['en', 'es', 'et'];
+export const availableLanguages = ['en', 'es', 'et', 'ru', 'tk'];
 
-export const { i18n, languageHelper } = prepareI18n(enMessages, loadMessages);
+export const { i18n, languageHelper } = prepareI18n(loadMessages);
 
 // Fetches all language-specific messages for the given language
 async function loadMessages(language: string) {
   try {
-    let module = await import(`@/locales/${language}.json`);
+    const module = await import(`@/locales/${language}.json`);
     return await module.default;
   } catch (e) {
-    console.error("Failed to load translations for: " + language);
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load translations for: ' + language);
     return {};
   }
 }

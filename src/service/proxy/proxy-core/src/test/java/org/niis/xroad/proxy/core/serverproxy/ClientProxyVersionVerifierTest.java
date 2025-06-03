@@ -43,7 +43,6 @@ public class ClientProxyVersionVerifierTest {
     private static final String CLIENT_VERSION_6_26_3 = "6.26.3";
     private static final String CLIENT_VERSION_7_1_3 = "7.1.3";
     private static final String VERSION_7_1_3 = "7.1.3";
-    private static final String MIN_SUPPORTED_CLIENT_VERSION = "xroad.proxy.server-min-supported-client-version";
 
     private Request request;
     private HttpFields headers;
@@ -61,23 +60,21 @@ public class ClientProxyVersionVerifierTest {
     public void whenMinSupportedClientVersionPropertyIsEmptyThenShouldPassClientProxyVersionCheck() {
         when(headers.get(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
 
-        ClientProxyVersionVerifier.check(request);
+        new ClientProxyVersionVerifier(null).check(request);
     }
 
     @Test
     public void shouldPassClientProxyVersionCheck() {
-        System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
-        when(headers.get(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_7_1_3);
+        when(headers.get(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
 
-        ClientProxyVersionVerifier.check(request);
+        new ClientProxyVersionVerifier(CLIENT_VERSION_6_26_3).check(request);
     }
 
     @Test
     public void shouldRaiseError() {
-        System.setProperty(MIN_SUPPORTED_CLIENT_VERSION, VERSION_7_1_3);
         when(headers.get(MimeUtils.HEADER_PROXY_VERSION)).thenReturn(CLIENT_VERSION_6_26_3);
 
-        CodedException exception = assertThrows(CodedException.class, () -> ClientProxyVersionVerifier.check(request));
+        CodedException exception = assertThrows(CodedException.class, () -> new ClientProxyVersionVerifier(VERSION_7_1_3).check(request));
         assertEquals("ClientProxyVersionNotSupported: The minimum supported version for client security server is: 7.1.3 ",
                 exception.getMessage());
     }

@@ -37,7 +37,11 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.request.ClientRegRequestType;
+import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 import ee.ria.xroad.common.request.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
@@ -67,7 +71,7 @@ public class TestManagementRequestBuilder {
     public SoapMessageImpl buildAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert) {
         log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
-        AuthCertRegRequestType request = FACTORY.createAuthCertRegRequestType();
+        var request = FACTORY.createAuthCertRegRequestType();
         request.setServer(securityServer);
         request.setAddress(address);
         request.setAuthCert(authCert);
@@ -76,7 +80,7 @@ public class TestManagementRequestBuilder {
     }
 
     public SoapMessageImpl buildAuthCertDeletionRequest(SecurityServerId.Conf securityServer, byte[] authCert) {
-        AuthCertDeletionRequestType request = FACTORY.createAuthCertDeletionRequestType();
+        var request = FACTORY.createAuthCertDeletionRequestType();
         request.setServer(securityServer);
         request.setAuthCert(authCert);
 
@@ -84,15 +88,43 @@ public class TestManagementRequestBuilder {
     }
 
     public SoapMessageImpl buildAddressChangeRequest(SecurityServerId.Conf securityServer, String address) {
-        AddressChangeRequestType request = FACTORY.createAddressChangeRequestType();
+        var request = FACTORY.createAddressChangeRequestType();
         request.setServer(securityServer);
         request.setAddress(address);
 
         return buildMessage(element(ManagementRequestType.ADDRESS_CHANGE_REQUEST, AddressChangeRequestType.class, request));
     }
 
+    public SoapMessageImpl buildMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) {
+        var request = FACTORY.createMaintenanceModeEnableRequestType();
+        request.setServer(securityServer);
+        request.setMessage(message);
+
+        return buildMessage(element(ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST,
+                MaintenanceModeEnableRequestType.class,
+                request));
+    }
+
+    public SoapMessageImpl buildMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) {
+        var request = FACTORY.createMaintenanceModeDisableRequestType();
+        request.setServer(securityServer);
+
+        return buildMessage(element(ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST,
+                MaintenanceModeDisableRequestType.class,
+                request));
+    }
+
     public SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
-        return buildGenericClientRequestType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST, securityServer, clientId);
+        return buildClientRegRequest(securityServer, clientId, null);
+    }
+
+    public SoapMessageImpl buildClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String subsystemName) {
+        var request = FACTORY.createClientRegRequestType();
+        request.setServer(securityServer);
+        request.setClient(clientId);
+        request.setSubsystemName(subsystemName);
+
+        return buildMessage(element(ManagementRequestType.CLIENT_REGISTRATION_REQUEST, ClientRegRequestType.class, request));
     }
 
     public SoapMessageImpl buildOwnerChangeRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) {
@@ -111,11 +143,25 @@ public class TestManagementRequestBuilder {
         return buildGenericClientRequestType(ManagementRequestType.CLIENT_ENABLE_REQUEST, securityServer, clientId);
     }
 
+    public SoapMessageImpl buildClientRenameRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String subsystemName) {
+        var request = FACTORY.createClientRenameRequestType();
+        request.setServer(securityServer);
+        request.setClient(clientId);
+        request.setSubsystemName(subsystemName);
+
+        return buildMessage(element(ManagementRequestType.CLIENT_RENAME_REQUEST, ClientRenameRequestType.class, request));
+    }
+
     private SoapMessageImpl buildGenericClientRequestType(ManagementRequestType type, SecurityServerId.Conf securityServer,
                                                           ClientId.Conf clientId) {
+        return buildGenericClientRequestType(type, securityServer, clientId, null);
+    }
+
+    private SoapMessageImpl buildGenericClientRequestType(ManagementRequestType type, SecurityServerId.Conf securityServer,
+                                                          ClientId.Conf clientId, String subsystemName) {
         log.debug("buildClientRegRequest(server: {}, clientId: {})", securityServer, clientId);
 
-        ClientRequestType request = FACTORY.createClientRequestType();
+        var request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(clientId);
 

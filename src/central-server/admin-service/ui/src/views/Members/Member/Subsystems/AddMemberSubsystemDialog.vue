@@ -43,7 +43,16 @@
           variant="outlined"
           autofocus
           data-test="add-subsystem-input"
-        ></v-text-field>
+        />
+
+        <v-text-field
+          v-model="subsystemName"
+          class="mt-2"
+          v-bind="subsystemNameAttrs"
+          :label="$t('members.member.subsystems.subsystemname')"
+          variant="outlined"
+          data-test="add-subsystem-name-input"
+        />
       </div>
     </template>
   </xrd-simple-dialog>
@@ -68,13 +77,17 @@ const emits = defineEmits(['save', 'cancel']);
 
 const { defineField, meta, handleSubmit, resetForm } = useForm({
   validationSchema: { subsystemCode: 'required' },
-  initialValues: { subsystemCode: '' },
+  initialValues: { subsystemCode: '', subsystemName: '' },
 });
 
 const { addSubsystem } = useSubsystem();
 const { showError, showSuccess } = useNotifications();
 
 const [subsystemCode, subsystemCodeAttrs] = defineField('subsystemCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const [subsystemName, subsystemNameAttrs] = defineField('subsystemName', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
@@ -89,6 +102,7 @@ const { t } = i18n.global;
 const add = handleSubmit((values) => {
   loading.value = true;
   addSubsystem({
+    subsystem_name: values.subsystemName,
     subsystem_id: {
       member_class: props.member.client_id.member_class,
       member_code: props.member.client_id.member_code,

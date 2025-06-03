@@ -34,7 +34,11 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.request.ClientRegRequestType;
+import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +51,9 @@ import org.niis.xroad.common.managementrequest.verify.decode.ClientDeletionReque
 import org.niis.xroad.common.managementrequest.verify.decode.ClientDisableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.ClientRenameRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeDisableRequestCallback;
+import org.niis.xroad.common.managementrequest.verify.decode.MaintenanceModeEnableRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -54,12 +61,11 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
 
 /**
  * Reads and verifies management requests.
@@ -67,75 +73,33 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
 @Slf4j
 @RequiredArgsConstructor
 public final class ManagementRequestVerifier {
+    private static final Set<Class<?>> MANAGEMENT_REQUEST_CLASSES = Set.of(
+            AuthCertRegRequestType.class,
+            AuthCertDeletionRequestType.class,
+            ClientRequestType.class,
+            AddressChangeRequestType.class,
+            ClientRenameRequestType.class,
+            ClientRegRequestType.class,
+            MaintenanceModeEnableRequestType.class,
+            MaintenanceModeDisableRequestType.class
+    );
     private final GlobalConfProvider globalConfProvider;
 
-    public static class Result {
-        @Getter
-        private final SoapMessageImpl soapMessage;
-        @Getter
-        private final ManagementRequestType requestType;
+    public record Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, Object request) {
 
-        private final AuthCertRegRequestType authCertRegRequest;
-        private final AuthCertDeletionRequestType authCertDeletionRequestType;
-        private final ClientRequestType clientRequest;
-        private final AddressChangeRequestType addressChangeRequest;
-
-        public Result(SoapMessageImpl soapMessage, AuthCertRegRequestType authCertRegRequest) {
-            this.soapMessage = soapMessage;
-            this.requestType = AUTH_CERT_REGISTRATION_REQUEST;
-            this.authCertRegRequest = authCertRegRequest;
-            this.authCertDeletionRequestType = null;
-            this.addressChangeRequest = null;
-            this.clientRequest = null;
+        public <T> Optional<T> getRequest(Class<T> clazz) {
+            return Optional.ofNullable(request)
+                    .map(clazz::cast);
         }
 
-        public Result(SoapMessageImpl soapMessage, AuthCertDeletionRequestType authCertDeletionRequestType) {
-            this.soapMessage = soapMessage;
-            this.requestType = AUTH_CERT_DELETION_REQUEST;
-            this.authCertRegRequest = null;
-            this.authCertDeletionRequestType = authCertDeletionRequestType;
-            this.clientRequest = null;
-            this.addressChangeRequest = null;
+        public Optional<Object> getRequest() {
+            return Optional.ofNullable(request);
         }
 
-        public Result(SoapMessageImpl soapMessage, ManagementRequestType requestType, ClientRequestType clientRequest) {
-            this.soapMessage = soapMessage;
-            this.requestType = requestType;
-            this.authCertRegRequest = null;
-            this.authCertDeletionRequestType = null;
-            this.addressChangeRequest = null;
-            this.clientRequest = clientRequest;
-        }
-
-        public Result(SoapMessageImpl soapMessage, AddressChangeRequestType addressChangeRequest) {
-            this.soapMessage = soapMessage;
-            this.requestType = ManagementRequestType.ADDRESS_CHANGE_REQUEST;
-            this.addressChangeRequest = addressChangeRequest;
-            this.clientRequest = null;
-            this.authCertDeletionRequestType = null;
-            this.authCertRegRequest = null;
-        }
-
-        public Optional<AuthCertRegRequestType> getAuthCertRegRequest() {
-            return Optional.ofNullable(authCertRegRequest);
-        }
-
-        public Optional<AuthCertDeletionRequestType> getAuthCertDeletionRequest() {
-            return Optional.ofNullable(authCertDeletionRequestType);
-        }
-
-        public Optional<AddressChangeRequestType> getAddressChangeRequest() {
-            return Optional.ofNullable(addressChangeRequest);
-        }
-
-        public Optional<ClientRequestType> getClientRequest() {
-            return Optional.ofNullable(clientRequest);
-        }
     }
 
     /**
      * Reads management requests from input stream.
-     *
      * @param contentType expected content type of the stream
      * @param inputStream the input stream
      * @return management request message
@@ -159,17 +123,17 @@ public final class ManagementRequestVerifier {
         if (cb.getManagementRequestDecoderCallback() == null) {
             throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request. Decoder was not fully initialized.");
         }
-        Object request = cb.getManagementRequestDecoderCallback().getRequest();
+        var request = cb.getManagementRequestDecoderCallback().getRequest();
 
-        return switch (request) {
-            case null -> throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
-            case AuthCertRegRequestType authCertRegRequestType -> new Result(cb.getSoapMessage(), authCertRegRequestType);
-            case AuthCertDeletionRequestType authCertDeletionRequestType -> new Result(cb.getSoapMessage(), authCertDeletionRequestType);
-            case ClientRequestType clientRequestType -> new Result(cb.getSoapMessage(), cb.getRequestType(), clientRequestType);
-            case AddressChangeRequestType addressChangeRequestType -> new Result(cb.getSoapMessage(), addressChangeRequestType);
-            default -> throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
-                    request.getClass().getSimpleName());
-        };
+        if (request == null) {
+            throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
+        }
+        if (MANAGEMENT_REQUEST_CLASSES.contains(request.getClass())) {
+            return new Result(cb.getSoapMessage(), cb.getRequestType(), request);
+        }
+
+        throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
+                request.getClass().getSimpleName());
     }
 
     @Getter
@@ -196,6 +160,9 @@ public final class ManagementRequestVerifier {
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, this);
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, this);
+                case CLIENT_RENAME_REQUEST -> new ClientRenameRequestCallback(globalConfProvider, this);
+                case MAINTENANCE_MODE_ENABLE_REQUEST -> new MaintenanceModeEnableRequestCallback(globalConfProvider, this);
+                case MAINTENANCE_MODE_DISABLE_REQUEST -> new MaintenanceModeDisableRequestCallback(globalConfProvider, this);
             };
         }
 

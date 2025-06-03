@@ -34,7 +34,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.core.entity.AddressChangeRequestEntity;
@@ -84,11 +84,11 @@ class AddressChangeRequestHandlerTest {
     @Test
     void addInvalidAddress() {
         assertThatThrownBy(() -> handler.add(new AddressChangeRequest(SECURITY_SERVER, securityServerId, null)))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Invalid server address");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=management_request_invalid_server_address]");
         assertThatThrownBy(() -> handler.add(new AddressChangeRequest(SECURITY_SERVER, securityServerId, "")))
-                .isInstanceOf(ValidationFailureException.class)
-                .hasMessage("Invalid server address");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Error[code=management_request_invalid_server_address]");
     }
 
     @Test

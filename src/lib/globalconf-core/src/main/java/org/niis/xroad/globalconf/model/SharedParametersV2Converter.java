@@ -180,7 +180,7 @@ public class SharedParametersV2Converter {
     }
 
     private SharedParameters.Subsystem toSubsystem(String instanceIdentifier, MemberType memberType, SubsystemType source) {
-        return new SharedParameters.Subsystem(source.getSubsystemCode(), toClientId(instanceIdentifier, memberType, source));
+        return new SharedParameters.Subsystem(source.getSubsystemCode(), null, toClientId(instanceIdentifier, memberType, source));
     }
 
     private SharedParameters.SecurityServer toSecurityServer(
@@ -201,6 +201,7 @@ public class SharedParametersV2Converter {
             }
             target.setClients(clients);
         }
+        target.setMaintenanceMode(SharedParameters.MaintenanceMode.disabled());
         return target;
     }
 

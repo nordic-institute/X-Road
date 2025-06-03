@@ -29,14 +29,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.openapi.model.Service;
+import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDto;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
-import org.niis.xroad.serverconf.model.EndpointType;
-import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.model.Service;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -47,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Convert Service related data between openapi and service domain classes
@@ -67,58 +67,56 @@ public class ServiceConverter {
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     /**
-     * Converts a group of ServiceTypes to a list of Services and sorts the list alphabetically by fullServiceCode.
+     * Converts a group of Services to a list of Services and sorts the list alphabetically by fullServiceCode.
      * This expects that serviceType.serviceDescription.client.endpoints have been fetched
-     * @param serviceTypes
+     * @param services
      * @return
      */
-    public Set<Service> convertServices(Iterable<ServiceType> serviceTypes, ClientId clientId) {
-        return Streams.stream(serviceTypes)
-                .map(serviceType -> convert(serviceType, clientId))
+    public Set<ServiceDto> convertServices(Iterable<Service> services, ClientId clientId) {
+        return Streams.stream(services)
+                .map(service -> convert(service, clientId))
                 .collect(Collectors.toSet());
     }
 
     /**
-     * Convert a ServiceType into Service.
+     * Convert a Service into Service.
      * This expects that serviceType.serviceDescription.client.endpoints has been fetched
-     * @param serviceType
-     * @param clientId
-     * @return
+     * @param service  service
+     * @param clientId clientId
+     * @return ServiceDto
      */
-    public Service convert(ServiceType serviceType, ClientId clientId) {
-        Service service = new Service();
+    public ServiceDto convert(Service service, ClientId clientId) {
+        ServiceDto serviceDto = new ServiceDto();
 
-        service.setId(convertId(serviceType, clientId));
-        service.setServiceCode(serviceType.getServiceCode());
-        service.setFullServiceCode(ServiceFormatter.getServiceFullName(serviceType));
-        if (serviceType.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
-            service.setSslAuth(false);
+        serviceDto.setId(convertId(service, clientId));
+        serviceDto.setServiceCode(service.getServiceCode());
+        serviceDto.setFullServiceCode(
+                ServiceFormatter.getServiceFullName(service.getServiceCode(), service.getServiceVersion()));
+        if (service.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
+            serviceDto.setSslAuth(false);
         } else {
-            service.setSslAuth(defaultIfNull(serviceType.getSslAuthentication(), true));
+            serviceDto.setSslAuth(defaultIfNull(service.getSslAuthentication(), true));
         }
-        service.setTimeout(serviceType.getTimeout());
-        service.setUrl(serviceType.getUrl());
-        service.setTitle(serviceType.getTitle());
+        serviceDto.setTimeout(service.getTimeout());
+        serviceDto.setUrl(service.getUrl());
+        serviceDto.setTitle(service.getTitle());
+        serviceDto.setEndpoints(this.endpointConverter.convert(service.getEndpoints()));
 
-        List<EndpointType> endpoints = endpointHelper.getEndpoints(serviceType,
-                serviceType.getServiceDescription().getClient());
-        service.setEndpoints(this.endpointConverter.convert(endpoints));
-
-        return service;
+        return serviceDto;
     }
 
     /**
      * Convert service and client information into encoded client-service-id,
      * e.g. <code>CS:ORG:Client:myService.v1</code>
-     * @param serviceType
+     * @param service
      * @param clientId
      * @return
      */
-    public String convertId(ServiceType serviceType, ClientId clientId) {
+    public String convertId(Service service, ClientId clientId) {
         StringBuilder builder = new StringBuilder();
         builder.append(clientIdConverter.convertId(clientId));
         builder.append(ENCODED_ID_SEPARATOR);
-        builder.append(ServiceFormatter.getServiceFullName(serviceType));
+        builder.append(ServiceFormatter.getServiceFullName(service.getServiceCode(), service.getServiceVersion()));
         return builder.toString();
     }
 
@@ -126,7 +124,6 @@ public class ServiceConverter {
      * parse ClientId from encoded service id
      * @param encodedId
      * @return ClientId
-     * @throws BadRequestException if encoded id could not be decoded
      */
     public ClientId parseClientId(String encodedId) {
         validateEncodedString(encodedId);
@@ -139,7 +136,6 @@ public class ServiceConverter {
      * parse service code including version from encoded service id
      * @param encodedId
      * @return ClientId
-     * @throws BadRequestException if encoded id could not be decoded
      */
     public String parseFullServiceCode(String encodedId) {
         validateEncodedString(encodedId);
@@ -153,7 +149,7 @@ public class ServiceConverter {
         int separators = FormatUtils.countOccurences(encodedId,
                 ENCODED_ID_SEPARATOR);
         if (separators != FULL_SERVICE_CODE_INDEX) {
-            throw new BadRequestException("Invalid service id " + encodedId);
+            throw new BadRequestException("Invalid service id " + encodedId, INVALID_ENCODED_ID.build());
         }
     }
 }

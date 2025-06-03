@@ -30,7 +30,7 @@ import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,14 +69,14 @@ public class MessageLogEncryptionStatusConverterTest {
                         GROUPING_RULE,
                         createMessageLogArchiveEncryptionMember());
 
-        MessageLogEncryptionStatus result = messageLogEncryptionStatusConverter
+        MessageLogEncryptionStatusDto result = messageLogEncryptionStatusConverter
                 .convert(messageLogEncryptionStatusDiagnostics);
 
         assertTrue(result.getMessageLogArchiveEncryptionStatus());
         assertTrue(result.getMessageLogDatabaseEncryptionStatus());
         assertEquals(GROUPING_RULE, result.getMessageLogGroupingRule());
         assertEquals(1, result.getMembers().size());
-        org.niis.xroad.securityserver.restapi.openapi.model.MessageLogArchiveEncryptionMember convertedMember
+        org.niis.xroad.securityserver.restapi.openapi.model.MessageLogArchiveEncryptionMemberDto convertedMember
                 = result.getMembers().get(0);
         assertEquals(MEMBER_ID, convertedMember.getMemberId());
         assertTrue(convertedMember.getKeys().contains(KEY_1));

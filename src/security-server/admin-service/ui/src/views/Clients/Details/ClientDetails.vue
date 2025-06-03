@@ -24,24 +24,42 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card variant="flat" class="mt-10">
+  <v-card variant="flat">
     <table v-if="client && !clientLoading" class="xrd-table detail-table">
       <tbody>
         <tr>
           <td>{{ $t('client.memberName') }}</td>
-          <td class="identifier-wrap">{{ client.member_name }}</td>
+          <td colspan="2" class="identifier-wrap">{{ client.member_name }}</td>
         </tr>
         <tr>
           <td>{{ $t('client.memberClass') }}</td>
-          <td class="identifier-wrap">{{ client.member_class }}</td>
+          <td colspan="2" class="identifier-wrap">{{ client.member_class }}</td>
         </tr>
         <tr>
           <td>{{ $t('client.memberCode') }}</td>
-          <td class="identifier-wrap">{{ client.member_code }}</td>
+          <td colspan="2" class="identifier-wrap">{{ client.member_code }}</td>
         </tr>
         <tr v-if="client.subsystem_code">
           <td>{{ $t('client.subsystemCode') }}</td>
-          <td class="identifier-wrap">{{ client.subsystem_code }}</td>
+          <td colspan="2" class="identifier-wrap">
+            {{ client.subsystem_code }}
+          </td>
+        </tr>
+        <tr v-if="client.subsystem_code && doesSupportSubsystemNames">
+          <td>{{ $t('client.subsystemName') }}</td>
+
+          <td class="identifier-wrap">
+            <subsystem-name :name="client.subsystem_name" />
+          </td>
+          <td class="pr-5">
+            <client-status
+              v-if="client.rename_status"
+              data-test="rename-status"
+              class="float-right"
+              style="float: right"
+              :status="client.rename_status"
+            />
+          </td>
         </tr>
       </tbody>
     </table>
@@ -58,33 +76,35 @@
         </tr>
       </thead>
       <tbody>
-      <template
-        v-if="
-          signCertificates &&
-          signCertificates.length > 0 &&
-          !certificatesLoading
-        "
-      >
-        <tr
-          v-for="certificate in signCertificates"
-          :key="certificate.certificate_details.hash"
+        <template
+          v-if="
+            signCertificates &&
+            signCertificates.length > 0 &&
+            !certificatesLoading
+          "
         >
-          <td>
-            <span
-              class="cert-name"
-              data-test="cert-name"
-              @click="viewCertificate(certificate)"
-              >{{ certificate.certificate_details.issuer_common_name }}</span
-            >
-          </td>
-          <td>{{ certificate.certificate_details.serial }}</td>
-          <td v-if="certificate.active">{{ $t('cert.inUse') }}</td>
-          <td v-else>{{ $t('cert.disabled') }}</td>
-          <td>
-            {{ $filters.formatDate(certificate.certificate_details.not_after) }}
-          </td>
-        </tr>
-      </template>
+          <tr
+            v-for="certificate in signCertificates"
+            :key="certificate.certificate_details.hash"
+          >
+            <td>
+              <span
+                class="cert-name"
+                data-test="cert-name"
+                @click="viewCertificate(certificate)"
+                >{{ certificate.certificate_details.issuer_common_name }}</span
+              >
+            </td>
+            <td>{{ certificate.certificate_details.serial }}</td>
+            <td v-if="certificate.active">{{ $t('cert.inUse') }}</td>
+            <td v-else>{{ $t('cert.disabled') }}</td>
+            <td>
+              {{
+                $filters.formatDate(certificate.certificate_details.not_after)
+              }}
+            </td>
+          </tr>
+        </template>
       </tbody>
       <XrdEmptyPlaceholderRow
         :colspan="5"
@@ -104,8 +124,13 @@ import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useClient } from '@/store/modules/client';
+import { useUser } from '@/store/modules/user';
+import ClientStatus from '@/views/Clients/ClientStatus.vue';
+import { useSystem } from '@/store/modules/system';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
+  components: { SubsystemName, ClientStatus },
   props: {
     id: {
       type: String,
@@ -115,10 +140,13 @@ export default defineComponent({
   data() {
     return {
       certificatesLoading: false,
+      showRenameDialog: false,
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     ...mapState(useClient, ['client', 'signCertificates', 'clientLoading']),
+    ...mapState(useSystem, ['doesSupportSubsystemNames']),
   },
   created() {
     this.certificatesLoading = true;
@@ -130,7 +158,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useClient, ['fetchSignCertificates']),
+    ...mapActions(useClient, ['fetchSignCertificates', 'fetchClient']),
     viewCertificate(cert: TokenCertificate) {
       this.$router.push({
         name: RouteName.Certificate,

@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc -->
 
-Version: 2.47  
+Version: 2.49  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc -->
@@ -73,6 +73,8 @@ Doc. ID: UG-CS
 | 01.08.2024 | 2.45    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
 | 08.01.2025 | 2.46    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Raido Kaju           |
 | 15.01.2025 | 2.47    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
+| 09.03.2025 | 2.48    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
+| 21.03.2025 | 2.49    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                                                      | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -131,8 +133,9 @@ Doc. ID: UG-CS
   - [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
   - [7.6 Removing a Client from a Security Server](#76-removing-a-client-from-a-security-server)
   - [7.7 Changing the Owner of Security Server](#77-changing-the-owner-of-security-server)
-  - [7.8 Deleting a Subsystem](#78-deleting-a-subsystem)
-  - [7.9 Deleting an X-Road Member](#79-deleting-an-x-road-member)
+  - [7.8 Renaming a Subsystem](#78-renaming-a-subsystem)
+  - [7.9 Deleting a Subsystem](#79-deleting-a-subsystem)
+  - [7.10 Deleting an X-Road Member](#710-deleting-an-x-road-member)
 - [8. Managing the Security Servers](#8-managing-the-security-servers)
   - [8.1 Viewing the Security Server Details](#81-viewing-the-security-server-details)
   - [8.2 Changing the Security Server Address](#82-changing-the-security-server-address)
@@ -776,7 +779,7 @@ Access rights: Registration Officer
 To add a subsystem to an X-Road member, follow these steps.
 1. In the Members tab, select the member to whom you wish to add a subsystem and click members name.
 2. In the view that opens, locate the Subsystems tab and click Add new subsystem to database.
-3. Enter the code of the subsystem and click Add.
+3. Enter the subsystem code, name (optional) and click Add.
 
 ### 7.4 Registering a Member's Security Server
 
@@ -859,7 +862,18 @@ Automatic approval of Security Server owner change requests is disabled by defau
 
 To approve/decline a request, it can be done either through in the Management request view list or in the Management request details view.
 
-### 7.8 Deleting a Subsystem
+### 7.8 Renaming a Subsystem
+
+Access rights: Registration Officer
+
+In the Central Server, the X-Road member's subsystem can be renamed if needed.
+
+To rename an X-Road member's subsystem, follow these steps.
+1. In the Members tab, select the member whose subsystem you wish to rename and click member's name.
+2. In the window that opens, select Subsystems tab and select the client subsystem, and click Rename button next to its name, in case subsystem doesn't have name, click Add subsystem name.
+
+
+### 7.9 Deleting a Subsystem
 
 Access rights: Registration Officer
 
@@ -869,7 +883,7 @@ To delete an X-Road member's subsystem, follow these steps.
 1. In the Members tab, select the member whose subsystem you wish to delete and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any Security Servers.
 
-### 7.9 Deleting an X-Road Member
+### 7.10 Deleting an X-Road Member
 
 Access rights: Registration Officer
 

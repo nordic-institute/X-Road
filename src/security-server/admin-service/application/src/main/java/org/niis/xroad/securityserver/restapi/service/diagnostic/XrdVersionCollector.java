@@ -25,7 +25,7 @@
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
+import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Order(DiagnosticCollector.ORDER_GROUP1)
-public class XrdVersionCollector implements DiagnosticCollector<VersionInfoDto> {
+public class XrdVersionCollector implements DiagnosticCollector<VersionInfo> {
 
     private final VersionService versionService;
 
@@ -43,7 +43,7 @@ public class XrdVersionCollector implements DiagnosticCollector<VersionInfoDto> 
     }
 
     @Override
-    public VersionInfoDto collect() {
+    public VersionInfo collect() {
         return versionService.getVersionInfo();
     }
 }

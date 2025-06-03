@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.11
+Version: 1.12
 Doc. ID: DM-ML
 
 | Date       | Version | Description                                                  | Author             |
@@ -24,6 +24,7 @@ Doc. ID: DM-ML
 | 06.09.2021 | 1.9     | Update data model due to encryption features                 | Ilkka Seppälä      |
 | 26.09.2022 | 1.10    | Remove Ubuntu 18.04 support                                  | Andres Rosenthal   |
 | 09.01.2025 | 1.11    | Heading level changes for the documentation platform         | Raido Kaju         |
+| 21.03.2025 | 1.12    | Syntax and styling                               					  | Pauline Dimmek		 |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->

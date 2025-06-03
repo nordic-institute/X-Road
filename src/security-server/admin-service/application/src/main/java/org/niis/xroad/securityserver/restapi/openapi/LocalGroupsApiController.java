@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,21 +28,20 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.LocalGroupConverter;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescription;
-import org.niis.xroad.securityserver.restapi.openapi.model.Members;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescriptionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MembersDto;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupService;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,6 +56,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GR
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_LOCAL_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_LOCAL_GROUP_DESC;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL_GROUP_MEMBERS;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.CLIENT_NOT_FOUND_BY_LOCAL_GROUP_ID;
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.MISSING_MEMBER_ID;
 
 /**
  * groups api
@@ -74,46 +76,37 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
-        LocalGroupType localGroupType = getLocalGroupType(groupIdString);
-        return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
+    public ResponseEntity<LocalGroupDto> getLocalGroup(String groupIdString) {
+        LocalGroup localGroup = getLocalGroupFromDb(groupIdString);
+        return new ResponseEntity<>(localGroupConverter.convert(localGroup), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
     @AuditEventMethod(event = EDIT_LOCAL_GROUP_DESC)
-    public ResponseEntity<LocalGroup> updateLocalGroup(String groupIdString,
-                                                       LocalGroupDescription localGroupDescription) {
+    public ResponseEntity<LocalGroupDto> updateLocalGroup(String groupIdString,
+                                                          LocalGroupDescriptionDto localGroupDescriptionDto) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        String description = localGroupDescription.getDescription();
-        LocalGroupType localGroupType = null;
-        try {
-            localGroupType = localGroupService.updateDescription(groupId, description);
-        } catch (LocalGroupNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
-        return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
+        String description = localGroupDescriptionDto.getDescription();
+        LocalGroup localGroup = localGroupService.updateDescription(groupId, description);
+
+        return new ResponseEntity<>(localGroupConverter.convert(localGroup), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP_MEMBERS)
-    public ResponseEntity<Members> addLocalGroupMember(String groupIdString, Members members) {
-        if (members == null || members.getItems() == null || members.getItems().isEmpty()) {
-            throw new BadRequestException("missing member id");
+    public ResponseEntity<MembersDto> addLocalGroupMember(String groupIdString, MembersDto membersDto) {
+        if (membersDto == null || membersDto.getItems() == null || membersDto.getItems().isEmpty()) {
+            throw new BadRequestException(MISSING_MEMBER_ID.build());
         }
         // remove duplicates
-        List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
+        List<String> uniqueIds = new ArrayList<>(new HashSet<>(membersDto.getItems()));
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        try {
-            localGroupService.addLocalGroupMembers(groupId, clientIdConverter.convertIds(uniqueIds));
-        } catch (LocalGroupService.MemberAlreadyExistsException e) {
-            throw new ConflictException(e);
-        } catch (LocalGroupNotFoundException
-                 | LocalGroupService.LocalGroupMemberNotFoundException e) {
-            throw new ResourceNotFoundException(e);
-        }
-        return new ResponseEntity<>(members, HttpStatus.CREATED);
+
+        localGroupService.addLocalGroupMembers(groupId, clientIdConverter.convertIds(uniqueIds));
+
+        return new ResponseEntity<>(membersDto, HttpStatus.CREATED);
     }
 
     @Override
@@ -123,10 +116,8 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         try {
             localGroupService.deleteLocalGroup(groupId);
-        } catch (LocalGroupNotFoundException e) {
-            throw new ResourceNotFoundException(e);
         } catch (ClientNotFoundException e) {
-            throw new ConflictException("Client not found for the given localgroup with id: " + groupIdString);
+            throw new ConflictException(e, CLIENT_NOT_FOUND_BY_LOCAL_GROUP_ID.build(groupIdString));
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -134,12 +125,12 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     @AuditEventMethod(event = REMOVE_LOCAL_GROUP_MEMBERS)
-    public ResponseEntity<Void> deleteLocalGroupMember(String groupIdString, Members members) {
-        LocalGroupType localGroupType = getLocalGroupType(groupIdString);
+    public ResponseEntity<Void> deleteLocalGroupMember(String groupIdString, MembersDto membersDto) {
+        LocalGroup localGroup = getLocalGroupFromDb(groupIdString);
         try {
-            localGroupService.deleteGroupMembers(localGroupType.getId(),
-                    clientIdConverter.convertIds(members.getItems()));
-        } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
+            localGroupService.deleteGroupMembers(localGroup.getId(),
+                    clientIdConverter.convertIds(membersDto.getItems()));
+        } catch (LocalGroupService.LocalGroupMemberNotFoundException | LocalGroupNotFoundException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -149,12 +140,12 @@ public class LocalGroupsApiController implements LocalGroupsApi {
      * Read one group from DB, throw ResourceNotFoundException or
      * BadRequestException is needed
      */
-    private LocalGroupType getLocalGroupType(String groupIdString) {
+    private LocalGroup getLocalGroupFromDb(String groupIdString) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(groupId);
-        if (localGroupType == null) {
-            throw new ResourceNotFoundException("LocalGroup with not found");
+        LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
+        if (localGroup == null) {
+            throw new LocalGroupNotFoundException("LocalGroup with not found");
         }
-        return localGroupType;
+        return localGroup;
     }
 }

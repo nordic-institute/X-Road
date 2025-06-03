@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -216,21 +217,20 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void csrGenerateFailureRollsBackKeyCreate() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
-        try {
-            ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
-            keyAndCertificateRequestService
-                    .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
-                            notFoundClient,
-                            KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
-                            CertificateRequestFormat.PEM, false);
-            fail("should throw exception");
-        } catch (ClientNotFoundException expected) {
-            // our mock sets key id = label
-            verify(signerRpcClient, times(1))
-                    .deleteKey("keylabel", true);
-            verify(signerRpcClient, times(1))
-                    .deleteKey("keylabel", false);
-        }
+
+        ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");
+
+        assertThrows(ClientNotFoundException.class,
+                () -> keyAndCertificateRequestService.addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel", notFoundClient,
+                        KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
+                        CertificateRequestFormat.PEM, false));
+
+        // our mock sets key id = label
+        verify(signerRpcClient, times(1))
+                .deleteKey("keylabel", true);
+        verify(signerRpcClient, times(1))
+                .deleteKey("keylabel", false);
+
     }
 
     @Test

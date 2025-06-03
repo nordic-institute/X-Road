@@ -125,7 +125,7 @@ following actors.
 Relationships between the actors, the system and the use cases are
 described in Figure 1.
 
-![](img/use_case_diagram_for_the_conf_proxy.PNG)
+![](img/use_case_diagram_for_the_conf_proxy.png)
 
 Figure 1. Use case diagram for the configuration proxy
 

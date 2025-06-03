@@ -24,9 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container data-test="settings-tab-view">
-    <router-view />
-  </xrd-sub-view-container>
+  <router-view />
 </template>
 
 <script lang="ts">

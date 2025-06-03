@@ -31,27 +31,24 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpURI;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteGlobalConf;
-import org.niis.xroad.proxy.application.testsuite.TestSuiteKeyConf;
+import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
+import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,9 +56,6 @@ import static org.mockito.Mockito.when;
  * Unit test for {@link MetadataHandler}
  */
 public class MetadataHandlerTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     private HttpClient httpClientMock;
     private RequestWrapper mockRequest;
@@ -103,7 +97,6 @@ public class MetadataHandlerTest {
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
                 httpClientMock);
 
-
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
@@ -117,7 +110,6 @@ public class MetadataHandlerTest {
 
         MetadataHandler handlerToTest = new MetadataHandler(commonBeanProxy,
                 httpClientMock);
-
 
         MessageProcessorBase returnValue =
                 handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
@@ -133,12 +125,10 @@ public class MetadataHandlerTest {
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
 
-        thrown.expect(CodedException.class);
-        thrown.expect(hasProperty("faultCode", is(X_INVALID_REQUEST)));
-        thrown.expectMessage(CoreMatchers.containsString("Target must not be null"));
+        var ce = assertThrows(CodedException.class, () -> handlerToTest.createRequestProcessor(mockRequest, mockResponse, null));
 
-
-        handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
+        assertEquals(X_INVALID_REQUEST, ce.getFaultCode());
+        assertTrue(ce.getMessage().contains("Target must not be null"));
     }
 
 
@@ -152,8 +142,6 @@ public class MetadataHandlerTest {
                 httpClientMock);
 
         MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
-
-        assertNotNull("Was expecting actual message processor");
 
         assertThat("Message processor is of wrong type", result,
                 instanceOf(MetadataClientRequestProcessor.class));

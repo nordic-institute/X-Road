@@ -17,6 +17,7 @@ Feature: 0900 - SS:Diagnostics
     And OCSP responders status should be ok
     And Backup encryption is enabled
     And Backup encryption configuration has 3 keys
+    And Proxy memory usage should be ok
 
   Scenario: Message log encryption is enabled
     When Diagnostics tab is selected
@@ -35,4 +36,3 @@ Feature: 0900 - SS:Diagnostics
     And Message log grouping is set to MEMBER
     And At least one member should have encryption key configured
     And At least one member should use default encryption key
-

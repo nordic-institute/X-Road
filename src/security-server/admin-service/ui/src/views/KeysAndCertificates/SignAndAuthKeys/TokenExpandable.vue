@@ -49,7 +49,7 @@
           data-test="token-icon-button"
           @click="tokenClick(token)"
         >
-          <xrd-icon-base class="button-icon">
+          <xrd-icon-base>
             <xrd-icon-edit />
           </xrd-icon-base>
         </v-btn>
@@ -210,11 +210,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import { FileUploadResult } from '@/ui-types';
 import {
+  XrdExpandable,
   XrdIconCancel,
   XrdIconEdit,
   XrdIconError,
   XrdIconImport,
-  XrdExpandable,
 } from '@niis/shared-ui';
 
 export default defineComponent({
@@ -314,7 +314,11 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useNotifications, [
+      'showError',
+      'showSuccess',
+      'showWarningMessage',
+    ]),
     ...mapActions(useTokens, ['setSelectedToken', 'hideToken', 'expandToken']),
     addKey(): void {
       this.setSelectedToken(this.token);
@@ -380,7 +384,15 @@ export default defineComponent({
           },
         })
         .then(
-          () => {
+          (resp) => {
+            const certificate: TokenCertificate = resp.data;
+            if (certificate.ocsp_verify_before_activation_error) {
+              this.showWarningMessage(
+                this.$t('keys.importCertOcspVerifyWarning', {
+                  errorMessage: certificate.ocsp_verify_before_activation_error,
+                }),
+              );
+            }
             this.showSuccess(this.$t('keys.importCertSuccess'));
             this.fetchData();
           },
@@ -491,9 +503,5 @@ export default defineComponent({
 .keys-table {
   transform-origin: top;
   transition: transform 0.4s ease-in-out;
-}
-
-.button-icon {
-  margin-top: 12px; // fix for icon position
 }
 </style>

@@ -38,14 +38,16 @@ import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 @NoArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class ClientRegistrationRequest extends RequestWithProcessing {
+public final class ClientRegistrationRequest extends RequestWithProcessing {
 
     private ClientId clientId;
+    private String subsystemName;
 
     public ClientRegistrationRequest(Origin origin, ee.ria.xroad.common.identifier.SecurityServerId serverId,
-                                     ClientId clientId) {
+                                     ClientId clientId, String subsystemName) {
         super(origin, serverId);
         this.clientId = ClientId.ensure(clientId);
+        this.subsystemName = subsystemName;
     }
 
     @Override

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
@@ -42,10 +42,11 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.securityserver.restapi.dto.InitializationStatus;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
-import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.client.SignerRpcClient;
 
@@ -55,9 +56,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InitializationServiceTest {
@@ -69,7 +72,7 @@ public class InitializationServiceTest {
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
     private static final String SOFTWARE_TOKEN_VALID_PIN = "TopSecretP1n.";
-    private static final ClientId.Conf CLIENT = ClientId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
+    private static final ClientIdEntity CLIENT = ClientIdEntity.createMember(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE);
     private static final SecurityServerId SERVER = SecurityServerId.Conf.create(INSTANCE, OWNER_MEMBER_CLASS,
             OWNER_MEMBER_CODE, SECURITY_SERVER_CODE);
@@ -102,8 +105,8 @@ public class InitializationServiceTest {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
-        when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
+        when(serverConfService.getOrCreateServerConfEntity()).thenReturn(new ServerConfEntity());
+        when(serverConfService.getSecurityServerOwnerIdEntity()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
                 new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<>()));
@@ -114,7 +117,7 @@ public class InitializationServiceTest {
 
     @Test
     public void isSecurityServerInitialized() {
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -124,7 +127,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedTokenNot() {
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.NOT_INITIALIZED);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -134,7 +137,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedServerOwnerNot() {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertFalse(initStatus.isServerOwnerInitialized());
@@ -144,7 +147,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedServerCodeNot() {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertFalse(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -155,7 +158,7 @@ public class InitializationServiceTest {
     public void isSecurityServerInitializedAnchorNot() {
         when(systemService.isAnchorImported()).thenReturn(false);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertFalse(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -165,7 +168,7 @@ public class InitializationServiceTest {
     @Test
     public void isSecurityServerInitializedSoftwareTokenUnresolved() {
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.UNKNOWN);
-        InitializationStatusDto initStatus = initializationService.getSecurityServerInitializationStatus();
+        InitializationStatus initStatus = initializationService.getSecurityServerInitializationStatus();
         assertTrue(initStatus.isAnchorImported());
         assertTrue(initStatus.isServerCodeInitialized());
         assertTrue(initStatus.isServerOwnerInitialized());
@@ -249,8 +252,7 @@ public class InitializationServiceTest {
                     null, false);
             fail("should have failed");
         } catch (UnhandledWarningsException expected) {
-            DeviationTestUtils
-                    .assertWarningWithoutMetadata(DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED, expected);
+            assertWarningWithoutMetadata(DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED, expected);
         }
     }
 
@@ -259,16 +261,15 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(null, null, null, null, true);
-            fail("should have failed");
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(null, null, null, null, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
     }
 
     @Test
@@ -277,13 +278,10 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-            fail("should have failed");
-        } catch (InitializationService.SoftwareTokenInitException expected) {
-            // expected
-        }
+        assertThrows(
+                InitializationService.SoftwareTokenInitException.class, () ->
+                        initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                                SOFTWARE_TOKEN_PIN, true));
     }
 
     @Test
@@ -292,13 +290,9 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         Mockito.doThrow(InvalidCharactersException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_INVALID_PIN, true);
-            fail("should have failed");
-        } catch (InvalidCharactersException expected) {
-            // expected
-        }
+        assertThrows(InvalidCharactersException.class, () ->
+                initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_INVALID_PIN, true));
     }
 
     @Test
@@ -307,13 +301,9 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         Mockito.doThrow(WeakPinException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_WEAK_PIN, true);
-            fail("should have failed");
-        } catch (WeakPinException expected) {
-            // done
-        }
+        assertThrows(WeakPinException.class, () ->
+                initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_WEAK_PIN, true));
     }
 
     @Test
@@ -321,14 +311,13 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-            fail("Should have thrown InvalidInitParamsException");
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS);
     }
 
     @Test
@@ -348,13 +337,13 @@ public class InitializationServiceTest {
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         // parts that do get initialized cannot be null - such as ownerMemberClass in this test
-        try {
-            initializationService.initialize(null, null, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(null, null, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
     }
 
     @Test
@@ -362,14 +351,14 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    null, true);
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS, DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        null, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS,
+                DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS, DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED);
     }
 
     @Test
@@ -377,15 +366,15 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        try {
-            initializationService.initialize(null, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.InvalidInitParamsException expected) {
-            DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, expected,
-                    DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
-                    DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS, DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS,
-                    DeviationCodes.ERROR_METADATA_PIN_EXISTS);
-        }
+        InitializationService.InvalidInitParamsException exception = assertThrows(
+                InitializationService.InvalidInitParamsException.class,
+                () -> initializationService.initialize(null, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        DeviationTestUtils.assertErrorWithMetadata(DeviationCodes.ERROR_INVALID_INIT_PARAMS, exception,
+                DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS, DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS,
+                DeviationCodes.ERROR_METADATA_PIN_EXISTS);
     }
 
     @Test
@@ -393,12 +382,12 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        try {
-            initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
-                    SOFTWARE_TOKEN_PIN, true);
-        } catch (InitializationService.ServerAlreadyFullyInitializedException expected) {
-            Assert.assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
-                    expected.getErrorDeviation().getCode());
-        }
+        InitializationService.ServerAlreadyFullyInitializedException exception = assertThrows(
+                InitializationService.ServerAlreadyFullyInitializedException.class,
+                () -> initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
+                        SOFTWARE_TOKEN_PIN, true));
+
+        Assert.assertEquals(DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED,
+                exception.getErrorDeviation().code());
     }
 }

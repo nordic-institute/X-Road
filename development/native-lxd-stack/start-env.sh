@@ -92,7 +92,7 @@ function handleBuild() {
       build_args+="--skip-tests "
     fi
 
-    ./../../src/build_packages.sh -r noble $build_args
+    ./../../src/build_packages.sh -r noble -r rpm-el9 $build_args
   fi
 }
 

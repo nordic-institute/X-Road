@@ -93,4 +93,5 @@ export type DataTableHeader = {
   title: string;
   align?: 'start' | 'end';
   sortable?: boolean;
+  cellProps?: { 'data-test'?: string };
 };

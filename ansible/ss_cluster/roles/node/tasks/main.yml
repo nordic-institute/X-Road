@@ -1,7 +1,7 @@
 ---
 - assert:
       that:
-          - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','centos'] }}"
+          - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','rocky'] }}"
 
 - name: test postgres version
   become_user: postgres

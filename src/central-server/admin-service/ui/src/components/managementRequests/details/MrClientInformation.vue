@@ -43,6 +43,11 @@
       label-text-key="managementRequestDetails.subsystemCode"
       :value="managementRequest.client_id?.subsystem_code"
     />
+    <data-line
+      v-if="!isOwnerChange"
+      label-text-key="managementRequestDetails.subsystemName"
+      :value="managementRequest.client_subsystem_name"
+    />
   </data-block>
 </template>
 
@@ -83,6 +88,11 @@ export default defineComponent({
         ManagementRequestType.CLIENT_ENABLE_REQUEST
       ) {
         return 'managementRequestDetails.clientEnableInformation';
+      } else if (
+        this.managementRequest.type ===
+        ManagementRequestType.CLIENT_RENAME_REQUEST
+      ) {
+        return 'managementRequestDetails.clientRenameInformation';
       }
       return 'managementRequestDetails.clientInformation';
     },

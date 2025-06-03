@@ -65,7 +65,16 @@ if (Os.isName("linux")) {
       include("*.c", "*.h", "Makefile")
     })
     inputs.dir(file("${javaHome}/include"))
-    outputs.dir(file("../../../lib"))
+
+    when {
+      Os.isArch("x86_64") || Os.isArch("amd64") -> {
+        outputs.dir(file("../../../libs/passwordstore/amd64"))
+      }
+
+      Os.isArch("aarch64") || Os.isArch("arm64") -> {
+        outputs.dir(file("../../../libs/passwordstore/arm64"))
+      }
+    }
 
     workingDir = file("../../../")
     commandLine("make", "clean", "all")
@@ -74,9 +83,5 @@ if (Os.isName("linux")) {
   val makeClean by tasks.registering(Exec::class) {
     workingDir = file("../../../")
     commandLine("make", "clean")
-  }
-
-  tasks.clean {
-    dependsOn(makeClean)
   }
 }

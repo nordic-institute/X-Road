@@ -106,15 +106,6 @@ export default defineComponent({
 @use '@/assets/colors';
 @use '@/assets/tables' as *;
 
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
 .certification-service-info-card-group {
   margin-top: 24px;
   display: flex;
@@ -124,6 +115,7 @@ export default defineComponent({
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 

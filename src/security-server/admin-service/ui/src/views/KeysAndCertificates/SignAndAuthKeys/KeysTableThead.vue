@@ -106,9 +106,7 @@
           />
         </div>
       </th>
-      <th
-        class="renewal-col"
-      >
+      <th class="renewal-col">
         <div class="header-title">
           {{ $t('keys.renewal') }}
         </div>

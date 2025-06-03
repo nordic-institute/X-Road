@@ -39,6 +39,9 @@ import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDisableRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.ClientRenameRequest;
+import org.niis.xroad.cs.admin.api.domain.MaintenanceModeDisableRequest;
+import org.niis.xroad.cs.admin.api.domain.MaintenanceModeEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.OwnerChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.Request;
 import org.niis.xroad.cs.admin.api.domain.RequestWithProcessing;
@@ -49,6 +52,9 @@ import org.niis.xroad.cs.admin.core.entity.ClientDeletionRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientDisableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientEnableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.ClientRegistrationRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.ClientRenameRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.MaintenanceModeDisableRequestEntity;
+import org.niis.xroad.cs.admin.core.entity.MaintenanceModeEnableRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.OwnerChangeRequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestEntity;
 import org.niis.xroad.cs.admin.core.entity.RequestWithProcessingEntity;
@@ -98,4 +104,10 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
     ClientDisableRequest toDto(ClientDisableRequestEntity source);
 
     ClientEnableRequest toDto(ClientEnableRequestEntity source);
+
+    ClientRenameRequest toDto(ClientRenameRequestEntity source);
+
+    MaintenanceModeEnableRequest toDto(MaintenanceModeEnableRequestEntity source);
+
+    MaintenanceModeDisableRequest toDto(MaintenanceModeDisableRequestEntity source);
 }

@@ -27,15 +27,22 @@
 
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import vue from '@vitejs/plugin-vue';
-import {resolve} from "node:path";
-import {defineConfig, loadEnv} from 'vite';
+import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { defineConfig, loadEnv } from 'vite';
 import vuetify from 'vite-plugin-vuetify';
 
 // https://vitejs.dev/config/
-export default defineConfig(({mode}) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const lang = /\/locales?\/([a-z]{2})\.(js|json)$/;
+
+  const supportedLangs = readdirSync(resolve(__dirname, 'src/locales')).map(
+    (file) => file.split('.')[0],
+  );
+
   return {
-    plugins: [vue(), vuetify({autoImport: false}), basicSsl()],
+    plugins: [vue(), vuetify({ autoImport: false }), basicSsl()],
     css: {
       preprocessorOptions: {
         scss: {
@@ -45,6 +52,36 @@ export default defineConfig(({mode}) => {
     },
     build: {
       cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          manualChunks: function manualChunks(id) {
+            const langMatch = lang.exec(id);
+            if (langMatch) {
+              if (supportedLangs.includes(langMatch[1])) {
+                return `lang-supported-${langMatch[2]}`;
+              }
+              return `lang-other-${langMatch[2]}`;
+            }
+
+            if (id.includes('/shared-ui/')) {
+              return 'shared-ui';
+            }
+
+            if (id.includes('/vuetify/')) {
+              return 'vuetify';
+            }
+            if (id.includes('/vue/')) {
+              return 'vue';
+            }
+
+            if (id.includes('/node_modules/')) {
+              return 'vendor';
+            }
+
+            return null;
+          },
+        },
+      },
     },
     resolve: {
       alias: {

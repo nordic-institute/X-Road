@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -33,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
 import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,10 +77,10 @@ public class InternalServerTestService {
      * @throws Exception in case connection fails
      */
     public void testHttpsConnection(
-            List<CertificateType> trustedCerts, String url) throws Exception {
+            List<CertificateEntity> trustedCerts, String url) throws Exception {
 
         List<X509Certificate> trustedX509Certs = new ArrayList<>();
-        for (CertificateType trustedCert : trustedCerts) {
+        for (CertificateEntity trustedCert : trustedCerts) {
             trustedX509Certs.add(CryptoUtils.readCertificate(trustedCert.getData()));
         }
 

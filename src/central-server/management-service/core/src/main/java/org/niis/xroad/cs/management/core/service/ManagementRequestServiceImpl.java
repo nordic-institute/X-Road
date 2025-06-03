@@ -30,7 +30,11 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 import ee.ria.xroad.common.request.AuthCertDeletionRequestType;
+import ee.ria.xroad.common.request.ClientRegRequestType;
+import ee.ria.xroad.common.request.ClientRenameRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeDisableRequestType;
+import ee.ria.xroad.common.request.MaintenanceModeEnableRequestType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +47,9 @@ import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDisableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.ClientRenameRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
@@ -64,31 +71,58 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     private final ClientIdConverter clientIdConverter;
 
     @Override
-    public Integer addManagementRequest(ClientRequestType request, ManagementRequestType requestType) {
-        var managementRequest = createRequestDto(request, requestType);
+    public Integer addManagementRequest(Object request, ManagementRequestType requestType) {
+        var dto = switch (request) {
+            case AuthCertDeletionRequestType req -> new AuthenticationCertificateDeletionRequestDto()
+                    .authenticationCertificate(req.getAuthCert())
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case AddressChangeRequestType req -> new AddressChangeRequestDto()
+                    .serverAddress(req.getAddress())
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case ClientRenameRequestType req -> new ClientRenameRequestDto()
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()))
+                    .clientId(clientIdConverter.convertId(req.getClient()))
+                    .subsystemName(req.getSubsystemName());
+            case ClientRegRequestType req -> new ClientRegistrationRequestDto()
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()))
+                    .clientId(clientIdConverter.convertId(req.getClient()))
+                    .subsystemName(req.getSubsystemName());
+            case MaintenanceModeEnableRequestType req -> new MaintenanceModeEnableRequestDto()
+                    .message(req.getMessage())
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case MaintenanceModeDisableRequestType req -> new MaintenanceModeDisableRequestDto()
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case ClientRequestType req when ManagementRequestType.OWNER_CHANGE_REQUEST == requestType -> new OwnerChangeRequestDto()
+                    .clientId(clientIdConverter.convertId(req.getClient()))
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case ClientRequestType req when ManagementRequestType.CLIENT_DELETION_REQUEST == requestType -> new ClientDeletionRequestDto()
+                    .clientId(clientIdConverter.convertId(req.getClient()))
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case ClientRequestType req when ManagementRequestType.CLIENT_DISABLE_REQUEST == requestType -> new ClientDisableRequestDto()
+                    .clientId(clientIdConverter.convertId(req.getClient()))
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            case ClientRequestType req when ManagementRequestType.CLIENT_ENABLE_REQUEST == requestType -> new ClientEnableRequestDto()
+                    .clientId(clientIdConverter.convertId(req.getClient()))
+                    .securityServerId(securityServerIdConverter.convertId(req.getServer()));
+            default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
+        };
 
-        return addManagementRequestInternal(managementRequest);
-    }
+        dto.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
+        dto.setType(switch (requestType) {
+            case AUTH_CERT_REGISTRATION_REQUEST -> ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
+            case CLIENT_REGISTRATION_REQUEST -> ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+            case OWNER_CHANGE_REQUEST -> ManagementRequestTypeDto.OWNER_CHANGE_REQUEST;
+            case CLIENT_DELETION_REQUEST -> ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
+            case AUTH_CERT_DELETION_REQUEST -> ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST;
+            case ADDRESS_CHANGE_REQUEST -> ManagementRequestTypeDto.ADDRESS_CHANGE_REQUEST;
+            case CLIENT_DISABLE_REQUEST -> ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST;
+            case CLIENT_ENABLE_REQUEST -> ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST;
+            case CLIENT_RENAME_REQUEST -> ManagementRequestTypeDto.CLIENT_RENAME_REQUEST;
+            case MAINTENANCE_MODE_ENABLE_REQUEST -> ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
+            case MAINTENANCE_MODE_DISABLE_REQUEST -> ManagementRequestTypeDto.MAINTENANCE_MODE_DISABLE_REQUEST;
+        });
 
-    @Override
-    public Integer addManagementRequest(AuthCertDeletionRequestType request) {
-        var managementRequest = new AuthenticationCertificateDeletionRequestDto()
-                .authenticationCertificate(request.getAuthCert())
-                .type(ManagementRequestTypeDto.AUTH_CERT_DELETION_REQUEST)
-                .origin(ManagementRequestOriginDto.SECURITY_SERVER)
-                .securityServerId(securityServerIdConverter.convertId(request.getServer()));
-
-        return addManagementRequestInternal(managementRequest);
-    }
-
-    @Override
-    public Integer addManagementRequest(AddressChangeRequestType request) {
-        var managementRequest = new AddressChangeRequestDto()
-                .serverAddress(request.getAddress())
-                .type(ManagementRequestTypeDto.ADDRESS_CHANGE_REQUEST)
-                .origin(ManagementRequestOriginDto.SECURITY_SERVER)
-                .securityServerId(securityServerIdConverter.convertId(request.getServer()));
-        return addManagementRequestInternal(managementRequest);
+        return addManagementRequestInternal(dto);
     }
 
     private Integer addManagementRequestInternal(ManagementRequestDto managementRequest) {
@@ -102,28 +136,4 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
         }
     }
 
-    private ManagementRequestDto createRequestDto(ClientRequestType request, ManagementRequestType requestType) {
-        ManagementRequestDto managementRequest = switch (requestType) {
-            case CLIENT_REGISTRATION_REQUEST -> new ClientRegistrationRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .type(ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST);
-            case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .type(ManagementRequestTypeDto.OWNER_CHANGE_REQUEST);
-            case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .type(ManagementRequestTypeDto.CLIENT_DELETION_REQUEST);
-            case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .type(ManagementRequestTypeDto.CLIENT_DISABLE_REQUEST);
-            case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestDto()
-                    .clientId(clientIdConverter.convertId(request.getClient()))
-                    .type(ManagementRequestTypeDto.CLIENT_ENABLE_REQUEST);
-            default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
-        };
-
-        managementRequest.setOrigin(ManagementRequestOriginDto.SECURITY_SERVER);
-        managementRequest.setSecurityServerId(securityServerIdConverter.convertId(request.getServer()));
-        return managementRequest;
-    }
 }

@@ -177,6 +177,7 @@ class SharedParametersLoader {
         result.setAddress(ss.getAddress());
         result.setServerCode(ss.getServerCode());
         result.setClients(getSecurityServerClients(ss.getId()));
+        result.setMaintenanceMode(new SharedParameters.MaintenanceMode(ss.isInMaintenanceMode(), ss.getMaintenanceModeMessage()));
         result.setAuthCertHashes(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
                 .map(CertHash::new)
@@ -244,7 +245,8 @@ class SharedParametersLoader {
 
         private void addSubSystem(FlattenedSecurityServerClientView client) {
             var clientId = toClientId(client);
-            getSubsystemList(toMemberId(clientId)).add(new SharedParameters.Subsystem(client.getSubsystemCode(), clientId));
+            getSubsystemList(toMemberId(clientId))
+                    .add(new SharedParameters.Subsystem(client.getSubsystemCode(), client.getSubsystemName(), clientId));
         }
 
         private SharedParameters.Member toMember(FlattenedSecurityServerClientView client) {

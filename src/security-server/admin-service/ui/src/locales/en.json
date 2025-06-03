@@ -26,8 +26,6 @@
     "title": "Access Rights"
   },
   "action": {
-    "cancel": "Cancel",
-    "delete": "Delete",
     "disable": "Disable",
     "enable": "Enable",
     "order": "Order"
@@ -115,12 +113,19 @@
         "confirmTitle": "Key and certificate deletion",
         "success": "Certificate deleted"
       },
+      "renameSubsystem": {
+        "changeAdded": "Subsystem name change successfully added and will be applied on client registration",
+        "changeSubmitted": "Subsystem name change successfully submitted",
+        "title": "Edit subsystem name"
+      },
       "unregister": {
         "confirmText": "Do you want to unregister this client?",
         "confirmTitle": "Unregister client",
         "success": "Client unregistered"
       }
     },
+    "defaultSubsystemNameTooltip": "Subsystem name is not defined",
+    "forbiddenDisable": "The provider of management services is not eligible for deactivation.",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -135,11 +140,15 @@
       "disablingInProgress": "DISABLING IN PROGRESS",
       "enablingInProgress": "ENABLING IN PROGRESS",
       "globalError": "GLOBAL ERROR",
+      "nameSet": "Name change will be applied on client registration",
+      "nameSubmitted": "Name change is submitted",
       "registered": "REGISTERED",
       "registrationInProgress": "REGISTRATION IN PROGRESS",
       "saved": "SAVED"
     },
     "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "unknown member"
   },
   "clients": {
@@ -226,7 +235,6 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
-      "authCertRegisteredEnabled": "AUTH certificate registered notifications",
       "confStatus": {
         "false": "Configuration incomplete",
         "true": "Configured"
@@ -236,14 +244,38 @@
         "false": "Disabled",
         "true": "Enabled"
       },
-      "failureEnabled": "Failure notifications",
       "help": {
         "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details.",
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
-      "successEnabled": "Success notifications",
-      "title": "Mail notification status"
+      "status": "Status",
+      "sentTestMail": "Send test e-mail",
+      "title": "Mail notification status",
+      "type": {
+        "ACME_FAILURE": "ACME failure notifications",
+        "ACME_SUCCESS": "ACME success notifications",
+        "AUTH_CERT_REGISTERED": "AUTH certificate registered notifications",
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
+      },
+      "types": "Mail notification types"
+    },
+    "maintenanceMode": {
+      "enableTitle": "Enable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "disableTitle": "Disable maintenance mode",
+      "disableConfirm": "Do you want to disable maintenance mode?",
+      "disableSuccess": "Maintenance mode disabling in progress",
+      "forbiddenEnable": "Maintenance mode cannot be enabled for a management services provider",
+      "label": "Maintenance mode:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
+        "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request is submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request is submitted"
+      }
     },
     "message": "Message",
     "nextUpdate": "Next Update",
@@ -261,6 +293,16 @@
       "title": "OCSP responders"
     },
     "previousUpdate": "Previous Update",
+    "proxyMemoryUsage": {
+      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold",
+      "max": "Maximum memory",
+      "ok": "Everything ok",
+      "threshold": "Threshold",
+      "title": "Proxy memory usage",
+      "total": "Total allocated memory",
+      "usagePercent": "Used memory (%)",
+      "used": "Used memory"
+    },
     "serviceUrl": "Service URL",
     "status": "Status",
     "timestamping": {
@@ -313,6 +355,8 @@
     },
     "action_not_possible": "Action is not possible",
     "additional_member_already_exists": "Additional member already exists",
+    "already_disabled_maintenance_mode": "Maintenance mode is already disabled",
+    "already_enabled_maintenance_mode": "Maintenance mode is already enabled",
     "anchor_already_exists": "Anchor already exists",
     "anchor_file_not_found": "Anchor file not found",
     "anchor_not_found": "Anchor not found",
@@ -351,14 +395,6 @@
           },
           "UnknownService": "Unknown service"
         }
-      },
-      "Signer": {
-        "CertNotFound": "Certification is not found",
-        "KeyNotFound": "Key is not found",
-        "NetworkError": "Signer is not currently reachable.",
-        "TokenNotAvailable": "Token is not available",
-        "TokenNotFound": "Token is not found",
-        "UnknownMember": "X-Road core - signer: Unknown member"
       }
     },
     "csr_not_found": "CSR not found",
@@ -366,6 +402,8 @@
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
+    "forbidden_disable_management_service_client": "The management services provider cannot be deactivated.",
+    "forbidden_enable_maintenance_mode_for_management_service": "The management services provider cannot be deactivated.",
     "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
     "gpg_key_generation_failed": "GPG keypair generation failed",
@@ -375,9 +413,7 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
-    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
-    "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
     "invalid_dn_parameter": "Invalid DN parameter",
     "invalid_https_url": "URL does not use HTTPS",
@@ -395,6 +431,7 @@
     "local_group_member_not_found": "Local group member not found",
     "local_group_not_found": "Local group not found",
     "malformed_anchor": "Malformed anchor",
+    "maintenance_mode_change_request_already_submitted": "Maintenance mode change is already pending",
     "malformed_url": "Malformed URL",
     "management_request_sending_failed": "Sending of management request failed",
     "member_already_owner": "Member is already the owner",
@@ -408,8 +445,6 @@
     "pin_code_exists": "PIN code exists",
     "pin_code_not_provided": "PIN code is not provided",
     "pin_incorrect": "Incorrect PIN. Please try again.",
-    "pin_min_char_classes_count": "PIN minimum character classes count",
-    "pin_min_length": "PIN minimum length",
     "process_failed": "Process failed",
     "process_not_executable": "Process is not executable",
     "server_already_fully_initialized": "Server is already fully initialised",
@@ -418,6 +453,7 @@
     "service_already_exists": "Service already exists",
     "service_client_not_found": "Service client not found",
     "service_code_already_exists": "Service code already exists",
+    "service_code_reserved": "The service code provided is reserved for internal system use and cannot be assigned to custom services.",
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
@@ -431,7 +467,6 @@
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
     "warnings_detected": "Warnings detected",
-    "weak_pin": "Weak PIN",
     "wrong_key_usage": "Wrong key usage",
     "wrong_servicedescription_type": "Wrong service description type",
     "wsdl_download_failed": "WSDL download failed",
@@ -446,7 +481,8 @@
     "addClient": {
       "memberClass": "Member Class",
       "memberCode": "Member Code",
-      "subsystemCode": "Subsystem Code"
+      "subsystemCode": "Subsystem Code",
+      "subsystemName": "Subsystem Name"
     },
     "certificationService": "Certification Service",
     "clientAdd": {
@@ -467,6 +503,7 @@
     "keys": {
       "name": "Name"
     },
+    "maintenanceModeMessage": "Maintenance mode message",
     "memberCode": "Member Code",
     "path": "path",
     "pin": "PIN",
@@ -500,7 +537,8 @@
     "name": "Name",
     "subsystem": "subsystem",
     "subsystemCode": "Subsystem code",
-    "type": "Type"
+    "type": "Type",
+    "undefinedSubsystemName": "undefined"
   },
   "global": {
     "appTitle": "X-Road Security Server"
@@ -595,6 +633,7 @@
     "helpTitleSS": "Security Server TLS Certificate",
     "id": "ID",
     "importCert": "Import cert.",
+    "importCertOcspVerifyWarning": "Could not activate certificate, because OCSP Responses could not be verified. Error message: {errorMessage}",
     "importCertSuccess": "Uploading certificate succeeded",
     "incorrectPin": "Incorrect PIN. Please try again.",
     "keyAlgorithm": "Key Algorithm:",
@@ -629,11 +668,9 @@
     "signKeyCert": "SIGN Keys and Certificates",
     "status": "Status",
     "token": {
-      "label": "Token:",
       "details": "Token details",
       "id": "Token ID:",
       "info": "Token information",
-      "pin": "Token PIN",
       "saved": "Token saved",
       "deleteText": "Are you sure that you want to delete this token and all associated information from the server configuration?",
       "deleteTitle": "Delete token?",
@@ -667,13 +704,14 @@
     "id": "Id",
     "localGroup": "Local group",
     "localGroupAdded": "Local group added",
-    "name": "Member Name",
+    "memberName": "Member Name",
     "noResults": "Your search found no results.",
     "removeAllText": "Are you sure you want to remove all members of this group?",
     "removeAllTitle": "Remove all members?",
     "removeText": "Are you sure you want to remove this member?",
     "removeTitle": "Remove member?",
-    "searchOptions": "Search options"
+    "searchOptions": "Search options",
+    "subsystemName": "Subsystem Name"
   },
   "localGroups": {
     "addGroup": "Add group",
@@ -706,7 +744,7 @@
     "id": "ID",
     "memberGroupCodeLabel": "Member/Group code",
     "memberGroupStep": "Member / Group",
-    "name": "Member name / Group description",
+    "name": "Member(Subsystem) name / Group description",
     "noAccessRights": "No access rights to this client",
     "noAvailableServices": "No available services",
     "removeAll": "Remove all",
@@ -951,7 +989,8 @@
       "memberNameTooltip": "Name of the member organization.",
       "register": "Register client",
       "searchLabel": "Client",
-      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member."
+      "subsystemCodeTooltip": "Subsystem code that identifies an information system owned by the Member.",
+      "subsystemNameTooltip": "Name of an information system owned by the Member."
     },
     "clientDetails": "Client details",
     "clientInfo1": "Specify the details of the Client you want to add.",
@@ -997,6 +1036,7 @@
       "subsystemExists": "Subsystem already exists"
     },
     "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name",
     "token": {
       "info": "Please select the token where you want to add the SIGN key for the new Client. Note: the token must be in Logged in state.",
       "loggedIn": "Logged in",

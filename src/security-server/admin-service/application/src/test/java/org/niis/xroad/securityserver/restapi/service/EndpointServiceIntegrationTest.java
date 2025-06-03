@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -38,7 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTestContext {
 
@@ -51,25 +52,19 @@ public class EndpointServiceIntegrationTest extends AbstractServiceIntegrationTe
     @Test
     public void getServiceBaseEndpoints() throws Exception {
         Set<String> serviceCodes = new HashSet<>(Arrays.asList("getRandom", "openapi-servicecode", "rest-servicecode"));
-        ClientType owner = clientService.getLocalClient(TestUtils.getClientId("FI:GOV:M1:SS1"));
-        List<EndpointType> endpoints = endpointService.getServiceBaseEndpoints(owner, serviceCodes);
+        ClientEntity owner = clientService.getLocalClientEntity(TestUtils.getClientId("FI:GOV:M1:SS1"));
+        List<EndpointEntity> endpoints = endpointService.getServiceBaseEndpointEntities(owner, serviceCodes);
         assertEquals(3, endpoints.size());
         Set<Long> expectedIds = new HashSet<>(Arrays.asList(1L, 4L, 5L));
-        Set<Long> ids = endpoints.stream().map(e -> e.getId()).collect(Collectors.toSet());
+        Set<Long> ids = endpoints.stream().map(EndpointEntity::getId).collect(Collectors.toSet());
         assertEquals(expectedIds, ids);
 
         Set<String> wrongServiceCodes = new HashSet<>(Arrays.asList("getRandom", "openapi-servicecode", "wrong"));
-        try {
-            endpointService.getServiceBaseEndpoints(owner, wrongServiceCodes);
-            fail("should throw exception");
-        } catch (EndpointNotFoundException expected) {
-        }
+        assertThrows(EndpointNotFoundException.class, () ->
+                endpointService.getServiceBaseEndpointEntities(owner, wrongServiceCodes));
 
-        ClientType wrongOwner = clientService.getLocalClient(TestUtils.getClientId("FI:GOV:M1:SS2"));
-        try {
-            endpointService.getServiceBaseEndpoints(wrongOwner, serviceCodes);
-            fail("should throw exception");
-        } catch (EndpointNotFoundException expected) {
-        }
+        ClientEntity wrongOwner = clientService.getLocalClientEntity(TestUtils.getClientId("FI:GOV:M1:SS2"));
+        assertThrows(EndpointNotFoundException.class, () ->
+                endpointService.getServiceBaseEndpointEntities(wrongOwner, serviceCodes));
     }
 }

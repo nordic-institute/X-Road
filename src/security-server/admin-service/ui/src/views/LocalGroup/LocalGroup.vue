@@ -44,12 +44,11 @@
     <div class="px-4 description-field">
       <template v-if="canEditDescription">
         <v-text-field
-            v-model="value"
+          v-model="value"
           variant="outlined"
           :label="$t('localGroup.description')"
-
           data-test="local-group-edit-description-input"
-            :error-messages="errors"
+          :error-messages="errors"
           @change="saveDescription"
         ></v-text-field>
       </template>
@@ -82,10 +81,14 @@
     </div>
 
     <v-card flat>
-      <table class="xrd-table group-members-table">
+      <table
+        data-test="group-members-table"
+        class="xrd-table group-members-table"
+      >
         <thead>
           <tr>
-            <th>{{ $t('localGroup.name') }}</th>
+            <th>{{ $t('localGroup.memberName') }}</th>
+            <th>{{ $t('localGroup.subsystemName') }}</th>
             <th>{{ $t('localGroup.id') }}</th>
             <th>{{ $t('localGroup.accessDate') }}</th>
             <th></th>
@@ -94,9 +97,12 @@
         <tbody>
           <template v-if="group && group.members && group.members.length > 0">
             <tr v-for="groupMember in group.members" :key="groupMember.id">
-              <td>{{ groupMember.name }}</td>
-              <td>{{ groupMember.id }}</td>
-              <td>{{ groupMember.created_at }}</td>
+              <td>{{ groupMember.member_name }}</td>
+              <td>
+                <subsystem-name :name="groupMember.subsystem_name" />
+              </td>
+              <td data-test="client-id">{{ groupMember.id }}</td>
+              <td>{{ $filters.formatDateTime(groupMember.created_at) }}</td>
 
               <td>
                 <div class="button-wrap">
@@ -169,15 +175,13 @@ import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { useField } from "vee-validate";
+import { useField } from 'vee-validate';
+import SubsystemName from '@/components/client/SubsystemName.vue';
 
 export default defineComponent({
   components: {
+    SubsystemName,
     AddMembersDialog,
-  },
-  setup() {
-    const { meta, setValue, value, errors } = useField<string>('description', 'required|max:255');
-    return { meta, setValue, value, errors };
   },
   props: {
     clientId: {
@@ -188,6 +192,13 @@ export default defineComponent({
       type: String,
       required: true,
     },
+  },
+  setup() {
+    const { meta, setValue, value, errors } = useField<string>(
+      'description',
+      'required|max:255',
+    );
+    return { meta, setValue, value, errors };
   },
   data() {
     return {
@@ -231,22 +242,22 @@ export default defineComponent({
 
     saveDescription(): void {
       if (this.meta.valid) {
-      api
-        .patch<LocalGroup>(
-          `/local-groups/${encodePathParameter(this.groupId)}`,
-          {
-            description: this.value,
-          },
-        )
-        .then((res) => {
-          this.showSuccess(this.$t('localGroup.descSaved'));
-          this.group = res.data;
-          this.groupCode = res.data.code;
-          this.setValue(res.data.description);
-        })
-        .catch((error) => {
-          this.showError(error);
-        });
+        api
+          .patch<LocalGroup>(
+            `/local-groups/${encodePathParameter(this.groupId)}`,
+            {
+              description: this.value,
+            },
+          )
+          .then((res) => {
+            this.showSuccess(this.$t('localGroup.descSaved'));
+            this.group = res.data;
+            this.groupCode = res.data.code;
+            this.setValue(res.data.description);
+          })
+          .catch((error) => {
+            this.showError(error);
+          });
       }
     },
 

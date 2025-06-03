@@ -54,6 +54,7 @@
       <mr-information :management-request="managementRequest" />
       <div class="management-request-additional-details">
         <mr-security-server-information
+          :class="{ 'only-half': onlyServerInfo }"
           :management-request="managementRequest"
         />
         <mr-client-information
@@ -92,12 +93,11 @@
   </details-view>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { computed, ref } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { managementTypeToText } from '@/util/helpers';
-import { ManagementRequestDetailedView, ManagementRequestType } from '@/openapi-types';
+import { ManagementRequestType } from '@/openapi-types';
 import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
 import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
 import MrCertificateInformation from '@/components/managementRequests/details/MrCertificateInformation.vue';
@@ -112,113 +112,96 @@ import { XrdTitledView } from '@niis/shared-ui';
 /**
  * Wrapper component for a certification service view
  */
-export default defineComponent({
-  name: 'ManagementRequestDetails',
-  components: {
-    XrdTitledView,
-    DetailsView,
-    MrInformation,
-    MrSecurityServerInformation,
-    MrClientInformation,
-    MrCertificateInformation,
-    MrConfirmDialog,
-    MrDeclineDialog,
-  },
-  props: {
-    requestId: {
-      type: Number,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      loading: false,
-      showApproveDialog: false,
-      showDeclineDialog: false,
-      backTo: {
-        name: RouteName.ManagementRequests,
-      },
-    };
-  },
-  computed: {
-    ...mapStores(useManagementRequests),
-
-    managementRequest(): ManagementRequestDetailedView | null {
-      return this.managementRequestsStore.currentManagementRequest;
-    },
-    typeText(): string {
-      return managementTypeToText(
-        this.managementRequestsStore.currentManagementRequest?.type,
-      );
-    },
-    hasCertificateInfo(): boolean {
-      if (!this.managementRequestsStore.currentManagementRequest) {
-        return false;
-      }
-
-      return [
-        ManagementRequestType.AUTH_CERT_DELETION_REQUEST,
-        ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
-      ].includes(this.managementRequestsStore.currentManagementRequest.type);
-    },
-    hasClientInfo(): boolean {
-      if (!this.managementRequestsStore.currentManagementRequest) {
-        return false;
-      }
-
-      return [
-        ManagementRequestType.CLIENT_DELETION_REQUEST,
-        ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
-        ManagementRequestType.CLIENT_DISABLE_REQUEST,
-        ManagementRequestType.CLIENT_ENABLE_REQUEST,
-        ManagementRequestType.OWNER_CHANGE_REQUEST,
-      ].includes(this.managementRequestsStore.currentManagementRequest.type);
-    },
-    newClientOwner(): boolean {
-      const req = this.managementRequestsStore.currentManagementRequest;
-      return (
-        !!req &&
-        req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
-        !req.client_owner_name
-      );
-    },
-    newServerOwner(): boolean {
-      const req = this.managementRequestsStore.currentManagementRequest;
-      return (
-        !!req &&
-        req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
-        !req.security_server_owner
-      );
-    },
-    newMember(): boolean {
-      return this.newClientOwner || this.newServerOwner;
-    },
-  },
-  created() {
-    this.fetchData();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError']),
-    approve() {
-      this.showApproveDialog = false;
-      this.fetchData();
-    },
-    decline() {
-      this.showDeclineDialog = false;
-      this.fetchData();
-    },
-    fetchData: async function () {
-      this.loading = true;
-      try {
-        await this.managementRequestsStore.loadById(this.requestId);
-      } catch (error: unknown) {
-        this.showError(error);
-      } finally {
-        this.loading = false;
-      }
-    },
+const props = defineProps({
+  requestId: {
+    type: Number,
+    required: true,
   },
 });
+const loading = ref(false);
+const showApproveDialog = ref(false);
+const showDeclineDialog = ref(false);
+const backTo = {
+  name: RouteName.ManagementRequests,
+};
+
+const managementRequests = useManagementRequests();
+const { showError } = useNotifications();
+
+const managementRequest = computed(
+  () => managementRequests.currentManagementRequest,
+);
+const typeText = computed(() =>
+  managementTypeToText(managementRequest.value?.type),
+);
+const hasCertificateInfo = computed(() => {
+  if (!managementRequest.value) {
+    return false;
+  }
+
+  return [
+    ManagementRequestType.AUTH_CERT_DELETION_REQUEST,
+    ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
+  ].includes(managementRequest.value.type);
+});
+
+const hasClientInfo = computed(() => {
+  if (!managementRequest.value) {
+    return false;
+  }
+
+  return [
+    ManagementRequestType.CLIENT_DELETION_REQUEST,
+    ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
+    ManagementRequestType.CLIENT_DISABLE_REQUEST,
+    ManagementRequestType.CLIENT_ENABLE_REQUEST,
+    ManagementRequestType.OWNER_CHANGE_REQUEST,
+    ManagementRequestType.CLIENT_RENAME_REQUEST,
+  ].includes(managementRequest.value.type);
+});
+
+const newClientOwner = computed(() => {
+  const req = managementRequest.value;
+  return (
+    !!req &&
+    req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
+    !req.client_owner_name
+  );
+});
+
+const newServerOwner = computed(() => {
+  const req = managementRequest.value;
+  return (
+    !!req &&
+    req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
+    !req.security_server_owner
+  );
+});
+
+const newMember = computed(() => newClientOwner.value || newServerOwner.value);
+const onlyServerInfo = computed(
+  () => !hasCertificateInfo.value && !hasClientInfo.value,
+);
+
+function approve() {
+  showApproveDialog.value = false;
+  fetchData();
+}
+
+function decline() {
+  showDeclineDialog.value = false;
+  fetchData();
+}
+
+function fetchData() {
+  loading.value = true;
+  managementRequests
+    .loadById(props.requestId)
+    .catch((err) => showError(err))
+    .finally(() => (loading.value = false));
+}
+
+fetchData();
 </script>
 <style lang="scss" scoped>
 @use '@/assets/tables' as *;
@@ -233,16 +216,17 @@ export default defineComponent({
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-block {
     width: 100%;
 
     &:first-child {
       margin-right: 30px;
     }
-
-    &:last-child {
-      margin-left: 30px;
-    }
   }
+}
+
+.only-half {
+  max-width: 50%;
 }
 </style>

@@ -27,6 +27,7 @@ openApiGenerate {
   outputDir.set("${layout.buildDirectory.get().asFile}/generated-sources/openapi")
   apiPackage.set("org.niis.xroad.securityserver.restapi.openapi")
   modelPackage.set("org.niis.xroad.securityserver.restapi.openapi.model")
+  modelNameSuffix.set("Dto")
 
   globalProperties.set(
     mapOf(

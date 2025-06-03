@@ -34,18 +34,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.cs.admin.api.domain.AddressChangeRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.AuthenticationCertificateRegistrationRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientDeletionRequest;
 import org.niis.xroad.cs.admin.api.domain.ClientRegistrationRequest;
+import org.niis.xroad.cs.admin.api.domain.MaintenanceModeDisableRequest;
+import org.niis.xroad.cs.admin.api.domain.MaintenanceModeEnableRequest;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
 import org.niis.xroad.cs.admin.api.domain.Origin;
@@ -62,6 +62,8 @@ import org.niis.xroad.cs.openapi.model.AuthenticationCertificateDeletionRequestD
 import org.niis.xroad.cs.openapi.model.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientDeletionRequestDto;
 import org.niis.xroad.cs.openapi.model.ClientRegistrationRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeDisableRequestDto;
+import org.niis.xroad.cs.openapi.model.MaintenanceModeEnableRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestOriginDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestStatusDto;
@@ -74,7 +76,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -83,6 +84,8 @@ import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.AUTH_CERT_REGISTRATION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_DELETION_REQUEST;
 import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_DISABLE_REQUEST;
+import static org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto.MAINTENANCE_MODE_ENABLE_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest implements WithInOrder {
@@ -228,15 +231,33 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
         }
 
         @Test
-        @DisplayName("should fail for unknown request type")
-        void shouldFailForUnknownRequest() {
-            Request illegalRequest = mock(Request.class);
+        @DisplayName("should successfully perform MaintenanceModeEnable conversion")
+        void testMaintenanceModeEnableRequestConversion() {
+            var request = mock(MaintenanceModeEnableRequest.class);
+            doReturn(SERVER_ADDRESS).when(request).getComments();
+            prepareCommonStubs(request, ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST);
 
-            Executable testable = () -> converter.toDto(illegalRequest);
+            var converted = converter.toDto(request);
 
-            ValidationFailureException actualThrown = assertThrows(ValidationFailureException.class, testable);
-            assertEquals("Unknown request type", actualThrown.getMessage());
-            inOrder(illegalRequest).verifyNoMoreInteractions();
+            assertCommon(converted, MAINTENANCE_MODE_ENABLE_REQUEST);
+            var casted = assertInstanceOf(MaintenanceModeEnableRequestDto.class, converted);
+            assertEquals(SERVER_ADDRESS, casted.getMessage());
+            inOrder(request).verify(inOrder -> {
+                inOrder.verify(request).getComments();
+                verifyCommon(inOrder, request);
+            });
+        }
+
+        @Test
+        @DisplayName("should successfully perform MaintenanceModeDisable conversion")
+        void testMaintenanceModeDisableRequestConversion() {
+            var request = mock(MaintenanceModeDisableRequest.class);
+            prepareCommonStubs(request, ManagementRequestType.MAINTENANCE_MODE_DISABLE_REQUEST);
+
+            var converted = converter.toDto(request);
+
+            assertCommon(converted, MAINTENANCE_MODE_DISABLE_REQUEST);
+            assertInstanceOf(MaintenanceModeDisableRequestDto.class, converted);
         }
 
         private void prepareCommonStubs(Request request, ManagementRequestType type) {
@@ -354,6 +375,7 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
                 verifyCommon(inOrder, requestDto);
                 inOrder.verify(requestDto).getClientId();
                 inOrder.verify(clientIdConverter).convertId(encodedClientId);
+                inOrder.verify(requestDto).getSubsystemName();
             });
         }
 
@@ -394,6 +416,40 @@ class ManagementRequestDtoConverterTest extends AbstractDtoConverterTest impleme
             inOrder(requestDto).verify(inOrder -> {
                 verifyCommon(inOrder, requestDto);
                 inOrder.verify(requestDto).getServerAddress();
+            });
+        }
+
+        @Test
+        @DisplayName("should successfully perform MaintenanceModeEnableRequestDto conversion")
+        void shouldSuccessfullyPerformMaintenanceModeEnableRequestDtoConversion() {
+            final var message = "Some message";
+            var requestDto = mock(MaintenanceModeEnableRequestDto.class);
+            prepareCommonStubs(requestDto);
+            doReturn(message).when(requestDto).getMessage();
+
+            var converted = converter.fromDto(requestDto);
+
+            assertCommon(converted);
+            var request = assertInstanceOf(MaintenanceModeEnableRequest.class, converted);
+            assertEquals(message, request.getComments());
+            inOrder(requestDto).verify(inOrder -> {
+                verifyCommon(inOrder, requestDto);
+                inOrder.verify(requestDto).getMessage();
+            });
+        }
+
+        @Test
+        @DisplayName("should successfully perform MaintenanceModeDisableRequestDto conversion")
+        void shouldSuccessfullyPerformMaintenanceModeDisableRequestDtoConversion() {
+            var requestDto = mock(MaintenanceModeDisableRequestDto.class);
+            prepareCommonStubs(requestDto);
+
+            var converted = converter.fromDto(requestDto);
+
+            assertCommon(converted);
+            assertInstanceOf(MaintenanceModeDisableRequest.class, converted);
+            inOrder(requestDto).verify(inOrder -> {
+                verifyCommon(inOrder, requestDto);
             });
         }
 

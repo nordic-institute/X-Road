@@ -34,7 +34,9 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,9 +49,7 @@ public class MailService {
     private final JavaMailSender mailSender;
 
     public MailNotificationStatus getMailNotificationStatus() {
-        boolean acmeSuccessStatus = SystemProperties.getAcmeRenewalSuccessNotificationEnabled();
-        boolean acmeFailureStatus = SystemProperties.getAcmeRenewalFailureNotificationEnabled();
-        boolean authCertRegisteredStatus = SystemProperties.getAuthCertRegisteredNotificationEnabled();
+        Set<MailNotificationType> enabledMailNotifications = getEnabledMailNotifications();
         boolean configurationPresent = mailNotificationProperties.isMailNotificationConfigurationPresent();
         List<String> recipientsEmails = null;
         if (mailNotificationProperties.getContacts() != null) {
@@ -59,11 +59,27 @@ public class MailService {
                     .map(contact -> StringUtils.joinWith(": ", contact.getKey(), contact.getValue()))
                     .toList();
         }
-        return new MailNotificationStatus(acmeSuccessStatus,
-                acmeFailureStatus,
-                authCertRegisteredStatus,
-                configurationPresent,
-                recipientsEmails);
+        return new MailNotificationStatus(enabledMailNotifications, configurationPresent, recipientsEmails);
+    }
+
+    private Set<MailNotificationType> getEnabledMailNotifications() {
+        Set<MailNotificationType> enabledNotifications = new HashSet<>();
+        if (SystemProperties.getAcmeRenewalSuccessNotificationEnabled()) {
+            enabledNotifications.add(MailNotificationType.ACME_SUCCESS);
+        }
+        if (SystemProperties.getAcmeRenewalFailureNotificationEnabled()) {
+            enabledNotifications.add(MailNotificationType.ACME_FAILURE);
+        }
+        if (SystemProperties.getAuthCertRegisteredNotificationEnabled()) {
+            enabledNotifications.add(MailNotificationType.AUTH_CERT_REGISTERED);
+        }
+        if (SystemProperties.getAcmeCertAutomaticallyActivatedNotificationEnabled()) {
+            enabledNotifications.add(MailNotificationType.ACME_CERT_AUTOMATICALLY_ACTIVATED);
+        }
+        if (SystemProperties.getAcmeCertAutomaticActivationFailureNotificationEnabled()) {
+            enabledNotifications.add(MailNotificationType.ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE);
+        }
+        return enabledNotifications;
     }
 
     /** Sends mail notification without stopping the flow in case of error */
@@ -99,9 +115,7 @@ public class MailService {
         mailSender.send(message);
     }
 
-    public record MailNotificationStatus(boolean acmeSuccessStatus,
-                                         boolean acmeFailureStatus,
-                                         boolean authCertRegisteredStatus,
+    public record MailNotificationStatus(Set<MailNotificationType> enabledNotifications,
                                          boolean configurationPresent,
                                          List<String> recipientsEmails) {
     }

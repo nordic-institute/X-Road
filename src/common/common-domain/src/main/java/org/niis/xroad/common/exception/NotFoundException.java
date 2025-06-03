@@ -29,38 +29,28 @@ package org.niis.xroad.common.exception;
 import ee.ria.xroad.common.HttpStatus;
 
 import lombok.NonNull;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
  * Generic "NotFound" exception It has an error message which optionally can be thrown to api layer.
  * Note: Usually if used within rest API this exception leads to http code 500.
  */
-public class NotFoundException extends ServiceException {
-
-    /**
-     * Creates new exception with a message.
-     *
-     * @param deviationProvider Deviation message provider
-     * @param metadata          metadata which is used for Deviation message creation.
-     *                          Values are converted to strings using toString() method.
-     */
-    public NotFoundException(@NonNull final DeviationProvider deviationProvider,
-                             final Object... metadata) {
-        super(deviationProvider, metadata);
+public class NotFoundException extends ClientErrorException {
+    public NotFoundException(@NonNull final ErrorDeviation errorDeviation) {
+        super(errorDeviation);
     }
 
-    /**
-     * Creates new exception with a message.
-     *
-     * @param deviationProvider Deviation message provider
-     * @param cause             root cause for this exception
-     * @param metadata          metadata which is used for Deviation message creation.
-     *                          Values are converted to strings using toString() method.
-     */
-    public NotFoundException(@NonNull final DeviationProvider deviationProvider,
-                             final Throwable cause,
-                             final Object... metadata) {
-        super(deviationProvider, cause, metadata);
+    public NotFoundException(String message, @NonNull final ErrorDeviation errorDeviation) {
+        super(message, errorDeviation);
+    }
+
+    public NotFoundException(Throwable cause, @NonNull final ErrorDeviation errorDeviation) {
+        super(cause, errorDeviation);
+    }
+
+    public <DE extends Exception & DeviationAware> NotFoundException(@NonNull DE exception) {
+        super(exception);
     }
 
     @Override

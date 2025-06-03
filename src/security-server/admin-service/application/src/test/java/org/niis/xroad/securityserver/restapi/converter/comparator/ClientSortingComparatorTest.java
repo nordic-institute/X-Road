@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 package org.niis.xroad.securityserver.restapi.converter.comparator;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.Client;
+import org.niis.xroad.securityserver.restapi.openapi.model.ClientDto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,7 @@ public class ClientSortingComparatorTest {
 
     @Test
     public void testClientSorting() {
-        List<Client> clients = new ArrayList<Client>();
+        List<ClientDto> clients = new ArrayList<ClientDto>();
         clients.add(createTestClient("Client", "COM", "33456", "Client"));
         clients.add(createTestClient("client", "COM", "33455", "Client"));
         clients.add(createTestClient(null, "ORG", "33456", "Service1"));
@@ -137,8 +138,8 @@ public class ClientSortingComparatorTest {
         assertEquals("Service1", clients.get(14).getSubsystemCode());
     }
 
-    private Client createTestClient(String name, String memberClass, String memberCode, String subsystemCode) {
-        Client client = new Client();
+    private ClientDto createTestClient(String name, String memberClass, String memberCode, String subsystemCode) {
+        ClientDto client = new ClientDto();
         client.setInstanceId(INSTANCE_ID);
         client.setMemberName(name);
         client.setMemberClass(memberClass);

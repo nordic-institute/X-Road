@@ -45,7 +45,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.AUTH_CERT_DELETION_REQUEST;
+import static org.niis.xroad.common.managementrequest.model.ManagementRequestType.CLIENT_ENABLE_REQUEST;
 
 @ExtendWith(MockitoExtension.class)
 class ManagementRequestServiceImplTest {
@@ -68,7 +69,7 @@ class ManagementRequestServiceImplTest {
 
         ClientRequestType request = new ClientRequestType();
 
-        Integer result = managementRequestService.addManagementRequest(request, CLIENT_REGISTRATION_REQUEST);
+        Integer result = managementRequestService.addManagementRequest(request, CLIENT_ENABLE_REQUEST);
 
         assertThat(result).isEqualTo(REQUEST_ID);
     }
@@ -80,7 +81,7 @@ class ManagementRequestServiceImplTest {
 
         AuthCertDeletionRequestType request = new AuthCertDeletionRequestType();
 
-        Integer result = managementRequestService.addManagementRequest(request);
+        Integer result = managementRequestService.addManagementRequest(request, AUTH_CERT_DELETION_REQUEST);
 
         assertThat(result).isEqualTo(REQUEST_ID);
     }
@@ -93,7 +94,7 @@ class ManagementRequestServiceImplTest {
         ClientRequestType request = new ClientRequestType();
 
         assertThatExceptionOfType(CodedException.class)
-                .isThrownBy(() -> managementRequestService.addManagementRequest(request, CLIENT_REGISTRATION_REQUEST));
+                .isThrownBy(() -> managementRequestService.addManagementRequest(request, CLIENT_ENABLE_REQUEST));
     }
 
     @Test
@@ -104,6 +105,6 @@ class ManagementRequestServiceImplTest {
         AuthCertDeletionRequestType request = new AuthCertDeletionRequestType();
 
         assertThatExceptionOfType(CodedException.class)
-                .isThrownBy(() -> managementRequestService.addManagementRequest(request));
+                .isThrownBy(() -> managementRequestService.addManagementRequest(request, AUTH_CERT_DELETION_REQUEST));
     }
 }

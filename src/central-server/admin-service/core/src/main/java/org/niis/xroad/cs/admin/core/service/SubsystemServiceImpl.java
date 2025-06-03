@@ -30,9 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
@@ -41,7 +41,6 @@ import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
-import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -59,6 +58,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_REGIS
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_NAME;
 
 @Service
 @Transactional
@@ -67,7 +67,6 @@ public class SubsystemServiceImpl implements SubsystemService {
 
     private final SubsystemRepository subsystemRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
-    private final ServerClientRepository serverClientRepository;
     private final IdentifierRepository<SubsystemIdEntity> subsystemIds;
     private final GlobalGroupMemberService globalGroupMemberService;
     private final SecurityServerClientMapper subsystemConverter;
@@ -78,10 +77,11 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(MEMBER_CLASS, request.getMemberId().getMemberClass());
         auditDataHelper.put(MEMBER_CODE, request.getMemberId().getMemberCode());
         auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, request.getSubsystemId().getSubsystemCode());
+        auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, request.getSubsystemName());
 
         final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isPresent();
         if (exists) {
-            throw new DataIntegrityException(SUBSYSTEM_EXISTS, request.getSubsystemId().toShortString());
+            throw new ConflictException(SUBSYSTEM_EXISTS.build(request.getSubsystemId().toShortString()));
         }
 
         var persistedEntity = saveSubsystem(request);
@@ -91,19 +91,21 @@ public class SubsystemServiceImpl implements SubsystemService {
     private SubsystemEntity saveSubsystem(SubsystemCreationRequest request) {
         var memberEntity = xRoadMemberRepository.findMember(request.getMemberId())
                 .orElseThrow(() -> new NotFoundException(
-                        MEMBER_NOT_FOUND,
-                        "code",
-                        request.getMemberId().getMemberCode()
+                        MEMBER_NOT_FOUND.build(
+                                "code",
+                                request.getMemberId().getMemberCode())
                 ));
         var subsystemIdEntity = subsystemIds.findOrCreate(SubsystemIdEntity.ensure(request.getSubsystemId()));
         var subsystemEntity = new SubsystemEntity(memberEntity, subsystemIdEntity);
+        subsystemEntity.setName(request.getSubsystemName());
+
         return subsystemRepository.save(subsystemEntity);
     }
 
     @Override
     public Set<Subsystem> findByMemberIdentifier(ClientId id) {
         return xRoadMemberRepository.findMember(id)
-                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND))
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND.build()))
                 .getSubsystems().stream().map(subsystemConverter::toDto)
                 .collect(toSet());
     }
@@ -120,15 +122,29 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
 
         var subsystem = subsystemRepository.findOneBy(subsystemClientId)
-                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND.build()));
 
         if (isRegistered(subsystem)) {
-            throw new ValidationFailureException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
+            throw new BadRequestException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED.build());
         }
 
         globalGroupMemberService.removeClientFromGlobalGroups(subsystemClientId);
         // other dependant entities are removed by cascading database constraints
         subsystemRepository.deleteById(subsystem.getId());
+    }
+
+    @Override
+    public Optional<Subsystem> updateSubsystemName(ClientId clientId, String newName) {
+        auditDataHelper.put(MEMBER_SUBSYSTEM_NAME, newName);
+        auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, newName);
+        auditDataHelper.put(MEMBER_CLASS, clientId.getMemberClass());
+        auditDataHelper.put(MEMBER_CODE, clientId.getMemberCode());
+        return subsystemRepository.findByIdentifier(clientId)
+                .map(subsystem -> {
+                    subsystem.setName(newName);
+                    return subsystem;
+                })
+                .map(subsystemConverter::toDto);
     }
 
     private boolean isRegistered(SubsystemEntity subsystem) {

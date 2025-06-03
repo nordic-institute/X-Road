@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.92  
+Version: 2.98  
 Doc. ID: UG-SS
 
 ---
@@ -121,6 +121,13 @@ Doc. ID: UG-SS
 | 07.01.2025 | 2.90    | Updated references                                                                                                                                                                                                                                                                                                                                                                                          | Petteri Kivimäki     |
 | 15.01.2025 | 2.91    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                               | Petteri Kivimäki     |
 | 29.01.2025 | 2.92    | Inactive token deletion                                                                                                                                                                                                                                                                                                                                                                                     | Eneli Reimets        |
+| 07.02.2025 | 2.93    | Automatic certificate activation related updates                                                                                                                                                                                                                                                                                                                                                            | Mikk-Erik Bachmann   |
+| 13.02.2025 | 2.94    | Add helper script for allocating memory for proxy service                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
+| 09.03.2025 | 2.95    | Naming/Renaming subsystems                                                                                                                                                                                                                                                                                                                                                                                  | Ovidijus Narkevicius |
+| 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
+| 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
+| 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
+
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -167,6 +174,7 @@ Doc. ID: UG-SS
   - [4.7 Disabling Client Subsystem Temporarily](#47-disabling-client-subsystem-temporarily)
     - [4.7.1 Disabling Client Subsystem](#471-disabling-client-subsystem)
     - [4.7.2 Enabling Client Subsystem](#472-enabling-client-subsystem)
+  - [4.8 Renaming Client Subsystem](#48-renaming-client-subsystem)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -210,6 +218,7 @@ Doc. ID: UG-SS
   - [10.3 Managing the Timestamping Services](#103-managing-the-timestamping-services)
   - [10.4 Changing the Internal TLS Key and Certificate](#104-changing-the-internal-tls-key-and-certificate)
   - [10.5 Approved Certificate Authorities](#105-approved-certificate-authorities)
+  - [10.6 Enable/Disable maintenance mode for the Security Server](#106-enabledisable-maintenance-mode-for-the-security-server)
 - [11 Message Log](#11-message-log)
   - [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
     - [11.1.1 Common Parameters](#1111-common-parameters)
@@ -234,6 +243,7 @@ Doc. ID: UG-SS
   - [14.1 Examine Security Server services status information](#141-examine-security-server-services-status-information)
   - [14.2 Examine Security Server Java version information](#142-examine-security-server-java-version-information)
   - [14.3 Examine Security Server encryption status information](#143-examine-security-server-encryption-status-information)
+  - [14.4 Download diagnostics report](#144-download-diagnostics-report)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -266,6 +276,7 @@ Doc. ID: UG-SS
   - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
+    - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
@@ -355,7 +366,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: [PR-ENVMONMES](../EnvironmentalMonitoring/Monitoring-messages.md).
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](../../src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. [monitoring.xsd](https://github.com/nordic-institute/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd).
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -947,7 +958,7 @@ Follow these steps.
 
 2.  In the wizard that opens
 
-    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually and click **NEXT**
+    1. Client details page: Select an existing client from the Global list by pressing **SELECT CLIENT** or specify the details of the Client to be added manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field. Click **NEXT**
 
     2. Token page: Select the token where you want to add the SIGN key for the new Client. Click **NEXT**
 
@@ -973,7 +984,7 @@ Follow these steps.
 
 2.  In the wizard that opens
 
-    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually
+    2.1. Select an existing subsystem from the Global list by pressing **SELECT SUBSYSTEM** or specify the **Subsystem Code** manually. Also renaming existing or adding name for new subsystem is possible by editing value in Subsystem name field
 
     2.2. If you wish to register the new subsystem immediately, check the **Register subsystem** checkbox and then click **ADD SUBSYSTEM**.
 
@@ -1089,6 +1100,8 @@ To disable client subsystem, follow these steps.
 
 2.  In the window that opens, click **DISABLE** and then click **YES** in the confirmation dialog.
 
+Notice that if the Client Subsystem is provider of management services, then **DISABLE** button is disabled. 
+
 #### 4.7.2 Enabling Client Subsystem
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
@@ -1100,6 +1113,21 @@ To enable client subsystem, follow these steps.
 1.  In the **CLIENTS** view click the name of the client you wish to enable.
 
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
+
+
+### 4.8 Renaming Client subsystem
+
+**Access rights:** [Registration Officer](#xroad-registration-officer)
+
+To rename a client subsystem, follow these steps.
+
+1.  In the **CLIENTS** view click the name of subsystem that you wish to rename
+
+2.  In the window that opens, click **Edit** and then enter name for subsystem and click **Save**. The Security Server automatically sends a client rename request to the X-Road Central Server.
+
+3.  Next, a subsystem is put into "Name change is submitted" state, which doesn't affect the subsystem functionality. Once the name change is propagated through the global configuration, subsystem name is updated.
+
+**Note:** In case of "Registered" no additional renames are allowed for the subsystem while its rename isn't propagated through global configuration. Only exception is "Saved" subsystem in which case multiple renames are allowed, where the latest rename replaces the previous one and rename will be executed on client registration request using last provided name. 
 
 
 ## 5 Security Tokens, Keys, and Certificates
@@ -1196,7 +1224,7 @@ A Security Server certificate can be in one of the following validity states.
 
 -   For signing certificates: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
-Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled".
+Disabled certificates are not used for signing messages or for establishing secure channels between Security Servers (authentication). If a certificate is disabled, its status in the "OCSP" column in the "Keys and Certificates" table is "Disabled". Certificate can be activated only when OCSP responses are valid.
 
 To activate or disable a certificate, follow these steps.
 
@@ -1879,6 +1907,20 @@ Lists approved certificate authorities. The listing contains the following infor
   * Additional status "not available" if the OCSP response is not available at all, e.g. due to an error.
 * Certificate expiration date.
 
+### 10.6 Enable/Disable maintenance mode for the Security Server
+
+**Access rights:** [System Administrator](#xroad-system-administrator)
+
+To enable or disable maintenance mode for the Security Server, follow these steps.
+1. In the **Navigation tabs**, select **SETTINGS**.
+2. In the opening view select **SYSTEM PARAMETERS** tab.
+3. At the top of the **SYSTEM PARAMETERS** tab, click the switch for Maintenance mode to turn it on or off.
+4. The confirmation dialog will open with an optional field for message (only when enabling maintenance mode) which will be included in error messages returned to clients when they try to access services when the maintenance mode is enabled.
+5. Click **Confirm** to proceed.
+6. Next, the maintenance mode request is submitted to the Central Server. This does not affect the Security Server functionality until the change is propagated through the global configuration - the Security Server downloads a new version of the global configuration where the maintenance mode is enabled. Once propagated, the Security Server will have the maintenance mode set to "On" or "Off." Other Security Servers will recognize the change and start/stop sending requests to the Security Server depending on the maintenance mode status.
+
+Notice that if the Security Server is provider of management services, then the maintenance mode is disabled without possibility to enable it.
+
 ## 11 Message Log
 
 The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. The Security Server supports three options for configuring message log:
@@ -2531,6 +2573,24 @@ The status colors indicate the following:
 - **Red indicator** – there's an error with checking the message log database encryption status
 - **Yellow indicator** – message log database encryption is disabled
 - **Green indicator** – message log database encryption is enabled
+
+### 14.4 Download diagnostics report
+
+It is possible to download a diagnostics report file which can be included as additional information when registering issues for the Security Server.
+File includes following information:
+- X-Road and Java version
+- OS version
+- Configuration overrides from local.ini (just property names)
+- Authentication certificates (name, status, is it active)
+- Global configuration status
+- OCSP responders status
+- Timestamping status
+- Deployment mode (native / container)
+- Installed X-Road packages
+- Running Java processes
+- Is maintenance mode enabled
+
+File is in JSON format and can be downloaded by clicking the **Download diagnostics report** button.
 
 ## 15 Operational Monitoring
 
@@ -3251,6 +3311,60 @@ XROAD_PROXY_UI_API_PARAMS
 XROAD_SIGNER_CONSOLE_PARAMS
 ```
 
+### 21.1 Updating Proxy Service's memory allocation command line arguments
+
+In case of proxy service, the memory allocation command line arguments can be updated by using  helper script `proxy_memory_helper.sh` located in `/usr/share/xroad/scripts/` directory. The script updates the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+Usage examples:
+
+* Get information about total memory, used memory, current configuration and suggested configuration for proxy service:
+
+    ```bash
+    proxy_memory_helper.sh
+    #alternatively
+    #proxy_memory_helper.sh status
+    ```
+
+* Get/Apply recommended memory allocation config based on total memory:
+
+    ```bash
+    #Prints the recommended memory allocation configuration
+    proxy_memory_helper.sh get-recommended
+    #Applies the recommended memory allocation configuration
+    proxy_memory_helper.sh apply-recommended
+    ```
+  
+* Get/Apply default memory allocation config based on total memory:
+
+    ```bash
+    #Prints the default memory allocation configuration
+    proxy_memory_helper.sh get-default
+    #Applies the default memory allocation configuration
+    proxy_memory_helper.sh apply-default
+    ```
+    
+* Apply custom memory allocation config based on total memory, first value is for initial heap size and second value is for maximum heap size:
+
+    ```bash
+    proxy_memory_helper.sh apply 256m 4g
+    ```
+
+* All available commands can be listed with:
+
+    ```bash
+    proxy_memory_helper.sh help
+    ```  
+
+  Value format is the same as for Java's `-Xms` and `-Xmx` options. The script will update the `XROAD_PROXY_PARAMS` property in `/etc/xroad/services/local.properties` file.
+
+  After running the script, the changes will take effect only after restarting the `xroad-proxy` service.
+
+    ```bash
+    sudo systemctl restart xroad-proxy
+    ```
+
+  Note that only -Xms, -Xmx, -XX:InitialHeapSize and -XX:MaxHeapSize options will be overwritten. Instead, any other options present in the XROAD_PROXY_PARAMS property will be preserved.
+
 ## 22 Additional Security Hardening
 
 For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
@@ -3295,9 +3409,13 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
+**Automatic certificate activation**
+
+It is also possible to let the Security Server automatically activate new certificate once it is ordered for signing certificates or once it is registered for authentication certificates. This behaviour can be controlled by respective [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+
 **E-mail notifications**
 
-The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure and authentication certificate registration success. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure, authentication certificate registration success and signing and authentication certificate automatic activation success or failure. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
 
 The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
 
@@ -3314,6 +3432,7 @@ The **host**, **port**, **username** and **password** properties are mandatory. 
 **Enable connections from the ACME server**
 
 The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enabled](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) that defines whether the Security Server listens to incoming ACME challenge requests on port 80. The default value for this parameter is `false` which means that  the Security Server does not listen on port 80. The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
+This parameter can be overriden by an environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED` which takes precedence when both are set.
 
 **Member-specific configuration**
 

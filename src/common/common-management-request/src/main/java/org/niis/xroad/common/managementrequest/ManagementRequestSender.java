@@ -44,6 +44,9 @@ import org.niis.xroad.common.managementrequest.model.AuthCertRegRequest;
 import org.niis.xroad.common.managementrequest.model.ClientDisableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
+import org.niis.xroad.common.managementrequest.model.ClientRenameRequest;
+import org.niis.xroad.common.managementrequest.model.MaintenanceModeDisableRequest;
+import org.niis.xroad.common.managementrequest.model.MaintenanceModeEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -78,7 +81,6 @@ public final class ManagementRequestSender {
     /**
      * Creates the sender for the user ID, client and receiver used in
      * constructing the X-Road message.
-     *
      * @param sender   the sender
      * @param receiver the receiver
      */
@@ -105,7 +107,6 @@ public final class ManagementRequestSender {
      * Sends the authentication certificate registration request directly
      * to the central server. The request is sent as a signed mime multipart
      * message.
-     *
      * @param securityServer the security server id whose certificate is to be
      *                       registered
      * @param address        the IP address of the security server
@@ -124,7 +125,6 @@ public final class ManagementRequestSender {
     /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
-     *
      * @param securityServer the security server id whose certificate is to be
      *                       deleted
      * @param authCert       the authentication certificate bytes
@@ -139,7 +139,6 @@ public final class ManagementRequestSender {
 
     /**
      * Sends the SecurityServer address change request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param address        the new address
      * @return request ID in the central server database
@@ -154,23 +153,50 @@ public final class ManagementRequestSender {
     }
 
     /**
+     * Sends enable maintenance mode request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @param message        the optional message
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new MaintenanceModeEnableRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeEnableRequest(securityServer, message)));
+        }
+    }
+
+    /**
+     * Sends disable maintenance mode request as a normal X-Road message.
+     * @param securityServer the security server id
+     * @return request ID in the central server database
+     * @throws Exception if an error occurs
+     */
+    public Integer sendMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new MaintenanceModeDisableRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildMaintenanceModeDisableRequest(securityServer)));
+        }
+    }
+
+    /**
      * Sends a client registration request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param clientId       the client id that will be registered
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) throws Exception {
+    public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId, String clientName) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientRegRequest(signerRpcClient, clientId, builder.buildClientRegRequest(securityServer, clientId)));
+                    new ClientRegRequest(signerRpcClient, clientId, builder.buildClientRegRequest(securityServer, clientId, clientName)));
         }
     }
 
     /**
      * Sends a client deletion request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param clientId       the client id that will be registered
      * @return request ID in the central server database
@@ -184,7 +210,6 @@ public final class ManagementRequestSender {
 
     /**
      * Sends an owner change request as a normal X-Road message.
-     *
      * @param securityServer the security server id
      * @param clientId       the client id of the new security server owner
      * @return request ID in the central server database
@@ -211,6 +236,15 @@ public final class ManagementRequestSender {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientEnableRequest(signerRpcClient, clientId, builder.buildClientEnableRequest(securityServer, clientId)));
+        }
+    }
+
+    public Integer sendClientRenameRequest(SecurityServerId.Conf securityServer,
+                                           ClientId.Conf clientId, String subsystemName) throws Exception {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
+            return send(sender, getSecurityServerURI(),
+                    new ClientRenameRequest(signerRpcClient, clientId,
+                            builder.buildClientRenameRequest(securityServer, clientId, subsystemName)));
         }
     }
 

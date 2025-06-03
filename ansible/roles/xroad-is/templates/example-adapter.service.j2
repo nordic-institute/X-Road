@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Environment="JAVA_HOME={{ java_17_home }}"
-ExecStart={{ java_17_home }}/bin/java -jar /example-adapter.war
+ExecStart={{ java_17_home }}/bin/java -jar /opt/example-adapter.war
 Restart=always
 
 [Install]

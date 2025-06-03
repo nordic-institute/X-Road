@@ -83,6 +83,17 @@ public class SecurityServerEntity extends AuditableEntity {
     @Setter
     private String address;
 
+    @Column(name = "in_maintenance_mode")
+    @NotNull
+    @Getter
+    @Setter
+    private boolean inMaintenanceMode;
+
+    @Column(name = "maintenance_mode_message")
+    @Getter
+    @Setter
+    private String maintenanceModeMessage;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer")
     @Access(AccessType.FIELD)
     @Getter

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,10 +29,11 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
@@ -39,15 +41,16 @@ import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusCon
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.exception.ErrorMessage;
-import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
-import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
-import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.ProxyMemoryUsageStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.core.io.Resource;
@@ -61,6 +64,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
+
+import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.FAILED_COLLECT_SYSTEM_INFORMATION;
 
 /**
  * diagnostics api
@@ -80,28 +85,27 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
     private final AddOnStatusConverter addOnStatusConverter;
-
     private final BackupEncryptionStatusConverter backupEncryptionStatusConverter;
-
     private final MessageLogEncryptionStatusConverter messageLogEncryptionStatusConverter;
+    private final ProxyMemoryUsageStatusConverter proxyMemoryUsageStatusConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<GlobalConfDiagnostics> getGlobalConfDiagnostics() {
+    public ResponseEntity<GlobalConfDiagnosticsDto> getGlobalConfDiagnostics() {
         DiagnosticsStatus status = diagnosticService.queryGlobalConfStatus();
         return new ResponseEntity<>(globalConfDiagnosticConverter.convert(status), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<Set<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
+    public ResponseEntity<Set<TimestampingServiceDiagnosticsDto>> getTimestampingServicesDiagnostics() {
         Set<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
         return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<Set<OcspResponderDiagnostics>> getOcspRespondersDiagnostics() {
+    public ResponseEntity<Set<OcspResponderDiagnosticsDto>> getOcspRespondersDiagnostics() {
         List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
         return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
@@ -113,21 +117,21 @@ public class DiagnosticsApiController implements DiagnosticsApi {
             return ControllerUtil.createAttachmentResourceResponse(diagnosticReportService.collectSystemInformation(),
                     systemInformationFilename());
         } catch (Exception e) {
-            throw new ServiceException(ErrorMessage.FAILED_COLLECT_SYSTEM_INFORMATION, e);
+            throw new InternalServerErrorException(e, FAILED_COLLECT_SYSTEM_INFORMATION.build());
         }
 
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('DIAGNOSTICS', 'VIEW_TSPS')")
-    public ResponseEntity<AddOnStatus> getAddOnDiagnostics() {
+    public ResponseEntity<AddOnStatusDto> getAddOnDiagnostics() {
         AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddOnStatus();
         return new ResponseEntity<>(addOnStatusConverter.convert(addOnStatus), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<BackupEncryptionStatus> getBackupEncryptionDiagnostics() {
+    public ResponseEntity<BackupEncryptionStatusDto> getBackupEncryptionDiagnostics() {
         BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics =
                 diagnosticService.queryBackupEncryptionStatus();
         return new ResponseEntity<>(backupEncryptionStatusConverter
@@ -136,11 +140,18 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<MessageLogEncryptionStatus> getMessageLogEncryptionDiagnostics() {
+    public ResponseEntity<MessageLogEncryptionStatusDto> getMessageLogEncryptionDiagnostics() {
         MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics =
                 diagnosticService.queryMessageLogEncryptionStatus();
         return new ResponseEntity<>(messageLogEncryptionStatusConverter
                 .convert(messageLogEncryptionStatusDiagnostics), HttpStatus.OK);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DIAGNOSTICS')")
+    public ResponseEntity<ProxyMemoryUsageStatusDto> getProxyMemoryUsage() {
+        ProxyMemory proxyMemoryUsage = diagnosticService.queryProxyMemoryUsage();
+        return new ResponseEntity<>(proxyMemoryUsageStatusConverter.convert(proxyMemoryUsage), HttpStatus.OK);
     }
 
     private String systemInformationFilename() {

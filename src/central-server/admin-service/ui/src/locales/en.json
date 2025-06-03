@@ -6,9 +6,11 @@
     "topTitle": "Forbidden"
   },
   "action": {
+    "addName": "Add subsystem name",
     "approve": "Approve",
     "decline": "Decline",
     "generateCsr": "Generate CSR",
+    "rename": "Rename",
     "select": "Select"
   },
   "apiKey": {
@@ -55,9 +57,7 @@
     "init_software_token_failed": "Software token initialization failed",
     "instance_identifier_not_set": "System parameter for instance identifier not set",
     "intermediate_ca_not_found": "Intermediate CA not found",
-    "internal_error": "Internal error. See server logs for more details",
     "invalid_address_char": "Address field contains invalid characters",
-    "invalid_certificate": "Invalid X.509 certificate",
     "invalid_encoded_id": "Invalid encoded id",
     "invalid_file_content_type": "Invalid content type of uploaded file",
     "invalid_file_extension": "Invalid file extension",
@@ -120,7 +120,6 @@
     "token_invalid_characters": "The provided pin code contains invalid characters",
     "token_pin_final_try": "Tries left: 1",
     "token_pin_locked": "Token PIN locked",
-    "token_weak_pin": "The provided pin code was too weak",
     "trusted_anchor_not_found": "Trusted anchor not found",
     "trusted_anchor_verification_failed": "Trusted anchor verification failed",
     "unknown_configuration_part": "Unknown configuration part"
@@ -337,8 +336,7 @@
     "logIn": "Log in",
     "logOut": "Log out",
     "signKey": "Sign key",
-    "title": "Signing Keys",
-    "token": "Token:"
+    "title": "Signing Keys"
   },
   "managementRequestDetails": {
     "address": "Address",
@@ -347,6 +345,7 @@
     "clientDisableInformation": "Disabled client",
     "clientEnableInformation": "Enabled client",
     "clientInformation": "Client Submitted for Registration",
+    "clientRenameInformation": "Renamed client",
     "comments": "Comments",
     "expires": "Expires",
     "ownerChangeInformation": "New Owner Submitted for Registration",
@@ -362,7 +361,8 @@
     "source": "Source",
     "status": "Status",
     "subject": "Subject",
-    "subsystemCode": "Subsystem Code"
+    "subsystemCode": "Subsystem Code",
+    "subsystemName": "Subsystem Name"
   },
   "managementRequests": {
     "addCertificate": "Add Certificate",
@@ -385,10 +385,13 @@
         "title": "Decline management request"
       }
     },
+    "maintenanceModeDisable": "Disable maintenance mode",
+    "maintenanceModeEnable": "Enable maintenance mode",
     "pending": "Pending",
     "rejected": "Rejected",
     "removeCertificate": "Remove Certificate",
     "removeClient": "Remove Client",
+    "renameClient": "Rename client",
     "revoked": "Revoked",
     "securityServerId": "Server Identifier",
     "securityServerOwnerName": "Server Owner Name",
@@ -434,13 +437,16 @@
         "areYouSureDelete": "Are you sure you want to delete the Subsystem {subsystemCode} from the X-Road member {memberId} from the system configuration?",
         "areYouSureUnregister": "Are you sure you want to delete the Subsystem {subsystemCode} from server {serverCode} from the system configuration?",
         "deleteSubsystem": "Delete Subsystem",
+        "renameSubsystem": "Rename Subsystem",
         "serverOwner": "Server owner",
         "servercode": "Server code",
         "status": "Status",
         "subsystemSuccessfullyAdded": "Subsystem {subsystemCode} is added to the system configuration",
         "subsystemSuccessfullyDeleted": "Subsystem {subsystemCode} has been deleted from the system configuration",
+        "subsystemSuccessfullyRenamed": "Subsystem name successfully saved",
         "subsystemSuccessfullyUnregistered": "Subsystem {subsystemCode} from server {serverCode} has been deleted",
-        "subsystemcode": "Subsystem code"
+        "subsystemcode": "Subsystem code",
+        "subsystemname": "Subsystem name"
       }
     },
     "memberSuccessfullyAdded": "Member {memberName} is added to the system configuration."
@@ -465,6 +471,7 @@
       }
     },
     "disabled": "Temporarily disabled",
+    "maintenanceMode": "In maintenance mode",
     "ownerClass": "Owner Class",
     "ownerCode": "Owner Code",
     "ownerName": "Owner Name",
@@ -616,11 +623,6 @@
     }
   },
   "tokens": {
-    "errors": {
-      "Signer": {
-        "PinIncorrect": "Invalid PIN"
-      }
-    },
     "keysInfoMessage": "A maximum of two configuration source signing keys is allowed on a security token",
     "logIn": "Log in",
     "loginDialog": {

@@ -27,12 +27,13 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.serverconf.model.ClientType;
-import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.impl.entity.ClientEntity;
+import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
+import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.serverconf.model.LocalGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -44,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 /**
  * test LocalGroupService
@@ -63,44 +64,40 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
     @Test
     public void addLocalGroup() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
-        LocalGroupType localGroupType = new LocalGroupType();
-        localGroupType.setGroupCode(TestUtils.NEW_GROUPCODE);
-        localGroupType.setDescription(TestUtils.GROUP_DESC);
-        localGroupType.setUpdated(new Date());
-        localGroupType = localGroupService.addLocalGroup(id, localGroupType);
+        LocalGroup localGroup = new LocalGroup();
+        localGroup.setGroupCode(TestUtils.NEW_GROUPCODE);
+        localGroup.setDescription(TestUtils.GROUP_DESC);
+        localGroup.setUpdated(new Date());
+        localGroup = localGroupService.addLocalGroup(id, localGroup);
 
-        LocalGroupType localGroupTypeFromDb = localGroupService.getLocalGroup(localGroupType.getId());
+        LocalGroup localGroupFromDb = localGroupService.getLocalGroup(localGroup.getId());
 
-        assertEquals(TestUtils.NEW_GROUPCODE, localGroupTypeFromDb.getGroupCode());
-        assertEquals(TestUtils.GROUP_DESC, localGroupTypeFromDb.getDescription());
-        assertEquals(0, localGroupTypeFromDb.getGroupMember().size());
-        assertNotNull(localGroupTypeFromDb.getId());
+        assertEquals(TestUtils.NEW_GROUPCODE, localGroupFromDb.getGroupCode());
+        assertEquals(TestUtils.GROUP_DESC, localGroupFromDb.getDescription());
+        assertEquals(0, localGroupFromDb.getGroupMembers().size());
+        assertNotNull(localGroupFromDb.getId());
     }
 
     @Test
     public void addDuplicateLocalGroup() throws Exception {
         ClientId id = TestUtils.getM1Ss1ClientId();
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        try {
-            localGroupService.addLocalGroup(id, localGroupType);
-            fail("should have thrown DuplicateLocalGroupCodeException");
-        } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
-        }
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        assertThrows(LocalGroupService.DuplicateLocalGroupCodeException.class, () -> localGroupService.addLocalGroup(id, localGroup));
     }
 
     @Test
     public void updateDescription() throws Exception {
-        LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroupType.getDescription(), FOO);
+        LocalGroup localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        assertEquals(FOO, localGroup.getDescription());
         localGroupService.updateDescription(GROUP_ID, TestUtils.NEW_GROUP_DESC);
-        localGroupType = localGroupService.getLocalGroup(GROUP_ID);
-        assertEquals(localGroupType.getDescription(), TestUtils.NEW_GROUP_DESC);
+        localGroup = localGroupService.getLocalGroup(GROUP_ID);
+        assertEquals(TestUtils.NEW_GROUP_DESC, localGroup.getDescription());
     }
 
     @Test
     public void localGroupsExist() {
-        ClientType ss1 = clientService.getLocalClient(TestUtils.getM1Ss1ClientId());
-        ClientType ss2 = clientService.getLocalClient(
+        ClientEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
+        ClientEntity ss2 = clientService.getLocalClientEntity(
                 ClientId.Conf.create("FI", "GOV", "M1", "SS2"));
         assertTrue(localGroupService.localGroupsExist(ss1,
                 Collections.singletonList(LocalGroupId.Conf.create("group2"))));
@@ -118,22 +115,26 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
 
     @Test
     public void deleteLocalGroup() throws Exception {
-        ClientType ss1 = clientService.getLocalClient(TestUtils.getM1Ss1ClientId());
+        ClientEntity ss1 = clientService.getLocalClientEntity(TestUtils.getM1Ss1ClientId());
         Long groupId = Long.valueOf(TestUtils.DB_LOCAL_GROUP_ID_1);
-        XRoadId localGroupXroadId = localGroupService.getLocalGroupIdAsXroadId(groupId);
+        XRoadIdEntity localGroupXroadId = XRoadIdMapper.get().toEntity(
+                localGroupService.getLocalGroupIdAsXroadId(groupId)
+        );
 
-        assertTrue(ss1.getAcl().stream()
-                .filter(acl -> acl.getSubjectId().equals(localGroupXroadId))
-                .count() == TestUtils.GROUP1_ACCESS_RIGHTS_COUNT);
+        assertEquals(TestUtils.GROUP1_ACCESS_RIGHTS_COUNT,
+                ss1.getAccessRights().stream()
+                        .filter(acl -> acl.getSubjectId().equals(localGroupXroadId))
+                        .count()
+        );
 
         localGroupService.deleteLocalGroup(groupId);
 
         // local group should be removed
-        LocalGroupType localGroup = localGroupService.getLocalGroup(groupId);
+        LocalGroup localGroup = localGroupService.getLocalGroup(groupId);
         assertNull(localGroup);
 
         // access rights of the local group should be removed
-        assertTrue(ss1.getAcl().stream().noneMatch(acl -> acl.getSubjectId().equals(localGroupXroadId)));
+        assertTrue(ss1.getAccessRights().stream().noneMatch(acl -> acl.getSubjectId().equals(localGroupXroadId)));
     }
 
 }

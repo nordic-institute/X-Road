@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -27,8 +28,8 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateSigningRequest;
+import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateSigningRequestDto;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
@@ -59,7 +60,7 @@ public class TokenCertificateSigningRequestConverterTest extends AbstractConvert
     @Test
     public void convert() {
         CertRequestInfo certRequestInfo = new CertificateTestUtils.CertRequestInfoBuilder().build();
-        TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo);
+        TokenCertificateSigningRequestDto csr = csrConverter.convert(certRequestInfo);
         assertEquals("id", csr.getId());
         assertEquals("a:b:c", csr.getOwnerId());
     }
@@ -73,9 +74,9 @@ public class TokenCertificateSigningRequestConverterTest extends AbstractConvert
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .key(keyInfo)
                 .build();
-        TokenCertificateSigningRequest csr = csrConverter.convert(certRequestInfo, keyInfo, tokenInfo);
-        Collection<PossibleAction> actions = csr.getPossibleActions();
-        assertTrue(actions.contains(PossibleAction.DELETE));
+        TokenCertificateSigningRequestDto csr = csrConverter.convert(certRequestInfo, keyInfo, tokenInfo);
+        Collection<PossibleActionDto> actions = csr.getPossibleActions();
+        assertTrue(actions.contains(PossibleActionDto.DELETE));
         assertEquals(1, actions.size());
     }
 

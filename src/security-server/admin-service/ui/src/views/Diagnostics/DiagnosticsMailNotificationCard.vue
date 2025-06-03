@@ -40,23 +40,11 @@
           <tr>
             <th>
               {{
-                $t('diagnostics.mailNotificationConfiguration.successEnabled')
-              }}
-            </th>
-            <th>
-              {{
-                $t('diagnostics.mailNotificationConfiguration.failureEnabled')
-              }}
-            </th>
-            <th>
-              {{
-                $t('diagnostics.mailNotificationConfiguration.authCertRegisteredEnabled')
-              }}
-            </th>
-            <th>
-              {{
                 $t('diagnostics.mailNotificationConfiguration.configuration')
               }}
+            </th>
+            <th>
+              {{ $t('diagnostics.mailNotificationConfiguration.types') }}
             </th>
             <th>
               {{
@@ -67,63 +55,15 @@
         </thead>
         <tbody>
           <tr>
-            <td data-test="mail-success-notification-status">
+            <td
+              class="vertical-align-top pt-4"
+              data-test="mail-notification-configuration-status"
+            >
               <div
-                class="status-wrapper"
-                v-if="mailNotificationStatus.acme_success_status !== undefined"
-              >
-                <xrd-status-icon
-                  v-if="mailNotificationStatus.acme_success_status"
-                  status="ok"
-                />
-                <xrd-status-icon v-else status="ok-disabled" />
-                {{
-                  $t(
-                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.acme_success_status}`,
-                  )
-                }}
-              </div>
-            </td>
-            <td data-test="mail-failure-notification-status">
-              <div
-                class="status-wrapper"
-                v-if="mailNotificationStatus.acme_failure_status !== undefined"
-              >
-                <xrd-status-icon
-                  v-if="mailNotificationStatus.acme_failure_status"
-                  status="ok"
-                />
-                <xrd-status-icon v-else status="ok-disabled" />
-                {{
-                  $t(
-                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.acme_failure_status}`,
-                  )
-                }}
-              </div>
-            </td>
-            <td data-test="mail-failure-notification-status">
-              <div
-                class="status-wrapper"
-                v-if="mailNotificationStatus.auth_cert_registered_status !== undefined"
-              >
-                <xrd-status-icon
-                  v-if="mailNotificationStatus.auth_cert_registered_status"
-                  status="ok"
-                />
-                <xrd-status-icon v-else status="ok-disabled" />
-                {{
-                  $t(
-                    `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.auth_cert_registered_status}`,
-                  )
-                }}
-              </div>
-            </td>
-            <td data-test="mail-notification-configuration-status">
-              <div
-                class="status-wrapper"
                 v-if="
                   mailNotificationStatus.configuration_present !== undefined
                 "
+                class="d-flex font-weight-bold"
               >
                 <xrd-status-icon
                   v-if="mailNotificationStatus.configuration_present"
@@ -137,8 +77,55 @@
                 }}
               </div>
             </td>
-            <td data-test="mail-notification-recipients">
-              <p v-for="recipient in mailNotificationStatus.recipients_emails">
+            <td class="vertical-align-top">
+              <div
+                v-for="mailNotificationType in Object.keys(
+                  MailNotificationType,
+                )"
+                :key="mailNotificationType"
+              >
+                <p
+                  v-if="
+                    mailNotificationStatus.enabled_notifications !== undefined
+                  "
+                  class="my-4 d-flex"
+                >
+                  {{
+                    $t(
+                      `diagnostics.mailNotificationConfiguration.type.${mailNotificationType}`,
+                    ) + ':'
+                  }}
+                  &nbsp;
+                  <xrd-status-icon
+                    v-if="
+                      mailNotificationStatus.enabled_notifications.includes(
+                        mailNotificationType,
+                      )
+                    "
+                    status="ok"
+                  />
+                  <xrd-status-icon v-else status="ok-disabled" />
+                  <span
+                    class="font-weight-bold"
+                    :data-test="`enabled-${mailNotificationType}`"
+                  >
+                    {{
+                      $t(
+                        `diagnostics.mailNotificationConfiguration.enabled.${mailNotificationStatus.enabled_notifications.includes(mailNotificationType)}`,
+                      )
+                    }}
+                  </span>
+                </p>
+              </div>
+            </td>
+            <td
+              class="vertical-align-top pt-2"
+              data-test="mail-notification-recipients"
+            >
+              <p
+                v-for="recipient in mailNotificationStatus.recipients_emails"
+                :key="recipient"
+              >
                 {{ recipient }}
                 <xrd-button
                   v-if="mailNotificationStatus.configuration_present"
@@ -146,11 +133,13 @@
                   variant="text"
                   data-test="send-test-mail"
                   @click="sendTestMailNotification(recipient)"
-                  >Send test e-mail</xrd-button
+                  >{{
+                    $t('diagnostics.mailNotificationConfiguration.sentTestMail')
+                  }}</xrd-button
                 >
                 <v-alert
-                  class="mx-2"
                   v-if="testMailStatuses[recipient]"
+                  class="mx-2"
                   border="start"
                   :type="testMailStatuses[recipient].type"
                   variant="outlined"
@@ -174,6 +163,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useMail } from '@/store/modules/mail';
 import { defineComponent } from 'vue';
 import HelpButton from '@/components/ui/HelpButton.vue';
+import { MailNotificationType } from '@/openapi-types';
 
 type TestMailStatuses = {
   [key: string]: {
@@ -186,13 +176,16 @@ export default defineComponent({
   components: {
     HelpButton,
   },
-  computed: {
-    ...mapState(useMail, ['mailNotificationStatus']),
-  },
   data() {
     return {
       testMailStatuses: {} as TestMailStatuses,
     };
+  },
+  computed: {
+    MailNotificationType() {
+      return MailNotificationType;
+    },
+    ...mapState(useMail, ['mailNotificationStatus']),
   },
   created() {
     this.fetchMailNotificationStatus().catch((error) => {
@@ -230,14 +223,6 @@ export default defineComponent({
 @use '@/assets/colors';
 @use '@/assets/tables';
 
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
-
 .xrd-card-text {
   padding-left: 0;
   padding-right: 0;
@@ -252,10 +237,8 @@ h3 {
   }
 }
 
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.vertical-align-top {
+  vertical-align: top;
 }
 
 .help-icon {

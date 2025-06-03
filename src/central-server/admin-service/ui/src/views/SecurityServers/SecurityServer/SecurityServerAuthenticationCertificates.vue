@@ -27,7 +27,7 @@
 <template>
   <main
     data-test="security-server-authentication-certificates-view"
-    class="mt-8"
+    class="mt-5"
   >
     <!-- Table -->
     <v-data-table
@@ -67,7 +67,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <custom-data-table-footer />
       </template>
     </v-data-table>
 
@@ -101,9 +101,11 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import DateTime from '@/components/ui/DateTime.vue';
 import { XrdIconCertificate } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
+import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 
 export default defineComponent({
   components: {
+    CustomDataTableFooter,
     DateTime,
     DeleteAuthenticationCertificateDialog,
     XrdIconCertificate,
@@ -212,18 +214,5 @@ export default defineComponent({
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 </style>
