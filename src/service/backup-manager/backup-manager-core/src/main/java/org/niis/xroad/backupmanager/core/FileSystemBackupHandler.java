@@ -103,7 +103,7 @@ public class FileSystemBackupHandler {
 
         String[] params = new String[]{"-s", securityServerId, "-f", fullPath};
 
-        params = ArrayUtils.addAll(params, encryptionParams(backupManagerProperties));
+        params = ArrayUtils.addAll(params, encryptionParams());
 
         if (backupManagerProperties.backupEncryptionEnabled()) {
             params = ArrayUtils.addAll(params, "-E", "encrypt");
@@ -194,7 +194,7 @@ public class FileSystemBackupHandler {
 
     public void createAutomaticBackup() {
         try {
-            String[] args = encryptionParams(backupManagerProperties);
+            String[] args = encryptionParams();
             log.info("Executing security server configuration auto-backup with command '{} {}'",
                     backupManagerProperties.autoBackupScriptPath(), Arrays.toString(args));
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
@@ -252,7 +252,7 @@ public class FileSystemBackupHandler {
     }
 
 
-    private String[] encryptionParams(BackupManagerProperties backupManagerProperties) {
+    private String[] encryptionParams() {
         String[] params = new String[0];
         if (backupManagerProperties.backupEncryptionEnabled()) {
             params = ArrayUtils.addAll(params, "-E", "encrypt");
