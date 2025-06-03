@@ -36,7 +36,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_FILE_NOT_FOUND;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_FAILED;
@@ -60,6 +62,7 @@ public class SecurityServerBackupServiceTest extends AbstractServiceTestContext 
     @Test
     public void restoreFromBackup() {
         backupService.restoreFromBackup(tempBackupFilename);
+        verify(backupManagerRpcClient).restoreFromBackup(eq(tempBackupFilename), anyString());
     }
 
     @Test
