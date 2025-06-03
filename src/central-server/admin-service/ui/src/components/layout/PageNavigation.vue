@@ -44,7 +44,7 @@
 import { defineComponent, PropType } from 'vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 
 export interface PageNavigationTab extends Tab {
   showAttention?: boolean;

@@ -29,25 +29,27 @@
     <v-tabs
       class="xrd-tabs"
       color="primary"
-      :bg-color="colors.WarmGrey10"
+      :bg-color="warmGrey10"
       slider-size="2"
     >
-      <slot />
+      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" :data-test="tab.key" exact>{{ $t(tab.name) }}</v-tab>
     </v-tabs>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Colors } from '@/global';
+<script lang="ts" setup>
+import { PropType } from 'vue';
+import { Tab } from '../types';
+import _colors from '../assets/colors.module.scss';
 
-export default defineComponent({
-  data() {
-    return {
-      colors: Colors,
-    };
+defineProps({
+  tabs: {
+    type: Array as PropType<Tab[]>,
+    required: true,
   },
 });
+
+const { warmGrey10 } = _colors;
 </script>
 
 <style lang="scss" scoped>
