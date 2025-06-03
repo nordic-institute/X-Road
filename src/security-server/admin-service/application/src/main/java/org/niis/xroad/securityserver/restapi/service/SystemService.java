@@ -102,6 +102,7 @@ public class SystemService {
     private final AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final ConfClientRpcClient confClientRpcClient;
+    private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
 
     @Setter

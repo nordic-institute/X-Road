@@ -172,7 +172,7 @@ public final class ManagementRequestSender {
     public Integer sendMaintenanceModeEnableRequest(SecurityServerId.Conf securityServer, String message) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new MaintenanceModeEnableRequest(signerRpcClient, securityServer.getOwner(),
+                    new MaintenanceModeEnableRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
                             builder.buildMaintenanceModeEnableRequest(securityServer, message)));
         }
     }
@@ -186,7 +186,7 @@ public final class ManagementRequestSender {
     public Integer sendMaintenanceModeDisableRequest(SecurityServerId.Conf securityServer) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new MaintenanceModeDisableRequest(signerRpcClient, securityServer.getOwner(),
+                    new MaintenanceModeDisableRequest(signerRpcClient, signerSignClient, securityServer.getOwner(),
                             builder.buildMaintenanceModeDisableRequest(securityServer)));
         }
     }

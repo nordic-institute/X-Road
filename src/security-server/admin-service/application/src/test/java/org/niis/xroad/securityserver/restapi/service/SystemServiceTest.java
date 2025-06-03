@@ -40,8 +40,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -117,7 +117,7 @@ public class SystemServiceTest {
 
         systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus, confClientRpcClient, globalConfProvider);
+                addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
     }
 
