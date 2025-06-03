@@ -125,12 +125,16 @@ async function loadValidationMessages(language: string) {
     const lang = language.replace('-', '_');
     const msg = await import(
       `../../node_modules/@vee-validate/i18n/dist/locale/${lang}.json`
-    );
+      );
     return { validation: msg.default };
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load veeValidate translations for: ' + language);
-    return {};
+    if (language.includes('-')) {
+      return await loadValidationMessages(language.split('-')[0]);
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to load veeValidate translations for: ' + language);
+      return {};
+    }
   }
 }
 
