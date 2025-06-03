@@ -128,9 +128,9 @@ jobs:
           name: debian-packages
           path: src/packages/build/ubuntu22.04/*.deb
           compression-level: 0 #No point in compressing these
-      - name: Clean build packages #otherwise might run out of disk space in the next steps
-        run: |
-          rm -rf src/packages/build
+      - name: Clean up workspace #otherwise might run out of disk space in the next steps
+        working-directory: ./src
+        run: ./gradlew clean
       - name: Save docker images from registry
         run: |
           mkdir -p ${{ runner.temp }}/docker-images
