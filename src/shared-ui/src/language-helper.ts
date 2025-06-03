@@ -160,8 +160,7 @@ function getUserLanguages(): string[] {
 
 export function pickDefaultLanguage(supportedLanguages: string[]) {
   if (import.meta.env.VITE_I18N_STOP_USER_LOCALE != 'true') {
-    const userLanguages = getUserLanguages()
-      .map((lang) => lang.replace('-', '_'));
+    const userLanguages = getUserLanguages();
 
     for (const lang of userLanguages) {
       //language+region(if present) match
@@ -169,7 +168,7 @@ export function pickDefaultLanguage(supportedLanguages: string[]) {
         return lang;
       }
       //just language match
-      const langCode = lang.split('_')[0];
+      const langCode = lang.split('-')[0];
       if (supportedLanguages.includes(langCode)) {
         return langCode;
       }
