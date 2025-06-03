@@ -122,8 +122,9 @@ async function loadSharedMessages(language: string) {
 
 async function loadValidationMessages(language: string) {
   try {
+    const lang = language.replace('-', '_');
     const msg = await import(
-      `../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`
+      `../../node_modules/@vee-validate/i18n/dist/locale/${lang}.json`
     );
     return { validation: msg.default };
   } catch (e) {
@@ -137,7 +138,7 @@ async function loadVuetifyMessages(language: string) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const locales = (await import('vuetify/locale')) as any;
-    if (!locales[language]) {
+    if (!locales[language.split('-')[0]]) {
       // eslint-disable-next-line no-console
       console.warn('Missing Vuetify translations for: ' + language);
     }
@@ -159,21 +160,17 @@ function getUserLanguages(): string[] {
 
 export function pickDefaultLanguage(supportedLanguages: string[]) {
   if (import.meta.env.VITE_I18N_STOP_USER_LOCALE != 'true') {
-    const userLanguages = getUserLanguages().map((lang) =>
-      lang.replace('_', '-'),
-    );
-    const lcSupportedLanguages = supportedLanguages.map((lang) =>
-      lang.toLowerCase(),
-    );
+    const userLanguages = getUserLanguages()
+      .map((lang) => lang.replace('-', '_'));
 
     for (const lang of userLanguages) {
       //language+region(if present) match
-      if (lcSupportedLanguages.includes(lang)) {
+      if (supportedLanguages.includes(lang)) {
         return lang;
       }
       //just language match
-      const langCode = lang.split('-')[0];
-      if (lcSupportedLanguages.includes(langCode)) {
+      const langCode = lang.split('_')[0];
+      if (supportedLanguages.includes(langCode)) {
         return langCode;
       }
     }
