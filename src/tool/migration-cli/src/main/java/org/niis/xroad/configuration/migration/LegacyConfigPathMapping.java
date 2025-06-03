@@ -83,6 +83,7 @@ public class LegacyConfigPathMapping {
 
         MAPPING.put("proxy.backup-encryption-enabled", "backup-manager.backup-encryption-enabled");
         MAPPING.put("proxy.backup-encryption-keyids", "backup-manager.backup-encryption-keyids");
+        MAPPING.put("configuration-client.proxy-configuration-backup-cron", "backup-manager.autobackup-cron-expression");
 
         MAPPING.put("proxy-ui-api.wsdl-validator-command", "proxy-ui-api.addon.wsdl-validator.command");
 

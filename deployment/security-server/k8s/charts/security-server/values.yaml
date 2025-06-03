@@ -292,7 +292,7 @@ services:
         key: "password"
   backup-manager:
     image: localhost:5555/ss-backup-manager:latest
-    imagePullPolicy: Always #todo: change to IfNotPresent
+    imagePullPolicy: IfNotPresent
     resources:
       requests:
         memory: 64Mi

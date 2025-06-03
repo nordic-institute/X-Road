@@ -55,7 +55,6 @@ public interface BackupManagerProperties {
     String autoBackupScriptPath();
 
     @WithName("autobackup-delete-old-backups-cron")
-//    @WithDefault("10 * * * * ?")    <--- the default,
     @WithDefault("0 0 4 * * ?")
     String autoBackupDeleteOldBackupsCron();
 
@@ -77,7 +76,7 @@ public interface BackupManagerProperties {
 
     @WithName("gpgkeys-home")
     @WithDefault("/etc/xroad/gpghome")
-    String gpgKeysHomePath(); //also hardcoded in the scripts
+    String gpgKeysHomePath(); // hardcoded in the scripts
 
     @WithName("backup-encryption-enabled")
     @WithDefault("false")
