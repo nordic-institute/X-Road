@@ -26,7 +26,7 @@
  -->
 <template>
   <v-container fluid class="login-view-wrap fill-height">
-    <alerts-container class="alerts" />
+    <AlertsContainer class="alerts" />
     <XrdLanguageDropdown class="language-dropdown" />
     <v-row no-gutters class="fill-height">
       <v-col cols="3">
@@ -114,7 +114,7 @@ import { useForm } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import axios from 'axios';
-import {XrdLanguageDropdown} from '@niis/shared-ui';
+import { XrdLanguageDropdown } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {

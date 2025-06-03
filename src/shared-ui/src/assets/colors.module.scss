@@ -24,63 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { RouteLocationRaw } from 'vue-router';
 
-export type FileUploadResult = {
-  /**@deprecated*/
-  buffer: ArrayBuffer;
-  file: File;
-};
+// New UI colors
+@use "colors";
 
-export type BackupItem = {
-  filename: string;
-  local_conf_present?: boolean;
-};
-
-export interface BackupHandler {
-  showError(error: unknown): void;
-
-  showWarning(textKey: string, data?: Record<string, unknown>): void;
-
-  showSuccess(textKey: string, data?: Record<string, unknown>): void;
-
-  upload(backupFile: File, ignoreWarnings?: boolean): Promise<BackupItem>;
-
-  create(): Promise<BackupItem>;
-
-  delete(filename: string): Promise<unknown>;
-
-  download(filename: string): Promise<unknown>;
-
-  restore(filename: string): Promise<unknown>;
-}
-
-export interface CommonUser {
-  login(username: string, password: string): Promise<unknown>;
-
-  logout(): Promise<unknown>;
-
-  username(): string;
-
-  isSessionAlive(): boolean;
-}
-
-export interface CommonRouting {
-  toLogin(): void;
-
-  toHome(): void;
-
-  goBack(steps: number): void;
-}
-
-export interface CommonSystem {
-  version(): string | undefined;
-}
-
-// Interface for Tab data
-export interface Tab {
-  key: string; // Unique key needed for v-for looping
-  name: string; // Localisation key for the name
-  to: RouteLocationRaw & { name: string }; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
-  permissions?: string[]; // Permissions needed to view this tab
+:export {
+  warmGrey10: colors.$WarmGrey10;
 }

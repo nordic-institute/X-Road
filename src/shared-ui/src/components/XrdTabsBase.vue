@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-tabs class="xrd-tabs" color="primary" bg-color="#F4F3F6" slider-size="2">
-      <slot></slot>
+  <v-layout class="main-content">
+    <XrdAppIcon />
+    <v-tabs class="main-tabs" color="black" height="56px" slider-color="primary" show-arrows>
+      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to">
+        {{ $t(tab.name) }}
+      </v-tab>
     </v-tabs>
-  </div>
+    <XrdLanguageDropdown />
+    <XrdAppDropMenu />
+  </v-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { PropType } from 'vue';
+import { Tab, XrdAppDropMenu, XrdAppIcon, XrdLanguageDropdown } from '@niis/shared-ui';
 
-export default defineComponent({});
+defineProps({
+  tabs: {
+    type: Object as PropType<Tab[]>,
+    required: true,
+  },
+});
 </script>
-
 <style lang="scss" scoped>
+.main-content {
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0;
+  }
+
+  .main-tabs {
+    margin-left: 20px;
+    max-width: 1000px;
+  }
+}
+
 :deep(.v-tab) {
   text-transform: none;
   font-weight: 600;

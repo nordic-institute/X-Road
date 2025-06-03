@@ -24,52 +24,19 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content">
-    <XrdAppIcon />
-    <v-tabs
-      v-model="currentTab"
-      class="main-tabs"
-      color="black"
-      height="56px"
-      slider-size="2"
-      slider-color="primary"
-      :show-arrows="true"
-    >
-      <v-tab
-        v-for="tab in allowedTabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        >{{ $t(tab.name) }}
-      </v-tab>
-    </v-tabs>
-    <XrdLanguageDropdown />
-    <XrdAppDropMenu />
-  </v-layout>
+  <XrdTabsBase :tabs="allowedTabs" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
-import {
-  XrdAppDropMenu,
-  XrdLanguageDropdown,
-  XrdAppIcon,
-} from '@niis/shared-ui';
+import { Tab, XrdTabsBase } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    XrdAppIcon,
-    XrdAppDropMenu,
-    XrdLanguageDropdown,
-  },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
+    XrdTabsBase,
   },
   computed: {
     ...mapState(useUser, ['getAllowedTabs']),
@@ -79,24 +46,3 @@ export default defineComponent({
   },
 });
 </script>
-<style lang="scss" scoped>
-.main-content {
-  background-color: #ffffff;
-  height: 56px;
-  padding-left: 92px;
-  @media only screen and (max-width: 920px) {
-    padding-left: 0;
-  }
-}
-
-.main-tabs {
-  margin-left: 20px;
-  max-width: 1000px;
-}
-
-:deep(.v-tab) {
-  text-transform: none;
-  font-weight: 600;
-  color: rgb(0 0 0 / 54%);
-}
-</style>

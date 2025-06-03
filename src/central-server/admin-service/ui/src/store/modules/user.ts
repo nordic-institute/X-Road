@@ -28,7 +28,7 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { defineStore } from 'pinia';
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 import { User } from '@/openapi-types';
 import { mainTabs } from '@/global';
 import { get } from '@/util/api';
