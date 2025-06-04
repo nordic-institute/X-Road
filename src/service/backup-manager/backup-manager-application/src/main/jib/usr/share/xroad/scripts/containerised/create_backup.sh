@@ -124,6 +124,7 @@ while getopts ":i:s:f:E:k:S" opt ; do
       ;;
     f)
       BACKUP_FILENAME=$OPTARG
+      mkdir -p "$(dirname "$BACKUP_FILENAME")"
       ;;
     E)
       ENCRYPT_MODE=$OPTARG

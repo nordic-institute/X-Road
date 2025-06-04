@@ -344,7 +344,7 @@ services:
         secretName: "db-openbao"
         key: "password"
     volumeMounts:
-      - mountPath: /var/lib/xroad/backup
+      - mountPath: /var/lib/xroad
         name: backups-volume
       - mountPath: /etc/xroad/gpghome
         name: gpg-key-volume
