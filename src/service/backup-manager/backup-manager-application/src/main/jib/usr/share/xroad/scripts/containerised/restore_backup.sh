@@ -233,7 +233,7 @@ stop_services () {
       name=$(basename "$deploy")
       # do not stop backup-manager and proxy-ui-api services
       # todo: do not skip signer after migrating data to DB
-      if [[ "$name" == "backup-manager" || "$name" == "proxy-ui-api" || "$name" == "signer " ]]; then
+      if [[ "$name" == "backup-manager" || "$name" == "proxy-ui-api" || "$name" == "signer" ]]; then
         echo "Skipping $name"
         continue
       fi
