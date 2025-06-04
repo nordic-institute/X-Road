@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.35  
+Version: 1.36  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -48,6 +48,7 @@ Doc. ID: IG-SS-RHEL
 | 18.02.2025 | 1.33    | Configuring memory allocation fo proxy service                                                                                                                                                                       | Ovidijus Narkevičius |
 | 10.03.2025 | 1.34    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
 | 21.03.2025 | 1.35    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
+| 06.02.2025 | 1.36    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
 
 ## License
 
@@ -322,7 +323,11 @@ psql -h <database host> -U <superuser> -tAc 'show server_version'
 
 The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
 
-For advanced setup, e.g. when using separate instances for the different databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+For advanced setup, e.g. when using separate instances for the different databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7.
+
+For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-SS](#Ref_UG-SS).
+
+When leaving the database and user creation to the installer, continue with the following steps:
 
 Create the property file for database credentials:
 ```bash
