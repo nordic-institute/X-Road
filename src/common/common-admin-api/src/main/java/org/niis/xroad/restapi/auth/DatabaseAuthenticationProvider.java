@@ -26,100 +26,57 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jvnet.libpam.PAM;
-import org.jvnet.libpam.PAMException;
-import org.jvnet.libpam.UnixUser;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.domain.AdminUser;
+import org.niis.xroad.restapi.service.AdminUserService;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toSet;
-
-/**
- * PAM authentication provider.
- * Application has to be run as a user who has read access to /etc/shadow (
- * likely means that belongs to group shadow)
- * roles are granted with user groups, mappings in {@link Role}
- *
- * Authentication is limited with an IP whitelist.
- */
-@Slf4j
 @RequiredArgsConstructor
-public class PamAuthenticationProvider implements AuthenticationProvider {
+public class DatabaseAuthenticationProvider implements AuthenticationProvider {
+
     private static final int MAX_LEN = 255;
 
-    // from PAMLoginModule
-    private static final String PAM_SERVICE_NAME = "xroad";
-
+    private final PasswordEncoder passwordEncoder;
+    private final AdminUserService userDetailsService;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
-    private final EnumMap<Role, List<String>> userRoleMappings;
-    private final RestApiAuditEvent loginEvent; // login event to audit log
+    private final RestApiAuditEvent loginEvent;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username = String.valueOf(authentication.getPrincipal());
+        authenticationIpWhitelist.validateIpAddress(authentication);
+        String username = authentication.getPrincipal().toString();
+        String presentedPassword = authentication.getCredentials().toString();
+        validateCredentialsLength(username, presentedPassword);
+
         try {
-            Authentication result = doAuthenticateInternal(authentication, username);
+            AdminUser user = userDetailsService.loadUserByUsername(authentication.getName());
+            if (!this.passwordEncoder.matches(presentedPassword, user.getPassword())) {
+                throw new BadCredentialsException("Bad credentials");
+            }
+            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(user.getRoles());
             auditEventLoggingFacade.auditLogSuccess(loginEvent, username);
-            return result;
+            return new UsernamePasswordAuthenticationToken(user.getUsername(), authentication.getCredentials(), grants);
         } catch (Exception e) {
             auditEventLoggingFacade.auditLogFail(loginEvent, e, username);
             throw e;
         }
     }
 
-    private Authentication doAuthenticateInternal(Authentication authentication, String username) {
-        authenticationIpWhitelist.validateIpAddress(authentication);
-        String password = String.valueOf(authentication.getCredentials());
-        validateCredentialsLength(username, password);
-
-        PAM pam;
-        try {
-            pam = new PAM(PAM_SERVICE_NAME);
-        } catch (PAMException e) {
-            throw new AuthenticationServiceException("Could not initialize PAM.", e);
-        }
-        try {
-            UnixUser user = pam.authenticate(username, password);
-            Set<String> groups = user.getGroups();
-            Collection<Role> xroadRoles = userRoleMappings.entrySet().stream()
-                    .filter(roleGroupMapping -> !Collections.disjoint(roleGroupMapping.getValue(), groups))
-                    .map(Map.Entry::getKey)
-                    .collect(toSet());
-            if (xroadRoles.isEmpty()) {
-                throw new AuthenticationServiceException("user hasn't got any required groups");
-            }
-            Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoles);
-            return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
-        } catch (PAMException e) {
-            throw new BadCredentialsException("PAM authentication failed.", e);
-        } finally {
-            pam.dispose();
-        }
-    }
-
     @Override
     public boolean supports(Class<?> authentication) {
-        return authentication.equals(
-                UsernamePasswordAuthenticationToken.class);
+        return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
 
     private void validateCredentialsLength(final String username, final String password) {
