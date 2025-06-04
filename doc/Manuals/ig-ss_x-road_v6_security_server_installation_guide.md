@@ -332,9 +332,9 @@ The Security Server installer can create the database and users for you, but you
 
 For advanced setup, e.g. when using separate servers for the databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7.
 
-For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-SS](#Ref_UG-SS) section „Passing additional parameters to psql“.
+For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-SS](#Ref_UG-SS).
 
-When the installer creates the database and users, perform the following steps:
+When leaving the database and user creation to the installer, continue with the following steps:
 
 Create the property file:
 ```bash

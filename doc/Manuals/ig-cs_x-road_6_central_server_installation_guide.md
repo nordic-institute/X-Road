@@ -276,9 +276,9 @@ The installer can create the database and users for you, but you need to create 
 
 For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. 
 
-For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-CS](#Ref_UG-CS) section „Passing additional parameters to psql“.
+For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-CS](#Ref_UG-CS).
 
-When the installer creates the database and users, perform the following steps:
+When leaving the database and user creation to the installer, continue with the following steps:
 
 Create the property file:
 ```bash
