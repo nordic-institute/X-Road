@@ -55,6 +55,12 @@
             {{ item.server_id.server_code }}
           </div>
         </template>
+        <template #[`item.in_maintenance_mode`]="{ item }">
+            <xrd-icon-base v-if="item.in_maintenance_mode" class="mr-4">
+              <xrd-icon-checked :color="colors.Success100" />
+            </xrd-icon-base>
+          {{item.maintenance_mode_message}}
+        </template>
       </v-data-table-server>
     </searchable-titled-view>
   </div>
@@ -73,17 +79,19 @@ import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
-import { XrdIconSecurityServer } from '@niis/shared-ui';
+import { XrdIconChecked, XrdIconSecurityServer } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
+import { Colors } from '@/global';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let that: any;
 
 export default defineComponent({
-  components: { SearchableTitledView, XrdIconSecurityServer },
+  components: { XrdIconChecked, SearchableTitledView, XrdIconSecurityServer },
   data() {
     return {
+      colors: Colors,
       search: '',
       loading: false,
       showOnlyPending: false,
@@ -114,6 +122,11 @@ export default defineComponent({
           title: this.$t('securityServers.ownerClass') as string,
           align: 'start',
           key: 'server_id.member_class',
+        },
+        {
+          title: this.$t('securityServers.maintenanceMode') as string,
+          align: 'start',
+          key: 'in_maintenance_mode',
         },
       ];
     },

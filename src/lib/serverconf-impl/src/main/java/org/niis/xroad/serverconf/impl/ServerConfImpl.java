@@ -239,7 +239,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
-                                                                DescriptionType descriptionType) {
+                                                                    DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
                     XRoadIdMapper.get().toServices(
@@ -399,6 +399,13 @@ public class ServerConfImpl implements ServerConfProvider {
         }
     }
 
+    @Override
+    public MaintenanceMode getMaintenanceMode() {
+        return globalConfProvider.getMaintenanceMode(getIdentifier())
+                .map(mode -> new MaintenanceMode(mode.enabled(), mode.message()))
+                .orElseGet(() -> new MaintenanceMode(false, null));
+    }
+
     private static ee.ria.xroad.common.metadata.Endpoint createEndpoint(String method, String path) {
         ee.ria.xroad.common.metadata.Endpoint endpoint = new ee.ria.xroad.common.metadata.Endpoint();
         endpoint.setMethod(method);
@@ -487,9 +494,9 @@ public class ServerConfImpl implements ServerConfProvider {
         var accessRights = session.createQuery(query).setReadOnly(true).list();
         return EndpointMapper.get().toTargets(
                 accessRights.stream()
-                .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), clientId))
-                .map(AccessRightEntity::getEndpoint)
-                .toList()
+                        .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), clientId))
+                        .map(AccessRightEntity::getEndpoint)
+                        .toList()
         );
     }
 
