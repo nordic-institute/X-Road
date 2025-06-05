@@ -113,15 +113,15 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     }
 
     @Test
-    public void getBackupEncryptionDiagnostics() throws Exception {
-        when(proxyRpcClient.getBackupEncryptionStatus()).thenReturn(
+    public void getBackupEncryptionDiagnostics() {
+        when(backupManagerRpcClient.getEncryptionStatus()).thenReturn(
                 new BackupEncryptionStatusDiagnostics(true, List.of("keyid")));
         ResponseEntity<BackupEncryptionStatusDto> response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getBackupEncryptionStatus());
         assertEquals(1, response.getBody().getBackupEncryptionKeys().size());
 
-        when(proxyRpcClient.getBackupEncryptionStatus()).thenReturn(
+        when(backupManagerRpcClient.getEncryptionStatus()).thenReturn(
                 new BackupEncryptionStatusDiagnostics(false, List.of()));
         response = diagnosticsApiController.getBackupEncryptionDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());

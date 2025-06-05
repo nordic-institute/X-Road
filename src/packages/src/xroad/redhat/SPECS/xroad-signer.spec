@@ -45,7 +45,6 @@ mkdir -p %{buildroot}/etc/xroad/services
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons
 mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/etc/xroad/signer
-mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/bin/signer-console %{buildroot}/usr/bin/signer-console
@@ -79,8 +78,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad/services
 %dir /etc/xroad/conf.d
 %dir /etc/xroad/conf.d/addons
-%dir /var/lib/xroad
-%dir /var/lib/xroad/backup
 %config /etc/xroad/devices.ini
 %config /etc/xroad/services/signer.conf
 %config /etc/xroad/services/signer-console.conf
@@ -110,12 +107,6 @@ fi
 
 %post
 umask 027
-
-# ensure home directory ownership
-mkdir -p /var/lib/xroad/backup
-su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
-chown xroad:xroad /var/lib/xroad/backup
-chmod 0775 /var/lib/xroad
 
 # nicer log directory permissions
 mkdir -p -m1770 /var/log/xroad

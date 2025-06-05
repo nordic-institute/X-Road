@@ -64,7 +64,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-monitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-backup-manager (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
@@ -202,3 +202,12 @@ Package: xroad-secret-store-remote
 Architecture: all
 Conflicts: xroad-secret-store-local
 Description: Meta-package for X-Road remote secret store dependencies
+
+Package: xroad-backup-manager
+Architecture: amd64 arm64
+#todo: should be (<< 8.0.0)
+Replaces: xroad-proxy (<< 7.7.0)
+Breaks: xroad-proxy (<< 7.7.0)
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
+Description: X-Road backup manager
+ X-Road backup manager

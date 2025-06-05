@@ -32,18 +32,12 @@ package org.niis.xroad.proxy.proto;
 option java_multiple_files = true;
 
 service AdminService {
-  rpc GetBackupEncryptionStatus(Empty) returns (BackupEncryptionStatusResp) {}
   rpc GetAddOnStatus(Empty) returns (AddOnStatusResp) {}
   rpc GetMessageLogEncryptionStatus(Empty) returns (MessageLogEncryptionStatusResp) {}
   rpc GetTimestampStatus(Empty) returns (TimestampStatusResp) {}
   rpc GetProxyMemoryStatus(Empty) returns (ProxyMemoryStatusResp) {}
   rpc ClearConfCache(Empty) returns (Empty) {}
   rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
-}
-
-message BackupEncryptionStatusResp {
-  bool backup_encryption_status = 1;
-  repeated string backup_encryption_keys = 2;
 }
 
 message AddOnStatusResp {

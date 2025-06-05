@@ -64,7 +64,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
                 Paths.get("src/intTest/resources/container-files/etc/xroad/signer-predefined").toFile(),
                 Paths.get("build/signer-volume").toFile());
 
-        envSetup.start(EnvSetup.SIGNER);
+        envSetup.start(EnvSetup.SIGNER, true);
     }
 
     @Step("Predefined inactive signer token is uploaded")
@@ -117,7 +117,7 @@ public class SignerStepDefs extends BaseUiStepDefs {
             log.error("Failed to modify keyconf.xml file", e);
             throw e;
         } finally {
-            envSetup.start(EnvSetup.SIGNER);
+            envSetup.start(EnvSetup.SIGNER, true);
         }
 
     }

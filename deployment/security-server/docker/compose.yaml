@@ -14,10 +14,11 @@ services:
     volumes:
       - ../../../src/packages/src/xroad/common/secret-store-local/usr/share/xroad/scripts/:/scripts
   db-serverconf:
-    image: postgres:17
+    image: postgres:16
     environment:
-      - POSTGRES_PASSWORD=secret #TODO use separate users for runtime and admin see: https://hub.docker.com/_/postgres
-      - POSTGRES_USER=serverconf
+      - POSTGRES_PASSWORD=admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=serverconf
     networks:
       - xrd-ss-network
     deploy:
@@ -26,11 +27,33 @@ services:
           memory: 64M
         limits:
           memory: 256M
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+      
+        psql -U postgres -d serverconf -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'serverconf'
+            ) THEN
+              CREATE ROLE serverconf LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
   db-messagelog:
-    image: postgres:17
+    image: postgres:16
     environment:
-      - POSTGRES_PASSWORD=secret #TODO use separate users
-      - POSTGRES_USER=messagelog
+      - POSTGRES_PASSWORD=admin_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=messagelog
     networks:
       - xrd-ss-network
     deploy:
@@ -39,12 +62,33 @@ services:
           memory: 64M
         limits:
           memory: 256M
+    command: >
+      bash -c "
+        docker-entrypoint.sh postgres &
+        until pg_isready -U postgres -h localhost; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done;
+      
+        psql -U postgres -d messagelog -c \"
+          DO \\\$\$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT FROM pg_catalog.pg_roles WHERE rolname = 'messagelog'
+            ) THEN
+              CREATE ROLE messagelog LOGIN PASSWORD 'secret';
+            END IF;
+          END
+          \\\$\$;
+        \"
+        wait
+      "
   db-serverconf-init:
     image: ${SERVERCONF_INIT_IMG}
     pull_policy: always
     environment:
-      - LIQUIBASE_COMMAND_USERNAME=serverconf
-      - LIQUIBASE_COMMAND_PASSWORD=secret
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=admin_secret
       - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - db_user=serverconf
       - db_schema=public
@@ -62,8 +106,8 @@ services:
     image: ${MESSAGELOG_INIT_IMG}
     pull_policy: always
     environment:
-      - LIQUIBASE_COMMAND_USERNAME=messagelog
-      - LIQUIBASE_COMMAND_PASSWORD=secret
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=admin_secret
       - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-messagelog:5432/messagelog
       - db_user=messagelog
       - db_schema=public
@@ -210,6 +254,7 @@ services:
       - XROAD_COMMON_RPC_CHANNEL_CONFIGURATION_CLIENT_HOST=configuration-client
       - XROAD_COMMON_RPC_CHANNEL_SIGNER_HOST=signer
       - XROAD_COMMON_RPC_CHANNEL_PROXY_HOST=proxy
+      - XROAD_COMMON_RPC_CHANNEL_BACKUP_MANAGER_HOST=backup-manager
       - XROAD_COMMON_RPC_CHANNEL_ENV_MONITOR_HOST=monitor
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
@@ -240,6 +285,21 @@ services:
           memory: 64M
         limits:
           memory: 512M
+  backup-manager:
+    image: ${BACKUP_MANAGER_IMG}
+    pull_policy: always
+    environment:
+      - XROAD_HOST=backup-manager
+      - XROAD_SECRET_STORE_HOST=openbao
+      - XROAD_SECRET_STORE_TOKEN=${XROAD_SECRET_STORE_TOKEN}
+      - XROAD_SERVERCONF_DB_PASSWORD=secret
+      - XROAD_SERVERCONF_DB_ADMIN_PASSWORD=admin_secret
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    networks:
+      - xrd-ss-network
 
 networks:
   xrd-ss-network:

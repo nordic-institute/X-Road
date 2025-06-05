@@ -78,18 +78,6 @@ case "$1" in
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-  # generate gpg keypair when needed - directory does not exist and server is initialised
-  if [[ -n "$2" ]]; then
-    if [ ! -d /etc/xroad/gpghome ] ; then
-      ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
-      if [[ -n "${ID}" ]] ; then
-        /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
-      fi
-    fi
-    # always fix gpghome ownership
-    [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
-  fi
-
   # keep previous default client http(s) ports when upgrading  from <7.4.0
   if [ -n "$2" ];
     then
@@ -128,37 +116,38 @@ case "$1" in
   db_get xroad-common/database-host || RET=""
   /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
 
-  # xroad8 move existing configuration anchor file to DB.
-  conf_anchor_file=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null || echo "/etc/xroad/configuration-anchor.xml")
-  if [ -f "${conf_anchor_file}" ]; then
-    echo "Configuration anchor file (${conf_anchor_file}) exists. Will insert to db."
-
-    source /usr/share/xroad/scripts/read_db_properties.sh
-    read_serverconf_database_properties /etc/xroad/db.properties
-
-    # Reading custom libpq ENV variables
-    if [ -f /etc/xroad/db_libpq.env ]; then
-      source /etc/xroad/db_libpq.env
-    fi
-
-    tmp_sql=$(mktemp) || exit 1
-    {
-      echo "INSERT INTO \"${db_schema}\".configuration_client(name, content)"
-      echo "VALUES ('configuration-anchor', '$(sed "s/'/''/g" ${conf_anchor_file})')"
-      echo "ON CONFLICT (name) DO UPDATE SET content = EXCLUDED.content;"
-    } > "$tmp_sql"
-    PGPASSWORD="$db_password" \
-    psql -q -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -d "${db_database}" -U "${db_user}" -f "$tmp_sql" >/dev/null
-    if [ $? -ne 0 ]; then
-      echo "Error: SQL query execution failed"
-    else
-      echo "SQL query executed successfully. Renaming ${conf_anchor_file} to ${conf_anchor_file}.copy. It can be deleted."
-      mv ${conf_anchor_file} ${conf_anchor_file}.copy
-    fi
-    rm "$tmp_sql"
-  else
-    echo "${conf_anchor_file} file not found, skipping migration to db."
-  fi
+#  todo: should be moved out from proxy package.
+#  # xroad8 move existing configuration anchor file to DB.
+#  conf_anchor_file=$(crudini --get /etc/xroad/conf.d/local.ini proxy configuration-anchor-file 2>/dev/null || echo "/etc/xroad/configuration-anchor.xml")
+#  if [ -f "${conf_anchor_file}" ]; then
+#    echo "Configuration anchor file (${conf_anchor_file}) exists. Will insert to db."
+#
+#    source /usr/share/xroad/scripts/read_db_properties.sh
+#    read_serverconf_database_properties /etc/xroad/db.properties
+#
+#    # Reading custom libpq ENV variables
+#    if [ -f /etc/xroad/db_libpq.env ]; then
+#      source /etc/xroad/db_libpq.env
+#    fi
+#
+#    tmp_sql=$(mktemp) || exit 1
+#    {
+#      echo "INSERT INTO \"${db_schema}\".configuration_client(name, content)"
+#      echo "VALUES ('configuration-anchor', '$(sed "s/'/''/g" ${conf_anchor_file})')"
+#      echo "ON CONFLICT (name) DO UPDATE SET content = EXCLUDED.content;"
+#    } > "$tmp_sql"
+#    PGPASSWORD="$db_password" \
+#    psql -q -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -d "${db_database}" -U "${db_user}" -f "$tmp_sql" >/dev/null
+#    if [ $? -ne 0 ]; then
+#      echo "Error: SQL query execution failed"
+#    else
+#      echo "SQL query executed successfully. Renaming ${conf_anchor_file} to ${conf_anchor_file}.copy. It can be deleted."
+#      mv ${conf_anchor_file} ${conf_anchor_file}.copy
+#    fi
+#    rm "$tmp_sql"
+#  else
+#    echo "${conf_anchor_file} file not found, skipping migration to db."
+#  fi
 
   DEFAULT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-default')"
   RECOMMENDED_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-recommended')"

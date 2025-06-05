@@ -28,8 +28,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import org.junit.After;
 import org.junit.Before;
 import org.niis.xroad.common.mail.MailService;
-import org.niis.xroad.restapi.common.backup.service.BackupService;
-import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -48,7 +46,7 @@ import org.niis.xroad.securityserver.restapi.service.InternalServerTestService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
-import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
+import org.niis.xroad.securityserver.restapi.service.SecurityServerBackupService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
@@ -71,9 +69,9 @@ import org.springframework.web.context.request.RequestContextHolder;
  * <p>
  * Service layer mocking strategy varies
  * - real implementations are used for services not defined as @MockitoBean or @MockitoSpyBean here
- * (example: {@link ClientService}
+ * (example: {@link ClientService})
  * - mocks are always used for services defined as @MockitoBeans
- * (example: {@link BackupService}
+ * (example: {@link CertificateAuthorityService})
  * - mocking depends on a case by case basis when @MockitoSpyBean is used. Some tests use 100% real implementation, others
  * mock some parts
  * (example: {@link KeyService}
@@ -86,11 +84,7 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockitoBean
     CertificateAuthorityService certificateAuthorityService;
     @MockitoBean
-    BackupService backupService;
-    @MockitoBean
-    SecurityServerConfigurationBackupGenerator backupGenerator;
-    @MockitoBean
-    ConfigurationRestorationService configurationRestorationService;
+    SecurityServerBackupService backupService;
     @MockitoBean
     UrlValidator urlValidator;
     @MockitoBean
