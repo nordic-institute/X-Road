@@ -29,6 +29,7 @@ import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsResp;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
@@ -64,8 +65,8 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
                         request.getRecordsTo(),
                         request.getIntervalInMinutes(),
                         convertSecurityServerType(request.getSecurityServerType()),
-                        request.getSucceeded(),
-                        request.hasClientId() ? ClientIdMapper.fromDto(request.getClientId()) : null);
+                        request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
+                        request.hasServiceId() ? ServiceIdMapper.fromDto(request.getServiceId()) : null);
 
         GetOperationalDataIntervalsResp.Builder getOpDataIntervalsRespBuilder = GetOperationalDataIntervalsResp.newBuilder();
         operationalDataInIntervals.forEach(interval -> {
@@ -77,8 +78,6 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
             operationalDataIntervalBuilder.setTimeIntervalStart(intervalStartTimestamp);
             operationalDataIntervalBuilder.setSuccessCount(interval.successCount());
             operationalDataIntervalBuilder.setFailureCount(interval.failureCount());
-            operationalDataIntervalBuilder.setIncomingCount(interval.incomingCount());
-            operationalDataIntervalBuilder.setOutgoingCount(interval.outgoingCount());
             getOpDataIntervalsRespBuilder.addOperationalDataInterval(operationalDataIntervalBuilder);
         });
         return getOpDataIntervalsRespBuilder.build();
@@ -88,7 +87,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
         return switch (securityServerType) {
             case CLIENT -> OpMonitoringData.SecurityServerType.CLIENT;
             case PRODUCER -> OpMonitoringData.SecurityServerType.PRODUCER;
-            case UNRECOGNIZED -> null;
+            case SECURITY_SERVER_TYPE_UNSPECIFIED, UNRECOGNIZED -> null;
         };
     }
 }

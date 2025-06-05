@@ -27,7 +27,6 @@ package org.niis.xroad.opmonitor.core;
 
 import java.time.Instant;
 
-public record OperationalDataInTimeInterval(Instant timeIntervalStart, Long successCount, Long failureCount, Long incomingCount,
-                                            Long outgoingCount) {
+public record OperationalDataInTimeInterval(Instant timeIntervalStart, Long successCount, Long failureCount) {
 
 }

@@ -26,10 +26,13 @@ package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
@@ -52,8 +55,8 @@ public class OpMonitorClient {
                                                                      Long recordsTo,
                                                                      Integer interval,
                                                                      String securityServerType,
-                                                                     Boolean succeeded,
-                                                                     ClientId clientId) {
+                                                                     ClientId memberId,
+                                                                     ServiceId serviceId) {
         try {
             GetOperationalDataIntervalsReq.Builder reqBuilder = GetOperationalDataIntervalsReq.newBuilder()
                     .setRecordsFrom(recordsFrom)
@@ -62,11 +65,11 @@ public class OpMonitorClient {
             if (securityServerType != null) {
                 reqBuilder.setSecurityServerType(SecurityServerType.valueOf(securityServerType.toUpperCase()));
             }
-            if (succeeded != null) {
-                reqBuilder.setSucceeded(succeeded);
+            if (memberId != null) {
+                reqBuilder.setMemberId(ClientIdMapper.toDto(memberId));
             }
-            if (clientId != null) {
-                reqBuilder.setClientId(ClientIdMapper.toDto(clientId));
+            if (serviceId != null) {
+                reqBuilder.setServiceId(ServiceIdMapper.toDto(serviceId));
             }
             var response = opMonitorRpcClient.execute(ctx ->
                     ctx.getOpMonitorServiceBlockingStub().getOperationalDataIntervals(reqBuilder.build()));

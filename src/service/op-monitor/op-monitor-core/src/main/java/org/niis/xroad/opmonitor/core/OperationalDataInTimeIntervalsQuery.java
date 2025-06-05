@@ -27,6 +27,8 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
@@ -44,45 +46,41 @@ final class OperationalDataInTimeIntervalsQuery {
 
     public List<OperationalDataInTimeInterval> list(Long startTime,
                                                     Long endTime,
-                                                    Long intervalInMinutes,
+                                                    Integer intervalInMinutes,
                                                     OpMonitoringData.SecurityServerType securityServerType,
-                                                    Boolean succeeded,
-                                                    ClientId clientId) {
-        String sql = createSql(securityServerType, succeeded, clientId);
+                                                    ClientId memberId,
+                                                    ServiceId serviceId) {
+        String sql = createSql(securityServerType, memberId, serviceId);
         NativeQuery<OperationalDataInTimeInterval> query =
-                createQuery(sql, startTime, endTime, intervalInMinutes, securityServerType, succeeded, clientId);
+                createQuery(sql, startTime, endTime, intervalInMinutes, securityServerType, memberId, serviceId);
         return query.getResultList();
     }
 
-    private static String createSql(OpMonitoringData.SecurityServerType securityServerType, Boolean succeeded, ClientId clientId) {
+    private static String createSql(OpMonitoringData.SecurityServerType securityServerType, ClientId memberId, ServiceId serviceId) {
         StringBuilder sql = new StringBuilder("""
                 WITH time_buckets AS (
                     SELECT GENERATE_SERIES(
                         TO_TIMESTAMP(:startTimeMillis / 1000),
                         TO_TIMESTAMP(:endTimeMillis / 1000),
-                        :interval * 60
+                        (:interval || ' minutes')::INTERVAL
                     ) AS time_interval_start
                 ),
                 request_counts AS (
                     SELECT
                         TO_TIMESTAMP(FLOOR(request_in_ts / 1000 / (:interval * 60)) * (:interval * 60)) AS time_interval_start,
                         COUNT(*) FILTER (WHERE succeeded = true) AS success_count,
-                        COUNT(*) FILTER (WHERE succeeded = false) AS failure_count,
-                        COUNT(*) FILTER (WHERE security_server_type = 'Producer') AS incoming_count,
-                        COUNT(*) FILTER (WHERE security_server_type = 'Client') AS outgoing_count
+                        COUNT(*) FILTER (WHERE succeeded = false) AS failure_count
                     FROM operational_data
                     WHERE request_in_ts BETWEEN :startTimeMillis AND :endTimeMillis
                 """);
-        addOptionalFilters(sql, securityServerType, succeeded, clientId);
+        addOptionalFilters(sql, securityServerType, memberId, serviceId);
         sql.append("""
                     GROUP BY time_interval_start
                 )
                 SELECT
                     tb.time_interval_start,
                     COALESCE(rc.success_count, 0) AS success_count,
-                    COALESCE(rc.failure_count, 0) AS failure_count,
-                    COALESCE(rc.incoming_count, 0) AS incoming_count,
-                    COALESCE(rc.outgoing_count, 0) AS outgoing_count
+                    COALESCE(rc.failure_count, 0) AS failure_count
                 FROM time_buckets tb
                 LEFT JOIN request_counts rc ON tb.time_interval_start = rc.time_interval_start
                 ORDER BY tb.time_interval_start;
@@ -92,20 +90,17 @@ final class OperationalDataInTimeIntervalsQuery {
 
     private static void addOptionalFilters(StringBuilder sql,
                                            OpMonitoringData.SecurityServerType securityServerType,
-                                           Boolean succeeded,
-                                           ClientId clientId) {
+                                           ClientId memberId,
+                                           ServiceId serviceId) {
         if (securityServerType != null) {
             sql.append(" AND security_server_type = :securityServerType");
         }
-        if (succeeded != null) {
-            sql.append(" AND succeeded = :succeeded");
-        }
-        if (clientId != null) {
-            sql.append(" AND (");
+        if (memberId != null) {
+            sql.append(" AND ((");
             sql.append("     client_xroad_instance = :clientXroadInstance");
             sql.append(" AND client_member_class = :clientMemberClass");
             sql.append(" AND client_member_code = :clientMemberCode");
-            if (clientId.isSubsystem()) {
+            if (memberId.isSubsystem()) {
                 sql.append(" AND client_subsystem_code = :clientSubsystemCode");
             } else {
                 sql.append(" AND client_subsystem_code IS NULL");
@@ -114,10 +109,22 @@ final class OperationalDataInTimeIntervalsQuery {
             sql.append("     service_xroad_instance = :clientXroadInstance");
             sql.append(" AND service_member_class = :clientMemberClass");
             sql.append(" AND service_member_code = :clientMemberCode");
-            if (clientId.isSubsystem()) {
+            if (memberId.isSubsystem()) {
                 sql.append(" AND service_subsystem_code = :clientSubsystemCode");
             } else {
                 sql.append(" AND service_subsystem_code IS NULL");
+            }
+            sql.append("))");
+        }
+        if (serviceId != null) {
+            sql.append(" AND (");
+            sql.append("     service_xroad_instance = :serviceXroadInstance");
+            sql.append(" AND service_member_class = :serviceMemberClass");
+            sql.append(" AND service_member_code = :serviceMemberCode");
+            sql.append(" AND service_subsystem_code = :serviceSubsystemCode");
+            sql.append(" AND service_code = :serviceCode");
+            if (serviceId.getServiceVersion() != null) {
+                sql.append(" AND service_version = :serviceVersion");
             }
             sql.append(")");
         }
@@ -126,30 +133,40 @@ final class OperationalDataInTimeIntervalsQuery {
     private NativeQuery<OperationalDataInTimeInterval> createQuery(String sql,
                                                                    Long startTime,
                                                                    Long endTime,
-                                                                   Long intervalInMinutes,
+                                                                   Integer intervalInMinutes,
                                                                    OpMonitoringData.SecurityServerType securityServerType,
-                                                                   Boolean succeeded,
-                                                                   ClientId clientId) {
+                                                                   ClientId memberId,
+                                                                   ServiceId serviceId) {
+        long intervalInMillis = intervalInMinutes * 60L * 1000L;
         NativeQuery<OperationalDataInTimeInterval> query =
                 session.createNativeQuery(sql, OperationalDataInTimeInterval.class)
-                        .setParameter("startTimeMillis", startTime)
-                        .setParameter("endTimeMillis", endTime)
+                        .setParameter("startTimeMillis", Math.floorDiv(startTime, intervalInMillis) * intervalInMillis)
+                        .setParameter("endTimeMillis",
+                                Math.floorDiv(endTime, intervalInMillis) * intervalInMillis + intervalInMillis)
                         .setParameter("interval", intervalInMinutes);
         if (securityServerType != null) {
             query.setParameter("securityServerType", securityServerType.getTypeString());
         }
-        if (succeeded != null) {
-            query.setParameter("succeeded", succeeded);
+        if (memberId != null) {
+            query.setParameter("clientXroadInstance", memberId.getXRoadInstance());
+            query.setParameter("clientMemberClass", memberId.getMemberClass());
+            query.setParameter("clientMemberCode", memberId.getMemberCode());
+            if (memberId.isSubsystem()) {
+                query.setParameter("clientSubsystemCode", memberId.getSubsystemCode());
+            }
         }
-        if (clientId != null) {
-            query.setParameter("clientXroadInstance", clientId.getXRoadInstance())
-                    .setParameter("clientMemberClass", clientId.getMemberClass())
-                    .setParameter("clientMemberCode", clientId.getMemberCode());
-            if (clientId.isSubsystem()) {
-                query.setParameter("clientSubsystemCode", clientId.getSubsystemCode());
+        if (serviceId != null) {
+            query.setParameter("serviceXroadInstance", serviceId.getXRoadInstance());
+            query.setParameter("serviceMemberClass", serviceId.getMemberClass());
+            query.setParameter("serviceMemberCode", serviceId.getMemberCode());
+            query.setParameter("serviceSubsystemCode", serviceId.getSubsystemCode());
+            query.setParameter("serviceCode", serviceId.getServiceCode());
+            if (serviceId.getServiceVersion() != null) {
+                query.setParameter("serviceVersion", serviceId.getServiceVersion());
             }
         }
         return query;
     }
+
 
 }

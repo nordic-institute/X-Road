@@ -51,16 +51,6 @@ public class OperationalDataInterval implements Serializable {
         return message.getFailureCount();
     }
 
-    public Long getIncomingCount() {
-        return message.getIncomingCount();
-    }
-
-
-    public Long getOutgoingCount() {
-        return message.getOutgoingCount();
-    }
-
-
     public OperationalDataIntervalProto asMessage() {
         return message;
     }

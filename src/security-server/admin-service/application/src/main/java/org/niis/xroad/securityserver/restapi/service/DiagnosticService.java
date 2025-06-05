@@ -32,6 +32,7 @@ import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.ProxyMemory;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -264,14 +265,14 @@ public class DiagnosticService {
                                                                      Long recordsToTimestamp,
                                                                      Integer interval,
                                                                      String securityServerType,
-                                                                     Boolean succeeded,
-                                                                     ClientId clientId) {
+                                                                     ClientId memberId,
+                                                                     ServiceId serviceId) {
         return opMonitorClient.getOperationalDataIntervals(recordsFromTimestamp,
                 recordsToTimestamp,
                 interval,
                 securityServerType,
-                succeeded,
-                clientId);
+                memberId,
+                serviceId);
     }
 
     /**

@@ -2431,15 +2431,17 @@ paths:
             type: string
             format: text
         - in: query
-          name: succeeded
-          description: whether or not the request succeeded
+          name: member_id
+          description: clientId of the Member who made or received the request. <instance_id>:<member_class>:<member_code>:<subsystem_code>. Subsystem code is optional.
+          example: FI:GOV:123:Subsystem
           required: false
           schema:
-            type: boolean
+            type: string
+            format: text
         - in: query
-          name: client_id
-          description: clientId of the Client who made the request. <instance_id>:<member_class>:<member_code>
-          example: FI:GOV:123
+          name: service_id
+          description: serviceId of the Service that received the request. <instance_id>:<member_class>:<member_code>:<subsystem_code>:<service_code>.<version_number>. Version number is optional.
+          example: FI:GOV:123:Subsystem:MyService.V1
           required: false
           schema:
             type: string
@@ -5984,14 +5986,6 @@ components:
           format: int64
         failure_count:
           description: number of failed requests in this time window
-          type: integer
-          format: int64
-        incoming_count:
-          description: number of incoming requests in this time window
-          type: integer
-          format: int64
-        outgoing_count:
-          description: number of outgoing requests in this time window
           type: integer
           format: int64
     Anchor:

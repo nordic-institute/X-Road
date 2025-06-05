@@ -40,8 +40,6 @@ public class OperationalInfoConverter {
         operationalDataIntervalDto.intervalStartTime(operationalDataInterval.getIntervalStart().atOffset(ZoneOffset.UTC));
         operationalDataIntervalDto.successCount(operationalDataInterval.getSuccessCount());
         operationalDataIntervalDto.failureCount(operationalDataInterval.getFailureCount());
-        operationalDataIntervalDto.incomingCount(operationalDataInterval.getIncomingCount());
-        operationalDataIntervalDto.outgoingCount(operationalDataInterval.getOutgoingCount());
         return operationalDataIntervalDto;
     }
 

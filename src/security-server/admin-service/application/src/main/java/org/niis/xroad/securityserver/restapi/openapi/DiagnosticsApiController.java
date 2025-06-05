@@ -45,6 +45,7 @@ import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatu
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.OperationalInfoConverter;
 import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
+import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
@@ -95,6 +96,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final ProxyMemoryUsageStatusConverter proxyMemoryUsageStatusConverter;
     private final OperationalInfoConverter operationalInfoConverter;
     private final ClientIdConverter clientIdConverter;
+    private final ServiceConverter serviceConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -167,15 +169,15 @@ public class DiagnosticsApiController implements DiagnosticsApi {
                                                                                         OffsetDateTime recordsTo,
                                                                                         Integer interval,
                                                                                         String securityServerType,
-                                                                                        Boolean succeeded,
-                                                                                        String clientId) {
+                                                                                        String memberId,
+                                                                                        String serviceId) {
         List<OperationalDataInterval> opDataIntervals = diagnosticService.getOperationalDataIntervals(
                 recordsFrom.toInstant().toEpochMilli(),
                 recordsTo.toInstant().toEpochMilli(),
                 interval,
                 securityServerType,
-                succeeded,
-                clientId != null ? clientIdConverter.convertId(clientId) : null);
+                memberId != null ? clientIdConverter.convertId(memberId) : null,
+                serviceId != null ? serviceConverter.parseServiceId(serviceId) : null);
         return new ResponseEntity<>(operationalInfoConverter.convert(opDataIntervals), HttpStatus.OK);
     }
 

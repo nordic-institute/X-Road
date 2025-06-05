@@ -39,15 +39,16 @@ service OpMonitorService {
 message GetOperationalDataIntervalsReq {
   int64 recordsFrom = 1;
   int64 recordsTo = 2;
-  int64 intervalInMinutes = 3;
+  int32 intervalInMinutes = 3;
   optional SecurityServerType securityServerType = 4;
-  optional bool succeeded = 5;
-  optional ClientIdProto client_id = 6;
+  optional ClientIdProto member_id = 5;
+  optional ServiceIdProto service_id = 6;
 }
 
 enum SecurityServerType {
-  CLIENT = 0;
-  PRODUCER = 1;
+  SECURITY_SERVER_TYPE_UNSPECIFIED = 0;
+  CLIENT = 1;
+  PRODUCER = 2;
 }
 
 message GetOperationalDataIntervalsResp {
@@ -58,6 +59,4 @@ message OperationalDataIntervalProto {
   google.protobuf.Timestamp timeIntervalStart = 1;
   int64 successCount = 2;
   int64 failureCount = 3;
-  int64 incomingCount = 4;
-  int64 outgoingCount = 5;
 }
