@@ -23,54 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.dto;
+package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
+import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.ToString;
-import lombok.Value;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
+import java.time.ZoneOffset;
+import java.util.List;
 
-import java.io.Serializable;
+@Component
+public class OperationalInfoConverter {
 
-/**
- * Certificate request info DTO.
- */
-@Value
-@ToString(onlyExplicitlyIncluded = true)
-public class CertRequestInfo implements Serializable {
-
-    @JsonIgnore
-    CertRequestInfoProto message;
-
-    @ToString.Include
-    public String getId() {
-        return message.getId();
+    public OperationalDataIntervalDto convert(OperationalDataInterval operationalDataInterval) {
+        OperationalDataIntervalDto operationalDataIntervalDto = new OperationalDataIntervalDto();
+        operationalDataIntervalDto.intervalStartTime(operationalDataInterval.getIntervalStart().atOffset(ZoneOffset.UTC));
+        operationalDataIntervalDto.successCount(operationalDataInterval.getSuccessCount());
+        operationalDataIntervalDto.failureCount(operationalDataInterval.getFailureCount());
+        return operationalDataIntervalDto;
     }
 
-    @ToString.Include
-    public ClientId getMemberId() {
-        if (message.hasMemberId()) {
-            return ClientIdMapper.fromDto(message.getMemberId());
-        }
-        return null;
+    public List<OperationalDataIntervalDto> convert(List<OperationalDataInterval> operationalInfos) {
+        return operationalInfos.stream()
+                .map(this::convert)
+                .toList();
     }
-
-    @ToString.Include
-    public String getSubjectName() {
-        return message.getSubjectName();
-    }
-
-
-    @ToString.Include
-    public String getSubjectAltName() {
-        return message.getSubjectAltName();
-    }
-
-    public String getCertificateProfile() {
-        return message.getCertificateProfile();
-    }
-
 }

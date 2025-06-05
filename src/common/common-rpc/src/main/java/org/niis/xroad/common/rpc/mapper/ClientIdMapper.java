@@ -23,54 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.dto;
+package org.niis.xroad.common.rpc.mapper;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.ToString;
-import lombok.Value;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.signer.protocol.dto.ClientIdProto;
+import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
 
-import java.io.Serializable;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ClientIdMapper {
 
-/**
- * Certificate request info DTO.
- */
-@Value
-@ToString(onlyExplicitlyIncluded = true)
-public class CertRequestInfo implements Serializable {
-
-    @JsonIgnore
-    CertRequestInfoProto message;
-
-    @ToString.Include
-    public String getId() {
-        return message.getId();
-    }
-
-    @ToString.Include
-    public ClientId getMemberId() {
-        if (message.hasMemberId()) {
-            return ClientIdMapper.fromDto(message.getMemberId());
+    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
+        if (clientIdProto.hasSubsystemCode()) {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode(),
+                    clientIdProto.getSubsystemCode());
+        } else {
+            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
+                    clientIdProto.getMemberClass(),
+                    clientIdProto.getMemberCode());
         }
-        return null;
     }
 
-    @ToString.Include
-    public String getSubjectName() {
-        return message.getSubjectName();
+    public static ClientIdProto toDto(ClientId input) {
+        var builder = ClientIdProto.newBuilder()
+                .setMemberClass(input.getMemberClass())
+                .setMemberCode(input.getMemberCode())
+                .setXroadInstance(input.getXRoadInstance())
+                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
+
+        if (input.getSubsystemCode() != null) {
+            builder.setSubsystemCode(input.getSubsystemCode());
+        }
+        return builder.build();
     }
-
-
-    @ToString.Include
-    public String getSubjectAltName() {
-        return message.getSubjectAltName();
-    }
-
-    public String getCertificateProfile() {
-        return message.getCertificateProfile();
-    }
-
 }

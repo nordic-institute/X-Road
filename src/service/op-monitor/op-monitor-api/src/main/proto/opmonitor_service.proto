@@ -23,54 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.dto;
+syntax = "proto3";
 
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.opmonitor.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.ToString;
-import lombok.Value;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
+import "common_messages.proto";
+import "google/protobuf/timestamp.proto";
 
-import java.io.Serializable;
+option java_multiple_files = true;
 
-/**
- * Certificate request info DTO.
- */
-@Value
-@ToString(onlyExplicitlyIncluded = true)
-public class CertRequestInfo implements Serializable {
+service OpMonitorService {
+  rpc GetOperationalDataIntervals(GetOperationalDataIntervalsReq) returns (GetOperationalDataIntervalsResp) {}
+}
 
-    @JsonIgnore
-    CertRequestInfoProto message;
+message GetOperationalDataIntervalsReq {
+  int64 recordsFrom = 1;
+  int64 recordsTo = 2;
+  int32 intervalInMinutes = 3;
+  optional SecurityServerType securityServerType = 4;
+  optional ClientIdProto member_id = 5;
+  optional ServiceIdProto service_id = 6;
+}
 
-    @ToString.Include
-    public String getId() {
-        return message.getId();
-    }
+enum SecurityServerType {
+  SECURITY_SERVER_TYPE_UNSPECIFIED = 0;
+  CLIENT = 1;
+  PRODUCER = 2;
+}
 
-    @ToString.Include
-    public ClientId getMemberId() {
-        if (message.hasMemberId()) {
-            return ClientIdMapper.fromDto(message.getMemberId());
-        }
-        return null;
-    }
+message GetOperationalDataIntervalsResp {
+  repeated OperationalDataIntervalProto operationalDataInterval = 1;
+}
 
-    @ToString.Include
-    public String getSubjectName() {
-        return message.getSubjectName();
-    }
-
-
-    @ToString.Include
-    public String getSubjectAltName() {
-        return message.getSubjectAltName();
-    }
-
-    public String getCertificateProfile() {
-        return message.getCertificateProfile();
-    }
-
+message OperationalDataIntervalProto {
+  google.protobuf.Timestamp timeIntervalStart = 1;
+  int64 successCount = 2;
+  int64 failureCount = 3;
 }

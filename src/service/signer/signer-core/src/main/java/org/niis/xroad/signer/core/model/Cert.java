@@ -33,8 +33,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 
 import java.security.cert.CertificateEncodingException;
