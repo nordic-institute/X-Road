@@ -83,7 +83,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use  '@niis/shared-ui/src/assets/colors';
 
 .card-title {
   font-size: 12px;

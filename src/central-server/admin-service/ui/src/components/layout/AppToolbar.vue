@@ -62,7 +62,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors } from '@/global';
+import { Colors } from '@niis/shared-ui';
 import { mapState } from 'pinia';
 import { useSystem } from '@/store/modules/system';
 

@@ -28,11 +28,7 @@
   <div class="custom-footer"></div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({});
-</script>
+<script lang="ts" setup></script>
 <style lang="scss" scoped>
 .custom-footer {
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */

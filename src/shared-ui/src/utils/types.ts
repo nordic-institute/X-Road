@@ -56,8 +56,6 @@ export interface BackupHandler {
 }
 
 export interface CommonUser {
-  login(username: string, password: string): Promise<unknown>;
-
   logout(): Promise<unknown>;
 
   username(): string;

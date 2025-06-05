@@ -71,7 +71,7 @@
  * View for 'security servers' tab
  */
 import { defineComponent } from 'vue';
-import { Colors, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { SecurityServer } from '@/openapi-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { mapActions, mapStores } from 'pinia';
@@ -79,7 +79,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
-import { XrdIconChecked, XrdIconSecurityServer } from '@niis/shared-ui';
+import { XrdIconChecked, XrdIconSecurityServer, Colors } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 
 // To provide the Vue instance to debounce
@@ -178,8 +178,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use  '@niis/shared-ui/src/assets/colors';
 
 .server-code {
   color: colors.$Purple100;

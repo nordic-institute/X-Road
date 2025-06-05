@@ -134,7 +134,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import {
   ErrorInfo,
   InitializationStatus,
@@ -150,7 +150,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSystem } from '@/store/modules/system';
 import { defineRule, useForm, useIsFieldValid } from 'vee-validate';
-import { XrdFormLabel } from '@niis/shared-ui';
+import { XrdFormLabel, Colors } from '@niis/shared-ui';
 import { confirmed } from '@vee-validate/rules';
 
 defineRule('confirmed', confirmed);
@@ -296,7 +296,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 @use '@/assets/forms' as *;
 
 .form-main-title {

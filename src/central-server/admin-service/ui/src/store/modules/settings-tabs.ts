@@ -26,7 +26,7 @@
  */
 import { defineStore } from 'pinia';
 import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 import { useUser } from '@/store/modules/user';
 
 export interface State {

@@ -26,7 +26,7 @@
  -->
 <template>
   <div id="intermediate-ca-view">
-    <div class="table-toolbar mt-0 pl-0">
+    <div class="xrd-table-toolbar mt-0 pl-0">
       <div class="xrd-view-title">
         {{ title }}
       </div>
@@ -45,10 +45,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, {
-  PageNavigationTab,
-} from '@/components/layout/PageNavigation.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
+import { Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useIntermediateCasService } from '@/store/modules/trust-services';
 
@@ -65,9 +63,7 @@ export default defineComponent({
     },
   },
   data() {
-    return {
-      colors: Colors,
-    };
+    return {};
   },
   computed: {
     ...mapStores(useIntermediateCasService),
@@ -117,5 +113,5 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

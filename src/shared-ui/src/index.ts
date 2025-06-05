@@ -34,8 +34,7 @@ export * from './components';
 export * from './components/icons';
 export * from './components/backups-and-restore';
 export * from './layouts';
-export * from './types';
 export * from './views';
 
 export * from './plugins/i18n';
-export * from './keys';
+export * from './utils';

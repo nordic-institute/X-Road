@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -56,10 +57,10 @@
 
 <script lang="ts" setup>
 import { computed, inject } from 'vue';
-import { routingKey, userKey } from '../keys';
+import { key } from '../utils';
 
-const user = inject(userKey);
-const routing = inject(routingKey);
+const user = inject(key.user);
+const routing = inject(key.routing);
 
 const username = computed(() => user?.username());
 

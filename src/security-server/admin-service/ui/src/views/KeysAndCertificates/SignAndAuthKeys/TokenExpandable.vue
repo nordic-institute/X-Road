@@ -192,7 +192,7 @@
 <script lang="ts">
 // View for a token
 import { Component, defineComponent, PropType } from 'vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import KeysTable from './KeysTable.vue';
 import KeysTableTitle from './KeysTableTitle.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
@@ -215,6 +215,7 @@ import {
   XrdIconEdit,
   XrdIconError,
   XrdIconImport,
+  Colors,
 } from '@niis/shared-ui';
 
 export default defineComponent({
@@ -432,8 +433,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .token-logging-button {
   display: inline-flex;

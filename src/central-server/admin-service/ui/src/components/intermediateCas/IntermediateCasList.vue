@@ -99,7 +99,7 @@
       </template>
 
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -143,13 +143,13 @@ import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import DateTime from '@/components/ui/DateTime.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
     DataTableToolbar,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DateTime,
     AddIntermediateCaDialog,
   },

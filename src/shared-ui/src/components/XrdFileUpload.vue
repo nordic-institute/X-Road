@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { FileUploadResult } from '../types';
+import { FileUploadResult } from '../utils';
 
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
 

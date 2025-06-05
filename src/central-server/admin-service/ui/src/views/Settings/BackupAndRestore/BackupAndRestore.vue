@@ -57,7 +57,7 @@
  * View for 'backup and restore' tab
  */
 import { defineComponent } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useBackups } from '@/store/modules/backups';
 import { useNotifications } from '@/store/modules/notifications';
@@ -80,7 +80,6 @@ export default defineComponent({
     return {
       filter: '',
       loading: false,
-      colors: Colors,
     };
   },
   computed: {
@@ -141,5 +140,5 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

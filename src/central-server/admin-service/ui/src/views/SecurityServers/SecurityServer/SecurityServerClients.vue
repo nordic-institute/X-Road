@@ -49,8 +49,8 @@
           @click="toMemberDetails(item)"
         >
           <xrd-icon-base class="xrd-clickable mr-4">
-            <xrd-icon-folder-outline
-          /></xrd-icon-base>
+            <xrd-icon-folder-outline />
+          </xrd-icon-base>
           {{ item.member_name }}
         </div>
 
@@ -63,7 +63,7 @@
       </template>
 
       <template #bottom>
-        <div class="cs-table-custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </div>
@@ -82,8 +82,10 @@ import { Permissions, RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { toMemberId } from '@/util/helpers';
 import { DataTableHeader } from '@/ui-types';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
+  components: { XrdDataTableFooter },
   props: {
     serverId: {
       type: String,
@@ -157,8 +159,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use  '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .table-cell-member-name-action {
   color: colors.$Purple100;

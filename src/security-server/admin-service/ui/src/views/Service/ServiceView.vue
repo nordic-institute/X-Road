@@ -160,7 +160,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 
 .sub-view-title-spacing {
   margin-bottom: 30px;

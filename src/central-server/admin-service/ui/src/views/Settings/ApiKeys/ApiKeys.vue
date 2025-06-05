@@ -58,8 +58,8 @@
 
       <template #[`item.roles`]="{ item }">
         <span :data-test="`api-key-row-${item.id}-roles`">{{
-          translateRoles(item.roles).join(', ')
-        }}</span>
+            translateRoles(item.roles).join(', ')
+          }}</span>
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -87,7 +87,7 @@
       </template>
 
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
     <!-- Edit dialog -->
@@ -163,14 +163,13 @@ import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { XrdIconKey, XrdTitledView } from '@niis/shared-ui';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdIconKey, XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
 import { DataTableHeader, SortItem } from '@/ui-types';
 
 export default defineComponent({
   components: {
     XrdTitledView,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     XrdIconKey,
   },
   data() {
@@ -305,7 +304,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .button-wrap {
   width: 100%;

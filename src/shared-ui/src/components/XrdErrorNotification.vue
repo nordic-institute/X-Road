@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,17 +33,19 @@
     border-color="error"
     variant="outlined"
     class="alert mb-2"
+    icon="icon-Error-notification"
+    type="error"
   >
     <div class="row-wrapper-top scrollable identifier-wrap">
       <div class="icon-wrapper">
-        <xrd-icon-base v-if="notification.isWarning" class="warning-icon">
-          <xrd-icon-warning />
-        </xrd-icon-base>
-        <xrd-icon-base v-else class="error-icon">
-          <xrd-icon-error-notification />
-        </xrd-icon-base>
+        <XrdIconBase v-if="notification.isWarning" class="warning-icon">
+          <XrdIconWarning />
+        </XrdIconBase>
+        <XrdIconBase v-else class="error-icon">
+          <XrdIconErrorNotification />
+        </XrdIconBase>
         <div class="row-wrapper">
-          <!-- Show message text -->
+          <!-- Show error message text -->
           <div v-if="notification.errorMessage">
             {{ notification.errorMessage }}
           </div>
@@ -57,7 +60,6 @@
             {{ notification.errorObjectAsString }}
           </div>
 
-          <!-- Special case for pin code validation -->
           <div v-for="meta in groupedMetas" :key="meta.key">
             {{ meta.translatable ? $t(meta.key, meta.args) : meta.key }}
           </div>
@@ -101,27 +103,24 @@
       <xrd-button
         v-if="notification.errorId"
         text
-        :outlined="false"
         class="id-button"
         data-test="copy-id-button"
         @click.prevent="copyId(notification)"
       >
         <xrd-icon-base class="xrd-large-button-icon">
-          <xrd-icon-copy />
+          <XrdIconCopy />
         </xrd-icon-base>
         {{ $t('action.copyId') }}
       </xrd-button>
     </div>
-
     <template #close>
       <v-btn
-        icon
-        variant="plain"
         color="primary"
         data-test="close-alert"
-        @click="closeError(notification.timeAdded)"
+        variant="plain"
+        @click="emit('close',notification)"
       >
-        <xrd-icon-base dark>
+        <xrd-icon-base>
           <xrd-icon-close />
         </xrd-icon-base>
       </v-btn>
@@ -130,16 +129,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useNotifications } from '@/store/modules/notifications';
-import { toClipboard } from '@/util/helpers';
-import { Notification } from '@/ui-types';
-import { Colors } from '@/global';
-import {
-  XrdIconCopy,
-  XrdIconErrorNotification,
-  XrdIconWarning,
-} from '@niis/shared-ui';
+import { helper, Colors } from '../utils';
 import { computed, PropType } from 'vue';
+import { XrdIconWarning, XrdIconErrorNotification } from './icons';
 
 const errorCodePrefix = 'error_code.';
 const translatableMetaPrefix = 'tr.';
@@ -151,11 +143,31 @@ const props = defineProps({
   },
 });
 
-interface Meta {
+const emit = defineEmits<{ (e: 'close', value: Notification): void }>();
+
+type Notification = {
+  show: boolean;
+  isWarning?: boolean;
+  errorMessage?: string;
+  errorCode?: string;
+  errorObjectAsString?: string;
+  errorId?: string;
+  validationErrors?: ValidationError[];
+  metaData?: string[];
+  count: number;
+  timeAdded: number;
+};
+
+type ValidationError = {
+  field: string;
+  errorCodes: string[];
+};
+
+type Meta = {
   translatable: boolean;
   key: string;
   args: string[];
-}
+};
 
 const groupedMetas = computed(() => {
   const groups: Meta[] = [];
@@ -177,26 +189,20 @@ const groupedMetas = computed(() => {
   return groups;
 });
 
-const notifications = useNotifications();
-
 function notificationColor(notification: Notification) {
   return notification.isWarning ? Colors.Warning : Colors.Error;
-}
-
-function closeError(id: number): void {
-  notifications.deleteNotification(id);
 }
 
 function copyId(notification: Notification): void {
   const id = notification.errorId;
   if (id) {
-    toClipboard(id);
+    helper.toClipboard(id);
   }
 }
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .alert {
   margin-top: 16px;
