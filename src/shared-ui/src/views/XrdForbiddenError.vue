@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -67,15 +68,14 @@
 </template>
 
 <script lang="ts" setup>
-import { routingKey, XrdButton } from '@niis/shared-ui';
+import { key, XrdButton } from '@niis/shared-ui';
 import { inject } from 'vue';
 
-const routing = inject(routingKey);
-
+const routing = inject(key.routing);
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '../assets/colors';
 
 .xrd-view-common {
   width: 100%;

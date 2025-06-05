@@ -202,8 +202,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use  '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .members-table-cell-name-action {
   color: colors.$Purple100;

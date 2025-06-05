@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,17 +30,18 @@
       v-for="notification in successNotifications"
       :key="notification.timeAdded"
       v-model="notification.show"
-      transition="fab-transition"
+      :transition="transitionName"
       :timeout="snackbarTimeout(notification.timeout)"
-      :color="colors.Success10"
+      :color="Colors.Success10"
       :min-width="760"
+      :close-on-back="false"
       data-test="success-snackbar"
-      multi-line
       class="success-snackbar"
-      @update:model-value="closeSuccess(notification.timeAdded)"
+      multi-line
+      @update:model-value="emit('close', notification)"
     >
       <div class="row-wrapper-top scrollable identifier-wrap">
-        <xrd-icon-base :color="colors.Success100">
+        <xrd-icon-base :color="Colors.Success100">
           <xrd-icon-checker />
         </xrd-icon-base>
 
@@ -50,14 +50,7 @@
         </div>
       </div>
       <template #actions>
-        <v-btn
-          icon
-          variant="text"
-          rounded
-          :color="colors.Black100"
-          data-test="close-snackbar"
-          @click="closeSuccess(notification.timeAdded)"
-        >
+        <v-btn icon variant="text" rounded :color="Colors.Black100" data-test="close-snackbar" @click="emit('close', notification)">
           <xrd-icon-base>
             <xrd-icon-close />
           </xrd-icon-base>
@@ -67,11 +60,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { Colors } from '@/global';
-import { mapActions, mapState } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
+<script lang="ts" setup>
+import { computed, PropType } from 'vue';
+import { Colors } from '../utils';
 
 declare global {
   interface Window {
@@ -79,29 +70,28 @@ declare global {
   }
 }
 
-export default defineComponent({
-  // Component for snackbar notifications
-  data() {
-    return {
-      colors: Colors,
-    };
-  },
-  computed: {
-    ...mapState(useNotifications, ['successNotifications']),
-    // Check global window value to see if e2e testing mode should be enabled
-    transitionName: () => (window.e2eTestingMode === true ? null : 'fade'),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['deleteSuccessNotification']),
-    closeSuccess(id: number): void {
-      this.deleteSuccessNotification(id);
-    },
-    // Check global window value to see if e2e testing mode should be enabled
-    snackbarTimeout(timeout: number) {
-      return window.e2eTestingMode === true ? -1 : timeout;
-    },
+type Notification = {
+  timeAdded: number;
+  show: boolean;
+  timeout: number;
+  successMessage?: string;
+};
+
+defineProps({
+  successNotifications: {
+    type: Array as PropType<Notification[]>,
+    required: true,
   },
 });
+
+const emit = defineEmits<{ (e: 'close', value: Notification): void }>();
+
+const transitionName = computed(() => (window.e2eTestingMode === true ? 'no-transition' : 'fade-transition'));
+
+// Check global window value to see if e2e testing mode should be enabled
+function snackbarTimeout(timeout: number) {
+  return window.e2eTestingMode === true ? -1 : timeout;
+}
 </script>
 
 <style lang="scss" scoped>

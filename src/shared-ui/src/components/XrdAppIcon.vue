@@ -31,11 +31,11 @@
 <script lang="ts" setup>
 import xrdLogo from '../assets/xroad7_logo.svg';
 import { inject } from 'vue';
-import { routingKey } from '../keys';
+import { key } from '../utils';
 
 const xrdLogoUrl = xrdLogo;
 
-const routing = inject(routingKey);
+const routing = inject(key.routing);
 </script>
 
 <style lang="scss" scoped>

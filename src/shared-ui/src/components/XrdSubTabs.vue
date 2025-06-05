@@ -29,7 +29,7 @@
     <v-tabs
       class="xrd-tabs"
       color="primary"
-      :bg-color="warmGrey10"
+      :bg-color="Colors.WarmGrey10"
       slider-size="2"
     >
       <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" :data-test="tab.key" exact>{{ $t(tab.name) }}</v-tab>
@@ -39,8 +39,7 @@
 
 <script lang="ts" setup>
 import { PropType } from 'vue';
-import { Tab } from '../types';
-import _colors from '../assets/colors.module.scss';
+import { Tab, Colors } from '../utils';
 
 defineProps({
   tabs: {
@@ -48,8 +47,6 @@ defineProps({
     required: true,
   },
 });
-
-const { warmGrey10 } = _colors;
 </script>
 
 <style lang="scss" scoped>
@@ -57,5 +54,8 @@ const { warmGrey10 } = _colors;
   text-transform: none;
   font-weight: 600;
   color: rgb(0 0 0 / 54%);
+}
+.xrd-tabs {
+  padding-left: 92px;
 }
 </style>

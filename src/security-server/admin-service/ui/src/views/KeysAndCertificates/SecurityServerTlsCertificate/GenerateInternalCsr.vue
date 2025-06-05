@@ -134,7 +134,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '@/assets/detail-views';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 @use '@/assets/wizards';
 
 $spacing: 12rem;

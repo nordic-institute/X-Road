@@ -202,7 +202,7 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use  '@niis/shared-ui/src/assets/colors';
 
 .filter-title-row {
   margin: 20px;

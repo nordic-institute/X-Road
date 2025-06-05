@@ -193,7 +193,7 @@
       <template #no-data>{{ $t('action.noData') }}</template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -228,7 +228,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
-import { XrdIconFolder, XrdIconFolderOutline } from '@niis/shared-ui';
+import { XrdIconFolder, XrdIconFolderOutline, XrdDataTableFooter } from '@niis/shared-ui';
 import { AxiosError } from 'axios';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 
@@ -238,6 +238,7 @@ export default defineComponent({
     XrdIconFolder,
     XrdIconFolderOutline,
     ClientStatus,
+    XrdDataTableFooter,
   },
 
   data: () => ({
@@ -554,8 +555,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
 
 :deep(.data-table .v-data-table__td) {
   height: 56px;

@@ -78,7 +78,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/colors';
+@use  '@niis/shared-ui/src/assets/colors';
 
 .alerts-container {
   padding: 0;

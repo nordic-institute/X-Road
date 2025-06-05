@@ -204,8 +204,8 @@ function fetchData() {
 fetchData();
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use  '@niis/shared-ui/src/assets/colors';
 
 .management-request-additional-details {
   margin-top: 24px;

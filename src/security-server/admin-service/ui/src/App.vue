@@ -35,103 +35,92 @@
         </transition>
       </router-view>
     </v-main>
-    <SnackBar />
+    <XrdSnackBar
+      :success-notifications="notificationStore.successNotifications"
+      @close="notificationStore.deleteSuccessNotification($event.timeAdded)"
+    />
     <XrdAppFooter v-if="loginView" />
   </v-app>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { computed } from 'vue';
 import axios from 'axios';
-import SnackBar from '@/components/ui/SnackBar.vue';
-import { XrdAppFooter } from '@niis/shared-ui';
+import { XrdAppFooter, XrdSnackBar } from '@niis/shared-ui';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
-import { mapActions } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import { useRoute, useRouter } from 'vue-router';
+import { useNotifications } from '@/store/modules/notifications';
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    XrdAppFooter,
-    AppToolbar,
-    SnackBar,
-  },
-  computed: {
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
-    },
-  },
+const route = useRoute();
+const router = useRouter();
+const userStore = useUser();
+const notificationStore = useNotifications();
 
-  created() {
-    // Add a response interceptor
-    axios.interceptors.response.use(
-      (response) => {
-        // Set user authentication status in store
-        this.authUser();
-        return response;
-      },
-      (error) => {
-        /*
-          Check if error is a proper "unauthorized error" meaning it is not happening in sending login form data.
-          Also, the response from session timeout polling is handled in AppBase -component
-         */
-        if (
-          error?.response?.status === 401 &&
-          this.$router.currentRoute.value.name !== 'login'
-        ) {
-          // if you ever get an unauthorized, logout the user
-          this.setSessionAlive(false);
-        }
-        // If the request is made with responseType: blob, but backend responds with json error
-        if (
-          error.request.responseType === 'blob' &&
-          error.response.data instanceof Blob &&
-          error.response.data.type &&
-          error.response.data.type.toLowerCase().indexOf('json') != -1
-        ) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            reader.onload = () => {
-              error.response.data = JSON.parse(reader.result as string);
-              resolve(Promise.reject(error));
-            };
-
-            reader.onerror = () => {
-              reject(error);
-            };
-
-            reader.readAsText(error.response.data);
-          });
-        }
-
-        // Do something with response error
-        return Promise.reject(error);
-      },
-    );
-
-    // Session-status api is called before accessing any view. The session-status data is only used to prevent
-    // opening views that user aren't allowed to see (flickering).
-    this.fetchSessionStatus();
-  },
-  methods: {
-    ...mapActions(useUser, [
-      'setSessionAlive',
-      'fetchSessionStatus',
-      'authUser',
-    ]),
-  },
+const loginView = computed(() => {
+  return route.name !== RouteName.Login;
 });
+
+// Add a response interceptor
+axios.interceptors.response.use(
+  (response) => {
+    // Set user authentication status in store
+    userStore.authUser();
+    return response;
+  },
+  (error) => {
+    /*
+      Check if error is a proper "unauthorized error" meaning it is not happening in sending login form data.
+      Also, the response from session timeout polling is handled in AppBase -component
+     */
+    if (
+      error?.response?.status === 401 &&
+      router.currentRoute.value.name !== 'login'
+    ) {
+      // if you ever get an unauthorized, logout the user
+      userStore.setSessionAlive(false);
+    }
+    // If the request is made with responseType: blob, but backend responds with json error
+    if (
+      error.request.responseType === 'blob' &&
+      error.response.data instanceof Blob &&
+      error.response.data.type &&
+      error.response.data.type.toLowerCase().indexOf('json') != -1
+    ) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          error.response.data = JSON.parse(reader.result as string);
+          resolve(Promise.reject(error));
+        };
+
+        reader.onerror = () => {
+          reject(error);
+        };
+
+        reader.readAsText(error.response.data);
+      });
+    }
+
+    // Do something with response error
+    return Promise.reject(error);
+  },
+);
+
+// Session-status api is called before accessing any view. The session-status data is only used to prevent
+// opening views that user aren't allowed to see (flickering).
+userStore.fetchSessionStatus();
 </script>
 
 <!-- eslint-disable-next-line  vue-scoped-css/enforce-style-type -->
 <style lang="scss">
-@use './assets/global-style.scss';
+@use '@niis/shared-ui/src/assets/global-style';
 </style>
 
 <style lang="scss" scoped>
-@use 'assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .fade-enter-active,
 .fade-leave-active {

@@ -75,7 +75,7 @@
           </template>
 
           <template #bottom>
-            <custom-data-table-footer />
+            <XrdDataTableFooter />
           </template>
         </v-data-table>
       </xrd-titled-view>
@@ -104,14 +104,13 @@ import { ApprovedCertificationServiceListItem } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
-import { XrdTitledView } from '@niis/shared-ui';
+import { XrdTitledView, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   name: 'TrustServiceList',
   components: {
     XrdTitledView,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,
@@ -187,8 +186,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use  '@niis/shared-ui/src/assets/colors';
 
 .tsa-list {
   margin-top: 20px;

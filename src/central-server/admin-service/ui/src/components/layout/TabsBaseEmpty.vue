@@ -42,7 +42,7 @@ import { XrdAppDropMenu, XrdAppIcon } from '@niis/shared-ui';
   height: 56px;
   padding-left: 92px;
   @media only screen and (max-width: 920px) {
-    padding-left: 0px;
+    padding-left: 0;
   }
 
   .tabs-wrap {

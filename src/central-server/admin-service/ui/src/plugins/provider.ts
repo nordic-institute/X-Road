@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,7 +27,7 @@
 
 import { Plugin } from 'vue';
 import { useUser } from '@/store/modules/user';
-import { routingKey, systemKey, userKey } from '@niis/shared-ui';
+import { key } from '@niis/shared-ui';
 import { RouteName } from '@/global';
 import { useRouter } from 'vue-router';
 import { useSystem } from '@/store/modules/system';
@@ -39,7 +40,7 @@ export default {
       const system = useSystem();
       const router = useRouter();
 
-      app.provide(routingKey, {
+      app.provide(key.routing, {
         toLogin() {
           return router.replace({ name: RouteName.Login });
         },
@@ -51,10 +52,7 @@ export default {
         },
       });
 
-      app.provide(userKey, {
-        login(username: string, password: string) {
-          return user.login({ username, password });
-        },
+      app.provide(key.user, {
         logout() {
           return user.logout();
         },
@@ -66,7 +64,7 @@ export default {
         },
       });
 
-      app.provide(systemKey, {
+      app.provide(key.system, {
         version() {
           return system.serverVersion?.info;
         },

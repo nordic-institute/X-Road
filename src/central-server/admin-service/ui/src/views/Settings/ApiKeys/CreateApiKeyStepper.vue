@@ -202,7 +202,7 @@ import { defineComponent } from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
-import { toClipboard } from '@/util/helpers';
+import { helper } from '@niis/shared-ui';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
@@ -254,7 +254,7 @@ export default defineComponent({
     copyKey(): void {
       const key = this.apiKey.key;
       if (key) {
-        toClipboard(key);
+        helper.toClipboard(key);
       }
     },
   },
@@ -263,7 +263,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '@/assets/forms' as *;
-@use '@/assets/colors';
+@use  '@niis/shared-ui/src/assets/colors';
 
 :deep(.v-stepper-window) {
   margin-right: 0;

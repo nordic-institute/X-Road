@@ -27,5 +27,6 @@
 
 import XrdNotFoundError from './XrdNotFoundError.vue';
 import XrdForbiddenError from './XrdForbiddenError.vue';
+import XrdAppLogin from './XrdAppLogin.vue';
 
-export { XrdNotFoundError, XrdForbiddenError };
+export { XrdNotFoundError, XrdForbiddenError, XrdAppLogin };

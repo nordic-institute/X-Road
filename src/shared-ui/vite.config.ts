@@ -55,7 +55,7 @@ export default defineConfig({
       fileName: 'xrd-shared-ui',
     },
     rollupOptions: {
-      external: ['vue', 'vuetify', 'vue-i18n'],
+      external: ['vue', 'vuetify', 'vue-i18n', 'vee-validate', 'vue-router'],
       output: {
         globals: {
           vue: 'Vue',

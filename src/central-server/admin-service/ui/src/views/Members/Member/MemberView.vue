@@ -35,10 +35,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, {
-  PageNavigationTab,
-} from '@/components/layout/PageNavigation.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
+import { Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import DetailsView from '@/components/ui/DetailsView.vue';
@@ -57,7 +55,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       backTo: {
         name: RouteName.Members,
       },

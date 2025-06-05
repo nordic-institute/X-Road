@@ -72,10 +72,10 @@
 import { computed, inject } from 'vue';
 import XrdButton from '../components/XrdButton.vue';
 import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import { routingKey, userKey } from '../keys';
+import { key } from '../utils';
 
-const user = inject(userKey);
-const routing = inject(routingKey);
+const user = inject(key.user);
+const routing = inject(key.routing);
 
 const showDialog = computed(() => user?.isSessionAlive() === false);
 

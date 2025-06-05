@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -106,17 +107,17 @@
 <script lang="ts" setup>
 import xroad7Logo from '../assets/xroad7_logo.svg';
 import { computed, inject } from 'vue';
-import { systemKey } from '../keys';
+import { key } from '../utils';
 
 const xroad7LogoUrl = xroad7Logo;
 
-const system = inject(systemKey);
+const system = inject(key.system);
 
 const appInfo = computed(() => system?.version());
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '../assets/colors';
 
 $text-color: colors.$Black100;
 

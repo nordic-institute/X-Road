@@ -29,7 +29,6 @@
 
 th {
   height: 48px;
-  background: red;
   font-weight: 800;
 }
 .xrd-table {
@@ -60,7 +59,7 @@ th {
   }
 }
 
-.table-toolbar {
+.xrd-table-toolbar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -71,7 +70,7 @@ th {
 }
 
 // v7 Some of the subviews use this for "dialog" look
-.main-wrap {
+.xrd-main-wrap {
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
@@ -80,7 +79,7 @@ th {
 }
 
 // v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
-.footer-buttons-wrap {
+.xrd-footer-buttons-wrap {
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;
@@ -102,12 +101,6 @@ th {
   width: 100%;
   display: flex;
   justify-content: flex-end;
-}
-
-// Add a small paddding with border at the end of a Vuetify data table footer
-.cs-table-custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 
 .borderless-table-header > tr > th {

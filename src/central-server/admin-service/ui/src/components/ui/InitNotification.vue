@@ -32,9 +32,9 @@
       data-test="continue-init-notification"
     >
       <div class="left-block">
-        <xrd-icon-base class="xrd-large-button-icon notification-icon"
-          ><xrd-icon-checked
-        /></xrd-icon-base>
+        <xrd-icon-base class="xrd-large-button-icon notification-icon">
+          <xrd-icon-checked />
+        </xrd-icon-base>
 
         <span class="alert-text">{{ $t('init.notification') }}</span>
       </div>
@@ -70,7 +70,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use  '@niis/shared-ui/src/assets/colors';
 
 .notification-icon {
   color: colors.$Success100;

@@ -232,7 +232,7 @@ import XrdSubViewTitle from './components/XrdSubViewTitle.vue';
 import XrdTable from './components/XrdTable.vue';
 import XrdBackupsDataTable from './components/backups-and-restore/XrdBackupsDataTable.vue';
 import XrdBackupsToolbar from './components/backups-and-restore/XrdBackupsToolbar.vue';
-import { BackupHandler } from './types';
+import { BackupHandler } from './utils';
 
 const loading = ref(false);
 const simpleDialog = ref(false);

@@ -85,11 +85,11 @@ import {
   XrdIconRemoveCertificate,
   XrdIconRemoveUser,
   XrdIconSecurityServer,
+  Colors,
 } from '@niis/shared-ui';
 import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
-import { Colors } from '@/global';
 
 export default defineComponent({
   components: {
@@ -129,7 +129,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use  '@niis/shared-ui/src/assets/colors';
 
 .status-wrapper {
   display: flex;

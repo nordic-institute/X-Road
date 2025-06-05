@@ -37,11 +37,27 @@ body,
   font-size: colors.$DefaultFontSize;
 }
 
+.xrd-table-button {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.xrd-tab-max-width {
+  max-width: 850px;
+  width: 100%;
+  margin: 0 auto;
+}
+
 .xrd-tabs {
   margin-left: auto;
   margin-right: auto;
   padding-left: 80px;
   background-color: colors.$WarmGrey10;
+  width: 100%;
+}
+
+// Set validation provider to full width
+.validation-provider {
   width: 100%;
 }
 
@@ -73,9 +89,9 @@ body,
 // X-Road 7
 .xrd-view-title {
   font-style: normal;
+  font-weight: bold;
   font-size: 24px;
   color: colors.$WarmGrey100;
-  font-weight: 700;
 }
 
 .xrd-card {
@@ -83,6 +99,17 @@ body,
     background-color: colors.$WarmGrey10;
     height: 72px;
     padding-right: 24px;
+  }
+}
+
+.xrd-title-search {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-end;
+
+  .xrd-view-title {
+    margin-right: 20px;
   }
 }
 
@@ -172,6 +199,14 @@ body,
 // Override for Vuetify text input style
 .v-text-field, .v-file-input {
   font-weight: 600 !important;
+
+  .v-input__details {
+    font-weight: 600 !important;
+  }
+}
+
+// Override for Vuetify checkbox input style
+.v-checkbox {
 
   .v-input__details {
     font-weight: 600 !important;

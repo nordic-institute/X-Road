@@ -25,9 +25,23 @@
  * THE SOFTWARE.
  */
 
-import { InjectionKey } from 'vue';
-import { CommonUser, CommonRouting, CommonSystem } from './types';
+// Helper to copy text to clipboard
+function toClipboard(val: string): void {
+  // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
+  const container = document.getElementsByClassName('v-dialog--active')[0] || document.body;
+  const tempValueContainer = document.createElement('input');
+  tempValueContainer.setAttribute('type', 'text');
+  tempValueContainer.style.zIndex = '300';
+  tempValueContainer.style.opacity = '0';
+  tempValueContainer.style.filter = 'alpha(opacity=0)';
+  tempValueContainer.setAttribute('data-test', 'generated-temp-value-container');
+  tempValueContainer.value = val;
+  container.appendChild(tempValueContainer);
+  tempValueContainer.select();
+  document.execCommand('copy');
+  container.removeChild(tempValueContainer);
+}
 
-export const systemKey = Symbol() as InjectionKey<CommonSystem>;
-export const userKey = Symbol() as InjectionKey<CommonUser>;
-export const routingKey = Symbol() as InjectionKey<CommonRouting>;
+export const helper = {
+  toClipboard,
+};

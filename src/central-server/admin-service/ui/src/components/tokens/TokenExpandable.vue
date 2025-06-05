@@ -101,7 +101,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { useToken } from '@/store/modules/tokens';
 import { useUser } from '@/store/modules/user';
@@ -114,7 +114,7 @@ import {
 import KeysTable from '@/components/tokens/KeysTable.vue';
 import TokenLoggingButton from '@/components/tokens/TokenLoggingButton.vue';
 import SigningKeyAddDialog from '@/components/signingKeys/SigningKeyAddDialog.vue';
-import { XrdExpandable } from '@niis/shared-ui';
+import { XrdExpandable, Colors } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -197,8 +197,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use  '@niis/shared-ui/src/assets/colors';
 
 .token-logging-button {
   display: inline-flex;

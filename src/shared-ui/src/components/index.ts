@@ -48,6 +48,9 @@ import XrdLanguageDropdown from './XrdLanguageDropdown.vue';
 import XrdAppDropMenu from './XrdAppDropMenu.vue';
 import XrdSubTabs from './XrdSubTabs.vue';
 import XrdTabsBase from './XrdTabsBase.vue';
+import XrdDataTableFooter from './XrdDataTableFooter.vue';
+import XrdSnackBar from './XrdSnackBar.vue';
+import XrdErrorNotification from './XrdErrorNotification.vue';
 
 export {
   XrdAppIcon,
@@ -73,4 +76,7 @@ export {
   XrdAppDropMenu,
   XrdSubTabs,
   XrdTabsBase,
+  XrdDataTableFooter,
+  XrdSnackBar,
+  XrdErrorNotification,
 };

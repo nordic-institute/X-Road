@@ -26,7 +26,7 @@
 
 import { Plugin } from 'vue';
 import { useUser } from '@/store/modules/user';
-import { routingKey, systemKey, userKey } from '@niis/shared-ui';
+import { key } from '@niis/shared-ui';
 import { RouteName } from '@/global';
 import { useRouter } from 'vue-router';
 import { useSystem } from '@/store/modules/system';
@@ -34,12 +34,11 @@ import { useSystem } from '@/store/modules/system';
 export default {
   install(app) {
     app.runWithContext(() => {
-
       const user = useUser();
       const system = useSystem();
       const router = useRouter();
 
-      app.provide(routingKey, {
+      app.provide(key.routing, {
         toLogin() {
           return router.replace({ name: RouteName.Login });
         },
@@ -51,10 +50,7 @@ export default {
         },
       });
 
-      app.provide(userKey, {
-        login(username: string, password: string) {
-          return user.loginUser({ username, password });
-        },
+      app.provide(key.user, {
         logout() {
           return user.logoutUser();
         },
@@ -66,7 +62,7 @@ export default {
         },
       });
 
-      app.provide(systemKey, {
+      app.provide(key.system, {
         version() {
           return system.securityServerVersion.info;
         },

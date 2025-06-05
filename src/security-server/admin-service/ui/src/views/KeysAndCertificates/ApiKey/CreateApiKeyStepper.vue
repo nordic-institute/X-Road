@@ -203,7 +203,7 @@ import { defineComponent } from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/global-types';
 import * as api from '@/util/api';
-import { toClipboard } from '@/util/helpers';
+import { helper } from '@niis/shared-ui';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
@@ -256,7 +256,7 @@ export default defineComponent({
     copyKey(): void {
       const key = this.apiKey.key;
       if (key) {
-        toClipboard(key);
+        helper.toClipboard(key);
       }
     },
   },
@@ -266,7 +266,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 @use '@/assets/detail-views';
 @use '@/assets/wizards';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .stepper {
   box-shadow: unset;

@@ -36,7 +36,6 @@ import viteBasicSslPlugin from '@vitejs/plugin-basic-ssl';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const lang = /\/locales?\/([a-z]{2}([-_][A-Z]+))\.(js|json)$/;
-
   return {
     plugins: [
       vue(),

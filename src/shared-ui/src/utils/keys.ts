@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,57 +25,15 @@
  * THE SOFTWARE.
  */
 
-@use 'colors';
+import { InjectionKey } from 'vue';
+import { CommonUser, CommonRouting, CommonSystem } from './types';
 
-.xrd-table {
-  width: 100%;
-  border-collapse: collapse;
+const system = Symbol() as InjectionKey<CommonSystem>;
+const user = Symbol() as InjectionKey<CommonUser>;
+const routing = Symbol() as InjectionKey<CommonRouting>;
 
-  td {
-    height: 52px;
-    border-bottom: colors.$WarmGrey30 solid 1px;
-    font-size: 14px;
-    padding-left: 16px;
-  }
-  th {
-    height: 56px;
-    border-bottom: colors.$WarmGrey30 solid 1px;
-    padding-left: 16px;
-    text-align: left;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: colors.$WarmGrey100;
-  }
-}
-
-.xrd-table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-}
-
-// v7 Some of the subviews use this for "dialog" look
-.xrd-main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: colors.$DefaultShadow;
-  font-size: colors.$DefaultFontSize;
-}
-
-// v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
-.xrd-footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  border-radius: 0 0 4px 4px;
-  padding: 16px;
-  background-color: colors.$WarmGrey10;
-  height: 72px;
-}
-
-.data-table {
-  border-radius: 4px;
-}
+export const key = {
+  system,
+  user,
+  routing,
+};
