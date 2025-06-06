@@ -25,7 +25,5 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
-    <router-view />
-  </xrd-sub-view-container>
+  <router-view />
 </template>

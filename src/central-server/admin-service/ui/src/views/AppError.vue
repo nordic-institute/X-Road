@@ -24,14 +24,11 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <v-layout align-center justify-center column>
-    {{ $t('global.pageNotFound') }}
-  </v-layout>
+  <XrdNotFoundError />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({});
+<script lang="ts" setup>
+import { XrdNotFoundError } from '@niis/shared-ui';
 </script>

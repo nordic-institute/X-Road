@@ -96,7 +96,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -177,12 +177,13 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { DataTableHeader } from '@/ui-types';
 import helpImg from '@/assets/api_keys.png';
-import { XrdIconKey } from '@niis/shared-ui';
+import { XrdIconKey, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     HelpButton,
     XrdIconKey,
+    XrdDataTableFooter,
   },
   data() {
     return {
@@ -323,7 +324,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 
 .button-wrap {
   width: 100%;

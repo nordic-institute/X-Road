@@ -26,76 +26,31 @@
  -->
 
 <template>
-  <div class="xrd-view-common" data-test="forbidden-view">
-    <TabsBase />
-    <AlertsContainer />
-    <v-container>
-      <div class="xrd-view-title pt-6">{{ $t('403.topTitle') }}</div>
-      <v-card flat class="xrd-card custom-card">
-        <v-card-text>
-          <div class="content-wrap">
-            <div class="main-title">{{ $t('403.mainTitle') }}</div>
-            <div class="permission-text">
-              {{ $t('403.text') }}
-            </div>
-            <div class="buttons-wrap my-13">
-              <xrd-button
-                test-data="go-back-button"
-                color="primary"
-                large
-                rounded
-                @click="goBack"
-                >{{ $t('403.goBack') }}</xrd-button
-              >
-
-              <xrd-button
-                test-data="go-to-front-page-button"
-                color="primary"
-                outlined
-                large
-                class="ml-4"
-                rounded
-                @click="home"
-                >{{ $t('action.goToFront') }}</xrd-button
-              >
-            </div>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-container>
-  </div>
+  <XrdForbiddenError>
+    <template #top>
+      <TabsBase />
+      <AlertsContainer />
+    </template>
+  </XrdForbiddenError>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import TabsBase from '@/components/layout/TabsBase.vue';
+import TabsBase from '@/layouts/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
+import { XrdForbiddenError } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     TabsBase,
     AlertsContainer,
-  },
-  computed: {
-    ...mapState(useUser, ['getFirstAllowedTab']),
-  },
-  methods: {
-    home(): void {
-      this.$router.replace({
-        name: this.getFirstAllowedTab.to.name,
-      });
-    },
-    goBack(): void {
-      this.$router.go(-2); // needs to be two steps
-    },
+    XrdForbiddenError,
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .xrd-view-common {
   width: 100%;

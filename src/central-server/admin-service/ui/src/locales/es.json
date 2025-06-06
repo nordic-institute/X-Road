@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Volver",
-    "mainTitle": "Permiso denegado",
-    "text": "Parece que no tienes el permiso para ver esta página. Si crees que esto es un error, verifica si has iniciado sesión en la cuenta correcta o comunícate con tu Administrador para preguntar sobre tus permisos.",
-    "topTitle": "Denegado"
-  },
   "action": {
     "approve": "Aprobar",
     "decline": "Rechazar",
@@ -193,7 +187,6 @@
     "navigation": {
       "back": "Atrás"
     },
-    "pageNotFound": "Ups, página no encontrada",
     "register": "Registro",
     "search": "Buscar",
     "server": "Servidor",

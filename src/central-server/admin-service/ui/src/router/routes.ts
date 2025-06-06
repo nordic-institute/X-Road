@@ -26,11 +26,11 @@
  */
 
 import SecurityServerAuthenticationCertificate from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificate.vue';
-import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
-import TabsBase from '@/components/layout/TabsBase.vue';
+import { RouteLocationNormalized } from 'vue-router';
+import TabsBase from '@/layouts/TabsBase.vue';
 
 import AppLogin from '@/views/AppLogin.vue';
-import AppBase from '@/views/AppBase.vue';
+import AppBase from '@/layouts/AppBase.vue';
 
 import AppError from '@/views/AppError.vue';
 
@@ -45,7 +45,7 @@ import MembersView from '@/views/Members/MembersView.vue';
 import MemberView from '@/views/Members/Member/MemberView.vue';
 
 import MemberDetails from '@/views/Members/Member/Details/MemberDetails.vue';
-import PageNavigation from '@/components/layout/PageNavigation.vue';
+import PageNavigation from '@/layouts/PageNavigation.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import ApiKeys from '@/views/Settings/ApiKeys/ApiKeys.vue';
@@ -73,7 +73,7 @@ import ExternalConfiguration from '@/views/GlobalConfiguration/ExternalConfigura
 import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfiguration/InternalConfiguration.vue';
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
 import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
-import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
 import CertificationService from '@/views/TrustServices/CertificationService/CertificationService.vue';
 import CertificationServiceDetails from '@/views/TrustServices/CertificationService/CertificationServiceDetails.vue';
@@ -196,6 +196,7 @@ const routes: XrdRoute[] = [
         components: {
           default: CreateApiKeyStepper,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: {
           default: true,

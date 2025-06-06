@@ -26,15 +26,17 @@
  */
 
 import createValidators from '@/plugins/vee-validate';
-import {languageHelper} from '@/plugins/i18n';
+import { useLanguageHelper } from '@niis/shared-ui';
+import {createLanguageHelper} from '@/plugins/i18n';
 import { validate } from 'vee-validate';
 import en from '@/locales/en.json';
 import { describe, expect, it } from 'vitest';
 
-describe('vee-validate',  () => {
-   describe('ipAddresses',async () => {
+describe('vee-validate', () => {
+  describe('ipAddresses', async () => {
     createValidators.install();
-     await languageHelper.selectLanguage('en')
+    await createLanguageHelper();
+    await useLanguageHelper().selectLanguage('en')
 
     it('should validate ip v4 correctly', async () => {
 

@@ -32,10 +32,10 @@ import {
 } from 'vue-router';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
-import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import { Permissions, RouteName } from '@/global';
 import routes from '@/routes';
-import { i18n } from './plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 

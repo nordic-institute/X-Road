@@ -34,8 +34,8 @@
     <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title class="d-flex pt-4">
         <span class="text-h5" data-test="add-members-dialog-title">{{
-          $t(title)
-        }}</span>
+            $t(title)
+          }}</span>
         <v-spacer />
         <i id="close-x" @click="cancel()"></i>
       </v-card-title>
@@ -107,7 +107,7 @@
 
             <div class="search-wrap">
               <xrd-button :loading="loading" @click="search()"
-                >{{ $t('action.search') }}
+              >{{ $t('action.search') }}
               </xrd-button>
             </div>
           </template>
@@ -161,11 +161,11 @@
         <v-spacer></v-spacer>
 
         <xrd-button class="button-margin" outlined @click="cancel()"
-          >{{ $t('action.cancel') }}
+        >{{ $t('action.cancel') }}
         </xrd-button>
 
         <xrd-button :disabled="!canSave" @click="save()"
-          >{{ $t('localGroup.addSelected') }}
+        >{{ $t('localGroup.addSelected') }}
         </xrd-button>
       </v-card-actions>
     </v-card>
@@ -179,8 +179,7 @@ import { Client, GroupMember } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
-import { Colors } from '@/global';
-import { XrdExpandable } from '@niis/shared-ui';
+import { Colors, XrdExpandable } from '@niis/shared-ui';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 
 const initialState = () => {
@@ -304,7 +303,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 @use '@/assets/add-dialogs';
 
 .cursor-pointer {

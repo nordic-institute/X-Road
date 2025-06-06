@@ -142,8 +142,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
 
 .xrd-card-text {
   padding-left: 0;

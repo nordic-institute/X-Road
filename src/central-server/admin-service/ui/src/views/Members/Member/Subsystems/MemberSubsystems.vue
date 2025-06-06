@@ -176,7 +176,7 @@
         </tbody>
 
         <template #bottom>
-          <custom-data-table-footer />
+          <XrdDataTableFooter />
         </template>
       </v-table>
     </v-card>
@@ -222,7 +222,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useMember } from '@/store/modules/members';
@@ -231,14 +231,9 @@ import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import { XrdIconError, XrdIconInProgress } from '@niis/shared-ui';
-import {
-  ManagementRequestStatus,
-  Subsystem,
-  UsedSecurityServers,
-} from '@/openapi-types';
+import { XrdIconError, XrdIconInProgress, XrdDataTableFooter, Colors } from '@niis/shared-ui';
+import { ManagementRequestStatus, Subsystem, UsedSecurityServers } from '@/openapi-types';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import RenameMemberSubsystemDialog from '@/views/Members/Member/Subsystems/RenameMemberSubsystemDialog.vue';
 import RenameSubsystemBtn from '@/components/members/RenameSubsystemBtn.vue';
 
@@ -254,7 +249,7 @@ export default defineComponent({
   components: {
     RenameSubsystemBtn,
     RenameMemberSubsystemDialog,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DataTableToolbar,
     DeleteMemberSubsystemDialog,
     AddMemberSubsystemDialog,
@@ -403,7 +398,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .subsystems-table {
   th {

@@ -34,7 +34,7 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   name: {
@@ -43,7 +43,7 @@ const props = defineProps({
   },
 });
 
-const { t } = i18n.global;
+const { t } = useI18n();
 
 const hasName = computed(() => props.name && props.name.length > 0);
 const tooltip = computed(() => ({

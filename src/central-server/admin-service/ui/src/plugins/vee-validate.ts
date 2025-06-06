@@ -27,7 +27,7 @@
 import { configure, defineRule } from 'vee-validate';
 import { between, is, max, min, required, url } from '@vee-validate/rules';
 import { isIP } from 'is-ip';
-import { i18n } from '@/plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 
 function _param(params: unknown, idx: number): unknown {

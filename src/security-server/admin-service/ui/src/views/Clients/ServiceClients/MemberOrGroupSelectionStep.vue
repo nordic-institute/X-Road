@@ -162,8 +162,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/wizards';
 
 .search-field {
   max-width: 300px;

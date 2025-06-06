@@ -117,7 +117,7 @@ import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { defineRule, PublicPathState, useForm } from 'vee-validate';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
-import { i18n } from '@/plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { useNotifications } from '@/store/modules/notifications';
 
 defineRule(
@@ -285,5 +285,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

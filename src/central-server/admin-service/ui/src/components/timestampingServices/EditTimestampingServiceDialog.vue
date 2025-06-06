@@ -93,7 +93,7 @@ import { useTimestampingServicesStore } from '@/store/modules/trust-services';
 import { useForm } from 'vee-validate';
 import { useNotifications } from '@/store/modules/notifications';
 import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { useFileRef } from '@/util/composables';
 
 const props = defineProps({
@@ -116,7 +116,7 @@ const [tasUrl, tasUrlAttrs] = defineField('url', {
 const { updateTimestampingService } = useTimestampingServicesStore();
 const { showSuccess, showError } = useNotifications();
 const router = useRouter();
-const { t } = i18n.global;
+const { t } = useI18n();
 
 const certFile = useFileRef();
 const certUploadActive = ref(false);

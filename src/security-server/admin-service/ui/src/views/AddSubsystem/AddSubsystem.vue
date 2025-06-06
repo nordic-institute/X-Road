@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
+  <v-container class="view-wrap ms-auto">
     <xrd-sub-view-title
-      class="wizard-view-title"
+      class="pa-4"
       :title="$t('wizard.addSubsystemTitle')"
       :show-close="false"
     />
@@ -149,7 +149,7 @@
       @cancel="exitView"
       @accept="registerSubsystem"
     />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -162,7 +162,7 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineRule, useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useSystem } from '@/store/modules/system';
 import WizardRowWrapT from '@/components/ui/WizardRowWrapT.vue';
@@ -186,7 +186,7 @@ const props = defineProps({
   },
 });
 
-const { t } = i18n.global;
+const { t } = useI18n();
 
 function uniqueClient(subsystemCode: string) {
   if (!subsystemCode) {
@@ -334,5 +334,5 @@ function fetchData(): void {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

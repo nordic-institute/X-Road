@@ -25,19 +25,14 @@
  -->
 <template>
   <div>
-    <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to">{{
-        $t(tab.name)
-      }}</v-tab>
-    </sub-tabs>
+    <XrdSubTabs :tabs />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
+import { Tab, XrdSubTabs } from '@niis/shared-ui';
 
 import { mapState } from 'pinia';
 
@@ -46,7 +41,7 @@ import { useClient } from '@/store/modules/client';
 
 export default defineComponent({
   components: {
-    SubTabs,
+    XrdSubTabs,
   },
   props: {
     id: {

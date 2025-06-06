@@ -28,7 +28,7 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { defineStore } from 'pinia';
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 import { User } from '@/openapi-types';
 import { mainTabs } from '@/global';
 import { get } from '@/util/api';
@@ -149,7 +149,7 @@ export const useUser = defineStore('user', {
       sessionStorage.clear();
 
       // Call backend for logout
-      axiosAuth
+      return axiosAuth
         .post('/logout')
         .catch(() => {
           // Nothing to do

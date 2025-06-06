@@ -89,7 +89,7 @@
       </template>
 
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -138,12 +138,12 @@ import {
 import EditOcspResponderDialog from '@/components/ocspResponders/EditOcspResponderDialog.vue';
 import { RouteName } from '@/global';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   components: {
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DataTableToolbar,
     EditOcspResponderDialog,
     AddOcspResponderDialog,
@@ -247,5 +247,5 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

@@ -190,7 +190,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 .option-row {
   border-bottom: solid 1px colors.$WarmGrey30;
 }

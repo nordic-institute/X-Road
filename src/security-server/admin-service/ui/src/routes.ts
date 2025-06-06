@@ -33,7 +33,7 @@ import AddServiceClientAccessRights from '@/views/Clients/ServiceClients/AddServ
 import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
-import AppBase from '@/views/AppBase.vue';
+import AppBase from '@/layouts/AppBase.vue';
 import AppError from '@/views/AppError.vue';
 import AppLogin from '@/views/AppLogin.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
@@ -72,8 +72,8 @@ import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAnd
 import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
 import SubsystemView from '@/views/Clients/SubsystemView.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
-import TabsBase from '@/components/layout/TabsBase.vue';
-import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import TabsBase from '@/layouts/TabsBase.vue';
+import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
 
 const routes: RouteRecordRaw[] = [
@@ -133,6 +133,7 @@ const routes: RouteRecordRaw[] = [
         components: {
           default: CreateApiKeyStepper,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: {
           default: true,

@@ -151,7 +151,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .management-requests-table {
   min-width: 182px;
