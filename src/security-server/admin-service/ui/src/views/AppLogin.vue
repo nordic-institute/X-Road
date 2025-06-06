@@ -167,3 +167,14 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss" scoped>
+.alerts {
+  top: 40px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 100;
+  position: absolute;
+}
+</style>

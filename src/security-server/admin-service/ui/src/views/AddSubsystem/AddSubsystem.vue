@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
+  <v-container class="view-wrap ms-auto">
     <xrd-sub-view-title
-      class="wizard-view-title"
+      class="pa-4"
       :title="$t('wizard.addSubsystemTitle')"
       :show-close="false"
     />
@@ -149,7 +149,7 @@
       @cancel="exitView"
       @accept="registerSubsystem"
     />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -334,5 +334,5 @@ function fetchData(): void {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

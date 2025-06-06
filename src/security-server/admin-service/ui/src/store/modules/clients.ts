@@ -31,7 +31,7 @@ import { ClientTypes } from '@/global';
 import { i18n } from '@niis/shared-ui';
 import { defineStore } from 'pinia';
 
-const UNKNOWN_NAME: string = i18n.global.t('client.unknownMember') as string;
+const unknownName = () => i18n.global.t('client.unknownMember') as string;
 
 export interface ClientsState {
   clients: Client[];
@@ -89,7 +89,7 @@ export const useClients = defineStore('clients', {
           const clone = deepClone(element) as ExtendedClient;
           clone.type = ClientTypes.OWNER_MEMBER;
           clone.subsystem_code = undefined;
-          clone.visibleName = clone.member_name || UNKNOWN_NAME;
+          clone.visibleName = clone.member_name || unknownName();
 
           if (element.owner) {
             clone.type = ClientTypes.OWNER_MEMBER;
@@ -133,7 +133,7 @@ export const useClients = defineStore('clients', {
           clone.subsystem_code = undefined;
 
           // Create a name from member_name
-          clone.visibleName = clone.member_name || UNKNOWN_NAME;
+          clone.visibleName = clone.member_name || unknownName();
 
           clone.status = undefined;
 

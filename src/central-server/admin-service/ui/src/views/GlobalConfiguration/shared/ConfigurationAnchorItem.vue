@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <article id="anchor" class="mt-4">
+  <article id="anchor" class="mt-5">
     <v-data-table
       v-if="anchors"
       class="elevation-0 data-table"

@@ -47,7 +47,7 @@
 import { computed } from 'vue';
 import axios from 'axios';
 import { XrdAppFooter, XrdSnackBar } from '@niis/shared-ui';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
+import AppToolbar from '@/layouts/AppToolbar.vue';
 import { RouteName } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useRoute, useRouter } from 'vue-router';

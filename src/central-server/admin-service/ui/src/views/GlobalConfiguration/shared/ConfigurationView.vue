@@ -32,7 +32,7 @@
     />
 
     <!-- Internal configuration -->
-    <div class="header-row mt-7">
+    <div class="header-row mt-6">
       <div class="xrd-view-title">{{ title }}</div>
     </div>
 

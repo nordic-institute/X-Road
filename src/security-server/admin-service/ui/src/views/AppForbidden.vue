@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import TabsBase from '@/components/layout/TabsBase.vue';
+import TabsBase from '@/layouts/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { XrdForbiddenError } from '@niis/shared-ui';
 

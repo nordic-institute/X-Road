@@ -63,5 +63,5 @@ function close() {
 </script>
 <style lang="scss" scoped>
 @use '@/assets/detail-views';
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

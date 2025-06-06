@@ -28,9 +28,9 @@
   <!-- Error -->
   <v-container
     v-if="
-        notifications.errorNotifications &&
-        notifications.errorNotifications.length > 0
-      "
+      notifications.errorNotifications &&
+      notifications.errorNotifications.length > 0
+    "
     fluid
     class="alerts-container px-3"
   >
