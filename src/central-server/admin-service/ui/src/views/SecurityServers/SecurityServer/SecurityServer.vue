@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
+import PageNavigation, { PageNavigationTab } from '@/layouts/PageNavigation.vue';
 import { Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';

@@ -25,20 +25,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container data-test="create-api-key-stepper-view">
+  <v-container class="view-wrap ms-auto">
+    <xrd-sub-view-title
+      :title="$t('apiKey.createApiKey.title')"
+      :show-close="true"
+      class="pa-4"
+      @close="close"
+    />
     <v-stepper
       v-model="step"
       :alt-labels="true"
-      class="stepper mt-2"
+      class="wizard-stepper wizard-noshadow"
       hide-actions
     >
-      <xrd-sub-view-title
-        :title="$t('apiKey.createApiKey.title')"
-        :show-close="true"
-        class="pa-4"
-        @close="close"
-      />
-      <v-stepper-header>
+      <v-stepper-header class="wizard-noshadow">
         <v-stepper-item
           value="1"
           :complete="step > 0"
@@ -52,25 +52,21 @@
         />
       </v-stepper-header>
 
-      <v-stepper-window>
-        <v-stepper-window-item value="1">
-          <v-container class="wide-width">
-            <v-row class="mt-4">
-              <v-col
-                ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
-              >
-            </v-row>
-          </v-container>
-          <v-container class="narrow-width">
-            <v-row class="mb-5">
-              <v-col>
-                <h4>{{ $t('apiKey.createApiKey.step.roles.selectRoles') }}</h4>
-                <br />
-                {{ $t('apiKey.createApiKey.step.roles.description') }}
-              </v-col>
-              <v-col>
-                <v-row v-for="role in availableRoles" :key="role" no-gutters>
-                  <v-col class="underline">
+      <v-stepper-window class="wizard-stepper-content">
+        <v-stepper-window-item value="1" class="pa-0 centered">
+          <div>
+            <div class="wizard-step-form-content pt-6">
+              <div class="wizard-row-wrap">
+                <XrdFormLabel
+                  :label-text="$t('apiKey.createApiKey.step.roles.selectRoles')"
+                  :help-text="$t('apiKey.createApiKey.step.roles.description')"
+                />
+                <div class="wizard-form-input">
+                  <div
+                    v-for="role in availableRoles"
+                    :key="role"
+                    class="underline"
+                  >
                     <v-checkbox
                       v-model="selectedRoles"
                       hide-details
@@ -78,123 +74,128 @@
                       :label="$t(`apiKey.role.${role}`)"
                       :data-test="`role-${role}-checkbox`"
                     />
-                  </v-col>
-                </v-row>
-              </v-col>
-            </v-row>
-          </v-container>
-
-          <v-row class="button-footer mt-12" no-gutters>
-            <xrd-button data-test="cancel-button" outlined @click="close">
-              {{ $t('action.cancel') }}
-            </xrd-button>
-
-            <xrd-button
-              data-test="next-button"
-              :disabled="nextButtonDisabled"
-              @click="step++"
-            >
-              {{ $t('action.next') }}
-            </xrd-button>
-          </v-row>
-        </v-stepper-window-item>
-        <v-stepper-window-item value="2">
-          <v-container class="wide-width mb-8">
-            <v-row class="mt-4">
-              <v-col
-                ><h3>
-                  {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
-                </h3></v-col
-              >
-              <v-spacer></v-spacer>
+                    <v-divider />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="button-footer">
+              <xrd-button data-test="cancel-button" outlined @click="close">
+                {{ $t('action.cancel') }}
+              </xrd-button>
 
               <xrd-button
-                data-test="create-key-button"
-                :disabled="keyGenerated"
-                :loading="generatingKey"
-                @click="generateKey"
+                data-test="next-button"
+                :disabled="nextButtonDisabled"
+                @click="step++"
               >
-                <xrd-icon-base class="xrd-large-button-icon">
-                  <XrdIconAdd />
-                </xrd-icon-base>
-                {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
+                {{ $t('action.next') }}
               </xrd-button>
-            </v-row>
-          </v-container>
-          <v-container class="narrow-width">
-            <v-row class="underline">
-              <v-col cols="6" sm="3" class="api-key-label">
-                {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
-              </v-col>
-              <v-col cols="6" sm="9" class="action-row">
-                <div data-test="created-apikey">{{ apiKey.key }}</div>
+            </div>
+          </div>
+        </v-stepper-window-item>
+        <v-stepper-window-item value="2">
+          <div>
+            <div class="wizard-step-form-content pt-6">
+              <div class="wizard-row-wrap">
+                <v-table class="key-details">
+                  <tbody>
+                    <tr>
+                      <td>
+                        {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
+                      </td>
+                      <td data-test="created-apikey">{{ apiKey.key }}</td>
+                      <td>
+                        <xrd-button
+                          v-if="apiKey.key"
+                          class="float-right"
+                          text
+                          :outlined="false"
+                          data-test="copy-key-button"
+                          @click.prevent="copyKey()"
+                        >
+                          <v-icon
+                            class="xrd-large-button-icon"
+                            icon="mdi-content-copy"
+                          />
+                          {{ $t('action.copy') }}
+                        </xrd-button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
+                      </td>
+                      <td data-test="created-apikey-id" colspan="2">
+                        {{ apiKey.id }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        {{
+                          $t(
+                            'apiKey.createApiKey.step.keyDetails.assignedRoles',
+                          )
+                        }}
+                      </td>
+                      <td colspan="2">{{ translatedRoles?.join(', ') }}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3" class="pt-12">
+                        {{ $t('apiKey.createApiKey.step.keyDetails.note') }}
+                        <v-spacer />
+                        <xrd-button
+                          data-test="create-key-button"
+                          class="mt-6 float-right"
+                          :disabled="keyGenerated"
+                          :loading="generatingKey"
+                          @click="generateKey"
+                        >
+                          <xrd-icon-base class="xrd-large-button-icon">
+                            <XrdIconAdd />
+                          </xrd-icon-base>
+                          {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
+                        </xrd-button>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </v-table>
+              </div>
+            </div>
+            <div class="button-footer">
+              <xrd-button
+                data-test="cancel-button"
+                outlined
+                :disabled="keyGenerated || generatingKey"
+                @click="close"
+              >
+                {{ $t('action.cancel') }}
+              </xrd-button>
 
-                <xrd-button
-                  v-if="apiKey.key"
-                  text
-                  :outlined="false"
-                  class="copy-button"
-                  data-test="copy-key-button"
-                  @click.prevent="copyKey()"
-                >
-                  <v-icon class="xrd-large-button-icon" icon="icon-copy" />
-                  {{ $t('action.copy') }}
-                </xrd-button>
-              </v-col>
-            </v-row>
-            <v-row class="underline">
-              <v-col cols="6" sm="3" class="api-key-label">
-                {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
-              </v-col>
-              <v-col cols="6" sm="9" data-test="created-apikey-id">
-                {{ apiKey.id }}
-              </v-col>
-            </v-row>
-            <v-row class="underline">
-              <v-col cols="6" sm="3" class="api-key-label">
-                {{ $t('apiKey.createApiKey.step.keyDetails.assignedRoles') }}
-              </v-col>
-              <v-col cols="6" sm="9">
-                {{ translatedRoles?.join(', ') }}
-              </v-col>
-            </v-row>
-            <v-row class="mt-12">
-              <v-col>
-                {{ $t('apiKey.createApiKey.step.keyDetails.note') }}
-              </v-col>
-            </v-row>
-          </v-container>
-          <v-row class="button-footer mt-12" no-gutters>
-            <xrd-button
-              data-test="cancel-button"
-              outlined
-              :disabled="keyGenerated || generatingKey"
-              @click="close"
-            >
-              {{ $t('action.cancel') }}
-            </xrd-button>
-
-            <xrd-button
-              data-test="previous-button"
-              outlined
-              class="mr-5"
-              :disabled="keyGenerated || generatingKey"
-              @click="step--"
-            >
-              {{ $t('action.previous') }}
-            </xrd-button>
-            <xrd-button
-              data-test="finish-button"
-              :disabled="!keyGenerated"
-              @click="close"
-            >
-              {{ $t('action.finish') }}
-            </xrd-button>
-          </v-row>
+              <xrd-button
+                data-test="previous-button"
+                outlined
+                class="mr-5"
+                :disabled="keyGenerated || generatingKey"
+                @click="step--"
+              >
+                {{ $t('action.previous') }}
+              </xrd-button>
+              <xrd-button
+                data-test="finish-button"
+                :disabled="!keyGenerated"
+                @click="close"
+              >
+                {{ $t('action.finish') }}
+              </xrd-button>
+            </div>
+          </div>
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
-  </xrd-sub-view-container>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -202,12 +203,13 @@ import { defineComponent } from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
-import { helper } from '@niis/shared-ui';
+import { helper, XrdFormLabel } from '@niis/shared-ui';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
+  components: { XrdFormLabel },
   data() {
     return {
       step: 0,
@@ -228,8 +230,8 @@ export default defineComponent({
       return !this.apiKey.roles
         ? []
         : this.apiKey.roles.map(
-            (role) => this.$t(`apiKey.role.${role}`) as string,
-          );
+          (role) => this.$t(`apiKey.role.${role}`) as string,
+        );
     },
     keyGenerated(): boolean {
       return this.apiKey.key !== undefined;
@@ -263,61 +265,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '@/assets/forms' as *;
-@use  '@niis/shared-ui/src/assets/colors';
-
-:deep(.v-stepper-window) {
-  margin-right: 0;
-  margin-left: 0;
-  margin-bottom: 0;
-}
-
-:deep(.v-stepper-header) {
-  width: 50%;
-  margin-right: auto;
-  margin-left: auto;
-  box-shadow: none;
-}
-
-.stepper {
-  box-shadow: unset;
-  box-shadow: colors.$DefaultShadow;
-}
-
-.underline {
-  border-bottom: solid 1px colors.$WarmGrey30;
-}
-
-.api-key-label {
-  font-weight: 500;
-}
-
-.wide-width {
-  max-width: 1040px;
-}
-
-.narrow-width {
-  max-width: 840px;
-}
-
-h3 {
-  color: colors.$Black100;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-h4 {
-  color: colors.$Black100;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.action-row {
-  display: flex;
-  justify-content: space-between;
-
-  .copy-button {
-    margin-top: -10px;
-    margin-bottom: -10px;
-  }
-}
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

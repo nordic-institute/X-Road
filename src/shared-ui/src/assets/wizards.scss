@@ -91,24 +91,18 @@
 }
 
 .view-wrap {
+  padding: 0;
   max-width: 1050px;
-  margin: 40px;
   margin-top: 30px;
   box-shadow: colors.$DefaultShadow;
   border-radius: 4px;
 
   // override Vuetify style
   background-color: #ffffff;
-  .v-stepper__content {
-    padding: 0;
+  .v-stepper-window {
+    margin: 0;
   }
 
-}
-
-.wizard-view-title {
-  width: 100%;
-  max-width: 100%;
-  margin: 30px;
 }
 
 .wizard-stepper-content {
@@ -121,7 +115,7 @@
   width: 100%;
 }
 
-.wizard-noshadow {
+.view-wrap .wizard-noshadow {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
@@ -130,10 +124,7 @@
 .wizard-info-block {
   display: flex;
   flex-direction: row;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 40px;
-  margin-top: 40px;
+  margin: 40px auto;
   width: 840px;
 
   .action-block {

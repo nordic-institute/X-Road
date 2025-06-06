@@ -35,12 +35,7 @@
           <div class="sticky">
             <slot name="alerts" />
           </div>
-          <v-row
-            no-gutters
-            align="center"
-            justify="center"
-            class="base-full-width bottom-pad"
-          >
+          <v-row no-gutters align="center" justify="center" class="base-full-width bottom-pad">
             <xrd-sub-view-container>
               <slot name="default" />
             </xrd-sub-view-container>

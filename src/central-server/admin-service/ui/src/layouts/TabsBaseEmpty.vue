@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,24 +25,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content">
+  <v-layout class="main-content" align-left>
     <XrdAppIcon />
     <div class="tabs-wrap"></div>
+    <XrdLanguageDropdown />
     <XrdAppDropMenu />
   </v-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { XrdAppDropMenu, XrdAppIcon } from '@niis/shared-ui';
-
-export default defineComponent({
-  components: {
-    XrdAppIcon,
-    XrdAppDropMenu,
-  },
-});
+<script lang="ts" setup>
+import {
+  XrdAppDropMenu,
+  XrdAppIcon,
+  XrdLanguageDropdown,
+} from '@niis/shared-ui';
 </script>
+
 <style lang="scss" scoped>
 .main-content {
   background-color: #ffffff;
@@ -50,9 +49,9 @@ export default defineComponent({
   @media only screen and (max-width: 920px) {
     padding-left: 0;
   }
-}
 
-.tabs-wrap {
-  margin-left: 20px;
+  .tabs-wrap {
+    margin-left: 20px;
+  }
 }
 </style>

@@ -50,15 +50,23 @@ export const i18n = createI18n({
 });
 
 async function selectLanguage(language: string) {
-  if (i18n.global.locale.value !== language) {
-    await loadLanguage(language);
-    i18n.global.locale.value = language;
-
-    axios.defaults.headers.common['Accept-Language'] = language;
-    document.querySelector('html')?.setAttribute('lang', language);
-    localStorage.language = language;
-    currentLanguage.value = language;
+  if (i18n.global.locale.value === language) {
+    return;
   }
+  let languageToLoad = language;
+  if (language && supportedLanguages.includes(language)) {
+    localStorage.language = language;
+  } else {
+    languageToLoad = pickDefaultLanguage();
+  }
+  await loadLanguage(languageToLoad);
+  i18n.global.locale.value = languageToLoad;
+
+  axios.defaults.headers.common['Accept-Language'] = languageToLoad;
+  document.querySelector('html')?.setAttribute('lang', languageToLoad);
+
+  currentLanguage.value = languageToLoad;
+
   return nextTick();
 }
 
@@ -71,9 +79,6 @@ export async function createLanguageHelper(languages: string[], messageLoader: M
   supportedLanguages.push(...languages);
 
   await loadLanguage(defaultLanguage);
-  if (!localStorage.language || !supportedLanguages.includes(localStorage.language)) {
-    localStorage.language = pickDefaultLanguage();
-  }
 
   await selectLanguage(localStorage.language);
 

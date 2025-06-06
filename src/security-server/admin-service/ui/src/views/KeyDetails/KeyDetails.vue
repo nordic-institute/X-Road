@@ -310,7 +310,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '@/assets/detail-views';
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 
 .info-title {
   margin-top: 30px;

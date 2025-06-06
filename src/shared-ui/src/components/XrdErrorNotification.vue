@@ -33,17 +33,11 @@
     border-color="error"
     variant="outlined"
     class="alert mb-2"
-    icon="icon-Error-notification"
+    :icon="notification.isWarning ? 'icon-Warning' : 'icon-Error-notification'"
     type="error"
   >
     <div class="row-wrapper-top scrollable identifier-wrap">
       <div class="icon-wrapper">
-        <XrdIconBase v-if="notification.isWarning" class="warning-icon">
-          <XrdIconWarning />
-        </XrdIconBase>
-        <XrdIconBase v-else class="error-icon">
-          <XrdIconErrorNotification />
-        </XrdIconBase>
         <div class="row-wrapper">
           <!-- Show error message text -->
           <div v-if="notification.errorMessage">
@@ -100,13 +94,7 @@
           </div>
         </div>
       </div>
-      <xrd-button
-        v-if="notification.errorId"
-        text
-        class="id-button"
-        data-test="copy-id-button"
-        @click.prevent="copyId(notification)"
-      >
+      <xrd-button v-if="notification.errorId" text class="id-button" data-test="copy-id-button" @click.prevent="copyId(notification)">
         <xrd-icon-base class="xrd-large-button-icon">
           <XrdIconCopy />
         </xrd-icon-base>
@@ -131,7 +119,6 @@
 <script lang="ts" setup>
 import { helper, Colors } from '../utils';
 import { computed, PropType } from 'vue';
-import { XrdIconWarning, XrdIconErrorNotification } from './icons';
 
 const errorCodePrefix = 'error_code.';
 const translatableMetaPrefix = 'tr.';

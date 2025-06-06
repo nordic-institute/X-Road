@@ -47,7 +47,7 @@
 // The root component of the Vue app
 import { computed } from 'vue';
 import { XrdAppFooter, XrdSnackBar } from '@niis/shared-ui';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
+import AppToolbar from '@/layouts/AppToolbar.vue';
 import { RouteName } from '@/global';
 import { useRoute } from 'vue-router';
 import { useNotifications } from '@/store/modules/notifications';

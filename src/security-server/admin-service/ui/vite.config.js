@@ -32,12 +32,21 @@ import { defineConfig, loadEnv } from 'vite';
 import vuetify from 'vite-plugin-vuetify';
 
 // https://vitejs.dev/config/
-export default defineConfig(({mode}) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const lang = /\/locales?\/([a-z]{2})\.(js|json)$/;
 
   return {
-    plugins: [vue(), vuetify({autoImport: false}), basicSsl()],
+    plugins: [
+      vue(),
+      vuetify({
+        autoImport: false,
+        styles: {
+          configFile: 'src/assets/settings.scss',
+        },
+      }),
+      basicSsl(),
+    ],
     css: {
       preprocessorOptions: {
         scss: {
