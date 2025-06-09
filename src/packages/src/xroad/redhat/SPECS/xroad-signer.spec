@@ -37,6 +37,7 @@ mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jlib
 mkdir -p %{buildroot}/usr/share/xroad/lib
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons

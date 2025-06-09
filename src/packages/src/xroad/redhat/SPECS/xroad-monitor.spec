@@ -31,6 +31,7 @@ mkdir -p %{buildroot}%{_sysconfdir}
 mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{srcdir}/../../../service/monitor/monitor-application/build/libs/monitor-1.0.jar %{buildroot}%{jlib}

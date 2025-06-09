@@ -27,6 +27,7 @@ Addon for wsdl validation
 %install
 cp -a %{srcdir}/common/addon/wsdlvalidator/usr %{buildroot}
 mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 cp %{srcdir}/../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
