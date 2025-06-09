@@ -74,7 +74,7 @@ public class SettingsApiKeysPageObj {
         }
 
         public SelenideElement createdApiKeyId() {
-            return $x("//div[@data-test='created-apikey-id']");
+            return $x("//td[@data-test='created-apikey-id']");
         }
 
         public SelenideElement createdApiKey() {
