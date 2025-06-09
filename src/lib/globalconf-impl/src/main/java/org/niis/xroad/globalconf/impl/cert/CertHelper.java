@@ -94,7 +94,7 @@ public final class CertHelper {
                 if (!globalConfProvider.isSecurityServerClient(clientId, authCertServerId)) {
                     log.info("Since {} is not a client of security server {}, it seems there is a network connection problem", clientId,
                             authCertServerId);
-                    throw new CodedException(X_NETWORK_ERROR, "Client '%s' could not connect", clientId);
+                    throw new CodedException(X_NETWORK_ERROR, "Could not establish connection for client '%s'", clientId);
                 }
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client '%s' is not registered at security server %s",

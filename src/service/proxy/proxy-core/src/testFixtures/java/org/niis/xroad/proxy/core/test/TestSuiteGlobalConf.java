@@ -99,6 +99,11 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
+    public boolean isSecurityServerClient(ClientId client, SecurityServerId securityServer) {
+        return true;
+    }
+
+    @Override
     public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
         return new CertChainFactory(this).create(instanceIdentifier, subject, null);
     }
