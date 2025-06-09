@@ -51,10 +51,9 @@ public final class ConfigurationClientUtils {
      * @return error code
      */
     public static int getErrorCode(Exception e) {
-        CodedException ce = (e instanceof CodedException)
-                ? (CodedException) e
+        CodedException ce = (e instanceof CodedException codedException)
+                ? codedException
                 : translateException(e);
-
         return getErrorCode(ce);
     }
 
