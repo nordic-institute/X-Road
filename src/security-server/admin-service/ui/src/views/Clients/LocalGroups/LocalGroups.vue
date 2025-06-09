@@ -63,7 +63,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :no-data-text="$t('noData.noLocalGroups')"
+      no-data-text="noData.noLocalGroups"
       data-test="local-groups-table"
     >
       <template #[`item.code`]="{ item }">

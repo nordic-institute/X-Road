@@ -37,7 +37,7 @@
       class="elevation-0 data-table xrd-table"
       item-key="code"
       :loader-height="2"
-      :no-data-text="$t('noData.noMemberClasses')"
+      no-data-text="noData.noMemberClasses"
     >
       <template #top>
         <data-table-toolbar title-key="systemSettings.memberClasses">

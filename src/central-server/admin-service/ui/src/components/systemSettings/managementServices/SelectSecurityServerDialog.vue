@@ -122,10 +122,10 @@ export default defineComponent({
     selectableSecurityServers(): SecurityServer[] {
       return this.securityServerStore.securityServers || [];
     },
-    emptyListReasoning(): TranslateResult {
+    emptyListReasoning(): string {
       return this.pagingOptions.search
-        ? this.$t('noData.noMatches')
-        : this.$t('noData.noSecurityServers');
+        ? 'noData.noMatches'
+        : 'noData.noSecurityServers';
     },
     changed(): boolean {
       return (
