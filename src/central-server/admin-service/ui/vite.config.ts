@@ -40,9 +40,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue(),
-      vuetify({
-        autoImport: false,
-      }),
+      vuetify(),
       viteBasicSslPlugin(),
     ],
     resolve: {
@@ -72,8 +70,12 @@ export default defineConfig(({ mode }) => {
               return "shared-ui";
             }
 
-            if (id.includes('/vuetify/') || id.includes('/vue/')) {
+            if (id.includes('/vue/')) {
               return "vue";
+            }
+
+            if (id.includes('/vuetify/')) {
+              return "vuetify";
             }
 
             if (id.includes('/node_modules/')) {

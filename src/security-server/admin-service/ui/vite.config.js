@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
   const lang = /\/locales?\/([a-z]{2}([-_][A-Z]+))\.(js|json)$/;
 
   return {
-    plugins: [vue(), vuetify({ autoImport: false }), basicSsl()],
+    plugins: [vue(), vuetify(), basicSsl()],
     css: {
       preprocessorOptions: {
         scss: {
@@ -59,8 +59,12 @@ export default defineConfig(({ mode }) => {
               return 'shared-ui';
             }
 
-            if (id.includes('/vuetify/') || id.includes('/vue/')) {
+            if (id.includes('/vue/')) {
               return 'vue';
+            }
+
+            if (id.includes('/vuetify/')) {
+              return 'vuetify';
             }
 
             if (id.includes('/node_modules/')) {
