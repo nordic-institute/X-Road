@@ -27,6 +27,7 @@ package ee.ria.xroad.common;
 
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
@@ -58,6 +59,7 @@ public final class DiagnosticsUtils {
             case CodedException ce when X_HTTP_ERROR.equals(ce.getFaultCode()) -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
             case CodedException ce when X_OUTDATED_GLOBALCONF.equals(ce.getFaultCode()) -> ERROR_CODE_EXPIRED_CONF;
             case CodedException ce when X_INVALID_SIGNATURE_VALUE.equals(ce.getFaultCode()) -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
+            case UnknownHostException ignored -> ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
             case TimeoutException ignored -> ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
             case SocketTimeoutException ignored -> ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT;
             case MalformedURLException ignored -> ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL;

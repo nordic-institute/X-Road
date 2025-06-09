@@ -263,7 +263,7 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Se produjo un error interno",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "URL del servidor de marca de tiempo malformado. Revise la URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Tiempo de agotado. Verifique la conexión de red con el proveedor de configuración global.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Tiempo de agotado. Verifique la conexión de red.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Conexión OK, aún no se realizó ninguna solicitud de marca de tiempo",
         "SUCCESS": "Todo bien",
         "UNKNOWN": "Desconocido"

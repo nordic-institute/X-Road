@@ -283,7 +283,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private static CodedException couldNotConnectException(URI[] addresses, Exception cause) {
         log.error("Could not connect to any target host ({})", (Object) addresses);
-        if (cause instanceof CodedException) {
+        if (cause instanceof CodedException ce && X_NETWORK_ERROR != ce.getFaultCode()) {
             return (CodedException) cause;
         } else {
             return new CodedException(X_NETWORK_ERROR, cause, "Could not connect to any target host (%s)",

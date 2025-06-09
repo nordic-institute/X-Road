@@ -33,7 +33,9 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INTERNAL;
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * Utilities for configuration client module
@@ -49,18 +51,19 @@ public final class ConfigurationClientUtils {
      * @return error code
      */
     public static int getErrorCode(Exception e) {
-        if (e instanceof CodedException ce) {
-            switch (ce.getFaultCode()) {
-                case X_HTTP_ERROR:
-                    return ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-                case X_OUTDATED_GLOBALCONF:
-                    return ERROR_CODE_EXPIRED_CONF;
-                case X_INVALID_SIGNATURE_VALUE:
-                    return ERROR_CODE_INVALID_SIGNATURE_VALUE;
-                default: // do nothing
-                    break;
-            }
-        }
-        return ERROR_CODE_INTERNAL;
+        CodedException ce = (e instanceof CodedException)
+                ? (CodedException) e
+                : translateException(e);
+
+        return getErrorCode(ce);
+    }
+
+    private static int getErrorCode(CodedException ce) {
+        return switch (ce.getFaultCode()) {
+            case X_HTTP_ERROR, X_NETWORK_ERROR -> ERROR_CODE_CANNOT_DOWNLOAD_CONF;
+            case X_OUTDATED_GLOBALCONF -> ERROR_CODE_EXPIRED_CONF;
+            case X_INVALID_SIGNATURE_VALUE -> ERROR_CODE_INVALID_SIGNATURE_VALUE;
+            default -> ERROR_CODE_INTERNAL;
+        };
     }
 }
