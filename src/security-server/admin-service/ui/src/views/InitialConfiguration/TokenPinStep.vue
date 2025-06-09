@@ -45,7 +45,7 @@
         <v-text-field
           v-bind="pinRef"
           class="wizard-form-input"
-          autofocus="true"
+          autofocus
           :label="$t('initialConfiguration.pin.pin')"
           type="password"
           data-test="pin-input"

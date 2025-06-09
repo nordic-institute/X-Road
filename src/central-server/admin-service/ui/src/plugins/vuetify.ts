@@ -66,6 +66,7 @@ export default createVuetify({
           primary: Colors.Purple100,
           secondary: Colors.Purple70,
           error: Colors.Error,
+          success: Colors.Success10,
         },
       },
     },

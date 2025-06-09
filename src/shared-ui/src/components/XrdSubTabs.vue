@@ -56,6 +56,6 @@ defineProps({
   color: rgb(0 0 0 / 54%);
 }
 .xrd-tabs {
-  padding-left: 80px;
+  padding-left: 92px;
 }
 </style>

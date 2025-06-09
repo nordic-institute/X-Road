@@ -27,7 +27,7 @@
   <v-row align="center" justify="center" class="mt-6">
     <div class="view-wrap">
       <xrd-sub-view-title
-        class="wizard-view-title"
+        class="wizard-view-title pa-4"
         :title="$t('initialConfiguration.title')"
         :show-close="false"
         data-test="wizard-title"
