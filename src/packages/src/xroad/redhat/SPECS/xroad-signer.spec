@@ -56,6 +56,8 @@ cp -p %{srcdir}/default-configuration/signer-logback.xml %{buildroot}/etc/xroad/
 cp -p %{srcdir}/default-configuration/signer-console-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../service/signer/signer-application/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../service/signer/signer-cli/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 #Copy arch specific libs
 %ifarch x86_64
@@ -98,6 +100,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/lib/libpkcs11wrapper.so
 %attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
 %attr(644,root,root) %{_unitdir}/xroad-signer.service
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check

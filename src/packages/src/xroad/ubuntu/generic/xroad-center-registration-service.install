@@ -2,3 +2,5 @@
 ../../../../src/xroad/common/center-registration-service/usr/* usr/
 ../../../../src/xroad/common/center-registration-service/etc/* etc/
 ../../../../src/xroad/default-configuration/centralserver-registration-service-logback.xml etc/xroad/conf.d
+../../../../../LICENSE.txt usr/share/doc/xroad-center-registration-service/
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-center-registration-service/

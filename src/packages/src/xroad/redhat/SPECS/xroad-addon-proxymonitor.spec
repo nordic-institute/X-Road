@@ -28,6 +28,8 @@ Addon for proxy monitoring
 mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -a %{srcdir}/common/addon/proxy/proxymonitor-service.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/proxymonitor/metaservice/build/libs/proxymonitor-metaservice-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -36,6 +38,8 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /usr/share/xroad/jlib/addon/proxy/proxymonitor-metaservice-1.0.jar
 /usr/share/xroad/jlib/addon/proxy/proxymonitor-service.conf
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check
