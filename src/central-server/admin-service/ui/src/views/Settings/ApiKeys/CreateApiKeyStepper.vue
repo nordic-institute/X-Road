@@ -25,7 +25,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="view-wrap ms-auto">
+  <v-container
+    class="view-wrap ms-auto"
+    data-test="create-api-key-stepper-view"
+  >
     <xrd-sub-view-title
       :title="$t('apiKey.createApiKey.title')"
       :show-close="true"
