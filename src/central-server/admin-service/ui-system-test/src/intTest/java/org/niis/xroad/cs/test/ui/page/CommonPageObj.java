@@ -81,7 +81,7 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
+            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab') and .//span[text()='%s']]";
             return String.format(xpath, tabName);
         }
     }
