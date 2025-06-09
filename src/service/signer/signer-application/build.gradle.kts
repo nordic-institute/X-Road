@@ -7,6 +7,7 @@ quarkus {
   quarkusBuildProperties.putAll(
     buildMap {
       put("quarkus.container-image.image", "${project.property("xroadImageRegistry")}/ss-signer")
+      put("quarkus.jib.base-jvm-image", "${project.property("xroadImageRegistry")}/ss-baseline-signer-runtime:latest")
     }
   )
 }
@@ -17,6 +18,7 @@ dependencies {
   implementation(project(":common:common-core"))
   implementation(project(":common:common-rpc-quarkus"))
   implementation(project(":service:signer:signer-core"))
+  implementation(project(":service:signer:signer-jpa"))
   implementation(project(":lib:bootstrap-quarkus"))
 
   implementation(libs.bundles.quarkus.core)

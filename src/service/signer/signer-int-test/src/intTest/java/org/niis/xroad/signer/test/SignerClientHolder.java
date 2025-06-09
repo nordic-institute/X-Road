@@ -27,7 +27,6 @@
 
 package org.niis.xroad.signer.test;
 
-import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ import org.niis.xroad.signer.client.SignerRpcChannelProperties;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
-import org.springframework.beans.factory.annotation.Value;
+import org.niis.xroad.signer.test.container.SignerIntTestSetup;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -52,10 +51,7 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
 @ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class SignerClientHolder {
-    private final TestableApplicationInfoProvider testableApplicationInfoProvider;
-
-    @Value("${test-automation.custom.grpc-client-host-override:#{null}}")
-    private final String grpcHostOverride;
+    private final SignerIntTestSetup signerIntTestSetup;
 
     private SignerRpcClient signerRpcClientInstance;
     private SignerSignRpcClient signerSignClient;
@@ -73,12 +69,13 @@ public class SignerClientHolder {
         var properties = new SignerRpcChannelProperties() {
             @Override
             public String host() {
-                return grpcHostOverride != null ? grpcHostOverride : testableApplicationInfoProvider.getHost();
+                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER, SIGNER_GRPC_PORT).host();
             }
 
             @Override
             public int port() {
-                return testableApplicationInfoProvider.getMappedPort(SIGNER_GRPC_PORT);
+                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER, SIGNER_GRPC_PORT).port();
+
             }
 
             @Override

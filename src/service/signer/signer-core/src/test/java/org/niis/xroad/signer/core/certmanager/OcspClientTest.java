@@ -50,7 +50,7 @@ import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -90,11 +90,13 @@ class OcspClientTest {
 
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
     private final OcspClient ocspClient = new OcspClient(globalConfProvider);
-    private final TokenManager tokenManager = mock(TokenManager.class);
-    private final OcspClientWorker ocspClientWorker = new TestOcspClient(globalConfProvider,
-            new OcspResponseManager(globalConfProvider, tokenManager, ocspClient,
-                    new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class))),
-            tokenManager, ocspClient);
+    private final TokenLookup tokenManager = mock(TokenLookup.class);
+    private final FileBasedOcspCache fileBasedOcspCache =
+            new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class));
+    private final OcspResponseManager ocspResponseManager =
+            new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache, tokenManager);
+    private final OcspClientWorker ocspClientWorker =
+            new TestOcspClient(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
 
     OcspClientTest() throws Exception {
     }
@@ -299,8 +301,8 @@ class OcspClientTest {
 
     private static class TestOcspClient extends OcspClientWorker {
         TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
-                       TokenManager tokenManager, OcspClient ocspClient) {
-            super(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
+                       TokenLookup tokenLookup, OcspClient ocspClient) {
+            super(globalConfProvider, ocspResponseManager, tokenLookup, ocspClient);
         }
 
         @Override

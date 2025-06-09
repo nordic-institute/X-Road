@@ -27,18 +27,15 @@ package org.niis.xroad.signer.core.tokenmanager;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.core.model.Cert;
-import org.niis.xroad.signer.core.model.CertRequest;
-import org.niis.xroad.signer.core.model.Key;
-import org.niis.xroad.signer.core.model.Token;
-import org.niis.xroad.signer.core.tokenmanager.merge.MergeOntoFileTokensStrategy;
-import org.niis.xroad.signer.core.tokenmanager.merge.TokenMergeAddedCertificatesListener;
-import org.niis.xroad.signer.core.tokenmanager.merge.TokenMergeStrategy;
+import org.niis.xroad.signer.core.model.CertRequestData;
+import org.niis.xroad.signer.core.model.RuntimeCertImpl;
+import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
+import org.niis.xroad.signer.core.model.RuntimeToken;
+import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -54,15 +51,14 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class TokenRegistry {
-    // configure the implementation somewhere else if multiple implementations created
-    private static final TokenMergeStrategy MERGE_STRATEGY = new MergeOntoFileTokensStrategy();
 
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    private final TokenConf tokenConf;
+
 
     private final TokenContext tokenContext = new TokenContext();
-    @Getter(AccessLevel.PACKAGE)
-    private TokenConf.LoadedTokens currentTokens;
+    private final ModifiableTokenContext modifiableTokenContext = new ModifiableTokenContext();
+    private final TokenRegistryLoader tokenRegistryLoader;
+    private Set<RuntimeTokenImpl> currentTokens;
 
     /**
      * Initializes the manager -- loads the tokens from the token configuration.
@@ -71,115 +67,129 @@ public class TokenRegistry {
      */
     @PostConstruct
     public void init() {
+        currentTokens = tokenRegistryLoader.loadTokens();
+    }
+
+    public void refresh() {
+        rwLock.writeLock().lock();
         try {
-            currentTokens = tokenConf.retrieveTokensFromDb();
-        } catch (TokenConf.TokenConfException e) {
-            log.error("Failed to load the new key configuration from database.", e);
+            currentTokens = tokenRegistryLoader.refreshTokens(currentTokens);
+        } catch (Exception e) {
+            throw translateException(e);
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
-    /**
-     * Saves the current tokens to the configuration.
-     *
-     * @throws Exception if an error occurs
-     */
-    public synchronized void saveToConf() throws Exception {
-        log.trace("persist()");
-        tokenConf.save(currentTokens);
-    }
-
-    /**
-     * Merge the in-memory configuration and the on-disk configuration if the configuration on
-     * disk has changed.
-     *
-     * @param listener
-     */
-    public void merge(TokenMergeAddedCertificatesListener listener) {
-
-        if (tokenConf.hasChanged(currentTokens)) {
-            log.debug("The key configuration in database has changed, merging changes.");
-
-            TokenConf.LoadedTokens dbTokens;
-            try {
-                dbTokens = tokenConf.retrieveTokensFromDb();
-
-            } catch (TokenConf.TokenConfException e) {
-                log.error("Failed to load the new key configuration from database.", e);
-                return;
-            }
-            if (dbTokens.tokens().isEmpty()) {
-                log.error("Error while fetching key config: no tokens found");
-                return;
-            }
-
-            TokenMergeStrategy.MergeResult result;
-            synchronized (TokenRegistry.class) {
-                result = MERGE_STRATEGY.merge(dbTokens.tokens(), currentTokens.tokens());
-                currentTokens = new TokenConf.LoadedTokens(result.getResultTokens(), dbTokens.entitySetHashCode());
-            }
-            if (listener != null) {
-                listener.mergeDone(result.getAddedCertificates());
-            }
-
-            log.info("Merged new key configuration.");
-        } else {
-            log.debug("The key configuration on disk has not changed, skipping merge.");
-        }
+    public int getCurrentKeyConfChecksum() {
+        return currentTokens.hashCode(); //TODO implement hashcode calculation based on tokens
     }
 
     // Functional interfaces for token operations
+    public class ModifiableTokenContext extends BaseTokenContext<RuntimeTokenImpl> {
 
-    public class TokenContext {
-
-        public Set<Token> getTokens() {
-            return currentTokens.tokens();
+        public void invalidateCache() {
+            log.debug("Invalidating token cache");
+            currentTokens = tokenRegistryLoader.refreshTokens(currentTokens);
         }
 
-        public Token findToken(String tokenId) {
-            return TokenLookupUtils.findToken(getTokens(), tokenId);
+
+        public RuntimeTokenImpl findToken(String tokenId) {
+            return TokenLookupUtils.findToken(currentTokens, tokenId);
         }
 
-        public Key findKey(String keyId) {
-            return TokenLookupUtils.findKey(getTokens(), keyId);
+        public RuntimeKeyImpl findKey(String keyId) {
+            return TokenLookupUtils.findKey(currentTokens, keyId);
         }
 
-        public Cert findCert(String certId) {
-            return TokenLookupUtils.findCert(getTokens(), certId);
+        public RuntimeCertImpl getCert(String certId) {
+            return TokenLookupUtils.getCert(currentTokens, certId);
         }
 
-        public <T> Optional<T> forCert(BiPredicate<Key, Cert> tester,
-                                       BiFunction<Key, Cert, T> mapper) {
-            return TokenLookupUtils.forCert(getTokens(), tester, mapper);
+        public Optional<RuntimeCertImpl> findCert(String certId) {
+            return TokenLookupUtils.findCert(currentTokens, certId);
         }
 
-        public <T> Optional<T> forKey(BiPredicate<Token, Key> tester,
-                                      BiFunction<Token, Key, T> mapper) {
-            return TokenLookupUtils.forKey(getTokens(), tester, mapper);
+        public <T> Optional<T> forCert(BiPredicate<RuntimeKeyImpl, RuntimeCertImpl> tester,
+                                       BiFunction<RuntimeKeyImpl, RuntimeCertImpl, T> mapper) {
+            return TokenLookupUtils.forCert(currentTokens, tester, mapper);
         }
 
-        public <T> Optional<T> forToken(Predicate<Token> tester, Function<Token, T> mapper) {
-            return TokenLookupUtils.forToken(getTokens(), tester, mapper);
+        public <T> Optional<T> forKey(BiPredicate<RuntimeTokenImpl, RuntimeKeyImpl> tester,
+                                      BiFunction<RuntimeTokenImpl, RuntimeKeyImpl, T> mapper) {
+            return TokenLookupUtils.forKey(currentTokens, tester, mapper);
         }
 
-        <T> Optional<T> forCertRequest(BiPredicate<Key, CertRequest> tester,
-                                       BiFunction<Key, CertRequest, T> mapper) {
-            return TokenLookupUtils.forCertRequest(getTokens(), tester, mapper);
+        public <T> Optional<T> forToken(Predicate<RuntimeTokenImpl> tester, Function<RuntimeTokenImpl, T> mapper) {
+            return TokenLookupUtils.forToken(currentTokens, tester, mapper);
         }
+
+        public Optional<CertRequestData> findCertRequest(String certReqId) {
+            return TokenLookupUtils.findCertRequest(currentTokens, certReqId);
+        }
+
+        <T> Optional<T> forCertRequest(BiPredicate<RuntimeKeyImpl, CertRequestData> tester,
+                                       BiFunction<RuntimeKeyImpl, CertRequestData, T> mapper) {
+            return TokenLookupUtils.forCertRequest(currentTokens, tester, mapper);
+        }
+
+    }
+
+    public class TokenContext extends BaseTokenContext<RuntimeToken> {
+        public Set<RuntimeToken> getTokens() {
+            return new HashSet<>(currentTokens);
+        }
+
+        public RuntimeToken findToken(String tokenId) {
+            return TokenLookupUtils.findToken(currentTokens, tokenId);
+        }
+
+        public RuntimeKeyImpl findKey(String keyId) {
+            return TokenLookupUtils.findKey(currentTokens, keyId);
+        }
+
+        public RuntimeCertImpl findCert(String certId) {
+            return TokenLookupUtils.getCert(currentTokens, certId);
+        }
+
+        public <T> Optional<T> forCert(BiPredicate<RuntimeKeyImpl, RuntimeCertImpl> tester,
+                                       BiFunction<RuntimeKeyImpl, RuntimeCertImpl, T> mapper) {
+            return TokenLookupUtils.forCert(currentTokens, tester, mapper);
+        }
+
+        public <T> Optional<T> forKey(BiPredicate<RuntimeTokenImpl, RuntimeKeyImpl> tester,
+                                      BiFunction<RuntimeTokenImpl, RuntimeKeyImpl, T> mapper) {
+            return TokenLookupUtils.forKey(currentTokens, tester, mapper);
+        }
+
+        public <T> Optional<T> forToken(Predicate<RuntimeTokenImpl> tester, Function<RuntimeTokenImpl, T> mapper) {
+            return TokenLookupUtils.forToken(currentTokens, tester, mapper);
+        }
+
+        <T> Optional<T> forCertRequest(BiPredicate<RuntimeKeyImpl, CertRequestData> tester,
+                                       BiFunction<RuntimeKeyImpl, CertRequestData, T> mapper) {
+            return TokenLookupUtils.forCertRequest(currentTokens, tester, mapper);
+        }
+
+    }
+
+    public class BaseTokenContext<Token> {
+
 
     }
 
     @FunctionalInterface
-    public interface TokenSupplier<T> {
-        T get(TokenContext ctx);
+    public interface TokenSupplier<T, V extends BaseTokenContext<?>> {
+        T get(V ctx);
 
     }
 
     @FunctionalInterface
-    public interface TokenRunnable {
-        void accept(TokenContext ctx);
+    public interface TokenRunnable<T extends BaseTokenContext<?>> {
+        void accept(T ctx);
     }
 
-    public <T> T readAction(TokenSupplier<T> action) {
+    public <T> T readAction(TokenSupplier<T, TokenContext> action) {
         rwLock.readLock().lock();
         try {
             return action.get(tokenContext);
@@ -190,10 +200,10 @@ public class TokenRegistry {
         }
     }
 
-    public <T> T writeAction(TokenSupplier<T> action) {
+    public <T> T writeAction(TokenSupplier<T, ModifiableTokenContext> action) {
         rwLock.writeLock().lock();
         try {
-            return action.get(tokenContext);
+            return action.get(modifiableTokenContext);
         } catch (Exception e) {
             throw translateException(e);
         } finally {
@@ -201,10 +211,10 @@ public class TokenRegistry {
         }
     }
 
-    public void writeRun(TokenRunnable action) {
+    public void writeRun(TokenRunnable<ModifiableTokenContext> action) {
         rwLock.writeLock().lock();
         try {
-            action.accept(tokenContext);
+            action.accept(modifiableTokenContext);
         } catch (Exception e) {
             throw translateException(e);
         } finally {

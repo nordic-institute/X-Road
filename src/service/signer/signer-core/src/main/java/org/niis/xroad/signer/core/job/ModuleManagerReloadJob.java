@@ -36,14 +36,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.core.config.SignerProperties;
-import org.niis.xroad.signer.core.tokenmanager.module.AbstractModuleManager;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 
 @Slf4j
 @Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ModuleManagerReloadJob {
-    private final AbstractModuleManager moduleManager;
+    private final ModuleManager moduleManager;
     private final Scheduler scheduler;
     private final SignerProperties signerProperties;
 

@@ -33,7 +33,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
@@ -71,7 +70,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     private final int checkPeriod = 5;
     private final ScheduledExecutorService taskScheduler;
 
-    private String previousChecksum;
+    private int previousChecksum;
 
     private final List<WeakReference<KeyConfChangeListener>> listeners = new ArrayList<>();
 
@@ -166,8 +165,9 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     void checkForKeyConfChanges() {
         try {
-            String checkSum = signerRpcClient.getKeyConfChecksum();
-            if (!StringUtils.equals(previousChecksum, checkSum)) {
+            //TODO xroad8
+            int checkSum = signerRpcClient.getKeyConfChecksum();
+            if (previousChecksum != checkSum) {
                 log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
                 previousChecksum = checkSum;
                 invalidateCaches();

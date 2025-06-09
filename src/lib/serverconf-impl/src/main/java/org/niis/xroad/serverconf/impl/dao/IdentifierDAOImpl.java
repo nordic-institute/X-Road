@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -49,6 +50,7 @@ import java.util.List;
 /**
  * Identifier data access object implementation.
  */
+@ApplicationScoped
 public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
 
     private static final String X_ROAD_INSTANCE = "xRoadInstance";
@@ -58,22 +60,31 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadIdEntity> {
     private static final String SERVICE_VERSION = "serviceVersion";
     private static final String GROUP_CODE = "groupCode";
 
+    public ClientIdEntity findOrCreateClientId(Session session, ClientId clientId) {
+        var domainClientId = findClientId(session, clientId);
+        if (domainClientId == null) {
+            domainClientId = ClientIdEntity.create(clientId);
+            session.persist(domainClientId);
+        }
+        return domainClientId;
+    }
+
     /**
-     * Finds a (local) client identifier corresponding the example or null if none exits
+     * Finds a (local) client identifier corresponding the clientId or null if none exits
      */
-    public ClientIdEntity findClientId(Session session, ClientId example) {
+    public ClientIdEntity findClientId(Session session, ClientId clientId) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<ClientIdEntity> query = cb.createQuery(ClientIdEntity.class);
         final Root<ClientIdEntity> from = query.from(ClientIdEntity.class);
 
         Predicate pred = cb.and(
-                cb.equal(from.get(X_ROAD_INSTANCE), example.getXRoadInstance()),
-                cb.equal(from.get(MEMBER_CLASS), example.getMemberClass()),
-                cb.equal(from.get(MEMBER_CODE), example.getMemberCode()));
-        if (example.getSubsystemCode() == null) {
+                cb.equal(from.get(X_ROAD_INSTANCE), clientId.getXRoadInstance()),
+                cb.equal(from.get(MEMBER_CLASS), clientId.getMemberClass()),
+                cb.equal(from.get(MEMBER_CODE), clientId.getMemberCode()));
+        if (clientId.getSubsystemCode() == null) {
             pred = cb.and(pred, cb.isNull(from.get(SUBSYSTEM_CODE)));
         } else {
-            pred = cb.and(pred, cb.equal(from.get(SUBSYSTEM_CODE), example.getSubsystemCode()));
+            pred = cb.and(pred, cb.equal(from.get(SUBSYSTEM_CODE), clientId.getSubsystemCode()));
         }
 
         final List<ClientIdEntity> list = session.createQuery(query.select(from).where(pred))

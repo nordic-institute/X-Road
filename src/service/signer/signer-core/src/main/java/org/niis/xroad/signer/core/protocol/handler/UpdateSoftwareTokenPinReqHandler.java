@@ -28,10 +28,12 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenWorker;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -42,11 +44,13 @@ import static ee.ria.xroad.common.util.SignerProtoUtils.byteToChar;
  */
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
+    private final TokenWorkerProvider tokenWorkerProvider;
 
     @Override
     protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
-        final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
+        final TokenWorker tokenWorker = tokenWorkerProvider.getTokenWorker(request.getTokenId());
         if (tokenWorker.isSoftwareToken()) {
             tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
                     byteToChar(request.getNewPin().toByteArray()));

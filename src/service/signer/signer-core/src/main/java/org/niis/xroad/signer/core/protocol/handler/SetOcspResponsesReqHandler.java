@@ -37,8 +37,7 @@ import org.niis.xroad.signer.proto.SetOcspResponsesReq;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
-public class SetOcspResponsesReqHandler
-        extends AbstractRpcHandler<SetOcspResponsesReq, Empty> {
+public class SetOcspResponsesReqHandler extends AbstractRpcHandler<SetOcspResponsesReq, Empty> {
 
     private final OcspResponseManager ocspResponseManager;
 

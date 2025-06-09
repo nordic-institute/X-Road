@@ -30,8 +30,19 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 class AbstractDAOImpl<T> {
+
+    public boolean deleteById(Session session, Class<T> clazz, Long id) {
+        var criteriaBuilder = session.getCriteriaBuilder();
+        var criteriaDelete = criteriaBuilder.createCriteriaDelete(clazz);
+        var root = criteriaDelete.from(clazz);
+
+        criteriaDelete.where(criteriaBuilder.equal(root.get("id"), id));
+
+        return session.createMutationQuery(criteriaDelete).executeUpdate() > 0;
+    }
 
     public List<T> findMany(Query<T> query) {
         return query.list();
@@ -41,8 +52,13 @@ class AbstractDAOImpl<T> {
         return query.uniqueResult();
     }
 
-    public T findById(Session session, Class<T> clazz, Long id) {
-        return session.get(clazz, id);
+    public Optional<T> findById(Session session, Class<T> clazz, Long id) {
+        return Optional.ofNullable(session.get(clazz, id));
+    }
+
+    public T save(Session session, T entity) {
+        session.persist(entity);
+        return entity;
     }
 
     public List<T> findAll(Session session, Class<T> clazz) {

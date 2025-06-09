@@ -24,3 +24,12 @@ docker buildx build \
   --build-arg REGISTRY_URL="$REGISTRY_URL" \
   --push \
   .
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag "$REGISTRY_URL"/ss-baseline-signer-runtime \
+  --file Dockerfile-signer-baseline \
+  --build-arg REGISTRY_URL="$REGISTRY_URL" \
+  --build-context pkcs11driver=../../../../src/libs/pkcs11wrapper \
+  --push \
+  .

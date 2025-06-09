@@ -26,21 +26,23 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.KeyManager;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
 
 /**
  * Handles requests for setting the key friendly name.
  */
 @ApplicationScoped
-public class SetKeyFriendlyNameReqHandler
-        extends AbstractRpcHandler<SetKeyFriendlyNameReq, Empty> {
+@RequiredArgsConstructor
+public class SetKeyFriendlyNameReqHandler extends AbstractRpcHandler<SetKeyFriendlyNameReq, Empty> {
+    private final KeyManager keyManager;
 
     @Override
     protected Empty handle(SetKeyFriendlyNameReq request) throws Exception {
-        tokenManager.setKeyFriendlyName(request.getKeyId(),
-                request.getFriendlyName());
+        keyManager.setKeyFriendlyName(request.getKeyId(), request.getFriendlyName());
         return Empty.getDefaultInstance();
     }
 }

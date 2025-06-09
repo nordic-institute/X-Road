@@ -26,20 +26,23 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
 
 /**
  * Handles requests for setting the certificate status.
  */
 @ApplicationScoped
-public class SetCertStatusReqHandler
-        extends AbstractRpcHandler<SetCertStatusReq, Empty> {
+@RequiredArgsConstructor
+public class SetCertStatusReqHandler extends AbstractRpcHandler<SetCertStatusReq, Empty> {
+    private final CertManager certManager;
 
     @Override
     protected Empty handle(SetCertStatusReq request) throws Exception {
-        tokenManager.setCertStatus(request.getCertId(), request.getStatus());
+        certManager.setCertStatus(request.getCertId(), request.getStatus());
 
         return Empty.getDefaultInstance();
     }

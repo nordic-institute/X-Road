@@ -36,7 +36,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.factory.Mappers;
-import org.niis.xroad.serverconf.impl.converter.GenericUniDirectionalMapper;
+import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
 import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.GlobalGroupIdEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupIdEntity;

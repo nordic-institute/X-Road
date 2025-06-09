@@ -27,12 +27,11 @@ package org.niis.xroad.signer.core.tokenmanager;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.core.model.Cert;
-import org.niis.xroad.signer.core.model.CertRequest;
-import org.niis.xroad.signer.core.model.Key;
-import org.niis.xroad.signer.core.model.Token;
+import org.niis.xroad.signer.core.model.CertRequestData;
+import org.niis.xroad.signer.core.model.RuntimeCertImpl;
+import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
+import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -47,29 +46,44 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
 @UtilityClass
 class TokenLookupUtils {
 
-    static Token findToken(Collection<Token> tokens, String tokenId) {
+    static RuntimeTokenImpl findToken(Iterable<RuntimeTokenImpl> tokens, String tokenId) {
         log.trace("findToken({})", tokenId);
 
-        return forToken(tokens, t -> t.getId().equals(tokenId), t -> t)
+        return forToken(tokens, t -> t.externalId().equals(tokenId), t -> t)
                 .orElseThrow(() -> tokenNotFound(tokenId));
     }
 
-    static Key findKey(Collection<Token> tokens, String keyId) {
+    static RuntimeKeyImpl findKey(Iterable<RuntimeTokenImpl> tokens, String keyId) {
         log.trace("findKey({})", keyId);
 
-        return forKey(tokens, (t, k) -> k.getId().equals(keyId), (t, k) -> k)
+        return forKey(tokens, (t, k) -> k.externalId().equals(keyId), (t, k) -> k)
                 .orElseThrow(() -> keyNotFound(keyId));
     }
 
-    static Cert findCert(Collection<Token> tokens, String certId) {
+    static RuntimeCertImpl getCert(Iterable<RuntimeTokenImpl> tokens, String certId) {
         log.trace("findCert({})", certId);
 
-        return forCert(tokens, (k, c) -> c.getId().equals(certId), (k, c) -> c)
+        return findCert(tokens, certId)
                 .orElseThrow(() -> certWithIdNotFound(certId));
     }
 
-    static <T> Optional<T> forToken(Collection<Token> tokens, Predicate<Token> tester, Function<Token, T> mapper) {
-        for (Token token : tokens) {
+    static Optional<RuntimeCertImpl> findCert(Iterable<RuntimeTokenImpl> tokens, String certId) {
+        log.trace("findCert({})", certId);
+
+        return forCert(tokens, (k, c) ->
+                c.externalId().equals(certId), (k, c) -> c);
+    }
+
+    static Optional<CertRequestData> findCertRequest(Iterable<RuntimeTokenImpl> tokens, String certReqId) {
+        log.trace("findCertRequest({})", certReqId);
+
+        return forCertRequest(tokens, (k, c) ->
+                c.externalId().equals(certReqId), (k, c) -> c);
+    }
+
+    static <T> Optional<T> forToken(Iterable<RuntimeTokenImpl> tokens, Predicate<RuntimeTokenImpl> tester,
+                                    Function<RuntimeTokenImpl, T> mapper) {
+        for (RuntimeTokenImpl token : tokens) {
             if (tester.test(token)) {
                 return Optional.ofNullable(mapper.apply(token));
             }
@@ -78,13 +92,13 @@ class TokenLookupUtils {
         return Optional.empty();
     }
 
-    static <T> Optional<T> forKey(Collection<Token> tokens,
-                                  BiPredicate<Token, Key> tester,
-                                  BiFunction<Token, Key, T> mapper) {
-        for (Token token : tokens) {
-            for (Key key : token.getKeys()) {
-                if (tester.test(token, key)) {
-                    return Optional.ofNullable(mapper.apply(token, key));
+    static <T> Optional<T> forKey(Iterable<RuntimeTokenImpl> tokens,
+                                  BiPredicate<RuntimeTokenImpl, RuntimeKeyImpl> tester,
+                                  BiFunction<RuntimeTokenImpl, RuntimeKeyImpl, T> mapper) {
+        for (var token : tokens) {
+            for (var key : token.keys()) {
+                if (tester.test(token, (RuntimeKeyImpl) key)) {
+                    return Optional.ofNullable(mapper.apply(token, (RuntimeKeyImpl) key));
                 }
             }
         }
@@ -92,14 +106,14 @@ class TokenLookupUtils {
         return Optional.empty();
     }
 
-    static <T> Optional<T> forCert(Collection<Token> tokens,
-                                   BiPredicate<Key, Cert> tester,
-                                   BiFunction<Key, Cert, T> mapper) {
-        for (Token token : tokens) {
-            for (Key key : token.getKeys()) {
-                for (Cert cert : key.getCerts()) {
-                    if (tester.test(key, cert)) {
-                        return Optional.ofNullable(mapper.apply(key, cert));
+    static <T> Optional<T> forCert(Iterable<RuntimeTokenImpl> tokens,
+                                   BiPredicate<RuntimeKeyImpl, RuntimeCertImpl> tester,
+                                   BiFunction<RuntimeKeyImpl, RuntimeCertImpl, T> mapper) {
+        for (var token : tokens) {
+            for (var key : token.keys()) {
+                for (var cert : key.certs()) {
+                    if (tester.test((RuntimeKeyImpl) key, (RuntimeCertImpl) cert)) {
+                        return Optional.ofNullable(mapper.apply((RuntimeKeyImpl) key, (RuntimeCertImpl) cert));
                     }
                 }
             }
@@ -108,14 +122,14 @@ class TokenLookupUtils {
         return Optional.empty();
     }
 
-    static <T> Optional<T> forCertRequest(Collection<Token> tokens,
-                                          BiPredicate<Key, CertRequest> tester,
-                                          BiFunction<Key, CertRequest, T> mapper) {
-        for (Token token : tokens) {
-            for (Key key : token.getKeys()) {
-                for (CertRequest certReq : key.getCertRequests()) {
-                    if (tester.test(key, certReq)) {
-                        return Optional.ofNullable(mapper.apply(key, certReq));
+    static <T> Optional<T> forCertRequest(Iterable<RuntimeTokenImpl> tokens,
+                                          BiPredicate<RuntimeKeyImpl, CertRequestData> tester,
+                                          BiFunction<RuntimeKeyImpl, CertRequestData, T> mapper) {
+        for (var token : tokens) {
+            for (var key : token.keys()) {
+                for (var certReq : key.certRequests()) {
+                    if (tester.test((RuntimeKeyImpl) key, certReq)) {
+                        return Optional.ofNullable(mapper.apply((RuntimeKeyImpl) key, certReq));
                     }
                 }
             }

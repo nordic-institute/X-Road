@@ -185,9 +185,8 @@ public class DAOImplTest {
         session.merge(conf);
         session.remove(client);
 
-        client = new ClientDAOImpl().findById(session, ClientEntity.class,
-                client.getId());
-        assertNull(client);
+        assertTrue(new ClientDAOImpl().findById(session, ClientEntity.class,
+                client.getId()).isEmpty());
     }
 
     /**

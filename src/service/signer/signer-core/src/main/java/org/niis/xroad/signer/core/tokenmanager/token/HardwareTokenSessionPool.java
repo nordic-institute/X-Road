@@ -80,7 +80,7 @@ class HardwareTokenSessionPool implements SessionProvider {
 
     private static GenericObjectPool<ManagedPKCS11Session> createPool(SignerHwTokenAddonProperties properties, Token token, String tokenId)
             throws Exception {
-        log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId, new Throwable());
+        log.info("Initializing Apache Commons session pool with settings {} for token {}", properties, tokenId);
 
         if (token == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Token is null for pool initialization");
@@ -166,8 +166,7 @@ class HardwareTokenSessionPool implements SessionProvider {
         public boolean validateObject(PooledObject<ManagedPKCS11Session> p) {
             var session = p.getObject();
             boolean isValid = session != null;
-            log.info("Validating session {} for token {}: {}",
-                    isValid ? session.getSessionHandle() : "null", tokenId, isValid);
+
             if (isValid) {
                 try {
                     //check if session info is being returned.
@@ -175,11 +174,14 @@ class HardwareTokenSessionPool implements SessionProvider {
                         isValid = false;
                     }
                 } catch (TokenException e) {
-                    log.trace("Session {} for token {} is invalid: {}", session.getSessionHandle(), tokenId, e.getMessage());
+                    log.trace("Session {} for token {} is invalid: {}. Session will be invalidated.",
+                            session.getSessionHandle(), tokenId, e.getMessage());
                     isValid = false;
                 }
 
             }
+            log.trace("Session {} for token {}:  is valid? [{}]",
+                    isValid ? session.getSessionHandle() : "null", tokenId, isValid);
             return isValid;
         }
 

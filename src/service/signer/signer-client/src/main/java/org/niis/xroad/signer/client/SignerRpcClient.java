@@ -894,12 +894,10 @@ public class SignerRpcClient extends AbstractRpcClient {
         );
     }
 
-    public String getKeyConfChecksum() throws SignerException {
+    public int getKeyConfChecksum() throws SignerException {
         return tryToRun(
                 () -> adminServiceBlockingStub.getKeyConfChecksum(Empty.getDefaultInstance()),
-                response -> {
-                    return response.hasChecksum() ? response.getChecksum() : null;
-                }
+                response -> response.hasChecksum() ? response.getChecksum() : -1
         );
     }
 
