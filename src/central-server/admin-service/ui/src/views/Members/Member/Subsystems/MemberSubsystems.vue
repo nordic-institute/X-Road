@@ -231,8 +231,17 @@ import { useNotifications } from '@/store/modules/notifications';
 import AddMemberSubsystemDialog from '@/views/Members/Member/Subsystems/AddMemberSubsystemDialog.vue';
 import DeleteMemberSubsystemDialog from '@/views/Members/Member/Subsystems/DeleteMemberSubsystemDialog.vue';
 import UnregisterMemberSubsystemDialog from '@/views/Members/Member/Subsystems/UnregisterMemberSubsystemDialog.vue';
-import { XrdIconError, XrdIconInProgress, XrdDataTableFooter, Colors } from '@niis/shared-ui';
-import { ManagementRequestStatus, Subsystem, UsedSecurityServers } from '@/openapi-types';
+import {
+  XrdIconError,
+  XrdIconInProgress,
+  XrdDataTableFooter,
+  Colors,
+} from '@niis/shared-ui';
+import {
+  ManagementRequestStatus,
+  Subsystem,
+  UsedSecurityServers,
+} from '@/openapi-types';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 import RenameMemberSubsystemDialog from '@/views/Members/Member/Subsystems/RenameMemberSubsystemDialog.vue';
 import RenameSubsystemBtn from '@/components/members/RenameSubsystemBtn.vue';

@@ -159,7 +159,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use  '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 @use '@niis/shared-ui/src/assets/tables' as *;
 
 .table-cell-member-name-action {

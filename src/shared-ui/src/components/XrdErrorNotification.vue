@@ -60,20 +60,14 @@
 
           <!-- Show validation errors -->
           <ul v-if="notification.validationErrors">
-            <li
-              v-for="validationError in notification.validationErrors"
-              :key="validationError.field"
-            >
+            <li v-for="validationError in notification.validationErrors" :key="validationError.field">
               {{ $t(`fields.${validationError.field}`) + ':' }}
               <template v-if="validationError.errorCodes.length === 1">
                 {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
               </template>
               <template v-else>
                 <ul>
-                  <li
-                    v-for="errCode in validationError.errorCodes"
-                    :key="`${validationError.field}.${errCode}`"
-                  >
+                  <li v-for="errCode in validationError.errorCodes" :key="`${validationError.field}.${errCode}`">
                     {{ $t(`validationError.${errCode}`) }}
                   </li>
                 </ul>
@@ -102,12 +96,7 @@
       </xrd-button>
     </div>
     <template #close>
-      <v-btn
-        color="primary"
-        data-test="close-alert"
-        variant="plain"
-        @click="emit('close',notification)"
-      >
+      <v-btn color="primary" data-test="close-alert" variant="plain" @click="emit('close', notification)">
         <xrd-icon-base>
           <xrd-icon-close />
         </xrd-icon-base>

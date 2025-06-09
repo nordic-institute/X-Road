@@ -167,5 +167,5 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @use '@niis/shared-ui/src/assets/tables' as *;
-@use  '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 </style>

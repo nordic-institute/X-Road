@@ -158,7 +158,11 @@
                           <xrd-icon-base class="xrd-large-button-icon">
                             <XrdIconAdd />
                           </xrd-icon-base>
-                          {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
+                          {{
+                            $t(
+                              'apiKey.createApiKey.step.keyDetails.createKeyButton',
+                            )
+                          }}
                         </xrd-button>
                       </td>
                     </tr>
@@ -232,8 +236,8 @@ export default defineComponent({
       return !this.apiKey.roles
         ? []
         : this.apiKey.roles.map(
-          (role) => this.$t(`apiKey.role.${role}`) as string,
-        );
+            (role) => this.$t(`apiKey.role.${role}`) as string,
+          );
     },
     keyGenerated(): boolean {
       return this.apiKey.key !== undefined;

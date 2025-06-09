@@ -26,12 +26,7 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <v-tabs
-      class="xrd-tabs"
-      color="primary"
-      :bg-color="Colors.WarmGrey10"
-      slider-size="2"
-    >
+    <v-tabs class="xrd-tabs" color="primary" :bg-color="Colors.WarmGrey10" slider-size="2">
       <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" :data-test="tab.key" exact>{{ $t(tab.name) }}</v-tab>
     </v-tabs>
   </div>

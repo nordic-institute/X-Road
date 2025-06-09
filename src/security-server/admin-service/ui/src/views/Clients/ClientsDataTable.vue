@@ -228,7 +228,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
-import { XrdIconFolder, XrdIconFolderOutline, XrdDataTableFooter } from '@niis/shared-ui';
+import {
+  XrdIconFolder,
+  XrdIconFolderOutline,
+  XrdDataTableFooter,
+} from '@niis/shared-ui';
 import { AxiosError } from 'axios';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 

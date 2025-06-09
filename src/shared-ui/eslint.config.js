@@ -33,16 +33,7 @@ export default typescriptEslint.config(
         parser: typescriptEslint.parser,
       },
     },
-    files: [
-      'src/**/*.vue',
-      'src/**/*.js',
-      'src/**.*.jsx',
-      'src/**/*.cjs',
-      'src/**.*.mjs',
-      'src/**/*.ts',
-      'src/**.*.tsx',
-      'src/**.*.mts',
-    ],
+    files: ['src/**/*.vue', 'src/**/*.js', 'src/**.*.jsx', 'src/**/*.cjs', 'src/**.*.mjs', 'src/**/*.ts', 'src/**.*.tsx', 'src/**.*.mts'],
 
     rules: {
       'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',

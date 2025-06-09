@@ -36,11 +36,11 @@
 
       <v-list>
         <v-list-item
-            v-for="language in languages"
-            :key="language.code"
-            :active="language.code === currentLanguage"
-            data-test="language-list-tile"
-            @click="changeLanguage(language.code)"
+          v-for="language in languages"
+          :key="language.code"
+          :active="language.code === currentLanguage"
+          data-test="language-list-tile"
+          @click="changeLanguage(language.code)"
         >
           <v-tooltip activator="parent" location="right">
             <span class="text-capitalize">{{ language.display }}</span>

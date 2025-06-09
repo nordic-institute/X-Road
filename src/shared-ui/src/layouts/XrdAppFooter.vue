@@ -29,13 +29,7 @@
     <v-container class="pb-13">
       <v-row>
         <v-col cols="2" class="pt-4">
-          <v-img
-            :src="xroad7LogoUrl"
-            height="35"
-            width="132"
-            max-height="35"
-            max-width="132"
-          ></v-img>
+          <v-img :src="xroad7LogoUrl" height="35" width="132" max-height="35" max-width="132"></v-img>
         </v-col>
         <v-col cols="3" class="footer-col pt-5">
           <v-row>
@@ -55,12 +49,7 @@
           </v-row>
           <v-row>
             <v-col>
-              <a
-                rel="noopener"
-                class="footer-link"
-                target="_blank"
-                href="https://x-road.global/feedback"
-              >
+              <a rel="noopener" class="footer-link" target="_blank" href="https://x-road.global/feedback">
                 {{ $t('footer.software.feedback') }}
               </a>
             </v-col>
@@ -76,24 +65,14 @@
           </v-row>
           <v-row>
             <v-col class="py-0">
-              <a
-                rel="noopener"
-                class="footer-link"
-                href="https://niis.org/"
-                target="_blank"
-              >
+              <a rel="noopener" class="footer-link" href="https://niis.org/" target="_blank">
                 {{ $t('footer.copyright.company') }}
               </a>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <a
-                rel="noopener"
-                class="footer-link"
-                href="https://x-road.global/xroad-licence-info"
-                target="_blank"
-              >
+              <a rel="noopener" class="footer-link" href="https://x-road.global/xroad-licence-info" target="_blank">
                 {{ $t('footer.copyright.licenceInfo') }}
               </a>
             </v-col>

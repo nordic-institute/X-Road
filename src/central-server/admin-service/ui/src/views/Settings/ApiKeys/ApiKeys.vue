@@ -58,8 +58,8 @@
 
       <template #[`item.roles`]="{ item }">
         <span :data-test="`api-key-row-${item.id}-roles`">{{
-            translateRoles(item.roles).join(', ')
-          }}</span>
+          translateRoles(item.roles).join(', ')
+        }}</span>
       </template>
 
       <template #[`item.button`]="{ item }">

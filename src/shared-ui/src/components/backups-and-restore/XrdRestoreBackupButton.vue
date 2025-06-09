@@ -25,14 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    v-if="canBackup"
-    data-test="backup-restore"
-    class="xrd-table-button"
-    :min-width="50"
-    text
-    @click="showConfirmation = true"
-  >
+  <xrd-button v-if="canBackup" data-test="backup-restore" class="xrd-table-button" :min-width="50" text @click="showConfirmation = true">
     {{ $t('action.restore') }}
     <xrd-confirm-dialog
       v-if="showConfirmation"

@@ -31,14 +31,7 @@
     <v-row no-gutters class="fill-height">
       <v-col cols="3">
         <div class="graphics">
-          <v-img
-            :src="xroad7LargeUrl"
-            height="195"
-            width="144"
-            max-height="195"
-            max-width="144"
-            class="xrd-logo"
-          ></v-img>
+          <v-img :src="xroad7LargeUrl" height="195" width="144" max-height="195" max-width="144" class="xrd-logo"></v-img>
         </div>
       </v-col>
       <v-col cols="9" align-self="center">
@@ -121,18 +114,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-  login: [username: string, password: string]
-}>()
+  login: [username: string, password: string];
+}>();
 
-defineExpose({ clearForm, addErrors })
+defineExpose({ clearForm, addErrors });
 
-const {
-  meta,
-  resetForm,
-  setFieldError,
-  errors,
-  defineField,
-} = useForm({
+const { meta, resetForm, setFieldError, errors, defineField } = useForm({
   validationSchema: {
     username: 'required',
     password: 'required',
@@ -147,7 +134,7 @@ function submit() {
   if (isDisabled.value) {
     return;
   }
-  emit('login', username.value, password.value)
+  emit('login', username.value, password.value);
 }
 
 function clearForm() {

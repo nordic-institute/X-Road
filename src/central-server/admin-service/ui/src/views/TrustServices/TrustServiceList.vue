@@ -187,7 +187,7 @@ export default defineComponent({
 </script>
 <style lang="scss" scoped>
 @use '@niis/shared-ui/src/assets/tables' as *;
-@use  '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .tsa-list {
   margin-top: 20px;

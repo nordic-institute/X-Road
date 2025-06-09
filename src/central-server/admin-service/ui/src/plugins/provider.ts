@@ -35,7 +35,6 @@ import { useSystem } from '@/store/modules/system';
 export default {
   install(app) {
     app.runWithContext(() => {
-
       const user = useUser();
       const system = useSystem();
       const router = useRouter();

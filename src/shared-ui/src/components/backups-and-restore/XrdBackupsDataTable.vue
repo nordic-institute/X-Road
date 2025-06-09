@@ -40,16 +40,8 @@
     >
       <template #item.buttons="{ item }">
         <div class="cs-table-actions-wrap">
-          <xrd-download-backup-button
-            :backup-handler="backupHandler"
-            :filename="item.filename"
-            :can-backup="canBackup"
-          />
-          <xrd-restore-backup-button
-            :backup-handler="backupHandler"
-            :filename="item.filename"
-            :can-backup="canBackup"
-          />
+          <xrd-download-backup-button :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
+          <xrd-restore-backup-button :backup-handler="backupHandler" :filename="item.filename" :can-backup="canBackup" />
           <xrd-delete-backup-button
             :backup-handler="backupHandler"
             :filename="item.filename"
@@ -126,4 +118,3 @@ export default defineComponent({
   },
 });
 </script>
-

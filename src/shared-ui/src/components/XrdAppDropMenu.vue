@@ -28,27 +28,15 @@
   <div class="drop-menu">
     <v-menu location="bottom right">
       <template #activator="{ props }">
-        <v-btn
-          variant="text"
-          class="no-uppercase"
-          data-test="username-button"
-          v-bind="props"
-        >
+        <v-btn variant="text" class="no-uppercase" data-test="username-button" v-bind="props">
           {{ username }}
           <v-icon icon="mdi-chevron-down" />
         </v-btn>
       </template>
 
       <v-list>
-        <v-list-item
-          id="logout-list-tile"
-          data-test="logout-list-tile"
-          @click="logout"
-        >
-          <v-list-item-title id="logout-title">{{
-              $t('login.logOut')
-            }}
-          </v-list-item-title>
+        <v-list-item id="logout-list-tile" data-test="logout-list-tile" @click="logout">
+          <v-list-item-title id="logout-title">{{ $t('login.logOut') }} </v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>

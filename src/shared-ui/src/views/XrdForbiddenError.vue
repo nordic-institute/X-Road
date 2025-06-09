@@ -38,13 +38,7 @@
               {{ $t('403.text') }}
             </div>
             <div class="buttons-wrap my-13">
-              <xrd-button
-                test-data="go-back-button"
-                color="primary"
-                large
-                rounded
-                @click="routing?.goBack(-2)"
-              >
+              <xrd-button test-data="go-back-button" color="primary" large rounded @click="routing?.goBack(-2)">
                 {{ $t('403.goBack') }}
               </xrd-button>
 

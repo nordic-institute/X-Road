@@ -69,9 +69,7 @@ export default defineComponent({
   methods: {
     downloadBackup() {
       this.downloading = true;
-      this.backupHandler
-        .download(this.filename)
-        .finally(() => (this.downloading = false));
+      this.backupHandler.download(this.filename).finally(() => (this.downloading = false));
     },
   },
 });

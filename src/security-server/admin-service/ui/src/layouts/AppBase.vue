@@ -56,7 +56,8 @@ const sessionPollInterval = window.setInterval(
 checkAlertStatus();
 
 async function pollSessionStatus() {
-  return userStore.fetchSessionStatus()
+  return userStore
+    .fetchSessionStatus()
     .then(() => {
       // Check alert status after a successful session-status call
       checkAlertStatus();

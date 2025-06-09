@@ -44,9 +44,9 @@ import axios from 'axios';
 import { XrdAppLogin } from '@niis/shared-ui';
 
 interface Form {
-  clearForm(): void,
+  clearForm(): void;
 
-  addErrors(errors: string[]): void
+  addErrors(errors: string[]): void;
 }
 
 export default defineComponent({
