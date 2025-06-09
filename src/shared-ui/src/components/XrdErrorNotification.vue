@@ -200,16 +200,6 @@ function copyId(notification: Notification): void {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-
-  .error-icon {
-    margin-right: 12px;
-    color: colors.$Error;
-  }
-
-  .warning-icon {
-    margin-right: 12px;
-    color: colors.$Warning;
-  }
 }
 
 .row-wrapper {
