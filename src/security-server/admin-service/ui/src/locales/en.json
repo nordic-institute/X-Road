@@ -948,6 +948,10 @@
     "settings": {
       "backupAndRestore": "Backup And Restore",
       "systemParameters": "System Parameters"
+    },
+    "diagnostics": {
+      "overview": "Overview",
+      "traffic": "Traffic"
     }
   },
   "token": {
