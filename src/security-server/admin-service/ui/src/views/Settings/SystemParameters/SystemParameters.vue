@@ -31,9 +31,6 @@
     <template #header-buttons>
       <maintenance-mode-widget class="pr-1" />
     </template>
-    <template #header-buttons>
-      <maintenance-mode-widget class="pr-1" />
-    </template>
     <v-card
       v-if="hasPermission(permissions.CHANGE_SS_ADDRESS)"
       flat
@@ -387,7 +384,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import EditSecurityServerAddressDialog from '@/views/Settings/SystemParameters/EditSecurityServerAddressDialog.vue';
 import { sortTimestampingServices } from '@/util/sorting';
-import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
 import MaintenanceModeWidget from '@/views/Settings/SystemParameters/MaintenanceModeWidget.vue';
 
 export default defineComponent({

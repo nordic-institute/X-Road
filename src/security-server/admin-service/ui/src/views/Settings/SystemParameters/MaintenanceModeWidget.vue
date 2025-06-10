@@ -26,19 +26,19 @@
 <template>
   <div v-if="canToggleMaintenanceMode" class="d-sm-inline-flex">
     <v-tooltip
-        open-delay="500">
-      <template v-slot:activator="{ props }">
+      open-delay="500">
+      <template #activator="{ props }">
         <div v-bind="props">
           <v-switch
             :key="'maintenance-mode-switch' + key"
             data-test="maintenance-mode-switch"
             :model-value="enabled"
-            :key="'maintenance-mode-switch' + key"
-              :loading="pending"
-              :disabled="pending || isManagementServiceProvider"
-              hide-details
-              density="compact"
-              @update:model-value="showConfirm=true">
+            :loading="pending"
+            :disabled="pending || isManagementServiceProvider"
+            hide-details
+            density="compact"
+            @update:model-value="showConfirm = true"
+          >
             <template #prepend>
               {{ $t('diagnostics.maintenanceMode.label') }}
             </template>
@@ -48,26 +48,26 @@
       {{ statusText }}
     </v-tooltip>
     <xrd-confirm-dialog
-        v-if="showConfirm && enabled"
-        title="diagnostics.maintenanceMode.disableTitle"
-        data-test="disable-maintenance-mode-dialog"
-        text="diagnostics.maintenanceMode.disableConfirm"
-        :loading="updating"
-        @cancel="showConfirm=false; key++"
-        @accept="changeMode(false)"
+      v-if="showConfirm && enabled"
+      title="diagnostics.maintenanceMode.disableTitle"
+      data-test="disable-maintenance-mode-dialog"
+      text="diagnostics.maintenanceMode.disableConfirm"
+      :loading="updating"
+      @cancel="showConfirm=false; key++"
+      @accept="changeMode(false)"
     />
 
     <xrd-simple-dialog
-        v-if="showConfirm && !enabled"
-        title="diagnostics.maintenanceMode.enableTitle"
-        data-test="enable-maintenance-mode-dialog"
-        save-button-text="action.confirm"
-        :scrollable="false"
-        :show-close="true"
-        :loading="updating"
-        :disable-save="!meta.valid"
-        @save="changeMode(true)"
-        @cancel="showConfirm=false; key++"
+      v-if="showConfirm && !enabled"
+      title="diagnostics.maintenanceMode.enableTitle"
+      data-test="enable-maintenance-mode-dialog"
+      save-button-text="action.confirm"
+      :scrollable="false"
+      :show-close="true"
+      :loading="updating"
+      :disable-save="!meta.valid"
+      @save="changeMode(true)"
+      @cancel="showConfirm=false; key++"
     >
       <template #text>
         {{ $t('diagnostics.maintenanceMode.enableConfirm') }}

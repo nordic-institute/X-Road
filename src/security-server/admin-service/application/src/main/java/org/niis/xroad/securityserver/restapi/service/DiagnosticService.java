@@ -71,7 +71,6 @@ public class DiagnosticService {
 
     /**
      * Query global configuration status.
-     *
      * @return
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
@@ -89,7 +88,6 @@ public class DiagnosticService {
 
     /**
      * Query timestamping services status.
-     *
      * @return
      */
     public Set<DiagnosticsStatus> queryTimestampingStatus() {
@@ -111,7 +109,6 @@ public class DiagnosticService {
 
     /**
      * Query ocsp responders status.
-     *
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
@@ -125,15 +122,13 @@ public class DiagnosticService {
                     .stream()
                     .map(this::parseOcspResponderDiagnosticsStatus)
                     .toList();
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e.getMessage(), e, buildErrorDiagnosticRequestFailed());
         }
     }
 
     /**
      * Query proxy addons status.
-     *
      * @return
      */
     public AddOnStatusDiagnostics queryAddOnStatus() {
@@ -158,7 +153,6 @@ public class DiagnosticService {
 
     /**
      * Query proxy message log encryption status.
-     *
      * @return MessageLogEncryptionStatusDiagnostics
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
@@ -171,7 +165,6 @@ public class DiagnosticService {
 
     /**
      * Query proxy memory usage from admin port over HTTP.
-     *
      * @return ProxyMemory
      */
     public ProxyMemory queryProxyMemoryUsage() {
@@ -185,7 +178,6 @@ public class DiagnosticService {
     /**
      * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
      * of the certificate authority
-     *
      * @param entry
      * @return
      */

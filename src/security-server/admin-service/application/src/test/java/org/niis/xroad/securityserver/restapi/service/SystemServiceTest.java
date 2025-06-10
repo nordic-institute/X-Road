@@ -50,7 +50,6 @@ import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
-import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
@@ -88,8 +87,6 @@ public class SystemServiceTest {
     private ServerConfService serverConfService;
     @Mock
     private GlobalConfService globalConfService;
-    @Mock
-    private GlobalConfProvider globalConfProvider;
     @Mock
     private GlobalConfProvider globalConfProvider;
     @Mock
