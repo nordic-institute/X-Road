@@ -71,8 +71,7 @@ import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
 import { RouteName } from '@/global';
-import { i18n } from '@/plugins/i18n';
-
+import { useI18n } from 'vue-i18n';
 /**
  * Component for a Security server details view
  */
@@ -106,7 +105,7 @@ function close() {
 }
 
 const loading = ref(false);
-const { t } = i18n.global;
+const { t } = useI18n();
 const router = useRouter();
 const deleteSecurityServer = handleSubmit(() => {
   loading.value = true;

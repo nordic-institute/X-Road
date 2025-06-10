@@ -133,7 +133,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { SecurityServer } from '@/openapi-types';
@@ -142,7 +142,7 @@ import EditSecurityServerAddressDialog from '@/views/SecurityServers/SecuritySer
 import DeleteSecurityServerDialog from '@/views/SecurityServers/SecurityServer/DeleteSecurityServerDialog.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import DateTime from '@/components/ui/DateTime.vue';
-import { XrdIconChecked } from '@niis/shared-ui';
+import { XrdIconChecked, Colors } from '@niis/shared-ui';
 
 /**
  * Component for a Security server details view
@@ -198,8 +198,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 #security-server-details {
   margin-top: 24px;

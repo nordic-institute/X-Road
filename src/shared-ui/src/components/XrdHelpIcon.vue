@@ -28,13 +28,7 @@
   <div class="help-wrapper">
     <v-tooltip location="top">
       <template #activator="{ props }">
-        <v-icon
-          color="#202020"
-          size="small"
-          theme="dark"
-          v-bind="props"
-          icon="mdi-help-circle"
-        />
+        <v-icon color="#202020" size="small" theme="dark" v-bind="props" icon="mdi-help-circle" />
       </template>
       <span>{{ text }}</span>
     </v-tooltip>

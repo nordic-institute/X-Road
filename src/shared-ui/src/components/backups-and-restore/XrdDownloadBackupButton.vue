@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { BackupHandler } from '../../types';
+import { BackupHandler } from '../../utils';
 import XrdButton from '../XrdButton.vue';
 
 export default defineComponent({
@@ -69,9 +69,7 @@ export default defineComponent({
   methods: {
     downloadBackup() {
       this.downloading = true;
-      this.backupHandler
-        .download(this.filename)
-        .finally(() => (this.downloading = false));
+      this.backupHandler.download(this.filename).finally(() => (this.downloading = false));
     },
   },
 });

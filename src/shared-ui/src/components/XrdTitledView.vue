@@ -38,12 +38,7 @@
         <slot name="header-buttons" />
       </div>
     </header>
-    <xrd-empty-placeholder
-      :loading="loading"
-      :data="data"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-    />
+    <xrd-empty-placeholder :loading="loading" :data="data" :no-items-text="$t('noData.noData')" skeleton-type="table-heading" />
 
     <slot />
   </div>

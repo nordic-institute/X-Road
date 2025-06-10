@@ -26,20 +26,14 @@
  -->
 <template>
   <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onFileInputChange"
-    />
+    <input v-show="false" ref="fileInput" type="file" :accept="accepts" @change="onFileInputChange" />
     <slot :upload="upload" :filedrop="onFileDrop" :errors="errors" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { FileUploadResult } from '../types';
+import { FileUploadResult } from '../utils';
 
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
 
@@ -106,9 +100,7 @@ function onFileDrop(event: DragEvent) {
     return;
   }
 
-  const files = [...event.dataTransfer.files].filter(
-    (item) => typesRg.value.test(item.type) || typesRg.value.test(item.name),
-  );
+  const files = [...event.dataTransfer.files].filter((item) => typesRg.value.test(item.type) || typesRg.value.test(item.name));
 
   if (!files.length) {
     errors.value.push('not-allowed-type');

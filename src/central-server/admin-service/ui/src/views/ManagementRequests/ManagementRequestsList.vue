@@ -108,7 +108,7 @@ import { defaultItemsPerPageOptions } from '@/util/defaults';
 import DateTime from '@/components/ui/DateTime.vue';
 import { computed, reactive, ref, watch } from 'vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { ManagementRequestStatus } from '@/openapi-types';
 import { debounce } from '@/util/helpers';
 
@@ -119,7 +119,7 @@ const itemsPerPageOptions = defaultItemsPerPageOptions(50);
 
 const managementRequests = useManagementRequests();
 const { showError } = useNotifications();
-const { t } = i18n.global;
+const { t } = useI18n();
 
 const showOnlyPending = computed({
   get(): boolean {
@@ -215,5 +215,5 @@ async function fetchItems() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

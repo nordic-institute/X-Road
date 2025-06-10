@@ -33,16 +33,7 @@ export default typescriptEslint.config(
         parser: typescriptEslint.parser,
       },
     },
-    files: [
-      'src/**/*.vue',
-      'src/**/*.js',
-      'src/**.*.jsx',
-      'src/**/*.cjs',
-      'src/**.*.mjs',
-      'src/**/*.ts',
-      'src/**.*.tsx',
-      'src/**.*.mts',
-    ],
+    files: ['src/**/*.vue', 'src/**/*.js', 'src/**.*.jsx', 'src/**/*.cjs', 'src/**.*.mjs', 'src/**/*.ts', 'src/**.*.tsx', 'src/**.*.mts'],
 
     rules: {
       'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
@@ -51,10 +42,8 @@ export default typescriptEslint.config(
       '@typescript-eslint/camelcase': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'vue/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any':
-        process.env.NODE_ENV === 'production' ? 'error' : 'warn',
-      'vue/no-unused-components':
-        process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      '@typescript-eslint/no-explicit-any': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'vue/no-unused-components': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     },
 
     settings: {

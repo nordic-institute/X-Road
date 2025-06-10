@@ -26,11 +26,7 @@
  -->
 <template>
   <g>
-    <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-      d="M12 2L6 8H10V17H14V8H18L12 2ZM2 20V22H22V20H2Z"
-    />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L6 8H10V17H14V8H18L12 2ZM2 20V22H22V20H2Z" />
   </g>
 </template>
 <script lang="ts">

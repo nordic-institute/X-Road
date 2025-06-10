@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <article id="anchor" class="mt-4">
+  <article id="anchor" class="mt-5">
     <v-data-table
       v-if="anchors"
       class="elevation-0 data-table"
@@ -54,7 +54,7 @@
         />
       </template>
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </article>
@@ -63,9 +63,8 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import DateTime from '@/components/ui/DateTime.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
-import { XrdIconCertificate } from '@niis/shared-ui';
+import { XrdIconCertificate, XrdDataTableFooter } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export interface Anchor {
@@ -76,7 +75,7 @@ export interface Anchor {
 
 export default defineComponent({
   components: {
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DataTableToolbar,
     DateTime,
     XrdIconCertificate,
@@ -122,8 +121,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .internal-conf-icon {
   margin-right: 15px;

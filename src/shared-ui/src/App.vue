@@ -31,17 +31,8 @@
       <xrd-expandable>
         <template #link> xrd-backups-data-table </template>
         <template #content>
-          <xrd-backups-toolbar
-            :backup-handler="backupsHandler"
-            :can-backup="true"
-            accepts="*"
-          />
-          <xrd-backups-data-table
-            :can-backup="true"
-            :backup-handler="backupsHandler"
-            :loading="false"
-            :backups="backups"
-          />
+          <xrd-backups-toolbar :backup-handler="backupsHandler" :can-backup="true" accepts="*" />
+          <xrd-backups-data-table :can-backup="true" :backup-handler="backupsHandler" :loading="false" :backups="backups" />
         </template>
       </xrd-expandable>
       <xrd-expandable>
@@ -89,25 +80,15 @@
         </template>
       </xrd-expandable>
       <xrd-expandable>
-        <template #link>
-          xrd-simple-dialog, xrd-confirm-dialog & xrd-help-dialog
-        </template>
+        <template #link> xrd-simple-dialog, xrd-confirm-dialog & xrd-help-dialog </template>
         <template #content>
           <xrd-button text="Open dialog" @click="simpleDialog = true" />
-          <xrd-simple-dialog
-            :dialog="simpleDialog"
-            title="action.add"
-            @cancel="simpleDialog = false"
-            @save="simpleDialog = false"
-          >
+          <xrd-simple-dialog :dialog="simpleDialog" title="action.add" @cancel="simpleDialog = false" @save="simpleDialog = false">
             <template #content>
               <div>dialog content</div>
             </template>
           </xrd-simple-dialog>
-          <xrd-button
-            text="Open Confirm dialog"
-            @click="confirmDialog = true"
-          />
+          <xrd-button text="Open Confirm dialog" @click="confirmDialog = true" />
           <xrd-confirm-dialog
             :dialog="confirmDialog"
             title="action.add"
@@ -121,11 +102,7 @@
             </template>
           </xrd-confirm-dialog>
           <xrd-button text="Open Help dialog" @click="helpDialog = true" />
-          <xrd-help-dialog
-            :dialog="helpDialog"
-            title="action.add"
-            text="locals_demo"
-          >
+          <xrd-help-dialog :dialog="helpDialog" title="action.add" text="locals_demo">
             <template #content>
               <div>dialog content</div>
             </template>
@@ -170,31 +147,11 @@
           </xrd-button>
         </template>
         <template #content>
-          <xrd-empty-placeholder
-            no-items-text="No data here"
-            :loading="loading"
-          />
-          <xrd-empty-placeholder
-            no-items-text="No data here"
-            :loading="loading"
-            :filtered="true"
-          />
-          <xrd-empty-placeholder
-            no-items-text="No data here"
-            :loading="loading"
-            no-matches-text="No matches here"
-            :filtered="true"
-          />
-          <xrd-empty-placeholder
-            no-items-text="No data here"
-            :loading="loading"
-            :data="[]"
-          />
-          <xrd-empty-placeholder
-            no-items-text="No data here"
-            :loading="loading"
-            skeleton-type="table-heading"
-          />
+          <xrd-empty-placeholder no-items-text="No data here" :loading="loading" />
+          <xrd-empty-placeholder no-items-text="No data here" :loading="loading" :filtered="true" />
+          <xrd-empty-placeholder no-items-text="No data here" :loading="loading" no-matches-text="No matches here" :filtered="true" />
+          <xrd-empty-placeholder no-items-text="No data here" :loading="loading" :data="[]" />
+          <xrd-empty-placeholder no-items-text="No data here" :loading="loading" skeleton-type="table-heading" />
         </template>
       </xrd-expandable>
       <xrd-expandable>
@@ -213,11 +170,7 @@
               </tr>
             </thead>
             <tbody>
-              <xrd-empty-placeholder-row
-                colspan="2"
-                no-items-text="No rows"
-                :loading="loading"
-              />
+              <xrd-empty-placeholder-row colspan="2" no-items-text="No rows" :loading="loading" />
             </tbody>
           </table>
         </template>
@@ -232,7 +185,7 @@ import XrdSubViewTitle from './components/XrdSubViewTitle.vue';
 import XrdTable from './components/XrdTable.vue';
 import XrdBackupsDataTable from './components/backups-and-restore/XrdBackupsDataTable.vue';
 import XrdBackupsToolbar from './components/backups-and-restore/XrdBackupsToolbar.vue';
-import { BackupHandler } from './types';
+import { BackupHandler } from './utils';
 
 const loading = ref(false);
 const simpleDialog = ref(false);

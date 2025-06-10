@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": " Tagasi",
-    "mainTitle": " Toiming ei ole lubatud",
-    "text": "Näib, et teil pole selle lehekülje vaatamiseks luba. Kui teie arvates on tegemist veaga, siis kontrollige, kas olete õige kontoga sisse logitud või võtke ühendust oma administraatoriga.",
-    "topTitle": "Keelatud"
-  },
-  "404": {
-    "pageNotFound": "404 – lehekülge ei leitud",
-    "text": "Näib, et olete leidnud",
-    "textUnicorn": "ükssarviku"
-  },
   "accessRights": {
     "addServiceClients": "Lisa ligipääs",
     "addServiceClientsSuccess": "Ligipääs edukalt antud",
@@ -400,7 +389,7 @@
     "service_already_exists": "Teenus on juba olemas",
     "service_client_not_found": "Teenuse klienti ei leitud",
     "service_code_already_exists": "Teenuse kood on juba olemas",
-    "service_code_reserved": "Teenusekood on reserveeritud süsteemi sisemiseks kasutamiseks ja seda ei saa määrata kohandatud teenustele",    
+    "service_code_reserved": "Teenusekood on reserveeritud süsteemi sisemiseks kasutamiseks ja seda ei saa määrata kohandatud teenustele",
     "service_description_not_found": "Teenuse kirjeldust ei leitud",
     "service_not_found": "teenust ei leitud",
     "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",

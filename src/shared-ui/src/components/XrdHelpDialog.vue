@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-if="dialog"
-    :model-value="dialog"
-    :width="width"
-    :persistent="true"
-  >
+  <v-dialog v-if="dialog" :model-value="dialog" :width="width" :persistent="true">
     <v-card class="xrd-card">
       <v-card-title>
         <span class="text-h5">{{ $t(title) }}</span>

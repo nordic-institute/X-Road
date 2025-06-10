@@ -70,7 +70,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :no-data-text="$t('noData.noCertificates')"
+      no-data-text="noData.noCertificates"
       data-test="tls-certificate-table"
     >
       <template #[`item.hash`]="{ item }">
@@ -340,8 +340,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .select-connection {
   max-width: 240px;

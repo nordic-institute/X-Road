@@ -79,9 +79,8 @@ import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { DataQuery, DataTableHeader } from '@/ui-types';
-import { XrdIconChecked, XrdIconSecurityServer } from '@niis/shared-ui';
+import { XrdIconChecked, XrdIconSecurityServer, Colors } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
-import { Colors } from '@/global';
 
 // To provide the Vue instance to debounce
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,9 +130,7 @@ export default defineComponent({
       ];
     },
     emptyListReasoning(): string {
-      return this.search
-        ? this.$t('noData.noMatches')
-        : this.$t('noData.noSecurityServers');
+      return this.search ? 'noData.noMatches' : 'noData.noSecurityServers';
     },
   },
 
@@ -181,8 +178,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .server-code {
   color: colors.$Purple100;
