@@ -26,84 +26,24 @@
  -->
 <template>
   <div>
-    <v-icon
-      v-if="status === 'ok'"
-      size="small"
-      color="#0CC177"
-      icon="icon-Checked"
-    />
-    <v-icon
-      v-if="status === 'ok-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-Checked"
-    />
-    <v-icon
-      v-else-if="status === 'saved'"
-      size="x-large"
-      color="#211E1E"
-      icon="icon-Checkmark"
-    />
-    <v-icon
-      v-else-if="status === 'progress-register'"
-      size="small"
-      color="#0CC177"
-      icon="icon-In-progress"
-    />
-    <v-icon
-      v-else-if="status === 'progress-register-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-In-progress"
-    />
-    <v-icon
-      v-else-if="status === 'progress-delete'"
-      size="small"
-      color="#211E1E"
-      icon="icon-Cancel"
-    />
-    <v-icon
-      v-else-if="status === 'name-set'"
-      size="small"
-      color="#211E1E"
-      icon="icon-Edit"
-    />
-    <v-icon
-      v-else-if="status === 'name-submitted'"
-      size="small"
-      color="#0CC177"
-      icon="icon-Edit"
-    />
-    <v-icon
-      v-else-if="status === 'error'"
-      size="small"
-      color="#EC4040"
-      icon="icon-Error"
-    />
-    <v-icon
-      v-else-if="status === 'error-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-Error"
-    />
-    <v-icon
-      v-else-if="status === 'pending'"
-      size="small"
-      color="#F5A623"
-      icon="icon-Error"
-    />
-    <v-icon
-      v-else-if="status === 'pending-disabled'"
-      size="small"
-      color="#575169"
-      icon="icon-Error"
-    />
+    <v-icon v-if="status === 'ok'" size="small" color="#0CC177" icon="icon-Checked" />
+    <v-icon v-if="status === 'ok-disabled'" size="small" color="#575169" icon="icon-Checked" />
+    <v-icon v-else-if="status === 'saved'" size="x-large" color="#211E1E" icon="icon-Checkmark" />
+    <v-icon v-else-if="status === 'progress-register'" size="small" color="#0CC177" icon="icon-In-progress" />
+    <v-icon v-else-if="status === 'progress-register-disabled'" size="small" color="#575169" icon="icon-In-progress" />
+    <v-icon v-else-if="status === 'progress-delete'" size="small" color="#211E1E" icon="icon-Cancel" />
+    <v-icon v-else-if="status === 'name-set'" size="small" color="#211E1E" icon="icon-Edit" />
+    <v-icon v-else-if="status === 'name-submitted'" size="small" color="#0CC177" icon="icon-Edit" />
+    <v-icon v-else-if="status === 'error'" size="small" color="#EC4040" icon="icon-Error" />
+    <v-icon v-else-if="status === 'error-disabled'" size="small" color="#575169" icon="icon-Error" />
+    <v-icon v-else-if="status === 'pending'" size="small" color="#F5A623" icon="icon-Error" />
+    <v-icon v-else-if="status === 'pending-disabled'" size="small" color="#575169" icon="icon-Error" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { XrdIconCancel, XrdIconChecked, XrdIconCheckmark, XrdIconError, XrdIconInProgress } from "./icons";
+import { XrdIconCancel, XrdIconChecked, XrdIconCheckmark, XrdIconError, XrdIconInProgress } from './icons';
 
 /**
  * General purpose component for status icon with color
@@ -127,7 +67,7 @@ export default defineComponent({
           'pending',
           'pending-disabled',
           'name-set',
-          'name-submitted'
+          'name-submitted',
         ].includes(val),
     },
   },
@@ -143,57 +83,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.status-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-%status-icon-shared {
-  height: 8px;
-  width: 8px;
-  min-height: 8px;
-  min-width: 8px;
-  border-radius: 50%;
-  margin-right: 16px;
-}
-
-%status-ring-icon-shared {
-  height: 10px;
-  width: 10px;
-  border-radius: 50%;
-  margin-right: 16px;
-  border: 2px solid;
-}
-
-.red {
-  @extend %status-icon-shared;
-  background: #d0021b;
-}
-
-.red-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #d0021b;
-}
-
-.green {
-  @extend %status-icon-shared;
-  background: #7ed321;
-}
-
-.green-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #7ed321;
-}
-
-.orange {
-  @extend %status-icon-shared;
-  border-color: #f5a623;
-}
-
-.orange-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #f5a623;
-}
-</style>
+<style lang="scss" scoped></style>

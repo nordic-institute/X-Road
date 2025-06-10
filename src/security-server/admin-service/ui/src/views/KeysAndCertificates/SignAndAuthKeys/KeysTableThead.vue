@@ -106,9 +106,7 @@
           />
         </div>
       </th>
-      <th
-        class="renewal-col"
-      >
+      <th class="renewal-col">
         <div class="header-title">
           {{ $t('keys.renewal') }}
         </div>
@@ -124,7 +122,7 @@
  */
 import { defineComponent } from 'vue';
 import SortButton from './SortButton.vue';
-import { Colors } from '@/global';
+import { Colors } from '@niis/shared-ui';
 import { KeysSortColumn } from './keyColumnSorting';
 
 export default defineComponent({
@@ -163,8 +161,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 /* Needs two classes to override xrd-table style */
 .target-row {

@@ -25,29 +25,20 @@
  -->
 <template>
   <div>
-    <sub-tabs>
-      <v-tab
-        v-for="tab in tabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        >{{ $t(tab.name) }}
-      </v-tab>
-    </sub-tabs>
+    <XrdSubTabs :tabs />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
+import { Tab, XrdSubTabs } from '@niis/shared-ui';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   components: {
-    SubTabs,
+    XrdSubTabs,
   },
   computed: {
     ...mapState(useUser, ['getAllowedTabs']),

@@ -42,15 +42,17 @@
           :label="$t('members.member.subsystems.subsystemcode')"
           variant="outlined"
           autofocus
-          data-test="add-subsystem-input" />
+          data-test="add-subsystem-input"
+        />
 
         <v-text-field
-          class="mt-2"
           v-model="subsystemName"
+          class="mt-2"
           v-bind="subsystemNameAttrs"
           :label="$t('members.member.subsystems.subsystemname')"
           variant="outlined"
-          data-test="add-subsystem-name-input" />
+          data-test="add-subsystem-name-input"
+        />
       </div>
     </template>
   </xrd-simple-dialog>
@@ -62,7 +64,7 @@ import { ClientId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   member: {
@@ -96,7 +98,7 @@ function cancel() {
   resetForm();
 }
 
-const { t } = i18n.global;
+const { t } = useI18n();
 const add = handleSubmit((values) => {
   loading.value = true;
   addSubsystem({

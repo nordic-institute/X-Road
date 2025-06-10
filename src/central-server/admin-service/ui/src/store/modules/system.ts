@@ -75,7 +75,8 @@ export const useSystem = defineStore('system', {
       return (
         0 < initializationStatus.instance_identifier.length &&
         0 < initializationStatus.central_server_address.length &&
-        TokenInitStatus.NOT_INITIALIZED != initializationStatus.software_token_init_status
+        TokenInitStatus.NOT_INITIALIZED !=
+          initializationStatus.software_token_init_status
       );
     },
   },

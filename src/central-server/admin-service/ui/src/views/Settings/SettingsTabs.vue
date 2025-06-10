@@ -25,28 +25,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-tabs>
-    <v-tab
-      v-for="tab in tabs"
-      :key="tab.key"
-      :to="tab.to"
-      :data-test="tab.key"
-      exact
-      >{{ $t(tab.name) }}</v-tab
-    >
-  </sub-tabs>
+  <XrdSubTabs :tabs />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
+import { Tab, XrdSubTabs } from '@niis/shared-ui';
 import { mapStores } from 'pinia';
 import { useSettingsTabs } from '@/store/modules/settings-tabs';
 
 export default defineComponent({
   components: {
-    SubTabs,
+    XrdSubTabs,
   },
   computed: {
     ...mapStores(useSettingsTabs, ['getAvailableTabs']),
