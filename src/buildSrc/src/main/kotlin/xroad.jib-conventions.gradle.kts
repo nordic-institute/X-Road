@@ -36,3 +36,9 @@ if (!buildImages.toBoolean()) {
     enabled = false
   }
 }
+
+tasks.register<Copy>("prepareLicenseFiles") {
+  into(layout.buildDirectory.dir("jib-extra/license"))
+  from(rootProject.file("LICENSE.txt"))
+  from(rootProject.file("3RD-PARTY-NOTICES.txt"))
+}
