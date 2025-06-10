@@ -46,7 +46,7 @@ import { XrdAppLogin } from '@niis/shared-ui';
 interface Form {
   clearForm(): void;
 
-  addErrors(errors: string[]): void;
+  addErrors(...errors: string[]): void;
 }
 
 export default defineComponent({

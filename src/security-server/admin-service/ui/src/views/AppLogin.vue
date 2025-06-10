@@ -41,11 +41,12 @@ import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
 import { XrdAppLogin } from '@niis/shared-ui';
+import { loading } from 'happy-dom/lib/PropertySymbol.d.ts.js';
 
 interface Form {
   clearForm(): void;
 
-  addErrors(errors: string[]): void;
+  addErrors(...errors: string[]): void;
 }
 
 export default defineComponent({
@@ -118,6 +119,8 @@ export default defineComponent({
             throw error;
           }
         }
+        this.loading = false;
+        return;
       }
 
       // Auth ok. Start phase 2 (fetch user data and current security server info).

@@ -54,7 +54,7 @@
         </v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <xrd-button autofocus @click="logoutApp">
+          <xrd-button data-test="session-expired-ok-button" autofocus @click="logoutApp">
             {{ $t('action.ok') }}
           </xrd-button>
         </v-card-actions>

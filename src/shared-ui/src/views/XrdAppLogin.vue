@@ -141,7 +141,7 @@ function clearForm() {
   resetForm();
 }
 
-function addErrors(errors: string[]) {
+function addErrors(...errors: string[]) {
   setFieldError('password', errors);
 }
 </script>
