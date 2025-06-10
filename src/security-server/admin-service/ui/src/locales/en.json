@@ -204,7 +204,7 @@
     },
     "globalConfiguration": {
       "configurationStatus": {
-        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check the network connection.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
         "ERROR_CODE_INTERNAL": "Internal error occurred.",
         "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
@@ -298,7 +298,7 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Internal error occurred",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection to global configuration provider.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
         "SUCCESS": "Everything ok",
         "UNKNOWN": "Unknown"
