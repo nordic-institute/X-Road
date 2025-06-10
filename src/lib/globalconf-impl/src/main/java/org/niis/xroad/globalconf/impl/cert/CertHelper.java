@@ -45,7 +45,6 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
@@ -58,16 +57,16 @@ public final class CertHelper {
 
     /**
      * Verifies that the certificate <code>cert</code> can be used for
-     * authenticating for client <code>clientId</code>.
+     * authenticating as member <code>member</code>.
      * The <code>ocspResponsec</code> is used to verify validity of the
      * certificate.
      *
      * @param chain         the certificate chain
      * @param ocspResponses OCSP responses used in the cert chain
-     * @param clientId        the client id
+     * @param member        the member
      * @throws Exception if verification fails.
      */
-    public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId clientId) throws Exception {
+    public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member) throws Exception {
         X509Certificate cert = chain.getEndEntityCert();
         if (!CertUtils.isAuthCert(cert)) {
             throw new CodedException(X_SSL_AUTH_FAILED,
@@ -76,7 +75,7 @@ public final class CertHelper {
 
         log.debug("verifyAuthCert({}: {}, {})",
                 cert.getSerialNumber(),
-                cert.getSubjectX500Principal().getName(), clientId);
+                cert.getSubjectX500Principal().getName(), member);
 
         // Verify certificate against CAs.
         try {
@@ -87,18 +86,13 @@ public final class CertHelper {
         }
 
         // Verify (using GlobalConf) that given certificate can be used
-        // to authenticate given client.
-        if (!globalConfProvider.authCertMatchesMember(cert, clientId)) {
-            SecurityServerId authCertServerId = globalConfProvider.getServerId(cert);
-            if (authCertServerId != null) {
-                if (!globalConfProvider.isSecurityServerClient(clientId, authCertServerId)) {
-                    log.info("Since {} is not a client of security server {}, it seems there is a network connection problem", clientId,
-                            authCertServerId);
-                    throw new CodedException(X_NETWORK_ERROR, "Could not establish connection for client '%s'", clientId);
-                }
+        // to authenticate given member.
+        if (!globalConfProvider.authCertMatchesMember(cert, member)) {
+            SecurityServerId serverId = globalConfProvider.getServerId(cert);
+            if (serverId != null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client '%s' is not registered at security server %s",
-                        clientId, authCertServerId);
+                        member, serverId);
 
             }
 
