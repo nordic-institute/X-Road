@@ -49,7 +49,6 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
-mkdir -p %{buildroot}/etc/cron.d
 
 cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/bin/
@@ -63,7 +62,6 @@ cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
 cp -p %{srcdir}/common/proxy/etc/xroad/backup.d/??_xroad-proxy %{buildroot}/etc/xroad/backup.d/
-cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/etc/cron.d/
 
 ln -s /usr/share/xroad/jlib/proxy/quarkus-run.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /usr/share/xroad/bin/xroad-add-admin-user.sh %{buildroot}/usr/bin/xroad-add-admin-user
@@ -85,7 +83,6 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/rsyslog.d/40-xroad.conf
 %config %attr(644,root,root) /etc/rsyslog.d/90-udp.conf
 %config %attr(644,root,root) /etc/sudoers.d/xroad-proxy
-%config %attr(644,root,root) /etc/cron.d/xroad-proxy
 
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-proxy
 %attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
@@ -98,13 +95,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy.jar
 /usr/share/xroad/jlib/proxy/
-/usr/share/xroad/scripts/backup_db.sh
-/usr/share/xroad/scripts/restore_db.sh
-/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
-/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
-/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh
-/usr/share/xroad/scripts/get_security_server_id.sh
-/usr/share/xroad/scripts/read_db_properties.sh
 /usr/share/xroad/scripts/proxy_memory_helper.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -130,20 +120,8 @@ if [ $1 -gt 1 ] ; then
 fi
 
 %define execute_init_or_update_resources()                                            \
-    echo "Update resources: DB & GPG";                                                \
+    echo "Update resources: DB";                                                      \
     /usr/share/xroad/scripts/setup_serverconf_db.sh;                                  \
-                                                                                      \
-    if [ $1 -gt 1 ]; then                                                             \
-      `# upgrade, generate gpg keypair when needed`                                   \
-      if [ ! -d /etc/xroad/gpghome ] ; then                                           \
-        ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)                      \
-        if [[ -n "${ID}" ]] ; then                                                    \
-          /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}" \
-        fi                                                                            \
-      fi                                                                              \
-      `# always fix gpghome ownership`;                                               \
-      [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome            \
-    fi                                                                                \
                                                                                       \
     if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then                              \
         `# initial installation`;                                                     \

@@ -60,7 +60,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -72,7 +71,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -245,7 +243,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Collection<String> getProviderAddress(ClientId clientId) {
         if (clientId == null) {
-            return emptySet();
+            return Set.of();
         }
 
         return getSharedParametersCache(clientId.getXRoadInstance()).getMemberAddresses().get(clientId);
@@ -336,7 +334,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             }
         } catch (Exception e) {
             log.error("Error while getting OCSP responder certificates", e);
-            return Collections.emptyList();
+            return List.of();
         }
 
         return responderCerts;
@@ -736,5 +734,19 @@ public class GlobalConfImpl implements GlobalConfProvider {
             log.warn("Error getting global configuration version", e);
             return OptionalInt.empty();
         }
+    }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(SecurityServerId serverId) {
+        return Optional.ofNullable(serverId)
+                .map(id -> getSharedParametersCache(id.getXRoadInstance()).getSecurityServersById().get(id))
+                .map(SharedParameters.SecurityServer::getMaintenanceMode);
+    }
+
+    @Override
+    public Optional<SharedParameters.MaintenanceMode> getMaintenanceMode(String instanceIdentifier, String serverAddress) {
+        return Optional.ofNullable(serverAddress)
+                .map(addr -> getSharedParametersCache(instanceIdentifier).getSecurityServersByAddress().get(addr))
+                .map(SharedParameters.SecurityServer::getMaintenanceMode);
     }
 }

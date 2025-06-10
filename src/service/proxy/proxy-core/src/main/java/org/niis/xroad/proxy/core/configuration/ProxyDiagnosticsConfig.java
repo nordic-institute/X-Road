@@ -26,7 +26,6 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 
 import io.quarkus.runtime.Startup;
@@ -39,16 +38,7 @@ import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
 import org.niis.xroad.proxy.core.healthcheck.NoopHealthCheckPort;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
-import java.util.List;
-
 public class ProxyDiagnosticsConfig {
-
-    @ApplicationScoped
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics(ProxyProperties proxyProperties) {
-        return new BackupEncryptionStatusDiagnostics(
-                proxyProperties.backupEncryptionEnabled(),
-                proxyProperties.backupEncryptionKeyids().orElse(List.of()));
-    }
 
     @ApplicationScoped
     AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager) {

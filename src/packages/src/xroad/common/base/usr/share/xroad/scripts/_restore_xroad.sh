@@ -12,6 +12,7 @@ source /usr/share/xroad/scripts/_backup_restore_common.sh
 # This allows the user to restore the pre-restore backup just like any other
 # backup.
 PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
+PRE_RESTORE_OPENBAO_DATABASE_DUMP_FILENAME=${OPENBAO_DATABASE_DUMP_FILENAME}
 PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
 RESTORE_DIR=/var/tmp/xroad/restore
@@ -152,7 +153,7 @@ create_pre_restore_backup () {
       if [[ $FORCE_RESTORE == true ]] ; then
         echo "Ignoring pre restore db backup errors"
       else
-        die "Error occured while creating pre-restore database backup" \
+        die "Error occurred while creating pre-restore database backup" \
             "to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
       fi
     fi
@@ -160,6 +161,29 @@ create_pre_restore_backup () {
   else
     die "Failed to execute database backup script at ${DATABASE_BACKUP_SCRIPT} for" \
         "doing pre-restore backup"
+  fi
+
+  if [[ -n ${SKIP_OPENBAO_RESTORE} && ${SKIP_OPENBAO_RESTORE} = true ]] ; then
+    echo "SKIPPING OPENBAO PRE RESTORE BACKUP"
+  else
+    if [[ -d /etc/openbao ]] ; then
+      backed_up_files_cmd="${backed_up_files_cmd}; find /etc/openbao -not -path /etc/openbao/unseal-keys -not -path /etc/openbao/root-token -type f"
+    fi
+    if [ -x "${OPENBAO_DATABASE_BACKUP_SCRIPT}" ] ; then
+      echo "Creating OpenBao database dump to ${PRE_RESTORE_OPENBAO_DATABASE_DUMP_FILENAME}"
+      if ! $OPENBAO_DATABASE_BACKUP_SCRIPT "$PRE_RESTORE_OPENBAO_DATABASE_DUMP_FILENAME"; then
+        if [[ $FORCE_RESTORE == true ]] ; then
+          echo "Ignoring pre restore Openbao db backup errors"
+        else
+          die "Error occurred while creating pre-restore Openbao database backup" \
+              "to ${PRE_RESTORE_OPENBAO_DATABASE_DUMP_FILENAME}"
+        fi
+      fi
+      backed_up_files_cmd="${backed_up_files_cmd}; echo ${PRE_RESTORE_OPENBAO_DATABASE_DUMP_FILENAME}"
+    else
+      die "Failed to execute OpenBao database backup script at ${OPENBAO_DATABASE_BACKUP_SCRIPT} for" \
+          "doing pre-restore backup"
+    fi
   fi
 
   CONF_FILE_LIST=$(eval "${backed_up_files_cmd}")

@@ -164,6 +164,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public MaintenanceMode getMaintenanceMode() {
+        return new MaintenanceMode(false, null);
+    }
+
+    @Override
     public boolean isSslAuthentication(ServiceId serviceId) {
         return false;
     }
@@ -198,7 +203,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProviderId, ClientId clientId,
-                                                                DescriptionType descriptionType) {
+                                                                    DescriptionType descriptionType) {
         return emptyList();
     }
 

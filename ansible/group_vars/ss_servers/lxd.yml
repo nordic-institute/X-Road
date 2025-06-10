@@ -35,3 +35,7 @@ container_ports:
     connect: "tcp:127.0.0.1:9996"
     listen: "tcp:0.0.0.0:{{ 3293 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
+  backup_manager_debug:
+    connect: "tcp:127.0.0.1:9995"
+    listen: "tcp:0.0.0.0:{{ 3294 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy

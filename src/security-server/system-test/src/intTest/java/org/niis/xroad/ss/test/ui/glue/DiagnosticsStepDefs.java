@@ -67,7 +67,8 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "OCSP responders",
             "Global configuration",
             "Configuration overrides from local.yaml",
-            "Authentication certificates"
+            "Authentication certificates",
+            "Maintenance mode"
     };
     private final DiagnosticsPageObj diagnosticsPage = new DiagnosticsPageObj();
 
@@ -219,7 +220,5 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             }
             assertThat(actualItems).contains(EXPECTED_REPORT_ITEMS);
         }
-
-
     }
 }

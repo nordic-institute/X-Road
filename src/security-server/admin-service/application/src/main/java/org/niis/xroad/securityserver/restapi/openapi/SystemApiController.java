@@ -40,6 +40,7 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
+import org.niis.xroad.securityserver.restapi.converter.MaintenanceModeConverter;
 import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
@@ -48,6 +49,8 @@ import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeMessageDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddressDto;
@@ -85,6 +88,7 @@ public class SystemApiController implements SystemApi {
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
+    private final MaintenanceModeConverter maintenanceModeConverter;
     private final AnchorConverter anchorConverter;
     private final VersionConverter versionConverter;
     private final SystemService systemService;
@@ -182,6 +186,30 @@ public class SystemApiController implements SystemApi {
                 .convert(timestampingServiceDto));
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
+    @AuditEventMethod(event = RestApiAuditEvent.ENABLE_MAINTENANCE_MODE)
+    @Override
+    public ResponseEntity<Void> enableMaintenanceMode(MaintenanceModeMessageDto maintenanceModeMessageDto) {
+        systemService.enableMaintenanceMode(maintenanceModeMessageDto.getMessage());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
+    @AuditEventMethod(event = RestApiAuditEvent.DISABLE_MAINTENANCE_MODE)
+    @Override
+    public ResponseEntity<Void> disableMaintenanceMode() {
+        systemService.disableMaintenanceMode();
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('TOGGLE_MAINTENANCE_MODE')")
+    @Override
+    public ResponseEntity<MaintenanceModeDto> maintenanceMode() {
+        return ResponseEntity.ok(
+                maintenanceModeConverter.convert(systemService.getMaintenanceMode(), systemService.isManagementServiceProvider())
+        );
     }
 
     @Override

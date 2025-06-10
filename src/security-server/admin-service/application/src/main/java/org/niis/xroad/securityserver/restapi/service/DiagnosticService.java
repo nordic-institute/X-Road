@@ -32,6 +32,7 @@ import ee.ria.xroad.common.ProxyMemory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
@@ -66,9 +67,11 @@ public class DiagnosticService {
     private final ConfClientRpcClient confClientRpcClient;
     private final SignerRpcClient signerRpcClient;
     private final ProxyRpcClient proxyRpcClient;
+    private final BackupManagerRpcClient backupManagerRpcClient;
 
     /**
      * Query global configuration status.
+     *
      * @return
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
@@ -86,6 +89,7 @@ public class DiagnosticService {
 
     /**
      * Query timestamping services status.
+     *
      * @return
      */
     public Set<DiagnosticsStatus> queryTimestampingStatus() {
@@ -107,6 +111,7 @@ public class DiagnosticService {
 
     /**
      * Query ocsp responders status.
+     *
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
@@ -128,6 +133,7 @@ public class DiagnosticService {
 
     /**
      * Query proxy addons status.
+     *
      * @return
      */
     public AddOnStatusDiagnostics queryAddOnStatus() {
@@ -144,7 +150,7 @@ public class DiagnosticService {
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
         try {
-            return proxyRpcClient.getBackupEncryptionStatus();
+            return backupManagerRpcClient.getEncryptionStatus();
         } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e, buildErrorDiagnosticRequestFailed());
         }
@@ -152,6 +158,7 @@ public class DiagnosticService {
 
     /**
      * Query proxy message log encryption status.
+     *
      * @return MessageLogEncryptionStatusDiagnostics
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
@@ -164,6 +171,7 @@ public class DiagnosticService {
 
     /**
      * Query proxy memory usage from admin port over HTTP.
+     *
      * @return ProxyMemory
      */
     public ProxyMemory queryProxyMemoryUsage() {
@@ -177,6 +185,7 @@ public class DiagnosticService {
     /**
      * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
      * of the certificate authority
+     *
      * @param entry
      * @return
      */

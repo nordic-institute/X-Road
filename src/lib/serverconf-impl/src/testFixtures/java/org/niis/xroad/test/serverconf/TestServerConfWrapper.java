@@ -168,4 +168,9 @@ public class TestServerConfWrapper implements ServerConfProvider {
     public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         return serverConfProvider.getServiceEndpoints(serviceId);
     }
+
+    @Override
+    public MaintenanceMode getMaintenanceMode() {
+        return serverConfProvider.getMaintenanceMode();
+    }
 }

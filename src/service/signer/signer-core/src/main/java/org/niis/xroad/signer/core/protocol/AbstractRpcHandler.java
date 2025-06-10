@@ -26,17 +26,10 @@
  */
 package org.niis.xroad.signer.core.protocol;
 
-import ee.ria.xroad.common.CodedException;
-
 import com.google.protobuf.AbstractMessage;
-import io.grpc.Status;
-import io.grpc.protobuf.StatusProto;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.rpc.error.CodedExceptionProto;
-
-import static com.google.protobuf.Any.pack;
-import static java.util.Optional.ofNullable;
+import org.niis.xroad.common.rpc.server.CommonRpcHandler;
 
 /**
  * @param <ReqT>
@@ -44,6 +37,7 @@ import static java.util.Optional.ofNullable;
  */
 @Slf4j
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
+    private final CommonRpcHandler commonRpcHandler = new CommonRpcHandler();
 
     protected abstract RespT handle(ReqT request) throws Exception;
 
@@ -54,36 +48,8 @@ public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT ext
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
-            handleException(e, responseObserver);
+            commonRpcHandler.handleException(e, responseObserver);
         }
     }
 
-    private void handleException(Exception exception, StreamObserver<RespT> responseObserver) {
-        if (exception instanceof CodedException codedException) {
-            log.trace("CodedException was thrown by gRPC handler.", exception);
-
-            com.google.rpc.Status status = com.google.rpc.Status.newBuilder()
-                    .setCode(Status.Code.INTERNAL.value())
-                    .setMessage(codedException.getMessage())
-                    .addDetails(pack(toProto(codedException)))
-                    .build();
-
-            responseObserver.onError(StatusProto.toStatusRuntimeException(status));
-        } else {
-            log.warn("Unhandled exception was thrown by gRPC handler.", exception);
-            responseObserver.onError(exception);
-        }
-    }
-
-    private CodedExceptionProto toProto(CodedException codedException) {
-        final CodedExceptionProto.Builder codedExceptionBuilder = CodedExceptionProto.newBuilder();
-
-        ofNullable(codedException.getFaultCode()).ifPresent(codedExceptionBuilder::setFaultCode);
-        ofNullable(codedException.getFaultActor()).ifPresent(codedExceptionBuilder::setFaultActor);
-        ofNullable(codedException.getFaultDetail()).ifPresent(codedExceptionBuilder::setFaultDetail);
-        ofNullable(codedException.getFaultString()).ifPresent(codedExceptionBuilder::setFaultString);
-        ofNullable(codedException.getTranslationCode()).ifPresent(codedExceptionBuilder::setTranslationCode);
-
-        return codedExceptionBuilder.build();
-    }
 }

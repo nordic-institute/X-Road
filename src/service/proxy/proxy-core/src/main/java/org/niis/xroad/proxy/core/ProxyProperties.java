@@ -31,7 +31,6 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
-import java.util.List;
 import java.util.Optional;
 
 @ConfigMapping(prefix = "xroad.proxy")
@@ -53,13 +52,6 @@ public interface ProxyProperties {
     @WithName("health-check-port")
     @WithDefault("0")
     int healthCheckPort();
-
-    @WithName("backup-encryption-enabled")
-    @WithDefault("false")
-    boolean backupEncryptionEnabled();
-
-    @WithName("backup-encryption-keyids")
-    Optional<List<String>> backupEncryptionKeyids();
 
     @WithName("health-check-interface")
     @WithDefault("0.0.0.0")
