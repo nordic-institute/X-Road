@@ -1,3 +1,4 @@
 ../../../../src/xroad/common/addon/wsdlvalidator/usr/* usr/
 ../../../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar usr/share/xroad/wsdlvalidator/jlib
-
+../../../../../LICENSE.txt usr/share/doc/xroad-addon-wsdlvalidator/
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-addon-wsdlvalidator/

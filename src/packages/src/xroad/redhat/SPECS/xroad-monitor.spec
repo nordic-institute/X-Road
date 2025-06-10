@@ -31,6 +31,7 @@ mkdir -p %{buildroot}%{_sysconfdir}
 mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{srcdir}/../../../service/monitor/monitor-application/build/libs/monitor-1.0.jar %{buildroot}%{jlib}
@@ -41,6 +42,8 @@ cp -p %{srcdir}/default-configuration/addons/monitor.ini %{buildroot}%{_sysconfd
 cp -p %{srcdir}/default-configuration/addons/monitor-logback.xml %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 cp -p %{srcdir}/common/monitor/etc/xroad/backup.d/??_xroad-monitor %{buildroot}%{_sysconfdir}/xroad/backup.d/
 ln -s %{jlib}/monitor-1.0.jar %{buildroot}%{jlib}/monitor.jar
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -56,6 +59,8 @@ rm -rf %{buildroot}
 %{jlib}/monitor-1.0.jar
 %{jlib}/monitor.jar
 %attr(754,root,xroad) /usr/share/xroad/bin/%{name}
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check
