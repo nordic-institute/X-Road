@@ -40,6 +40,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib
 mkdir -p %{buildroot}/usr/share/xroad/jlib/signer
 mkdir -p %{buildroot}/usr/share/xroad/jlib/signer-console
 mkdir -p %{buildroot}/usr/share/xroad/lib
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons
@@ -55,6 +56,8 @@ cp -p %{_sourcedir}/signer/xroad-signer.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/default-configuration/devices.ini %{buildroot}/etc/xroad/
 cp -p -r %{srcdir}/../../../service/signer/signer-application/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer/
 cp -p -r %{srcdir}/../../../service/signer/signer-cli/build/quarkus-app/* %{buildroot}/usr/share/xroad/jlib/signer-console/
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 #Copy arch specific libs
 %ifarch x86_64
@@ -94,6 +97,8 @@ rm -rf %{buildroot}
 /usr/share/xroad/lib/libpkcs11wrapper.so
 %attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
 %attr(644,root,root) %{_unitdir}/xroad-signer.service
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check

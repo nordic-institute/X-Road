@@ -54,7 +54,7 @@
           data-test="service-description-details-delete-button"
           outlined
           @click="showDeletePopup(serviceDescription.type)"
-        >{{ $t('action.delete') }}
+          >{{ $t('action.delete') }}
         </xrd-button>
       </div>
     </div>
@@ -122,14 +122,14 @@
           data-test="service-description-details-cancel-button"
           outlined
           @click="close()"
-        >{{ $t('action.cancel') }}
+          >{{ $t('action.cancel') }}
         </xrd-button>
         <xrd-button
           :loading="saving"
           data-test="service-description-details-save-button"
           :disabled="!meta.dirty || !meta.valid"
           @click="save()"
-        >{{ $t('action.save') }}
+          >{{ $t('action.save') }}
         </xrd-button>
       </div>
     </v-card>
@@ -182,7 +182,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { defineRule, PublicPathState, useForm } from 'vee-validate';
 import { useServices } from '@/store/modules/services';
-import { i18n } from '@/plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
 
 defineRule(
@@ -381,7 +381,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 @use '@/assets/detail-views';
 
 .main-wrap {

@@ -116,55 +116,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.card-corner-button {
-  display: flex;
-}
-
-.card-top {
-  padding-top: 15px;
-  margin-bottom: 10px;
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-main-title {
-  color: colors.$Black100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
-  margin-left: 16px;
-}
-
-.hash-cell {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.cert-icon {
-  margin-right: 10px;
-  color: colors.$Purple100;
-}
-
-.icon-column-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

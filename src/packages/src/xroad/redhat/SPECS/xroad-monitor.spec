@@ -33,6 +33,7 @@ mkdir -p %{buildroot}%{_sysconfdir}
 mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p -r %{srcdir}/../../../service/monitor/monitor-application/build/quarkus-app/* %{buildroot}%{jlib}/monitor/
@@ -41,6 +42,8 @@ cp -p %{srcdir}/common/monitor/systemd/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/monitor/usr/share/xroad/bin/xroad-monitor %{buildroot}/usr/share/xroad/bin
 cp -p %{srcdir}/common/monitor/etc/xroad/backup.d/??_xroad-monitor %{buildroot}%{_sysconfdir}/xroad/backup.d/
 ln -s %{jlib}/monitor/quarkus-run.jar %{buildroot}%{jlib}/monitor.jar
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -54,6 +57,8 @@ rm -rf %{buildroot}
 %{jlib}/monitor/
 %{jlib}/monitor.jar
 %attr(754,root,xroad) /usr/share/xroad/bin/%{name}
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check

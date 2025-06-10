@@ -29,7 +29,7 @@ import {
   CsrSubjectFieldDescription,
   Service,
   ServiceDescription,
-  TimestampingService
+  TimestampingService,
 } from '@/openapi-types';
 
 /**
@@ -74,19 +74,27 @@ export const sortAccessRightsByServiceCode = (
   });
 };
 
-export const sortCsrSubjectFields = (fields: CsrSubjectFieldDescription[],): CsrSubjectFieldDescription[] => {
-  return fields.sort((a: CsrSubjectFieldDescription, b: CsrSubjectFieldDescription) => {
-    return a.id.localeCompare(b.id);
-  });
+export const sortCsrSubjectFields = (
+  fields: CsrSubjectFieldDescription[],
+): CsrSubjectFieldDescription[] => {
+  return fields.sort(
+    (a: CsrSubjectFieldDescription, b: CsrSubjectFieldDescription) => {
+      return a.id.localeCompare(b.id);
+    },
+  );
 };
 
-export const sorCertificateAuthorities = (cas: CertificateAuthority[],): CertificateAuthority[] => {
+export const sorCertificateAuthorities = (
+  cas: CertificateAuthority[],
+): CertificateAuthority[] => {
   return cas.sort((a: CertificateAuthority, b: CertificateAuthority) => {
     return a.name.localeCompare(b.name);
   });
 };
 
-export const sortTimestampingServices = (timestamp: TimestampingService[],): TimestampingService[] => {
+export const sortTimestampingServices = (
+  timestamp: TimestampingService[],
+): TimestampingService[] => {
   return timestamp.sort((a: TimestampingService, b: TimestampingService) => {
     return a.name.localeCompare(b.name);
   });

@@ -48,8 +48,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import PageNavigation, {
+  PageNavigationTab,
+} from '@/layouts/PageNavigation.vue';
+import { Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import DetailsView from '@/components/ui/DetailsView.vue';
@@ -69,7 +71,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       backTo: {
         name: RouteName.TrustServices,
       },
@@ -141,5 +142,5 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

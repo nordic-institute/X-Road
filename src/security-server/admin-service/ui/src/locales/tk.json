@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": "Yza geç",
-    "mainTitle": "Rugsat berilmedi",
-    "text": "Bu sahypany görmek üçin rugsadyňyz ýoga meňzeýär.Eger-de siz bu ýalňyş diýip pikir edýän bolsaňyz, onda dogry akkaunda girenligiňizi barlaň ýa-da öz rugsadyňyz barada administratorа ýüzleniň.",
-    "topTitle": "Gadagan"
-  },
-  "404": {
-    "pageNotFound": "404 - sahypa tapylmady",
-    "text": "tapan ýaly",
-    "textUnicorn": "unicorn"
-  },
   "accessRights": {
     "addServiceClients": "Subýekt goş",
     "addServiceClientsSuccess": "Giriş hukuklary üstünlikli goşuldy",

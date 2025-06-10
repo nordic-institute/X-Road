@@ -24,7 +24,9 @@
  * THE SOFTWARE.
  */
 
-import { MaintenanceMode, NodeType, NodeTypeResponse, SecurityServer, VersionInfo } from "@/openapi-types";
+import { MaintenanceMode, NodeType, NodeTypeResponse, SecurityServer,
+  VersionInfo,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
@@ -53,7 +55,10 @@ export const useSystem = defineStore('system', {
       return state.securityServerVersion.global_configuration_version;
     },
     doesSupportSubsystemNames(): boolean {
-      return !!this.globalConfigurationVersion && this.globalConfigurationVersion >= 5;
+      return (
+        !!this.globalConfigurationVersion &&
+        this.globalConfigurationVersion >= 5
+      );
     },
   },
 

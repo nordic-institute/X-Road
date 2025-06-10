@@ -35,7 +35,7 @@ import {
   User,
 } from '@/openapi-types';
 import { SessionStatus, Tab } from '@/ui-types';
-import { i18n } from '@/plugins/i18n';
+import { i18n } from '@niis/shared-ui';
 import { routePermissions } from '@/routePermissions';
 import { useSystem } from './system';
 import { RouteRecordName } from 'vue-router';
@@ -44,7 +44,7 @@ export const useUser = defineStore('user', {
   state: () => {
     return {
       authenticated: false,
-      sessionAlive: undefined as boolean | undefined,
+      sessionAlive: false,
       permissions: [] as string[],
       roles: [] as string[],
       username: '',

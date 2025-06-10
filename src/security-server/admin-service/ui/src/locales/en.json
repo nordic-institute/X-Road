@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "topTitle": "Forbidden"
-  },
-  "404": {
-    "pageNotFound": "404 - page not found",
-    "text": "Seems like you found the",
-    "textUnicorn": "unicorn"
-  },
   "accessRights": {
     "addServiceClients": "Add subjects",
     "addServiceClientsSuccess": "Access rights added successfully",
@@ -148,6 +137,7 @@
     },
     "subsystemCode": "Subsystem Code",
     "subsystemName": "Subsystem Name",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "unknown member"
   },
   "clients": {
@@ -248,6 +238,8 @@
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
+      "status": "Status",
+      "sentTestMail": "Send test e-mail",
       "title": "Mail notification status",
       "type": {
         "ACME_FAILURE": "ACME failure notifications",
@@ -256,8 +248,23 @@
         "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
         "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
       },
-      "types": "Mail notification types",
-      "status": "Status"
+      "types": "Mail notification types"
+    },
+    "maintenanceMode": {
+      "enableTitle": "Enable maintenance mode",
+      "enableConfirm": "Do you want to enable maintenance mode?",
+      "enableSuccess": "Maintenance mode enabling in progress",
+      "disableTitle": "Disable maintenance mode",
+      "disableConfirm": "Do you want to disable maintenance mode?",
+      "disableSuccess": "Maintenance mode disabling in progress",
+      "forbiddenEnable": "Maintenance mode cannot be enabled for a management services provider",
+      "label": "Maintenance mode:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "Maintenance mode is disabled",
+        "ENABLED_MAINTENANCE_MODE": "Maintenance mode is enabled",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Disable maintenance mode request is submitted",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Enable maintenance mode request is submitted"
+      }
     },
     "maintenanceMode": {
       "enableTitle": "Enable maintenance mode",
@@ -535,7 +542,8 @@
     "name": "Name",
     "subsystem": "subsystem",
     "subsystemCode": "Subsystem code",
-    "type": "Type"
+    "type": "Type",
+    "undefinedSubsystemName": "undefined"
   },
   "global": {
     "appTitle": "X-Road Security Server"

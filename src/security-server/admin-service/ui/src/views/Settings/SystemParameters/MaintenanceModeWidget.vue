@@ -30,9 +30,10 @@
       <template v-slot:activator="{ props }">
         <div v-bind="props">
           <v-switch
-              data-test="maintenance-mode-switch"
-              :model-value="enabled"
-              :key="'maintenance-mode-switch' + key"
+            :key="'maintenance-mode-switch' + key"
+            data-test="maintenance-mode-switch"
+            :model-value="enabled"
+            :key="'maintenance-mode-switch' + key"
               :loading="pending"
               :disabled="pending || isManagementServiceProvider"
               hide-details
@@ -73,14 +74,14 @@
       </template>
       <template #content>
         <v-text-field
-            v-model="noticeMessage"
-            data-test="enable-maintenance-mode-message"
-            :label="$t('fields.maintenanceModeMessage')"
-            autofocus
-            variant="outlined"
-            class="dlg-row-input"
-            name="securityServerAddress"
-            :error-messages="errors"
+          v-model="noticeMessage"
+          data-test="enable-maintenance-mode-message"
+          :label="$t('fields.maintenanceModeMessage')"
+          autofocus
+          variant="outlined"
+          class="dlg-row-input"
+          name="securityServerAddress"
+          :error-messages="errors"
         />
       </template>
     </xrd-simple-dialog>
@@ -94,7 +95,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { MaintenanceModeStatus } from '@/openapi-types';
 import { XrdConfirmDialog } from '@niis/shared-ui';
 import { useField } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
 
@@ -109,78 +110,91 @@ const isManagementServiceProvider = ref(false);
 const statusText = ref(undefined as string | undefined);
 let refreshHandle = 0;
 
-const { meta, errors, value: noticeMessage, resetField } = useField(
-    'message',
-    'max:255',
-    { initialValue: '' },
-);
+const {
+  meta,
+  errors,
+  value: noticeMessage,
+  resetField,
+} = useField('message', 'max:255', { initialValue: '' });
 
 const { hasPermission } = useUser();
-const { fetchMaintenanceModeState, enableMaintenanceMode, disableMaintenanceMode } = useSystem();
+const {
+  fetchMaintenanceModeState,
+  enableMaintenanceMode,
+  disableMaintenanceMode,
+} = useSystem();
 const { showError, showSuccess } = useNotifications();
-const { t } = i18n.global;
+const { t } = useI18n();
 
-const canToggleMaintenanceMode = computed(() => hasPermission(Permissions.TOGGLE_MAINTENANCE_MODE));
+const canToggleMaintenanceMode = computed(() =>
+  hasPermission(Permissions.TOGGLE_MAINTENANCE_MODE),
+);
 
 async function changeMode(enable: boolean) {
   updating.value = true;
   if (enable) {
     return enableMaintenanceMode(noticeMessage.value)
-        .then(() => showSuccess(t('diagnostics.maintenanceMode.enableSuccess')))
-        .then(() => update())
-        .catch((error) => showError(error))
-        .finally(() => (updating.value = false))
-        .finally(() => close());
+      .then(() => showSuccess(t('diagnostics.maintenanceMode.enableSuccess')))
+      .then(() => update())
+      .catch((error) => showError(error))
+      .finally(() => (updating.value = false))
+      .finally(() => close());
   } else {
     return disableMaintenanceMode()
-        .then(() => showSuccess(t('diagnostics.maintenanceMode.disableSuccess')))
-        .then(() => update())
-        .catch((error) => showError(error))
-        .finally(() => (close()))
-        .finally(() => (updating.value = false))
+      .then(() => showSuccess(t('diagnostics.maintenanceMode.disableSuccess')))
+      .then(() => update())
+      .catch((error) => showError(error))
+      .finally(() => close())
+      .finally(() => (updating.value = false));
   }
 }
 
 async function update() {
   updating.value = true;
   return fetchMaintenanceModeState()
-      .then(mode => {
-        if (mode.is_management_services_provider) {
-          statusText.value = t('diagnostics.maintenanceMode.forbiddenEnable');
-        } else {
-          statusText.value = t('diagnostics.maintenanceMode.status.' + mode.status);
-        }
-        isManagementServiceProvider.value = mode.is_management_services_provider
-        switch (mode.status) {
-          case MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE:
-          case MaintenanceModeStatus.ENABLED_MAINTENANCE_MODE:
-            pending.value = mode.status === MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE;
-            enabled.value = true;
-            break;
-          case MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE:
-          case MaintenanceModeStatus.DISABLED_MAINTENANCE_MODE:
-            pending.value = mode.status === MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE;
-            enabled.value = false;
-            break;
-          default:
-        }
-        return mode;
-      })
-      .catch((error) => showError(error))
-      .finally(() => (updating.value = false))
-      .finally(() => {
-        if (pending.value && !refreshHandle) {
-          refreshHandle = window.setInterval(() => update(), 10000);
-        } else if (!pending.value) {
-          deregisterRefresh();
-        }
-      });
+    .then((mode) => {
+      if (mode.is_management_services_provider) {
+        statusText.value = t('diagnostics.maintenanceMode.forbiddenEnable');
+      } else {
+        statusText.value = t(
+          'diagnostics.maintenanceMode.status.' + mode.status,
+        );
+      }
+      isManagementServiceProvider.value = mode.is_management_services_provider;
+      switch (mode.status) {
+        case MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE:
+        case MaintenanceModeStatus.ENABLED_MAINTENANCE_MODE:
+          pending.value =
+            mode.status ===
+            MaintenanceModeStatus.PENDING_ENABLE_MAINTENANCE_MODE;
+          enabled.value = true;
+          break;
+        case MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE:
+        case MaintenanceModeStatus.DISABLED_MAINTENANCE_MODE:
+          pending.value =
+            mode.status ===
+            MaintenanceModeStatus.PENDING_DISABLE_MAINTENANCE_MODE;
+          enabled.value = false;
+          break;
+        default:
+      }
+      return mode;
+    })
+    .catch((error) => showError(error))
+    .finally(() => (updating.value = false))
+    .finally(() => {
+      if (pending.value && !refreshHandle) {
+        refreshHandle = window.setInterval(() => update(), 10000);
+      } else if (!pending.value) {
+        deregisterRefresh();
+      }
+    });
 }
 
 function close() {
   showConfirm.value = false;
   key.value++;
-  resetField()
+  resetField();
 }
 
 function deregisterRefresh() {
@@ -197,6 +211,4 @@ if (canToggleMaintenanceMode.value) {
 onBeforeUnmount(() => deregisterRefresh());
 
 </script>
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

@@ -63,7 +63,7 @@ import { defineComponent } from 'vue';
 import * as api from '@/util/api';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
@@ -160,7 +160,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 
 .sub-view-title-spacing {
   margin-bottom: 30px;

@@ -1,10 +1,4 @@
 {
-  "403": {
-    "goBack": "Yzyňa dolan",
-    "mainTitle": "Rugsat berilmedi",
-    "text": "Bu sahypany görmek üçin rugsadyňyz ýoga meňzeýär.Eger-de siz bu ýalňyş diýip pikir edýän bolsaňyz, onda dogry akkaunda girenligiňizi barlaň ýa-da öz rugsadyňyz barada administratorа ýüzleniň.",
-    "topTitle": "Gadagan"
-  },
   "action": {
     "approve": "Tassykla",
     "decline": "Ret et",
@@ -193,7 +187,6 @@
     "navigation": {
       "back": "Yza"
     },
-    "pageNotFound": "bagyşlaň, sahypa tapylmady",
     "register": "Hasaba alyş",
     "search": "Gözleg",
     "server": "Serwer",

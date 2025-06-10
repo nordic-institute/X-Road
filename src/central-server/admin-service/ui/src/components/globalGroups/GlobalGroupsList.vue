@@ -65,7 +65,7 @@
       </template>
 
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -86,7 +86,7 @@ import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
 import { useUser } from '@/store/modules/user';
 import DateTime from '@/components/ui/DateTime.vue';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import { XrdIconFolder, XrdTitledView } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
@@ -94,7 +94,7 @@ export default defineComponent({
   name: 'GlobalResourcesList',
   components: {
     XrdTitledView,
-    CustomDataTableFooter,
+    XrdDataTableFooter,
     DateTime,
     AddGroupDialog,
     XrdIconFolder,
@@ -167,8 +167,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .group-code {
   color: colors.$Purple100;

@@ -34,15 +34,38 @@
             <xrd-icon-change-owner v-if="type === 'OWNER_CHANGE_REQUEST'" />
             <xrd-icon-add-user v-if="type === 'CLIENT_REGISTRATION_REQUEST'" />
             <xrd-icon-remove-user v-if="type === 'CLIENT_DELETION_REQUEST'" />
-            <xrd-icon-remove-certificate v-if="type === 'AUTH_CERT_DELETION_REQUEST'" />
-            <xrd-icon-add-certificate v-if="type === 'AUTH_CERT_REGISTRATION_REQUEST'" />
-            <xrd-icon-security-server v-if="type === 'ADDRESS_CHANGE_REQUEST'" />
-            <xrd-icon-error v-if="type === 'CLIENT_DISABLE_REQUEST'" :color="colors.WarmGrey100" />
-            <xrd-icon-checked v-if="type === 'CLIENT_ENABLE_REQUEST'" :color="colors.Success100" />
-            <xrd-icon-edit v-if="type === 'CLIENT_RENAME_REQUEST'" :color="colors.Success100" />
+            <xrd-icon-remove-certificate
+              v-if="type === 'AUTH_CERT_DELETION_REQUEST'"
+            />
+            <xrd-icon-add-certificate
+              v-if="type === 'AUTH_CERT_REGISTRATION_REQUEST'"
+            />
+            <xrd-icon-security-server
+              v-if="type === 'ADDRESS_CHANGE_REQUEST'"
+            />
+            <xrd-icon-error
+              v-if="type === 'CLIENT_DISABLE_REQUEST'"
+              :color="colors.WarmGrey100"
+            />
+            <xrd-icon-checked
+              v-if="type === 'CLIENT_ENABLE_REQUEST'"
+              :color="colors.Success100"
+            />
+            <xrd-icon-edit
+              v-if="type === 'CLIENT_RENAME_REQUEST'"
+              :color="colors.Success100"
+            />
           </xrd-icon-base>
-          <v-icon v-if="type === 'MAINTENANCE_MODE_ENABLE_REQUEST'" icon="mdi-wrench-clock" :color="colors.Success100" />
-          <v-icon v-if="type === 'MAINTENANCE_MODE_DISABLE_REQUEST'" icon="mdi-wrench-clock" :color="colors.Error" />
+          <v-icon
+            v-if="type === 'MAINTENANCE_MODE_ENABLE_REQUEST'"
+            icon="mdi-wrench-clock"
+            :color="colors.Success100"
+          />
+          <v-icon
+            v-if="type === 'MAINTENANCE_MODE_DISABLE_REQUEST'"
+            icon="mdi-wrench-clock"
+            :color="colors.Error"
+          />
         </div>
       </template>
       <span>{{ typeText }}</span>
@@ -62,11 +85,11 @@ import {
   XrdIconRemoveCertificate,
   XrdIconRemoveUser,
   XrdIconSecurityServer,
+  Colors,
 } from '@niis/shared-ui';
 import { defineComponent, PropType } from 'vue';
 import { ManagementRequestType } from '@/openapi-types';
 import { managementTypeToText } from '@/util/helpers';
-import { Colors } from '@/global';
 
 export default defineComponent({
   components: {
@@ -96,14 +119,17 @@ export default defineComponent({
       return managementTypeToText(this.type);
     },
     useXrdIcons() {
-      return !['MAINTENANCE_MODE_ENABLE_REQUEST', 'MAINTENANCE_MODE_DISABLE_REQUEST'].includes(this.type as string);
+      return ![
+        'MAINTENANCE_MODE_ENABLE_REQUEST',
+        'MAINTENANCE_MODE_DISABLE_REQUEST',
+      ].includes(this.type as string);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .status-wrapper {
   display: flex;

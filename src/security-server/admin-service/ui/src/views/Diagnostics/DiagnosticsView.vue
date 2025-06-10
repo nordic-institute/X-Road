@@ -70,13 +70,12 @@ import DiagnosticsOcspRespondersCard from '@/views/Diagnostics/DiagnosticsOcspRe
 import DiagnosticsBackupEncryptionCard from '@/views/Diagnostics/DiagonsticsBackupEncryptionCard.vue';
 import DiagnosticsMessageLogArchiveCard from '@/views/Diagnostics/DiagnosticsMessageLogArchiveCard.vue';
 import DiagnosticsMessageLogDatabaseCard from '@/views/Diagnostics/DiagnosticsMessageLogDatabaseCard.vue';
-import DiagnosticsProxyMemoryUsageCard from "@/views/Diagnostics/DiagnosticsProxyMemoryUsageCard.vue";
+import DiagnosticsProxyMemoryUsageCard from '@/views/Diagnostics/DiagnosticsProxyMemoryUsageCard.vue';
 import DiagnosticsDownloadSystemInfoBtn from '@/views/Diagnostics/DiagnosticsDownloadSystemInfoBtn.vue';
-import { XrdSubViewContainer, XrdTitledView } from '@niis/shared-ui';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    XrdSubViewContainer,
     XrdTitledView,
     DiagnosticsDownloadSystemInfoBtn,
     DiagnosticsJavaVersionCard,

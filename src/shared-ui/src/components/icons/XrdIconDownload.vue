@@ -26,15 +26,11 @@
  -->
 <template>
   <g>
-    <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-      d="M10 2V11H6L12 17L18 11H14V2H10ZM2 20V22H22V20H2Z"
-    />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M10 2V11H6L12 17L18 11H14V2H10ZM2 20V22H22V20H2Z" />
   </g>
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent } from 'vue';
 
 export default defineComponent({});
 </script>
