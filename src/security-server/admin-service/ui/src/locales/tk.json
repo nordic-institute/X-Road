@@ -227,7 +227,7 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Içki ýalňyşlyk ýüze çykdy",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Wagt bellemek üçin serweriň nädogry URL-sy. URL-ny belläň",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Baglanma wagty gutardy. Konfigurasiýanyň global üpjün edijisine tör birikmesini barlaň.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Baglanma wagty gutardy. Ağ bağlantısını kontrol edin.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Baglanma bar, ýöne wagt belligi üçin talap entäk ýerine ýetirilmedi",
         "SUCCESS": "Hemme zat gowy",
         "UNKNOWN": "Näbelli"

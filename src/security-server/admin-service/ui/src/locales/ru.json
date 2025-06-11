@@ -227,7 +227,7 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Произошла внутренняя ошибка",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Неверный URL сервера меток времени. Проверьте URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Время ожидания соединения истекло. Проверьте подключение к сети глобального конфигурационного провайдера.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Время ожидания соединения истекло. Проверьте подключение к сети.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Соединение установлено, запрос метки времени еще не отправлен",
         "SUCCESS": "Все в порядке",
         "UNKNOWN": "Неизвестно"
