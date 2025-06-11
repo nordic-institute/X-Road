@@ -146,18 +146,6 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
         }
     }
 
-    private void readAction(ThrowingRunnable<Exception> action) {
-        rwLock.readLock().lock();
-        try {
-            action.run();
-        } catch (Exception e) {
-            throw translateException(e);
-        } finally {
-            tokenWorker.onActionHandled();
-            rwLock.readLock().unlock();
-        }
-    }
-
     private void writeAction(ThrowingRunnable<Exception> action) {
         rwLock.writeLock().lock();
         try {
