@@ -4,9 +4,9 @@
     data-test="diagnostics-view"
   >
     <v-card variant="flat">
-<!--      <v-card-title class="text-h5">-->
-<!--        {{ $t('diagnostics.traffic.title') }}-->
-<!--      </v-card-title>-->
+      <!--      <v-card-title class="text-h5">-->
+      <!--        {{ $t('diagnostics.traffic.title') }}-->
+      <!--      </v-card-title>-->
       <v-card-text class="xrd-card-text">
         <v-row dense>
           <v-col cols="3">
@@ -66,7 +66,7 @@
               item-value="id"
               :loading="clientsLoading"
             >
-              <template v-slot:item="{ props: itemProps, item }">
+              <template #item="{ props: itemProps, item }">
                 <v-list-item
                   v-bind="itemProps"
                   :subtitle="item.raw.member_name"
@@ -114,20 +114,23 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { XrdTitledView } from '@niis/shared-ui';
+import { Colors, XrdTitledView } from '@niis/shared-ui';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import { useClients } from '@/store/modules/clients';
 import TrafficChart from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 import { useDate } from 'vuetify';
+import { useNotifications } from '@/store/modules/notifications';
+import axios from 'axios';
+import { OperationalDataInterval } from '@/openapi-types';
+
+const { showError } = useNotifications();
 
 const clientsLoading = ref(true);
 
 const clientsStore = useClients();
 clientsStore
   .fetchClients()
-  .catch((error) => {
-    console.error('Failed to load clients:', error);
-  })
+  .catch(showError)
   .finally(() => {
     clientsLoading.value = false;
   });
@@ -149,16 +152,18 @@ function generateRandomData(min = 0, max = 100) {
   return data;
 }
 
-const series = [
+const series = ref([
   {
     name: 'Successful requests',
-    color: '#00d54d',
+    color: Colors.Success100,
     data: generateRandomData(40, 100),
   },
   {
     name: 'Failed requests',
-    color: '#d84957',
+    color: Colors.Error,
     data: generateRandomData(0, 5),
   },
-];
+]);
+
+
 </script>

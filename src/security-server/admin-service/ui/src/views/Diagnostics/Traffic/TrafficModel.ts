@@ -1,5 +1,5 @@
 declare type TrafficModel = {
-  time: string,
-  successCount: number,
-  failureCount: number,
+  time: string;
+  successCount: number;
+  failureCount: number;
 };

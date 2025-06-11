@@ -9,7 +9,7 @@
 
 <script lang="ts" setup>
 import VueApexChart from 'vue3-apexcharts';
-import { ref, defineProps } from 'vue';
+import { ref } from 'vue';
 
 const props = defineProps<{ series: any }>();
 
@@ -21,5 +21,4 @@ const options = ref({
     width: 2,
   },
 });
-
 </script>
