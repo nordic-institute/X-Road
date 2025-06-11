@@ -34,9 +34,7 @@ import org.springframework.context.annotation.Configuration;
 public class SignerIntTestConfiguration {
     @Bean
     TestCaFeignInterceptor testCaFeignInterceptor(SignerIntTestSetup envSetup) {
-        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(
-                        SignerIntTestSetup.TESTCA,
-                        SignerIntTestSetup.Port.TEST_CA)
-                .port());
+        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(SignerIntTestSetup.TESTCA,
+                SignerIntTestSetup.Port.TEST_CA).port());
     }
 }

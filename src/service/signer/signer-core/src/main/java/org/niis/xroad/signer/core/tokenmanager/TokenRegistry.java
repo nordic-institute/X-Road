@@ -54,7 +54,6 @@ public class TokenRegistry {
 
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
-
     private final TokenContext tokenContext = new TokenContext();
     private final ModifiableTokenContext modifiableTokenContext = new ModifiableTokenContext();
     private final TokenRegistryLoader tokenRegistryLoader;
@@ -93,7 +92,6 @@ public class TokenRegistry {
             currentTokens = tokenRegistryLoader.refreshTokens(currentTokens);
         }
 
-
         public RuntimeTokenImpl findToken(String tokenId) {
             return TokenLookupUtils.findToken(currentTokens, tokenId);
         }
@@ -110,27 +108,8 @@ public class TokenRegistry {
             return TokenLookupUtils.findCert(currentTokens, certId);
         }
 
-        public <T> Optional<T> forCert(BiPredicate<RuntimeKeyImpl, RuntimeCertImpl> tester,
-                                       BiFunction<RuntimeKeyImpl, RuntimeCertImpl, T> mapper) {
-            return TokenLookupUtils.forCert(currentTokens, tester, mapper);
-        }
-
-        public <T> Optional<T> forKey(BiPredicate<RuntimeTokenImpl, RuntimeKeyImpl> tester,
-                                      BiFunction<RuntimeTokenImpl, RuntimeKeyImpl, T> mapper) {
-            return TokenLookupUtils.forKey(currentTokens, tester, mapper);
-        }
-
-        public <T> Optional<T> forToken(Predicate<RuntimeTokenImpl> tester, Function<RuntimeTokenImpl, T> mapper) {
-            return TokenLookupUtils.forToken(currentTokens, tester, mapper);
-        }
-
         public Optional<CertRequestData> findCertRequest(String certReqId) {
             return TokenLookupUtils.findCertRequest(currentTokens, certReqId);
-        }
-
-        <T> Optional<T> forCertRequest(BiPredicate<RuntimeKeyImpl, CertRequestData> tester,
-                                       BiFunction<RuntimeKeyImpl, CertRequestData, T> mapper) {
-            return TokenLookupUtils.forCertRequest(currentTokens, tester, mapper);
         }
 
     }
@@ -146,10 +125,6 @@ public class TokenRegistry {
 
         public RuntimeKeyImpl findKey(String keyId) {
             return TokenLookupUtils.findKey(currentTokens, keyId);
-        }
-
-        public RuntimeCertImpl findCert(String certId) {
-            return TokenLookupUtils.getCert(currentTokens, certId);
         }
 
         public <T> Optional<T> forCert(BiPredicate<RuntimeKeyImpl, RuntimeCertImpl> tester,
@@ -175,13 +150,11 @@ public class TokenRegistry {
 
     public class BaseTokenContext<Token> {
 
-
     }
 
     @FunctionalInterface
     public interface TokenSupplier<T, V extends BaseTokenContext<?>> {
         T get(V ctx);
-
     }
 
     @FunctionalInterface

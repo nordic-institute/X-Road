@@ -132,8 +132,6 @@ public class TokenRegistryLoader {
                 ((RuntimeKeyImpl) newKey).transferTransientData(existingKey);
             }
         });
-
-
     }
 
     private RuntimeTokenImpl createRuntimeToken(TokenService.LoadedTokens loadedTokens, BasicTokenInfo basicTokenInfo) {
@@ -165,7 +163,6 @@ public class TokenRegistryLoader {
         }
         return runtimeKey;
     }
-
 
     private RuntimeCertImpl createRuntimeCert(BasicCertInfo certInfo) {
         var runtimeCert = new RuntimeCertImpl();

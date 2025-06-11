@@ -95,28 +95,6 @@ public final class SoftwareTokenUtil {
         return privateKey;
     }
 
-    static Certificate loadCertificate(byte[] keyStoreFile, String alias, char[] password) throws Exception {
-        KeyStore ks = loadPkcs12KeyStore(new ByteArrayInputStream(keyStoreFile), password);
-
-        Certificate cert = ks.getCertificate(alias);
-
-        if (cert == null) {
-            // Could not find certificate for given alias, attempt to find
-            // certificate for any alias in the key store
-            Enumeration<String> aliases = ks.aliases();
-
-            while (aliases.hasMoreElements()) {
-                cert = ks.getCertificate(aliases.nextElement());
-
-                if (cert != null) {
-                    return cert;
-                }
-            }
-        }
-
-        return cert;
-    }
-
     public static KeyStore rewriteKeyStoreWithNewPin(KeyStore oldKeyStore, String keyAlias, char[] oldPin, char[] newPin) throws Exception {
         PrivateKey privateKey = loadPrivateKey(oldKeyStore, keyAlias, oldPin);
 
