@@ -26,7 +26,7 @@
  -->
 
 <template>
-  <div>
+  <div XXX="YYY">
     <slot name="top" />
     <v-row align="center" justify="center" style="margin-top: 0">
       <transition name="fade" mode="out-in">
