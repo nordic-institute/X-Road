@@ -28,14 +28,20 @@ package org.niis.xroad.signer.application;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import jakarta.inject.Inject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 
 @QuarkusTest
 @TestProfile(SignerTestProfile.class)
 class SignerMainTest {
+    @Inject
+    TokenLookup tokenLookup;
 
     @Test
     void testMain() {
-
+        var result = tokenLookup.listTokens();
+        Assertions.assertTrue(result.isEmpty(), "Token lookup should not throw an exception");
     }
 }

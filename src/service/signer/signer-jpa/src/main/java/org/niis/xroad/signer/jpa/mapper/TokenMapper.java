@@ -29,11 +29,11 @@ package org.niis.xroad.signer.jpa.mapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
-import org.niis.xroad.serverconf.impl.entity.SignerTokenEntity;
 import org.niis.xroad.signer.core.model.BasicTokenInfo;
 import org.niis.xroad.signer.core.model.HardwareTokenData;
 import org.niis.xroad.signer.core.model.SoftwareTokenData;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
+import org.niis.xroad.signer.jpa.entity.SignerTokenEntity;
 
 @ApplicationScoped
 @RequiredArgsConstructor

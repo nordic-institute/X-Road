@@ -17,6 +17,7 @@ dependencies {
 
   implementation(project(":common:common-core"))
   implementation(project(":common:common-rpc-quarkus"))
+  implementation(project(":service:signer:signer-api"))
   implementation(project(":service:signer:signer-core"))
   implementation(project(":service:signer:signer-jpa"))
   implementation(project(":lib:bootstrap-quarkus"))
@@ -25,7 +26,9 @@ dependencies {
   implementation(libs.bundles.quarkus.containerized)
   implementation(libs.quarkus.extension.systemd.notify)
 
+  testImplementation(project(":common:common-db"))
   testImplementation(libs.quarkus.junit5)
+  testImplementation(libs.hsqldb)
 }
 
 tasks.jar {

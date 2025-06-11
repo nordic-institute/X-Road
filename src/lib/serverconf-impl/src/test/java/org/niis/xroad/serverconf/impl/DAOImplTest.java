@@ -34,23 +34,24 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import org.hibernate.Session;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
-import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
-import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
 
 import java.util.Date;
 import java.util.List;
@@ -60,14 +61,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.serverconf.impl.TestUtil.NUM_CLIENTS;
-import static org.niis.xroad.serverconf.impl.TestUtil.SERVICE_VERSION;
-import static org.niis.xroad.serverconf.impl.TestUtil.SUBSYSTEM;
-import static org.niis.xroad.serverconf.impl.TestUtil.client;
-import static org.niis.xroad.serverconf.impl.TestUtil.createTestClientId;
-import static org.niis.xroad.serverconf.impl.TestUtil.createTestServiceIdEntity;
 import static org.niis.xroad.serverconf.impl.TestUtil.prepareDB;
-import static org.niis.xroad.serverconf.impl.TestUtil.service;
 
 /**
  * Test cases for different ServerConf releated DAOs.
@@ -114,15 +108,15 @@ public class DAOImplTest {
      */
     @Test
     public void getClientByIdentifier() {
-        ClientId id = createTestClientId(client(1));
+        ClientId id = TestUtil.createTestClientId(TestUtil.client(1));
         assertTrue(clientExists(id, false));
         getClient(id);
 
-        id = createTestClientId(client(NUM_CLIENTS - 1));
+        id = TestUtil.createTestClientId(TestUtil.client(TestUtil.NUM_CLIENTS - 1));
         assertFalse(clientExists(id, false));
         assertTrue(clientExists(id, true));
 
-        id = createTestClientId(client(NUM_CLIENTS - 1), SUBSYSTEM);
+        id = TestUtil.createTestClientId(TestUtil.client(TestUtil.NUM_CLIENTS - 1), TestUtil.SUBSYSTEM);
         assertTrue(clientExists(id, false));
     }
 
@@ -131,8 +125,8 @@ public class DAOImplTest {
      */
     @Test
     public void getIsCerts() {
-        ClientId id = createTestClientId(client(1));
-        assertEquals(1, new ClientDAOImpl().getIsCerts(session, id).size());
+        ClientId id = TestUtil.createTestClientId(TestUtil.client(1));
+        Assert.assertEquals(1, new ClientDAOImpl().getIsCerts(session, id).size());
     }
 
     /**
@@ -140,8 +134,8 @@ public class DAOImplTest {
      */
     @Test
     public void getServiceByIdentifier() {
-        ServiceIdEntity id = createTestServiceIdEntity(client(1), service(1, 1),
-                SERVICE_VERSION);
+        ServiceIdEntity id = TestUtil.createTestServiceIdEntity(TestUtil.client(1), TestUtil.service(1, 1),
+                TestUtil.SERVICE_VERSION);
         ServiceEntity service = new ServiceDAOImpl().getService(session, id);
         assertNotNull(service);
         assertNotNull(service.getServiceDescription());
@@ -153,7 +147,7 @@ public class DAOImplTest {
         ServiceDescriptionEntity serviceDescription = new ServiceDescriptionDAOImpl().getServiceDescription(session, id);
         assertNotNull(serviceDescription);
         assertNotNull(serviceDescription.getClient());
-        assertEquals(id.getClientId(), serviceDescription.getClient().getIdentifier());
+        Assert.assertEquals(id.getClientId(), serviceDescription.getClient().getIdentifier());
     }
 
     /**
@@ -161,7 +155,7 @@ public class DAOImplTest {
      */
     @Test
     public void getAcl() {
-        ClientId id = createTestClientId(client(1));
+        ClientId id = TestUtil.createTestClientId(TestUtil.client(1));
         List<AccessRightEntity> acl = getClient(id).getAccessRights();
         assertEquals(6, acl.size());
 
@@ -176,7 +170,7 @@ public class DAOImplTest {
      */
     @Test
     public void deleteClient() {
-        ClientId id = createTestClientId(client(2));
+        ClientId id = TestUtil.createTestClientId(TestUtil.client(2));
         ClientEntity client = getClient(id);
 
         ServerConfEntity conf = getConf();
@@ -194,10 +188,10 @@ public class DAOImplTest {
      */
     @Test
     public void deleteServiceDescription() {
-        ClientId id = createTestClientId(client(3));
+        ClientId id = TestUtil.createTestClientId(TestUtil.client(3));
         ClientEntity client = getClient(id);
 
-        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescriptions().size());
+        Assert.assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS, client.getServiceDescriptions().size());
 
         ServiceDescriptionEntity serviceDescription = client.getServiceDescriptions().getFirst();
         Long serviceDescriptionId = serviceDescription.getId();
@@ -206,7 +200,7 @@ public class DAOImplTest {
         session.merge(client);
         session.remove(serviceDescription);
 
-        assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescriptions().size());
+        Assert.assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescriptions().size());
         assertNull(session.get(ServiceDescriptionEntity.class, serviceDescriptionId));
     }
 
@@ -215,13 +209,13 @@ public class DAOImplTest {
      */
     @Test
     public void addLocalGroupMember() {
-        ClientEntity client = getClient(createTestClientId(client(1)));
+        ClientEntity client = getClient(TestUtil.createTestClientId(TestUtil.client(1)));
         assertFalse(client.getLocalGroups().isEmpty());
 
         LocalGroupEntity localGroup = client.getLocalGroups().getFirst();
 
         ClientIdEntity clientId =
-                identifierDAO.findClientId(session, createTestClientId(client(3)));
+                identifierDAO.findClientId(session, TestUtil.createTestClientId(TestUtil.client(3)));
         assertNotNull(clientId);
 
         GroupMemberEntity member = new GroupMemberEntity();
@@ -243,7 +237,7 @@ public class DAOImplTest {
     private ClientEntity getClient(ClientId id) {
         ClientEntity client = new ClientDAOImpl().getClient(session, id);
         assertNotNull(client);
-        assertEquals(id, client.getIdentifier());
+        Assert.assertEquals(id, client.getIdentifier());
 
         return client;
     }

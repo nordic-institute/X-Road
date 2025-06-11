@@ -25,24 +25,25 @@
  */
 package org.niis.xroad.signer.jpa.service.impl;
 
+import ee.ria.xroad.common.db.DatabaseCtx;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.dao.SignerKeyCertDaoImpl;
-import org.niis.xroad.serverconf.impl.dao.SignerKeyCertRequestDaoImpl;
-import org.niis.xroad.serverconf.impl.dao.SignerKeyDaoImpl;
-import org.niis.xroad.serverconf.impl.dao.SignerTokenDaoImpl;
-import org.niis.xroad.serverconf.impl.entity.SignerCertRequestEntity;
-import org.niis.xroad.serverconf.impl.entity.SignerCertificateEntity;
-import org.niis.xroad.serverconf.impl.entity.SignerKeyEntity;
-import org.niis.xroad.serverconf.impl.entity.SignerTokenEntity;
 import org.niis.xroad.signer.core.model.BasicCertInfo;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.BasicTokenInfo;
 import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.jpa.dao.impl.SignerKeyCertDaoImpl;
+import org.niis.xroad.signer.jpa.dao.impl.SignerKeyCertRequestDaoImpl;
+import org.niis.xroad.signer.jpa.dao.impl.SignerKeyDaoImpl;
+import org.niis.xroad.signer.jpa.dao.impl.SignerTokenDaoImpl;
+import org.niis.xroad.signer.jpa.entity.SignerCertRequestEntity;
+import org.niis.xroad.signer.jpa.entity.SignerCertificateEntity;
+import org.niis.xroad.signer.jpa.entity.SignerKeyEntity;
+import org.niis.xroad.signer.jpa.entity.SignerTokenEntity;
 import org.niis.xroad.signer.jpa.mapper.CertMapper;
 import org.niis.xroad.signer.jpa.mapper.CertRequestMapper;
 import org.niis.xroad.signer.jpa.mapper.KeyMapper;
@@ -60,7 +61,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
-    private final ServerConfDatabaseCtx serverConfDatabaseCtx;
+    private final DatabaseCtx sessionProvider;
     private final SignerTokenDaoImpl tokenDao;
     private final SignerKeyDaoImpl keyDao;
     private final SignerKeyCertDaoImpl certDao;
@@ -72,12 +73,12 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public LoadedTokens loadAllTokens() throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(this::loadedTokens);
+        return sessionProvider.doInTransaction(this::loadedTokens);
     }
 
     @Override
     public void delete(Long tokenId) {
-        tokenDao.deleteById(serverConfDatabaseCtx.getSession(), SignerTokenEntity.class, tokenId);
+        tokenDao.deleteById(sessionProvider.getSession(), SignerTokenEntity.class, tokenId);
     }
 
     @Override
@@ -90,19 +91,19 @@ public class TokenServiceImpl implements TokenService {
         entity.setSerialNo(serialNo);
         entity.setPin(null);
 
-        return serverConfDatabaseCtx.doInTransaction(session ->
+        return sessionProvider.doInTransaction(session ->
                 tokenDao.save(session, entity).getId());
     }
 
     @Override
     public boolean setInitialTokenPin(Long id, byte[] pinHash) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> tokenDao.updatePin(session, id, pinHash));
+        return sessionProvider.doInTransaction(session -> tokenDao.updatePin(session, id, pinHash));
     }
 
 
     @Override
     public boolean updateTokenPin(Long id, Map<Long, byte[]> updatedKeys, byte[] pinHash) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> {
+        return sessionProvider.doInTransaction(session -> {
             if (tokenDao.updatePin(session, id, pinHash)) {
                 updatedKeys.forEach((keyId, keyStore) -> {
                     if (!keyDao.updateKeystore(session, keyId, keyStore)) {
@@ -117,7 +118,7 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public boolean updateFriendlyName(Long id, String friendlyName) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> tokenDao.updateFriendlyName(session, id, friendlyName));
+        return sessionProvider.doInTransaction(session -> tokenDao.updateFriendlyName(session, id, friendlyName));
 
     }
 

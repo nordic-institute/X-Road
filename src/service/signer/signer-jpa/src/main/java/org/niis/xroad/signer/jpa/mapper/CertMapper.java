@@ -31,10 +31,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
-import org.niis.xroad.serverconf.impl.entity.SignerCertificateEntity;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.signer.core.model.BasicCertInfo;
 import org.niis.xroad.signer.core.model.CertData;
+import org.niis.xroad.signer.jpa.entity.SignerCertificateEntity;
 
 import java.security.cert.X509Certificate;
 

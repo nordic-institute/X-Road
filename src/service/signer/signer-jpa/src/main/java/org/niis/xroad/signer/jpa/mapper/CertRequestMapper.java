@@ -28,9 +28,9 @@ package org.niis.xroad.signer.jpa.mapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
-import org.niis.xroad.serverconf.impl.entity.SignerCertRequestEntity;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.signer.core.model.CertRequestData;
+import org.niis.xroad.signer.jpa.entity.SignerCertRequestEntity;
 
 @ApplicationScoped
 @RequiredArgsConstructor

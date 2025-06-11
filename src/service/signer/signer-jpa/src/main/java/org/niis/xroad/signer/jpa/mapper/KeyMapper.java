@@ -28,13 +28,13 @@ package org.niis.xroad.signer.jpa.mapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
-import org.niis.xroad.serverconf.impl.entity.SignerKeyEntity;
-import org.niis.xroad.serverconf.impl.entity.type.KeyType;
-import org.niis.xroad.serverconf.impl.entity.type.KeyUsage;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.HardwareKey;
 import org.niis.xroad.signer.core.model.SoftwareKey;
+import org.niis.xroad.signer.jpa.entity.SignerKeyEntity;
+import org.niis.xroad.signer.jpa.entity.type.KeyType;
+import org.niis.xroad.signer.jpa.entity.type.KeyUsage;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 @ApplicationScoped

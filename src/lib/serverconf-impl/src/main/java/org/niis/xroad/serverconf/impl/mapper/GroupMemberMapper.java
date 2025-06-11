@@ -29,6 +29,7 @@ package org.niis.xroad.serverconf.impl.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.common.core.mapper.GenericUniDirectionalMapper;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.model.GroupMember;
 

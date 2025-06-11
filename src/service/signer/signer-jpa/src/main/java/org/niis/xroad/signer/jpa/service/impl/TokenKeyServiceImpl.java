@@ -1,23 +1,48 @@
+/*
+ * The MIT License
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package org.niis.xroad.signer.jpa.service.impl;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.dao.SignerKeyDaoImpl;
-import org.niis.xroad.serverconf.impl.entity.SignerKeyEntity;
-import org.niis.xroad.serverconf.impl.entity.type.KeyType;
-import org.niis.xroad.serverconf.impl.entity.type.KeyUsage;
 import org.niis.xroad.signer.core.service.TokenKeyService;
+import org.niis.xroad.signer.jpa.dao.impl.SignerKeyDaoImpl;
+import org.niis.xroad.signer.jpa.entity.SignerKeyEntity;
+import org.niis.xroad.signer.jpa.entity.type.KeyType;
+import org.niis.xroad.signer.jpa.entity.type.KeyUsage;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class TokenKeyServiceImpl implements TokenKeyService {
-    private final ServerConfDatabaseCtx serverConfDatabaseCtx;
+    private final DatabaseCtx sessionProvider;
     private final SignerKeyDaoImpl keyDao;
 
     @Override
@@ -34,22 +59,22 @@ public class TokenKeyServiceImpl implements TokenKeyService {
         entity.setPublicKey(publicKeyBase64);
         entity.setKeyStore(keyStore);
 
-        return serverConfDatabaseCtx.doInTransaction(session -> keyDao.save(session, entity).getId());
+        return sessionProvider.doInTransaction(session -> keyDao.save(session, entity).getId());
     }
 
     @Override
     public boolean delete(Long id) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> keyDao.deleteById(session, SignerKeyEntity.class, id));
+        return sessionProvider.doInTransaction(session -> keyDao.deleteById(session, SignerKeyEntity.class, id));
     }
 
     @Override
     public boolean updateFriendlyName(Long id, String friendlyName) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> keyDao.updateFriendlyName(session, id, friendlyName));
+        return sessionProvider.doInTransaction(session -> keyDao.updateFriendlyName(session, id, friendlyName));
     }
 
     @Override
     public boolean updateLabel(Long id, String label) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> keyDao.updateLabel(session, id, label));
+        return sessionProvider.doInTransaction(session -> keyDao.updateLabel(session, id, label));
     }
 
     @Override
@@ -60,11 +85,11 @@ public class TokenKeyServiceImpl implements TokenKeyService {
             default -> null;
         };
 
-        return serverConfDatabaseCtx.doInTransaction(session -> keyDao.updateKeyUsage(session, id, keyUsage));
+        return sessionProvider.doInTransaction(session -> keyDao.updateKeyUsage(session, id, keyUsage));
     }
 
     @Override
     public boolean updatePublicKey(Long id, String publicKey) throws Exception {
-        return serverConfDatabaseCtx.doInTransaction(session -> keyDao.updatePublicKey(session, id, publicKey));
+        return sessionProvider.doInTransaction(session -> keyDao.updatePublicKey(session, id, publicKey));
     }
 }

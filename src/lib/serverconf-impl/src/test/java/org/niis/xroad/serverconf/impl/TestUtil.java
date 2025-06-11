@@ -30,30 +30,30 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.EncoderUtils;
 
 import org.hibernate.Session;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
+import org.niis.xroad.common.identifiers.jpa.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfDbProperties;
 import org.niis.xroad.serverconf.impl.entity.AccessRightEntity;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.EndpointEntity;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity;
 import org.niis.xroad.serverconf.impl.entity.ServiceEntity;
-import org.niis.xroad.serverconf.impl.entity.ServiceIdEntity;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
-import org.niis.xroad.serverconf.impl.mapper.XRoadIdMapper;
 import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.Date;
 import java.util.Map;
 
-import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static org.niis.xroad.common.properties.ConfigUtils.defaultConfiguration;
 import static org.niis.xroad.common.properties.ConfigUtils.initConfiguration;
 
@@ -188,7 +188,7 @@ public final class TestUtil {
                 case 1:
                     client.setIsAuthentication("SSLAUTH");
                     CertificateEntity ct = new CertificateEntity();
-                    ct.setData(decodeBase64(BASE64_CERT));
+                    ct.setData(EncoderUtils.decodeBase64(BASE64_CERT));
                     client.getCertificates().add(ct);
                     break;
                 case 2:

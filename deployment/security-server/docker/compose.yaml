@@ -209,7 +209,7 @@ services:
         reservations:
           memory: 64M
         limits:
-          memory: 320M
+          memory: 448M
   proxy:
     image: ${PROXY_IMG}
     pull_policy: always
@@ -288,7 +288,7 @@ services:
         reservations:
           memory: 64M
         limits:
-          memory: 512M
+          memory: 768M
   backup-manager:
     image: ${BACKUP_MANAGER_IMG}
     pull_policy: always

@@ -39,6 +39,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 
 import java.util.Date;
 
