@@ -1,10 +1,4 @@
 {
-  "403":{
-     "goBack":"Voltar",
-     "mainTitle":"Permissão negada",
-     "text":"Parece que você não tem permissão para visualizar esta página. Se acredita que isso seja um erro, verifique se está conectado com a conta correta ou entre em contato com o administrador para revisar suas permissões.",
-     "topTitle":"Acesso proibido"
-  },
   "action":{
      "addName":"Adicionar nome do subsistema",
      "approve":"Aprovar",
@@ -195,7 +189,6 @@
      "navigation":{
         "back":"Voltar"
      },
-     "pageNotFound":"Ops, página não encontrada",
      "register":"Registrar",
      "search":"Buscar",
      "server":"Servidor",
@@ -385,6 +378,8 @@
            "title":"Recusar solicitação de gerenciamento"
         }
      },
+     "maintenanceModeDisable": "Desativar modo de manutenção",
+     "maintenanceModeEnable": "Ativar modo de manutenção",
      "pending":"Pendente",
      "rejected":"Recusada",
      "removeCertificate":"Remover certificado",
@@ -397,26 +392,26 @@
      "submitted":"Enviada para aprovação",
      "unknown":"Desconhecida"
   },
-  "members":{
-     "addMember":"Adicionar membro",
-     "header":"Membros",
-     "member":{
-        "details":{
-           "addedToGroup":"Adicionado ao grupo",
-           "areYouSureUnregister":"Deseja realmente remover o Membro {memberCode} do servidor {serverCode} da configuração do sistema?",
-           "confirmDelete":"Tem certeza de que deseja excluir o Membro {member} da configuração do sistema? Digite o código do membro para confirmar.",
-           "deleteMember":"Excluir membro",
-           "editMemberName":"Editar nome do Membro",
-           "enterCode":"Digite o Código do Membro",
-           "globalGroups":"Grupos Globais",
-           "group":"Grupo",
-           "memberDeleted":"Membro excluído com sucesso",
-           "memberNameSaved":"Nome do membro salvo com sucesso",
-           "memberSuccessfullyUnregistered":"Membro {memberCode} do servidor {serverCode} removido com sucesso",
-           "ownedServers":"Servidores próprios",
-           "server":"Servidor",
-           "unregisterMember":"Remover membro",
-           "usedServers":"Servidores utilizados"
+  "members": {
+  "addMember": "Adicionar membro",
+  "header": "Membros",
+  "member": {
+    "details": {
+      "addedToGroup": "Adicionado ao grupo",
+      "areYouSureUnregister": "Deseja realmente remover o Membro {memberCode} do servidor {serverCode} da configuração do sistema?",
+      "confirmDelete": "Tem certeza de que deseja excluir o Membro {member} da configuração do sistema? Digite o código do membro para confirmar.",
+      "deleteMember": "Excluir membro",
+      "editMemberName": "Editar nome do Membro",
+      "enterCode": "Digite o Código do Membro",
+      "globalGroups": "Grupos Globais",
+      "group": "Grupo",
+      "memberDeleted": "Membro excluído com sucesso",
+      "memberNameSaved": "Nome do membro salvo com sucesso",
+      "memberSuccessfullyUnregistered": "Membro {memberCode} do servidor {serverCode} removido com sucesso",
+      "ownedServers": "Servidores próprios",
+      "server": "Servidor",
+      "unregisterMember": "Remover membro",
+      "usedServers": "Servidores utilizados"
         },
         "managementRequests":{
            "created":"Criado",
@@ -469,6 +464,7 @@
         }
      },
      "disabled":"Temporariamente desativado",
+     "maintenanceMode": "Em modo de manutenção",
      "ownerClass":"Classe do Proprietário",
      "ownerCode":"Código do Proprietário",
      "ownerName":"Nome do Proprietário",
