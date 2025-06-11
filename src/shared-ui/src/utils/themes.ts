@@ -25,9 +25,48 @@
  * THE SOFTWARE.
  */
 
-import XrdAppBase from './XrdAppBase.vue';
-import XrdSubViewContainer from './XrdSubViewContainer.vue';
-import XrdAppFooter from './XrdAppFooter.vue';
-import XrdApp from './XrdApp.vue';
+// Version 8.0 colors as enum.
+import { ThemeDefinition } from 'vuetify/framework';
+import { Colors } from 'vuetify/lib/composables/theme';
+import { Colors as XrdColors } from './colors';
 
-export { XrdAppBase, XrdSubViewContainer, XrdAppFooter, XrdApp };
+interface CustomColors extends Colors {
+  systemBar: string;
+  systemBarInit: string;
+}
+
+interface CustomTheme extends ThemeDefinition {
+  colors: CustomColors;
+}
+
+type Themes = {
+  light: CustomTheme;
+};
+
+export const themes: Themes = {
+  light: {
+    dark: false,
+    colors: {
+      background: XrdColors.White, //TODO XRD8 is it?
+      surface: XrdColors.Blue100,
+      primary: XrdColors.Maroon400,
+      secondary: XrdColors.Maroon600,
+      success: XrdColors.Green700,
+      warning: XrdColors.Yellow700,
+      error: XrdColors.Red600,
+      info: XrdColors.Blue500,
+
+      'on-background': XrdColors.White, //TODO XRD8 is it?
+      'on-surface': XrdColors.Maroon900,
+      'on-primary': XrdColors.White,
+      'on-secondary': XrdColors.White,
+      'on-success': XrdColors.White,
+      'on-warning': XrdColors.White,
+      'on-error': XrdColors.White,
+      'on-info': XrdColors.White,
+
+      systemBar: XrdColors.Magenta900,
+      systemBarInit: XrdColors.Maroon700,
+    },
+  },
+};

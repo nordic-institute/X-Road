@@ -29,3 +29,4 @@ export * from './helpers';
 export * from './keys';
 export * from './types';
 export * from './colors';
+export * from './themes';
