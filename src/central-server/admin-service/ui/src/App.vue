@@ -25,7 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
+  <XrdApp>
+    <template #system-bar>
+      <app-toolbar v-if="loginView" />
+    </template>
+  </XrdApp>
+
+  <v-app class="xrd-app" aaa="BBB" v-if="!loginView">
     <!-- Dont show toolbar or footer in login view -->
     <app-toolbar v-if="loginView" />
     <v-main app>
@@ -46,7 +52,7 @@
 <script lang="ts" setup>
 // The root component of the Vue app
 import { computed } from 'vue';
-import { XrdAppFooter, XrdSnackBar } from '@niis/shared-ui';
+import { XrdAppFooter, XrdSnackBar, XrdApp } from '@niis/shared-ui';
 import AppToolbar from '@/layouts/AppToolbar.vue';
 import { RouteName } from '@/global';
 import { useRoute } from 'vue-router';
