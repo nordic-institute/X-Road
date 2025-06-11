@@ -750,7 +750,7 @@
      "uploadCertificate":"Enviar o arquivo do certificado a partir do seu computador",
      "validFrom":"Válido de",
      "validTo":"Válido até",
-     "viewCertificate":"Visualizar Certificado",
+     "viewCertificate":"Visualizar Certificado"
    },
      "validation":{
         "messages":{
@@ -763,4 +763,3 @@
         "SizeField":"O valor não atende aos requisitos de comprimento"
      }
   }
-  
