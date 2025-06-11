@@ -24,23 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+package org.niis.xroad.securityserver.restapi.cache;
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class MaintenanceModeStatus {
+
+    private Status status;
+
+    public void enableRequested(String message) {
+        status = new EnableRequested(message);
+    }
+
+    public void disableRequested() {
+        status = new DisableRequested();
+    }
+
+    public void clear() {
+        status = null;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public sealed interface Status {
+
+    }
+
+    public record EnableRequested(String message) implements Status {
+    }
+
+
+    public record DisableRequested() implements Status {
+    }
+
 }
-
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-

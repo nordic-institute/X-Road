@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
+package org.niis.xroad.securityserver.restapi.converter;
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.MaintenanceModeStatusDto;
+import org.springframework.stereotype.Component;
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
+/**
+ * Converter for AlertData related data between openapi and service domain classes
+ */
+@Component
+public class MaintenanceModeConverter {
+
+    public MaintenanceModeDto convert(MaintenanceMode maintenanceMode, boolean isManagementServicesProvider) {
+        var target = new MaintenanceModeDto();
+        target.setMessage(maintenanceMode.message());
+        target.setStatus(switch (maintenanceMode.status()) {
+            case ENABLING -> MaintenanceModeStatusDto.PENDING_ENABLE_MAINTENANCE_MODE;
+            case ENABLED -> MaintenanceModeStatusDto.ENABLED_MAINTENANCE_MODE;
+            case DISABLING -> MaintenanceModeStatusDto.PENDING_DISABLE_MAINTENANCE_MODE;
+            case DISABLED -> MaintenanceModeStatusDto.DISABLED_MAINTENANCE_MODE;
+        });
+
+        target.setIsManagementServicesProvider(isManagementServicesProvider);
+
+        return target;
+    }
 }
-
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-

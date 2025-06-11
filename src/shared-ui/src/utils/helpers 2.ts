@@ -24,23 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
-
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
+// Helper to copy text to clipboard
+function toClipboard(val: string): void {
+  // If a dialog is overlaying the entire page we need to put the textbox inside it, otherwise it doesn't get copied
+  const container = document.getElementsByClassName('v-dialog--active')[0] || document.body;
+  const tempValueContainer = document.createElement('input');
+  tempValueContainer.setAttribute('type', 'text');
+  tempValueContainer.style.zIndex = '300';
+  tempValueContainer.style.opacity = '0';
+  tempValueContainer.style.filter = 'alpha(opacity=0)';
+  tempValueContainer.setAttribute('data-test', 'generated-temp-value-container');
+  tempValueContainer.value = val;
+  container.appendChild(tempValueContainer);
+  tempValueContainer.select();
+  document.execCommand('copy');
+  container.removeChild(tempValueContainer);
 }
 
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-
+export const helper = {
+  toClipboard,
+};

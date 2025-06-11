@@ -26,7 +26,7 @@
 
 import { createLanguageHelper as _createLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'et', 'ru', 'tk'];
+const availableLanguages = ['en', 'es', 'et', 'ru', 'tk', 'pt-BR']; // Added support for the pt-BR (Brazilian Portuguese) language
 
 export async function createLanguageHelper() {
   return _createLanguageHelper(availableLanguages, loadMessages);

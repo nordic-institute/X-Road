@@ -24,23 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
+package org.niis.xroad.cs.admin.core.entity;
 
-// Fetches all language-specific messages for the given language
-export async function loadMessages(language: string) {
-  try {
-    const module = await import(`@/locales/${language}.json`);
-    return module.default;
-  } catch {
-    // eslint-disable-next-line no-console
-    console.warn('Failed to load translations for: ' + language);
-    return {};
-  }
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import lombok.NoArgsConstructor;
+import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
+import org.niis.xroad.cs.admin.api.domain.Origin;
+
+import static org.niis.xroad.cs.admin.core.entity.MaintenanceModeEnableRequestEntity.DISCRIMINATOR_VALUE;
+
+
+@Entity
+@NoArgsConstructor
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
+public class MaintenanceModeEnableRequestEntity extends RequestEntity {
+
+    public static final String DISCRIMINATOR_VALUE = "MaintenanceModeEnableRequest";
+
+    public MaintenanceModeEnableRequestEntity(Origin origin, SecurityServerId identifier, String message) {
+        super(origin, identifier, message);
+    }
+
+    @Override
+    public ManagementRequestType getManagementRequestType() {
+        return ManagementRequestType.MAINTENANCE_MODE_ENABLE_REQUEST;
+    }
 }
-
-export async function createLanguageHelper() {
-  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
-}
-
