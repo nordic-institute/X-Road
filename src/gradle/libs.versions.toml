@@ -164,7 +164,7 @@ logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", versi
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.7" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 h2database = { module = "com.h2database:h2", version = "2.2.224" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
