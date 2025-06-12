@@ -70,7 +70,7 @@ public class SignerCertificateEntity {
     private ClientIdEntity member;
 
     @Column(name = "active", nullable = false)
-    private Boolean active = true;
+    private Boolean active = false;
 
     @Column(name = "status")
     private String status;
