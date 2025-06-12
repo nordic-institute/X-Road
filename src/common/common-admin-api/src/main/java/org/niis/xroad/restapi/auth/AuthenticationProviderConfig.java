@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.AuthProviderConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.mapper.AdminUserMapper;
-import org.niis.xroad.restapi.repository.AdminUserRepository;
 import org.niis.xroad.restapi.service.AdminUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -48,6 +47,7 @@ import static org.niis.xroad.restapi.auth.securityconfigurer.ManageApiKeysWebSec
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class AuthenticationProviderConfig {
 
     // allow all ipv4 and ipv6
@@ -59,23 +59,6 @@ public class AuthenticationProviderConfig {
     private final AuditEventLoggingFacade auditEventLoggingFacade;
     private final UserRoleConfig userRoleConfig;
 
-    public AuthenticationProviderConfig(AuthProviderConfig authProviderConfig,
-                                        AdminUserRepository userRepository,
-                                        AdminUserMapper mapper,
-                                        GrantedAuthorityMapper grantedAuthorityMapper,
-                                        AuditEventLoggingFacade auditEventLoggingFacade,
-                                        UserRoleConfig userRoleConfig) {
-        /*
-          Marking an implementation of UserDetailsService as a bean triggers the autoconfiguration of DaoAuthenticationProvider,
-          causing it to be registered in addition to the given custom-defined provider
-         */
-        this.adminUserService = new AdminUserService(userRepository, mapper);
-
-        this.authProviderConfig = authProviderConfig;
-        this.grantedAuthorityMapper = grantedAuthorityMapper;
-        this.auditEventLoggingFacade = auditEventLoggingFacade;
-        this.userRoleConfig = userRoleConfig;
-    }
 
     /**
      * Authentication for form login, with corresponding IP whitelist

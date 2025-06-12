@@ -49,13 +49,71 @@
     "upload": "Upload",
     "yes": "Yes"
   },
+  "adminUsers": {
+    "addUser": {
+      "button": "Add user",
+      "step": {
+        "credentials": {
+          "username": "Username",
+          "password": "Password",
+          "passwordConfirm": "Confirm password",
+          "createKeyButton": "Create Key",
+          "name": "Credentials"
+        },
+        "roles": {
+          "description": "Please select the roles associated with the user. The roles define the permissions granted to the user.",
+          "name": "Roles",
+          "selectRoles": "Select roles"
+        }
+      },
+      "success": "User ({username}) successfully added",
+      "title": "Add admin user"
+    },
+    "table": {
+      "action": {
+        "changePassword": {
+          "dialog": {
+            "oldPassword": "Old password",
+            "newPassword": "New password",
+            "newPasswordConfirmation": "Confirm new password",
+            "title": "Change password for user ({username})"
+          },
+          "success": "User ({username}) password changed successfully"
+        },
+        "edit": {
+          "dialog": {
+            "message": "Roles associated with the user:",
+            "title": "Edit user ({username})"
+          },
+          "success": "User ({username}) edited successfully"
+        },
+        "delete": {
+          "button": "Delete user",
+          "confirmationDialog": {
+            "message": "Are you sure you want to delete user ({username})?",
+            "title": "Are you sure?"
+          },
+          "success": "User ({username}) deleted successfully"
+        }
+      },
+      "header": {
+        "username": "Username",
+        "roles": "Roles"
+      }
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
+    }
+  },
   "alert": {
     "count": "Amount of same errors:",
     "id": "ID"
   },
   "apiKey": {
     "createApiKey": {
-      "button": "CREATE API KEY",
+      "button": "Create API key",
       "step": {
         "keyDetails": {
           "apiKey": "API key",
@@ -179,6 +237,7 @@
     "invalid_certificate": "Invalid X.509 certificate",
     "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_filename": "Invalid filename",
+    "password_incorrect": "Password incorrect",
     "resource_read_failed": "Failed to read resource",
     "restore_process_failed": "Restore process failed",
     "token_fetch_failed": "Error getting tokens.",
@@ -196,7 +255,11 @@
     "code": "Code",
     "description": "Description",
     "memberClass": "Member Class",
+    "newPassword": "New Password",
+    "newPasswordConfirm": "Confirm New Password",
+    "oldPassword": "Old Password",
     "password": "Password",
+    "passwordConfirm": "Confirm Password",
     "securityServerCode": "Security Server Code",
     "shared": "sharedlib",
     "subsystemName": "Subsystem Name",
@@ -229,7 +292,8 @@
     "errorMsg401": "Wrong username or password",
     "generalError": "Login failed. Please try again.",
     "logIn": "Log in",
-    "logOut": "Log out"
+    "logOut": "Log out",
+    "changePassword": "Password"
   },
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",

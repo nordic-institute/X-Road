@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+import AddAdminUser from './AddAdminUser.vue';
+import AdminUsers from './AdminUsers.vue';
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import java.util.Set;
-
-@Getter
-@RequiredArgsConstructor
-public class AdminUser {
-    private final Long id;
-    private final String username;
-    private final String password;
-    private final Set<Role> roles;
-}
+export { AddAdminUser, AdminUsers };

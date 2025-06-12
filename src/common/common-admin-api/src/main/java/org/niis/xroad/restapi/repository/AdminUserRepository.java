@@ -33,6 +33,7 @@ import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -44,6 +45,22 @@ public class AdminUserRepository {
 
     public Optional<AdminUserEntity> findByUsername(String username) {
         return new AdminUserDAOImpl().findByUsername(persistenceUtils.getCurrentSession(), username);
+    }
+
+    public List<AdminUserEntity> getAll() {
+        return new AdminUserDAOImpl().findAll(persistenceUtils.getCurrentSession());
+    }
+
+    public void create(AdminUserEntity adminUser) {
+        persistenceUtils.getCurrentSession().persist(adminUser);
+    }
+
+    public void update(AdminUserEntity adminUser) {
+        persistenceUtils.getCurrentSession().merge(adminUser);
+    }
+
+    public void delete(AdminUserEntity adminUser) {
+        persistenceUtils.getCurrentSession().remove(adminUser);
     }
 
 }
