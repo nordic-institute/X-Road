@@ -59,6 +59,7 @@ class SharedParametersConfigurationLocations {
     private static final Pattern CONF_PATTERN = Pattern.compile("http://[^/]*/");
 
     private final FileNameProvider fileNameProvider;
+    private final GlobalConfSourceLocationRepository globalConfSourceLocationRepository;
 
     List<ConfigurationLocation> get(ConfigurationSource source) {
         List<ConfigurationLocation> locations = new ArrayList<>();
@@ -130,6 +131,22 @@ class SharedParametersConfigurationLocations {
                     .sharedParametersProvider(sharedParamsPath, OffsetDateTime.MAX)
                     .getSharedParameters()
                     .getSources();
+        } else {
+            // fallback to db if a shared-params file is not available
+            if (globalConfSourceLocationRepository != null) {
+                var locations = globalConfSourceLocationRepository.getByInstanceIdentifier(instanceIdentifier);
+                if (locations != null && !locations.isEmpty()) {
+                    return locations.entrySet().stream()
+                            .map(entry -> {
+                                var source = new SharedParameters.ConfigurationSource();
+                                source.setAddress(entry.getKey());
+                                source.setInternalVerificationCerts(entry.getValue().internalVerificationCerts());
+                                source.setExternalVerificationCerts(entry.getValue().externalVerificationCerts());
+                                return source;
+                            })
+                            .collect(Collectors.toList());
+                }
+            }
         }
         return List.of();
     }
