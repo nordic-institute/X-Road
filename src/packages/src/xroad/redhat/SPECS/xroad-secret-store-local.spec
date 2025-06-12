@@ -25,6 +25,7 @@ rm -rf %{buildroot}
 
 %install
 mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/usr/share/xroad/scripts/
 mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/etc/xroad/backup.d
@@ -33,6 +34,8 @@ cp -p %{_sourcedir}/secret-store-local/xroad-secret-store-local.service %{buildr
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/services/secret-store-local.conf %{buildroot}/etc/xroad/services/
 cp -p %{srcdir}/common/secret-store-local/usr/share/xroad/scripts/* %{buildroot}/usr/share/xroad/scripts/
 cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildroot}/etc/xroad/backup.d/
+cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %files
 %defattr(0640,xroad,xroad,0751)
@@ -46,6 +49,8 @@ cp -p %{srcdir}/common/secret-store-local/etc/xroad/backup.d/??_openbao %{buildr
 %attr(554,root,xroad) /usr/share/xroad/scripts/secret-store-wait-for.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/backup_openbao_db.sh
 %attr(554,root,xroad) /usr/share/xroad/scripts/restore_openbao_db.sh
+%doc /usr/share/doc/%{name}/LICENSE.txt
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 
 %pre -p /bin/bash
 %upgrade_check
