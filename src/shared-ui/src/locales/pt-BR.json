@@ -1,4 +1,15 @@
 {
+  "403": {
+  "goBack": "Voltar",
+  "mainTitle": "Permissão negada",
+  "text": "Parece que você não tem permissão para ver esta página. Se acha que é um erro, verifique se está logado na conta correta ou contate o administrador para conferir suas permissões.",
+  "topTitle": "Proibido"
+},
+"404": {
+  "pageNotFound": "404 - página não encontrada",
+  "text": "Ops! Essa página não existe.",
+  "textUnicorn": "Verifique o endereço ou volte a página inicial."
+},
   "action": {
     "activate": "Ativar",
     "add": "Adicionar",

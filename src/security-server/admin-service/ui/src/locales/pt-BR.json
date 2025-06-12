@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": "Voltar",
-    "mainTitle": "Permissão negada",
-    "text": "Parece que você não tem permissão para visualizar esta página. Se você acha que isso é um engano, verifique se está conectado à conta correta ou entre em contato com o administrador para revisar suas permissões.",
-    "topTitle": "Acesso proibido"
-  },
-  "404": {
-    "pageNotFound": "404 - página não encontrada",
-    "text": "Ops! Essa página não existe.",
-    "textUnicorn": "Verifique o endereço ou volte a página inicial."
-  },
   "accessRights": {
     "addServiceClients": "Adicionar clientes",
     "addServiceClientsSuccess": "Direitos de acesso adicionados com sucesso",
@@ -125,6 +114,7 @@
       }
     },
     "defaultSubsystemNameTooltip": "Nome do subsistema não definido",
+    "forbiddenDisable": "O provedor de serviços de gerenciamento não pode ser desativado.",
     "id": "ID",
     "member": "Membro",
     "memberClass": "Classe do Membro",
@@ -147,6 +137,7 @@
     },
     "subsystemCode": "Código do Subsistema",
     "subsystemName": "Nome do Subsistema",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "membro desconhecido"
   },
   "clients": {
@@ -233,7 +224,6 @@
       "vendor": "Nome do fornecedor"
     },
     "mailNotificationConfiguration": {
-      "authCertRegisteredEnabled": "Notificações de certificado AUTH registrado",
       "confStatus": {
         "false": "Configuração incompleta",
         "true": "Configurado"
@@ -243,14 +233,38 @@
         "false": "Desativadas",
         "true": "Ativadas"
       },
-      "failureEnabled": "Notificações de falha",
       "help": {
         "description": "Notificações por e-mail são enviadas automaticamente para os destinatários configurados nos seguintes eventos (dependendo da configuração): renovação de certificado AUTH via ACME bem-sucedida / com falha, renovação de certificado SIGN via ACME bem-sucedida / com falha, registro de certificado AUTH bem-sucedido. A ativação das notificações requer alterações na configuração do Servidor Seguro. Consulte o Guia do Usuário para mais detalhes.",
         "title": "Status das notificações por e-mail"
       },
       "recipientsEmails": "E-mails dos destinatários",
-      "successEnabled": "Notificações de sucesso",
-      "title": "Status das notificações por e-mail"
+      "status": "Status",
+      "sentTestMail": "Enviar e-mail de teste",
+      "title": "Status das notificações por e-mail",
+      "type": {
+        "ACME_FAILURE": "Notificações de falha do ACME",
+        "ACME_SUCCESS": "Notificações de sucesso do ACME",
+        "AUTH_CERT_REGISTERED": "Notificações de certificado de autenticação registrado",
+        "ACME_CERT_AUTOMATICALLY_ACTIVATED": "Notificações de certificado ACME ativado automaticamente",
+        "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "Notificações de falha na ativação automática do certificado ACME"
+      },
+      "types": "Tipos de notificação por e-mail"
+    },
+    "maintenanceMode": {
+      "enableTitle": "Ativar modo de manutenção",
+      "enableConfirm": "Deseja ativar o modo de manutenção?",
+      "enableSuccess": "Ativação do modo de manutenção em andamento",
+      "disableTitle": "Desativar modo de manutenção",
+      "disableConfirm": "Deseja desativar o modo de manutenção?",
+      "disableSuccess": "Desativação do modo de manutenção em andamento",
+      "forbiddenEnable": "O modo de manutenção não pode ser ativado para um provedor de serviços de gerenciamento",
+      "label": "Modo de manutenção:",
+      "status": {
+        "DISABLED_MAINTENANCE_MODE": "O modo de manutenção está desativado",
+        "ENABLED_MAINTENANCE_MODE": "O modo de manutenção está ativado",
+        "PENDING_DISABLE_MAINTENANCE_MODE": "Solicitação para desativar o modo de manutenção enviada",
+        "PENDING_ENABLE_MAINTENANCE_MODE": "Solicitação para ativar o modo de manutenção enviada"
+      }
     },
     "message": "Mensagem",
     "nextUpdate": "Próxima atualização",
@@ -330,6 +344,8 @@
     },
     "action_not_possible": "Ação não permitida",
     "additional_member_already_exists": "Membro adicional já existe",
+    "already_disabled_maintenance_mode": "O modo de manutenção já está desativado",
+    "already_enabled_maintenance_mode": "O modo de manutenção já está ativado",
     "anchor_already_exists": "Âncora já existe",
     "anchor_file_not_found": "Arquivo de âncora não encontrado",
     "anchor_not_found": "Âncora não encontrada",
@@ -375,6 +391,8 @@
     "duplicate_accessright": "Direito de acesso duplicado",
     "endpoint_already_exists": "Endpoint já existe",
     "endpoint_not_found": "Endpoint não encontrado",
+    "forbidden_disable_management_service_client": "O provedor de serviços de gerenciamento não pode ser desativado.",
+    "forbidden_enable_maintenance_mode_for_management_service": "O provedor de serviços de gerenciamento não pode ser desativado.",
     "global_conf_download_request_failed": "Falha ao solicitar download da configuração global",
     "global_conf_outdated": "Configuração global está desatualizada",
     "gpg_key_generation_failed": "Falha ao gerar chave GPG",
@@ -402,6 +420,7 @@
     "local_group_member_not_found": "Membro do grupo local não encontrado",
     "local_group_not_found": "Grupo local não encontrado",
     "malformed_anchor": "Âncora malformada",
+    "maintenance_mode_change_request_already_submitted": "Já existe uma solicitação pendente para alteração do modo de manutenção",
     "malformed_url": "URL malformada",
     "management_request_sending_failed": "Falha ao enviar solicitação de gerenciamento",
     "member_already_owner": "Membro já é o proprietário",
@@ -473,6 +492,7 @@
     "keys": {
       "name": "Nome"
     },
+    "maintenanceModeMessage": "Mensagem do modo de manutenção",
     "memberCode": "Código do Membro",
     "path": "Caminho",
     "pin": "PIN",
@@ -506,7 +526,8 @@
     "name": "Nome",
     "subsystem": "Subsistema",
     "subsystemCode": "Código do Subsistema",
-    "type": "Tipo"
+    "type": "Tipo",
+    "undefinedSubsystemName": "indefinido"
   },
   "global": {
     "appTitle": "Servidor Seguro X-Road"
@@ -901,118 +922,118 @@
     },
     "title": "Parâmetros do Sistema"
   },
-    "tab": {
-      "client": {
-        "details": "Detalhes",
-        "internalServers": "Servidores internos",
-        "localGroups": "Grupos locais",
-        "serviceClients": "Clientes de serviço",
-        "services": "Serviços"
-      },
-      "keys": {
-        "apiKey": "Chaves de API",
-        "signAndAuthKeys": "Chaves SIGN e AUTH",
-        "ssTlsCertificate": "Chave TLS do Servidor Seguro"
-      },
-      "main": {
-        "clients": "Clientes",
-        "diagnostics": "Diagnósticos",
-        "keys": "Chaves e certificados",
-        "settings": "Configurações"
-      },
-      "services": {
-        "endpoints": "Endpoints",
-        "parameters": "Parâmetros do Serviço"
-      },
-      "settings": {
-        "backupAndRestore": "Backup e Restauração",
-        "systemParameters": "Parâmetros do Sistema"
-      }
+  "tab": {
+    "client": {
+      "details": "Detalhes",
+      "internalServers": "Servidores internos",
+      "localGroups": "Grupos locais",
+      "serviceClients": "Clientes de serviço",
+      "services": "Serviços"
     },
+    "keys": {
+      "apiKey": "Chaves de API",
+      "signAndAuthKeys": "Chaves SIGN e AUTH",
+      "ssTlsCertificate": "Chave TLS do Servidor Seguro"
+    },
+    "main": {
+      "clients": "Clientes",
+      "diagnostics": "Diagnósticos",
+      "keys": "Chaves e certificados",
+      "settings": "Configurações"
+    },
+    "services": {
+      "endpoints": "Endpoints",
+      "parameters": "Parâmetros do Serviço"
+    },
+    "settings": {
+      "backupAndRestore": "Backup e Restauração",
+      "systemParameters": "Parâmetros do Sistema"
+    }
+  },
+  "token": {
+    "changePin": "Alterar PIN",
+    "pinChanged": "PIN do token alterado – faça login com o novo PIN",
+    "tokenPinPolicy": "O PIN do token de software deve conter pelo menos 10 caracteres ASCII, abrangendo ao menos três classes de caracteres (letras minúsculas, letras maiúsculas, números e caracteres especiais).",
+    "tokenPinPolicyHeader": "Política de PIN do Token ativada."
+  },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Nó primário",
+      "SECONDARY": "Nó secundário",
+      "undefined": ""
+    }
+  },
+  "validationError": {
+    "IdentifierChars": "caracteres inválidos no identificador"
+  },
+  "wizard": {
+    "addClientTitle": "Adicionar cliente",
+    "addMemberTitle": "Adicionar membro",
+    "addSubsystemTitle": "Adicionar subsistema",
+    "client": {
+      "addClient": "Adicionar Cliente",
+      "clientExists": "Cliente já existe",
+      "memberClassTooltip": "Código que identifica a classe do membro (ex: órgão governamental, empresa privada etc.).",
+      "memberCodeTooltip": "Código do membro que o identifica de forma única dentro da sua classe (ex: CNPJ).",
+      "memberNameTooltip": "Nome da organização do membro.",
+      "register": "Registrar cliente",
+      "searchLabel": "Cliente",
+      "subsystemCodeTooltip": "Código do subsistema que identifica um sistema de informação pertencente ao membro.",
+      "subsystemNameTooltip": "Nome do sistema de informação pertencente ao membro."
+    },
+    "clientDetails": "Detalhes do cliente",
+    "clientInfo1": "Informe os dados do cliente que deseja adicionar.",
+    "clientInfo2": "Se o cliente já existir, você pode selecioná-lo na lista global.",
+    "finish": {
+      "acme": {
+        "infoLine": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e certificado aparecerão na visualização de Chaves e Certificados. O certificado será solicitado ao servidor ACME da AC e importado automaticamente. Depois, você poderá registrar o novo cliente."
+      },
+      "infoLine1": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e CSR aparecerão na visualização de Chaves e Certificados.",
+      "infoLine2": "Para registrar o novo cliente, siga os passos abaixo:",
+      "note": "OBS: se clicar em Cancelar, todos os dados serão perdidos",
+      "title": "Finalizar",
+      "todo1": "1) Envie o CSR para uma Autoridade Certificadora",
+      "todo2": "2) Após o recebimento, importe o certificado resultante para a chave correspondente",
+      "todo3": "3) Agora você pode registrar o novo cliente"
+    },
+    "member": {
+      "info1": "Informe os dados do membro que deseja adicionar.",
+      "info2": "Se o membro já existir, você pode selecioná-lo na lista global.",
+      "memberExists": "Membro já existe",
+      "register": "Registrar membro",
+      "searchLabel": "Membro",
+      "select": "Selecionar membro",
+      "title": "Detalhes do membro"
+    },
+    "memberClass": "Classe do Membro",
+    "memberCode": "Código do Membro",
+    "memberName": "Nome do Membro",
+    "selectClient": "Selecionar Cliente",
+    "selectMemberClass": "Selecionar Classe do Membro",
+    "signKey": {
+      "info": "Você pode definir um rótulo para a nova chave SIGN (opcional)",
+      "keyLabel": "Rótulo da Chave",
+      "title": "Chave de Assinatura"
+    },
+    "subsystem": {
+      "info1": "Informe o código do subsistema a ser adicionado.",
+      "info2": "Se o subsistema já existir, você pode selecioná-lo da lista global.",
+      "registerSubsystem": "Registrar subsistema",
+      "searchLabel": "Subsistema",
+      "selectSubsystem": "Selecionar Subsistema",
+      "subsystemAdded": "Subsistema adicionado",
+      "subsystemExists": "Subsistema já existe"
+    },
+    "subsystemCode": "Código do Subsistema",
+    "subsystemName": "Nome do Subsistema",
     "token": {
-      "changePin": "Alterar PIN",
-      "pinChanged": "PIN do token alterado – faça login com o novo PIN",
-      "tokenPinPolicy": "O PIN do token de software deve conter pelo menos 10 caracteres ASCII, abrangendo ao menos três classes de caracteres (letras minúsculas, letras maiúsculas, números e caracteres especiais).",
-      "tokenPinPolicyHeader": "Política de PIN do Token ativada."
+      "info": "Selecione o token onde deseja adicionar a chave SIGN para o novo cliente. Obs: o token deve estar com login ativo.",
+      "loggedIn": "Logado",
+      "title": "Token",
+      "tokenName": "Nome do Token"
     },
-    "toolbar": {
-      "securityServerNodeType": {
-        "PRIMARY": "Nó primário",
-        "SECONDARY": "Nó secundário",
-        "undefined": ""
-      }
-    },
-    "validationError": {
-      "IdentifierChars": "caracteres inválidos no identificador"
-    },
-    "wizard": {
-      "addClientTitle": "Adicionar cliente",
-      "addMemberTitle": "Adicionar membro",
-      "addSubsystemTitle": "Adicionar subsistema",
-      "client": {
-        "addClient": "Adicionar Cliente",
-        "clientExists": "Cliente já existe",
-        "memberClassTooltip": "Código que identifica a classe do membro (ex: órgão governamental, empresa privada etc.).",
-        "memberCodeTooltip": "Código do membro que o identifica de forma única dentro da sua classe (ex: CNPJ).",
-        "memberNameTooltip": "Nome da organização do membro.",
-        "register": "Registrar cliente",
-        "searchLabel": "Cliente",
-        "subsystemCodeTooltip": "Código do subsistema que identifica um sistema de informação pertencente ao membro.",
-        "subsystemNameTooltip": "Nome do sistema de informação pertencente ao membro."
-      },
-      "clientDetails": "Detalhes do cliente",
-      "clientInfo1": "Informe os dados do cliente que deseja adicionar.",
-      "clientInfo2": "Se o cliente já existir, você pode selecioná-lo na lista global.",
-      "finish": {
-        "acme": {
-          "infoLine": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e certificado aparecerão na visualização de Chaves e Certificados. O certificado será solicitado ao servidor ACME da AC e importado automaticamente. Depois, você poderá registrar o novo cliente."
-        },
-        "infoLine1": "Todas as informações necessárias foram coletadas. Ao clicar em \"Enviar\", o novo cliente será adicionado à lista de Clientes e a nova chave e CSR aparecerão na visualização de Chaves e Certificados.",
-        "infoLine2": "Para registrar o novo cliente, siga os passos abaixo:",
-        "note": "OBS: se clicar em Cancelar, todos os dados serão perdidos",
-        "title": "Finalizar",
-        "todo1": "1) Envie o CSR para uma Autoridade Certificadora",
-        "todo2": "2) Após o recebimento, importe o certificado resultante para a chave correspondente",
-        "todo3": "3) Agora você pode registrar o novo cliente"
-      },
-      "member": {
-        "info1": "Informe os dados do membro que deseja adicionar.",
-        "info2": "Se o membro já existir, você pode selecioná-lo na lista global.",
-        "memberExists": "Membro já existe",
-        "register": "Registrar membro",
-        "searchLabel": "Membro",
-        "select": "Selecionar membro",
-        "title": "Detalhes do membro"
-      },
-      "memberClass": "Classe do Membro",
-      "memberCode": "Código do Membro",
-      "memberName": "Nome do Membro",
-      "selectClient": "Selecionar Cliente",
-      "selectMemberClass": "Selecionar Classe do Membro",
-      "signKey": {
-        "info": "Você pode definir um rótulo para a nova chave SIGN (opcional)",
-        "keyLabel": "Rótulo da Chave",
-        "title": "Chave de Assinatura"
-      },
-      "subsystem": {
-        "info1": "Informe o código do subsistema a ser adicionado.",
-        "info2": "Se o subsistema já existir, você pode selecioná-lo da lista global.",
-        "registerSubsystem": "Registrar subsistema",
-        "searchLabel": "Subsistema",
-        "selectSubsystem": "Selecionar Subsistema",
-        "subsystemAdded": "Subsistema adicionado",
-        "subsystemExists": "Subsistema já existe"
-      },
-      "subsystemCode": "Código do Subsistema",
-      "subsystemName": "Nome do Subsistema",
-      "token": {
-        "info": "Selecione o token onde deseja adicionar a chave SIGN para o novo cliente. Obs: o token deve estar com login ativo.",
-        "loggedIn": "Logado",
-        "title": "Token",
-        "tokenName": "Nome do Token"
-      },
-      "warning": {
-        "unregistered_member": "Membro não registrado"
-      }
+    "warning": {
+      "unregistered_member": "Membro não registrado"
     }
   }
+}
