@@ -147,16 +147,22 @@ To install the X-Road Configuration Proxy software, follow these steps.
 
 1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+    ```bash
+    curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+    ```
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+    ```bash
+    sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+    ```
 
 3.  Issue the following commands to install the Configuration Proxy packages:
 
-            sudo apt-get update
-            sudo apt-get install xroad-confproxy
+    ```bash
+    sudo apt-get update
+    sudo apt-get install xroad-confproxy
+    ```
 
 ### 2.6 Post-Installation Checks
 
@@ -196,7 +202,9 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-        sudo apt-get install xroad-addon-hwtokens
+    ```bash
+    sudo apt-get install xroad-addon-hwtokens
+    ```
 
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
@@ -204,7 +212,9 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 4.  After installing and configuring the driver, the `xroad-signer` service must be restarted:
 
-        sudo service xroad-signer restart
+    ```bash
+    sudo service xroad-signer restart
+    ```
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
@@ -439,7 +449,7 @@ confproxy-generate-anchor -p <PROXY_NAME> -f <ANCHOR_FILENAME>
 
 If generation was successful the output should be simply:
 
-```bash
+```
 confproxy-generate-anchor -p PROXY -f /home/xroad/anchor.xml
 
 Generated anchor xml to '/home/xroad/anchor.xml'
@@ -489,7 +499,7 @@ confproxy-del-signing-key -p <PROXY_NAME> -k <SIGNING_KEY_ID>
 
 where &lt;SIGNING_KEY_ID&gt; can be found in the output of 'confproxy-view-conf' (example output follows):
 
-```bash
+```
 confproxy-del-signing-key -p PROXY -k QWERTY123
 
 Deleted key from signer
