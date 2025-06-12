@@ -164,11 +164,7 @@ public class CertManager {
             assertIsNotTransient(cert);
 
             try {
-                if (cert.isTransientCert()) {
-                    log.warn("Cannot set renewed certificate hash for transient certificate {}", certId);
-                } else {
-                    tokenKeyCertService.updateRenewedCertHash(cert.id(), hash);
-                }
+                tokenKeyCertService.updateRenewedCertHash(cert.id(), hash);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -246,14 +242,13 @@ public class CertManager {
         log.trace("removeCert({})", certId);
 
         return tokenRegistry.writeAction(ctx -> {
+            var cert = ctx.findCert(certId);
+            if (cert.isEmpty()) {
+                log.warn("Certificate with id {} not found", certId);
+                return false;
+            }
             try {
-                var cert = ctx.findCert(certId);
-                if (cert.isEmpty()) {
-                    log.warn("Certificate with id {} not found", certId);
-                    return false;
-                } else {
-                    return tokenKeyCertService.delete(cert.get().id());
-                }
+                return tokenKeyCertService.delete(cert.get().id());
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -289,42 +284,41 @@ public class CertManager {
                         "Cannot add %s certificate request to %s key", keyUsage,
                         key.usage());
             }
-
             try {
-                tokenKeyService.updateKeyUsage(key.id(), keyUsage);
-            } catch (CodedException signerException) {
-                throw signerException;
-            } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update friendly name for key " + keyId, e);
-            } finally {
-                ctx.invalidateCache();
-            }
-
-            for (CertRequestData certRequest : key.certRequests()) {
-                ClientId crMember = certRequest.memberId();
-                String crSubject = certRequest.subjectName();
-
-                if ((memberId == null && crSubject.equalsIgnoreCase(subjectName))
-                        || (memberId != null && memberId.equals(crMember)
-                        && crSubject.equalsIgnoreCase(subjectName))) {
-                    log.warn("Certificate request (memberId: {}, "
-                                    + "subjectName: {}) already exists", memberId,
-                            subjectName);
-                    return certRequest.externalId();
+                try {
+                    tokenKeyService.updateKeyUsage(key.id(), keyUsage);
+                } catch (CodedException signerException) {
+                    throw signerException;
+                } catch (Exception e) {
+                    throw new SignerException(X_INTERNAL_ERROR, "Failed to update friendly name for key " + keyId, e);
                 }
-            }
 
-            try {
-                var certReqId = SignerUtil.randomId();
-                tokenKeyCertRequestService.save(
-                        key.id(), certReqId, memberId, subjectName, subjectAltName, certificateProfile);
-                log.info("Added new certificate request [{}] (memberId: {}, subjectId: {}) under key {}",
-                        certReqId, memberId, subjectName, keyId);
-                return certReqId;
-            } catch (CodedException signerException) {
-                throw signerException;
-            } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to add certificate request for key " + keyId, e);
+                for (CertRequestData certRequest : key.certRequests()) {
+                    ClientId crMember = certRequest.memberId();
+                    String crSubject = certRequest.subjectName();
+
+                    if ((memberId == null && crSubject.equalsIgnoreCase(subjectName))
+                            || (memberId != null && memberId.equals(crMember)
+                            && crSubject.equalsIgnoreCase(subjectName))) {
+                        log.warn("Certificate request (memberId: {}, "
+                                        + "subjectName: {}) already exists", memberId,
+                                subjectName);
+                        return certRequest.externalId();
+                    }
+                }
+
+                try {
+                    var certReqId = SignerUtil.randomId();
+                    tokenKeyCertRequestService.save(
+                            key.id(), certReqId, memberId, subjectName, subjectAltName, certificateProfile);
+                    log.info("Added new certificate request [{}] (memberId: {}, subjectId: {}) under key {}",
+                            certReqId, memberId, subjectName, keyId);
+                    return certReqId;
+                } catch (CodedException signerException) {
+                    throw signerException;
+                } catch (Exception e) {
+                    throw new SignerException(X_INTERNAL_ERROR, "Failed to add certificate request for key " + keyId, e);
+                }
             } finally {
                 ctx.invalidateCache();
             }
@@ -341,14 +335,13 @@ public class CertManager {
         log.trace("removeCertRequest({})", certReqId);
 
         return tokenRegistry.writeAction(ctx -> {
+            var certReq = ctx.findCertRequest(certReqId);
+            if (certReq.isEmpty()) {
+                log.warn("Certificate request with id {} not found", certReqId);
+                return false;
+            }
             try {
-                var certReq = ctx.findCertRequest(certReqId);
-                if (certReq.isEmpty()) {
-                    log.warn("Certificate request with id {} not found", certReqId);
-                    return false;
-                } else {
-                    return tokenKeyCertRequestService.delete(certReq.get().id());
-                }
+                return tokenKeyCertRequestService.delete(certReq.get().id());
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -361,7 +354,7 @@ public class CertManager {
 
     private void assertIsNotTransient(RuntimeCert cert) {
         if (cert.isTransientCert()) {
-            throw new SignerException(X_INTERNAL_ERROR, "Operation not allowed for transient cert " + cert.id());
+            throw new SignerException(X_INTERNAL_ERROR, "Operation not allowed for transient cert " + cert.externalId());
         }
     }
 }

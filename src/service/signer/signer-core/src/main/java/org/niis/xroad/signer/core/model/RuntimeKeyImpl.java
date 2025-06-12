@@ -141,6 +141,7 @@ public final class RuntimeKeyImpl implements RuntimeKey {
             var cert = CertData.create(certId, data.id(), x509Certificate, certHash);
             var runtimeCert = new RuntimeCertImpl();
             runtimeCert.setData(cert);
+            runtimeCert.setTransientCert(true);
 
             certs.add(runtimeCert);
         } catch (Exception e) {

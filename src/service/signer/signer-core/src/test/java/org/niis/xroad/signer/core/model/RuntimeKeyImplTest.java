@@ -28,10 +28,13 @@
 package org.niis.xroad.signer.core.model;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.signer.core.TestDataUtil;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -60,5 +63,23 @@ class RuntimeKeyImplTest {
         assertEquals(1, newKey.certs().size());
         assertEquals(transientCert, newKey.certs().stream().findFirst().get());
     }
+
+    @Test
+    void testAddTransientCert() throws Exception {
+        RuntimeKeyImpl key = new RuntimeKeyImpl();
+        key.setData(TestDataUtil.softwareKeyData(0L, 1L));
+
+        try (InputStream is = getClass().getResourceAsStream("/internal.crt")) {
+            byte[] certificateBytes = is.readAllBytes();
+
+            key.addTransientCert("certId", certificateBytes);
+        }
+
+        var addedCert = key.certs().stream().findFirst().get();
+
+        assertTrue(addedCert.isTransientCert());
+        assertEquals("certId", addedCert.externalId());
+    }
+
 
 }

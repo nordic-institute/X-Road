@@ -114,7 +114,7 @@ class TokenPinManagerTest {
     }
 
     private byte[] loadTestKeystore(String filename) {
-        try (InputStream is = TokenPinManagerTest.class.getResourceAsStream("/keystore/" + filename)) {
+        try (InputStream is = getClass().getResourceAsStream("/" + filename)) {
             if (is == null) {
                 throw new IOException("Keystore file not found: " + filename);
             }

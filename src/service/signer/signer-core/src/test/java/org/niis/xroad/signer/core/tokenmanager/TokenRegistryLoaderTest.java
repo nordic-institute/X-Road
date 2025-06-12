@@ -37,6 +37,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.signer.core.TestDataUtil;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.model.CertData;
 import org.niis.xroad.signer.core.model.CertRequestData;
@@ -44,11 +45,9 @@ import org.niis.xroad.signer.core.model.RuntimeCertImpl;
 import org.niis.xroad.signer.core.model.RuntimeKey;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.model.SoftwareKey;
 import org.niis.xroad.signer.core.model.SoftwareTokenData;
 import org.niis.xroad.signer.core.service.TokenService;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
-import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.ArrayList;
@@ -122,13 +121,13 @@ class TokenRegistryLoaderTest {
         transientCert.setTransientCert(true);
 
         var key1 = new RuntimeKeyImpl();
-        key1.setData(softwareKeyData(0L, 1L));
+        key1.setData(TestDataUtil.softwareKeyData(0L, 1L));
         key1.setAvailable(true); //transient data should be copied to new token
         key1.addCert(transientCert);
         var key2 = new RuntimeKeyImpl();
-        key2.setData(softwareKeyData(12L, 1L));
+        key2.setData(TestDataUtil.softwareKeyData(12L, 1L));
         var key3 = new RuntimeKeyImpl();
-        key3.setData(softwareKeyData(13L, 1L));
+        key3.setData(TestDataUtil.softwareKeyData(13L, 1L));
 
         currentToken.addKey(key1);
         currentToken.addKey(key2);
@@ -172,17 +171,12 @@ class TokenRegistryLoaderTest {
         assertEquals(List.of("sha256hash-1"), captor.getValue());
     }
 
-    private SoftwareKey softwareKeyData(long id, long tokenId) {
-        return new SoftwareKey(id, tokenId, "keyExternalId-" + id, KeyUsageInfo.SIGNING, "key friendly name " + id,
-                "key label " + id, "publicKey" + id, SignMechanism.CKM_RSA_PKCS, new byte[]{'k', 'e', 'y', 's', 't', 'o', 'r', 'e'});
-    }
-
     private TokenService.LoadedTokens loadedTokens() {
 
         var tokenData = new SoftwareTokenData(1L, "externalId", "type", "serialNumber", "label",
                 "friendlyName", new byte[]{'p', 'i', 'n', 'h', 'a', 's', 'h'});
-        var key1 = softwareKeyData(0L, 1L);
-        var key2 = softwareKeyData(1L, 1L);
+        var key1 = TestDataUtil.softwareKeyData(0L, 1L);
+        var key2 = TestDataUtil.softwareKeyData(1L, 1L);
 
         var cert1 = CertData.create("cert-external-id-1", 0L, null, "sha256hash-1");
 
