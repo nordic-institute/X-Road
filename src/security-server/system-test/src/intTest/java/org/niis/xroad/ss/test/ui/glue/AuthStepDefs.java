@@ -66,6 +66,8 @@ public class AuthStepDefs extends BaseUiStepDefs {
                 .shouldBe(visible)
                 .shouldBe(enabled)
                 .click();
+
+        loginPageObj.inputUsername().shouldNotBe(visible);
     }
 
     @Step("Error message for incorrect credentials is shown")
