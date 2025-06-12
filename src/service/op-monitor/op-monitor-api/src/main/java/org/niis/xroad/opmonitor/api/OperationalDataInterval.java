@@ -23,54 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.dto;
-
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.opmonitor.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
 import lombok.Value;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
 
 import java.io.Serializable;
+import java.time.Instant;
 
-/**
- * Certificate request info DTO.
- */
 @Value
 @ToString(onlyExplicitlyIncluded = true)
-public class CertRequestInfo implements Serializable {
+public class OperationalDataInterval implements Serializable {
 
     @JsonIgnore
-    CertRequestInfoProto message;
+    OperationalDataIntervalProto message;
 
-    @ToString.Include
-    public String getId() {
-        return message.getId();
+    public Instant getIntervalStart() {
+        return Instant.ofEpochSecond(message.getTimeIntervalStart().getSeconds(), message.getTimeIntervalStart().getNanos());
     }
 
-    @ToString.Include
-    public ClientId getMemberId() {
-        if (message.hasMemberId()) {
-            return ClientIdMapper.fromDto(message.getMemberId());
-        }
-        return null;
+    public Long getSuccessCount() {
+        return message.getSuccessCount();
     }
 
-    @ToString.Include
-    public String getSubjectName() {
-        return message.getSubjectName();
+    public Long getFailureCount() {
+        return message.getFailureCount();
     }
 
-
-    @ToString.Include
-    public String getSubjectAltName() {
-        return message.getSubjectAltName();
-    }
-
-    public String getCertificateProfile() {
-        return message.getCertificateProfile();
+    public OperationalDataIntervalProto asMessage() {
+        return message;
     }
 
 }

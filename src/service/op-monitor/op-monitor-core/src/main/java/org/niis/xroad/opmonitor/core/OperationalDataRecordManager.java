@@ -28,11 +28,14 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
@@ -88,6 +91,33 @@ final class OperationalDataRecordManager {
         removeMonitoringDataTsIfNotSpecified(records, outputFields);
 
         return records;
+    }
+
+    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(Long startTime,
+                                                                                     Long endTime,
+                                                                                     Integer intervalInMinutes,
+                                                                                     OpMonitoringData.SecurityServerType securityServerType,
+                                                                                     ClientId memberId,
+                                                                                     ServiceId serviceId) throws Exception {
+        return doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
+                startTime,
+                endTime,
+                intervalInMinutes,
+                securityServerType,
+                memberId,
+                serviceId));
+    }
+
+    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
+            Session session,
+            Long startTime,
+            Long endTime,
+            Integer intervalInMinutes,
+            OpMonitoringData.SecurityServerType securityServerType,
+            ClientId memberId,
+            ServiceId serviceId) {
+        OperationalDataInTimeIntervalsQuery query = new OperationalDataInTimeIntervalsQuery(session);
+        return query.list(startTime, endTime, intervalInMinutes, securityServerType, memberId, serviceId);
     }
 
     private static Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {

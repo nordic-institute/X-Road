@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.mapper;
 
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.common.rpc.mapper;
+
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.ClientIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
+import org.niis.xroad.signer.protocol.dto.ServiceIdProto;
+
+import static java.util.Optional.ofNullable;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ClientIdMapper {
+public class ServiceIdMapper {
 
-    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
-        if (clientIdProto.hasSubsystemCode()) {
-            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
-                    clientIdProto.getMemberClass(),
-                    clientIdProto.getMemberCode(),
-                    clientIdProto.getSubsystemCode());
+    public static ServiceId.Conf fromDto(ServiceIdProto serviceIdProto) {
+        if (serviceIdProto.hasServiceVersion()) {
+            return ServiceId.Conf.create(serviceIdProto.getXroadInstance(),
+                    serviceIdProto.getMemberClass(),
+                    serviceIdProto.getMemberCode(),
+                    serviceIdProto.getSubsystemCode(),
+                    serviceIdProto.getServiceCode(),
+                    serviceIdProto.getServiceVersion());
         } else {
-            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
-                    clientIdProto.getMemberClass(),
-                    clientIdProto.getMemberCode());
+            return ServiceId.Conf.create(serviceIdProto.getXroadInstance(),
+                    serviceIdProto.getMemberClass(),
+                    serviceIdProto.getMemberCode(),
+                    serviceIdProto.getSubsystemCode(),
+                    serviceIdProto.getServiceCode());
         }
     }
 
-    public static ClientIdProto toDto(ClientId input) {
-        var builder = ClientIdProto.newBuilder()
-                .setMemberClass(input.getMemberClass())
-                .setMemberCode(input.getMemberCode())
-                .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
-
-        if (input.getSubsystemCode() != null) {
-            builder.setSubsystemCode(input.getSubsystemCode());
-        }
+    public static ServiceIdProto toDto(ServiceId serviceId) {
+        var builder = ServiceIdProto.newBuilder()
+                .setXroadInstance(serviceId.getXRoadInstance())
+                .setMemberClass(serviceId.getMemberClass())
+                .setMemberCode(serviceId.getMemberCode())
+                .setServiceCode(serviceId.getServiceCode())
+                .setSubsystemCode(serviceId.getSubsystemCode());
+        ofNullable(serviceId.getServiceVersion()).ifPresent(builder::setServiceVersion);
         return builder.build();
     }
 }
