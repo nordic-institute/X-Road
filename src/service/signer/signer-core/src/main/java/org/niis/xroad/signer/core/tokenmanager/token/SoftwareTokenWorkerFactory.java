@@ -472,7 +472,7 @@ public class SoftwareTokenWorkerFactory {
             }).orElse(null);
         }
 
-        private void verifyPin(char[] pin) throws Exception {
+        private void verifyPin(char[] pin) {
             verifyPinProvided(pin);
 
             if (!pinManager.verifyTokenPin(tokenId, pin)) {

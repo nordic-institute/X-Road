@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 
 @Slf4j
@@ -98,8 +99,7 @@ public final class TokenPinManager {
 
     private void validateTokenPin(RuntimeToken token, String tokenId) {
         if (token.softwareTokenPinHash().isEmpty()) {
-            throw new CodedException(X_WRONG_CERT_USAGE,
-                    "PIN not set for token " + tokenId);
+            throw new SignerException(X_PIN_INCORRECT, "PIN not set for token " + tokenId);
         }
     }
 

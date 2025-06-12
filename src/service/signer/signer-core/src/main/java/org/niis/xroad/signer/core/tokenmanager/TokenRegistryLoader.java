@@ -126,7 +126,6 @@ public class TokenRegistryLoader {
         var existingKeys = existingToken.keys().stream()
                 .collect(Collectors.toMap(RuntimeKey::id, key -> key));
         newToken.keys().forEach(newKey -> {
-
             var existingKey = existingKeys.get(newKey.id());
             if (existingKey != null) {
                 ((RuntimeKeyImpl) newKey).transferTransientData(existingKey);

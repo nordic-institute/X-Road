@@ -119,10 +119,10 @@ public final class RuntimeTokenImpl implements RuntimeToken {
     }
 
     public void transferTransientData(RuntimeTokenImpl other) {
-        this.active = other.active;
-        this.tokenDefinition = other.tokenDefinition;
-        this.status = other.status;
-        this.tokenInfo.putAll(other.tokenInfo);
+        this.active = other.isActive();
+        this.tokenDefinition = other.getTokenDefinition().orElse(null);
+        this.status = other.getStatus();
+        this.tokenInfo.putAll(other.getTokenInfo());
     }
 
     /**
