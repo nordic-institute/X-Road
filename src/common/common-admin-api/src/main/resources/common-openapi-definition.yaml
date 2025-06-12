@@ -133,6 +133,57 @@ components:
           items:
             type: string
             format: text
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: API key Id
+        roles:
+          type: array
+          description: API KEY roles
+          items:
+            type: string
+        key:
+          description: encoded API key
+          type: string
+      required:
+        - id
+        - roles
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Admin user ID
+        username:
+          type: string
+          description: Admin user name
+        password:
+          type: string
+          description: Admin user password
+        roles:
+          type: array
+          description: Admin user roles
+          items:
+            type: string
+      required:
+        - id
+        - username
+        - roles
+    AdminUserPasswordChangeRequest:
+      type: object
+      description: Admin user password change request
+      properties:
+        old_password:
+          type: string
+          description: Old password of the admin user
+        new_password:
+          type: string
+          description: New password of the admin user
+      required:
+        - old_password
+        - new_password
   examples:
     ErrorExample:
       summary: Error response body example

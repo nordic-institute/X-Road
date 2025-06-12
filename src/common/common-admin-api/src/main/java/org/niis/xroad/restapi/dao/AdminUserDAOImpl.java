@@ -29,6 +29,7 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.niis.xroad.restapi.entity.AdminUserEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public class AdminUserDAOImpl {
@@ -38,6 +39,11 @@ public class AdminUserDAOImpl {
                 "FROM " + AdminUserEntity.class.getName() + " WHERE username = :username", AdminUserEntity.class);
         query.setParameter("username", username);
         return query.uniqueResultOptional();
+    }
+
+    public List<AdminUserEntity> findAll(Session session) {
+        Query<AdminUserEntity> query = session.createQuery("from " + AdminUserEntity.class.getName(), AdminUserEntity.class);
+        return query.list();
     }
 
 }

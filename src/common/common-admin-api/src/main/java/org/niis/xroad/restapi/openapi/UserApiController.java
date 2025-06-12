@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.config.AuthProviderConfig;
 import org.niis.xroad.restapi.openapi.model.User;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.http.HttpStatus;

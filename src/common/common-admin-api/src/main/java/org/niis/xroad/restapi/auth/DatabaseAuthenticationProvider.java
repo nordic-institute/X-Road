@@ -47,7 +47,7 @@ public class DatabaseAuthenticationProvider implements AuthenticationProvider {
     private static final int MAX_LEN = 255;
 
     private final PasswordEncoder passwordEncoder;
-    private final AdminUserService userDetailsService;
+    private final AdminUserService adminUserService;
     private final AuthenticationIpWhitelist authenticationIpWhitelist;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final RestApiAuditEvent loginEvent;
@@ -61,7 +61,8 @@ public class DatabaseAuthenticationProvider implements AuthenticationProvider {
         validateCredentialsLength(username, presentedPassword);
 
         try {
-            AdminUser user = userDetailsService.loadUserByUsername(authentication.getName());
+            AdminUser user = adminUserService.findAdminUser(authentication.getName())
+                    .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
             if (!this.passwordEncoder.matches(presentedPassword, user.getPassword())) {
                 throw new BadCredentialsException("Bad credentials");
             }

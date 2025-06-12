@@ -33,6 +33,12 @@
   "alert": {
     "warningCount": "Amount of same warnings"
   },
+  "adminUsers": {
+    "role": {
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
+    }
+  },
   "apiKey": {
     "role": {
       "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
@@ -932,7 +938,8 @@
     },
     "settings": {
       "backupAndRestore": "Backup And Restore",
-      "systemParameters": "System Parameters"
+      "systemParameters": "System Parameters",
+      "adminUsers": "Admin Users"
     }
   },
   "token": {

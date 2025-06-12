@@ -44,6 +44,7 @@ import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import {useSystem} from "@/store/modules/system";
 
 export default defineComponent({
   components: {
@@ -51,6 +52,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useUser, ['getAllowedTabs']),
+    ...mapState(useSystem, ['databaseBasedAuthentication']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
@@ -62,7 +64,7 @@ export default defineComponent({
           permissions: [Permissions.VIEW_SYS_PARAMS],
         },
         {
-          key: 'backupandrestore-tab-button',
+          key: 'backup-and-restore-tab-button',
           name: 'tab.settings.backupAndRestore',
           to: {
             name: RouteName.BackupAndRestore,
@@ -70,6 +72,16 @@ export default defineComponent({
           permissions: [Permissions.BACKUP_CONFIGURATION],
         },
       ];
+      if (this.databaseBasedAuthentication) {
+        allTabs.push({
+          key: 'admin-users-tab-button',
+          name: 'tab.settings.adminUsers',
+          to: {
+            name: RouteName.AdminUsers,
+          },
+          permissions: [Permissions.VIEW_ADMIN_USERS],
+          },
+        )}
       return this.getAllowedTabs(allTabs);
     },
   },

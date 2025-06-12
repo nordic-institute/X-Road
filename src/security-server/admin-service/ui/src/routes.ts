@@ -75,6 +75,8 @@ import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters
 import TabsBase from '@/components/layout/TabsBase.vue';
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
+import AdminUsers from "@/views/Settings/AdminUsers/AdminUsers.vue";
+import AddAdminUser from "@/views/Settings/AdminUsers/AddAdminUser.vue";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -193,7 +195,33 @@ const routes: RouteRecordRaw[] = [
             props: true,
             meta: { permissions: [Permissions.BACKUP_CONFIGURATION] },
           },
+          {
+            name: RouteName.AdminUsers,
+            path: 'users',
+            component: AdminUsers,
+            props: true,
+            meta: {
+              permissions: [
+                Permissions.VIEW_ADMIN_USERS,
+                Permissions.ADD_ADMIN_USER,
+                Permissions.UPDATE_ADMIN_USER,
+                Permissions.DELETE_ADMIN_USER,
+              ],
+            },
+          },
         ],
+      },
+      {
+        name: RouteName.AddAdminUser,
+        path: '/settings/users/add',
+        components: {
+          default: AddAdminUser,
+          alerts: AlertsContainer,
+        },
+        props: {
+          default: true,
+        },
+        meta: { permissions: [Permissions.CREATE_API_KEY] },
       },
       {
         name: RouteName.AddSubsystem,

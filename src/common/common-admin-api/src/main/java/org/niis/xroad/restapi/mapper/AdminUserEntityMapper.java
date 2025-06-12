@@ -23,18 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.mapper;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.niis.xroad.restapi.domain.AdminUser;
+import org.niis.xroad.restapi.entity.AdminUserEntity;
 
-import java.util.Set;
+import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
 
-@Getter
-@RequiredArgsConstructor
-public class AdminUser {
-    private final Long id;
-    private final String username;
-    private final String password;
-    private final Set<Role> roles;
+@Mapper(componentModel = SPRING)
+public interface AdminUserEntityMapper {
+    AdminUserEntity toEntity(AdminUser user);
+    AdminUser toDomainObject(AdminUserEntity entity);
 }

@@ -24,13 +24,14 @@
  * THE SOFTWARE.
  */
 
-import { NodeType, NodeTypeResponse, VersionInfo } from "@/openapi-types";
+import {AuthProviderType, AuthProviderTypeResponse, NodeType, NodeTypeResponse, VersionInfo} from "@/openapi-types";
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface SystemState {
   securityServerVersion: VersionInfo,
   securityServerNodeType: undefined | NodeType,
+  securityServerAuthProviderType:  undefined | AuthProviderType,
 }
 
 export const useSystem = defineStore('system', {
@@ -38,6 +39,7 @@ export const useSystem = defineStore('system', {
     return {
       securityServerVersion: {} as VersionInfo,
       securityServerNodeType: undefined as undefined | NodeType,
+      securityServerAuthProviderType: undefined as undefined | AuthProviderType,
     };
   },
   persist: {
@@ -53,6 +55,10 @@ export const useSystem = defineStore('system', {
     doesSupportSubsystemNames(): boolean {
       return !!this.globalConfigurationVersion && this.globalConfigurationVersion >= 5;
     },
+    databaseBasedAuthentication(): boolean {
+      return this.securityServerAuthProviderType == AuthProviderType.DATABASE;
+    }
+
   },
 
   actions: {
@@ -69,6 +75,11 @@ export const useSystem = defineStore('system', {
       // Fetch tokens from backend
       return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
         this.securityServerNodeType = res.data.node_type;
+      });
+    },
+    async fetchAuthenticationProviderType() {
+      return api.get<AuthProviderTypeResponse>('/system/auth-provider-type').then((res) => {
+        this.securityServerAuthProviderType = res.data.auth_provider_type;
       });
     },
   },

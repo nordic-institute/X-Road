@@ -175,6 +175,7 @@ export default defineComponent({
     ...mapActions(useSystem, [
       'fetchSecurityServerVersion',
       'fetchSecurityServerNodeType',
+      'fetchAuthenticationProviderType',
       'clearSystemStore',
     ]),
     ...mapActions(useNotifications, [
@@ -232,6 +233,7 @@ export default defineComponent({
         await this.fetchInitializationData(); // Used to be inside fetchUserData()
         await this.fetchSecurityServerVersion();
         await this.fetchSecurityServerNodeType();
+        await this.fetchAuthenticationProviderType();
       } catch (error) {
         this.showError(error as AxiosError);
       }

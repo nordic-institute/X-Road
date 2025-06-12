@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.restapi.config.AuthProviderConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -39,6 +40,7 @@ import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
+import org.niis.xroad.securityserver.restapi.converter.AuthProviderTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
@@ -46,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.AnchorDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetailsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedNameDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeDto;
@@ -94,6 +97,7 @@ public class SystemApiController implements SystemApi {
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
+    private final AuthProviderConfig authProviderConfig;
 
     @Override
     @PreAuthorize("hasAuthority('EXPORT_INTERNAL_TLS_CERT')")
@@ -101,6 +105,13 @@ public class SystemApiController implements SystemApi {
         String filename = "certs.tar.gz";
         byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
         return ControllerUtil.createAttachmentResourceResponse(certificateTar, filename);
+    }
+
+    @PreAuthorize("hasAuthority('VIEW_AUTHENTICATION_PROVIDER_TYPE')")
+    public ResponseEntity<AuthProviderTypeResponseDto> getAuthProviderType() {
+        var authProviderType = AuthProviderTypeMapping.map(authProviderConfig.getAuthenticationProvider()).orElseThrow();
+        var response = new AuthProviderTypeResponseDto().authProviderType(authProviderType);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @Override

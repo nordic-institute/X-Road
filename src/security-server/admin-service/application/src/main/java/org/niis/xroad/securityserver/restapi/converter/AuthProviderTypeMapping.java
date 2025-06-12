@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,16 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.mapper;
+package org.niis.xroad.securityserver.restapi.converter;
 
-import org.mapstruct.Mapper;
-import org.niis.xroad.restapi.domain.AdminUser;
-import org.niis.xroad.restapi.entity.AdminUserEntity;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.config.AuthProviderConfig;
+import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeDto;
 
-import static org.mapstruct.MappingConstants.ComponentModel.SPRING;
+import java.util.Map;
+import java.util.Optional;
 
-@Mapper(componentModel = SPRING)
-public interface AdminUserMapper {
-    AdminUserEntity toEntity(AdminUser user);
-    AdminUser toDto(AdminUserEntity entity);
+@RequiredArgsConstructor
+@Getter
+public class AuthProviderTypeMapping {
+
+    private static final Map<AuthProviderConfig.AuthenticationProviderType, AuthProviderTypeDto> MAP = Map.of(
+            AuthProviderConfig.AuthenticationProviderType.PAM, AuthProviderTypeDto.PAM,
+            AuthProviderConfig.AuthenticationProviderType.DATABASE, AuthProviderTypeDto.DATABASE
+    );
+
+    public static Optional<AuthProviderTypeDto> map(AuthProviderConfig.AuthenticationProviderType input) {
+        return Optional.ofNullable(MAP.get(input));
+    }
+
 }

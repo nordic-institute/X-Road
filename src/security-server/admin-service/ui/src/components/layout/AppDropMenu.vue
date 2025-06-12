@@ -40,17 +40,34 @@
 
       <v-list>
         <v-list-item
+          v-if="databaseBasedAuthentication"
+          id="change-password-list-tile"
+          data-test="change-password-list-tile"
+          @click="showPasswordChange()"
+        >
+          <v-list-item-title id="change-password-title">
+            {{ $t('login.changePassword') }}
+          </v-list-item-title>
+        </v-list-item>
+        <v-list-item
           id="logout-list-tile"
           data-test="logout-list-tile"
           @click="logout"
         >
-          <v-list-item-title id="logout-title">{{
-            $t('login.logOut')
-          }}</v-list-item-title>
+          <v-list-item-title id="logout-title">
+            {{ $t('login.logOut') }}
+          </v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
   </div>
+
+  <AdminUserPasswordChangeDialog
+    v-if="showPasswordChangeDialog"
+    :username="username"
+    @cancel="showPasswordChangeDialog = false"
+    @password-changed="showPasswordChangeDialog = false"
+  />
 </template>
 
 <script lang="ts">
@@ -58,16 +75,28 @@ import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { RouteName } from '@/global';
+import AdminUserPasswordChangeDialog from "@/components/user/AdminUserPasswordChangeDialog.vue";
+import {useSystem} from "@/store/modules/system";
 
 export default defineComponent({
+  components: {AdminUserPasswordChangeDialog},
+  data() {
+    return {
+      showPasswordChangeDialog: false,
+    };
+  },
   computed: {
     ...mapState(useUser, ['username']),
   },
   methods: {
     ...mapActions(useUser, ['logoutUser']),
+    ...mapState(useSystem, ['databaseBasedAuthentication']),
     logout(): void {
       this.logoutUser();
       this.$router.replace({ name: RouteName.Login });
+    },
+    showPasswordChange(): void {
+      this.showPasswordChangeDialog = true;
     },
   },
 });

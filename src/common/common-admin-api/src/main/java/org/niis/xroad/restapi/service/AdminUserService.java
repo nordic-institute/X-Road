@@ -25,25 +25,86 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.RequiredArgsConstructor;
+import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.domain.AdminUser;
-import org.niis.xroad.restapi.entity.AdminUserEntity;
-import org.niis.xroad.restapi.mapper.AdminUserMapper;
+import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.mapper.AdminUserEntityMapper;
 import org.niis.xroad.restapi.repository.AdminUserRepository;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
-public class AdminUserService implements UserDetailsService {
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.PASSWORD_INCORRECT;
+import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.PASSWORD_ENCODER;
+
+@Service
+public class AdminUserService {
 
     private final AdminUserRepository userRepository;
-    private final AdminUserMapper mapper;
+    private final AdminUserEntityMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public AdminUser loadUserByUsername(String username) throws UsernameNotFoundException {
-        AdminUserEntity user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return mapper.toDto(user);
+    public AdminUserService(AdminUserRepository userRepository,
+                            AdminUserEntityMapper mapper,
+                            @Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.mapper = mapper;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public Optional<AdminUser> findAdminUser(String username) {
+        return userRepository.findByUsername(username)
+                .map(mapper::toDomainObject);
+    }
+
+    public List<AdminUser> getAll() {
+        return userRepository.getAll()
+                .stream()
+                .map(mapper::toDomainObject)
+                .toList();
+    }
+
+    public void create(AdminUser adminUser) {
+        adminUser = new AdminUser(
+                null,
+                adminUser.getUsername(),
+                passwordEncoder.encode(adminUser.getPassword()),
+                adminUser.getRoles()
+        );
+        userRepository.create(mapper.toEntity(adminUser));
+    }
+
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        var existingUser = userRepository.findByUsername(username).orElseThrow();
+        if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
+            throw new BadRequestException(PASSWORD_INCORRECT.build());
+        }
+        newPassword = passwordEncoder.encode(newPassword);
+        existingUser.setPassword(newPassword);
+        userRepository.update(existingUser);
+    }
+
+    public void updateRoles(String username, Set<Role> roles) {
+        var existingUser = userRepository.findByUsername(username).orElseThrow();
+        existingUser.setRoles(roles);
+        userRepository.update(existingUser);
+    }
+
+    public void deleteByUsername(String username) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var authenticatedUsername = authentication.getPrincipal().toString();
+        var existingUser = userRepository.findByUsername(username).orElseThrow();
+        if (existingUser.getUsername().equals(authenticatedUsername)) {
+            throw new BadRequestException(ACTION_NOT_POSSIBLE.build());
+        }
+
+        userRepository.delete(existingUser);
     }
 
 }
