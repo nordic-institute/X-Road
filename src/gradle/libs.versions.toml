@@ -17,7 +17,7 @@ junitJupiter = "5.11.4"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.80"
 slf4j = "2.0.17"
-testAutomationFramework = "0.2.19"
+testAutomationFramework = "0.2.20"
 protoc = "4.30.2"
 grpc = "1.72.0"
 swaggerParser = "2.1.26"
@@ -130,7 +130,7 @@ logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", versi
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.27.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.13.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.7" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.31.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
