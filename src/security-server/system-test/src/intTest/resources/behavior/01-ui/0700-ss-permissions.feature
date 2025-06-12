@@ -17,7 +17,7 @@ Feature: 0700 - SS: Permissions
   Scenario: Registration officer sees only relevant pages
     Given Login form is visible
     When User xrd-reg logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing
     * Add clients button is present
@@ -35,7 +35,7 @@ Feature: 0700 - SS: Permissions
   Scenario: Security officer sees only relevant pages
     Given Login form is visible
     When User xrd-sec logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is present
     * Diagnostics Tab is missing
     * Add clients button is missing
@@ -54,7 +54,7 @@ Feature: 0700 - SS: Permissions
   Scenario: Observer sees only relevant pages
     Given Login form is visible
     When User xrd-obs logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is present
     * Diagnostics Tab is present
     * Add clients button is missing
@@ -82,7 +82,7 @@ Feature: 0700 - SS: Permissions
   Scenario: Service administrator sees only relevant pages
     Given Login form is visible
     When User xrd-ser logs in to SecurityServer with password secret
-    Then Clients Tab is missing
+    Then Clients Tab is present
     * Settings Tab is missing
     * Diagnostics Tab is missing
     * Keys and Certificates Tab is missing

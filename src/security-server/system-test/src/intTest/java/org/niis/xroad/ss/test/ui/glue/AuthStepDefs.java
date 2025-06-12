@@ -45,6 +45,7 @@ public class AuthStepDefs extends BaseUiStepDefs {
     @Step("SecurityServer login page is open")
     public void openPage() {
         var mapping = envSetup.getContainerMapping(EnvSetup.UI, Port.UI);
+
         Selenide.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
     }
 
@@ -56,7 +57,15 @@ public class AuthStepDefs extends BaseUiStepDefs {
 
     @Step("User {} logs in to {} with password {}")
     public void doLogin(final String username, final String target, final String password) {
+        doLogin(username, password, true);
+    }
 
+    @Step("User {} tries to log in to {} with password {}")
+    public void doLoginError(final String username, final String target, final String password) {
+        doLogin(username, password, false);
+    }
+
+    private void doLogin(final String username, final String password, boolean verifySuccess) {
         loginPageObj.inputUsername().shouldBe(visible);
         vTextField(loginPageObj.inputUsername()).setValue(username);
         loginPageObj.inputPassword().shouldBe(visible);
@@ -67,7 +76,9 @@ public class AuthStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled)
                 .click();
 
-        loginPageObj.inputUsername().shouldNotBe(visible);
+        if (verifySuccess) {
+            loginPageObj.inputUsername().shouldNotBe(visible);
+        }
     }
 
     @Step("Error message for incorrect credentials is shown")
