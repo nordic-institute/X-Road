@@ -63,7 +63,7 @@ import { defineComponent, PropType } from 'vue';
 import CertificateStatusIcon from './CertificateStatusIcon.vue';
 import { CertificateStatus } from '@/openapi-types';
 import { TokenCertificate } from '@/openapi-types';
-import { Colors } from '@/global';
+import { Colors } from '@niis/shared-ui';
 import CertificateRenewalStatus from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRenewalStatus.vue';
 
 export default defineComponent({
@@ -98,8 +98,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .td-align-right {
   text-align: right;
@@ -121,22 +121,5 @@ export default defineComponent({
   flex-direction: row;
   align-items: center;
   margin-left: 57px;
-}
-
-.cert-row-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 12px;
-  line-height: 16px;
-  color: colors.$WarmGrey100;
-  margin-left: 2px;
-  white-space: nowrap;
 }
 </style>

@@ -154,7 +154,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update friendly name for key " + keyId, e);
+                throw new SignerException(X_INTERNAL_ERROR, "Failed to update key label for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -177,7 +177,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update friendly name for key " + keyId, e);
+                throw new SignerException(X_INTERNAL_ERROR, "Failed to update key usage for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }
@@ -226,7 +226,7 @@ public class KeyManager {
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
-                throw new SignerException(X_INTERNAL_ERROR, "Failed to update friendly name for key " + keyId, e);
+                throw new SignerException(X_INTERNAL_ERROR, "Failed to update public key for key " + keyId, e);
             } finally {
                 ctx.invalidateCache();
             }

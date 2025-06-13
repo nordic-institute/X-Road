@@ -24,7 +24,11 @@
  * THE SOFTWARE.
  */
 
-import { Key, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
+import {
+  Key,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
 
 // Keys sort columns for keys and certificates view
 export enum KeysSortColumn {
@@ -43,8 +47,7 @@ export const keyArraySort = (
   sortType: string,
   sortDirection: boolean,
 ): Key[] => {
-
-  let sortedKeys = [...keys];
+  const sortedKeys = [...keys];
   switch (sortType) {
     case KeysSortColumn.NAME:
       return sortKeysByName(sortedKeys, sortDirection);
@@ -100,9 +103,9 @@ export const sortKeysByName = (keys: Key[], sortDirection: boolean): Key[] => {
 
   temp.forEach((key: Key) => {
     if (key.certificates) {
-      sortDirection
-        ? (key.certificates = sortCertsByNameAsc(key.certificates))
-        : (key.certificates = sortCertsByNameAsc(key.certificates).reverse());
+      key.certificates = sortDirection
+        ? sortCertsByNameAsc(key.certificates)
+        : sortCertsByNameAsc(key.certificates).reverse();
     }
   });
 
@@ -152,7 +155,6 @@ export const sortCertificatesForKeys = (
  * Sort certificates by date
  */
 export const sortKeysByDate = (keys: Key[], sortDirection: boolean): Key[] => {
-
   keys.forEach((key: Key) => {
     if (key.certificates) {
       if (sortDirection) {

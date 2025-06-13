@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 /**
  * an action to change state or edit token, key, cert or csr

@@ -49,9 +49,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-.alerts-wrapper {
-  width: 1000px;
-  padding: 0;
-}
-</style>
+<style lang="scss" scoped></style>

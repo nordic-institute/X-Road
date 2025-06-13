@@ -26,10 +26,6 @@
  -->
 <template>
   <g>
-    <path
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-      d="M7.42969 8.5L5.92969 10L12 16.0703L18.0703 10L16.5703 8.5L12 13.0703L7.42969 8.5Z"
-    />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.42969 8.5L5.92969 10L12 16.0703L18.0703 10L16.5703 8.5L12 13.0703L7.42969 8.5Z" />
   </g>
 </template>

@@ -3,6 +3,12 @@
 # Set registry URL, default to localhost:5555 if not provided
 REGISTRY_URL=${1:-localhost:5555}
 
+echo "Preparing LICENSE.txt and 3RD-PARTY-NOTICES.txt files"
+rm -rf build/
+mkdir build
+cp ../../../../src/LICENSE.txt build/
+cp ../../../../src/3RD-PARTY-NOTICES.txt build/
+
 echo "Building baseline"
 if ! docker buildx inspect multiarch-builder &>/dev/null; then
   docker buildx create --name multiarch-builder --driver docker-container --driver-opt network=host --bootstrap --use

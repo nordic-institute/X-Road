@@ -318,8 +318,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .group-members-row {
   width: 100%;

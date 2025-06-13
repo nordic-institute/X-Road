@@ -53,8 +53,9 @@
       </template>
       <mr-information :management-request="managementRequest" />
       <div class="management-request-additional-details">
-        <mr-security-server-information :class="{'only-half':onlyServerInfo}"
-                                        :management-request="managementRequest"
+        <mr-security-server-information
+          :class="{ 'only-half': onlyServerInfo }"
+          :management-request="managementRequest"
         />
         <mr-client-information
           v-if="hasClientInfo"
@@ -127,8 +128,12 @@ const backTo = {
 const managementRequests = useManagementRequests();
 const { showError } = useNotifications();
 
-const managementRequest = computed(() => managementRequests.currentManagementRequest);
-const typeText = computed(() => managementTypeToText(managementRequest.value?.type));
+const managementRequest = computed(
+  () => managementRequests.currentManagementRequest,
+);
+const typeText = computed(() =>
+  managementTypeToText(managementRequest.value?.type),
+);
 const hasCertificateInfo = computed(() => {
   if (!managementRequest.value) {
     return false;
@@ -174,7 +179,9 @@ const newServerOwner = computed(() => {
 });
 
 const newMember = computed(() => newClientOwner.value || newServerOwner.value);
-const onlyServerInfo = computed(() => !hasCertificateInfo.value && !hasClientInfo.value);
+const onlyServerInfo = computed(
+  () => !hasCertificateInfo.value && !hasClientInfo.value,
+);
 
 function approve() {
   showApproveDialog.value = false;
@@ -188,16 +195,17 @@ function decline() {
 
 function fetchData() {
   loading.value = true;
-  managementRequests.loadById(props.requestId)
+  managementRequests
+    .loadById(props.requestId)
     .catch((err) => showError(err))
-    .finally(() => loading.value = false);
+    .finally(() => (loading.value = false));
 }
 
 fetchData();
 </script>
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .management-request-additional-details {
   margin-top: 24px;
@@ -208,6 +216,7 @@ fetchData();
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-block {
     width: 100%;
 

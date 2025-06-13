@@ -87,7 +87,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
             log.warn("PKCS11Exception was thrown. Reloading underlying module and token workers.", pkcs11Exception);
             reload();
         } catch (Exception e) {
-            log.error("Error during update of module " + getClass().getSimpleName(), e);
+            log.error("Error during update of module {}", getClass().getSimpleName(), e);
             throw translateException(e);
         }
     }

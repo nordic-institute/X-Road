@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog
-    v-if="dialog"
-    :model-value="dialog"
-    :width="width"
-    :persistent="true"
-  >
+  <v-dialog v-if="dialog" :model-value="dialog" :width="width" :persistent="true">
     <v-card class="xrd-card">
       <v-card-title>
         <span class="text-h5">{{ $t(title) }}</span>
@@ -54,17 +49,18 @@
   </v-dialog>
 </template>
 
-<script lang="ts">/** Component for help dialogs */
-import { defineComponent } from "vue";
-import XrdButton from "./XrdButton.vue";
-import XrdCloseButton from "./XrdCloseButton.vue";
+<script lang="ts">
+/** Component for help dialogs */
+import { defineComponent } from 'vue';
+import XrdButton from './XrdButton.vue';
+import XrdCloseButton from './XrdCloseButton.vue';
 
 export default defineComponent({
-  components:{
+  components: {
     XrdButton,
-    XrdCloseButton
+    XrdCloseButton,
   },
-  props:{
+  props: {
     // Title of the dialog
     title: {
       type: String,
@@ -85,7 +81,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits:['cancel'],
+  emits: ['cancel'],
 });
 </script>
 
@@ -94,12 +90,6 @@ export default defineComponent({
 
 .content-wrapper {
   margin-top: 20px;
-}
-
-.title-wrap {
-  margin-bottom: 10px;
-  width: 100%;
-  text-align: center;
 }
 
 .text-wrap {

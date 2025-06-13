@@ -52,7 +52,7 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import { XrdButton } from "@niis/shared-ui";
+import { XrdButton } from '@niis/shared-ui';
 
 export default defineComponent({
   components: { XrdButton },
@@ -97,6 +97,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
-
+<style lang="scss" scoped></style>

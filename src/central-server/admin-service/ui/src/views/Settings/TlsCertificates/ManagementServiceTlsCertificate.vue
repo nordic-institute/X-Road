@@ -160,7 +160,8 @@ import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
 import {
   XrdIconDownload,
   XrdIconUpload,
-  XrdIconCertificate, XrdTitledView,
+  XrdIconCertificate,
+  XrdTitledView,
 } from '@niis/shared-ui';
 import { useManagementServices } from '@/store/modules/management-services';
 import ManagementServiceUploadCertificateDialog from '@/components/tlsCertificates/ManagementServiceUploadCertificateDialog.vue';
@@ -264,21 +265,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
 
 .button-wrap {
   width: 100%;
   display: flex;
   justify-content: flex-end;
-}
-
-.cert-row {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  padding-left: 56px;
-  height: 56px;
 }
 
 .internal-conf-icon {

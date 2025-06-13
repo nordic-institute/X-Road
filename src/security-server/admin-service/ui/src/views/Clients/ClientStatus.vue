@@ -58,9 +58,9 @@ export default defineComponent({
         case 'disabling_in_progress':
           return 'progress-delete';
         case 'name_set':
-          return 'name-set'
+          return 'name-set';
         case 'name_submitted':
-          return 'name-submitted'
+          return 'name-submitted';
         case 'disabled':
           return 'error-disabled';
         case 'global_error':
@@ -106,7 +106,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .status-wrapper {
   width: fit-content;

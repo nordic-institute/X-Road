@@ -31,7 +31,6 @@
 </template>
 
 <script lang="ts" setup>
-
 /**
  * Component for close action with X icon.
  */
@@ -41,17 +40,4 @@ defineEmits(['click']);
 
 <style lang="scss" scoped>
 @use '../assets/colors';
-
-#dlg-close-x {
-  font-size: 34px;
-  cursor: pointer;
-  font-style: normal;
-  font-weight: 300;
-  color: colors.$Purple100;
-  margin-top: -5px;
-}
-
-#dlg-close-x:before {
-  content: '\00d7';
-}
 </style>

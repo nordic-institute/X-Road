@@ -129,8 +129,9 @@ export default defineComponent({
     headers(): DataTableHeader[] {
       return [
         {
-          title: `${this.$t('global.memberName')} (${this.clientStore.clients
-            ?.length})`,
+          title: `${this.$t('global.memberName')} (${
+            this.clientStore.clients?.length
+          })`,
           align: 'start',
           key: 'member_name',
         },
@@ -154,6 +155,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {
@@ -177,7 +179,6 @@ export default defineComponent({
         },
       });
     },
-    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.dataQuery.itemsPerPage = itemsPerPage;
       this.dataQuery.page = page;
@@ -201,8 +202,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .members-table-cell-name-action {
   color: colors.$Purple100;

@@ -28,7 +28,7 @@
   <v-container
     v-if="isAuthenticated && isServerInitialized && hasAlerts"
     fluid
-    class="alerts-container"
+    class="alerts-container px-3"
   >
     <v-alert
       v-if="alerts"
@@ -78,7 +78,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -104,10 +104,5 @@ export default defineComponent({
 .alert-text {
   color: colors.$Black100;
   display: block;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
 }
 </style>
