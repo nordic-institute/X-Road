@@ -103,7 +103,7 @@ public class ModuleManager implements TokenWorkerProvider {
      */
     public boolean isHSMModuleOperational() {
         if (hwTokenAddonProperties.enabled()) {
-            return ModuleConf.getModules().stream()
+            return moduleConf.getModules().stream()
                     .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
                             && !isModuleInitialized(moduleType));
         }
@@ -145,7 +145,7 @@ public class ModuleManager implements TokenWorkerProvider {
 
         moduleConf.reload();
 
-        final Collection<ModuleType> modules = ModuleConf.getModules();
+        final Collection<ModuleType> modules = moduleConf.getModules();
         final Map<String, AbstractModuleWorker> refreshedWorkerModules = loadModules(modules);
         final var oldModuleWorkers = moduleWorkers;
 
