@@ -5,7 +5,7 @@ REGISTRY_URL=${1:-localhost:5555}
 
 echo "Building baseline"
 if ! docker buildx inspect multiarch-builder &>/dev/null; then
-  docker buildx create --name multiarch-builder --driver docker-container --bootstrap --use
+  docker buildx create --name multiarch-builder --driver docker-container --driver-opt network=host --bootstrap --use
 else
   docker buildx use multiarch-builder
 fi
