@@ -23,7 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { CertificateOcspStatus, Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
+import {
+  CertificateOcspStatus,
+  Key,
+  KeyUsageType,
+  Token,
+  TokenCertificate,
+} from '@/openapi-types';
 
 /**
  * Return true if tokens list contain any certificate with good ocsp response status with memberName matching owner_id

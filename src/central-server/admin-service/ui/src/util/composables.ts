@@ -31,7 +31,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { MessageSchema } from '@/plugins/i18n';
 import { AxiosError } from 'axios';
 import { ErrorInfo } from '@/openapi-types';
-import { getErrorInfo, getTranslatedFieldErrors, isFieldError } from '@/util/helpers';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
 
 type SetFieldError = (
   field: string,
@@ -49,8 +53,7 @@ type BasicForm = {
 function noopSetFieldError(
   field: string,
   message: string | string[] | undefined,
-) {
-}
+) {}
 
 export function useBasicForm(
   setFieldError: SetFieldError = noopSetFieldError,

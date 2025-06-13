@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 import type { Key } from './Key';
 import type { KeyValuePair } from './KeyValuePair';

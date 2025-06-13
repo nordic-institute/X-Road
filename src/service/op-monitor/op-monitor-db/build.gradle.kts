@@ -21,6 +21,10 @@ artifacts {
 
 val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
+tasks.named("jib") {
+  dependsOn("prepareLicenseFiles")
+}
+
 jib {
   from {
     image = "liquibase:${libs.findVersion("liquibase").get()}"
@@ -47,6 +51,10 @@ jib {
     paths {
       path {
         setFrom(project.file("src/main/resources/liquibase/").toPath())
+        into = "/liquibase/changelog"
+      }
+      path {
+        setFrom(layout.buildDirectory.dir("jib-extra/license"))
         into = "/liquibase/changelog"
       }
     }

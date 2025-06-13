@@ -51,7 +51,7 @@
         </a>
       </template>
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </article>
@@ -66,11 +66,11 @@ import { mapStores } from 'pinia';
 import { ConfigurationType, GlobalConfDownloadUrl } from '@/openapi-types';
 import { useConfigurationSource } from '@/store/modules/configuration-sources';
 import { DataTableHeader } from '@/ui-types';
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import DataTableToolbar from '@/components/ui/DataTableToolbar.vue';
 
 export default defineComponent({
-  components: { CustomDataTableFooter, DataTableToolbar },
+  components: { XrdDataTableFooter, DataTableToolbar },
   props: {
     configurationType: {
       type: String as PropType<ConfigurationType>,
@@ -117,8 +117,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .internal-conf-icon {
   margin-right: 15px;

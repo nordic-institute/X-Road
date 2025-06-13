@@ -181,11 +181,11 @@ const [
   authenticationCertificateProfileId,
   authenticationCertificateProfileIdAttrs,
 ] = defineField('authenticationCertificateProfileId', {
-  props: (state) => ({ 'error-messages': state.errors })
+  props: (state) => ({ 'error-messages': state.errors }),
 });
 const [signingCertificateProfileId, signingCertificateProfileIdAttrs] =
   defineField('signingCertificateProfileId', {
-    props: (state) => ({ 'error-messages': state.errors })
+    props: (state) => ({ 'error-messages': state.errors }),
   });
 
 const { loading, showSuccess, showError, t } = useBasicForm();
@@ -223,5 +223,5 @@ const onSave = handleSubmit((values) => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

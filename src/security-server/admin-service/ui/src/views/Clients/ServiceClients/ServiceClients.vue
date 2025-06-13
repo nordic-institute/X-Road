@@ -64,7 +64,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :no-data-text="$t('noData.noServiceClients')"
+      no-data-text="noData.noServiceClients"
       data-test="service-clients-main-view-table"
     >
       <template #[`item.name`]="{ item }">
@@ -84,7 +84,7 @@
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </div>
@@ -102,11 +102,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
 import { DataTableHeader } from '@/ui-types';
-import SubsystemName from '@/components/client/SubsystemName.vue';
 import ClientName from '@/components/client/ClientName.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { ClientName, SubsystemName },
+  components: { ClientName, XrdDataTableFooter },
   props: {
     id: {
       type: String,
@@ -179,8 +179,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .search-input {
   max-width: 300px;

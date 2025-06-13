@@ -123,9 +123,10 @@ import { defineComponent } from 'vue';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import { Colors } from '@niis/shared-ui';
 import DateTime from '@/components/ui/DateTime.vue';
 
 /**
@@ -180,17 +181,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: colors.$Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .delete-action {
   margin-top: 34px;
@@ -213,6 +205,7 @@ export default defineComponent({
 
   margin-bottom: 24px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .details-card {
     width: 100%;
 

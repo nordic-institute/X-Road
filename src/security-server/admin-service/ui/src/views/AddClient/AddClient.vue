@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
+  <v-container class="view-wrap ms-auto">
     <xrd-sub-view-title
-      class="wizard-view-title"
+      class="pa-4"
       :title="$t('wizard.addClientTitle')"
       :show-close="false"
       data-test="wizard-title"
@@ -135,7 +135,7 @@
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
-  </div>
+  </v-container>
 </template>
 <script lang="ts" setup>
 import { computed, onBeforeMount, onMounted, ref } from 'vue';
@@ -235,7 +235,6 @@ function done(): void {
 }
 </script>
 
-
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

@@ -1,0 +1,5 @@
+* @nordic-institute/xrd-developers
+
+*.md @nordic-institute/xrd-developers @raits @petkivim
+
+.github/CODEOWNERS @raits @petkivim

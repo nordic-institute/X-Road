@@ -34,8 +34,6 @@ updates:
           - "io.opentelemetry.instrumentation*"
           - "org.hibernate*"
           - "com.zaxxer:HikariCP"
-    reviewers:
-      - "nordic-institute/xrd-developers"
   - package-ecosystem: "npm"
     directory: "/src"
     schedule:
@@ -46,8 +44,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    reviewers:
-      - "nordic-institute/xrd-developers"
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
     schedule:
@@ -58,5 +54,3 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    reviewers:
-      - "nordic-institute/xrd-developers"

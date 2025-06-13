@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { Colors } from '@/global';
+import { Colors } from '@niis/shared-ui';
 import { RouteLocationRaw } from 'vue-router';
 
 export default defineComponent({
@@ -67,7 +67,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .navigation-back {
   color: colors.$Link;

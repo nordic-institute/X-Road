@@ -27,30 +27,24 @@
 <template>
   <div>
     <header class="header-row d-flex mt-5 mb-5 align-center">
-      <div class="xrd-header-title ">
+      <div class="xrd-header-title">
         <div class="xrd-view-title">
           <slot name="title">{{ titleKey ? $t(titleKey) : title }}</slot>
         </div>
         <slot name="append-title" />
       </div>
 
-      <div class="xrd-header-buttons  ">
+      <div class="xrd-header-buttons">
         <slot name="header-buttons" />
       </div>
     </header>
-    <xrd-empty-placeholder
-      :loading="loading"
-      :data="data"
-      :no-items-text="$t('noData.noData')"
-      skeleton-type="table-heading"
-    />
+    <xrd-empty-placeholder :loading="loading" :data="data" :no-items-text="$t('noData.noData')" skeleton-type="table-heading" />
 
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-
 defineProps({
   title: {
     type: String,
@@ -71,7 +65,6 @@ defineProps({
     },
   },
 });
-
 </script>
 
 <style lang="scss" scoped>
