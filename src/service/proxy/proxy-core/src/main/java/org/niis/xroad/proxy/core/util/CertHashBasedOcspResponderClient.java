@@ -62,8 +62,8 @@ import java.util.List;
 @ApplicationScoped
 public final class CertHashBasedOcspResponderClient {
 
+    public static final String SHA_256_CERT_PARAM = "cert_hash";
     private static final String METHOD = "GET";
-    private static final String SHA_256_CERT_PARAM = "cert_hash";
 
     private static final List<Integer> VALID_RESPONSE_CODES = Arrays.asList(
             200, 201, 202, 203, 204, 205, 206, 207, 208, 226);

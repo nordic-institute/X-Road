@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
+import ee.ria.xroad.common.util.CertUtils;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +101,7 @@ public class TokenRegistryLoader {
 
             var certHashesToRefresh = loadedTokenData.certs().values().stream()
                     .flatMap(Collection::stream)
+                    .filter(cert -> !CertUtils.isSelfSigned(cert.certificate()))
                     .map(BasicCertInfo::sha256hash)
                     .toList();
 

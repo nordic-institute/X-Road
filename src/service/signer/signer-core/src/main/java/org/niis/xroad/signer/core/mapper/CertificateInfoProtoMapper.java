@@ -27,6 +27,7 @@
 
 package org.niis.xroad.signer.core.mapper;
 
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.protobuf.ByteString;
@@ -67,10 +68,11 @@ public class CertificateInfoProtoMapper implements GenericUniDirectionalMapper<R
             if (source.certificate() != null) {
                 builder.setCertificateBytes(ByteString.copyFrom(source.certificate().getEncoded()));
 
-                var certHash = CryptoUtils.calculateCertHexHash(source.certificate());
-                ocspResponseManager.getOcspResponse(certHash).ifPresent(ocspResponse ->
-                        builder.setOcspBytes(ByteString.copyFrom(ocspResponse)));
-
+                if (!CertUtils.isSelfSigned(source.certificate())) {
+                    var certHash = CryptoUtils.calculateCertHexHash(source.certificate());
+                    ocspResponseManager.getOcspResponse(certHash).ifPresent(ocspResponse ->
+                            builder.setOcspBytes(ByteString.copyFrom(ocspResponse)));
+                }
             }
 
             if (source.ocspVerifyBeforeActivationError() != null) {
