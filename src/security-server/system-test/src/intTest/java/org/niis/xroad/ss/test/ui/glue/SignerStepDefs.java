@@ -31,16 +31,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
+import org.niis.xroad.ss.test.ui.container.service.TestDatabaseService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.util.stream.Stream;
+import java.util.Map;
 
 @Slf4j
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SignerStepDefs extends BaseUiStepDefs {
+
+    @Autowired
+    private TestDatabaseService testDatabaseService;
 
     @SneakyThrows
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -67,59 +69,17 @@ public class SignerStepDefs extends BaseUiStepDefs {
         envSetup.start(EnvSetup.SIGNER, true);
     }
 
-    @Step("Predefined inactive signer token is uploaded")
-    public void addInactiveSignerToken() throws Exception {
-        // make file accessible for editing outside the container.
-        if (SystemUtils.IS_OS_UNIX) {
-            envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
-        }
-        String deviceEntry = """
-                </device>
-                <device>
-                    <deviceType>softToken</deviceType>
-                    <friendlyName>softToken-for-deletion</friendlyName>
-                    <id>1</id>
-                    <pinIndex>1</pinIndex>
-                </device>
+    @Step("Predefined inactive signer token is inserted")
+    public void addInactiveSignerToken() {
+        String sql = """
+                INSERT INTO signer_tokens (external_id, type, friendly_name)
+
+                VALUES ('1234', 'hardwareToken', 'hsmToken-for-deletion')
                 """;
 
-        try {
-            String currenKeyconf = envSetup
-                    .execInContainer(EnvSetup.SIGNER, "cat", "/etc/xroad/signer/keyconf.xml").getStdout();
+        testDatabaseService.getServerconfTemplate().update(sql, Map.of());
 
-            envSetup.stop(EnvSetup.SIGNER);
-
-            String updatedKeyConf = currenKeyconf.replaceFirst("</device>", deviceEntry);
-
-            Path tempDir = Files.createTempDirectory("signertmp");
-            FileUtils.copyDirectory(Paths.get("build/signer-volume/softtoken").toFile(),
-                    tempDir.resolve("softtoken").toFile());
-
-            Files.writeString(tempDir.resolve("keyconf.xml"), updatedKeyConf);
-
-            FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
-            FileUtils.copyDirectory(
-                    tempDir.toFile(),
-                    Paths.get("build/signer-volume").toFile());
-
-            if (SystemUtils.IS_OS_UNIX) {
-                try (Stream<Path> fileStream = Files.walk(Paths.get("build/signer-volume"))) {
-                    fileStream.forEach(path -> {
-                        try {
-                            Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwxrwxrwx"));
-                        } catch (IOException e) {
-                            log.error("Failed to set permissions for: {}", path);
-                        }
-                    });
-                }
-            }
-        } catch (Exception e) {
-            log.error("Failed to modify keyconf.xml file", e);
-            throw e;
-        } finally {
-            envSetup.start(EnvSetup.SIGNER, true);
-        }
-
+        envSetup.restartContainer(EnvSetup.SIGNER);
     }
 
 }

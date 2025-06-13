@@ -77,8 +77,9 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public void delete(Long tokenId) {
-        tokenDao.deleteById(sessionProvider.getSession(), SignerTokenEntity.class, tokenId);
+    public boolean delete(Long tokenId) throws Exception {
+        return sessionProvider.doInTransaction(session ->
+                tokenDao.deleteById(sessionProvider.getSession(), SignerTokenEntity.class, tokenId));
     }
 
     @Override

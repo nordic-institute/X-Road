@@ -44,7 +44,7 @@ public interface TokenService {
      */
     LoadedTokens loadAllTokens() throws Exception;
 
-    void delete(Long tokenId);
+    boolean delete(Long tokenId) throws Exception;
 
     Long save(String externalId, String type, String friendlyName, String label, String serialNo) throws Exception;
 

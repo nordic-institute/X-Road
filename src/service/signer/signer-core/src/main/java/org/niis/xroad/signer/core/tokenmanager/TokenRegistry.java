@@ -84,6 +84,10 @@ public class TokenRegistry {
         return currentTokens.hashCode(); //TODO implement hashcode calculation based on tokens
     }
 
+    public boolean isInitialized() {
+        return currentTokens != null;
+    }
+
     // Functional interfaces for token operations
     public class ModifiableTokenContext extends BaseTokenContext<RuntimeTokenImpl> {
 

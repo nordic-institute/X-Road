@@ -36,15 +36,16 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 
 @Service
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private Connection messagelogConnection;
+    private SingleConnectionDataSource mesageLogDataSource;
+    private SingleConnectionDataSource serverConfDataSource;
     private NamedParameterJdbcTemplate messagelogNamedParameterJdbcTemplate;
+    private NamedParameterJdbcTemplate serverconfNamedParameterJdbcTemplate;
 
     @Autowired
     private EnvSetup envSetup;
@@ -52,13 +53,24 @@ public class TestDatabaseService implements DisposableBean {
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate() {
         if (messagelogNamedParameterJdbcTemplate == null) {
-            messagelogConnection = DriverManager.getConnection(
+            var messagelogConnection = DriverManager.getConnection(
                     getJdbcUrl(EnvSetup.DB_MESSAGELOG, "messagelog"),
                     "messagelog", "secret");
-            final SingleConnectionDataSource dataSource = new SingleConnectionDataSource(messagelogConnection, true);
-            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            mesageLogDataSource = new SingleConnectionDataSource(messagelogConnection, true);
+            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(mesageLogDataSource);
         }
         return messagelogNamedParameterJdbcTemplate;
+    }
+
+    @SneakyThrows
+    public NamedParameterJdbcTemplate getServerconfTemplate() {
+        if (serverconfNamedParameterJdbcTemplate == null) {
+            var serverconfConnection = DriverManager.getConnection(getJdbcUrl(EnvSetup.DB_SERVERCONF, "serverconf"),
+                    "serverconf", "secret");
+            serverConfDataSource = new SingleConnectionDataSource(serverconfConnection, true);
+            serverconfNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(serverConfDataSource);
+        }
+        return serverconfNamedParameterJdbcTemplate;
     }
 
     private String getJdbcUrl(String service, String database) {
@@ -71,8 +83,11 @@ public class TestDatabaseService implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
-        if (messagelogConnection != null) {
-            messagelogConnection.close();
+        if (mesageLogDataSource != null) {
+            mesageLogDataSource.close();
+        }
+        if (serverConfDataSource != null) {
+            serverConfDataSource.close();
         }
     }
 }
