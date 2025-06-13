@@ -3,7 +3,12 @@ plugins {
   id("xroad.jib-conventions")
 }
 
-dependencies {
+sourceSets {
+  named("main") {
+    resources {
+      srcDir("../../../service/signer/signer-jpa/src/main/resources/")
+    }
+  }
 }
 
 configurations {
@@ -50,7 +55,7 @@ jib {
   extraDirectories {
     paths {
       path {
-        setFrom(project.file("src/main/resources/liquibase/").toPath())
+        setFrom(project.file("build/resources/main/liquibase/").toPath())
         into = "/liquibase/changelog"
       }
       path {

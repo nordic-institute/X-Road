@@ -11,6 +11,7 @@ dependencies {
   api(project(":service:configuration-client:configuration-client-rpc-client"))
 
   testImplementation(project(":common:common-test"))
+  testImplementation(libs.logback.classic)
   testImplementation(libs.junit.jupiter.params)
   testImplementation(libs.julOverSlf4j)
 

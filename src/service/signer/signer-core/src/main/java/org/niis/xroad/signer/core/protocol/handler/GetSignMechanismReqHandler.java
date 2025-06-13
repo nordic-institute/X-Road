@@ -29,7 +29,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetSignMechanismReq;
 import org.niis.xroad.signer.proto.GetSignMechanismResp;
 
@@ -37,11 +39,13 @@ import org.niis.xroad.signer.proto.GetSignMechanismResp;
  * Handles requests for signing mechanism based on key id.
  */
 @ApplicationScoped
+@RequiredArgsConstructor
 public class GetSignMechanismReqHandler extends AbstractRpcHandler<GetSignMechanismReq, GetSignMechanismResp> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected GetSignMechanismResp handle(GetSignMechanismReq request) throws Exception {
-        var signMechanism = tokenManager.getKeySignMechanismInfo(request.getKeyId());
+        var signMechanism = tokenLookup.getKeySignMechanismInfo(request.getKeyId());
 
         if (signMechanism.isEmpty()) {
             throw CodedException.tr(ErrorCodes.X_KEY_NOT_FOUND, "key_not_found", "Key '%s' not found",

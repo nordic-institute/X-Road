@@ -62,9 +62,8 @@ import java.util.List;
 @ApplicationScoped
 public final class CertHashBasedOcspResponderClient {
 
+    public static final String SHA_256_CERT_PARAM = "cert_hash";
     private static final String METHOD = "GET";
-    private static final String SHA_1_CERT_PARAM = "cert";
-    private static final String SHA_256_CERT_PARAM = "cert_hash";
 
     private static final List<Integer> VALID_RESPONSE_CODES = Arrays.asList(
             200, 201, 202, 203, 204, 205, 206, 207, 208, 226);
@@ -139,16 +138,13 @@ public final class CertHashBasedOcspResponderClient {
 
     private URL createUrl(String providerAddress, List<X509Certificate> certificates)
             throws URISyntaxException, IOException, CertificateEncodingException, OperatorCreationException {
-        String[] sha1Hashes = CertUtils.getSha1Hashes(certificates);
         String[] sha256Hashes = CertUtils.getHashes(certificates);
 
         var uriBuilder = new URIBuilder().setScheme("http").setHost(providerAddress).setPort(ocspResponderProperties.port());
-        // TODO sha1 hashes should not be added to the request once 7.3.x is no longer supported
-        Arrays.stream(sha1Hashes).forEach(hash -> uriBuilder.addParameter(SHA_1_CERT_PARAM, hash));
         Arrays.stream(sha256Hashes).forEach(hash -> uriBuilder.addParameter(SHA_256_CERT_PARAM, hash));
         var uri = uriBuilder.build();
 
-        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(sha1Hashes), uri.getHost());
+        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(sha256Hashes), uri.getHost());
 
         return uri.toURL();
     }

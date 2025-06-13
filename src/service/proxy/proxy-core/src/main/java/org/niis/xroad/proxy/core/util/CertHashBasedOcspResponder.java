@@ -56,6 +56,7 @@ import java.util.Optional;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.proxy.core.util.CertHashBasedOcspResponderClient.SHA_256_CERT_PARAM;
 
 /**
  * Service responsible for responding with OCSP responses of SSL certificates identified with the certificate hashes.
@@ -73,15 +74,12 @@ public class CertHashBasedOcspResponder {
     private static final String METHOD_HEAD = "HEAD";
     private static final String METHOD_GET = "GET";
 
-    private static final String CERT_PARAM = "cert";
-
     private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
     private final KeyConfProvider keyConfProvider;
     private final Server server = new Server();
 
     /**
      * Constructs a cert hash responder that listens on the specified address.
-     *
      */
     public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider) {
         this.keyConfProvider = keyConfProvider;
@@ -141,7 +139,7 @@ public class CertHashBasedOcspResponder {
     }
 
     private void doHandleRequest(Request request, Response response) throws Exception {
-        var hashes = getCertSha1Hashes(request);
+        var hashes = getCertSha256Hashes(request);
         List<OCSPResp> ocspResponses = getOcspResponses(hashes);
 
         log.debug("Returning OCSP responses for cert hashes: " + hashes);
@@ -209,11 +207,10 @@ public class CertHashBasedOcspResponder {
         return ocsp;
     }
 
-    private static List<String> getCertSha1Hashes(Request request) throws Exception {
-        // TODO sha256 cert hashes should be read from "cert_hash" param instead once 7.3.x is no longer supported
-        var paramValues = Request.getParameters(request).getValues(CERT_PARAM);
+    private static List<String> getCertSha256Hashes(Request request) throws Exception {
+        var paramValues = Request.getParameters(request).getValues(SHA_256_CERT_PARAM);
 
-        if (paramValues.isEmpty()) {
+        if (paramValues == null || paramValues.isEmpty()) {
             throw new Exception("Could not get cert hashes");
         }
 

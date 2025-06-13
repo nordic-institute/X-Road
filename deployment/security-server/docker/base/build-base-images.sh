@@ -10,7 +10,11 @@ cp ../../../../src/LICENSE.txt build/
 cp ../../../../src/3RD-PARTY-NOTICES.txt build/
 
 echo "Building baseline"
-docker buildx create --name multiarch-builder --driver docker-container --driver-opt network=host --use
+if ! docker buildx inspect multiarch-builder &>/dev/null; then
+  docker buildx create --name multiarch-builder --driver docker-container --driver-opt network=host --bootstrap --use
+else
+  docker buildx use multiarch-builder
+fi
 
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
@@ -32,5 +36,14 @@ docker buildx build \
   --tag "$REGISTRY_URL"/ss-baseline-backup-manager-runtime \
   --file Dockerfile-backup-manager-baseline \
   --build-arg REGISTRY_URL="$REGISTRY_URL" \
+  --push \
+  .
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag "$REGISTRY_URL"/ss-baseline-signer-runtime \
+  --file Dockerfile-signer-baseline \
+  --build-arg REGISTRY_URL="$REGISTRY_URL" \
+  --build-context pkcs11driver=../../../../src/libs/pkcs11wrapper \
   --push \
   .

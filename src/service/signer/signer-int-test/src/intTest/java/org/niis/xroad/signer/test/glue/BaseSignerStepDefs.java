@@ -31,6 +31,7 @@ import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.test.SignerClientHolder;
+import org.niis.xroad.signer.test.container.SignerIntTestSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -41,6 +42,8 @@ public class BaseSignerStepDefs extends BaseStepDefs {
 
     @Autowired
     protected SignerClientHolder clientHolder;
+    @Autowired
+    protected SignerIntTestSetup signerIntTestSetup;
 
     protected Map<String, String> getTokenFriendlyNameToIdMapping() {
         Map<String, String> map = scenarioContext.getStepData(KEY_FRIENDLY_NAME_MAPPING);

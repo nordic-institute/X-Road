@@ -27,7 +27,7 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 
 public class GroupMemberDAOImpl {
 

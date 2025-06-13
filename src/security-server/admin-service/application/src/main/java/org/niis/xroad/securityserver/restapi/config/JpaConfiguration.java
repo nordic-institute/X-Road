@@ -28,7 +28,10 @@ package org.niis.xroad.securityserver.restapi.config;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
 
-@EntityScan(basePackages = {"org.niis.xroad.restapi.entity", "org.niis.xroad.serverconf.impl.entity"})
+@EntityScan(basePackages = {
+        "org.niis.xroad.restapi.entity",
+        "org.niis.xroad.serverconf.impl.entity",
+        "org.niis.xroad.common.identifiers.jpa.entity"})
 @Configuration
 public class JpaConfiguration {
 }

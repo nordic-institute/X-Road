@@ -98,11 +98,6 @@ public class TokenInfo implements Serializable {
     }
 
     @ToString.Include
-    public int getSlotIndex() {
-        return message.getSlotIndex();
-    }
-
-    @ToString.Include
     public TokenStatusInfo getStatus() {
         var status = message.getStatus();
         return status != TokenStatusInfo.TOKEN_STATUS_UNSPECIFIED ? status : null;

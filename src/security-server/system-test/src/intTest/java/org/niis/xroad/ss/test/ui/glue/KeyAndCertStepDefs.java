@@ -129,6 +129,8 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
         keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldBe(visible).click();
         commonPageObj.dialog.btnSave().click();
+
+        keyAndCertPageObj.section(tokenKey).tokenDeleteButton().shouldNotBe(visible);
     }
 
     @Step("Token Alert about token policy being enforced is present")

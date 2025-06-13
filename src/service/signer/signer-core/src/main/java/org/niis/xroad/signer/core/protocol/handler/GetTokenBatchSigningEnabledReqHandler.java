@@ -26,7 +26,9 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
 
@@ -34,15 +36,17 @@ import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
  * Handles queries for batch signing capabilities of a token.
  */
 @ApplicationScoped
+@RequiredArgsConstructor
 public class GetTokenBatchSigningEnabledReqHandler
         extends AbstractRpcHandler<GetTokenBatchSigningEnabledReq, GetTokenBatchSigningEnabledResp> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected GetTokenBatchSigningEnabledResp handle(GetTokenBatchSigningEnabledReq request) throws Exception {
-        String tokenId = tokenManager.findTokenIdForKeyId(request.getKeyId());
+        String tokenId = tokenLookup.findTokenIdForKeyId(request.getKeyId());
 
         return GetTokenBatchSigningEnabledResp.newBuilder()
-                .setBatchingSigningEnabled(tokenManager.isBatchSigningEnabled(tokenId))
+                .setBatchingSigningEnabled(tokenLookup.isBatchSigningEnabled(tokenId))
                 .build();
     }
 }

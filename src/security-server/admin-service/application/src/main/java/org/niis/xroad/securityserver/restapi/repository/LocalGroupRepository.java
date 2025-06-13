@@ -27,10 +27,10 @@ package org.niis.xroad.securityserver.restapi.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.serverconf.impl.dao.GroupMemberDAOImpl;
 import org.niis.xroad.serverconf.impl.dao.LocalGroupDAOImpl;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.GroupMemberEntity;
 import org.niis.xroad.serverconf.impl.entity.LocalGroupEntity;
 import org.springframework.stereotype.Repository;

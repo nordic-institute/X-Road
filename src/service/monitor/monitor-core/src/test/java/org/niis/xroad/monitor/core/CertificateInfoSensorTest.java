@@ -148,7 +148,6 @@ class CertificateInfoSensorTest {
                 .setActive(false)
                 .setSerialNumber("serialNumber")
                 .setLabel("label")
-                .setSlotIndex(-1)
                 .setStatus(TokenStatusInfo.OK)
                 .addAllKeyInfo(keyInfos)
                 .build());

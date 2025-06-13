@@ -50,8 +50,8 @@ import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
+import static ee.ria.xroad.common.util.CertUtils.getHashes;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -124,7 +124,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
-        return getOcspResponse(calculateCertSha1HexHash(cert));
+        return getOcspResponse(calculateCertHexHash(cert));
     }
 
     @Override
@@ -142,7 +142,7 @@ class KeyConfImpl implements KeyConfProvider {
     @Override
     public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
             throws Exception {
-        String[] responses = signerRpcClient.getOcspResponses(getSha1Hashes(certs));
+        String[] responses = signerRpcClient.getOcspResponses(getHashes(certs));
 
         List<OCSPResp> ocspResponses = new ArrayList<>();
         for (String base64Encoded : responses) {
@@ -166,7 +166,7 @@ class KeyConfImpl implements KeyConfProvider {
                     encodeBase64(responses.get(i).getEncoded());
         }
 
-        signerRpcClient.setOcspResponses(getSha1Hashes(certs), base64EncodedResponses);
+        signerRpcClient.setOcspResponses(getHashes(certs), base64EncodedResponses);
     }
 
     CertChain getAuthCertChain(String instanceIdentifier,

@@ -7,6 +7,7 @@ plugins {
 dependencies {
   implementation(project(":common:common-domain"))
   api(project(":common:common-db"))
+  api(project(":common:common-db-identifiers"))
   api(project(":lib:serverconf-core"))
   api(project(":lib:globalconf-impl"))
 

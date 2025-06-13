@@ -159,7 +159,7 @@ public class DatabaseCtx {
 
 
     private Exception customizeException(Exception e) {
-        if (e instanceof JDBCException) {
+        if (e instanceof JDBCException) { //TODO xroad8 a marker to refactor when dealing with exceptions
             return new CodedException(X_DATABASE_ERROR,
                     "Error accessing database (%s)", name);
         }

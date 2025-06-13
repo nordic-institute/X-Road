@@ -591,13 +591,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the signing key configuration file, '/etc/xroad/signer/keyconf.xml' by default.
-     */
-    public static String getKeyConfFile() {
-        return getProperty(KEY_CONFIGURATION_FILE, getConfPath() + DefaultFilepaths.KEY_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return WSDL validator command string. Defaults to null.
      */
     public static String getWsdlValidatorCommand() {

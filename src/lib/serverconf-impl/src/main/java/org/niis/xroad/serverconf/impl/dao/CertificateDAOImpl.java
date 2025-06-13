@@ -27,6 +27,7 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
+import org.niis.xroad.common.jpa.dao.AbstractDAOImpl;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
 
 import java.util.List;

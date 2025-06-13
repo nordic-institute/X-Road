@@ -26,20 +26,23 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.SetRenewalErrorReq;
 
 /**
  * Handles requests for setting the certificate renewal error.
  */
 @ApplicationScoped
-public class SetRenewalErrorReqHandler
-        extends AbstractRpcHandler<SetRenewalErrorReq, Empty> {
+@RequiredArgsConstructor
+public class SetRenewalErrorReqHandler extends AbstractRpcHandler<SetRenewalErrorReq, Empty> {
+    private final CertManager certManager;
 
     @Override
     protected Empty handle(SetRenewalErrorReq request) throws Exception {
-        tokenManager.setRenewalError(request.getCertId(), request.getErrorMessage());
+        certManager.setRenewalError(request.getCertId(), request.getErrorMessage());
 
         return Empty.getDefaultInstance();
     }

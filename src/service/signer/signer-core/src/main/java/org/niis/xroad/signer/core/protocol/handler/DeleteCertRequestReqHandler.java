@@ -28,9 +28,11 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
@@ -40,8 +42,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
  */
 @Slf4j
 @ApplicationScoped
-public class DeleteCertRequestReqHandler
-        extends AbstractRpcHandler<DeleteCertRequestReq, Empty> {
+@RequiredArgsConstructor
+public class DeleteCertRequestReqHandler extends AbstractRpcHandler<DeleteCertRequestReq, Empty> {
+    private final CertManager certManager;
 
     @Override
     protected Empty handle(DeleteCertRequestReq request) throws Exception {
@@ -50,12 +53,11 @@ public class DeleteCertRequestReqHandler
         return Empty.getDefaultInstance();
     }
 
-    public void deleteCertRequest(String certId) {
-        String removedKeyId = tokenManager.removeCertRequest(certId);
-        if (removedKeyId == null) {
-            throw CodedException.tr(X_CSR_NOT_FOUND,
-                    "csr_not_found", "Certificate request '%s' not found", certId);
+    public void deleteCertRequest(String certReqId) {
+        if (certManager.removeCertRequest(certReqId)) {
+            log.info("Deleted certificate request '{}'", certReqId);
+        } else {
+            throw CodedException.tr(X_CSR_NOT_FOUND, "csr_not_found", "Certificate request '%s' not found", certReqId);
         }
-        log.info("Deleted certificate request under key '{}'", removedKeyId);
     }
 }

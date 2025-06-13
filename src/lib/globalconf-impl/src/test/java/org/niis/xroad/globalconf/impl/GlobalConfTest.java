@@ -74,7 +74,7 @@ import static org.junit.Assert.assertTrue;
  * Tests the global configuration functionality.
  */
 public class GlobalConfTest {
-    private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v2";
+    private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v4";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
@@ -136,7 +136,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getInstanceIdentifiers() {
-        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(globalConfProvider.getInstanceIdentifiers()));
+        assertTrue(Arrays.asList("EE", "bar", "baz_v3", "foo_v2").containsAll(globalConfProvider.getInstanceIdentifiers()));
     }
 
     /**
@@ -250,7 +250,7 @@ public class GlobalConfTest {
             assertNotNull("Got null certificate", cert);
         }
 
-        assertEquals(12, ocspResponderCerts.size());
+        assertEquals(18, ocspResponderCerts.size());
     }
 
     /**
@@ -362,7 +362,7 @@ public class GlobalConfTest {
     public void getVerificationCaCerts() {
         List<X509Certificate> certs = globalConfProvider.getVerificationCaCerts();
 
-        assertEquals(4, certs.size());
+        assertEquals(6, certs.size());
     }
 
     /**
@@ -389,7 +389,7 @@ public class GlobalConfTest {
     public void getTspCerts() throws Exception {
         List<X509Certificate> tspCertificates = globalConfProvider.getTspCertificates();
 
-        assertEquals(3, tspCertificates.size());
+        assertEquals(4, tspCertificates.size());
     }
 
     /**

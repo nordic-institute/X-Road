@@ -26,14 +26,18 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.DeleteTokenReq;
 
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 public class DeleteTokenReqHandler extends AbstractRpcHandler<DeleteTokenReq, Empty> {
+    private final TokenManager tokenManager;
 
     @Override
     protected Empty handle(DeleteTokenReq request) throws Exception {

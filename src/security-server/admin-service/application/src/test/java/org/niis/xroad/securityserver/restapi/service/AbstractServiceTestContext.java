@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -38,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.ClientIdEntity;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.niis.xroad.serverconf.model.Client;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

@@ -53,5 +53,5 @@ message OcspResponderStatus {
 }
 
 message KeyConfChecksum {
-  optional string checksum = 1;
+  optional int32 checksum = 1;
 }

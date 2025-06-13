@@ -47,7 +47,7 @@ import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
 import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;
@@ -67,7 +67,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Collections.emptyList;
 
@@ -87,7 +87,7 @@ public class OcspClientWorker {
 
     private final GlobalConfProvider globalConfProvider;
     private final OcspResponseManager ocspResponseManager;
-    private final TokenManager tokenManager;
+    private final TokenLookup tokenLookup;
     private final OcspClient ocspClient;
 
     private final GlobalConfChangeChecker changeChecker = new GlobalConfChangeChecker();
@@ -179,7 +179,7 @@ public class OcspClientWorker {
                 OCSPResp status = queryCertStatus(subject, new OcspVerifierOptions(
                         globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
                 if (status != null) {
-                    String subjectHash = calculateCertSha1HexHash(subject);
+                    String subjectHash = calculateCertHexHash(subject);
                     statuses.put(subjectHash, status);
                 } else {
                     failed = true;
@@ -208,7 +208,7 @@ public class OcspClientWorker {
     List<X509Certificate> getCertsForOcsp() {
         Set<X509Certificate> certs = new HashSet<>();
 
-        for (CertificateInfo certInfo : tokenManager.getAllCerts()) {
+        for (CertificateInfo certInfo : tokenLookup.getAllCerts()) {
             if (!certInfo.isActive()) {
                 // do not download OCSP responses for inactive certificates
                 log.debug("Skipping inactive certificate {}", certInfo.getId());
@@ -350,7 +350,7 @@ public class OcspClientWorker {
                 return false;
             }
 
-            String subjectHash = calculateCertSha1HexHash(subject);
+            String subjectHash = calculateCertHexHash(subject);
             try {
                 // todo this should be separated from isValid check.
                 //  This seems to be the only place where expired Ocsp response is cleared from TokenManager.

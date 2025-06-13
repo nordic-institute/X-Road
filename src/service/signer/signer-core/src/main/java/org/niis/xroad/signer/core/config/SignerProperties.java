@@ -43,10 +43,6 @@ public interface SignerProperties {
     @WithDefault("/etc/xroad/devices.ini")
     String deviceConfigurationFile();
 
-    @WithName("key-configuration-file")
-    @WithDefault("/etc/xroad/signer/keyconf.xml")
-    String keyConfigurationFile();
-
     @WithName("selfsigned-cert-digest-algorithm")
     @WithDefault("SHA-512")
     String selfsignedCertDigestAlgorithm();

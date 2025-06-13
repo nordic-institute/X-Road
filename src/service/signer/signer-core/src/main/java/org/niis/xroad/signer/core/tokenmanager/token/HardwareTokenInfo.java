@@ -42,8 +42,7 @@ public final class HardwareTokenInfo {
         data.put("Type", "Hardware");
         data.put("Manufacturer ID", info.getManufacturerID());
         data.put("Model", info.getModel());
-        data.put("Firmware Version",
-                info.getFirmwareVersion().toString());
+        data.put("Firmware Version", info.getFirmwareVersion().toString());
         data.put("Serial Number", info.getSerialNumber());
         data.put("Label", info.getLabel());
 

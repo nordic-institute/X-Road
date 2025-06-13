@@ -48,7 +48,9 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertReq;
 import org.niis.xroad.signer.proto.GenerateSelfSignedCertResp;
@@ -76,14 +78,16 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<GenerateSelfSignedCertReq, GenerateSelfSignedCertResp> {
+    private final SignerProperties signerProperties;
     private final SignReqHandler signReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
+    private final TokenLookup tokenLookup;
 
     @Override
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) throws Exception {
-        TokenAndKey tokenAndKey = tokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
-        if (!tokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
+        if (!tokenLookup.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 

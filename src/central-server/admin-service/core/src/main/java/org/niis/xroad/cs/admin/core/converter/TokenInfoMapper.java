@@ -57,7 +57,6 @@ public class TokenInfoMapper implements GenericUniDirectionalMapper<org.niis.xro
         result.setActive(tokenInfo.isActive());
         result.setSerialNumber(tokenInfo.getSerialNumber());
         result.setLabel(tokenInfo.getLabel());
-        result.setSlotIndex(tokenInfo.getSlotIndex());
         result.setStatus(mapStatus(tokenInfo.getStatus()));
 
         final List<ConfigurationSigningKeyWithDetails> configurationKeys = configurationSigningKeysService.findDetailedByToken(tokenInfo);

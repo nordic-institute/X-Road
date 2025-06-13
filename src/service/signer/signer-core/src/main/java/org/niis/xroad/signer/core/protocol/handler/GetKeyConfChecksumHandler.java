@@ -27,82 +27,25 @@
 
 package org.niis.xroad.signer.core.protocol.handler;
 
-import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
-
-import java.lang.ref.WeakReference;
-import java.nio.file.Paths;
 
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConfChecksum> {
-
-    private FileWatcherRunner fileWatcherRunner;
-    private String checkSum;
-
-    @PostConstruct
-    public void init() throws Exception {
-        // the change watcher can not be created in the constructor, because that would publish the
-        // instance reference to another thread before the constructor finishes.
-        final FileContentChangeChecker changeChecker = new FileContentChangeChecker(signerProperties.keyConfigurationFile());
-        this.checkSum = changeChecker.getChecksum();
-        this.fileWatcherRunner = createChangeWatcher(new WeakReference<>(this), changeChecker);
-    }
-
-    /* Implementation note:
-     * Weak reference for the callback is used so that instance can be garbage collected.
-     * Otherwise, the FileWatcher background thread keeps it alive and creates a leak
-     * if one fails to call destroy.
-     */
-    private FileWatcherRunner createChangeWatcher(WeakReference<GetKeyConfChecksumHandler> ref, FileContentChangeChecker changeChecker) {
-        return FileWatcherRunner.create()
-                .watchForChangesIn(Paths.get(changeChecker.getFileName()))
-                .listenToCreate()
-                .listenToModify()
-                .andOnChangeNotify(() -> {
-                    final GetKeyConfChecksumHandler handler = ref.get();
-                    if (handler == null) {
-                        //stop watcher since the GetKeyConfChecksumHandler has become garbage
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                    boolean changed = true;
-                    try {
-                        changed = changeChecker.hasChanged();
-                    } catch (Exception e) {
-                        log.error("Failed to check if key conf has changed", e);
-                    }
-                    if (changed) {
-                        handler.checkSum = changeChecker.getChecksum();
-                    }
-                })
-                .buildAndStartWatcher();
-    }
+    private final TokenRegistry tokenRegistry;
 
     @Override
     protected KeyConfChecksum handle(Empty request) throws Exception {
         KeyConfChecksum.Builder builder = KeyConfChecksum.newBuilder();
-        if (StringUtils.isNotBlank(checkSum)) {
-            builder.setChecksum(checkSum);
-        }
+        builder.setChecksum(tokenRegistry.getCurrentKeyConfChecksum());
         return builder.build();
-    }
-
-
-    @PreDestroy
-    public void destroy() {
-        if (fileWatcherRunner != null) {
-            fileWatcherRunner.stop();
-        }
     }
 
 }

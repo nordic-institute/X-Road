@@ -34,21 +34,23 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
-import org.niis.xroad.signer.api.message.GetOcspResponses;
-import org.niis.xroad.signer.api.message.GetOcspResponsesResponse;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Optional;
 
-import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
+import static ee.ria.xroad.common.util.CertUtils.getHashes;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
@@ -56,7 +58,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 /**
  * This class is responsible for managing the OCSP responses for certificates.
  * <p>
- * Certificates are identified by their SHA-1 fingerprint calculated over
+ * Certificates are identified by their SHA-256 fingerprint calculated over
  * the entire certificate.
  * <p>
  * When an OCSP response is added to the manager, it is first cached in memory
@@ -73,87 +75,75 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 @RequiredArgsConstructor
 public class OcspResponseManager {
     private final GlobalConfProvider globalConfProvider;
-    private final TokenManager tokenManager;
     private final OcspClient ocspClient;
 
     /**
      * Maps a certificate hash to an OCSP response.
      */
     private final FileBasedOcspCache responseCache;
+    private final TokenLookup tokenLookup;
 
-    // ------------------------------------------------------------------------
-
-    /**
-     * Utility method for getting OCSP response for a certificate.
-     *
-     * @param cert the certificate
-     * @return OCSP response as byte array
-     * @throws Exception if an error occurs
-     */
-    public byte[] getOcspResponse(X509Certificate cert) throws Exception {
-        return getOcspResponse(calculateCertSha1HexHash(cert));
-    }
-
-    /**
-     * Utility method for getting OCSP response for a certificate hash.
-     *
-     * @param certHash the certificate hash
-     * @return OCSP response as byte array
-     * @throws Exception if an error occurs
-     */
-    private byte[] getOcspResponse(String certHash) throws Exception {
-        GetOcspResponses message = new GetOcspResponses(new String[]{certHash});
-
-        GetOcspResponsesResponse result = handleGetOcspResponses(message);
-
-        if (result.getBase64EncodedResponses().length > 0
-                && result.getBase64EncodedResponses()[0] != null) {
-            return decodeBase64(result.getBase64EncodedResponses()[0]);
-        } else {
-            return null;
-        }
-    }
-
-    // ------------------------------------------------------------------------
     @PostConstruct
     public void init() {
         try {
             responseCache.reloadFromDisk();
-
-            for (Entry<String, OCSPResp> e : responseCache.entrySet()) {
-                tokenManager.setOcspResponse(e.getKey(), e.getValue());
-            }
         } catch (Exception e) {
             log.error("Failed to load OCSP responses from disk", e);
         }
     }
 
-    public GetOcspResponsesResponse handleGetOcspResponses(GetOcspResponses message) throws Exception {
+    public void refreshCache(Iterable<String> certHashesToRefresh) {
+        certHashesToRefresh.forEach(hash -> {
+            try {
+                getFromCacheOrDownload(hash);
+            } catch (Exception e) {
+                log.error("Error while refreshing OCSP response for certificate {}: {}", hash, e.getMessage(), e);
+            }
+        });
+    }
+
+    public Map<String, String> handleGetOcspResponses(Collection<String> certHashes) {
         log.trace("handleGetOcspResponses()");
 
-        String[] base64EncodedResponses = new String[message.getCertHash().length];
-        for (int i = 0; i < message.getCertHash().length; i++) {
-            OCSPResp ocspResponse = getResponse(message.getCertHash()[i]);
-            if (ocspResponse == null) {
-                log.debug("No cached OCSP response available for cert {}", message.getCertHash()[i]);
-                // if the response is not in local cache, download it
-                ocspResponse = downloadOcspResponse(message.getCertHash()[i]);
-                if (ocspResponse != null) {
-                    setResponse(message.getCertHash()[i], ocspResponse);
-                }
-            } else {
-                log.debug("Found a cached OCSP response for cert {}", message.getCertHash()[i]);
-            }
+        final Map<String, String> ocspResponses = new HashMap<>();
+        certHashes.forEach(hash ->
+                getOcspResponse(hash)
+                        .ifPresent(response -> ocspResponses.put(hash, encodeBase64(response))));
+
+        return ocspResponses;
+    }
+
+    public Optional<byte[]> getOcspResponse(String certHash) {
+        try {
+            var ocspResponse = getFromCacheOrDownload(certHash);
 
             if (ocspResponse != null) {
-                log.debug("Acquired an OCSP response for certificate {}", message.getCertHash()[i]);
-                base64EncodedResponses[i] = encodeBase64(ocspResponse.getEncoded());
+                log.debug("Acquired an OCSP response for certificate {}", certHash);
+                return Optional.ofNullable(ocspResponse.getEncoded());
             } else {
-                log.warn("Could not acquire an OCSP response for certificate {}", message.getCertHash()[i]);
+                log.warn("Could not acquire an OCSP response for certificate {}", certHash);
             }
+        } catch (Exception e) {
+            log.error("Error while getting OCSP response for certificate {}: {}", certHash, e.getMessage(), e);
         }
 
-        return new GetOcspResponsesResponse(base64EncodedResponses);
+        return Optional.empty();
+    }
+
+    private OCSPResp getFromCacheOrDownload(String certHash) throws Exception {
+        OCSPResp ocspResponse = getResponse(certHash);
+        if (ocspResponse == null) {
+            log.debug("No cached OCSP response available for cert {}", certHash);
+            // if the response is not in local cache, download it
+            ocspResponse = downloadOcspResponse(certHash);
+            if (ocspResponse != null) {
+                addToCache(certHash, ocspResponse);
+            }
+        } else {
+            log.debug("Found a cached OCSP response for cert {}", certHash);
+        }
+
+        return ocspResponse;
     }
 
     private OCSPResp downloadOcspResponse(String certHash) throws Exception {
@@ -181,46 +171,42 @@ public class OcspResponseManager {
         log.trace("handleSetOcspResponses()");
 
         for (int i = 0; i < message.getCertHashesCount(); i++) {
-            setResponse(message.getCertHashes(i), new OCSPResp(
+            addToCache(message.getCertHashes(i), new OCSPResp(
                     decodeBase64(message.getBase64EncodedResponses(i))));
         }
     }
 
     public void removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(String certHash) {
-        OCSPResp response = responseCache.get(certHash);
-        tokenManager.setOcspResponse(certHash, response);
+        //get verifies if the response is expired
+        responseCache.get(certHash);
     }
 
     private OCSPResp getResponse(String certHash) {
         return responseCache.get(certHash);
     }
 
-    private void setResponse(String certHash, OCSPResp response) {
+    private void addToCache(String certHash, OCSPResp response) {
         log.debug("Setting a new response to cache for cert: {}", certHash);
-        try {
-            responseCache.put(certHash, response);
-        } finally {
-            tokenManager.setOcspResponse(certHash, response);
-        }
+        responseCache.put(certHash, response);
     }
 
     /**
-     * @param certSha1Hash the certificate SHA-1 hash in HEX
+     * @param certHash the certificate SHA-1 hash in HEX
      * @return certificate matching certHash
      * @throws CertificateEncodingException if a certificate encoding error occurs
      * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
      */
-    private X509Certificate getCertForCertHash(String certSha1Hash)
+    private X509Certificate getCertForCertHash(String certHash)
             throws CertificateEncodingException, IOException, OperatorCreationException {
-        X509Certificate cert = tokenManager.getCertificateForCerHash(certSha1Hash);
+        X509Certificate cert = tokenLookup.getCertificateForCerHash(certHash);
         if (cert != null) {
             return cert;
         }
 
         // not in key conf, look elsewhere
         for (X509Certificate caCert : globalConfProvider.getAllCaCerts()) {
-            if (certSha1Hash.equals(calculateCertSha1HexHash(caCert))) {
+            if (certHash.equals(calculateCertHexHash(caCert))) {
                 return caCert;
             }
         }
@@ -229,10 +215,10 @@ public class OcspResponseManager {
 
     public void verifyOcspResponses(X509Certificate x509Certificate) throws Exception {
         CertChain certChain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), x509Certificate);
-        GetOcspResponses message = new GetOcspResponses(getSha1Hashes(certChain.getAllCertsWithoutTrustedRoot()));
-        GetOcspResponsesResponse result = handleGetOcspResponses(message);
+
+        var result = handleGetOcspResponses(Arrays.asList(getHashes(certChain.getAllCertsWithoutTrustedRoot())));
         List<OCSPResp> ocspResponses = new ArrayList<>();
-        for (String encodedResponse : result.getBase64EncodedResponses()) {
+        for (String encodedResponse : result.values()) {
             if (encodedResponse != null) {
                 ocspResponses.add(new OCSPResp(decodeBase64(encodedResponse)));
             } else {

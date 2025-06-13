@@ -95,8 +95,8 @@ Feature: 0300 - SS: Keys and certificates
     And Token: softToken-0 is logged-in
 
   Scenario: Inactive token can be deleted
-    Given Predefined inactive signer token is uploaded
+    Given Predefined inactive signer token is inserted
     And Keys and certificates tab is selected
-    When Token: softToken-for-deletion edit page is opened
-    Then Inactive token softToken-for-deletion is successfully deleted
+    When Token: hsmToken-for-deletion edit page is opened
+    Then Inactive token hsmToken-for-deletion is successfully deleted
 

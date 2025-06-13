@@ -32,9 +32,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.serverconf.impl.entity.ClientEntity;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

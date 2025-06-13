@@ -26,8 +26,10 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
 
 import java.time.Instant;
@@ -36,13 +38,14 @@ import java.time.Instant;
  * Handles requests for setting the certificate renewal error.
  */
 @ApplicationScoped
-public class SetNextPlannedRenewalReqHandler
-        extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
+@RequiredArgsConstructor
+public class SetNextPlannedRenewalReqHandler extends AbstractRpcHandler<SetNextPlannedRenewalReq, Empty> {
+    private final CertManager certManager;
 
     @Override
     protected Empty handle(SetNextPlannedRenewalReq request) throws Exception {
         Instant nextRenewalTime = Instant.ofEpochSecond(request.getNextRenewalTime().getSeconds(), request.getNextRenewalTime().getNanos());
-        tokenManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
+        certManager.setNextPlannedRenewal(request.getCertId(), nextRenewalTime);
 
         return Empty.getDefaultInstance();
     }

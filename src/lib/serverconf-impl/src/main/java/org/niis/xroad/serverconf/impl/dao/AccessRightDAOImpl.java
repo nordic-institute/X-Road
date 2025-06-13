@@ -27,7 +27,7 @@
 package org.niis.xroad.serverconf.impl.dao;
 
 import org.hibernate.Session;
-import org.niis.xroad.serverconf.impl.entity.XRoadIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.XRoadIdEntity;
 
 public class AccessRightDAOImpl {
 

@@ -29,10 +29,14 @@ import ee.ria.xroad.common.CodedException;
 
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
-import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenType;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.protocol.handler.service.CertRequestCreationService;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestResp;
@@ -46,34 +50,38 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
  */
 @Slf4j
 @ApplicationScoped
-public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateCertRequestReq, GenerateCertRequestResp> {
+@RequiredArgsConstructor
+public class GenerateCertReqReqHandler extends AbstractRpcHandler<GenerateCertRequestReq, GenerateCertRequestResp> {
+    private final CertRequestCreationService certRequestCreationService;
+    private final TokenLookup tokenLookup;
+    private final CertManager certManager;
 
     @Override
     protected GenerateCertRequestResp handle(GenerateCertRequestReq request) throws Exception {
-        TokenAndKey tokenAndKey = tokenManager.findTokenAndKey(request.getKeyId());
+        TokenAndKey tokenAndKey = tokenLookup.findTokenAndKey(request.getKeyId());
 
-        if (!tokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
+        if (!tokenLookup.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
         if (request.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
-                && !SoftwareTokenType.ID.equals(tokenAndKey.tokenId())) {
+                && !SoftwareTokenDefinition.ID.equals(tokenAndKey.tokenId())) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
                     "auth_cert_under_softtoken",
                     "Authentication certificate requests can only be created under software tokens");
         }
 
-        PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
+        var generatedRequest = certRequestCreationService.buildSignedCertRequest(tokenAndKey, request.getSubjectName(),
                 request.getSubjectAltName(), request.getKeyUsage());
 
-        String certReqId = tokenManager.addCertRequest(tokenAndKey.getKeyId(),
+        String certReqId = certManager.addCertRequest(tokenAndKey.getKeyId(),
                 request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null,
                 request.getSubjectName(), request.getSubjectAltName(), request.getKeyUsage(),
                 request.getCertificateProfile());
 
         return GenerateCertRequestResp.newBuilder()
                 .setCertReqId(certReqId)
-                .setCertRequest(ByteString.copyFrom(convert(generatedRequest, request.getFormat())))
+                .setCertRequest(ByteString.copyFrom(certRequestCreationService.convert(generatedRequest, request.getFormat())))
                 .setFormat(request.getFormat())
                 .build();
     }

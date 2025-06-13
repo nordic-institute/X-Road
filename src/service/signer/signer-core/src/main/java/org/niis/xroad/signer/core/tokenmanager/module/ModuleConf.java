@@ -155,7 +155,7 @@ public class ModuleConf {
     /**
      * @return all modules
      */
-    static Collection<ModuleType> getModules() {
+    public Collection<ModuleType> getModules() {
         return MODULES.values();
     }
 

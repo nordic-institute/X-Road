@@ -26,15 +26,19 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 
 /**
  * Handles requests for setting the token friendly name.
  */
 @ApplicationScoped
+@RequiredArgsConstructor
 public class SetTokenFriendlyNameReqHandler extends AbstractRpcHandler<SetTokenFriendlyNameReq, Empty> {
+    private final TokenManager tokenManager;
 
     @Override
     protected Empty handle(SetTokenFriendlyNameReq request) throws Exception {

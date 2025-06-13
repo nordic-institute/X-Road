@@ -27,16 +27,10 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ArrayUtils;
-import org.niis.xroad.signer.api.message.GetOcspResponses;
-import org.niis.xroad.signer.api.message.GetOcspResponsesResponse;
 import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Handles OCSP requests.
@@ -50,21 +44,10 @@ public class GetOcspResponsesReqHandler
 
     @Override
     protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
-        var message = new GetOcspResponses(
-                request.getCertHashList().toArray(new String[0]));
-
-        GetOcspResponsesResponse response = ocspResponseManager.handleGetOcspResponses(message);
-
-        // todo return map from ocsp responses manager
-        Map<String, String> ocspResponses = new HashMap<>();
-        for (int i = 0; i < message.getCertHash().length; i++) {
-            if (ArrayUtils.get(response.getBase64EncodedResponses(), i) != null) {
-                ocspResponses.put(request.getCertHash(i), response.getBase64EncodedResponses()[i]);
-            }
-        }
+        var response = ocspResponseManager.handleGetOcspResponses(request.getCertHashList());
 
         return GetOcspResponsesResp.newBuilder()
-                .putAllBase64EncodedResponses(ocspResponses)
+                .putAllBase64EncodedResponses(response)
                 .build();
     }
 

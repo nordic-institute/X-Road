@@ -26,20 +26,23 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
 
 /**
  * Handles requests for setting the newer certificate's hash for older certificate.
  */
 @ApplicationScoped
-public class SetRenewedCertHashReqHandler
-        extends AbstractRpcHandler<SetRenewedCertHashReq, Empty> {
+@RequiredArgsConstructor
+public class SetRenewedCertHashReqHandler extends AbstractRpcHandler<SetRenewedCertHashReq, Empty> {
+    private final CertManager certManager;
 
     @Override
     protected Empty handle(SetRenewedCertHashReq request) throws Exception {
-        tokenManager.setRenewedCertHash(request.getCertId(), request.getHash());
+        certManager.setRenewedCertHash(request.getCertId(), request.getHash());
 
         return Empty.getDefaultInstance();
     }
