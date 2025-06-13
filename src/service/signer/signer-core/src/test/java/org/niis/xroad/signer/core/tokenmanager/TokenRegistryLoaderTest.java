@@ -27,6 +27,7 @@
 
 package org.niis.xroad.signer.core.tokenmanager;
 
+import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -178,7 +179,8 @@ class TokenRegistryLoaderTest {
         var key1 = TestDataUtil.softwareKeyData(0L, 1L);
         var key2 = TestDataUtil.softwareKeyData(1L, 1L);
 
-        var cert1 = CertData.create("cert-external-id-1", 0L, null, "sha256hash-1");
+        var cert = TestCertUtil.getProducer().certChain[0];
+        var cert1 = CertData.create("cert-external-id-1", 0L, cert, "sha256hash-1");
 
         var certRequest1 = new CertRequestData(0L, "cert-request-external-id-1", 0L, ClientId.Conf.create("a", "b", "c"),
                 "sn", "subject alt name", "");
