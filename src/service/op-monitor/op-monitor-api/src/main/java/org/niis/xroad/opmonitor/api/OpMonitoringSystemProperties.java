@@ -110,7 +110,7 @@ public final class OpMonitoringSystemProperties {
     /**
      * Property name of the port on which the operational monitoring daemon listens for JSON/SOAP requests.
      */
-    private static final String OP_MONITOR_GRPC_PORT = PREFIX + "op-monitor.grpc-port";
+    public static final String OP_MONITOR_GRPC_PORT = PREFIX + "op-monitor.grpc-port";
 
     /**
      * Property name of the path to the location of the operational monitoring daemon TLS certificate.

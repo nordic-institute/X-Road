@@ -29,13 +29,13 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.OpMonitorClient;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
