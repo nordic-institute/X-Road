@@ -121,9 +121,8 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(X_NETWORK_ERROR, "signer_client_timeout",
-                                "Signer client timed out. Deadline: " + rpcDeadlineMillis + " ms")
-                        .withPrefix(SIGNER_X);
+                throw CodedException.tr(X_NETWORK_ERROR, "grpc_client_timeout",
+                                "gRPC client timed out. Deadline: " + rpcDeadlineMillis + " ms");
             }
             com.google.rpc.Status status = io.grpc.protobuf.StatusProto.fromThrowable(error);
             if (status != null) {
@@ -138,8 +137,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             if (any.is(CodedExceptionProto.class)) {
                 try {
                     final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
-                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString())
-                            .withPrefix(SIGNER_X);
+                    throw CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString());
                 } catch (InvalidProtocolBufferException e) {
                     throw new RuntimeException("Failed to parse grpc message", e);
                 }

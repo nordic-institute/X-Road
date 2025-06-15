@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,39 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
 
-option java_multiple_files = true;
-option java_package = "org.niis.xroad.signer.protocol.dto";
+package org.niis.xroad.opmonitor.test;
 
-/* Generic empty request/response. */
-message Empty {
+import org.junit.platform.suite.api.IncludeEngines;
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.junit.platform.suite.api.Suite;
+
+@Suite
+@IncludeEngines("cucumber")
+@SelectClasspathResource("behavior")
+public class OpMonitorIntTest {
 }
 
-message ClientIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  optional string subsystem_code = 3;
-
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
-
-message SecurityServerIdProto {
-  string member_class = 1;
-  string member_code = 2;
-  string server_code = 3;
-
-  string xroad_instance = 4;
-  XRoadObjectType object_type = 5;
-}
-
-enum XRoadObjectType {
-  XROAD_OBJECT_TYPE_UNSPECIFIED = 0;
-  SERVER = 1;
-  SERVICE = 2;
-  MEMBER = 3;
-  SUBSYSTEM = 4;
-  GLOBALGROUP = 5;
-  LOCALGROUP = 6 [deprecated = true]; // Deprecated
-}

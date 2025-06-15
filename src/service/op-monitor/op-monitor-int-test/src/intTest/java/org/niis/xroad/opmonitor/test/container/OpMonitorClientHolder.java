@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.mapper;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+package org.niis.xroad.opmonitor.test.container;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.SecurityServerIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
+import lombok.experimental.UtilityClass;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.signer.client.SignerRpcClient;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SecurityServerIdMapper {
+/**
+ * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would
+ * need to recreate on every feature.
+ */
+@UtilityClass
+public class OpMonitorClientHolder {
 
-    public static SecurityServerId.Conf fromDto(final SecurityServerIdProto input) {
-        return SecurityServerId.Conf.create(
-                input.getXroadInstance(),
-                input.getMemberClass(),
-                input.getMemberCode(),
-                input.getServerCode());
+    private static OpMonitorClient opMonitorRpcClientInstance;
+
+    public static void set(OpMonitorClient opMonitorClient) {
+        opMonitorRpcClientInstance = opMonitorClient;
     }
 
-    public static SecurityServerIdProto toDto(final SecurityServerId input) {
-        return SecurityServerIdProto.newBuilder()
-                .setMemberClass(input.getMemberClass())
-                .setMemberCode(input.getMemberCode())
-                .setServerCode(input.getServerCode())
-                .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()))
-                .build();
+    public static OpMonitorClient get() {
+        return opMonitorRpcClientInstance;
     }
+
 }

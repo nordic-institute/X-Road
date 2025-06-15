@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
@@ -102,4 +103,9 @@ public class SecurityServerConfiguration {
         return new XrdProcessesCollector(monitorClient);
     }
 
+    @Bean
+    @Profile("nontest")
+    public OpMonitorClient opMonitorClient() throws Exception {
+        return new OpMonitorClient();
+    }
 }

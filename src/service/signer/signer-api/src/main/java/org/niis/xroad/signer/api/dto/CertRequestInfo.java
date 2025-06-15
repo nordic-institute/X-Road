@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.ToString;
 import lombok.Value;
-import org.niis.xroad.signer.api.mapper.ClientIdMapper;
+import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.protocol.dto.CertRequestInfoProto;
 
 import java.io.Serializable;
