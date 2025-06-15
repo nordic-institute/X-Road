@@ -25,6 +25,7 @@
  * THE SOFTWARE.
  */
 import { RouteLocationRaw } from 'vue-router';
+import { AdminUser } from '@/openapi-types';
 
 export type FileUploadResult = {
   /**@deprecated*/
@@ -55,6 +56,20 @@ export interface BackupHandler {
   restore(filename: string): Promise<unknown>;
 }
 
+export interface AdminUsersHandler {
+  fetchAll(): Promise<AdminUser[] | void>;
+  add(user: AdminUser): Promise<unknown>;
+  delete(username: string): Promise<void>;
+  updateRoles(username: string, roles: string[]): Promise<void>;
+  changePassword(username: string, oldPassword: string, newPassword: string): Promise<void>;
+  availableRoles(): string[];
+  navigateToAddUser(): void;
+  canCreate(): boolean;
+  canEdit(): boolean;
+  canDelete(user: AdminUser): boolean;
+  hasRole(role: string): boolean;
+}
+
 export interface CommonUser {
   logout(): Promise<unknown>;
 
@@ -73,6 +88,7 @@ export interface CommonRouting {
 
 export interface CommonSystem {
   version(): string | undefined;
+  isDatabaseBasedAuthentication(): boolean;
 }
 
 // Interface for Tab data

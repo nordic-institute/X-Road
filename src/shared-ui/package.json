@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint . --fix",
+    "build": "pnpm run generate-types",
+    "generate-types": "rm -rf src/openapi-types && openapi --input ../common/common-admin-api/src/main/resources/common-openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "cleanup": "rm -rf dist && rm -rf node_modules",

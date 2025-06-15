@@ -56,7 +56,7 @@ export const useSettingsTabs = defineStore('settingsTabs', {
         permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
       },
       {
-        key: 'backupandrestore-tab-button',
+        key: 'backup-and-restore-tab-button',
         name: 'tab.settings.backupAndRestore',
         to: {
           name: RouteName.BackupAndRestore,

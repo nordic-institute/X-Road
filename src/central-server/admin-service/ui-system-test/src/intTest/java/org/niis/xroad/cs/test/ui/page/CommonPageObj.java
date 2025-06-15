@@ -92,7 +92,7 @@ public class CommonPageObj {
         }
 
         public SelenideElement backupAndRestoresTab() {
-            return $x("//*[@data-test='backupandrestore-tab-button']");
+            return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
 
         public SelenideElement settingsTab() {

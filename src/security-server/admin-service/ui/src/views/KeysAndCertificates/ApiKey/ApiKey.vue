@@ -41,7 +41,7 @@
         <xrd-icon-base class="xrd-large-button-icon">
           <XrdIconAdd />
         </xrd-icon-base>
-        {{ $t('apiKey.createApiKey.title') }}
+        {{ $t('apiKey.createApiKey.button') }}
       </xrd-button>
     </template>
 

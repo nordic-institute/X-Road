@@ -41,7 +41,8 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     ERROR_ID_NOT_A_NUMBER("id_not_a_number"),
 
     API_KEY_NOT_FOUND("api_key_not_found"),
-    API_KEY_INVALID_ROLE("invalid_role"),
+    USER_NOT_FOUND("user_not_found"),
+    INVALID_ROLE("invalid_role"),
     INVALID_FILENAME("invalid_filename"),
     INVALID_FILE_CONTENT_TYPE("invalid_file_content_type"),
     INVALID_FILE_EXTENSION("invalid_file_extension"),
@@ -97,7 +98,9 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),
     INVALID_CERTIFICATE("invalid_certificate"),
 
-    MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS);
+    MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS),
+
+    PASSWORD_INCORRECT("password_incorrect");
 
     private final String code;
 

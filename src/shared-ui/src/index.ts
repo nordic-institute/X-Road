@@ -32,9 +32,12 @@ import './assets/icons.css';
 
 export * from './components';
 export * from './components/icons';
+export * from './components/admin-users';
 export * from './components/backups-and-restore';
 export * from './layouts';
 export * from './views';
+export * from './views/admin-users';
+export * from './openapi-types';
 
 export * from './plugins/i18n';
 export * from './utils';

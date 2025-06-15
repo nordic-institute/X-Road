@@ -31,6 +31,7 @@ import { key } from '@niis/shared-ui';
 import { RouteName } from '@/global';
 import { useRouter } from 'vue-router';
 import { useSystem } from '@/store/modules/system';
+import { useAdminUsersHandler } from '@/store/modules/adminUsers';
 
 export default {
   install(app) {
@@ -38,6 +39,7 @@ export default {
       const user = useUser();
       const system = useSystem();
       const router = useRouter();
+      const { adminUsersHandler } = useAdminUsersHandler();
 
       app.provide(key.routing, {
         toLogin() {
@@ -67,7 +69,12 @@ export default {
         version() {
           return system.serverVersion?.info;
         },
+        isDatabaseBasedAuthentication() {
+          return false;
+        },
       });
+
+      app.provide(key.adminUsersHandler, adminUsersHandler());
     });
   },
 } as Plugin;

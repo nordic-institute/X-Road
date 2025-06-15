@@ -34,7 +34,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 /**
  * Generic "NotFound" exception It has an error message which optionally can be thrown to api layer.
- * Note: Usually if used within rest API this exception leads to http code 500.
+ * Note: Usually if used within rest API this exception leads to http code 404.
  */
 public class NotFoundException extends ClientErrorException {
     public NotFoundException(@NonNull final ErrorDeviation errorDeviation) {

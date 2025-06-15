@@ -78,7 +78,7 @@ public class CommonPageObj {
     public class SubMenu {
 
         public SelenideElement backupAndRestoresTab() {
-            return $x("//*[@data-test='backupandrestore-tab-button']");
+            return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
 
         public SelenideElement systemParametersTab() {

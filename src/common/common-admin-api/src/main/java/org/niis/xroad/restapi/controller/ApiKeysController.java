@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 import java.util.List;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.API_KEY_INVALID_ROLE;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ROLE;
 
 /**
  * Controller for rest apis for api key operations
@@ -77,7 +77,7 @@ public class ApiKeysController {
             PlaintextApiKeyDto createdKeyData = apiKeyService.create(roles);
             return ResponseEntity.ok(publicApiKeyDataConverter.convert(createdKeyData));
         } catch (InvalidRoleNameException e) {
-            throw new BadRequestException(e, API_KEY_INVALID_ROLE.build());
+            throw new BadRequestException(e, INVALID_ROLE.build());
         }
     }
 
@@ -93,7 +93,7 @@ public class ApiKeysController {
             PersistentApiKeyType key = apiKeyService.update(id, roles);
             return ResponseEntity.ok(publicApiKeyDataConverter.convert(key));
         } catch (InvalidRoleNameException e) {
-            throw new BadRequestException(e, API_KEY_INVALID_ROLE.build());
+            throw new BadRequestException(e, INVALID_ROLE.build());
         }
     }
 

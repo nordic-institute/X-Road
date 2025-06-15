@@ -64,6 +64,8 @@ export enum RouteName {
   SecurityServerAuthenticationCertificates = 'security-server-authentication-certificates',
   SecurityServerAuthenticationCertificate = 'security-server-authentication-certificate',
   SecurityServerClients = 'security-server-clients',
+  AdminUsers = 'admin-users',
+  AddAdminUser = 'add-admin-user',
   Forbidden = 'forbidden',
 }
 
@@ -140,6 +142,10 @@ export enum Permissions {
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
   REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
+  ADD_ADMIN_USER = 'ADD_ADMIN_USER',
+  DELETE_ADMIN_USER = 'DELETE_ADMIN_USER',
+  UPDATE_ADMIN_USER = 'UPDATE_ADMIN_USER',
+  VIEW_ADMIN_USERS = 'VIEW_ADMIN_USERS',
 }
 
 // A single source of truth for roles

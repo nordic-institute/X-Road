@@ -1,5 +1,6 @@
 @SecurityServer
 @Login
+@Skip #TODO: Re-enable once XRDDEV-2899 is done, i.e. admin users (like xrd-sys, xrd-reg, etc) can be created through Admin UI
 Feature: 0700 - SS: Permissions
 
   Background:

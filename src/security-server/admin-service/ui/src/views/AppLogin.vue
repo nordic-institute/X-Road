@@ -41,7 +41,6 @@ import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
 import { XrdAppLogin } from '@niis/shared-ui';
-import { loading } from 'happy-dom/lib/PropertySymbol.d.ts.js';
 
 interface Form {
   clearForm(): void;
@@ -79,6 +78,7 @@ export default defineComponent({
     ...mapActions(useSystem, [
       'fetchSecurityServerVersion',
       'fetchSecurityServerNodeType',
+      'fetchAuthenticationProviderType',
       'clearSystemStore',
     ]),
     ...mapActions(useNotifications, [
@@ -131,6 +131,7 @@ export default defineComponent({
         await this.fetchInitializationData(); // Used to be inside fetchUserData()
         await this.fetchSecurityServerVersion();
         await this.fetchSecurityServerNodeType();
+        await this.fetchAuthenticationProviderType();
       } catch (error) {
         this.showError(error as AxiosError);
       }
