@@ -133,23 +133,6 @@ components:
           items:
             type: string
             format: text
-    ApiKey:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: API key Id
-        roles:
-          type: array
-          description: API KEY roles
-          items:
-            type: string
-        key:
-          description: encoded API key
-          type: string
-      required:
-        - id
-        - roles
     AdminUser:
       type: object
       properties:

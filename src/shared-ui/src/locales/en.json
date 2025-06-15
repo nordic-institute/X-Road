@@ -256,7 +256,7 @@
     "description": "Description",
     "memberClass": "Member Class",
     "newPassword": "New Password",
-    "newPasswordConfirm": "Confirm New Password",
+    "newPasswordConfirmation": "Confirm New Password",
     "oldPassword": "Old Password",
     "password": "Password",
     "passwordConfirm": "Confirm Password",

@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.entity.AdminUserEntity;
 

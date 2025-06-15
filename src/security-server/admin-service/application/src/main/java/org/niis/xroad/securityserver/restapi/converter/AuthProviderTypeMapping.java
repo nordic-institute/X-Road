@@ -27,15 +27,15 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.restapi.config.AuthProviderConfig;
 import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeDto;
 
 import java.util.Map;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Getter
+@UtilityClass
 public class AuthProviderTypeMapping {
 
     private static final Map<AuthProviderConfig.AuthenticationProviderType, AuthProviderTypeDto> MAP = Map.of(
