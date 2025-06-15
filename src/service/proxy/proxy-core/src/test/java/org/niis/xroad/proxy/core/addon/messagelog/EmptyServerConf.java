@@ -131,6 +131,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public MaintenanceMode getMaintenanceMode() {
+        return null;
+    }
+
+    @Override
     public boolean isSslAuthentication(ServiceId serviceId) {
         return false;
     }

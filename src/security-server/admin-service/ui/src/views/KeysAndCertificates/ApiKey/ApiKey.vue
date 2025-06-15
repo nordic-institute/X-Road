@@ -29,7 +29,8 @@
       <help-button
         :help-image="helpImg"
         help-title="keys.helpTitleApi"
-        help-text="keys.helpTextApi" />
+        help-text="keys.helpTextApi"
+      />
     </template>
     <template #header-buttons>
       <xrd-button
@@ -80,7 +81,7 @@
             :data-test="`api-key-row-${item.id}-edit-button`"
             :outlined="false"
             @click="editKey(item)"
-          >{{ $t('action.edit') }}
+            >{{ $t('action.edit') }}
           </xrd-button>
 
           <xrd-button
@@ -89,13 +90,13 @@
             :data-test="`api-key-row-${item.id}-revoke-button`"
             :outlined="false"
             @click="showRevokeDialog(item)"
-          >{{ $t('apiKey.table.action.revoke.button') }}
+            >{{ $t('apiKey.table.action.revoke.button') }}
           </xrd-button>
         </div>
       </template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -158,7 +159,6 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-
   </XrdTitledView>
 </template>
 
@@ -177,12 +177,13 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { DataTableHeader } from '@/ui-types';
 import helpImg from '@/assets/api_keys.png';
-import { XrdIconKey } from '@niis/shared-ui';
+import { XrdIconKey, XrdDataTableFooter } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
     HelpButton,
     XrdIconKey,
+    XrdDataTableFooter,
   },
   data() {
     return {
@@ -323,7 +324,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/tables';
 
 .button-wrap {
   width: 100%;

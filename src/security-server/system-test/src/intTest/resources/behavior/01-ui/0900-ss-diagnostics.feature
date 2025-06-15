@@ -36,4 +36,3 @@ Feature: 0900 - SS:Diagnostics
     And Message log grouping is set to MEMBER
     And At least one member should have encryption key configured
     And At least one member should use default encryption key
-

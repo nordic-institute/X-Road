@@ -48,6 +48,10 @@ include("lib:keyconf-impl")
 // Service projects
 include("service")
 
+include("service:backup-manager:backup-manager-application")
+include("service:backup-manager:backup-manager-rpc-client")
+include("service:backup-manager:backup-manager-core")
+
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
 include("service:configuration-client:configuration-client-model")

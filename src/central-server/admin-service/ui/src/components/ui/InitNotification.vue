@@ -25,29 +25,33 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="notification-container">
-    <div
-      v-if="showNotification"
-      class="init-notification"
-      data-test="continue-init-notification"
-    >
-      <div class="left-block">
-        <xrd-icon-base class="xrd-large-button-icon notification-icon"
-          ><xrd-icon-checked
-        /></xrd-icon-base>
+  <v-container
+    v-if="showNotification"
+    data-test="continue-init-notification"
+    class="notification-container px-3 mt-1"
+    fluid
+  >
+    <v-alert border="start" border-color="start" type="success">
+      <template #prepend>
+        <xrd-icon-base class="xrd-large-button-icon notification-icon">
+          <xrd-icon-checked />
+        </xrd-icon-base>
+      </template>
+      <div class="init-notification">
+        <div class="left-block">
+          <span class="alert-text">{{ $t('init.notification') }}</span>
+        </div>
 
-        <span class="alert-text">{{ $t('init.notification') }}</span>
+        <xrd-button
+          color="primary"
+          outlined
+          data-test="notification-button"
+          @click="setContinueInit(false)"
+        >
+          {{ $t('action.continue') }}
+        </xrd-button>
       </div>
-
-      <xrd-button
-        color="primary"
-        outlined
-        data-test="notification-button"
-        @click="setContinueInit(false)"
-      >
-        {{ $t('action.continue') }}
-      </xrd-button>
-    </div>
+    </v-alert>
   </v-container>
 </template>
 
@@ -70,41 +74,30 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 .notification-icon {
   color: colors.$Success100;
-  margin-right: 25px;
 }
 
-.notification-container {
-  width: 100%;
-  padding: 0;
+.alert-text {
+  color: colors.$Black100;
+  display: block;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+}
 
-  .alert-text {
-    color: colors.$Black100;
-    display: block;
-  }
+.left-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
 
-  .init-notification {
-    background-color: colors.$Success10;
-    height: 80px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 80px;
-    padding-right: 40px;
-    font-style: normal;
-    font-weight: bold;
-    font-size: 18px;
-
-    .left-block {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-    }
-  }
+.init-notification {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

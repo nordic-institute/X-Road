@@ -39,6 +39,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
+import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
@@ -65,6 +66,7 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
+import static java.util.function.Predicate.not;
 
 /**
  * Job that checks whether globalconf has changed.
@@ -81,6 +83,7 @@ public class GlobalConfChecker {
     private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final SubsystemNameStatus subsystemNameStatus;
+    private final MaintenanceModeStatus maintenanceModeStatus;
     private final MailNotificationHelper mailNotificationHelper;
 
     /**
@@ -131,20 +134,36 @@ public class GlobalConfChecker {
 
         ServerConfEntity serverConf = globalConfCheckerHelper.getServerConf();
 
+        var securityServerId = buildSecurityServerId(serverConf);
+
         addressChangeStatus.getAddressChangeRequest()
                 .ifPresent(requestedAddress -> {
-                    var currentAddress = globalConfProvider.getSecurityServerAddress(buildSecurityServerId(serverConf));
+                    var currentAddress = globalConfProvider.getSecurityServerAddress(securityServerId);
                     if (requestedAddress.equals(currentAddress)) {
                         addressChangeStatus.clear();
                     }
                 });
 
+        switch (maintenanceModeStatus.getStatus()) {
+            case MaintenanceModeStatus.DisableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
+                    .filter(not(SharedParameters.MaintenanceMode::enabled))
+                    .ifPresent(mode -> maintenanceModeStatus.clear());
+
+            case MaintenanceModeStatus.EnableRequested ignore -> globalConfProvider.getMaintenanceMode(securityServerId)
+                    .filter(SharedParameters.MaintenanceMode::enabled)
+                    .ifPresent(mode -> maintenanceModeStatus.clear());
+
+            case null -> {
+
+            }
+        }
+
         try {
-            if (globalConfProvider.getServerOwner(buildSecurityServerId(serverConf)) == null) {
+            if (globalConfProvider.getServerOwner(securityServerId) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
             }
-            SecurityServerId securityServerId = buildSecurityServerId(serverConf);
+
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);

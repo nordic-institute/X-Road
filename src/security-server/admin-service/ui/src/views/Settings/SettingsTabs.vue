@@ -25,34 +25,25 @@
  -->
 <template>
   <div>
-    <sub-tabs>
-      <v-tab
-        v-for="tab in tabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        >{{ $t(tab.name) }}
-      </v-tab>
-    </sub-tabs>
+    <XrdSubTabs :tabs />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
+import { Tab, XrdSubTabs } from '@niis/shared-ui';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import {useSystem} from "@/store/modules/system";
 
 export default defineComponent({
   components: {
-    SubTabs,
+    XrdSubTabs,
   },
   computed: {
     ...mapState(useUser, ['getAllowedTabs']),
-    ...mapState(useSystem, ['databaseBasedAuthentication']),
+    ...mapState(useSystem, ['isDatabaseBasedAuthentication']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
@@ -72,7 +63,7 @@ export default defineComponent({
           permissions: [Permissions.BACKUP_CONFIGURATION],
         },
       ];
-      if (this.databaseBasedAuthentication) {
+      if (this.isDatabaseBasedAuthentication) {
         allTabs.push({
           key: 'admin-users-tab-button',
           name: 'tab.settings.adminUsers',

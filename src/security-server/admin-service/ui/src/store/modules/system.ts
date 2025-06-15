@@ -24,22 +24,32 @@
  * THE SOFTWARE.
  */
 
-import {AuthProviderType, AuthProviderTypeResponse, NodeType, NodeTypeResponse, VersionInfo} from "@/openapi-types";
+import {
+  MaintenanceMode,
+  NodeType,
+  NodeTypeResponse,
+  SecurityServer,
+  VersionInfo,
+  AuthProviderType,
+  AuthProviderTypeResponse,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface SystemState {
-  securityServerVersion: VersionInfo,
-  securityServerNodeType: undefined | NodeType,
-  securityServerAuthProviderType:  undefined | AuthProviderType,
+  securityServerVersion: VersionInfo;
+  securityServerNodeType: undefined | NodeType;
+  currentSecurityServer: SecurityServer;
+  securityServerAuthProviderType: undefined | AuthProviderType;
 }
 
 export const useSystem = defineStore('system', {
   state: (): SystemState => {
     return {
       securityServerVersion: {} as VersionInfo,
-      securityServerNodeType: undefined as undefined | NodeType,
-      securityServerAuthProviderType: undefined as undefined | AuthProviderType,
+      securityServerNodeType: undefined,
+      currentSecurityServer: {} as SecurityServer,
+      securityServerAuthProviderType: undefined,
     };
   },
   persist: {
@@ -53,12 +63,14 @@ export const useSystem = defineStore('system', {
       return state.securityServerVersion.global_configuration_version;
     },
     doesSupportSubsystemNames(): boolean {
-      return !!this.globalConfigurationVersion && this.globalConfigurationVersion >= 5;
+      return (
+        !!this.globalConfigurationVersion &&
+        this.globalConfigurationVersion >= 5
+      );
     },
-    databaseBasedAuthentication(): boolean {
-      return this.securityServerAuthProviderType == AuthProviderType.DATABASE;
-    }
-
+    isDatabaseBasedAuthentication(): boolean {
+      return this.securityServerAuthProviderType === AuthProviderType.DATABASE;
+    },
   },
 
   actions: {
@@ -78,9 +90,22 @@ export const useSystem = defineStore('system', {
       });
     },
     async fetchAuthenticationProviderType() {
-      return api.get<AuthProviderTypeResponse>('/system/auth-provider-type').then((res) => {
-        this.securityServerAuthProviderType = res.data.auth_provider_type;
-      });
+      return api
+        .get<AuthProviderTypeResponse>('/system/auth-provider-type')
+        .then((res) => {
+          this.securityServerAuthProviderType = res.data.auth_provider_type;
+        });
+    },
+    async enableMaintenanceMode(message?: string) {
+      return api.put('/system/maintenance-mode/enable', { message });
+    },
+    async disableMaintenanceMode() {
+      return api.put('/system/maintenance-mode/disable', {});
+    },
+    async fetchMaintenanceModeState() {
+      return api
+        .get<MaintenanceMode>('/system/maintenance-mode')
+        .then((resp) => resp.data);
     },
   },
 });

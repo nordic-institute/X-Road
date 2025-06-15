@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Tab } from '@/ui-types';
+import { Tab } from '@niis/shared-ui';
 
 // A "single source of truth" for route names
 export enum RouteName {
@@ -140,6 +140,10 @@ export enum Permissions {
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
   REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
+  ADD_ADMIN_USER = 'ADD_ADMIN_USER',
+  DELETE_ADMIN_USER = 'DELETE_ADMIN_USER',
+  UPDATE_ADMIN_USER = 'UPDATE_ADMIN_USER',
+  VIEW_ADMIN_USERS = 'VIEW_ADMIN_USERS',
 }
 
 // A single source of truth for roles
@@ -212,32 +216,6 @@ export const mainTabs: Tab[] = [
     ],
   },
 ];
-
-// Version 7.0 colors as enum.
-export enum Colors {
-  Purple10 = '#efebfb',
-  Purple20 = '#e0d8f8',
-  Purple30 = '#d1c4f4',
-  Purple70 = '#9376e6',
-  Purple100 = '#663cdc',
-  Black10 = '#e8e8e8',
-  Black30 = '#bcbbbb',
-  Black50 = '#908e8e',
-  Black70 = '#636161',
-  Black100 = '#211e1e',
-  White100 = '#ffffff',
-  Yellow = '#f2994A',
-  WarmGrey10 = '#f4f3f6',
-  WarmGrey20 = '#eae8ee',
-  WarmGrey30 = '#dedce4',
-  WarmGrey50 = '#c9c6d3',
-  WarmGrey70 = '#b4afc2',
-  WarmGrey100 = '#575169',
-  Error = '#ec4040',
-  Success100 = '#0cc177',
-  Success10 = '#e6f8f1',
-  Background = '#e5e5e5',
-}
 
 export const Timeouts = {
   POLL_SESSION_TIMEOUT: 30000,

@@ -98,16 +98,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
-
-h3 {
-  color: colors.$Black100;
-  font-size: 24px;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-}
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
 
 .xrd-card-text {
   padding-left: 0;

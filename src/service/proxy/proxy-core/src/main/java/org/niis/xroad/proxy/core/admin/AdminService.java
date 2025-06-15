@@ -28,7 +28,6 @@
 package org.niis.xroad.proxy.core.admin;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
 
@@ -39,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
-import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.Empty;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
@@ -50,24 +48,16 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static java.util.Collections.unmodifiableList;
-
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ServerConfProvider serverConfProvider;
-    private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final TimestampStatusHandler timestampStatusHandler;
     private final ProxyMemoryStatusService proxyMemoryStatusService;
-
-    @Override
-    public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
-        handleRequest(responseObserver, this::handleGetBackupEncryptionStatus);
-    }
 
     @Override
     public void getAddOnStatus(Empty request, StreamObserver<AddOnStatusResp> responseObserver) {
@@ -107,13 +97,6 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private AddOnStatusResp handleAddOnStatus() {
         return AddOnStatusResp.newBuilder()
                 .setMessageLogEnabled(addOnStatusDiagnostics.isMessageLogEnabled())
-                .build();
-    }
-
-    private BackupEncryptionStatusResp handleGetBackupEncryptionStatus() {
-        return BackupEncryptionStatusResp.newBuilder()
-                .setBackupEncryptionStatus(backupEncryptionStatusDiagnostics.isBackupEncryptionStatus())
-                .addAllBackupEncryptionKeys(unmodifiableList(backupEncryptionStatusDiagnostics.getBackupEncryptionKeys()))
                 .build();
     }
 

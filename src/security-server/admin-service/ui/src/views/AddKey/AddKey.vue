@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
+  <v-container class="view-wrap ms-auto">
     <xrd-sub-view-title
-      class="wizard-view-title"
+      class="pa-4"
       :title="$t('csr.addKey')"
       :show-close="false"
     />
@@ -70,16 +70,16 @@
         <!-- Step 3 -->
         <v-stepper-window-item :value="3">
           <WizardPageGenerateCsr
+            :key="csrGenPageKey"
             key-and-csr
             @cancel="cancel"
             @previous="currentStep = 2"
             @done="done"
-            :key="csrGenPageKey"
           />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -158,5 +158,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

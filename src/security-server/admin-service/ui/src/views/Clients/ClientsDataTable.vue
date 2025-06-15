@@ -75,18 +75,23 @@
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <xrd-icon-base
             class="icon-member icon-size"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             <xrd-icon-folder />
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
             class="client-name member-name identifier-wrap clickable"
             data-test="btn-client-details"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             {{ item.visibleName }}
             <span class="owner-box">{{ $t('client.owner') }}</span>
           </span>
-          <span v-else class="client-name member-name identifier-wrap owner-box">
+          <span
+            v-else
+            class="client-name member-name identifier-wrap owner-box"
+          >
             {{ item.visibleName }} {{ $t('client.owner') }}
           </span>
         </template>
@@ -94,14 +99,16 @@
         <template v-else-if="item.type === clientTypes.MEMBER">
           <xrd-icon-base
             class="icon-member icon-size"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             <xrd-icon-folder-outline />
           </xrd-icon-base>
           <span
             v-if="canOpenClient"
             class="client-name member-name identifier-wrap clickable"
             data-test="btn-client-details"
-            @click="openClient(item)">
+            @click="openClient(item)"
+          >
             {{ item.visibleName }}
           </span>
           <span v-else class="client-name name identifier-wrap">
@@ -129,7 +136,8 @@
             v-if="canOpenClient"
             class="name identifier-wrap clickable"
             data-test="btn-client-details"
-            @click="openSubsystem(item)">
+            @click="openSubsystem(item)"
+          >
             <subsystem-name class="client-name" :name="item.visibleName" />
           </span>
           <span v-else class="name">
@@ -175,7 +183,8 @@
             "
             text
             :outlined="false"
-            @click="registerClient(item)">
+            @click="registerClient(item)"
+          >
             {{ $t('action.register') }}
           </xrd-button>
         </div>
@@ -184,7 +193,7 @@
       <template #no-data>{{ $t('action.noData') }}</template>
 
       <template #bottom>
-        <div class="custom-footer"></div>
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
 
@@ -200,7 +209,6 @@
       @cancel="confirmRegisterClient = false"
       @accept="registerAccepted(selectedClient)"
     />
-
   </XrdTitledView>
 </template>
 
@@ -220,7 +228,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClients } from '@/store/modules/clients';
-import { XrdIconFolder, XrdIconFolderOutline } from '@niis/shared-ui';
+import {
+  XrdIconFolder,
+  XrdIconFolderOutline,
+  XrdDataTableFooter,
+} from '@niis/shared-ui';
 import { AxiosError } from 'axios';
 import SubsystemName from '@/components/client/SubsystemName.vue';
 
@@ -230,6 +242,7 @@ export default defineComponent({
     XrdIconFolder,
     XrdIconFolderOutline,
     ClientStatus,
+    XrdDataTableFooter,
   },
 
   data: () => ({
@@ -489,8 +502,9 @@ export default defineComponent({
             index !== 'visibleName' ? 1 : sortDirection;
 
           return (
-            orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
-            groupSortDirection
+            orUndefinedStr(clientA.visibleName).localeCompare(
+              orUndefinedStr(clientB.visibleName),
+            ) * groupSortDirection
           );
         });
 
@@ -505,8 +519,9 @@ export default defineComponent({
                 switch (index) {
                   case 'visibleName':
                     return (
-                      orUndefinedStr(clientA.visibleName).localeCompare(orUndefinedStr(clientB.visibleName)) *
-                      sortDirection
+                      orUndefinedStr(clientA.visibleName).localeCompare(
+                        orUndefinedStr(clientB.visibleName),
+                      ) * sortDirection
                     );
                   case 'id':
                     return clientA.id.localeCompare(clientB.id) * sortDirection;
@@ -543,30 +558,13 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
-@use '@/assets/colors';
-
-.xrd-table-header {
-  border-bottom: 1px solid colors.$WarmGrey30 !important;
-}
-
-// Override Vuetify default table cell height
-.v-data-table > .v-table__wrapper > table > tbody > tr > td,
-.v-data-table > .v-table__wrapper > table > thead > tr > td,
-.v-data-table > .v-table__wrapper > table > tfoot > tr > td {
-  height: 56px;
-  color: colors.$Black100;
-}
-
-// Override Vuetify table row hover color
-.v-data-table > .v-table__wrapper > table > tbody > tr:hover {
-  background: colors.$Purple10 !important;
-}
-</style>
-
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+
+:deep(.data-table .v-data-table__td) {
+  height: 56px;
+}
 
 .icon-member {
   padding-left: 0;
@@ -582,15 +580,6 @@ export default defineComponent({
 .icon-size {
   font-size: 20px;
   padding-bottom: 4px;
-}
-
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 24px;
 }
 
 .data-table {

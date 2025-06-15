@@ -4679,6 +4679,233 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
+  /system/timestamping-services:
+    get:
+      tags:
+        - system
+      summary: view the configured timestamping services
+      operationId: getConfiguredTimestampingServices
+      description: <h3>Administrator views the configured timestamping services.</h3>
+      responses:
+        '200':
+          description: list of configured timestamping services
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of timestamping service objects
+                items:
+                  $ref: '#/components/schemas/TimestampingService'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - system
+      summary: add a configured timestamping service
+      operationId: addConfiguredTimestampingService
+      description: <h3>Administrator selects a new timestamping service.</h3>
+      requestBody:
+        description: Timestamping service to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingService'
+      responses:
+        '201':
+          description: timestamping service created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /system/timestamping-services/delete:
+    post:
+      tags:
+        - system
+      summary: delete configured timestamping service
+      operationId: deleteConfiguredTimestampingService
+      description: <h3>Administrator removes a configured timestamping service.</h3>
+      requestBody:
+        description: Timestamping service to delete
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingService'
+      responses:
+        '204':
+          description: timestamping service deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+  /system/node-type:
+    get:
+      tags:
+        - system
+      summary: get the node type
+      operationId: getNodeType
+      description: <h3>Administrator views the node type</h3>
+      responses:
+        '200':
+          description: node type information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeTypeResponse'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
+  /system/auth-provider-type:
+    get:
+      tags:
+        - system
+      summary: get the authentication provider type
+      operationId: getAuthProviderType
+      description: <h3>Administrator views the authentication provider type</h3>
+      responses:
+        '200':
+          description: authentication provider type information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthProviderTypeResponse'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
+  /system/version:
+    get:
+      tags:
+        - system
+      summary: get information for the system version
+      operationId: systemVersion
+      description: <h3>Administrator views the system version details.</h3>
+      responses:
+        '200':
+          description: system version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/maintenance-mode:
+    get:
+      tags:
+        - system
+      summary: get information for the maintenance mode
+      operationId:  maintenanceMode
+      description: <h3>Administrator views the maintenance mode details.</h3>
+      responses:
+        '200':
+          description: maintenance mode information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceMode'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/maintenance-mode/enable:
+      put:
+        tags:
+          - system
+        summary: enable maintenance mode of the security server
+        operationId: enableMaintenanceMode
+        description: <h3>Administrator enables maintenance mode of the security server.</h3>
+        requestBody:
+          description: Optional message about maintenance mode
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceModeMessage'
+        responses:
+          '204':
+            description: enable maintenance mode request was successful
+          '400':
+            description: request was invalid
+          '401':
+            description: authentication credentials are missing
+          '403':
+            description: request has been refused
+          '404':
+            description: resource requested does not exists
+          '500':
+            description: internal server error
+  /system/maintenance-mode/disable:
+    put:
+      tags:
+        - system
+      summary: disable maintenance mode of the security server
+      operationId: disableMaintenanceMode
+      description: <h3>Administrator disables maintenance mode of the security server.</h3>
+      responses:
+        '204':
+          description: disable maintenance mode request was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
   /certificate-authorities:
     get:
       tags:
@@ -4880,161 +5107,6 @@ paths:
           description: an existing item already exists, outdated global conf or token not logged in
         '500':
           description: internal server error
-  /system/timestamping-services:
-    get:
-      tags:
-        - system
-      summary: view the configured timestamping services
-      operationId: getConfiguredTimestampingServices
-      description: <h3>Administrator views the configured timestamping services.</h3>
-      responses:
-        '200':
-          description: list of configured timestamping services
-          content:
-            application/json:
-              schema:
-                type: array
-                uniqueItems: true
-                description: array of timestamping service objects
-                items:
-                  $ref: '#/components/schemas/TimestampingService'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-    post:
-      tags:
-        - system
-      summary: add a configured timestamping service
-      operationId: addConfiguredTimestampingService
-      description: <h3>Administrator selects a new timestamping service.</h3>
-      requestBody:
-        description: Timestamping service to add
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TimestampingService'
-      responses:
-        '201':
-          description: timestamping service created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimestampingService'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
-        '500':
-          description: internal server error
-  /system/timestamping-services/delete:
-    post:
-      tags:
-        - system
-      summary: delete configured timestamping service
-      operationId: deleteConfiguredTimestampingService
-      description: <h3>Administrator removes a configured timestamping service.</h3>
-      requestBody:
-        description: Timestamping service to delete
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TimestampingService'
-      responses:
-        '204':
-          description: timestamping service deletion was successful
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '500':
-          description: internal server error
-  /system/node-type:
-    get:
-      tags:
-        - system
-      summary: get the node type
-      operationId: getNodeType
-      description: <h3>Administrator views the node type</h3>
-      responses:
-        '200':
-          description: node type information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NodeTypeResponse'
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '500':
-          description: internal server error
-  /system/auth-provider-type:
-    get:
-      tags:
-        - system
-      summary: get the authentication provider type
-      operationId: getAuthProviderType
-      description: <h3>Administrator views the authentication provider type</h3>
-      responses:
-        '200':
-          description: authentication provider type information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthProviderTypeResponse'
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '500':
-          description: internal server error
-  /system/version:
-    get:
-      tags:
-        - system
-      summary: get information for the system version
-      operationId: systemVersion
-      description: <h3>Administrator views the system version details.</h3>
-      responses:
-        '200':
-          description: system version information
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VersionInfo'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
   /mail/mail-notification-status:
     get:
       tags:
@@ -5104,7 +5176,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-
   /tokens:
     get:
       tags:
@@ -6440,6 +6511,11 @@ components:
           description: if this client has a valid (registered and with good OCSP response) sign cert stored on this security server
           example: false
           readOnly: true
+        is_management_services_provider:
+          type: boolean
+          description: if this client is management services provider
+          example: false
+          readOnly: true
         rename_status:
           $ref: '#/components/schemas/RenameStatus'
         connection_type:
@@ -7209,6 +7285,45 @@ components:
           description: security server address (ip or name)
           example: 192.168.1.100
           maxLength: 255
+    MaintenanceModeMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: optional message describing maintenance mode
+          format: text
+          maxLength: 255
+      example:
+        message: End on 14. May
+    MaintenanceMode:
+      allOf:
+        - $ref: '#/components/schemas/MaintenanceModeMessage'
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/MaintenanceModeStatus'
+        is_management_services_provider:
+          type: boolean
+          description: is this Security server provider of management services
+          example: false
+          readOnly: true
+      required:
+        - status
+        - is_management_services_provider
+      example:
+        status: ENABLED_MAINTENANCE_MODE
+        message: End on 14. May
+        is_management_services_provider: false
+    MaintenanceModeStatus:
+      type: string
+      format: enum
+      description: Maintenance Mode status
+      example: ENABLED_MAINTENANCE_MODE
+      enum:
+        - PENDING_ENABLE_MAINTENANCE_MODE # Successful enable maintenance mode request was made and waiting for global configuration refresh
+        - ENABLED_MAINTENANCE_MODE # Maintenance mode enabled
+        - PENDING_DISABLE_MAINTENANCE_MODE # Successful disable maintenance mode request was made and waiting for global configuration refresh
+        - DISABLED_MAINTENANCE_MODE # Maintenance mode disabled
     SecurityServerAddress:
       type: object
       required:
@@ -7234,7 +7349,7 @@ components:
           minLength: 1
           maxLength: 255
       example:
-        address: Subsystem Name
+        client_name: Subsystem Name
     SecurityServerAddressStatus:
       type: object
       description: Security Server address with status
@@ -7813,10 +7928,6 @@ components:
         - HARDWARE
     User:
       $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
-    AdminUser:
-      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/AdminUser'
-    AdminUserPasswordChangeRequest:
-      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/AdminUserPasswordChangeRequest'
     VersionInfo:
       type: object
       description: version information

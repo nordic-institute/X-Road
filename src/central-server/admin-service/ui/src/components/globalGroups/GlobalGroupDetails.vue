@@ -25,7 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-titled-view :title="globalGroup.code" :loading="loading" :data="globalGroup">
+  <xrd-titled-view
+    :title="globalGroup.code"
+    :loading="loading"
+    :data="globalGroup"
+  >
     <template #header-buttons>
       <xrd-button
         v-if="allowGroupDelete"
@@ -76,7 +80,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import { Colors, Permissions } from '@/global';
+import { Permissions } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { mapActions, mapState, mapStores } from 'pinia';
@@ -103,7 +107,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       globalGroup: {} as GlobalGroupResource,
       loading: false,
       showDeleteGroupDialog: false,
@@ -144,6 +147,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 </style>

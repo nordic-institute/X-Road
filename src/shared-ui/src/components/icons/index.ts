@@ -100,5 +100,5 @@ export {
   XrdIconTableBackup,
   XrdIconTooltip,
   XrdIconUpload,
-  XrdIconWarning
+  XrdIconWarning,
 };

@@ -107,12 +107,12 @@ module "security-server" {
     module.ss0_service_bridge
   ]
 
-  serverconf_db_postgres_password = "secret"
-  messagelog_db_postgres_password = "secret"
+  serverconf_db_postgres_password = "admin_secret"
+  messagelog_db_postgres_password = "admin_secret"
   serverconf_db_user_password="secret"
   messagelog_db_user_password="secret"
   configuration_client_update_interval = "10"
   op_monitor_enabled = true
-  opmonitor_db_postgres_password="secret"
+  opmonitor_db_postgres_password="admin_secret"
   opmonitor_db_user_password="secret"
 }

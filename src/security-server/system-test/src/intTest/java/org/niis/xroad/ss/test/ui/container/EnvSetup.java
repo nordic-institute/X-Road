@@ -58,10 +58,12 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String CONFIGURATION_CLIENT = "configuration-client";
     public static final String PROXY = "proxy";
     public static final String MONITOR = "monitor";
+    public static final String BACKUP_MANAGER = "backup-manager";
     public static final String TESTCA = "testca";
     public static final String DB_MESSAGELOG = "db-messagelog";
     public static final String OP_MONITOR = "op-monitor";
     public static final String NGINX = "nginx";
+    public static final String DB_SERVERCONF_INIT = "db-serverconf-init";
 
     private static final String COMPOSE_SS_FILE = "../../../deployment/security-server/docker/compose.yaml";
     private static final String COMPOSE_SYSTEMTEST_FILE = "src/intTest/resources/compose.systemtest.yaml";
@@ -92,6 +94,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
                 .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(CONFIGURATION_CLIENT))
                 .withLogConsumer(MONITOR, createLogConsumer(MONITOR))
+                .withLogConsumer(BACKUP_MANAGER, createLogConsumer(BACKUP_MANAGER))
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR));
 
         env.start();
@@ -99,6 +102,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         //copy nginx files to container to prevent changing local files
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
+        execInContainer(BACKUP_MANAGER, "/etc/xroad/backup-keys/init_backup_encryption.sh");
     }
 
     @SneakyThrows
@@ -137,11 +141,13 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
-    public void start(String service) {
+    public void start(String service, boolean waitForHealthy) {
         var containerState = env.getContainerByServiceName(service).orElseThrow();
         var dockerClient = containerState.getDockerClient();
         dockerClient.startContainerCmd(containerState.getContainerId()).exec();
-        await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
+        if (waitForHealthy) {
+            await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
+        }
     }
 
     private Slf4jLogConsumer createLogConsumer(String containerName) {

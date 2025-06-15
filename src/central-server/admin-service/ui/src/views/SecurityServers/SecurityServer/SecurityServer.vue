@@ -35,8 +35,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import PageNavigation, {
+  PageNavigationTab,
+} from '@/layouts/PageNavigation.vue';
+import { Permissions, RouteName } from '@/global';
 import { mapActions, mapStores } from 'pinia';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { useNotifications } from '@/store/modules/notifications';
@@ -56,7 +58,6 @@ export default defineComponent({
   },
   data() {
     return {
-      colors: Colors,
       backTo: {
         name: RouteName.SecurityServers,
       },

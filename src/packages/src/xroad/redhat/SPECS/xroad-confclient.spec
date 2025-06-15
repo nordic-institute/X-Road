@@ -44,7 +44,6 @@ mkdir -p %{buildroot}/etc/xroad
 mkdir -p %{buildroot}/etc/xroad/services
 mkdir -p %{buildroot}/etc/xroad/conf.d/addons
 mkdir -p %{buildroot}/usr/share/doc/%{name}
-mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 mkdir -p %{buildroot}/usr/share/xroad/bin
 
@@ -63,8 +62,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad/services
 %dir /etc/xroad/conf.d
 %dir /etc/xroad/conf.d/addons
-%dir /var/lib/xroad
-%dir /var/lib/xroad/backup
 %config /etc/xroad/services/confclient.conf
 %attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-confclient
 
@@ -86,12 +83,6 @@ fi
 
 %post
 umask 027
-
-# ensure home directory ownership
-mkdir -p /var/lib/xroad/backup
-su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
-chown xroad:xroad /var/lib/xroad/backup
-chmod 0775 /var/lib/xroad
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*

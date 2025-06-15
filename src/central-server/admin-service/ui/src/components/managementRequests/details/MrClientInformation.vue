@@ -53,7 +53,10 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { ManagementRequestDetailedView, ManagementRequestType } from '@/openapi-types';
+import {
+  ManagementRequestDetailedView,
+  ManagementRequestType,
+} from '@/openapi-types';
 import DataLine from './DetailsLine.vue';
 import DataBlock from './DetailsBlock.vue';
 

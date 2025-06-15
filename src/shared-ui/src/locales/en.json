@@ -1,4 +1,15 @@
 {
+  "403": {
+    "goBack": "Go back",
+    "mainTitle": "Permission denied",
+    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "topTitle": "Forbidden"
+  },
+  "404": {
+    "pageNotFound": "404 - page not found",
+    "text": "Seems like you found the",
+    "textUnicorn": "unicorn"
+  },
   "action": {
     "activate": "Activate",
     "add": "Add",
@@ -245,7 +256,7 @@
     "description": "Description",
     "memberClass": "Member Class",
     "newPassword": "New Password",
-    "newPasswordConfirm": "Confirm New Password",
+    "newPasswordConfirmation": "Confirm New Password",
     "oldPassword": "Old Password",
     "password": "Password",
     "passwordConfirm": "Confirm Password",

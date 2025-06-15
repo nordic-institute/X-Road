@@ -240,4 +240,23 @@ public class ManagementRequestSenderService {
                 signerSignClient, sender, receiver, proxyUrl);
     }
 
+    public Integer sendMaintenanceModeEnableRequest(String message) {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendMaintenanceModeEnableRequest(currentSecurityServerId.getServerId(), message);
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
+
+    public Integer sendMaintenanceModeDisableRequest() {
+        ManagementRequestSender sender = createManagementRequestSender();
+        try {
+            return sender.sendMaintenanceModeDisableRequest(currentSecurityServerId.getServerId());
+        } catch (Exception e) {
+            log.error(MANAGEMENT_REQUEST_SENDING_FAILED_ERROR, e);
+            throw new ManagementRequestSendingFailedException(e);
+        }
+    }
 }

@@ -28,16 +28,7 @@
  TypeScript typings that are used in UI, but not in backend.
  These are not in openapi definitions.
 */
-import { RouteLocationRaw } from 'vue-router';
 import { VDataTable } from 'vuetify/components';
-
-// Interface for Tab data
-export interface Tab {
-  key: string; // Unique key needed for v-for looping
-  name: string; // Localisation key for the name
-  to: RouteLocationRaw & { name: string }; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
-  permissions?: string[]; // Permissions needed to view this tab
-}
 
 // Action info for notification. In practise the "action" is navigtion to a given route.
 export interface NotificationAction {

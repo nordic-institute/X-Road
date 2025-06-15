@@ -105,4 +105,9 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
         </field>
     </bean>
+    <bean class="MaintenanceModeMessageDto" ignore-annotations="false">
+        <field name="message">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars"/>
+        </field>
+    </bean>
 </constraint-mappings>

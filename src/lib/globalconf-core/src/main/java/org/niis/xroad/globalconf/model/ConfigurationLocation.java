@@ -65,15 +65,13 @@ public class ConfigurationLocation {
         byte[] certHash = decodeBase64(certHashBase64);
         for (byte[] certBytes : verificationCerts) {
             try {
-                log.trace("Calculating certificate hash using algorithm {}",
-                        hashAlgoUri);
+                log.trace("Calculating certificate hash using algorithm {}", hashAlgoUri);
 
                 if (Arrays.equals(certHash, hash(hashAlgoUri, certBytes))) {
                     return CryptoUtils.readCertificate(certBytes);
                 }
             } catch (Exception e) {
-                log.error("Failed to calculate certificate hash using "
-                        + "algorithm identifier " + hashAlgoUri, e);
+                log.error("Failed to calculate certificate hash using algorithm identifier {}", hashAlgoUri, e);
             }
         }
 

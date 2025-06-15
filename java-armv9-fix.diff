@@ -1,0 +1,267 @@
+diff --git a/Docker/centralserver/Dockerfile b/Docker/centralserver/Dockerfile
+index beea1b7ccb..fcfd0a6d75 100644
+--- a/Docker/centralserver/Dockerfile
++++ b/Docker/centralserver/Dockerfile
+@@ -5,6 +5,8 @@ ARG PACKAGE_SOURCE
+ 
+ FROM ubuntu:24.04 AS base
+ ENV DEBIAN_FRONTEND=noninteractive
++ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
++ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
+ 
+ RUN apt-get -qq update \
+   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev \
+diff --git a/Docker/securityserver/Dockerfile b/Docker/securityserver/Dockerfile
+index 0744e1dd78..929be36289 100644
+--- a/Docker/securityserver/Dockerfile
++++ b/Docker/securityserver/Dockerfile
+@@ -5,6 +5,8 @@ ARG PACKAGE_SOURCE
+ 
+ FROM ubuntu:24.04 AS base
+ ENV DEBIAN_FRONTEND=noninteractive
++ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
++ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
+ 
+ RUN apt-get -qq update \
+     && apt-get -qq -y install --no-install-recommends \
+@@ -100,4 +102,4 @@ COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+ CMD ["/root/entrypoint.sh"]
+ 
+ VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]
+-EXPOSE 8080 8443 4000 5432 5500 5577 5558 80
++EXPOSE 8080 8443 4000 5432 5500 5577 5558 80 9994
+diff --git a/Docker/securityserver/files/etc/xroad/services/local.conf b/Docker/securityserver/files/etc/xroad/services/local.conf
+index 9ad3ac73b4..d28726078a 100644
+--- a/Docker/securityserver/files/etc/xroad/services/local.conf
++++ b/Docker/securityserver/files/etc/xroad/services/local.conf
+@@ -7,4 +7,6 @@ PROXY_PARAMS="$PROXY_PARAMS -Xdebug -agentlib:jdwp=transport=dt_socket,address=*
+ XROAD_SIGNER_PARAMS="$XROAD_SIGNER_PARAMS -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9998,server=y,suspend=n $SIGNER_JMX_PARAMS $SIGNER_TELEMETRY_PARAMS"
+ XROAD_PROXY_UI_API_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9997,server=y,suspend=n $XROAD_PROXY_UI_API_PARAMS"
+ 
+-XROAD_CONFCLIENT_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9996,server=y,suspend=n $XROAD_CONFCLIENT_PARAMS"
+\ No newline at end of file
++XROAD_CONFCLIENT_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9996,server=y,suspend=n $XROAD_CONFCLIENT_PARAMS"
++
++XROAD_OPMON_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9994,server=y,suspend=n $XROAD_OPMON_PARAMS"
+\ No newline at end of file
+diff --git a/Docker/test-services/example-adapter/Dockerfile b/Docker/test-services/example-adapter/Dockerfile
+index 818bf024c6..84799c8114 100644
+--- a/Docker/test-services/example-adapter/Dockerfile
++++ b/Docker/test-services/example-adapter/Dockerfile
+@@ -21,7 +21,7 @@ EOF
+ 
+ #################################################################################
+ FROM eclipse-temurin:17 AS build-example-adapter
+-ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dmaven.repo.local=/app/.m2_repository -Dgradle.user.home=/app/.gradle_home"
++ENV GRADLE_OPTS="-XX:UseSVE=0 -Dorg.gradle.daemon=false -Dmaven.repo.local=/app/.m2_repository -Dgradle.user.home=/app/.gradle_home"
+ RUN --mount=type=cache,from=build-xrd4j-lib,source=/app,target=/app <<EOF
+     set -ex
+     cd /app/xrd4j/example-adapter
+@@ -32,6 +32,8 @@ EOF
+ ################################################################################
+ # copy/paste from xrd4j repo
+ FROM eclipse-temurin:17-jre AS final
++ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
++ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
+ 
+ # Add Rest Gateway jar to container
+ COPY --from=build-example-adapter /example-adapter.war example-adapter.war
+diff --git a/Docker/xrd-dev-stack/tools/dev.sh b/Docker/xrd-dev-stack/tools/dev.sh
+index aeb3c842f8..34812bff01 100755
+--- a/Docker/xrd-dev-stack/tools/dev.sh
++++ b/Docker/xrd-dev-stack/tools/dev.sh
+@@ -43,7 +43,7 @@ shift $((OPTIND -1))
+ 
+ if [ "$BUILD" = true ] ; then
+   echo "Building module $MODULE"
+-  source "$XROAD_HOME"/development/.scripts/build.sh $MODULE
++  source "$XROAD_HOME"/development/.scripts/build-images.sh $MODULE
+ fi
+ 
+ if [ "$DEPLOY" = true ] ; then
+diff --git a/ansible/group_vars/all/vars.yml b/ansible/group_vars/all/vars.yml
+index fc0e34e40d..f9de0ffba5 100644
+--- a/ansible/group_vars/all/vars.yml
++++ b/ansible/group_vars/all/vars.yml
+@@ -2,3 +2,4 @@
+ #controls lxd versions, if changed, check epel version and repo urls
+ rhel_releasever: 9
+ ubuntu_releasever: noble
++xroad_install_opmonitoring: true
+diff --git a/ansible/roles/init-dev-configuration/files/ss/etc/xroad/conf.d/local.yaml b/ansible/roles/init-dev-configuration/files/ss/etc/xroad/conf.d/local.yaml
+index 86b81c2410..de2f59256f 100644
+--- a/ansible/roles/init-dev-configuration/files/ss/etc/xroad/conf.d/local.yaml
++++ b/ansible/roles/init-dev-configuration/files/ss/etc/xroad/conf.d/local.yaml
+@@ -3,4 +3,8 @@ xroad:
+     global-conf:
+       source: REMOTE
+   proxy-ui-api:
+-    acme-challenge-port-enabled: true
+\ No newline at end of file
++    acme-challenge-port-enabled: true
++  proxy:
++    addon:
++      op-monitor:
++        enabled: true
+\ No newline at end of file
+diff --git a/ansible/roles/init-dev-configuration/files/ss/etc/xroad/services/local.conf b/ansible/roles/init-dev-configuration/files/ss/etc/xroad/services/local.conf
+index 0387dd2717..55ce1aa992 100644
+--- a/ansible/roles/init-dev-configuration/files/ss/etc/xroad/services/local.conf
++++ b/ansible/roles/init-dev-configuration/files/ss/etc/xroad/services/local.conf
+@@ -7,4 +7,6 @@ PROXY_PARAMS="$PROXY_PARAMS -Xdebug -agentlib:jdwp=transport=dt_socket,address=*
+ XROAD_SIGNER_PARAMS="$XROAD_SIGNER_PARAMS -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9998,server=y,suspend=n $SIGNER_JMX_PARAMS $SIGNER_TELEMETRY_PARAMS"
+ XROAD_PROXY_UI_API_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9997,server=y,suspend=n $XROAD_PROXY_UI_API_PARAMS"
+ 
+-XROAD_CONFCLIENT_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9996,server=y,suspend=n $XROAD_CONFCLIENT_PARAMS"
+\ No newline at end of file
++XROAD_CONFCLIENT_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9996,server=y,suspend=n $XROAD_CONFCLIENT_PARAMS"
++
++XROAD_OPMON_PARAMS=" -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9994,server=y,suspend=n $XROAD_OPMON_PARAMS"
+\ No newline at end of file
+diff --git a/ansible/roles/init-lxd/tasks/main.yml b/ansible/roles/init-lxd/tasks/main.yml
+index bdb3bc7948..47934416a2 100644
+--- a/ansible/roles/init-lxd/tasks/main.yml
++++ b/ansible/roles/init-lxd/tasks/main.yml
+@@ -16,6 +16,9 @@
+     wait_for_ipv4_addresses: true
+     devices: "{{ hostvars[item].container_ports | default({}) }}"
+     timeout: 600
++    config:
++      environment.JDK_JAVA_OPTIONS: "-XX:UseSVE=0"
++      environment.JAVA_TOOL_OPTIONS: "-XX:UseSVE=0"
+   tags:
+     - ubuntu-container-init
+ 
+@@ -36,6 +39,9 @@
+     wait_for_ipv4_addresses: true
+     devices: "{{ hostvars[item].container_ports | default({}) }}"
+     timeout: 600
++    config:
++      environment.JDK_JAVA_OPTIONS: "-XX:UseSVE=0"
++      environment.JAVA_TOOL_OPTIONS: "-XX:UseSVE=0"
+   tags:
+     - rhel-container-init
+   vars:
+diff --git a/deployment/security-server/docker/base/Dockerfile-baseline b/deployment/security-server/docker/base/Dockerfile-baseline
+index 8c8eb5be2f..628488f16b 100644
+--- a/deployment/security-server/docker/base/Dockerfile-baseline
++++ b/deployment/security-server/docker/base/Dockerfile-baseline
+@@ -1,5 +1,8 @@
+ FROM eclipse-temurin:21-jre
+ 
++ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
++ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
++
+ RUN groupadd --system --gid 999 xroad && \
+     useradd --system  \
+     --uid 999  \
+diff --git a/deployment/security-server/docker/base/Dockerfile-ui-baseline b/deployment/security-server/docker/base/Dockerfile-ui-baseline
+index 3965d49d57..3a55d4ad47 100644
+--- a/deployment/security-server/docker/base/Dockerfile-ui-baseline
++++ b/deployment/security-server/docker/base/Dockerfile-ui-baseline
+@@ -1,6 +1,9 @@
+ ARG REGISTRY_URL=localhost:5555
+ FROM ${REGISTRY_URL}/ss-baseline-runtime:latest
+ 
++ENV JDK_JAVA_OPTIONS="-XX:UseSVE=0"
++ENV JAVA_TOOL_OPTIONS="-XX:UseSVE=0"
++
+ #TODO XRDDEV-2755 temporary users for PAM based auth
+ RUN usermod --append -G shadow xroad && \
+     groupadd --system xroad-system-administrator && \
+diff --git a/sidecar/Dockerfile-variant b/sidecar/Dockerfile-variant
+index 8f5d260a25..65c3d6d056 100644
+--- a/sidecar/Dockerfile-variant
++++ b/sidecar/Dockerfile-variant
+@@ -5,7 +5,7 @@ FROM $FROM
+ ARG VERSION
+ ARG VARIANT
+ 
+-# override-securityserver-$VARIANT.ini needs to be copied to 'build' dir before executing 'docker build'. See 'docker-build.sh' for details
++# override-securityserver-$VARIANT.ini needs to be copied to 'build' dir before executing 'docker build'. See 'docker-build-images.sh' for details
+ ADD --chown=xroad:xroad /build/etc/xroad/conf.d/override-securityserver-$VARIANT.ini /etc/xroad/conf.d/override-securityserver-$VARIANT.ini
+ 
+ 
+diff --git a/src/central-server/admin-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java b/src/central-server/admin-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java
+index 0a4ff234ce..c409a4794e 100644
+--- a/src/central-server/admin-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java
++++ b/src/central-server/admin-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java
+@@ -72,6 +72,7 @@ public class ContainerSetup {
+             @Override
+             public List<String> customizeCommandParts() {
+                 return List.of(
++                        "-XX:UseSVE=0",
+                         "-Xmx600m",
+                         "-XX:MaxMetaspaceSize=200m",
+                         "-Dlogging.config=/etc/xroad/conf.d/centralserver-admin-service-logback.xml",
+diff --git a/src/central-server/management-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java b/src/central-server/management-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java
+index 0fd8f8411a..ef89a446db 100644
+--- a/src/central-server/management-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java
++++ b/src/central-server/management-service/int-test/src/intTest/java/org/niis/xroad/cs/test/container/ContainerSetup.java
+@@ -68,7 +68,7 @@ public class ContainerSetup {
+             @NotNull
+             @Override
+             public List<String> customizeCommandParts() {
+-                return List.of();
++                return List.of("-XX:UseSVE=0");
+             }
+ 
+             @NotNull
+diff --git a/src/common/common-int-test/src/main/java/org/niis/xroad/common/test/signer/container/BaseTestSignerSetup.java b/src/common/common-int-test/src/main/java/org/niis/xroad/common/test/signer/container/BaseTestSignerSetup.java
+index 5c2cbb91c7..f389a9e2ec 100644
+--- a/src/common/common-int-test/src/main/java/org/niis/xroad/common/test/signer/container/BaseTestSignerSetup.java
++++ b/src/common/common-int-test/src/main/java/org/niis/xroad/common/test/signer/container/BaseTestSignerSetup.java
+@@ -109,6 +109,7 @@ public abstract class BaseTestSignerSetup {
+                         .waitingFor(Wait.forLogMessage(".*signer .* started in.*", 1));
+                 genericContainer
+                         .withCommand("java",
++                                "-XX:UseSVE=0",
+                                 "-Xmx50m",
+                                 "-XX:MaxMetaspaceSize=70m",
+                                 "-Djava.library.path=/root/lib/",
+diff --git a/src/packages/src/xroad/common/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh b/src/packages/src/xroad/common/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+index 9c6a4ddb2b..bd82fc299f 100755
+--- a/src/packages/src/xroad/common/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
++++ b/src/packages/src/xroad/common/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+@@ -1,3 +1,3 @@
+ #!/bin/bash
+ WSDLVALIDATOR_HOME=/usr/share/xroad/wsdlvalidator
+-exec java -Dee.ria.xroad.internalKeyStorePassword=internal -Dee.ria.xroad.internalKeyStore=/etc/xroad/ssl/internal.p12 -jar "$WSDLVALIDATOR_HOME/jlib/wsdlvalidator-1.0.jar" "$@"
++exec java -XX:UseSVE=0 -Dee.ria.xroad.internalKeyStorePassword=internal -Dee.ria.xroad.internalKeyStore=/etc/xroad/ssl/internal.p12 -jar "$WSDLVALIDATOR_HOME/jlib/wsdlvalidator-1.0.jar" "$@" 2>/dev/null
+diff --git a/src/packages/src/xroad/common/base/etc/xroad/services/global.conf b/src/packages/src/xroad/common/base/etc/xroad/services/global.conf
+index 3db6c47f6e..adfb845050 100644
+--- a/src/packages/src/xroad/common/base/etc/xroad/services/global.conf
++++ b/src/packages/src/xroad/common/base/etc/xroad/services/global.conf
+@@ -56,7 +56,7 @@ apply_local_conf() {
+   fi
+ }
+ 
+-XROAD_PARAMS="-XX:+UseG1GC -Dfile.encoding=UTF-8 -Xshare:auto -Djdk.tls.ephemeralDHKeySize=2048 \
++XROAD_PARAMS="-XX:UseSVE=0 -XX:+UseG1GC -Dfile.encoding=UTF-8 -Xshare:auto -Djdk.tls.ephemeralDHKeySize=2048 \
+ -Djavax.xml.accessExternalDTD=\"\" -Djavax.xml.accessExternalStylesheet=\"\" $XROAD_PARAMS"
+ 
+ # Detect package manager and check for xroad-center
+diff --git a/src/packages/src/xroad/common/base/usr/share/xroad/db/liquibase.sh b/src/packages/src/xroad/common/base/usr/share/xroad/db/liquibase.sh
+index d23364723a..1ab6a68945 100755
+--- a/src/packages/src/xroad/common/base/usr/share/xroad/db/liquibase.sh
++++ b/src/packages/src/xroad/common/base/usr/share/xroad/db/liquibase.sh
+@@ -27,6 +27,6 @@ CLASSPATH=/usr/share/xroad/db/liquibase-core.jar
+ JAVA_OPTS="${JAVA_OPTS-}"
+ 
+ echo "Liquibase Home: $LIQUIBASE_HOME"
+-LIQUIBASE_SHOW_BANNER=false java -cp "$CLASSPATH" $JAVA_OPTS liquibase.integration.commandline.Main ${1+"$@"}
++LIQUIBASE_SHOW_BANNER=false java -XX:UseSVE=0 -cp "$CLASSPATH" $JAVA_OPTS liquibase.integration.commandline.Main ${1+"$@"}
+ 
+ 
+diff --git a/src/security-server/admin-service/int-test/src/intTest/java/org/niis/xroad/ss/test/container/ContainerSetup.java b/src/security-server/admin-service/int-test/src/intTest/java/org/niis/xroad/ss/test/container/ContainerSetup.java
+index af6e0a99f5..1bf3bdb514 100644
+--- a/src/security-server/admin-service/int-test/src/intTest/java/org/niis/xroad/ss/test/container/ContainerSetup.java
++++ b/src/security-server/admin-service/int-test/src/intTest/java/org/niis/xroad/ss/test/container/ContainerSetup.java
+@@ -68,6 +68,7 @@ public class ContainerSetup {
+             @Override
+             public List<String> customizeCommandParts() {
+                 return List.of(
++                        "-XX:UseSVE=0",
+                         "-Dxroad.signer.enforce-token-pin-policy=true",
+                         "-Dxroad.common.rpc.use-tls=false");
+             }

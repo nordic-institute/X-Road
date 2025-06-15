@@ -26,20 +26,17 @@
 package org.niis.xroad.confclient.core;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.core.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.core.globalconf.GlobalConfRpcCache;
-import org.niis.xroad.confclient.core.schedule.RetryingQuartzJob;
-import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
 
 import java.io.FileNotFoundException;
 
@@ -48,8 +45,7 @@ import java.io.FileNotFoundException;
  */
 @Slf4j
 @DisallowConcurrentExecution
-public class ConfigurationClientJob extends RetryingQuartzJob {
-    private static final int RETRY_DELAY_SEC = 3;
+public class ConfigurationClientJob implements Job {
 
     private final ConfigurationClient configClient;
     private final GlobalConfRpcCache globalConfRpcCache;
@@ -58,14 +54,13 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     @Inject
     public ConfigurationClientJob(ConfigurationClient configClient, GlobalConfRpcCache globalConfRpcCache,
                                   ConfigurationClientProperties configurationClientProperties) {
-        super(RETRY_DELAY_SEC);
         this.configClient = configClient;
         this.globalConfRpcCache = globalConfRpcCache;
         this.configurationClientProperties = configurationClientProperties;
     }
 
     @Override
-    protected void executeWithRetry(JobExecutionContext context) throws Exception {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             configClient.execute();
             context.setResult(status(DiagnosticsErrorCodes.RETURN_SUCCESS));
@@ -82,11 +77,6 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
         return new DiagnosticsStatus(errorCode,
                 TimeUtils.offsetDateTimeNow(),
                 TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
-    }
-
-    @Override
-    protected boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException {
-        return JobManager.isJobRunning(context, ProxyConfigurationBackupJob.class);
     }
 
 }

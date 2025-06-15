@@ -60,7 +60,7 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
     private FeignHealthcheckApi healthcheckApi;
 
     @Step("^service \"(.*)\" is \"(stopped|started|restarted)\"$")
-    public void stopService(String service, String state) throws Exception {
+    public void stopService(String service, String state) {
         switch (state) {
             case "restarted":
                 envSetup.restartContainer(service);
@@ -69,7 +69,7 @@ public class ProxyHealthcheckStepDefs extends BaseStepDefs {
                 envSetup.stop(service);
                 break;
             case "started":
-                envSetup.start(service);
+                envSetup.start(service, true);
                 break;
             default:
                 throw new IllegalStateException("unexpected state: " + state);

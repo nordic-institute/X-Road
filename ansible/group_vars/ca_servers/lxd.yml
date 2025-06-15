@@ -9,9 +9,9 @@ container_ports:
     type: proxy
   tsa:
     connect: "tcp:127.0.0.1:8899"
-    listen: "tcp:0.0.0.0:4003"
+    listen: "tcp:0.0.0.0:4004"
     type: proxy
   test_ca_web:
-    connect: "tcp:127.0.0.1:4003"
-    listen: "tcp:0.0.0.0:9998"
+    connect: "tcp:127.0.0.1:9998"
+    listen: "tcp:0.0.0.0:4003"
     type: proxy
