@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,4 +40,11 @@ public class SignerProxyMockingConfiguration {
     public SignerRpcClient mockSignerProxyFacade() {
         return mock(SignerRpcClient.class);
     }
+
+    @Bean
+    @Primary
+    public OpMonitorClient mockOpMonitorClient() {
+        return mock(OpMonitorClient.class);
+    }
+
 }

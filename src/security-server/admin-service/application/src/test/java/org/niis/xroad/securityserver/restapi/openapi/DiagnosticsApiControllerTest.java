@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import com.google.protobuf.Timestamp;
+
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
@@ -33,6 +35,9 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
@@ -43,6 +48,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatusDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.OperationalDataIntervalDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnosticsDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatusDto;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
@@ -58,8 +64,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -72,6 +83,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -451,6 +463,37 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().contentLength()).isEqualTo(bytes.length);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DIAGNOSTICS"})
+    public void getOperationalDataIntervals() {
+        List<OperationalDataInterval> dataIntervals = new ArrayList<>();
+        OperationalDataIntervalProto.Builder operationalDataIntervalBuilder = OperationalDataIntervalProto.newBuilder();
+        operationalDataIntervalBuilder.setTimeIntervalStart(Timestamp.newBuilder()
+                .setSeconds(Instant.now().getEpochSecond())
+                .setNanos(Instant.now().getNano())
+                .build());
+        operationalDataIntervalBuilder.setSuccessCount(10L);
+        operationalDataIntervalBuilder.setFailureCount(5L);
+        OperationalDataInterval operationalDataInterval = new OperationalDataInterval(operationalDataIntervalBuilder.build());
+        dataIntervals.add(operationalDataInterval);
+        when(opMonitorClient.getOperationalDataIntervals(any(), any(), any(), any(), any(), any()))
+                .thenReturn(dataIntervals);
+
+        ResponseEntity<List<OperationalDataIntervalDto>> response =
+                diagnosticsApiController.getOperationalDataIntervals(Instant.now().atOffset(ZoneOffset.UTC),
+                        Instant.now().atOffset(ZoneOffset.UTC),
+                        1,
+                        null,
+                        null,
+                        null);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getFirst().getIntervalStartTime()).isEqualTo(operationalDataInterval.getIntervalStart()
+                .atOffset(ZoneOffset.UTC));
+        assertThat(response.getBody().getFirst().getSuccessCount()).isEqualTo(operationalDataInterval.getSuccessCount());
+        assertThat(response.getBody().getFirst().getFailureCount()).isEqualTo(operationalDataInterval.getFailureCount());
     }
 
     private void stubForDiagnosticsRequest(String requestPath, String responseBody) {

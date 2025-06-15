@@ -22,13 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service.diagnostic;
+package org.niis.xroad.opmonitor.client;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.grpc.Channel;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -49,6 +50,13 @@ public class OpMonitorClient {
     public OpMonitorClient() throws Exception {
         this.opMonitorRpcClient = RpcClient.newClient(OpMonitoringSystemProperties.getOpMonitorHost(),
                 OpMonitoringSystemProperties.getOpMonitorGrpcPort(), TIMEOUT_AWAIT, OpMonitorRpcExecutionContext::new);
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (opMonitorRpcClient != null) {
+            opMonitorRpcClient.shutdown();
+        }
     }
 
     public List<OperationalDataInterval> getOperationalDataIntervals(Long recordsFrom,

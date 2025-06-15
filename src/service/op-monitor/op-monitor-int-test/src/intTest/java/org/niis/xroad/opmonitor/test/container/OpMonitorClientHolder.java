@@ -25,26 +25,27 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.opmonitor.test.container;
 
+import lombok.experimental.UtilityClass;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
-@Profile("!test")
-@Configuration
-class RpcClientsConfig {
+/**
+ * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would
+ * need to recreate on every feature.
+ */
+@UtilityClass
+public class OpMonitorClientHolder {
 
-    @Bean
-    SignerRpcClient signerRpcClient() {
-        return new SignerRpcClient();
+    private static OpMonitorClient opMonitorRpcClientInstance;
+
+    public static void set(OpMonitorClient opMonitorClient) {
+        opMonitorRpcClientInstance = opMonitorClient;
     }
 
-    @Bean
-    public OpMonitorClient opMonitorClient() throws Exception {
-        return new OpMonitorClient();
+    public static OpMonitorClient get() {
+        return opMonitorRpcClientInstance;
     }
 
 }
