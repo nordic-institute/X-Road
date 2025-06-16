@@ -46,11 +46,11 @@ public class TokenKeyServiceImpl implements TokenKeyService {
     private final SignerKeyDaoImpl keyDao;
 
     @Override
-    public Long save(Long tokenId, String keyId, String publicKeyBase64, byte[] keyStore,
+    public Long save(Long tokenId, String externalId, String publicKeyBase64, byte[] keyStore,
                      SignMechanism signMechanism,
                      String friendlyName, String label, boolean softwareKey) throws Exception {
         var entity = new SignerKeyEntity();
-        entity.setExternalId(keyId);
+        entity.setExternalId(externalId);
         entity.setTokenId(tokenId);
         entity.setType(softwareKey ? KeyType.SOFTWARE : KeyType.HARDWARE);
         entity.setFriendlyName(friendlyName);

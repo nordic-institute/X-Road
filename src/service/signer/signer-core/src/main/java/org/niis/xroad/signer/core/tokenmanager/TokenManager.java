@@ -92,6 +92,9 @@ public class TokenManager {
         tokenRegistry.writeRun(ctx -> {
             RuntimeTokenImpl token = ctx.findToken(tokenId);
             token.setTokenDefinition(tokenDefinition);
+            if (token.getStatus() == TokenStatusInfo.NOT_INITIALIZED) {
+                token.setStatus(TokenStatusInfo.OK);
+            }
         });
     }
 
