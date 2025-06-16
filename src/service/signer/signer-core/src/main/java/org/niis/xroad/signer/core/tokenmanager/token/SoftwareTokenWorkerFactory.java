@@ -245,9 +245,6 @@ public class SoftwareTokenWorkerFactory {
 
             PrivateKey key = getPrivateKey(keyId);
 
-            if (key == null) {
-                throw keyNotFound(keyId);
-            }
             var keyAlgorithm = KeyAlgorithm.valueOf(key.getAlgorithm());
             checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
 
@@ -279,7 +276,7 @@ public class SoftwareTokenWorkerFactory {
             }
         }
 
-
+        @Override
         protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
                 throws Exception {
             log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
@@ -363,7 +360,9 @@ public class SoftwareTokenWorkerFactory {
 
         private void initializePrivateKey(String keyId) throws Exception {
             PrivateKey pkey = loadPrivateKey(keyId);
-
+            if (pkey == null) {
+                throw keyNotFound(keyId);
+            }
             log.debug("Found usable key '{}'", keyId);
             privateKeys.put(keyId, pkey);
         }
@@ -458,12 +457,11 @@ public class SoftwareTokenWorkerFactory {
             tokenManager.setTokenActive(tokenId, false);
         }
 
-        private PrivateKey loadPrivateKey(String keyId) throws Exception {
-
+        private PrivateKey loadPrivateKey(String keyId) {
             log.trace("Loading pkcs#12 private key '{}' from", keyId);
-            var pin = getPin();
             return tokenLookup.getSoftwareTokenKeyStore(keyId).map(privateKeyBytes -> {
                 try {
+                    var pin = getPin();
                     return SoftwareTokenUtil.loadPrivateKey(privateKeyBytes, keyId, pin);
                 } catch (Exception e) {
                     log.error("Failed to load private key from key store", e);
