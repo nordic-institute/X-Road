@@ -84,7 +84,7 @@ class ServiceIdConverterTest {
         String encoded = serviceIdConverter.convertId(serviceId);
         assertEquals("XRD2:GOV:M4:TestService:getData", encoded);
 
-        serviceId = ServiceId.Conf.create("XRD2", "GOV", "M4","TestService", "getData", "v1");
+        serviceId = ServiceId.Conf.create("XRD2", "GOV", "M4", "TestService", "getData", "v1");
         encoded = serviceIdConverter.convertId(serviceId);
         assertEquals("XRD2:GOV:M4:TestService:getData.v1", encoded);
     }

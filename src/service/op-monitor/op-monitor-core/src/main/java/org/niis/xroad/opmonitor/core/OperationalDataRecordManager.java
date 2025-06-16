@@ -27,7 +27,6 @@ package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
-
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.RequiredArgsConstructor;

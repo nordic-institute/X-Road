@@ -49,7 +49,6 @@ import org.niis.xroad.rpc.error.CodedExceptionProto;
 
 import java.util.concurrent.ForkJoinPool;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 

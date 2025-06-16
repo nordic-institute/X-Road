@@ -26,18 +26,16 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import com.google.protobuf.Timestamp;
-
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import com.google.protobuf.Timestamp;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.OperationalDataIntervalProto;
-import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
@@ -68,7 +66,6 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

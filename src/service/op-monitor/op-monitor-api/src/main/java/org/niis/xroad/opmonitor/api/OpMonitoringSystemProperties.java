@@ -93,7 +93,7 @@ public final class OpMonitoringSystemProperties {
     /**
      * Property name of the host address that the operational monitoring daemon listens on.
      */
-    private static final String OP_MONITOR_HOST =
+    public static final String OP_MONITOR_HOST =
             PREFIX + "op-monitor.host";
 
     /**

@@ -29,7 +29,6 @@ package org.niis.xroad.opmonitor.test.container;
 
 import lombok.experimental.UtilityClass;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
-import org.niis.xroad.signer.client.SignerRpcClient;
 
 /**
  * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would

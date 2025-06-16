@@ -25,7 +25,6 @@
 package org.niis.xroad.opmonitor.client;
 
 import ee.ria.xroad.common.identifier.ClientId;
-
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import io.grpc.Channel;

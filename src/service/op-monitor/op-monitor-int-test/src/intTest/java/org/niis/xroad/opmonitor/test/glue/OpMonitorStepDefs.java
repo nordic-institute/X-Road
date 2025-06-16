@@ -27,27 +27,20 @@
 
 package org.niis.xroad.opmonitor.test.glue;
 
-import ee.ria.xroad.common.identifier.ClientId;
 import io.cucumber.java.en.Step;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
-import org.niis.xroad.opmonitor.api.SecurityServerType;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorClientHolder;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.ServiceIdConverter;
-import org.niis.xroad.signer.client.SignerRpcClient;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
-import java.util.Optional;
 
-import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
-import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
@@ -112,7 +105,8 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                 null);
     }
 
-    @When("user asks for traffic data of last two hour in {int} minute intervals where one of the participants was {string} and requested service was {string}")
+    @When("user asks for traffic data of last two hour in {int} minute intervals where one of the participants was {string} and requested"
+            + " service was {string}")
     public void getTrafficDataLastTwoHoursByMemberAndService(int interval, String memberId, String serviceId) {
         Instant now = Instant.now();
         Long from = now.minus(2, ChronoUnit.HOURS).toEpochMilli();

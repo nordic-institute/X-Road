@@ -25,13 +25,11 @@
  */
 package org.niis.xroad.opmonitor.test.container;
 
-import com.nortal.test.testcontainers.configuration.TestableContainerJacocoProperties;
 import com.nortal.test.testcontainers.configurator.SpringBootTestContainerConfigurator;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
 import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.opmonitor.test.container.database.LiquibaseExecutor;
-import org.niis.xroad.opmonitor.test.container.database.PostgresContextualContainer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;

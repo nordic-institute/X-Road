@@ -56,7 +56,7 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
     }
 
     private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) throws Exception {
-        log.info("Getting operational data in {} minute intervals, between {} and {}",
+        log.debug("Getting operational data in {} minute intervals, between {} and {}",
                 request.getIntervalInMinutes(),
                 Instant.ofEpochMilli(request.getRecordsFrom()),
                 Instant.ofEpochMilli(request.getRecordsTo()));

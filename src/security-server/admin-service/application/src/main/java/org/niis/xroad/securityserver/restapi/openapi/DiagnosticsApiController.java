@@ -37,6 +37,7 @@ import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.ServiceIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
@@ -45,7 +46,6 @@ import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatu
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.OperationalInfoConverter;
 import org.niis.xroad.securityserver.restapi.converter.ProxyMemoryUsageStatusConverter;
-import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatusDto;
@@ -96,7 +96,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private final ProxyMemoryUsageStatusConverter proxyMemoryUsageStatusConverter;
     private final OperationalInfoConverter operationalInfoConverter;
     private final ClientIdConverter clientIdConverter;
-    private final ServiceConverter serviceConverter;
+    private final ServiceIdConverter serviceIdConverter;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -177,7 +177,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
                 interval,
                 securityServerType,
                 memberId != null ? clientIdConverter.convertId(memberId) : null,
-                serviceId != null ? serviceConverter.parseServiceId(serviceId) : null);
+                serviceId != null ? serviceIdConverter.convertId(serviceId) : null);
         return new ResponseEntity<>(operationalInfoConverter.convert(opDataIntervals), HttpStatus.OK);
     }
 

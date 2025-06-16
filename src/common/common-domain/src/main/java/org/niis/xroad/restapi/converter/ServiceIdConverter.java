@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.inject.Named;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -41,6 +42,7 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALI
 /**
  * Converter for encoded service ids
  */
+@Named("serviceIdConverter")
 @RequiredArgsConstructor
 public class ServiceIdConverter extends DtoConverter<ServiceId, String> {
 

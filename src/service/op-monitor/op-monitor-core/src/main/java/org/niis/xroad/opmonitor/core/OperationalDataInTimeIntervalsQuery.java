@@ -26,7 +26,6 @@
 package org.niis.xroad.opmonitor.core;
 
 import ee.ria.xroad.common.identifier.ClientId;
-
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Session;

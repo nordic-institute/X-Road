@@ -27,11 +27,10 @@
 
 package org.niis.xroad.opmonitor.test.hook;
 
-import com.nortal.test.core.services.TestableApplicationInfoProvider;
-import com.nortal.test.core.services.hooks.BeforeSuiteHook;
-
 import ee.ria.xroad.common.SystemProperties;
 
+import com.nortal.test.core.services.TestableApplicationInfoProvider;
+import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +58,7 @@ public class OpMonitorClientInitHook implements BeforeSuiteHook {
         var port = testableApplicationInfoProvider.getMappedPort(OP_MONITOR_DAEMON_GRPC_PORT);
         log.info("Will use {}:{} (original port {})  for op monitor RPC connection..", host, port, OP_MONITOR_DAEMON_GRPC_PORT);
 
-        System.setProperty(SystemProperties.GRPC_INTERNAL_HOST, host);
+        System.setProperty(OpMonitoringSystemProperties.OP_MONITOR_HOST, host);
         System.setProperty(OpMonitoringSystemProperties.OP_MONITOR_GRPC_PORT, String.valueOf(port));
         System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.toString(false));
     }
