@@ -75,11 +75,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public void initialize() {
         // Creating directories for volume mounts with full permissions
         // to ensure containers have the necessary access to modify their contents.
-        prepareDirectories(
-                "build/signer-volume",
-                "build/signer-volume/softtoken",
-                "build/a2c_logs"
-        );
+        prepareDirectories("build/a2c_logs");
         env = new ComposeContainer("ss-",
                 new File(COMPOSE_SS_FILE), new File(COMPOSE_SYSTEMTEST_FILE))
                 .withLocalCompose(true)
@@ -106,20 +102,6 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
         execInContainer(BACKUP_MANAGER, "/etc/xroad/backup-keys/init_backup_encryption.sh");
 
-        outputAvailablePorts();
-    }
-
-    private void outputAvailablePorts() {
-        var uiMapping = getContainerMapping(UI, Port.UI);
-        var dbMapping = getContainerMapping(DB_SERVERCONF, Port.DB);
-        var testCaMapping = getContainerMapping(TESTCA, Port.TEST_CA);
-
-        log.info("==========================");
-        log.info("Port mappings:");
-        log.info("UI: {}:{}", uiMapping.host(), uiMapping.port());
-        log.info("Serverconf Database: {}:{}", dbMapping.host(), dbMapping.port());
-        log.info("TestCA: {}:{}", testCaMapping.host(), testCaMapping.port());
-        log.info("==========================");
     }
 
     @SneakyThrows

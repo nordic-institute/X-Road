@@ -26,6 +26,8 @@
 
 package org.niis.xroad.ss.test.ui.container.service;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
@@ -33,17 +35,14 @@ import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Service;
-
-import java.sql.DriverManager;
 
 @Service
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private SingleConnectionDataSource mesageLogDataSource;
-    private SingleConnectionDataSource serverConfDataSource;
+    private HikariDataSource messagelogDataSource;
+    private HikariDataSource serverconfDataSource;
     private NamedParameterJdbcTemplate messagelogNamedParameterJdbcTemplate;
     private NamedParameterJdbcTemplate serverconfNamedParameterJdbcTemplate;
 
@@ -53,11 +52,8 @@ public class TestDatabaseService implements DisposableBean {
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate() {
         if (messagelogNamedParameterJdbcTemplate == null) {
-            var messagelogConnection = DriverManager.getConnection(
-                    getJdbcUrl(EnvSetup.DB_MESSAGELOG, "messagelog"),
-                    "messagelog", "secret");
-            mesageLogDataSource = new SingleConnectionDataSource(messagelogConnection, true);
-            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(mesageLogDataSource);
+            messagelogDataSource = createDataSource(EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
+            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(messagelogDataSource);
         }
         return messagelogNamedParameterJdbcTemplate;
     }
@@ -65,12 +61,21 @@ public class TestDatabaseService implements DisposableBean {
     @SneakyThrows
     public NamedParameterJdbcTemplate getServerconfTemplate() {
         if (serverconfNamedParameterJdbcTemplate == null) {
-            var serverconfConnection = DriverManager.getConnection(getJdbcUrl(EnvSetup.DB_SERVERCONF, "serverconf"),
-                    "serverconf", "secret");
-            serverConfDataSource = new SingleConnectionDataSource(serverconfConnection, true);
-            serverconfNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(serverConfDataSource);
+            serverconfDataSource = createDataSource(EnvSetup.DB_SERVERCONF, "serverconf", "serverconf");
+            serverconfNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(serverconfDataSource);
         }
         return serverconfNamedParameterJdbcTemplate;
+    }
+
+    private HikariDataSource createDataSource(String service, String database, String username) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getJdbcUrl(service, database));
+        config.setUsername(username);
+        config.setPassword("secret");
+        config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
+        config.setConnectionTestQuery("SELECT 1");
+        return new HikariDataSource(config);
     }
 
     private String getJdbcUrl(String service, String database) {
@@ -83,11 +88,11 @@ public class TestDatabaseService implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
-        if (mesageLogDataSource != null) {
-            mesageLogDataSource.close();
+        if (messagelogDataSource != null) {
+            messagelogDataSource.close();
         }
-        if (serverConfDataSource != null) {
-            serverConfDataSource.close();
+        if (serverconfDataSource != null) {
+            serverconfDataSource.close();
         }
     }
 }

@@ -67,25 +67,11 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
                 .withLocalCompose(true)
 
                 .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck())
-                .withExposedService(SIGNER, Port.DEBUG, Wait.forHealthcheck())
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, Wait.forLogMessage(".*nginx entered RUNNING state.*", 1))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER));
 
         env.start();
-
-        var signerGrpcMapping = getContainerMapping(SIGNER, SIGNER_GRPC_PORT);
-        var signerDebugMapping = getContainerMapping(SIGNER, Port.DEBUG);
-        var dbMapping = getContainerMapping(DB_SERVERCONF, Port.DB);
-        var testCaMapping = getContainerMapping(TESTCA, Port.TEST_CA);
-
-        log.info("==========================");
-        log.info("Port mappings:");
-        log.info("Signer: {}:{}", signerGrpcMapping.host(), signerGrpcMapping.port());
-        log.info("Signer debug: {}:{}", signerDebugMapping.host(), signerDebugMapping.port());
-        log.info("Database: {}:{}", dbMapping.host(), dbMapping.port());
-        log.info("TestCA: {}:{}", testCaMapping.host(), testCaMapping.port());
-        log.info("==========================");
     }
 
     @Override
@@ -149,6 +135,5 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
     public final class Port {
         public static final int DB = 5432;
         public static final int TEST_CA = 8888;
-        public static final int DEBUG = 9999;
     }
 }

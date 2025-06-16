@@ -25,24 +25,27 @@
  */
 package org.niis.xroad.ss.test.ui.glue;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.ss.test.ui.container.EnvSetup;
-import org.niis.xroad.ss.test.ui.container.service.TestDatabaseService;
+import org.niis.xroad.ss.test.ui.container.service.TestTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Map;
 
 @Slf4j
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SignerStepDefs extends BaseUiStepDefs {
 
+    private static final String KEYSTORE_BASE_PATH = "src/intTest/resources/files/keystores";
+    private static final String CERTS_PATH = KEYSTORE_BASE_PATH + "/certs";
+
     @Autowired
-    private TestDatabaseService testDatabaseService;
+    private TestTokenService testTokenService;
 
     @SneakyThrows
     @SuppressWarnings("checkstyle:MagicNumber")
@@ -51,35 +54,55 @@ public class SignerStepDefs extends BaseUiStepDefs {
         envSetup.restartContainer(EnvSetup.SIGNER);
     }
 
+    @Step("HSM tokens are deleted")
+    public void deleteHsmTokens() {
+        var count = testTokenService.deleteHsmTokens();
+
+        testReportService.attachText("Deleted HSM tokens count", String.valueOf(count));
+    }
+
+    @Step("All Signer keys are deleted")
+    public void deleteAllSignerKeys() {
+        var count = testTokenService.deleteAllKeys();
+
+        testReportService.attachText("Deleted keys count", String.valueOf(count));
+    }
+
+    @Step("softtoken device is created with id {string} and friendly name {string}")
+    public void createSoftTokenDevice(String id, String friendlyName) {
+        testTokenService.createSoftTokenDevice(id, friendlyName);
+    }
+
     @SneakyThrows
-    @Step("predefined signer softtoken is uploaded")
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public void updateSignerSoftToken() {
-        if (SystemUtils.IS_OS_UNIX) {
-            envSetup.execInContainer(EnvSetup.SIGNER, "chmod", "-R", "777", "/etc/xroad/signer");
-        }
+    @Step("authentication key {string} named {string} is added to softtoken")
+    public void addAuthKey(String externalId, String friendlyName) {
+        byte[] keystore = Files.readAllBytes(Paths.get(KEYSTORE_BASE_PATH, externalId + ".p12"));
+        testTokenService.addSoftwareKey(externalId, friendlyName, "AUTHENTICATION", keystore);
+    }
 
-        envSetup.stop(EnvSetup.SIGNER);
+    @SneakyThrows
+    @Step("signing key {string} named {string} is added to softtoken")
+    public void addSigningKey(String externalId, String friendlyName) {
+        byte[] keystore = Files.readAllBytes(Paths.get(KEYSTORE_BASE_PATH, externalId + ".p12"));
+        testTokenService.addSoftwareKey(externalId, externalId, "SIGNING", keystore);
+    }
 
-        FileUtils.deleteDirectory(Paths.get("build/signer-volume").toFile());
-        FileUtils.copyDirectory(
-                Paths.get("src/intTest/resources/container-files/etc/xroad/signer-predefined").toFile(),
-                Paths.get("build/signer-volume").toFile());
+    @SneakyThrows
+    @Step("authentication certificate {string} is added for key {string}")
+    public void addAuthCertificate(String certExternalId, String keyExternalId) {
+        addCertificate(certExternalId, null, keyExternalId);
+    }
 
-        envSetup.start(EnvSetup.SIGNER, true);
+    @SneakyThrows
+    @Step("signing certificate {string} is added for member {string} under key {string}")
+    public void addCertificate(String certExternalId, String memberId, String keyExternalId) {
+        var cert = CryptoUtils.readCertificate(Files.newInputStream(Paths.get(CERTS_PATH, certExternalId + ".pem")));
+        testTokenService.addCertificate(certExternalId, keyExternalId, cert.getEncoded(), memberId);
     }
 
     @Step("Predefined inactive signer token is inserted")
     public void addInactiveSignerToken() {
-        String sql = """
-                INSERT INTO signer_tokens (external_id, type, friendly_name)
-
-                VALUES ('1234', 'hardwareToken', 'hsmToken-for-deletion')
-                """;
-
-        testDatabaseService.getServerconfTemplate().update(sql, Map.of());
-
+        testTokenService.addInactiveSignerToken();
         envSetup.restartContainer(EnvSetup.SIGNER);
     }
-
 }
