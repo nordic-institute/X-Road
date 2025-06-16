@@ -348,7 +348,7 @@ public class SoftwareTokenWorkerFactory {
                     .orElseThrow(() -> new CryptoException("Unsupported key algorithm: " + algorithm));
         }
 
-        private PrivateKey getPrivateKey(String keyId) throws Exception {
+        private PrivateKey getPrivateKey(String keyId) {
             PrivateKey pkey = privateKeys.get(keyId);
 
             if (pkey == null) {
@@ -358,7 +358,7 @@ public class SoftwareTokenWorkerFactory {
             return privateKeys.get(keyId);
         }
 
-        private void initializePrivateKey(String keyId) throws Exception {
+        private void initializePrivateKey(String keyId) {
             PrivateKey pkey = loadPrivateKey(keyId);
             if (pkey == null) {
                 throw keyNotFound(keyId);
