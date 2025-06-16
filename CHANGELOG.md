@@ -1168,7 +1168,7 @@
 - XTE-307 / Joint development issue #131: Security Server bugfix: Added missing HTTP header "Connection: close" into the server proxy response in cases error occurs before parsing a service provider's response.
 - XTE-308 / Joint development issue #132: Security Server bugfix: Added missing read timeout for OCSP responder client.
 - XTE-310 / Joint development issue #125: Security Server bugfix: SOAP messages with attachments caused in some cases a temopray file handle leak.
-- XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp:  or &lt:  entities.
+- XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp; or &lt; entities.
 - Security Server: TCP socket SO_LINGER values in the proxy configuration file (proxy.ini) set to -1 according to avoid unexpected data stream closures.
 
 ## 6.11.0 - 2017-03-01
@@ -1189,7 +1189,7 @@
 
 ## 6.9.5 - 2017-03-27
 - XTE-293: Security Server: A field set used to generate the token ID of the SSCD has been made configurable.
-- XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp:  or &lt:  entities.
+- XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp; or &lt; entities.
 
 ## 6.9.4 - 2017-02-13
 - XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
