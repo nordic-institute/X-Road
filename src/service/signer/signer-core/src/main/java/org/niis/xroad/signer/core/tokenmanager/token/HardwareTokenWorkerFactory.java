@@ -127,7 +127,6 @@ public class HardwareTokenWorkerFactory {
                     HardwareTokenWorkerFactory.this.keyManager,
                     HardwareTokenWorkerFactory.this.tokenLookup);
 
-
             this.tokenDefinition = tokenDefinition;
         }
 
@@ -369,6 +368,7 @@ public class HardwareTokenWorkerFactory {
             return signer.sign(keyId, signatureAlgorithmId, data);
         }
 
+        @Override
         protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
                 throws Exception {
             log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);

@@ -148,7 +148,7 @@ class TokenManagerTest {
     }
 
     @Test
-    void testDeleteToken() {
+    void testDeleteToken() throws Exception {
         var tokenMock = mock(RuntimeTokenImpl.class);
         initRegistry(tokenMock);
 
