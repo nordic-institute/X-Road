@@ -17,6 +17,8 @@ services:
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
       - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+    ports:
+      - "0:9999" # debug port
     healthcheck:
       interval: 5s
       retries: 40
@@ -38,6 +40,13 @@ services:
       - POSTGRES_DB=serverconf
       - POSTGRES_PASSWORD=secret
       - POSTGRES_USER=serverconf
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
     deploy:
       resources:
         reservations:
@@ -54,7 +63,8 @@ services:
       - db_user=serverconf
       - db_schema=public
     depends_on:
-      - db-serverconf
+      db-serverconf:
+        condition: service_healthy
     deploy:
       resources:
         reservations:

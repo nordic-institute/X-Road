@@ -1,6 +1,7 @@
 quarkus:
   log:
     level: INFO
+    min-level: TRACE
     category:
       "io.quarkus":
         level: INFO #TODO should be reduced to INFO once development is done

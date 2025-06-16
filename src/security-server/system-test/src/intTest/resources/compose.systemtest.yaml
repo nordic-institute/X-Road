@@ -7,6 +7,7 @@ services:
     environment:
       - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file
       - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
+      - QUARKUS_LOG_LEVEL=TRACE
   proxy:
     networks:
       xrd-ss-network:
@@ -47,6 +48,11 @@ services:
       - POSTGRES_USER=opmonitor
     networks:
       - xrd-ss-network
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "sh", "-c", "pg_isready -U postgres -h localhost" ]
     deploy:
       resources:
         reservations:
@@ -64,7 +70,8 @@ services:
       - db_user=opmonitor
       - db_schema=public
     depends_on:
-      - db-opmonitor
+      db-opmonitor:
+        condition: service_healthy
     networks:
       - xrd-ss-network
     deploy:

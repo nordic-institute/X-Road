@@ -12,8 +12,8 @@ quarkus:
     enabled: true
   log:
     category:
-      "org.niis.xroad.signer.core.tokenmanager.TokenManager":
-        level: "OFF"
+      "io.grpc":
+        level: "INFO"
 
 "%containerized":
   xroad:
