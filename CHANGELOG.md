@@ -1,6 +1,42 @@
 # Change Log
 
 ## 7.7.0 - UNRELEASED
+- XRDDEV-55: As a Product Owner I want that the memory allocated for Proxy component will be automatically adjusted at init phase of Security Server to correlate the amount of RAM memory to optimize the performance
+- XRDDEV-599: As a Security Server user I want that X-Road metaservice codes are reserved so that the user can't overload them
+- XRDDEV-823: As a Security Server Administrator I would like to have an easy or automated way to configure my Security Server's IP ACL so that maintaining the Security Server would be easier.
+- XRDDEV-2606: As an X-Road User I would like the see a visualization of the traffic in the Security Server user interface
+- XRDDEV-2622: As a Security Server Administrator I want to be able to remove HSM tokens from the user interface so that the process is easier and less error-prone
+- XRDDEV-2657: As a Security Server Administrator I want to be able to put my Security Server into mainteinance mode so that work can be done with it while requests are not routed to it
+- XRDDEV-2713: As a Developer I want to refactor our code that relies on hibernate-mapping so that we can get rid of deprecated functions
+- XRDDEV-2735: As an X-Road Security Server Administrator I want the authentication and signing certificates to be activated automatically when ACME is used so that I don't need to do it manually
+- XRDDEV-2761: As a Security Server Administrator, I want to manage subsystem names in a single language so that they are displayed consistently across the systems
+- XRDDEV-2762: As a Central Server Administrator, I want to manage subsystem names in a single language so that they are included in system configurations and displayed across the systems
+- XRDDEV-2776: Changing the system time zone on a fresh Ubuntu 24.04 installation doesn't affect the time zone of the Security Server application logs.
+- XRDDEV-2780: As a Developer I want to look into EdDSA support so that we can consider adding it
+- XRDDEV-2784: As a Developer I want to reinvestigate the possibilities to customise the X-Road software installation so that it can be aligned better with the current state and future plans
+- XRDDEV-2795: As a Security Server Administrator I would like to see the status of the automatic authentication registration email notification on the diagnostics page
+- XRDDEV-2804: As a Security Server Administrator I want to have more predictable forms in Security server UI
+- XRDDEV-2805: As a Developer I want to remove migrate from XML entity mapping to annotations so that code is more consistent across different modules
+- XRDDEV-2807: As a Developer I want to review and refactor code responsible for exception translations to API responses in Central and Security servers so that it would be more friendly for internationalization
+- XRDDEV-2810: As an Administrator I want to use the Central Server and Security Server UIs in Russian so that I can use my preferred language.
+- XRDDEV-2811: As an Administrator I want to use the Central Server and Security Server UIs in Turkmen so that I can use my preferred language.
+- XRDDEV-2833: As a Security Server Administrator I would like to get a warning in the proxy health check interface if the memory usage is above my configured threshold
+- XRDDEV-2834: As a Security Server Administrator I would like to be able to see the memory usage of the proxy component in the diagnostics page so that I can visually see what the current usage is
+- XRDDEV-2853: As a Developer I would like to update Spring Boot to the latest version so that we have upgraded libraries
+- XRDDEV-2855: Files missing from the Security Server Debian packages
+- XRDDEV-2857: As a Developer I want to rework the ACME notifications display structure in the diagnostics view as it is becoming a mess
+- XRDDEV-2858: As a Sidecar user I would like to be able to use an environmental variable to disable/enable ACME on my setup so that I can disable it if I don't need it
+- XRDDEV-2864: The Security Server doesn't apply changes in the ocspFetchInterval parameter value automatically.
+- XRDDEV-2873: As a Developer I want to plan our migrating the X-Road installations to the initialiser script approach
+- XRDDEV-2874: As a Developer I want to look into ways of improving the diagnostics page to help with diagnosing connection issues so that administrators can more easily solve problems
+- XRDDEV-2876: As a Developer I want to look into ways of improving the diagnostics page with Security Server checks to help with diagnosing connection issues so that administrators can more easily solve problems
+- XRDDEV-2878: As a Security Server Administrator I would like the client list in the CSR creation wizard to be searchable so that it is easier to choose the client when there are a lot of members to choose from
+- XRDDEV-2886: As a Central Server Administrator I want my environments users to be able to set their Security Servers to maintenance mode so that they can take the out of rotation if needed
+- XRDDEV-2887: As a Security Server Administrator I would like to be able to set my whole Security Server to maintenance mode instead of disabling susbsystems one by one so that I can work on issues
+- XRDDEV-2888: Security Server backup fails on Kubernetes.
+- XRDDEV-2889: The Security Server healthcheck endpoint returns HTTP 200 when the PIN code isn't entered
+- XRDDEV-2900: Downloading the global configuration from the FDEV-CS instance in the Configuration Proxy model takes too long
+- XRDDEV-2913: Issues with Error Handling in Diagnostics Page
 
 ## 7.6.2 - 2025-04-03
 - XRDDEV-2760: Issues with authentication certificate rotation
