@@ -40,8 +40,8 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { BackupHandler } from '../../types';
-import XrdButton from "../XrdButton.vue";
+import { BackupHandler } from '../../utils';
+import XrdButton from '../XrdButton.vue';
 
 export default defineComponent({
   components: { XrdButton },
@@ -62,18 +62,16 @@ export default defineComponent({
   emits: [],
   data() {
     return {
-      downloading: false
+      downloading: false,
     };
   },
   computed: {},
   methods: {
     downloadBackup() {
       this.downloading = true;
-      this.backupHandler
-        .download(this.filename)
-        .finally(() => (this.downloading = false));
-    }
-  }
+      this.backupHandler.download(this.filename).finally(() => (this.downloading = false));
+    },
+  },
 });
 </script>
 

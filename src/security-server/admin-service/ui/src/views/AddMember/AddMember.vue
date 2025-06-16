@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
+  <v-container class="view-wrap ms-auto">
     <xrd-sub-view-title
-      class="wizard-view-title"
+      class="pa-4"
       :title="$t('wizard.addMemberTitle')"
       data-test="wizard-title"
       :show-close="false"
@@ -136,7 +136,7 @@
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -265,5 +265,5 @@ onBeforeMount(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

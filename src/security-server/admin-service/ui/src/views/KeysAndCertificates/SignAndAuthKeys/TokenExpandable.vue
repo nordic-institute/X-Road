@@ -39,14 +39,16 @@
         <span
           class="token-status-indicator token-name"
           :class="tokenStatusClass"
-        >{{ $t('keys.token.label') }} {{ token.name }}</span>
+          >{{ $t('keys.token.label') }} {{ token.name }}</span
+        >
 
         <v-btn
           icon
           variant="text"
           color="primary"
           data-test="token-icon-button"
-          @click="tokenClick(token)">
+          @click="tokenClick(token)"
+        >
           <xrd-icon-base>
             <xrd-icon-edit />
           </xrd-icon-base>
@@ -190,7 +192,7 @@
 <script lang="ts">
 // View for a token
 import { Component, defineComponent, PropType } from 'vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import KeysTable from './KeysTable.vue';
 import KeysTableTitle from './KeysTableTitle.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
@@ -198,13 +200,23 @@ import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
-import { getTokenUIStatus, TokenUIStatus } from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
+import {
+  getTokenUIStatus,
+  TokenUIStatus,
+} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import { FileUploadResult } from '@/ui-types';
-import { XrdExpandable, XrdIconCancel, XrdIconEdit, XrdIconError, XrdIconImport } from '@niis/shared-ui';
+import {
+  XrdExpandable,
+  XrdIconCancel,
+  XrdIconEdit,
+  XrdIconError,
+  XrdIconImport,
+  Colors,
+} from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
@@ -421,8 +433,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/tables';
-@use '@/assets/colors';
+@use '@niis/shared-ui/src/assets/tables';
+@use '@niis/shared-ui/src/assets/colors';
 
 .token-logging-button {
   display: inline-flex;
@@ -493,5 +505,4 @@ export default defineComponent({
   transform-origin: top;
   transition: transform 0.4s ease-in-out;
 }
-
 </style>

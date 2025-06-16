@@ -45,7 +45,7 @@
         <v-text-field
           v-bind="pinRef"
           class="wizard-form-input"
-          autofocus="true"
+          autofocus
           :label="$t('initialConfiguration.pin.pin')"
           type="password"
           data-test="pin-input"
@@ -62,8 +62,8 @@
       </div>
 
       {{ $t('initialConfiguration.pin.info2') }}
-      <br/>
-      <br/>
+      <br />
+      <br />
       {{ $t('initialConfiguration.pin.info3') }}
     </div>
     <div class="button-footer">
@@ -74,27 +74,25 @@
           class="previous-button"
           data-test="previous-button"
           @click="previous"
-        >{{ $t('action.previous') }}
-        </xrd-button
-        >
+          >{{ $t('action.previous') }}
+        </xrd-button>
         <xrd-button
           :disabled="!meta.valid"
           :loading="saveBusy"
           data-test="token-pin-save-button"
           @click="done"
-        >{{ $t('action.submit') }}
-        </xrd-button
-        >
+          >{{ $t('action.submit') }}
+        </xrd-button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
-import {PublicPathState, useForm} from 'vee-validate';
-import {mapState} from "pinia";
-import {useUser} from "@/store/modules/user";
+import { defineComponent } from 'vue';
+import { PublicPathState, useForm } from 'vee-validate';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
   props: {
@@ -104,7 +102,7 @@ export default defineComponent({
   },
   emits: ['done', 'previous'],
   setup() {
-    const {meta, values, defineComponentBinds} = useForm({
+    const { meta, values, defineComponentBinds } = useForm({
       validationSchema: {
         pin: 'required',
         confirmPin: 'required|confirmed:@pin',
@@ -117,10 +115,10 @@ export default defineComponent({
     });
     const pinRef = defineComponentBinds('pin', componentConfig);
     const confirmPinRef = defineComponentBinds('confirmPin', componentConfig);
-    return {meta, values, pinRef, confirmPinRef};
+    return { meta, values, pinRef, confirmPinRef };
   },
   computed: {
-    ...mapState(useUser, ['isEnforceTokenPolicyEnabled',]),
+    ...mapState(useUser, ['isEnforceTokenPolicyEnabled']),
   },
   methods: {
     done(): void {
@@ -134,5 +132,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/wizards';
+@use '@niis/shared-ui/src/assets/wizards';
 </style>

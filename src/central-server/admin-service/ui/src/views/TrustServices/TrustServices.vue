@@ -25,7 +25,5 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
-    <router-view data-test="trust-services-view"></router-view>
-  </xrd-sub-view-container>
+  <router-view data-test="trust-services-view" />
 </template>

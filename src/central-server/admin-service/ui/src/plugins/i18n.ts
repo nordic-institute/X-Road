@@ -24,19 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { prepareI18n } from '@niis/shared-ui';
+import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-export const availableLanguages = ['en', 'es', 'ru', 'tk'];
-
-export const { i18n, languageHelper } = prepareI18n(loadMessages);
+const availableLanguages = ['en', 'es', 'ru', 'tk'];
 
 // Fetches all language-specific messages for the given language
-async function loadMessages(language: string) {
+export async function loadMessages(language: string) {
   try {
     const module = await import(`@/locales/${language}.json`);
     return module.default;
   } catch {
-    console.warn("Failed to load translations for: " + language);
+    // eslint-disable-next-line no-console
+    console.warn('Failed to load translations for: ' + language);
     return {};
   }
+}
+
+export async function createLanguageHelper() {
+  return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
 }

@@ -24,7 +24,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <CertificateView v-if="certificate" data-test="certificate-details-dialog" :certificate-details="certificate">
+  <CertificateView
+    v-if="certificate"
+    data-test="certificate-details-dialog"
+    :certificate-details="certificate"
+  >
     <template #tools>
       <xrd-button
         v-if="showDeleteButton"
@@ -137,5 +141,4 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

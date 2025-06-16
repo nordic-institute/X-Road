@@ -1,15 +1,4 @@
 {
-  "403": {
-    "goBack": "Go back",
-    "mainTitle": "Permission denied",
-    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "topTitle": "Forbidden"
-  },
-  "404": {
-    "pageNotFound": "404 - page not found",
-    "text": "Seems like you found the",
-    "textUnicorn": "unicorn"
-  },
   "accessRights": {
     "addServiceClients": "Add subjects",
     "addServiceClientsSuccess": "Access rights added successfully",
@@ -148,6 +137,7 @@
     },
     "subsystemCode": "Subsystem Code",
     "subsystemName": "Subsystem Name",
+    "subsystemTitleSuffix": " (@:general.subsystem)",
     "unknownMember": "unknown member"
   },
   "clients": {
@@ -214,7 +204,7 @@
     },
     "globalConfiguration": {
       "configurationStatus": {
-        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check network connection.",
+        "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Unable to download global configuration. Check the network connection.",
         "ERROR_CODE_EXPIRED_CONF": "The downloaded global configuration has expired.",
         "ERROR_CODE_INTERNAL": "Internal error occurred.",
         "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Invalid signature value.",
@@ -248,6 +238,8 @@
         "title": "Different mail notification statuses available"
       },
       "recipientsEmails": "Recipients' emails",
+      "status": "Status",
+      "sentTestMail": "Send test e-mail",
       "title": "Mail notification status",
       "type": {
         "ACME_FAILURE": "ACME failure notifications",
@@ -256,8 +248,7 @@
         "ACME_CERT_AUTOMATICALLY_ACTIVATED": "ACME certificate automatically activated notifications",
         "ACME_CERT_AUTOMATIC_ACTIVATION_FAILURE": "ACME certificate automatic activation failure notifications"
       },
-      "types": "Mail notification types",
-      "status": "Status"
+      "types": "Mail notification types"
     },
     "maintenanceMode": {
       "enableTitle": "Enable maintenance mode",
@@ -307,7 +298,7 @@
       "timestampingStatus": {
         "ERROR_CODE_INTERNAL": "Internal error occurred",
         "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Malformed timestamp server URL. Check the URL.",
-        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection to global configuration provider.",
+        "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Connection timed out. Check the network connection.",
         "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Connection ok, no timestamp request made yet",
         "SUCCESS": "Everything ok",
         "UNKNOWN": "Unknown"
@@ -535,7 +526,8 @@
     "name": "Name",
     "subsystem": "subsystem",
     "subsystemCode": "Subsystem code",
-    "type": "Type"
+    "type": "Type",
+    "undefinedSubsystemName": "undefined"
   },
   "global": {
     "appTitle": "X-Road Security Server"

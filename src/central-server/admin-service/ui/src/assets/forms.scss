@@ -25,15 +25,14 @@
  * THE SOFTWARE.
  */
 
-@use 'colors';
+@use '@niis/shared-ui/src/assets/colors';
 
 // Card looking outer wrap for the form
 .form-view-wrap {
   width: 100%;
   max-width: 1280px;
   background-color: colors.$White100;
-  margin: 40px;
-  margin-top: 30px;
+  margin: 30px auto 40px;
   box-shadow: colors.$DefaultShadow;
   border-radius: 4px;
   display: flex;

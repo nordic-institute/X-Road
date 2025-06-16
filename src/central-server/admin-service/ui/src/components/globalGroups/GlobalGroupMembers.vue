@@ -254,6 +254,7 @@ export default defineComponent({
     },
   },
   created() {
+    //eslint-disable-next-line @typescript-eslint/no-this-alias
     that = this;
   },
   methods: {
@@ -301,8 +302,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/colors';
-@use '@/assets/tables' as *;
+@use '@niis/shared-ui/src/assets/colors';
+@use '@niis/shared-ui/src/assets/tables' as *;
 
 .member-name {
   color: colors.$Purple100;

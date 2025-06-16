@@ -24,14 +24,20 @@
  * THE SOFTWARE.
  */
 
-import { MaintenanceMode, NodeType, NodeTypeResponse, SecurityServer, VersionInfo } from "@/openapi-types";
+import {
+  MaintenanceMode,
+  NodeType,
+  NodeTypeResponse,
+  SecurityServer,
+  VersionInfo,
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface SystemState {
-  securityServerVersion: VersionInfo,
-  securityServerNodeType: undefined | NodeType,
-  currentSecurityServer: SecurityServer,
+  securityServerVersion: VersionInfo;
+  securityServerNodeType: undefined | NodeType;
+  currentSecurityServer: SecurityServer;
 }
 
 export const useSystem = defineStore('system', {
@@ -53,7 +59,10 @@ export const useSystem = defineStore('system', {
       return state.securityServerVersion.global_configuration_version;
     },
     doesSupportSubsystemNames(): boolean {
-      return !!this.globalConfigurationVersion && this.globalConfigurationVersion >= 5;
+      return (
+        !!this.globalConfigurationVersion &&
+        this.globalConfigurationVersion >= 5
+      );
     },
   },
 
@@ -80,7 +89,8 @@ export const useSystem = defineStore('system', {
       return api.put('/system/maintenance-mode/disable', {});
     },
     async fetchMaintenanceModeState() {
-      return api.get<MaintenanceMode>('/system/maintenance-mode')
+      return api
+        .get<MaintenanceMode>('/system/maintenance-mode')
         .then((resp) => resp.data);
     },
   },

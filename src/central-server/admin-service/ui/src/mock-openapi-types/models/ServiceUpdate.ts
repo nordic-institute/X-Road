@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
 
 /**
  * object for updating a service or all services within service description

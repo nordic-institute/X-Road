@@ -56,7 +56,7 @@ import { useForm } from 'vee-validate';
 import { useCertificationService } from '@/store/modules/trust-services';
 import { ApprovedCertificationService } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
-import { i18n } from '@/plugins/i18n';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   certificationService: {
@@ -87,7 +87,7 @@ function cancelEdit() {
 }
 
 const loading = ref(false);
-const { t } = i18n.global;
+const { t } = useI18n();
 const updateCertificationServiceSettings = handleSubmit((values) => {
   loading.value = true;
   updateCertificationService(props.certificationService.id, {

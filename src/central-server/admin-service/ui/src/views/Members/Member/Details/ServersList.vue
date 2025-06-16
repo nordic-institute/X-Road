@@ -25,10 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <searchable-titled-view
-    v-model="search"
-    :title-key="titleKey"
-  >
+  <searchable-titled-view v-model="search" :title-key="titleKey">
     <v-data-table
       :loading="loading"
       :headers="headers"
@@ -54,13 +51,13 @@
         <slot name="actions" :server="item"></slot>
       </template>
       <template #bottom>
-        <custom-data-table-footer />
+        <XrdDataTableFooter />
       </template>
     </v-data-table>
   </searchable-titled-view>
 </template>
 <script setup lang="ts">
-import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdDataTableFooter } from '@niis/shared-ui';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import { ref } from 'vue';
 import { DataTableHeader } from '@/ui-types';
@@ -68,7 +65,6 @@ import { SecurityServer } from '@/openapi-types';
 import { RouteName } from '@/global';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { MessageSchema } from '@/plugins/i18n';
 
 defineProps({
   servers: {
@@ -85,7 +81,7 @@ defineProps({
   },
 });
 
-const { t } = useI18n<{ message: MessageSchema }>({ useScope: 'global' });
+const { t } = useI18n();
 const router = useRouter();
 
 const search = ref('');
@@ -101,7 +97,7 @@ const headers = [
     align: 'end',
     key: 'action',
   },
-] as DataTableHeader[]
+] as DataTableHeader[];
 
 function toSecurityServerDetails(securityServer: SecurityServer): void {
   router.push({
@@ -109,5 +105,4 @@ function toSecurityServerDetails(securityServer: SecurityServer): void {
     params: { serverId: securityServer.server_id.encoded_id || '' },
   });
 }
-
 </script>

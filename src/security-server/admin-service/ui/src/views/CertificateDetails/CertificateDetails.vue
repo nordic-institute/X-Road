@@ -24,7 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <CertificateView v-if="certificate" :certificate-details="certificate.certificate_details">
+  <CertificateView
+    v-if="certificate"
+    :certificate-details="certificate.certificate_details"
+  >
     <template #tools>
       <xrd-button
         v-if="showActivate"
@@ -95,7 +98,6 @@
     @cancel="confirmUnregisterError = false"
     @accept="markForDeletion()"
   />
-
 </template>
 
 <script lang="ts">
@@ -330,7 +332,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-
 .button-spacing {
   margin-left: 20px;
 }
