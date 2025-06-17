@@ -29,6 +29,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Provider;
 import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.niis.xroad.confclient.core.ConfigurationDownloader;
+import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepository;
+import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryImpl;
+import org.niis.xroad.confclient.core.GlobalConfSourceLocationRepositoryNoopImpl;
 import org.niis.xroad.confclient.core.HttpUrlConnectionConfigurer;
 import org.niis.xroad.confclient.core.globalconf.ConfigurationAnchorProvider;
 import org.niis.xroad.confclient.core.globalconf.DBBasedProvider;
@@ -49,10 +52,20 @@ public class ConfClientRootConfig {
     }
 
     @ApplicationScoped
+    GlobalConfSourceLocationRepository globalConfSourceLocationRepository(Provider<DataSource> dataSource) {
+        if (dataSource.get() != null) {
+            return new GlobalConfSourceLocationRepositoryImpl(dataSource.get());
+        }
+        return new GlobalConfSourceLocationRepositoryNoopImpl();
+    }
+
+    @ApplicationScoped
     ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties,
                                             ConfigurationAnchorProvider configurationAnchorProvider,
-                                            HttpUrlConnectionConfigurer connectionConfigurer) {
-        var downloader = new ConfigurationDownloader(connectionConfigurer, configurationClientProperties.globalConfDir());
+                                            HttpUrlConnectionConfigurer connectionConfigurer,
+                                            GlobalConfSourceLocationRepository globalConfSourceLocationRepository) {
+        var downloader = new ConfigurationDownloader(connectionConfigurer, globalConfSourceLocationRepository,
+                configurationClientProperties.globalConfDir());
         return new ConfigurationClient(
                 configurationAnchorProvider,
                 configurationClientProperties.globalConfDir(), downloader);
