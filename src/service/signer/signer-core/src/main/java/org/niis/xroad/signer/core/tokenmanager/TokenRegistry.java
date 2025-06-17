@@ -57,13 +57,9 @@ public class TokenRegistry {
     private final TokenContext tokenContext = new TokenContext();
     private final ModifiableTokenContext modifiableTokenContext = new ModifiableTokenContext();
     private final TokenRegistryLoader tokenRegistryLoader;
+
     private Set<RuntimeTokenImpl> currentTokens;
 
-    /**
-     * Initializes the manager -- loads the tokens from the token configuration.
-     *
-     * @throws Exception if an error occurs
-     */
     @PostConstruct
     public void init() {
         currentTokens = tokenRegistryLoader.loadTokens();
@@ -81,7 +77,7 @@ public class TokenRegistry {
     }
 
     public int getCurrentKeyConfChecksum() {
-        return currentTokens.hashCode(); //TODO implement hashcode calculation based on tokens
+        return currentTokens.hashCode();
     }
 
     public boolean isInitialized() {
@@ -89,7 +85,7 @@ public class TokenRegistry {
     }
 
     // Functional interfaces for token operations
-    public class ModifiableTokenContext extends BaseTokenContext<RuntimeTokenImpl> {
+    public class ModifiableTokenContext {
 
         public void invalidateCache() {
             log.debug("Invalidating token cache");
@@ -118,7 +114,7 @@ public class TokenRegistry {
 
     }
 
-    public class TokenContext extends BaseTokenContext<RuntimeToken> {
+    public class TokenContext {
         public Set<RuntimeToken> getTokens() {
             return new HashSet<>(currentTokens);
         }
@@ -152,17 +148,14 @@ public class TokenRegistry {
 
     }
 
-    public class BaseTokenContext<Token> {
-
-    }
 
     @FunctionalInterface
-    public interface TokenSupplier<T, V extends BaseTokenContext<?>> {
+    public interface TokenSupplier<T, V> {
         T get(V ctx);
     }
 
     @FunctionalInterface
-    public interface TokenRunnable<T extends BaseTokenContext<?>> {
+    public interface TokenRunnable<T> {
         void accept(T ctx);
     }
 
