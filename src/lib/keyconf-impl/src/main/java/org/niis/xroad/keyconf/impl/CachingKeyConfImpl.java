@@ -165,7 +165,6 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     void checkForKeyConfChanges() {
         try {
-            //TODO xroad8
             int checkSum = signerRpcClient.getKeyConfChecksum();
             if (previousChecksum != checkSum) {
                 log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
