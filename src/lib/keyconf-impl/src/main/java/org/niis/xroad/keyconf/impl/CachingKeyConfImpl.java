@@ -70,7 +70,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     private final int checkPeriod = 5;
     private final ScheduledExecutorService taskScheduler;
 
-    private int previousChecksum;
+    private Integer previousChecksum;
 
     private final List<WeakReference<KeyConfChangeListener>> listeners = new ArrayList<>();
 
@@ -166,7 +166,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     void checkForKeyConfChanges() {
         try {
             int checkSum = signerRpcClient.getKeyConfChecksum();
-            if (previousChecksum != checkSum) {
+            if (previousChecksum == null || !previousChecksum.equals(checkSum)) {
                 log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
                 previousChecksum = checkSum;
                 invalidateCaches();
