@@ -81,6 +81,7 @@ import org.niis.xroad.signer.proto.GetTokenByIdReq;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.proto.KeyConfChecksum;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
@@ -945,7 +946,7 @@ public class SignerRpcClient extends AbstractRpcClient {
     public int getKeyConfChecksum() throws SignerException {
         return tryToRun(
                 () -> adminServiceBlockingStub.getKeyConfChecksum(Empty.getDefaultInstance()),
-                response -> response.hasChecksum() ? response.getChecksum() : -1
+                KeyConfChecksum::getChecksum
         );
     }
 
