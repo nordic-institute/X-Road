@@ -29,16 +29,19 @@ package org.niis.xroad.confclient.core;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 
 import javax.sql.DataSource;
 
 import java.sql.Array;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,35 +61,36 @@ public class GlobalConfSourceLocationRepositoryImpl implements GlobalConfSourceL
                 + " VALUES (?, ?, ?, ?)";
 
         try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false); // start transaction
+            try {
+                conn.setAutoCommit(false); // start transaction
 
-            try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
-                 PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                QueryRunner queryRunner = new QueryRunner();
+                queryRunner.update(conn, deleteSql, globalConfSourceLocation.getInstanceIdentifier());
+                queryRunner.batch(conn, insertSql, buildBatchParams(conn, globalConfSourceLocation));
 
-                deleteStmt.setString(1, globalConfSourceLocation.getInstanceIdentifier());
-                deleteStmt.executeUpdate();
-
-                globalConfSourceLocation.getLocations().forEach((address, certs) -> {
-                    try {
-                        insertStmt.setString(1, globalConfSourceLocation.getInstanceIdentifier());
-                        insertStmt.setString(2, address);
-                        insertStmt.setArray(3, createSqlArray(conn, certs.internalVerificationCerts()));
-                        insertStmt.setArray(4, createSqlArray(conn, certs.externalVerificationCerts()));
-                        insertStmt.addBatch();
-                    } catch (SQLException e) {
-                        throw new RuntimeException("Error preparing batch insert", e);
-                    }
-                });
-                insertStmt.executeBatch();
                 conn.commit();
             } catch (SQLException e) {
                 log.error("DB exception occurred", e);
                 conn.rollback();
+            } finally {
+                conn.setAutoCommit(true); // reset auto-commit
             }
-
         } catch (SQLException e) {
             throw new RuntimeException("Database connection error", e);
         }
+    }
+
+    private Object[][] buildBatchParams(Connection connection, GlobalConfSourceLocation globalConfSourceLocation) throws SQLException {
+        List<Object[]> params = new ArrayList<>();
+
+        for (Map.Entry<String, VerificationCertificates> entry : globalConfSourceLocation.getLocations().entrySet()) {
+            params.add(new Object[]{globalConfSourceLocation.getInstanceIdentifier(),
+                    entry.getKey(),
+                    createSqlArray(connection, entry.getValue().internalVerificationCerts()),
+                    createSqlArray(connection, entry.getValue().externalVerificationCerts())
+            });
+        }
+        return params.toArray(new Object[0][]);
     }
 
     private Array createSqlArray(Connection conn, List<byte[]> list) throws SQLException {
@@ -104,14 +108,11 @@ public class GlobalConfSourceLocationRepositoryImpl implements GlobalConfSourceL
     @Override
     public boolean hasLocations(String instanceIdentifier) {
         String sql = "SELECT 1 FROM globalconf_source WHERE instance_identifier = ? LIMIT 1";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, instanceIdentifier);
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-
+        QueryRunner queryRunner = new QueryRunner(dataSource);
+        ResultSetHandler<Boolean> handler = ResultSet::next;
+        try {
+            return queryRunner.query(sql, handler, instanceIdentifier);
         } catch (SQLException e) {
             throw new RuntimeException("Database error in hasLocations", e);
         }
@@ -122,28 +123,25 @@ public class GlobalConfSourceLocationRepositoryImpl implements GlobalConfSourceL
         String sql = "SELECT instance_identifier, address, internal_verification_certs, external_verification_certs "
                 + " FROM globalconf_source WHERE instance_identifier = ?";
 
-        GlobalConfSourceLocation location = new GlobalConfSourceLocation();
-        location.setInstanceIdentifier(instanceIdentifier);
+        ResultSetHandler<Map<String, VerificationCertificates>> resultSetHandler = rs -> {
+            Map<String, VerificationCertificates> result = new HashMap<>();
+            while (rs.next()) {
+                String address = rs.getString("address");
 
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, instanceIdentifier);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    String address = rs.getString("address");
-
-                    location.getLocations().put(address, new VerificationCertificates(
-                            getArray(rs, "internal_verification_certs"),
-                            getArray(rs, "external_verification_certs")
-                    ));
-                }
+                result.put(address, new VerificationCertificates(
+                        getArray(rs, "internal_verification_certs"),
+                        getArray(rs, "external_verification_certs")
+                ));
             }
+            return result;
+        };
+
+        QueryRunner queryRunner = new QueryRunner(dataSource);
+        try {
+            return queryRunner.query(sql, resultSetHandler, instanceIdentifier);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch GlobalConfSourceLocation", e);
         }
-
-        return location.getLocations();
     }
 
     private List<byte[]> getArray(ResultSet rs, String columnName) throws SQLException {
