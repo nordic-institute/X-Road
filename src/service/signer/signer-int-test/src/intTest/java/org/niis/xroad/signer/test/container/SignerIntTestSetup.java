@@ -42,6 +42,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
@@ -51,6 +52,7 @@ import static org.awaitility.Awaitility.await;
 @Primary
 @Service
 public class SignerIntTestSetup implements TestableContainerInitializer, DisposableBean {
+    private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
 
     public static final String SIGNER = "signer";
     public static final String TESTCA = "testca";
@@ -66,7 +68,7 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
                 new File(COMPOSE_FILE))
                 .withLocalCompose(true)
 
-                .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck())
+                .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, Wait.forLogMessage(".*nginx entered RUNNING state.*", 1))
                 .withLogConsumer(SIGNER, createLogConsumer(SIGNER));
