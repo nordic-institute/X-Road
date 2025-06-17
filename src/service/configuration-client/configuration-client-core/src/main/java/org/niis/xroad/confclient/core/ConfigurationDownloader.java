@@ -37,6 +37,7 @@ import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.globalconf.model.ConfigurationSource;
+import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,6 +65,7 @@ import static ee.ria.xroad.common.SystemProperties.MINIMUM_SUPPORTED_GLOBAL_CONF
 import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 /**
  * Downloads configuration directory from a configuration location defined
@@ -84,21 +87,34 @@ public class ConfigurationDownloader {
     private final HttpUrlConnectionConfigurer connectionConfigurer;
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
     private final SharedParametersConfigurationLocations sharedParametersConfigurationLocations;
+    private final GlobalConfSourceLocationRepository globalConfSourceLocationRepository;
 
     @Getter
     private final Integer configurationVersion;
 
+    public ConfigurationDownloader(HttpUrlConnectionConfigurer connectionConfigurer,
+                                   GlobalConfSourceLocationRepository globalConfSourceLocationRepository, String globalConfigurationDir) {
+        this(connectionConfigurer, globalConfSourceLocationRepository, globalConfigurationDir, null);
+    }
+
     public ConfigurationDownloader(HttpUrlConnectionConfigurer connectionConfigurer, String globalConfigurationDir) {
-        this(connectionConfigurer, globalConfigurationDir, null);
+        this(connectionConfigurer, new GlobalConfSourceLocationRepositoryNoopImpl(), globalConfigurationDir, null);
     }
 
     ConfigurationDownloader(HttpUrlConnectionConfigurer connectionConfigurer, String globalConfigurationDir, Integer configurationVersion) {
+        this(connectionConfigurer, new GlobalConfSourceLocationRepositoryNoopImpl(), globalConfigurationDir, configurationVersion);
+    }
+
+    private ConfigurationDownloader(HttpUrlConnectionConfigurer connectionConfigurer,
+                                    GlobalConfSourceLocationRepository globalConfSourceLocationRepository,
+                                    String globalConfigurationDir, Integer configurationVersion) {
         this.fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
-        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
+        this.globalConfSourceLocationRepository = globalConfSourceLocationRepository;
+        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider,
+                globalConfSourceLocationRepository);
         this.configurationVersion = configurationVersion;
         this.connectionConfigurer = connectionConfigurer;
     }
-
 
     ConfigurationParser getParser() {
         return new ConfigurationParser(this);
@@ -227,6 +243,10 @@ public class ConfigurationDownloader {
             Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
             if (downloadedContent.content != null) {
                 persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
+                if (downloadedContent.file.getContentIdentifier().equals(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)) {
+                    extractLocationsFromDownloadedFile(contentFileName)
+                            .ifPresent(globalConfSourceLocationRepository::saveGlobalConfLocation);
+                }
             } else {
                 updateExpirationDate(contentFileName, downloadedContent.file);
             }
@@ -235,6 +255,31 @@ public class ConfigurationDownloader {
                     + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA));
         }
         return result;
+    }
+
+    private Optional<GlobalConfSourceLocationRepository.GlobalConfSourceLocation> extractLocationsFromDownloadedFile(
+            Path sharedParamsPath) {
+        try {
+            var sharedParams = ParametersProviderFactory.forGlobalConfVersion(getVersion(sharedParamsPath))
+                    .sharedParametersProvider(sharedParamsPath, OffsetDateTime.MAX)
+                    .getSharedParameters();
+
+            var result = new GlobalConfSourceLocationRepository.GlobalConfSourceLocation();
+            result.setInstanceIdentifier(sharedParams.getInstanceIdentifier());
+
+            sharedParams.getSources().forEach(source -> {
+                result.getLocations().put(source.getAddress(),
+                        new GlobalConfSourceLocationRepository.VerificationCertificates(
+                                source.getInternalVerificationCerts(),
+                                source.getExternalVerificationCerts()));
+            });
+
+            return Optional.of(result);
+
+        } catch (Exception e) {
+            log.error("Error extracting shared parameters locations from {}", sharedParamsPath, e);
+            return Optional.empty();
+        }
     }
 
     void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
@@ -278,7 +323,7 @@ public class ConfigurationDownloader {
     boolean shouldDownload(ConfigurationFile configurationFile, Path file) throws Exception {
         log.trace("shouldDownload({}, {})", configurationFile.getContentLocation(), configurationFile.getHash());
 
-        if (Files.exists(file)) {
+        if (Files.exists(file) && globalConfSourceLocationRepository.hasLocations(configurationFile.getInstanceIdentifier())) {
             String contentHash = configurationFile.getHash();
             String existingHash = encodeBase64(hash(file, configurationFile.getHashAlgorithmId()));
             if (StringUtils.equals(existingHash, contentHash)) {
@@ -290,7 +335,7 @@ public class ConfigurationDownloader {
             }
         }
 
-        log.trace("Downloading {} because file {} does not exist locally",
+        log.trace("Downloading {} because file {} does not exist locally, or no locations are in database",
                 configurationFile.getContentLocation(), file);
         return true;
     }

@@ -146,6 +146,7 @@ apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = 
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.18.0" }
+commons-dbutils = { module = "commons-dbutils:commons-dbutils", version = "1.8.1"}
 commons-io = { module = "commons-io:commons-io", version = "2.19.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
