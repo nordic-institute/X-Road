@@ -124,6 +124,9 @@ importers:
       apexcharts:
         specifier: ^4.7.0
         version: 4.7.0
+      maska:
+        specifier: ^3.1.1
+        version: 3.1.1
       vue3-apexcharts:
         specifier: ^1.8.0
         version: 1.8.0(apexcharts@4.7.0)(vue@3.5.16(typescript@5.8.3))
@@ -165,7 +168,7 @@ importers:
         specifier: ~1.9.0
         version: 1.9.0
       dayjs:
-        specifier: ^1.11.12
+        specifier: ^1.11.13
         version: 1.11.13
       deepmerge:
         specifier: ^4.3.1
@@ -1917,6 +1920,9 @@ packages:
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
+
+  maska@3.1.1:
+    resolution: {integrity: sha512-68ZJfZ6/YANwv7CufbQmcCNoHdJnIRxuQgZtSFZe5ltlmZ15ZdA01siUGLh9EfaUX65DN0l/A7g+o2xjTICeGQ==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -4457,6 +4463,8 @@ snapshots:
   magic-string@0.30.17:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
+
+  maska@3.1.1: {}
 
   math-intrinsics@1.1.0: {}
 

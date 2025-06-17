@@ -4,9 +4,6 @@
     data-test="diagnostics-view"
   >
     <v-card variant="flat">
-      <!--      <v-card-title class="text-h5">-->
-      <!--        {{ $t('diagnostics.traffic.title') }}-->
-      <!--      </v-card-title>-->
       <v-card-text class="xrd-card-text">
         <v-row dense>
           <v-col cols="3">
@@ -15,37 +12,38 @@
               help-text="Select start and end"
             />
           </v-col>
-          <v-col cols="2">
+          <v-col cols="auto">
             <v-date-input
+              v-model="filters.startDate"
+              class="date-input"
               label="Date"
-              model-value="2025-05-28"
-              :display-format="formatDate"
+              prepend-inner-icon="$calendar"
+              prepend-icon=""
             ></v-date-input>
           </v-col>
-          <v-col cols="2">
+          <v-col cols="auto">
             <v-text-field
-              type="time"
-              model-value="00:00"
+              v-model="filters.startTime"
+              v-maska="'##:##'"
+              class="time-input"
               label="Time"
             ></v-text-field>
           </v-col>
-          <v-col cols="1" class="align-center">
-            <div
-              class="d-flex align-center"
-              style="height: 100%; width: 100%"
-            ></div>
-          </v-col>
-          <v-col cols="2">
+          <v-col cols="auto"><span class="range-separator"></span></v-col>
+          <v-col cols="auto">
             <v-date-input
+              v-model="filters.endDate"
+              class="date-input"
               label="Date"
-              model-value="2025-06-04"
-              :display-format="formatDate"
+              prepend-inner-icon="$calendar"
+              prepend-icon=""
             ></v-date-input>
           </v-col>
-          <v-col cols="2">
+          <v-col cols="auto">
             <v-text-field
-              type="time"
-              model-value="00:00"
+              v-model="filters.endTime"
+              v-maska="'##:##'"
+              class="time-input"
               label="Time"
             ></v-text-field>
           </v-col>
@@ -57,8 +55,9 @@
               help-text="Service, subsystem, member"
             />
           </v-col>
-          <v-col>
+          <v-col cols="5">
             <v-select
+              v-model="filters.client"
               label="Client"
               clearable
               :items="clientsStore.clients"
@@ -74,6 +73,25 @@
               </template>
             </v-select>
           </v-col>
+          <v-col cols="4">
+            <v-select
+              v-model="filters.service"
+              label="Service"
+              clearable
+              :items="services"
+              item-title="full_service_code"
+              item-value="id"
+              :loading="servicesLoading"
+              :disabled="!services.length"
+            >
+              <template #item="{ props: itemProps, item }">
+                <v-list-item
+                  v-bind="itemProps"
+                  :subtitle="item.raw.title"
+                ></v-list-item>
+              </template>
+            </v-select>
+          </v-col>
         </v-row>
         <v-row dense>
           <v-col cols="3">
@@ -84,9 +102,10 @@
           </v-col>
           <v-col>
             <v-select
+              v-model="filters.exchangeRole"
               label="Exchange role"
               clearable
-              :items="['Producer', 'Consumer']"
+              :items="['Producer', 'Client']"
             >
             </v-select>
           </v-col>
@@ -99,13 +118,20 @@
             />
           </v-col>
           <v-col>
-            <v-select label="Status" clearable :items="['Success', 'Failure']">
+            <v-select
+              v-model="filters.status"
+              label="Status"
+              clearable
+              :items="[
+                { title: 'Success', value: true },
+                { title: 'Failure', value: false },
+              ]"
+            >
             </v-select>
           </v-col>
         </v-row>
       </v-card-text>
     </v-card>
-
     <v-card height="20rem">
       <TrafficChart :series="series" />
     </v-card>
@@ -113,19 +139,25 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { reactive, Reactive, Ref, ref, watch } from 'vue';
 import { Colors, XrdTitledView } from '@niis/shared-ui';
 import { VDateInput } from 'vuetify/labs/VDateInput';
 import { useClients } from '@/store/modules/clients';
 import TrafficChart from '@/views/Diagnostics/Traffic/TrafficChart.vue';
-import { useDate } from 'vuetify';
 import { useNotifications } from '@/store/modules/notifications';
 import axios from 'axios';
-import { OperationalDataInterval } from '@/openapi-types';
+import { OperationalDataInterval, Service } from '@/openapi-types';
+import dayjs, { Dayjs } from 'dayjs';
+import { vMaska } from 'maska/vue';
+import { useServices } from '@/store/modules/services';
 
 const { showError } = useNotifications();
 
 const clientsLoading = ref(true);
+const series: Ref<Array<TrafficSeries>> = ref([]);
+
+const servicesLoading = ref(false);
+const services: Ref<Array<Service>> = ref([]);
 
 const clientsStore = useClients();
 clientsStore
@@ -135,35 +167,158 @@ clientsStore
     clientsLoading.value = false;
   });
 
-const dateAdapter = useDate();
+const servicesStore = useServices();
 
-function formatDate(date: Date): string {
-  return dateAdapter.toISO(date);
+const filters: Reactive<TrafficFilter> = reactive({
+  startDate: dayjs().subtract(7, 'day').toDate(),
+  startTime: '00:00',
+  endDate: dayjs().toDate(),
+  endTime: '23:59',
+});
+
+function onFiltersChange(filter: TrafficFilter) {
+  fetchTrafficData(toQueryParams(filter))
+    .then((data) => toChartSeries(filter, data))
+    .catch(showError);
 }
 
-function generateRandomData(min = 0, max = 100) {
-  const data = [];
-  const now = new Date().getTime();
-  let date = new Date(now - 7 * 24 * 60 * 60 * 1000).getTime();
-  do {
-    date = new Date(date + 60 * 60 * 1000).getTime();
-    data.push([date, min + Math.floor(Math.random() * (max - min))]);
-  } while (date < now);
-  return data;
+watch(filters, onFiltersChange, { deep: true, immediate: true });
+watch(() => filters.client, fetchServices);
+
+function fetchServices(client?: string) {
+  services.value = [];
+  filters.service = undefined;
+
+  if (client) {
+    servicesLoading.value = true;
+    servicesStore
+      .fetchServiceDescriptions(client)
+      .then(() => {
+        services.value = servicesStore.serviceDescriptions.flatMap(
+          (sd) => sd.services,
+        );
+      })
+      .catch(showError)
+      .finally(() => {
+        servicesLoading.value = false;
+      });
+  }
 }
 
-const series = ref([
-  {
-    name: 'Successful requests',
-    color: Colors.Success100,
-    data: generateRandomData(40, 100),
-  },
-  {
-    name: 'Failed requests',
-    color: Colors.Error,
-    data: generateRandomData(0, 5),
-  },
-]);
+async function fetchTrafficData(
+  queryParams: GetOperationalDataIntervalsParams,
+): Promise<OperationalDataInterval[]> {
+  return axios
+    .get<OperationalDataInterval[]>('/diagnostics/operational-monitoring', {
+      params: queryParams,
+    })
+    .then((response) => response.data);
+}
 
+function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]) {
+  const value: TrafficSeries[] = [];
 
+  if (filter.status ?? true) {
+    value.push({
+      name: 'Successful requests',
+      color: Colors.Success100,
+      data: data.map((item) => [
+        new Date(item.interval_start_time as string).getTime(),
+        item.success_count ?? 0,
+      ]),
+    });
+  }
+  if (!(filter.status ?? false)) {
+    value.push({
+      name: 'Failed requests',
+      color: Colors.Error,
+      data: data.map((item) => [
+        new Date(item.interval_start_time as string).getTime(),
+        item.failure_count ?? 0,
+      ]),
+    });
+  }
+
+  series.value = value;
+}
+
+type GetOperationalDataIntervalsParams = {
+  records_from: string;
+  records_to: string;
+  interval: number;
+  security_server_type?: 'Client' | 'Producer';
+  member_id?: string;
+  service_id?: string;
+};
+
+type TrafficFilter = {
+  startDate: Date;
+  startTime: string;
+  endDate: Date;
+  endTime: string;
+  client?: string;
+  service?: string;
+  exchangeRole?: string;
+  status?: string;
+};
+
+type TrafficSeries = {
+  name: string;
+  color: string;
+  data: [number, number][];
+};
+
+function getSecurityServerType(exchangeRole?: string) {
+  if (exchangeRole === 'Producer') {
+    return 'Producer';
+  } else if (exchangeRole === 'Client') {
+    return 'Client';
+  }
+  return undefined;
+}
+
+function toQueryParams(
+  filter: TrafficFilter,
+): GetOperationalDataIntervalsParams {
+  return {
+    records_from: dateWithTime(
+      filter.startDate,
+      filter.startTime,
+    ).toISOString(),
+    records_to: dateWithTime(filter.endDate, filter.endTime)
+      .second(59)
+      .millisecond(999)
+      .toISOString(),
+    interval: 60,
+    security_server_type: getSecurityServerType(filter.exchangeRole),
+    member_id: filter.service ? undefined : filter.client,
+    service_id: filter.service,
+  };
+}
+
+function dateWithTime(date: Date, time: string): Dayjs {
+  const [hours, minutes] = time.split(':').map(Number);
+  return dayjs(date).hour(hours).minute(minutes).second(0).millisecond(0);
+}
 </script>
+
+<style scoped lang="scss">
+.range-separator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.range-separator::before {
+  content: '-';
+}
+
+.time-input {
+  width: 5rem;
+}
+
+.date-input {
+  width: 10rem;
+}
+</style>

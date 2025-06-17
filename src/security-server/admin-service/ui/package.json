@@ -20,6 +20,7 @@
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
     "apexcharts": "^4.7.0",
+    "maska": "^3.1.1",
     "vue3-apexcharts": "^1.8.0"
   },
   "devDependencies": {

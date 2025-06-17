@@ -58,7 +58,7 @@ export const useServices = defineStore('services', {
     };
   },
   persist: {
-    paths: ['service', 'serviceClients', 'serviceDescriptions'],
+    pick: ['service', 'serviceClients', 'serviceDescriptions'],
   },
   getters: {
     descExpanded: (state) => (id: string) => {
