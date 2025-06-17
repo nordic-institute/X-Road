@@ -101,6 +101,14 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Upload intTest reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Integration Test reports
+          path: |
+            src/service/signer/signer-int-test/build/allure-report/
+            src/service/signer/signer-int-test/build/container-logs/
       - name: Build, test and package code execution measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
