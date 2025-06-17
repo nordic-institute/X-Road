@@ -102,6 +102,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
@@ -151,7 +152,20 @@ public class SignerRpcClient extends AbstractRpcClient {
     @PreDestroy
     public void close() throws Exception {
         if (channel != null) {
-            channel.shutdown();
+            log.info("Shutting down signer RPC client...");
+            try {
+                channel.shutdown();
+                if (!channel.awaitTermination(30, TimeUnit.SECONDS)) {
+                    log.warn("RPC channel did not terminate gracefully within 30 seconds");
+                    channel.shutdownNow();
+                }
+                log.info("Signer RPC client shutdown completed");
+            } catch (Exception e) {
+                log.error("Error shutting down signer RPC client", e);
+                if (channel != null) {
+                    channel.shutdownNow();
+                }
+            }
         }
     }
 

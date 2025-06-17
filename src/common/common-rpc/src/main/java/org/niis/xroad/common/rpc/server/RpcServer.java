@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -79,6 +80,11 @@ public class RpcServer {
         if (server != null) {
             log.info("Shutting down RPC server..");
             server.shutdown();
+
+            if (!server.awaitTermination(30, TimeUnit.SECONDS)) {
+                log.warn("RPC server did not terminate gracefully within timeout, forcing shutdown");
+                server.shutdownNow();
+            }
             log.info("Shutting down RPC server.. Success!");
         }
     }

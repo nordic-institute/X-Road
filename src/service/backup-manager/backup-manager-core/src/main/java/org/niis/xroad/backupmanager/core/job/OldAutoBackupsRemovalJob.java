@@ -59,6 +59,7 @@ public class OldAutoBackupsRemovalJob {
                     .setCron(backupManagerProperties.autoBackupDeleteOldBackupsCron())
                     .setTask(this::execute)
                     .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                    .setSkipPredicate(new Scheduled.ApplicationNotRunning())
                     .schedule();
         } else {
             log.info("Old automatic backups removal job disabled.");

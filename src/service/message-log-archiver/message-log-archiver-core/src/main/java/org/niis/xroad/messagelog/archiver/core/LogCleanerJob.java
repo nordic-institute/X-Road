@@ -51,6 +51,7 @@ public class LogCleanerJob {
                 .setCron(logArchiverProperties.archiveInterval())
                 .setTask(this::execute)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(new Scheduled.ApplicationNotRunning())
                 .schedule();
     }
 

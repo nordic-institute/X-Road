@@ -55,6 +55,7 @@ public class ModuleManagerReloadJob {
                 .setInterval("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
                 .setTask(this::update)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(new Scheduled.ApplicationNotRunning())
                 .schedule();
     }
 
