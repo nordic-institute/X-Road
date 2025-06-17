@@ -140,16 +140,18 @@
 
 <script lang="ts" setup>
 import { reactive, Reactive, Ref, ref, watch } from 'vue';
-import { Colors, XrdTitledView } from '@niis/shared-ui';
 import { VDateInput } from 'vuetify/labs/VDateInput';
-import { useClients } from '@/store/modules/clients';
-import TrafficChart from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 import { useNotifications } from '@/store/modules/notifications';
 import axios from 'axios';
-import { OperationalDataInterval, Service } from '@/openapi-types';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
+import { Colors, XrdTitledView } from '@niis/shared-ui';
+import { OperationalDataInterval, Service } from '@/openapi-types';
 import { useServices } from '@/store/modules/services';
+import { useClients } from '@/store/modules/clients';
+import TrafficChart, {
+  TrafficSeries,
+} from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 
 const { showError } = useNotifications();
 
@@ -238,35 +240,8 @@ function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]) {
       ]),
     });
   }
-
   series.value = value;
 }
-
-type GetOperationalDataIntervalsParams = {
-  records_from: string;
-  records_to: string;
-  interval: number;
-  security_server_type?: 'Client' | 'Producer';
-  member_id?: string;
-  service_id?: string;
-};
-
-type TrafficFilter = {
-  startDate: Date;
-  startTime: string;
-  endDate: Date;
-  endTime: string;
-  client?: string;
-  service?: string;
-  exchangeRole?: string;
-  status?: string;
-};
-
-type TrafficSeries = {
-  name: string;
-  color: string;
-  data: [number, number][];
-};
 
 function getSecurityServerType(exchangeRole?: string) {
   if (exchangeRole === 'Producer') {
@@ -300,6 +275,26 @@ function dateWithTime(date: Date, time: string): Dayjs {
   const [hours, minutes] = time.split(':').map(Number);
   return dayjs(date).hour(hours).minute(minutes).second(0).millisecond(0);
 }
+
+type GetOperationalDataIntervalsParams = {
+  records_from: string;
+  records_to: string;
+  interval: number;
+  security_server_type?: 'Client' | 'Producer';
+  member_id?: string;
+  service_id?: string;
+};
+
+type TrafficFilter = {
+  startDate: Date;
+  startTime: string;
+  endDate: Date;
+  endTime: string;
+  client?: string;
+  service?: string;
+  exchangeRole?: string;
+  status?: string;
+};
 </script>
 
 <style scoped lang="scss">
