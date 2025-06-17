@@ -1,3 +1,17 @@
+// Load local properties if they exist
+val localPropertiesFile = file("gradle-local.properties")
+if (localPropertiesFile.exists()) {
+    gradle.projectsLoaded {
+        val localProps = java.util.Properties().apply {
+            load(localPropertiesFile.inputStream())
+        }
+        // Override properties from local file
+        localProps.forEach { (key, value) ->
+            gradle.rootProject.extensions.extraProperties.set(key.toString(), value.toString())
+        }
+    }
+}
+
 rootProject.name = "x-road-core"
 
 dependencyResolutionManagement {
