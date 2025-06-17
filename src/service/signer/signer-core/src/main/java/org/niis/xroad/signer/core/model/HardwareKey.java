@@ -28,10 +28,12 @@ package org.niis.xroad.signer.core.model;
 
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
+import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
  * @param id                Internal database ID.
@@ -54,6 +56,11 @@ public record HardwareKey(
         SignMechanism signMechanismName) implements BasicKeyInfo {
 
     @Override
+    public Optional<byte[]> softwareKeyStore() {
+        return Optional.empty();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         HardwareKey that = (HardwareKey) o;
@@ -72,9 +79,15 @@ public record HardwareKey(
         return Objects.hash(id, tokenId, externalId, usage, friendlyName, label, publicKey, signMechanismName);
     }
 
-
+    @NotNull
     @Override
-    public Optional<byte[]> softwareKeyStore() {
-        return Optional.empty();
+    public String toString() {
+        return new StringJoiner(", ", HardwareKey.class.getSimpleName() + "[", "]")
+                .add("id=" + id)
+                .add("tokenId=" + tokenId)
+                .add("externalId='" + externalId + "'")
+                .add("usage=" + usage)
+                .add("friendlyName='" + friendlyName + "'")
+                .toString();
     }
 }

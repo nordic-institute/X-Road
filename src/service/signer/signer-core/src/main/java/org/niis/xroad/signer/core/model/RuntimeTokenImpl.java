@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
@@ -143,6 +144,23 @@ public final class RuntimeTokenImpl implements RuntimeToken {
         return !isActive() || !isAvailable();
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        RuntimeTokenImpl that = (RuntimeTokenImpl) o;
+        return active == that.active
+                && Objects.equals(data, that.data)
+                && Objects.equals(tokenDefinition, that.tokenDefinition)
+                && status == that.status
+                && Objects.equals(keys, that.keys)
+                && Objects.equals(tokenInfo, that.tokenInfo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(data, active, tokenDefinition, status, keys, tokenInfo);
+    }
 
     @Override
     public String toString() {

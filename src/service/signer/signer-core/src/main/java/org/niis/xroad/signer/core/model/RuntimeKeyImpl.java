@@ -37,7 +37,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -168,4 +170,26 @@ public final class RuntimeKeyImpl implements RuntimeKey {
                 .forEach(certs::add);
     }
 
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", RuntimeKeyImpl.class.getSimpleName() + "[", "]")
+                .add("data=" + data)
+                .add("available=" + available)
+                .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        RuntimeKeyImpl that = (RuntimeKeyImpl) o;
+        return available == that.available
+                && Objects.equals(data, that.data)
+                && Objects.equals(certs, that.certs)
+                && Objects.equals(certRequests, that.certRequests);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(data, certs, certRequests, available);
+    }
 }

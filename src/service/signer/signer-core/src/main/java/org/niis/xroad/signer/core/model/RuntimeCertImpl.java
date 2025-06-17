@@ -32,6 +32,8 @@ import lombok.Setter;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * Model object that holds the information associated with a certificate.
@@ -109,4 +111,23 @@ public class RuntimeCertImpl implements RuntimeCert {
         return !active() || memberId() == null;
     }
 
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", RuntimeCertImpl.class.getSimpleName() + "[", "]")
+                .add("data=" + data)
+                .add("transientCert=" + transientCert)
+                .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        RuntimeCertImpl that = (RuntimeCertImpl) o;
+        return transientCert == that.transientCert && Objects.equals(data, that.data);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(data, transientCert);
+    }
 }
