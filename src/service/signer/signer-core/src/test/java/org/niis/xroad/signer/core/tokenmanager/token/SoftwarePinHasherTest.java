@@ -27,14 +27,23 @@
 
 package org.niis.xroad.signer.core.tokenmanager.token;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.properties.ConfigUtils;
+import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class SoftwarePinHasherTest {
 
-    private final SoftwarePinHasher softwarePinHasher = new SoftwarePinHasher();
+    private SoftwarePinHasher softwarePinHasher;
+
+    @BeforeEach
+    void setUp() {
+        softwarePinHasher = new SoftwarePinHasher(ConfigUtils.defaultConfiguration(SoftwarePinHasherProperties.class));
+        softwarePinHasher.init();
+    }
 
     @Test
     void hashPin() {
