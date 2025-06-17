@@ -26,30 +26,34 @@
  */
 package org.niis.xroad.signer.core.tokenmanager.token;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
+import org.niis.xroad.signer.core.config.SoftwarePinHasherProperties;
 
 import java.nio.charset.StandardCharsets;
 
 @ApplicationScoped
+@RequiredArgsConstructor
 public class SoftwarePinHasher {
-    // Argon2 parameters - can be adjusted based on security requirements
-    private static final int ITERATIONS = 3;
-    private static final int MEMORY = 12;
-    private static final int PARALLELISM = 4;
-    private static final int HASH_LENGTH = 32;
+    private final SoftwarePinHasherProperties properties;
+
+    private Argon2Parameters params;
+
+    @PostConstruct
+    public void init() {
+        this.params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+                .withIterations(properties.iterations())
+                .withMemoryAsKB(properties.memoryKb())
+                .withParallelism(properties.parallelism())
+                .build();
+    }
 
     public byte[] hashPin(char[] pin) {
         byte[] pinBytes = new String(pin).getBytes(StandardCharsets.UTF_8);
-        byte[] hash = new byte[HASH_LENGTH];
-
-        Argon2Parameters params = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-//                .withSalt(salt)
-                .withIterations(ITERATIONS)
-                .withMemoryAsKB(MEMORY)
-                .withParallelism(PARALLELISM)
-                .build();
+        byte[] hash = new byte[properties.hashLength()];
 
         Argon2BytesGenerator generator = new Argon2BytesGenerator();
         generator.init(params);
