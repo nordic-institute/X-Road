@@ -7,12 +7,12 @@ Feature: 0800 - SS: Authentication
     And Page is prepared to be tested
 
   Scenario: Invalid password is rejected
-    When User xrd tries to log in to in to SecurityServer with password INVALID
+    When User xrd tries to log in to SecurityServer with password INVALID
     Then Error message for incorrect credentials is shown
     And Login form is visible
 
   Scenario: Invalid username is rejected
-    When User INVALID tries to log in to in to SecurityServer with password secret
+    When User INVALID tries to log in to SecurityServer with password secret
     Then Error message for incorrect credentials is shown
     And Login form is visible
 
