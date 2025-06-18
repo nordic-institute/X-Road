@@ -33,7 +33,7 @@ resilience4j = "2.3.0"
 quarkus = "3.23.3"
 quarkus-vault = "4.2.1"
 quarkus-systemd-notify = "1.0.2"
-smallryeConfig = "3.12.4"
+smallryeConfig = "3.13.2"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
