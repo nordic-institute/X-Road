@@ -30,16 +30,17 @@
     save-button-text="action.save"
     :disable-save="isChangePasswordButtonDisabled"
     :loading="savingChanges"
+    :data-test="`admin-user-row-${username}-change-password-dialog`"
     @save="changePassword"
     @cancel="emit('cancel')"
   >
     <template #title>
-       <span class="text-h5" :data-test="`admin-user-row-${username}-edit-dialog-title`">
-         {{ $t('adminUsers.table.action.changePassword.dialog.title', { username: username }) }}
-       </span>
+      <span class="text-h5" :data-test="`admin-user-row-${username}-change-password-dialog-title`">
+        {{ $t('adminUsers.table.action.changePassword.dialog.title', { username: username }) }}
+      </span>
     </template>
     <template #content>
-      <div :data-test="`admin-users-row-${username}-change-password-dialog-content`">
+      <div :data-test="`admin-user-row-${username}-change-password-dialog-content`">
         <v-text-field
           v-model="oldPassword"
           v-bind="oldPasswordAttrs"

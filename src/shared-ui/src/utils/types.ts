@@ -64,7 +64,7 @@ export interface AdminUsersHandler {
   changePassword(username: string, oldPassword: string, newPassword: string): Promise<void>;
   availableRoles(): string[];
   navigateToAddUser(): void;
-  canCreate(): boolean;
+  canAdd(): boolean;
   canEdit(): boolean;
   canDelete(user: AdminUser): boolean;
   hasRole(role: string): boolean;

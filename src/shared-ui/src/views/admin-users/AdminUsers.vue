@@ -27,7 +27,7 @@
 <template>
   <XrdTitledView title-key="tab.settings.adminUsers" data-test="admin-users-view">
     <template #header-buttons>
-      <xrd-button v-if="canCreate()" data-test="create-admin-user-button" @click="addUser">
+      <xrd-button v-if="canAdd()" data-test="add-admin-user-button" @click="addUser">
         <xrd-icon-base class="xrd-large-button-icon">
           <XrdIconAdd />
         </xrd-icon-base>
@@ -46,6 +46,7 @@
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
+      data-test="admin-users-table"
       hide-default-footer
     >
       <template #[`item.id`]="{ item }">
@@ -55,7 +56,7 @@
       </template>
 
       <template #[`item.roles`]="{ item }">
-        <span :data-test="`admin-user-row-${item.id}-roles`">
+        <span :data-test="`admin-user-row-${item.username}-roles`">
           {{ commaSeparate(translateRoles(item.roles)) }}
         </span>
       </template>
@@ -65,7 +66,7 @@
           <xrd-button
             v-if="canEdit()"
             text
-            :data-test="`admin-user-row-${item.id}-edit-button`"
+            :data-test="`admin-user-row-${item.username}-edit-button`"
             :outlined="false"
             @click="showRolesEdit(item)"
             >{{ $t('action.edit') }}
@@ -74,7 +75,7 @@
           <xrd-button
             v-if="canEdit()"
             text
-            :data-test="`admin-user-row-${item.id}-change-password-button`"
+            :data-test="`admin-user-row-${item.username}-change-password-button`"
             :outlined="false"
             @click="showPasswordChange(item)"
           >
@@ -86,7 +87,7 @@
           <xrd-button
             v-if="canDelete(item)"
             text
-            :data-test="`admin-user-row-${item.id}-delete-button`"
+            :data-test="`admin-user-row-${item.username}-delete-button`"
             :outlined="false"
             @click="showDeleteConfirmation(item)"
           >
@@ -112,12 +113,12 @@
       @cancel="showRolesEditDialog = false"
     >
       <template #title>
-        <span class="text-h5" :data-test="`admin-user-row-${selectedUser?.id}-edit-dialog-title`">
+        <span class="text-h5" :data-test="`admin-user-row-${selectedUser?.username}-edit-dialog-title`">
           {{ $t('adminUsers.table.action.edit.dialog.title', { username: selectedUser?.username }) }}
         </span>
       </template>
       <template #content>
-        <div :data-test="`admin-users-row-${selectedUser?.id}-edit-dialog-content`">
+        <div :data-test="`admin-user-row-${selectedUser?.username}-edit-dialog-content`">
           <v-row class="mt-12">
             <v-col>
               {{ $t('adminUsers.table.action.edit.dialog.message') }}
@@ -150,7 +151,7 @@
     <!-- Confirm delete dialog -->
     <xrd-confirm-dialog
       v-if="showDeleteConfirmationDialog"
-      :data-test="`admin-user-row-${selectedUser?.id}-delete-confirmation`"
+      :data-test="`admin-user-row-${selectedUser?.username}-delete-confirmation`"
       :dialog="showDeleteConfirmationDialog"
       title="adminUsers.table.action.delete.confirmationDialog.title"
       text="adminUsers.table.action.delete.confirmationDialog.message"
@@ -202,8 +203,7 @@ const showDeleteConfirmationDialog = ref(false);
 const savingChanges = ref(false);
 const rolesToEdit = ref<string[]>([]);
 
-
-const canCreate = () => adminUsersHandler?.canCreate();
+const canAdd = () => adminUsersHandler?.canAdd();
 const canEdit = () => adminUsersHandler?.canEdit();
 const canDelete = (adminUser: AdminUser) => adminUsersHandler?.canDelete(adminUser);
 

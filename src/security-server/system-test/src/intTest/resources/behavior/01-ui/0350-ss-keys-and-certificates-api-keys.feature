@@ -62,7 +62,6 @@ Feature: 0350 - SS: API Keys
       | System Administrator  | present    |
       | Server Observer       | present    |
 
-  @Skip #TODO: Re-enable once XRDDEV-2899 is done, i.e. admin user (like xrd-sys) can be created through Admin UI
   Scenario: User can only assign roles they have when creating/editing API key
     Given Create API key button is clicked
     And Role "Security Officer" is being clicked

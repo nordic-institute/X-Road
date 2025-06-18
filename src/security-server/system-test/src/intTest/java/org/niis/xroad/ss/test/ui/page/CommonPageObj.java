@@ -93,6 +93,10 @@ public class CommonPageObj {
             return $x("//*[@data-test='ss-tls-certificate-tab-button']");
         }
 
+        public SelenideElement adminUsersTab() {
+            return $x("//*[@data-test='admin-users-tab-button']");
+        }
+
     }
 
     public class Form {

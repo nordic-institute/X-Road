@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Transactional
 @RequiredArgsConstructor
 public class AdminUserRepository {
 

@@ -110,7 +110,7 @@ export function useAdminUsersHandler() {
       .catch((err) => showError(err));
   };
 
-  const canCreate = () => hasPermission(Permissions.ADD_ADMIN_USER);
+  const canAdd = () => hasPermission(Permissions.ADD_ADMIN_USER);
   const canEdit = () => hasPermission(Permissions.UPDATE_ADMIN_USER);
   const canDelete = (user: AdminUser) =>
     hasPermission(Permissions.DELETE_ADMIN_USER) && username !== user.username;
@@ -124,7 +124,7 @@ export function useAdminUsersHandler() {
       updateRoles: saveRoles,
       delete: deleteUser,
       changePassword: changePassword,
-      canCreate: canCreate,
+      canAdd: canAdd,
       canEdit: canEdit,
       canDelete: canDelete,
       hasRole: canAssignRole,

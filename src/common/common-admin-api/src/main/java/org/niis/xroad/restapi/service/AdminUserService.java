@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.service;
 
+import jakarta.transaction.Transactional;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
@@ -44,6 +45,7 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.PASSWO
 import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.PASSWORD_ENCODER;
 
 @Service
+@Transactional
 public class AdminUserService {
 
     private final AdminUserRepository userRepository;

@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container data-test="create-admin-user-stepper-view">
+  <xrd-sub-view-container data-test="add-admin-user-stepper-view">
     <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
     <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
       <xrd-sub-view-title :title="$t('adminUsers.addUser.title')" :show-close="true" class="pa-4" @close="close"></xrd-sub-view-title>
@@ -36,7 +36,7 @@
         <v-stepper-item :complete="userAdded" :value="2">{{ $t('adminUsers.addUser.step.credentials.name') }}</v-stepper-item>
       </v-stepper-header>
       <v-stepper-window>
-        <v-stepper-window-item data-test="create-admin-user-step-1" :value="1" class="pa-0 centered">
+        <v-stepper-window-item data-test="add-admin-user-step-1" :value="1" class="pa-0 centered">
           <v-container class="wide-width">
             <v-row class="mt-4">
               <v-col
@@ -77,7 +77,7 @@
             </xrd-button>
           </v-row>
         </v-stepper-window-item>
-        <v-stepper-window-item data-test="create-admin-user-step-2" :value="2" class="pa-0">
+        <v-stepper-window-item data-test="add-admin-user-step-2" :value="2" class="pa-0">
           <div class="wizard-step-form-content">
             <div class="wizard-row-wrap">
               <div class="wizard-label">
