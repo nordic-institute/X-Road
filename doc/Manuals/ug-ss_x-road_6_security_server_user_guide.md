@@ -1711,7 +1711,7 @@ The connection method for information systems in the **service provider role** i
 
 - HTTP – the service/adapter URL begins with "**http:**//...".
 
-- HTTPS – the service/adapter URL begins with "**https**://".
+- HTTPS – the service/adapter URL begins with "**https:**//...".
   - If **Verify TLS certificate** checkbox is left unchecked it means that service provider information system's TLS certificate is not verified and trusted by default.
   - If **Verify TLS certificate** checkbox is checked it means that service provider information system's TLS certificate is verified. In order to make the information system's TLS certificate trusted, it must be added into Security Server's **Information System TLS certificate** list (see section [9.3](#93-managing-information-system-tls-certificates)).
   - When the service provider information system needs to verify the Security Server's internal TLS certificate, the certificate must be first exported and then imported into the service provider information system's truststore (see section [9.3](#93-managing-information-system-tls-certificates)).
