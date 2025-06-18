@@ -92,6 +92,7 @@ rm -rf %{buildroot}
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf
+/usr/share/xroad/db/signer
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy.jar
 /usr/share/xroad/jlib/proxy/
