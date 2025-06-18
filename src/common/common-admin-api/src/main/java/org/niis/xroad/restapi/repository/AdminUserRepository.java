@@ -31,7 +31,6 @@ import org.niis.xroad.restapi.dao.AdminUserDAOImpl;
 import org.niis.xroad.restapi.entity.AdminUserEntity;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;

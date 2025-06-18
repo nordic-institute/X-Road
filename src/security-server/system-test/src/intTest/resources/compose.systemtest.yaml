@@ -24,8 +24,8 @@ services:
         condition: service_healthy
 
   ui:
-#    environment:
-#      - SERVER_SERVLET_SESSION_TIMEOUT=1m
+    environment:
+      - SERVER_SERVLET_SESSION_TIMEOUT=1m
     ports:
       - 0:9999 # debug port
     volumes:
