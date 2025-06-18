@@ -31,6 +31,7 @@ import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.Map;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Server conf database context.
  */
+@Slf4j
 public class SignerDatabaseConfig {
     public static final String DB_CTX = "signerDbCtx";
 
@@ -58,6 +60,7 @@ public class SignerDatabaseConfig {
     @Singleton
     DatabaseCtx databaseCtx(@ConfigProperty(name = "xroad.db.serverconf.hibernate") Optional<Map<String, String>> serverconfProps,
                             @ConfigProperty(name = "spring.datasource") Optional<Map<String, String>> centerUiProps) {
+        log.info("TEST: serverconfProps: {}, centerUiProps: {}", serverconfProps, centerUiProps);
         if (serverconfProps.isPresent()) {
             return createServerConfDbCtx(serverconfProps.get());
         } else if (centerUiProps.isPresent()) {

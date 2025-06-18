@@ -21,8 +21,6 @@ test-automation:
   containers:
     testable-container:
       enabled: false
-  custom:
-    signer-container-enabled: true
 # toggle for reusable containers. This allows quicker test development as containers are not destroyed between runs.
 # WARNING: this leaves containers running indefinitely. They have to be stopped manually.
 # Note: this required testcontainers.reuse.enable=true property to be defined in your ~/.testcontainers.properties file
