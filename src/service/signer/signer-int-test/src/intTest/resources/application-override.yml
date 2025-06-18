@@ -18,6 +18,7 @@ test-automation:
         enabled: false
     glue-append: "org.niis.xroad.common.test.glue,org.niis.xroad.signer.test.glue"
     filter:
+      tags: "not @Skip"
   containers:
     testable-container:
       enabled: false

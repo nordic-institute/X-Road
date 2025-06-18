@@ -27,6 +27,7 @@ package org.niis.xroad.signer.core.tokenmanager.module;
 
 import ee.ria.xroad.common.CodedException;
 
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.tokenNotFound;
  * Module manager base class.
  */
 @Slf4j
+@Startup
 @ApplicationScoped
 @RequiredArgsConstructor
 public class ModuleManager implements TokenWorkerProvider {

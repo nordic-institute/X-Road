@@ -51,7 +51,7 @@ public class ModuleManagerReloadJob {
     public void init() {
         log.info("Scheduling ModuleManagerReloadJob every {}", signerProperties.moduleManagerUpdateInterval());
         scheduler.newJob(getClass().getSimpleName())
-                .setDelayed("100ms")
+                .setDelayed("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
                 .setInterval("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
                 .setTask(this::update)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
