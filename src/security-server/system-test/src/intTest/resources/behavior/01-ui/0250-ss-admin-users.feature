@@ -74,7 +74,7 @@ Feature: 0250 - SS: Admin Users
     And Change password dialog's Save button is clicked
     And logout button is being clicked
     And SecurityServer login page is open
-    Then User test logs in to SecurityServer with password secret
+    Then User test tries to log in to SecurityServer with password secret
     And Error message for incorrect credentials is shown
     And Login form is visible
     And User test logs in to SecurityServer with password secret2
