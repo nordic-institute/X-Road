@@ -11,6 +11,7 @@ dependencies {
 
   testImplementation(libs.h2database)
   testImplementation(libs.mockito.jupiter)
+  testImplementation(libs.systemStubs)
 
   testFixturesImplementation(libs.smallrye.config.core)
 }
