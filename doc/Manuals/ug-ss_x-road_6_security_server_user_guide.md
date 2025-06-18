@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.98  
+Version: 2.99  
 Doc. ID: UG-SS
 
 ---
@@ -127,7 +127,7 @@ Doc. ID: UG-SS
 | 26.03.2025 | 2.96    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                          | Pauline Dimmek       |
 | 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
 | 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
-
+| 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -3393,7 +3393,7 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time. Also, activating the received certificates is a manual task.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time.
 
 The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
 
@@ -3409,15 +3409,23 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
+When an authentication certificate is automatically renewed using ACME, the authentication certificate registration request is automatically sent to the Central Server for approval. In all other situations, the authentication certificate registration request must be sent manually.
+
+The certificate renewal process can be fully automated by enabling automatic certificate activation. In that case, all the steps of the renewal process are automated and email notifications are sent to a defined email address to notify about the success or failure of different phases.
+
 **Automatic certificate activation**
 
-It is also possible to let the Security Server automatically activate new certificate once it is ordered for signing certificates or once it is registered for authentication certificates. This behaviour can be controlled by respective [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports automatic activation of new certificates that have been ordered using ACME. Sign certificates are automatically activated when they're imported to the Security Server while authentication certificates are activated once they've been registered on the Central Server. By default, automatic activation is disabled. This behaviour can be controlled by the `proxy-ui-api.automatic-activate-auth-certificate` and `proxy-ui-api.automatic-activate-acme-sign-certificate` system properties. The properties can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
 
 **E-mail notifications**
 
-The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure, authentication certificate registration success and signing and authentication certificate automatic activation success or failure. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in the following cases and they can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api):
 
-The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
+* Authentication and sign certificate renewal success and failure.
+* Authentication certificate registration success.
+* Signing and authentication certificate automatic activation success and failure.
+
+A member-specific e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server. Therefore, defining the email address is mandatory even if the email notifications are disabled. If the member-specific email address is missing from the `mail.yml` configuration file, ordering a certificate from the ACME Server will fail.
 
 For the e-mail notifications to work, an external mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` configuration file. The configuration include:
 
@@ -3427,21 +3435,44 @@ For the e-mail notifications to work, an external mail server needs to be config
 * **password** - used for authentication to the mail server.
 * **use-ssl-tls** - if "true", then full `ssl/tls` protocol is used for connection. If "false" or missing, then `starttls` protocol is used instead.
 
-The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page.
+The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page. It's strongly recommended to use the test email feature to validate the mail server's configuration.
+
+Example of the `/etc/xroad/conf.d/mail.yml` file contents (can be found from `/etc/xroad/conf.d/mail.example.yml`):
+
+```yaml
+# host name and port number used to connect to the mail server
+host: mail.example.org
+port: 587
+# credentials used for authentication to the mail server
+username: testuser
+password: secret
+# if "true", then full `SSL/TLS` protocol is used for connection. If "false" or missing, then `STARTTLS` protocol is used instead.
+use-ssl-tls: true
+
+# Contact emails for each Member used for notifications and when ordering certificates from the ACME Servers.
+# The key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+# should also be surrounded by quotation marks to allow for ':' (both single and double work).
+# When ordering Authentication Certificates, Security Server owner's Member ID is used.
+contacts:
+  'EU:COM:1234567-8': member1@example.com
+  'EU:GOV:9090909-1': member2@example.com
+```
 
 **Enable connections from the ACME server**
 
 The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enabled](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) that defines whether the Security Server listens to incoming ACME challenge requests on port 80. The default value for this parameter is `false` which means that  the Security Server does not listen on port 80. The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
-This parameter can be overriden by an environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED` which takes precedence when both are set.
+This parameter can be overridden by an environment variable `XROAD_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED` which takes precedence when both are set.
 
 **Member-specific configuration**
 
-Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). An example file is added by the installer when installing or upgrading X-Road to version 7.5. The configurations to be added are:
+Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). The configurations to be added are:
 
 1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
 2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server, when communicating with the ACME Server.
 
-There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the Security Server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**".
+**Note:** In addition, the member-specific e-mail address must be defined in the `/etc/xroad/conf.d/mail.yml` configuration file. See the E-mail notifications section for more detailed information.
+
+There are currently two ways to let the ACME server know which type of certificate (authentication or sign certificate) to return. The way that should be used depends on the ACME Server and the options it supports. The first one, which sends profile ids for authentication and signing certificates in http header, does not require any certificate type-specific configuration on the Security Server side. Instead, the second one uses certificate type-specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**". If you are not sure which configuration option should be used, please contact your X-Road Operator or CA for assistance.
 
 Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`):
 
