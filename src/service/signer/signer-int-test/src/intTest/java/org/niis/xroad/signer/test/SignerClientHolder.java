@@ -37,7 +37,6 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.client.impl.SignerSignRpcClient;
 import org.niis.xroad.signer.test.container.SignerIntTestSetup;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
@@ -48,7 +47,6 @@ import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class SignerClientHolder {
     private final SignerIntTestSetup signerIntTestSetup;
