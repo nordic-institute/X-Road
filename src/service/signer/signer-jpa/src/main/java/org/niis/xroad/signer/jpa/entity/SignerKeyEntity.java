@@ -38,6 +38,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.jpa.entity.AuditableEntity;
 import org.niis.xroad.signer.jpa.entity.type.KeyType;
 import org.niis.xroad.signer.jpa.entity.type.KeyUsage;
 
@@ -51,7 +52,7 @@ import static jakarta.persistence.AccessType.FIELD;
 @Entity
 @Access(FIELD)
 @Table(name = SignerKeyEntity.TABLE_NAME)
-public class SignerKeyEntity {
+public class SignerKeyEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "signer_keys";
 

@@ -25,23 +25,23 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.signer.core;
+package org.niis.xroad.common.jpa.entity;
 
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-
-import lombok.experimental.UtilityClass;
-import org.niis.xroad.signer.core.model.SoftwareKey;
-import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
 
 import java.time.Instant;
 
-@UtilityClass
-public class TestDataUtil {
+@Getter
+@MappedSuperclass
+// Values are set by the database using triggers.
+public abstract class AuditableEntity {
 
-    public static SoftwareKey softwareKeyData(long id, long tokenId) {
-        return new SoftwareKey(id, tokenId, "keyExternalId-" + id, KeyUsageInfo.SIGNING, "key friendly name " + id,
-                "key label " + id, "publicKey" + id, SignMechanism.CKM_RSA_PKCS, new byte[]{'k', 'e', 'y', 's', 't', 'o', 'r', 'e'},
-                Instant.now(), Instant.now());
-    }
+    @Column(name = "created_at", updatable = false, insertable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", updatable = false, insertable = false)
+    private Instant updatedAt;
 
 }

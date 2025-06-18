@@ -46,6 +46,8 @@ public class CertRequestMapper implements GenericUniDirectionalMapper<SignerCert
                 xroadIdMapper.toTarget(source.getMember()),
                 source.getSubjectName(),
                 source.getSubjectAlternativeName(),
-                source.getCertificateProfile());
+                source.getCertificateProfile(),
+                source.getCreatedAt(),
+                source.getUpdatedAt());
     }
 }

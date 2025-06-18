@@ -51,6 +51,7 @@ import org.niis.xroad.signer.core.service.TokenService;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,7 @@ class TokenRegistryLoaderTest {
 
         var currentToken = new RuntimeTokenImpl();
         currentToken.setData(new SoftwareTokenData(1L, "old-ext-id", "old-type", "old-serialNumber", "old-label",
-                "old-friendlyName", new byte[]{'h', 'a', 's', 'h'}));
+                "old-friendlyName", new byte[]{'h', 'a', 's', 'h'}, Instant.now(), Instant.now()));
         var tokenDefinition = new SoftwareTokenDefinition(
                 Map.of(
                         KeyAlgorithm.EC, SignMechanism.CKM_ECDSA,
@@ -175,7 +176,7 @@ class TokenRegistryLoaderTest {
     private TokenService.LoadedTokens loadedTokens() {
 
         var tokenData = new SoftwareTokenData(1L, "externalId", "type", "serialNumber", "label",
-                "friendlyName", new byte[]{'p', 'i', 'n', 'h', 'a', 's', 'h'});
+                "friendlyName", new byte[]{'p', 'i', 'n', 'h', 'a', 's', 'h'}, Instant.now(), Instant.now());
         var key1 = TestDataUtil.softwareKeyData(0L, 1L);
         var key2 = TestDataUtil.softwareKeyData(1L, 1L);
 
@@ -183,7 +184,7 @@ class TokenRegistryLoaderTest {
         var cert1 = CertData.create("cert-external-id-1", 0L, cert, "sha256hash-1");
 
         var certRequest1 = new CertRequestData(0L, "cert-request-external-id-1", 0L, ClientId.Conf.create("a", "b", "c"),
-                "sn", "subject alt name", "");
+                "sn", "subject alt name", "", Instant.now(), Instant.now());
 
         return new TokenService.LoadedTokens(
                 Set.of(tokenData),
