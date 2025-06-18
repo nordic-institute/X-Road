@@ -25,10 +25,13 @@
  */
 package org.niis.xroad.signer.core.tokenmanager;
 
+import ee.ria.xroad.common.CodedException;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCertImpl;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
@@ -45,6 +48,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @Slf4j
@@ -171,6 +175,7 @@ public class TokenRegistry {
     }
 
     public <T> T writeAction(TokenSupplier<T, ModifiableTokenContext> action) {
+        denyIfSecondaryNode();
         rwLock.writeLock().lock();
         try {
             return action.get(modifiableTokenContext);
@@ -182,6 +187,7 @@ public class TokenRegistry {
     }
 
     public void writeRun(TokenRunnable<ModifiableTokenContext> action) {
+        denyIfSecondaryNode();
         rwLock.writeLock().lock();
         try {
             action.accept(modifiableTokenContext);
@@ -189,6 +195,12 @@ public class TokenRegistry {
             throw translateException(e);
         } finally {
             rwLock.writeLock().unlock();
+        }
+    }
+
+    private void denyIfSecondaryNode() {
+        if (NodeProperties.isSecondaryNode()) {
+            throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
         }
     }
 
