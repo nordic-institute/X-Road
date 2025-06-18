@@ -41,8 +41,8 @@ import org.niis.xroad.signer.core.mapper.CertRequestInfoProtoMapper;
 import org.niis.xroad.signer.core.mapper.CertificateInfoProtoMapper;
 import org.niis.xroad.signer.core.mapper.KeyInfoProtoMapper;
 import org.niis.xroad.signer.core.mapper.TokenInfoProtoMapper;
+import org.niis.xroad.signer.core.model.RuntimeKey;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
-import org.niis.xroad.signer.core.model.RuntimeToken;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
 import org.niis.xroad.signer.core.tokenmanager.module.SoftwareModuleType;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
@@ -50,7 +50,6 @@ import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -252,38 +251,17 @@ public class TokenLookup {
     public List<KeyInfo> getKeyInfo(ClientId clientId) {
         log.trace("getKeyInfo({})", clientId);
 
-        List<KeyInfo> keyInfo = new ArrayList<>();
-
-        return tokenRegistry.readAction(ctx -> {
-            for (RuntimeToken token : ctx.getTokens()) {
-                if (token.isInactive()) {
-                    // Ignore inactive (not usable) tokens
-                    continue;
-                }
-
-                for (var key : token.keys()) {
-                    if (!key.isValidForSigning()) {
-                        // Ignore authentication keys
-                        continue;
-                    }
-
-                    for (var cert : key.certs()) {
-                        if (cert.isInvalid()) {
-                            // Ignore inactive and invalid certificates
-                            continue;
-                        }
-
-                        if (certificateInfoProtoMapper.toTargetDTO(cert).belongsToMember(clientId)) {
-                            log.debug("Found key '{}' for client '{}'",
-                                    key.externalId(), cert.memberId());
-                            keyInfo.add(keyInfoProtoMapper.toTargetDTO(key));
-                        }
-                    }
-                }
-            }
-
-            return keyInfo;
-        });
+        return tokenRegistry.readAction(ctx ->
+                ctx.getTokens().stream()
+                        .filter(token -> !token.isInactive()) // Only active tokens
+                        .flatMap(token -> token.keys().stream())
+                        .filter(RuntimeKey::isValidForSigning) // Only signing keys
+                        .filter(key -> key.certs().stream()
+                                .anyMatch(cert -> !cert.isInvalid()
+                                        && certificateInfoProtoMapper.toTargetDTO(cert).belongsToMember(clientId)))
+                        .map(keyInfoProtoMapper::toTargetDTO)
+                        .toList()
+        );
     }
 
     /**

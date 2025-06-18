@@ -57,8 +57,8 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -376,7 +376,7 @@ public class OcspClientWorker {
             CertChain chain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), cert);
 
             if (chain == null) {
-                return Arrays.asList(cert);
+                return Collections.singletonList(cert);
             }
 
             return chain.getAllCertsWithoutTrustedRoot();

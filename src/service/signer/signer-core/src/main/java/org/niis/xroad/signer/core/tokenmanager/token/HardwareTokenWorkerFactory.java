@@ -342,8 +342,15 @@ public class HardwareTokenWorkerFactory {
             }
 
             getActiveManagementSessionProvider().executeWithSession(session -> {
-                for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                    if (certInfo.getId().equals(certId)) {
+                deleteCert(session, keyInfo, certId);
+            });
+        }
+
+        private void deleteCert(ManagedPKCS11Session session, KeyInfo keyInfo, String certId) {
+            keyInfo.getCerts().stream()
+                    .filter(cert -> cert.getId().equals(certId))
+                    .findFirst()
+                    .ifPresent(certInfo -> {
                         List<X509PublicKeyCertificate> certsOnModule = certs.get(keyInfo.getId());
 
                         for (X509PublicKeyCertificate cert : certsOnModule) {
@@ -354,11 +361,7 @@ public class HardwareTokenWorkerFactory {
                                 break;
                             }
                         }
-
-                        return;
-                    }
-                }
-            });
+                    });
         }
 
         @Override
@@ -415,31 +418,35 @@ public class HardwareTokenWorkerFactory {
                             continue;
                         }
 
-                        KeyInfo key = tokenLookup.getKeyInfo(keyId);
-
-                        if (key == null) {
-                            keyManager.addKey(tokenId, keyId, null, resolveSignMechanism(RSA), null, null);
-                            keyManager.setKeyAvailable(keyId, true);
-                            key = tokenLookup.getKeyInfo(keyId);
-                            log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
-                        }
-
-                        // update the key label
-                        char[] label = keyOnToken.getLabel().getCharArrayValue();
-
-                        if (label != null) {
-                            keyManager.setKeyLabel(keyId, new String(label));
-                        }
-
-                        if (key.getPublicKey() == null) {
-                            updatePublicKey(keyId);
-                        }
+                        processKey(keyId, keyOnToken);
                     }
                 });
             } catch (PKCS11Exception e) {
                 throw e;
             } catch (Exception e) {
                 log.error("Failed to find keys from token '{}'", getWorkerId(), e);
+            }
+        }
+
+        private void processKey(String keyId, iaik.pkcs.pkcs11.objects.PublicKey keyOnToken) throws Exception {
+            KeyInfo key = tokenLookup.getKeyInfo(keyId);
+
+            if (key == null) {
+                keyManager.addKey(tokenId, keyId, null, resolveSignMechanism(RSA), null, null);
+                keyManager.setKeyAvailable(keyId, true);
+                key = tokenLookup.getKeyInfo(keyId);
+                log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
+            }
+
+            // update the key label
+            char[] label = keyOnToken.getLabel().getCharArrayValue();
+
+            if (label != null) {
+                keyManager.setKeyLabel(keyId, new String(label));
+            }
+
+            if (key.getPublicKey() == null) {
+                updatePublicKey(keyId);
             }
         }
 

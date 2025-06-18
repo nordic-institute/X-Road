@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.CertOcspManager;
@@ -56,7 +56,7 @@ import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound
 public class ActivateCertReqHandler extends AbstractRpcHandler<ActivateCertReq, Empty> {
     private final TokenLookup tokenLookup;
     private final CertManager certManager;
-    private final OcspResponseManager ocspResponseManager;
+    private final OcspResponseLookup ocspResponseLookup;
     private final CertOcspManager certOcspManager;
 
     @Override
@@ -69,7 +69,7 @@ public class ActivateCertReqHandler extends AbstractRpcHandler<ActivateCertReq, 
             X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
             if (!isSelfSigned(x509Certificate)) {
                 try {
-                    ocspResponseManager.verifyOcspResponses(x509Certificate);
+                    ocspResponseLookup.verifyOcspResponses(x509Certificate);
                     if (isNotBlank(certificateInfo.getOcspVerifyBeforeActivationError())) {
                         certOcspManager.setOcspVerifyBeforeActivationError(certificateInfo.getId(), "");
                     }

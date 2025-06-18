@@ -32,7 +32,7 @@ import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Optional;
 
-public sealed interface BasicKeyInfo permits HardwareKey, RuntimeKey, SoftwareKey {
+public interface BasicKeyInfo {
     /**
      * Internal database ID.
      */
