@@ -47,7 +47,7 @@ public class SignerDatabaseConfig {
             "url", "connection.url",
             "username", "connection.username",
             "password", "connection.password",
-            "driverClassName", "connection.driver_class",
+            "driver-class-name", "connection.driver_class",
             "dialect", "dialect",
             "hikari.data-source-properties.currentSchema", "connection.defaultSchemaName",
             "hbm2ddl.auto", "hbm2ddl.auto"
