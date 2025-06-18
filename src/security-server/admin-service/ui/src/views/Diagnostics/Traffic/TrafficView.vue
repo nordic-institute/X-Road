@@ -8,15 +8,15 @@
         <v-row dense>
           <v-col cols="3">
             <xrd-form-label
-              label-text="Period"
-              help-text="Select start and end"
+              :label-text="$t('diagnostics.traffic.period')"
+              :help-text="$t('diagnostics.traffic.periodInfo')"
             />
           </v-col>
           <v-col cols="auto">
             <v-date-input
               v-model="filters.startDate"
               class="date-input"
-              label="Date"
+              :label="$t('diagnostics.traffic.date')"
               prepend-inner-icon="$calendar"
               prepend-icon=""
             ></v-date-input>
@@ -26,7 +26,7 @@
               v-model="filters.startTime"
               v-maska="'##:##'"
               class="time-input"
-              label="Time"
+              :label="$t('diagnostics.traffic.time')"
             ></v-text-field>
           </v-col>
           <v-col cols="auto"><span class="range-separator"></span></v-col>
@@ -34,7 +34,7 @@
             <v-date-input
               v-model="filters.endDate"
               class="date-input"
-              label="Date"
+              :label="$t('diagnostics.traffic.date')"
               prepend-inner-icon="$calendar"
               prepend-icon=""
             ></v-date-input>
@@ -44,21 +44,21 @@
               v-model="filters.endTime"
               v-maska="'##:##'"
               class="time-input"
-              label="Time"
+              :label="$t('diagnostics.traffic.time')"
             ></v-text-field>
           </v-col>
         </v-row>
         <v-row dense>
           <v-col cols="3">
             <xrd-form-label
-              label-text="Party"
-              help-text="Service, subsystem, member"
+              :label-text="$t('diagnostics.traffic.party')"
+              :help-text="$t('diagnostics.traffic.partyInfo')"
             />
           </v-col>
           <v-col cols="5">
             <v-select
               v-model="filters.client"
-              label="Client"
+              :label="$t('diagnostics.traffic.client')"
               clearable
               :items="clientsStore.clients"
               item-title="id"
@@ -76,7 +76,7 @@
           <v-col cols="4">
             <v-select
               v-model="filters.service"
-              label="Service"
+              :label="$t('diagnostics.traffic.service')"
               clearable
               :items="services"
               item-title="full_service_code"
@@ -96,16 +96,16 @@
         <v-row dense>
           <v-col cols="3">
             <xrd-form-label
-              label-text="Exchange role"
-              help-text="Producer or Consumer"
+              :label-text="$t('diagnostics.traffic.exchangeRole')"
+              :help-text="$t('diagnostics.traffic.exchangeRoleInfo')"
             />
           </v-col>
           <v-col>
             <v-select
               v-model="filters.exchangeRole"
-              label="Exchange role"
+              :label="$t('diagnostics.traffic.exchangeRole')"
               clearable
-              :items="['Producer', 'Client']"
+              :items="[$t('diagnostics.traffic.producer'), $t('diagnostics.traffic.client')]"
             >
             </v-select>
           </v-col>
@@ -113,18 +113,18 @@
         <v-row dense>
           <v-col cols="3">
             <xrd-form-label
-              label-text="Status"
-              help-text="Message exchange status"
+              :label-text="$t('diagnostics.traffic.status')"
+              :help-text="$t('diagnostics.traffic.statusInfo')"
             />
           </v-col>
           <v-col>
             <v-select
               v-model="filters.status"
-              label="Status"
+              :label="$t('diagnostics.traffic.status')"
               clearable
               :items="[
-                { title: 'Success', value: true },
-                { title: 'Failure', value: false },
+                { title: $t('diagnostics.traffic.success'), value: true },
+                { title: $t('diagnostics.traffic.failure'), value: false },
               ]"
             >
             </v-select>
@@ -152,8 +152,10 @@ import { useClients } from '@/store/modules/clients';
 import TrafficChart, {
   TrafficSeries,
 } from '@/views/Diagnostics/Traffic/TrafficChart.vue';
+import { useI18n } from 'vue-i18n';
 
 const { showError } = useNotifications();
+const { t } = useI18n();
 
 const clientsLoading = ref(true);
 const series: Ref<Array<TrafficSeries>> = ref([]);
@@ -222,7 +224,7 @@ function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]) {
 
   if (filter.status ?? true) {
     value.push({
-      name: 'Successful requests',
+      name: t('diagnostics.traffic.successfulRequests'),
       color: Colors.Success100,
       data: data.map((item) => [
         new Date(item.interval_start_time as string).getTime(),
@@ -232,7 +234,7 @@ function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]) {
   }
   if (!(filter.status ?? false)) {
     value.push({
-      name: 'Failed requests',
+      name: t('diagnostics.traffic.failedRequests'),
       color: Colors.Error,
       data: data.map((item) => [
         new Date(item.interval_start_time as string).getTime(),
@@ -255,16 +257,17 @@ function getSecurityServerType(exchangeRole?: string) {
 function toQueryParams(
   filter: TrafficFilter,
 ): GetOperationalDataIntervalsParams {
+  const start = dateWithTime(
+    filter.startDate,
+    filter.startTime,
+  );
+  const end = dateWithTime(filter.endDate, filter.endTime)
+    .second(59)
+    .millisecond(999);
   return {
-    records_from: dateWithTime(
-      filter.startDate,
-      filter.startTime,
-    ).toISOString(),
-    records_to: dateWithTime(filter.endDate, filter.endTime)
-      .second(59)
-      .millisecond(999)
-      .toISOString(),
-    interval: 60,
+    records_from: start.toISOString(),
+    records_to: end.toISOString(),
+    interval: calculateInterval(start, end),
     security_server_type: getSecurityServerType(filter.exchangeRole),
     member_id: filter.service ? undefined : filter.client,
     service_id: filter.service,
@@ -274,6 +277,21 @@ function toQueryParams(
 function dateWithTime(date: Date, time: string): Dayjs {
   const [hours, minutes] = time.split(':').map(Number);
   return dayjs(date).hour(hours).minute(minutes).second(0).millisecond(0);
+}
+
+function calculateInterval(start: Dayjs, end: Dayjs): number {
+  const startTime = dayjs(start);
+  const endTime = dayjs(end);
+  const diffMinutes = endTime.diff(startTime, 'minute');
+
+  const intervals = [1, 5, 15, 60, 1440];
+
+  for (const i of intervals) {
+    if (diffMinutes / i < 500) {
+      return i;
+    }
+  }
+  return intervals[intervals.length - 1];
 }
 
 type GetOperationalDataIntervalsParams = {

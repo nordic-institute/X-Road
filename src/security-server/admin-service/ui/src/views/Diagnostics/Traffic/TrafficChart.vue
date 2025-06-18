@@ -27,6 +27,9 @@ const options = ref({
       },
     },
   },
+  legend: {
+    showForSingleSeries: true,
+  },
   stroke: {
     width: 2,
   },
