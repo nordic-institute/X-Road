@@ -19,6 +19,9 @@ const dateAdapter = useDate();
 const options = ref({
   xaxis: {
     type: 'datetime',
+    labels: {
+      datetimeUTC: false,
+    },
   },
   tooltip: {
     x: {

@@ -157,19 +157,18 @@ import { useI18n } from 'vue-i18n';
 const { showError } = useNotifications();
 const { t } = useI18n();
 
-const clientsLoading = ref(true);
-const series: Ref<Array<TrafficSeries>> = ref([]);
-
-const servicesLoading = ref(false);
-const services: Ref<Array<Service>> = ref([]);
-
 const clientsStore = useClients();
+const clientsLoading = ref(true);
 clientsStore
   .fetchClients()
   .catch(showError)
   .finally(() => {
     clientsLoading.value = false;
   });
+
+const series: Ref<Array<TrafficSeries>> = ref([]);
+const services: Ref<Array<Service>> = ref([]);
+const servicesLoading = ref(false);
 
 const servicesStore = useServices();
 
