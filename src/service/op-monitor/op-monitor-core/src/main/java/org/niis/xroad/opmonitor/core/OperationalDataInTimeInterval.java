@@ -23,41 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.api.mapper;
+package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import java.time.Instant;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.ClientIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
+public record OperationalDataInTimeInterval(Instant timeIntervalStart, Long successCount, Long failureCount) {
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ClientIdMapper {
-
-    public static ClientId.Conf fromDto(ClientIdProto clientIdProto) {
-        if (clientIdProto.hasSubsystemCode()) {
-            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
-                    clientIdProto.getMemberClass(),
-                    clientIdProto.getMemberCode(),
-                    clientIdProto.getSubsystemCode());
-        } else {
-            return ClientId.Conf.create(clientIdProto.getXroadInstance(),
-                    clientIdProto.getMemberClass(),
-                    clientIdProto.getMemberCode());
-        }
-    }
-
-    public static ClientIdProto toDto(ClientId input) {
-        var builder = ClientIdProto.newBuilder()
-                .setMemberClass(input.getMemberClass())
-                .setMemberCode(input.getMemberCode())
-                .setXroadInstance(input.getXRoadInstance())
-                .setObjectType(XRoadObjectType.valueOf(input.getObjectType().name()));
-
-        if (input.getSubsystemCode() != null) {
-            builder.setSubsystemCode(input.getSubsystemCode());
-        }
-        return builder.build();
-    }
 }

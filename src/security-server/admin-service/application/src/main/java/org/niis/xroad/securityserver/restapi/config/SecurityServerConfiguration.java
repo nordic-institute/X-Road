@@ -101,5 +101,4 @@ public class SecurityServerConfiguration {
     public XrdProcessesCollector xrdProcessesCollector(MonitorClient monitorClient) {
         return new XrdProcessesCollector(monitorClient);
     }
-
 }

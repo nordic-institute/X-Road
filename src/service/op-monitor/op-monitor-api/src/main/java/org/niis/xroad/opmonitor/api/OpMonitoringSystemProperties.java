@@ -93,7 +93,7 @@ public final class OpMonitoringSystemProperties {
     /**
      * Property name of the host address that the operational monitoring daemon listens on.
      */
-    private static final String OP_MONITOR_HOST =
+    public static final String OP_MONITOR_HOST =
             PREFIX + "op-monitor.host";
 
     /**
@@ -107,6 +107,10 @@ public final class OpMonitoringSystemProperties {
      */
     private static final String OP_MONITOR_PORT =
             PREFIX + "op-monitor.port";
+    /**
+     * Property name of the port on which the operational monitoring daemon listens for JSON/SOAP requests.
+     */
+    public static final String OP_MONITOR_GRPC_PORT = PREFIX + "op-monitor.grpc-port";
 
     /**
      * Property name of the path to the location of the operational monitoring daemon TLS certificate.
@@ -227,6 +231,14 @@ public final class OpMonitoringSystemProperties {
     public static int getOpMonitorPort() {
         return Integer.parseInt(System.getProperty(OP_MONITOR_PORT,
                 Integer.toString(PortNumbers.OP_MONITOR_DAEMON_PORT)));
+    }
+
+    /**
+     * @return the port number on which the operational monitoring daemon listens.
+     */
+    public static int getOpMonitorGrpcPort() {
+        return Integer.parseInt(System.getProperty(OP_MONITOR_GRPC_PORT,
+                Integer.toString(PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT)));
     }
 
     /**

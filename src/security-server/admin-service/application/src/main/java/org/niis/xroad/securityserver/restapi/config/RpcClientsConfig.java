@@ -27,6 +27,7 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +40,11 @@ class RpcClientsConfig {
     @Bean
     SignerRpcClient signerRpcClient() {
         return new SignerRpcClient();
+    }
+
+    @Bean
+    public OpMonitorClient opMonitorClient() throws Exception {
+        return new OpMonitorClient();
     }
 
 }
