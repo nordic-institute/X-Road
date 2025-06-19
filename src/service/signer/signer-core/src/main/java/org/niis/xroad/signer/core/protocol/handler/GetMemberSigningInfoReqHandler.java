@@ -40,6 +40,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 
@@ -58,6 +59,7 @@ import static org.niis.xroad.signer.api.dto.CertificateInfo.STATUS_REGISTERED;
 @RequiredArgsConstructor
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
     private final GlobalConfProvider globalConfProvider;
+    private final TokenLookup tokenLookup;
 
     private record SelectedCertificate(KeyInfo key, CertificateInfo cert) {
     }
@@ -65,7 +67,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     @Override
     protected GetMemberSigningInfoResp handle(GetMemberSigningInfoReq request) throws Exception {
         var memberId = ClientIdMapper.fromDto(request.getMemberId());
-        List<KeyInfo> memberKeys = tokenManager.getKeyInfo(memberId);
+        List<KeyInfo> memberKeys = tokenLookup.getKeyInfo(memberId);
 
         if (memberKeys.isEmpty()) {
             throw CodedException.tr(X_UNKNOWN_MEMBER, "member_certs_not_found",

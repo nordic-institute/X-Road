@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
-    <changeSet id="create-mandatory-extensions" author="ričardas bučiūnas">
+    <changeSet id="create-mandatory-extensions" author="niis">
         <sql>
             CREATE EXTENSION IF NOT EXISTS hstore;
         </sql>
@@ -19,6 +19,7 @@
     <include file="serverconf/005-configuration-properties.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/006-globalconf-source.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/007-admin-users.xml" relativeToChangelogFile="true"/>
+    <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
 
     <!-- TODO: Move the initial admin superuser creation to initialization -->
     <changeSet author="niis" id="insert-admin-superuser-equipped-with-all-roles">

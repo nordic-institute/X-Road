@@ -70,6 +70,7 @@ public final class OperationalDataRecordCleaner {
                 .setCron(opMonitorProperties.cleanInterval())
                 .setTask(this::doClean)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                .setSkipPredicate(new Scheduled.ApplicationNotRunning())
                 .schedule();
     }
 

@@ -20,6 +20,12 @@ Feature: 0100 - Signer: SoftToken
     When token "soft-token-000" is logged in with pin "1234"
     Then token "soft-token-000" is active
 
+  Scenario: Token is active after restart
+    Given token "soft-token-000" is active
+    When signer service is restarted
+    And tokens are listed
+    Then token "soft-token-000" is active
+
   Scenario: Token is deactivated
     When token "soft-token-000" is logged out
     Then token "soft-token-000" is not active

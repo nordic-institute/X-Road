@@ -13,6 +13,8 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
     ports:
       - "0:4000" # Frontend
+      - "0:9994" # Signer debug
+      - "0:5432" # DB
     networks:
       - xroad-network
   testca:

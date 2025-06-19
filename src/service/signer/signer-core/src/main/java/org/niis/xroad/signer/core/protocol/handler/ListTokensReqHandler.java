@@ -26,21 +26,25 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.ListTokensResp;
 
 /**
  * Handles requests for token list.
  */
 @ApplicationScoped
+@RequiredArgsConstructor
 public class ListTokensReqHandler extends AbstractRpcHandler<Empty, ListTokensResp> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected ListTokensResp handle(Empty request) throws Exception {
         final ListTokensResp.Builder builder = ListTokensResp.newBuilder();
 
-        tokenManager.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
+        tokenLookup.listTokens().forEach(tokenInfo -> builder.addTokens(tokenInfo.asMessage()));
 
         return builder.build();
     }

@@ -26,7 +26,9 @@
 package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetTokenByIdReq;
 import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
@@ -34,12 +36,13 @@ import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
  * Handles requests for token info.
  */
 @ApplicationScoped
-public class GetTokenInfoReqHandler
-        extends AbstractRpcHandler<GetTokenByIdReq, TokenInfoProto> {
+@RequiredArgsConstructor
+public class GetTokenInfoReqHandler extends AbstractRpcHandler<GetTokenByIdReq, TokenInfoProto> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected TokenInfoProto handle(GetTokenByIdReq request) throws Exception {
-        var token = tokenManager.findTokenInfo(request.getTokenId());
+        var token = tokenLookup.findTokenInfo(request.getTokenId());
         return token.asMessage();
     }
 }

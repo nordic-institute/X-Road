@@ -591,13 +591,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the signing key configuration file, '/etc/xroad/signer/keyconf.xml' by default.
-     */
-    public static String getKeyConfFile() {
-        return getProperty(KEY_CONFIGURATION_FILE, getConfPath() + DefaultFilepaths.KEY_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return WSDL validator command string. Defaults to null.
      */
     public static String getWsdlValidatorCommand() {
@@ -702,15 +695,6 @@ public final class SystemProperties {
      */
     public static String getSignerKeyNamedCurve() {
         return getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
-    }
-
-    /**
-     * Get the pathname for password store IPC key generation (used as an input for ftok kernel function).
-     *
-     * @return path
-     */
-    public static String getSignerPasswordStoreIPCKeyPathname() {
-        return getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
     }
 
     /**

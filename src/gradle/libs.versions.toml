@@ -8,7 +8,7 @@
 metrics = "4.2.30"
 jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.13.Final"
+hibernate = "6.6.17.Final"
 mapstruct = "1.6.3"
 jackson = "2.19.0"
 mockito = "5.17.0"
@@ -30,10 +30,10 @@ protobufPlugin = "0.9.4"
 checkstyle = "10.22.0"
 jacoco = "0.8.12"
 resilience4j = "2.3.0"
-quarkus = "3.21.1"
+quarkus = "3.23.3"
 quarkus-vault = "4.2.1"
 quarkus-systemd-notify = "1.0.2"
-smallryeConfig = "3.12.4"
+smallryeConfig = "3.13.2"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -197,8 +197,7 @@ archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-p
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
-jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.4" }
-jibQuarkusExtension = { module = "com.google.cloud.tools:jib-quarkus-extension-gradle", version = "0.1.2" }
+jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.5" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
 
 [bundles]

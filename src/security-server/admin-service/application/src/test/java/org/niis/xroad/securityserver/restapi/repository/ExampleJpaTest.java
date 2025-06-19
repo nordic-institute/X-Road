@@ -54,7 +54,10 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
 @DataJpaTest
 @AutoConfigureTestDatabase
 @Slf4j
-@EntityScan(basePackages = {"org.niis.xroad.serverconf.impl.entity", "org.niis.xroad.restapi.entity"})
+@EntityScan(basePackages = {
+        "org.niis.xroad.serverconf.impl.entity",
+        "org.niis.xroad.restapi.entity",
+        "org.niis.xroad.common.identifiers.jpa.entity"})
 @Transactional
 @ActiveProfiles("test")
 public class ExampleJpaTest {

@@ -1,0 +1,81 @@
+services:
+  signer:
+    build:
+      context: ./signer-container-files/
+      args:
+        - SIGNER_IMG=${SIGNER_IMG}
+      dockerfile: Dockerfile
+    pull_policy: always
+    environment:
+      - XROAD_HOST=signer
+      - XROAD_COMMON_RPC_USE_TLS=false
+      - XROAD_COMMON_GLOBAL_CONF_SOURCE=FILESYSTEM
+      - XROAD_SIGNER_ADDON_HWTOKEN_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file -Dxroad.internal.passwordstore-file-path=/etc/xroad/
+      - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+    ports:
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        reservations:
+          memory: 96M
+        limits:
+          memory: 512M
+    volumes:
+      - ./signer-container-files/etc/xroad/globalconf:/etc/xroad/globalconf
+  db-serverconf:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=serverconf
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=serverconf
+    ports:
+      - "0:5432"
+    healthcheck:
+      start_period: 5s
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+  db-serverconf-init:
+    image: ${SERVERCONF_INIT_IMG}
+    pull_policy: always
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=serverconf
+      - LIQUIBASE_COMMAND_PASSWORD=secret
+      - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - db_user=serverconf
+      - db_schema=public
+    depends_on:
+      db-serverconf:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  testca:
+    build:
+      context: ../../../../../../common/common-int-test/src/main/resources/META-INF/ca-container
+    pull_policy: always
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/testca/certs/" ]

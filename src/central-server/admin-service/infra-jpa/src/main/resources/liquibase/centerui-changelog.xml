@@ -35,6 +35,7 @@
     <include file="centerui/202502201614-recreate-management-request-view.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202504241111-security-server-maintenance-mode.xml" relativeToChangelogFile="true"/>
     <include file="centerui/202506191456-admin-users.xml" relativeToChangelogFile="true"/>
+    <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

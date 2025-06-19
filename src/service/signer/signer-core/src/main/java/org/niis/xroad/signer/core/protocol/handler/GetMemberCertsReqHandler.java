@@ -28,34 +28,36 @@ package org.niis.xroad.signer.core.protocol.handler;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.proto.GetMemberCertsReq;
 import org.niis.xroad.signer.proto.GetMemberCertsResp;
 import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Handles requests for member certificates.
  */
 @ApplicationScoped
-public class GetMemberCertsReqHandler
-        extends AbstractRpcHandler<GetMemberCertsReq, GetMemberCertsResp> {
+@RequiredArgsConstructor
+public class GetMemberCertsReqHandler extends AbstractRpcHandler<GetMemberCertsReq, GetMemberCertsResp> {
+    private final TokenLookup tokenLookup;
 
     @Override
     protected GetMemberCertsResp handle(GetMemberCertsReq request) throws Exception {
         final var memberId = ClientIdMapper.fromDto(request.getMemberId());
-        List<CertificateInfoProto> memberCerts = tokenManager.listTokens().stream()
+        List<CertificateInfoProto> memberCerts = tokenLookup.listTokens().stream()
                 .flatMap(t -> t.getKeyInfo().stream())
                 .filter(k -> k.getUsage() == KeyUsageInfo.SIGNING)
                 .flatMap(k -> k.getCerts().stream())
                 .filter(c -> containsMember(c.getMemberId(), memberId))
                 .map(CertificateInfo::asMessage)
-                .collect(Collectors.toList());
+                .toList();
 
         return GetMemberCertsResp.newBuilder()
                 .addAllCerts(memberCerts)
