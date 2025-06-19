@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.securityserver.restapi.config.CustomClientTlsSSLSocketFactory;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.entity.CertificateEntity;
@@ -66,6 +67,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class InternalServerTestService {
+    private static final String TLS = "TLS";
     private final ServerConfProvider serverConfProvider;
 
     /**
@@ -84,14 +86,14 @@ public class InternalServerTestService {
             trustedX509Certs.add(CryptoUtils.readCertificate(trustedCert.getData()));
         }
 
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        SSLContext ctx = SSLContext.getInstance(TLS);
         ctx.init(createServiceKeyManager(),
                 new TrustManager[]{new ServiceTrustManager(trustedX509Certs)},
                 new SecureRandom());
 
         HttpsURLConnection con = (HttpsURLConnection) (new URL(url).openConnection());
 
-        con.setSSLSocketFactory(ctx.getSocketFactory());
+        con.setSSLSocketFactory(new CustomClientTlsSSLSocketFactory(ctx.getSocketFactory()));
         con.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
 
         con.connect();
