@@ -61,7 +61,7 @@ public class AutoBackupJob {
                     .setCron(backupManagerProperties.autoBackupCronExpression())
                     .setTask(this::execute)
                     .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                     .setSkipPredicate(new Scheduled.ApplicationNotRunning())
+                    .setSkipPredicate(new Scheduled.ApplicationNotRunning())
                     .schedule();
         } else {
             log.info("Automatic backups are disabled. No cron expression or script path provided.");
