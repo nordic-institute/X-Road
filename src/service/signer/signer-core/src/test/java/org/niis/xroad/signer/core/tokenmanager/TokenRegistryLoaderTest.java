@@ -39,7 +39,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.signer.core.TestDataUtil;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.certmanager.OcspCacheManager;
+import org.niis.xroad.signer.core.model.BasicCertInfo;
 import org.niis.xroad.signer.core.model.CertData;
 import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCertImpl;
@@ -71,7 +72,7 @@ class TokenRegistryLoaderTest {
     private TokenService tokenService;
 
     @Mock
-    private OcspResponseManager ocspResponseManager;
+    private OcspCacheManager ocspCacheManager;
 
     @InjectMocks
     private TokenRegistryLoader tokenRegistryLoader;
@@ -167,9 +168,10 @@ class TokenRegistryLoaderTest {
         //key 0 should have cert from DB and transient cert
         assertEquals(2, keysById.get(0L).certs().size());
 
-        ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
-        verify(ocspResponseManager).refreshCache(captor.capture());
-        assertEquals(List.of("sha256hash-1"), captor.getValue());
+        ArgumentCaptor<List<BasicCertInfo>> captor = ArgumentCaptor.forClass(List.class);
+        verify(ocspCacheManager).refreshCache(captor.capture());
+        assertEquals(1, captor.getValue().size());
+        assertEquals("sha256hash-1", captor.getValue().getFirst().sha256hash());
     }
 
     private TokenService.LoadedTokens loadedTokens() {

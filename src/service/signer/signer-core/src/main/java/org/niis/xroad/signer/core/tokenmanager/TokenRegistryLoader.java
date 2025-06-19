@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.certmanager.OcspCacheManager;
 import org.niis.xroad.signer.core.model.BasicCertInfo;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.BasicTokenInfo;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TokenRegistryLoader {
     private final TokenService tokenService;
-    private final OcspResponseManager ocspResponseManager;
+    private final OcspCacheManager ocspCacheManager;
 
     public Set<RuntimeTokenImpl> loadTokens() {
         try {
@@ -99,20 +99,20 @@ public class TokenRegistryLoader {
 
             long tokensLoadTime = stopWatch.getDuration().toMillis();
 
-            var certHashesToRefresh = loadedTokenData.certs().values().stream()
+            var certsToRefresh = loadedTokenData.certs().values().stream()
                     .flatMap(Collection::stream)
                     .filter(cert -> !CertUtils.isSelfSigned(cert.certificate()))
-                    .map(BasicCertInfo::sha256hash)
+
                     .toList();
 
-            ocspResponseManager.refreshCache(certHashesToRefresh);
+            ocspCacheManager.refreshCache(certsToRefresh);
 
             log.info("Reloaded {} tokens with {} keys and {} certs in {} ms. OCSP cache refreshed for {} certs in {} ms",
                     currentTokens.size(),
                     loadedTokenData.keys().size(),
                     loadedTokenData.certs().size(),
                     tokensLoadTime,
-                    certHashesToRefresh.size(),
+                    certsToRefresh.size(),
                     stopWatch.getDuration().toMillis());
 
 

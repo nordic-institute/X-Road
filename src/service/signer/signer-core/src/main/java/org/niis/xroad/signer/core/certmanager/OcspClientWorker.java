@@ -48,7 +48,6 @@ import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
-import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -68,7 +67,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Collections.emptyList;
 
 /**
@@ -86,7 +84,7 @@ public class OcspClientWorker {
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
 
     private final GlobalConfProvider globalConfProvider;
-    private final OcspResponseManager ocspResponseManager;
+    private final OcspCacheManager ocspCacheManager;
     private final TokenLookup tokenLookup;
     private final OcspClient ocspClient;
 
@@ -326,21 +324,10 @@ public class OcspClientWorker {
         serviceStatus.getOcspResponderStatusMap().put(responderURI, responderStatus);
     }
 
-    void updateCertStatuses(Map<String, OCSPResp> statuses) throws Exception {
-        List<String> hashes = new ArrayList<>(statuses.size());
-        List<String> responses = new ArrayList<>(statuses.size());
-
+    void updateCertStatuses(Map<String, OCSPResp> statuses) {
         for (Entry<String, OCSPResp> e : statuses.entrySet()) {
-            hashes.add(e.getKey());
-            responses.add(encodeBase64(e.getValue().getEncoded()));
+            ocspCacheManager.addToCache(e.getKey(), e.getValue());
         }
-
-        SetOcspResponsesReq setOcspResponsesReq = SetOcspResponsesReq.newBuilder()
-                .addAllCertHashes(hashes)
-                .addAllBase64EncodedResponses(responses)
-                .build();
-
-        ocspResponseManager.handleSetOcspResponses(setOcspResponsesReq);
     }
 
     private boolean isCertValid(X509Certificate subject) {
@@ -354,7 +341,7 @@ public class OcspClientWorker {
             try {
                 // todo this should be separated from isValid check.
                 //  This seems to be the only place where expired Ocsp response is cleared from TokenManager.
-                ocspResponseManager.removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(subjectHash);
+                ocspCacheManager.removeOcspResponseFromTokenManagerIfExpiredOrNotInCache(subjectHash);
                 log.debug("shouldFetchResponse for cert: {} value: {}", subjectHash, true);
             } catch (Exception e) {
                 log.debug("shouldFetchResponse encountered an error, returning true ", e);
