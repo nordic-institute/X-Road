@@ -29,6 +29,7 @@ package org.niis.xroad.signer.jpa.service.impl;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -56,6 +57,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
 public class TokenReadServiceImpl implements TokenReadService {
 
