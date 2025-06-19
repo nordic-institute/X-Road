@@ -58,6 +58,7 @@ import org.springframework.context.annotation.Import;
         ProxyDiagnosticsConfig.class,
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
+        ProxyOpMonitoringConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ServerConfBeanConfig.class,
@@ -119,11 +120,6 @@ public class ProxyConfig {
     @Bean
     CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
         return new CertHashBasedOcspResponder(keyConfProvider);
-    }
-
-    @Bean
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
-        return OpMonitoring.init(serverConfProvider);
     }
 
     @Bean
