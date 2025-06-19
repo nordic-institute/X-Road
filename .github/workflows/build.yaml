@@ -230,9 +230,6 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up arm packaging'
-      - name: Build native dependencies
-        working-directory: ./src
-        run: ./gradlew :service:signer:signer-api:make
       - name: Build RHEL8 packages
         run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
       - name: Build RHEL9 packages
