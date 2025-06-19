@@ -70,7 +70,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
-import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.stream.Collectors.toSet;
 
@@ -437,7 +436,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public SecurityServerId.Conf getServerId(X509Certificate cert) throws Exception {
         for (SharedParametersCache p : getSharedParametersCaches()) {
-            String b64 = encodeBase64(calculateCertHash(p.getInstanceIdentifier(), cert));
+            String b64 = encodeBase64(certHash(cert.getEncoded()));
             SharedParameters.SecurityServer server = p.getServerByAuthCert().get(b64);
             if (server != null) {
                 return SecurityServerId.Conf.create(
@@ -448,16 +447,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         return null;
-    }
-
-    private byte[] calculateCertHash(String instanceIdentifier, X509Certificate cert)
-            throws CertificateEncodingException, IOException, OperatorCreationException {
-        Integer version = globalConfSource.getVersion();
-        if (version != null && version > 2) {
-            return certHash(cert.getEncoded());
-        } else {
-            return certSha1Hash(cert.getEncoded());
-        }
     }
 
     @Override
@@ -475,7 +464,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
             throws CertificateEncodingException, IOException, OperatorCreationException {
         for (SharedParametersCache p : getSharedParametersCaches()) {
-            byte[] inputCertHash = calculateCertHash(p.getInstanceIdentifier(), cert);
+            byte[] inputCertHash = certHash(cert.getEncoded());
             boolean match = Optional.ofNullable(p.getMemberAuthCerts().get(memberId)).stream()
                     .flatMap(Collection::stream)
                     .anyMatch(h -> Arrays.equals(inputCertHash, h));

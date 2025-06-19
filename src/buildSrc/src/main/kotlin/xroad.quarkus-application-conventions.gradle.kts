@@ -27,7 +27,10 @@ quarkus {
       put("quarkus.jib.platforms", "linux/amd64,linux/arm64/v8")
       put("quarkus.jib.user", "xroad")
 
-      val jvmArgs = mutableListOf("-Dquarkus.profile=containerized")
+      val jvmArgs = mutableListOf(
+        "-Dquarkus.profile=containerized",
+        "-Djava.library.path=/usr/share/xroad/lib"
+      )
 
       if (buildEnv == "dev") {
         // Add debug parameters - each as a separate list item

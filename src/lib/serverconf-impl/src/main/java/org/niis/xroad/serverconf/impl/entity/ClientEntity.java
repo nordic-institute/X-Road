@@ -41,6 +41,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 
 import java.util.ArrayList;
 import java.util.List;

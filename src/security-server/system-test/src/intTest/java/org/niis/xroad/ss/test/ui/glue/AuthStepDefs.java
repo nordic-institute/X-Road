@@ -45,6 +45,7 @@ public class AuthStepDefs extends BaseUiStepDefs {
     @Step("SecurityServer login page is open")
     public void openPage() {
         var mapping = envSetup.getContainerMapping(EnvSetup.UI, Port.UI);
+
         Selenide.open("https://%s:%d".formatted(mapping.host(), mapping.port()));
     }
 

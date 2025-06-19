@@ -288,7 +288,6 @@ class TokensServiceImplTest {
                 .setActive(false)
                 .setSerialNumber(TOKEN_SERIAL_NUMBER)
                 .setLabel("label")
-                .setSlotIndex(13)
                 .setStatus(status)
                 .putAllTokenInfo(tokenParams)
                 .build());

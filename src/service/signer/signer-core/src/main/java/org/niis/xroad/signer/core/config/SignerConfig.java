@@ -28,45 +28,14 @@ package org.niis.xroad.signer.core.config;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.core.certmanager.OcspClientWorker;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
 import org.niis.xroad.signer.core.job.OcspClientExecuteScheduler;
 import org.niis.xroad.signer.core.job.OcspClientExecuteSchedulerImpl;
-import org.niis.xroad.signer.core.tokenmanager.TokenManager;
-import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
-import org.niis.xroad.signer.core.tokenmanager.module.AbstractModuleManager;
-import org.niis.xroad.signer.core.tokenmanager.module.DefaultModuleManagerImpl;
-import org.niis.xroad.signer.core.tokenmanager.module.HardwareModuleManagerImpl;
-import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
 
 @Slf4j
 public class SignerConfig {
-
-    @ApplicationScoped
-    @Startup
-    AbstractModuleManager moduleManager(ModuleConf moduleConf, TokenManager tokenManager, TokenRegistry tokenRegistry,
-                                        SignerProperties signerProperties,
-                                        SignerHwTokenAddonProperties hwTokenAddonProperties, OcspResponseManager ocspResponseManager) {
-        AbstractModuleManager moduleManager;
-        if (hwTokenAddonProperties.enabled()) {
-            log.info("Hardware token manager enabled.");
-            moduleManager = new HardwareModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, hwTokenAddonProperties,
-                    ocspResponseManager);
-        } else {
-            log.debug("Using default module manager implementation");
-            moduleManager = new DefaultModuleManagerImpl(moduleConf, tokenManager, tokenRegistry, signerProperties, ocspResponseManager);
-        }
-
-        moduleManager.start();
-        return moduleManager;
-    }
-
-    public void cleanup(@Disposes AbstractModuleManager moduleManager) {
-        moduleManager.destroy();
-    }
 
     @ApplicationScoped
     @Startup

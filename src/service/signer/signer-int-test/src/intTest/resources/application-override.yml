@@ -21,17 +21,7 @@ test-automation:
       tags: "not @Skip"
   containers:
     testable-container:
-      reuse-between-runs: ${reuse-between-runs}
-      directory-mounts:
-        - "/tmp/xroad/passwordstore/:build/container-passwordstore/"
-        - "/etc/xroad/signer/:build/resources/intTest/signer-container-files/etc/xroad/signer/"
-    context-containers:
-      ca-server:
-        enabled: true
-        relative-a2c-path: "../../../../development/acme2certifier"
-        reuse-between-runs: ${reuse-between-runs}
-  custom:
-    signer-container-enabled: true
+      enabled: false
 # toggle for reusable containers. This allows quicker test development as containers are not destroyed between runs.
 # WARNING: this leaves containers running indefinitely. They have to be stopped manually.
 # Note: this required testcontainers.reuse.enable=true property to be defined in your ~/.testcontainers.properties file

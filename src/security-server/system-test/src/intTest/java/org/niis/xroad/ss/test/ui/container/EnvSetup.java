@@ -29,11 +29,11 @@ package org.niis.xroad.ss.test.ui.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -49,8 +49,8 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
-@Primary
-@Service
+@Slf4j
+@Component
 public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     public static final String UI = "ui";
@@ -60,6 +60,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public static final String MONITOR = "monitor";
     public static final String BACKUP_MANAGER = "backup-manager";
     public static final String TESTCA = "testca";
+    public static final String DB_SERVERCONF = "db-serverconf";
     public static final String DB_MESSAGELOG = "db-messagelog";
     public static final String OP_MONITOR = "op-monitor";
     public static final String NGINX = "nginx";
@@ -74,11 +75,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     public void initialize() {
         // Creating directories for volume mounts with full permissions
         // to ensure containers have the necessary access to modify their contents.
-        prepareDirectories(
-                "build/signer-volume",
-                "build/signer-volume/softtoken",
-                "build/a2c_logs"
-        );
+        prepareDirectories("build/a2c_logs");
         env = new ComposeContainer("ss-",
                 new File(COMPOSE_SS_FILE), new File(COMPOSE_SYSTEMTEST_FILE))
                 .withLocalCompose(true)
@@ -86,6 +83,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .withExposedService(PROXY, Port.PROXY_HTTP, forListeningPort())
                 .withExposedService(PROXY, Port.PROXY_HEALTHCHECK, forListeningPort())
                 .withExposedService(UI, Port.UI, forListeningPort())
+                .withExposedService(DB_SERVERCONF, Port.DB, forListeningPort())
                 .withExposedService(DB_MESSAGELOG, Port.DB, forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, forListeningPort())
 
@@ -103,6 +101,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
         var nginxFiles = MountableFile.forClasspathResource("nginx-container-files/var/lib");
         copyFilesToContainer(NGINX, nginxFiles, "/var/lib");
         execInContainer(BACKUP_MANAGER, "/etc/xroad/backup-keys/init_backup_encryption.sh");
+
     }
 
     @SneakyThrows
@@ -129,8 +128,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
         var dockerClient = containerState.getDockerClient();
 
-        dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
-        dockerClient.startContainerCmd(containerState.getContainerId()).exec();
+        dockerClient.restartContainerCmd(containerState.getContainerId()).exec();
         await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
     }
 

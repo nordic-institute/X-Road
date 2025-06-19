@@ -59,6 +59,7 @@ import org.niis.xroad.signer.client.SignerRpcClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
+import org.niis.xroad.signer.test.container.SignerIntTestSetup;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -83,7 +84,6 @@ import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -127,6 +127,11 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("signer is initialized with pin {string}")
     public void signerIsInitializedWithPin(String pin) {
         clientHolder.get().initSoftwareToken(pin.toCharArray());
+    }
+
+    @Step("signer service is restarted")
+    public void signerIsRestarted() {
+        signerIntTestSetup.restartContainer(SignerIntTestSetup.SIGNER);
     }
 
     @Step("token {string} is not active")
@@ -642,7 +647,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, caCert,
                     ocspCert, ocspPrivateKey, certificateStatus);
 
-            clientHolder.get().setOcspResponses(new String[]{calculateCertSha1HexHash(subject)},
+            clientHolder.get().setOcspResponses(new String[]{calculateCertHexHash(subject)},
                     new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
         }
     }
@@ -669,14 +674,14 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 TestCertUtil.getOcspSigner().certChain[0],
                 TestCertUtil.getOcspSigner().key, CertificateStatus.GOOD);
 
-        clientHolder.get().setOcspResponses(new String[]{calculateCertSha1HexHash(subject)},
+        clientHolder.get().setOcspResponses(new String[]{calculateCertHexHash(subject)},
                 new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
     }
 
     @Step("ocsp responses can be retrieved")
     public void ocspResponsesCanBeRetrieved() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
-        final String hash = calculateCertSha1HexHash(subject);
+        final String hash = calculateCertHexHash(subject);
 
         final String[] ocspResponses = clientHolder.get().getOcspResponses(new String[]{hash});
         assertThat(ocspResponses[0]).isNotNull();
@@ -685,7 +690,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("null ocsp response is returned for unknown certificate")
     public void emptyOcspResponseIsReturnedForUnknownCertificate() throws Exception {
         final String[] ocspResponses = clientHolder.get()
-                .getOcspResponses(new String[]{calculateCertSha1HexHash("not a cert".getBytes())});
+                .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});
         assertThat(ocspResponses).hasSize(1);
         assertThat(ocspResponses[0]).isNull();
     }

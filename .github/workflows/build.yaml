@@ -87,7 +87,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
-        run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
+        run: |
+          mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
+          ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
@@ -99,6 +101,14 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
+      - name: Upload intTest reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: Integration Test reports
+          path: |
+            src/service/signer/signer-int-test/build/allure-report/
+            src/service/signer/signer-int-test/build/container-logs/
       - name: Build, test and package code execution measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:
@@ -220,9 +230,6 @@ jobs:
         with:
           task: get-measurement
           label: 'Set up arm packaging'
-      - name: Build native dependencies
-        working-directory: ./src
-        run: ./gradlew :service:signer:signer-api:make
       - name: Build RHEL8 packages
         run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
       - name: Build RHEL9 packages

@@ -12,6 +12,7 @@ quarkus {
 }
 
 dependencies {
+  implementation(platform(libs.quarkus.bom))
   implementation(project(":lib:bootstrap-quarkus"))
   implementation(libs.bundles.quarkus.containerized)
   implementation(project(":common:common-rpc-quarkus"))

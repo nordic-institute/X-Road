@@ -51,8 +51,6 @@ public final class DefaultFilepaths {
 
     static final String PROXY_UI_API_SSL_PROPERTIES = "ssl.properties";
 
-    static final String KEY_CONFIGURATION_FILE = "signer/keyconf.xml";
-
     static final String CONFIGURATION_PATH = "globalconf";
 
     static final String LOG_PATH = "/var/log/xroad/";

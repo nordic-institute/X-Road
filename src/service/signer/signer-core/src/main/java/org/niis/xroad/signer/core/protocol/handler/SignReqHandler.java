@@ -27,7 +27,10 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignResp;
 
@@ -35,7 +38,10 @@ import org.niis.xroad.signer.proto.SignResp;
  * Handles signing requests.
  */
 @ApplicationScoped
+@RequiredArgsConstructor
 public class SignReqHandler extends AbstractRpcHandler<SignReq, SignResp> {
+    private final TokenWorkerProvider tokenWorkerProvider;
+    private final TokenLookup tokenLookup;
 
     @Override
     protected SignResp handle(SignReq request) throws Exception {
@@ -47,7 +53,7 @@ public class SignReqHandler extends AbstractRpcHandler<SignReq, SignResp> {
     }
 
     public byte[] signData(SignReq request) {
-        return getTokenWorker(tokenManager.findTokenIdForKeyId(request.getKeyId()))
+        return tokenWorkerProvider.getTokenWorker(tokenLookup.findTokenIdForKeyId(request.getKeyId()))
                 .handleSign(request);
     }
 }

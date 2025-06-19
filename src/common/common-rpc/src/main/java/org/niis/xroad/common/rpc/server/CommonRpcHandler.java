@@ -62,6 +62,8 @@ public class CommonRpcHandler {
                     .addDetails(pack(toProto(codedException)))
                     .build();
             responseObserver.onError(StatusProto.toStatusRuntimeException(status));
+            //TODO when improving exception handling, consider changing log level
+            log.info("CodedException handled: {}", codedException.getMessage(), codedException);
         } else {
             log.warn("Unhandled exception was thrown by gRPC handler.", exception);
             responseObserver.onError(exception);

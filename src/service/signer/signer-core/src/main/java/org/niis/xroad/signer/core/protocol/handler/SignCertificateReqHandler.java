@@ -28,16 +28,22 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import com.google.protobuf.ByteString;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenWorkerProvider;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
 
 @ApplicationScoped
+@RequiredArgsConstructor
 public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
+    private final TokenWorkerProvider tokenWorkerProvider;
+    private final TokenLookup tokenLookup;
 
     @Override
     protected SignCertificateResp handle(SignCertificateReq request) throws Exception {
-        final byte[] signedCertificate = getTokenWorker(tokenManager.findTokenIdForKeyId(request.getKeyId()))
+        final byte[] signedCertificate = tokenWorkerProvider.getTokenWorker(tokenLookup.findTokenIdForKeyId(request.getKeyId()))
                 .handleSignCertificate(request);
 
         return SignCertificateResp.newBuilder()

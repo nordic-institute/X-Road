@@ -38,15 +38,14 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.passwordstore.PasswordStore;
+import org.niis.xroad.signer.core.tokenmanager.KeyManager;
+import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
 import org.niis.xroad.signer.core.tokenmanager.TokenManager;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.Algorithm;
-import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 
@@ -55,7 +54,6 @@ import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
-import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static org.niis.xroad.signer.core.util.ExceptionHelper.keyNotAvailable;
 
@@ -67,14 +65,18 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     private final String workerId;
 
     protected final String tokenId;
-    protected final SignerProperties signerProperties;
     protected final TokenManager tokenManager;
+    protected final KeyManager keyManager;
+    protected final TokenLookup tokenLookup;
 
-    AbstractTokenWorker(TokenInfo tokenInfo, SignerProperties signerProperties, TokenManager tokenManager) {
+    AbstractTokenWorker(TokenInfo tokenInfo, TokenManager tokenManager,
+                        KeyManager keyManager, TokenLookup tokenLookup) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
-        this.signerProperties = signerProperties;
+
         this.tokenManager = tokenManager;
+        this.keyManager = keyManager;
+        this.tokenLookup = tokenLookup;
     }
 
     @Override
@@ -99,33 +101,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     }
 
     @Override
-    public KeyInfo handleGenerateKey(GenerateKeyReq message) {
-        GenerateKeyResult result;
-
-        try {
-            result = generateKey(message);
-        } catch (Exception e) {
-            log.error("Failed to generate key", e);
-
-            throw translateException(e).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
-        }
-
-        String keyId = result.keyId();
-
-        log.debug("Generated new key with id '{}'", keyId);
-
-        if (isKeyMissing(keyId)) {
-            var signMechanism = resolveSignMechanism(mapAlgorithm(message.getAlgorithm()));
-            tokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
-            tokenManager.setKeyAvailable(keyId, true);
-            tokenManager.setKeyLabel(keyId, message.getKeyLabel());
-            tokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
-        }
-
-        return tokenManager.findKeyInfo(keyId);
-    }
-
-    @Override
     public void handleDeleteKey(String keyId) {
         try {
             deleteKey(keyId);
@@ -135,7 +110,9 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
             throw translateException(e);
         }
 
-        tokenManager.removeKey(keyId);
+        if (!keyManager.removeKey(keyId)) {
+            log.warn("Failed to remove (or was not found) key '{}' from configuration", keyId);
+        }
     }
 
     @Override
@@ -176,11 +153,11 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     @Override
     public void destroy() {
-        tokenManager.setTokenAvailable(tokenId, false);
+        tokenManager.disableToken(tokenId);
     }
 
     protected boolean isKeyMissing(String keyId) {
-        return tokenManager.getKeyInfo(keyId) == null;
+        return tokenLookup.getKeyInfo(keyId) == null;
     }
 
     protected boolean isPinStored() {
@@ -206,8 +183,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     protected abstract void activateToken(ActivateTokenReq message) throws Exception;
 
-    protected abstract GenerateKeyResult generateKey(GenerateKeyReq message) throws Exception;
-
     protected abstract void deleteKey(String keyId) throws Exception;
 
     protected abstract void deleteCert(String certId) throws Exception;
@@ -220,7 +195,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     protected abstract SignMechanism resolveSignMechanism(KeyAlgorithm algorithm);
 
     protected void assertKeyAvailable(String keyId) {
-        if (!tokenManager.isKeyAvailable(keyId)) {
+        if (!tokenLookup.isKeyAvailable(keyId)) {
             throw keyNotAvailable(keyId);
         }
     }
@@ -250,8 +225,5 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         return certificateBuilder;
     }
 
-    // ------------------------------------------------------------------------
 
-    protected record GenerateKeyResult(String keyId, String publicKeyBase64) {
-    }
 }

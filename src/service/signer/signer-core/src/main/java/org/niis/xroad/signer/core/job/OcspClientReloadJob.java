@@ -61,6 +61,7 @@ public class OcspClientReloadJob {
                     .setInterval("60s")
                     .setTask(this::reload)
                     .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                    .setSkipPredicate(new Scheduled.ApplicationNotRunning())
                     .schedule();
         } else {
             log.info("OCSP-retrieval configured to be inactive, job auto-scheduling disabled");
