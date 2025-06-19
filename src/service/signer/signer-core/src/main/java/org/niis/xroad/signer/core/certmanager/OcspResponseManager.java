@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class OcspResponseManager {
      * Maps a certificate hash to an OCSP response.
      */
     private final FileBasedOcspCache responseCache;
-    private final TokenLookup tokenLookup;
+    private final TokenRegistry tokenRegistry;
 
     @PostConstruct
     public void init() {
@@ -155,7 +155,7 @@ public class OcspResponseManager {
      */
     private X509Certificate getCertForCertHash(String certHash)
             throws CertificateEncodingException, IOException, OperatorCreationException {
-        X509Certificate cert = tokenLookup.getCertificateForCerHash(certHash);
+        X509Certificate cert = getCertificateForCerHash(certHash);
         if (cert != null) {
             return cert;
         }
@@ -169,4 +169,15 @@ public class OcspResponseManager {
         return null;
     }
 
+    /**
+     * @param certSha256Hash the certificate SHA-256 hash in HEX
+     * @return the certificate for the certificate hash or null
+     */
+    private X509Certificate getCertificateForCerHash(String certSha256Hash) {
+        log.trace("getCertificateForCertHash({})", certSha256Hash);
+
+        return tokenRegistry.readAction(ctx ->
+                ctx.forCert((k, c) ->
+                        certSha256Hash.equals(c.sha256hash()), (k, c) -> c.certificate()).orElse(null));
+    }
 }

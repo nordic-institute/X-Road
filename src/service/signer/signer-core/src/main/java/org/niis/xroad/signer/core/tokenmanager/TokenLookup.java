@@ -49,7 +49,6 @@ import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
 import org.niis.xroad.signer.core.util.TokenAndKey;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Optional;
 
@@ -284,17 +283,6 @@ public class TokenLookup {
 
         return tokenRegistry.readAction(ctx ->
                 ctx.forCert((k, c) -> certHash.equals(c.sha256hash()), (k, c) -> certificateInfoProtoMapper.toTargetDTO(c)).orElse(null));
-    }
-
-    /**
-     * @param certSha256Hash the certificate SHA-256 hash in HEX
-     * @return the certificate for the certificate hash or null
-     */
-    public X509Certificate getCertificateForCerHash(String certSha256Hash) {
-        log.trace("getCertificateForCertHash({})", certSha256Hash);
-
-        return tokenRegistry.readAction(ctx ->
-                ctx.forCert((k, c) -> certSha256Hash.equals(c.sha256hash()), (k, c) -> c.certificate()).orElse(null));
     }
 
     /**

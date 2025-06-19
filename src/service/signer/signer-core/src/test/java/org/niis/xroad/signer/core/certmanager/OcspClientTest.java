@@ -51,6 +51,7 @@ import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
 import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.core.config.SignerProperties;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.core.tokenmanager.TokenRegistry;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -91,10 +92,11 @@ class OcspClientTest {
     private final GlobalConfProvider globalConfProvider = globalConfProvider();
     private final OcspClient ocspClient = new OcspClient(globalConfProvider);
     private final TokenLookup tokenManager = mock(TokenLookup.class);
+    private final TokenRegistry tokenRegistry = mock(TokenRegistry.class);
     private final FileBasedOcspCache fileBasedOcspCache =
             new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class));
     private final OcspResponseManager ocspResponseManager =
-            new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache, tokenManager);
+            new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache, tokenRegistry);
     private final OcspClientWorker ocspClientWorker =
             new TestOcspClient(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
 
