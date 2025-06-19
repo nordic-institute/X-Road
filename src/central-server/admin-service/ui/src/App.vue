@@ -25,35 +25,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <XrdApp>
-    <template #system-bar>
-      <app-toolbar v-if="loginView" />
-    </template>
+  <XrdApp :login-view="loginView">
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </XrdApp>
 
-  <v-app class="xrd-app" aaa="BBB" v-if="!loginView">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </transition>
-      </router-view>
-    </v-main>
-    <XrdSnackBar
-      :success-notifications="notificationStore.successNotifications"
-      @close="notificationStore.deleteSuccessNotification($event.timeAdded)"
-    />
-    <XrdAppFooter v-if="loginView" />
-  </v-app>
+  <XrdSnackBar
+    :success-notifications="notificationStore.successNotifications"
+    @close="notificationStore.deleteSuccessNotification($event.timeAdded)"
+  />
 </template>
 
 <script lang="ts" setup>
 // The root component of the Vue app
 import { computed } from 'vue';
-import { XrdAppFooter, XrdSnackBar, XrdApp } from '@niis/shared-ui';
-import AppToolbar from '@/layouts/AppToolbar.vue';
+import { XrdSnackBar, XrdApp } from '@niis/shared-ui';
 import { RouteName } from '@/global';
 import { useRoute } from 'vue-router';
 import { useNotifications } from '@/store/modules/notifications';
@@ -62,32 +51,11 @@ const route = useRoute();
 const notificationStore = useNotifications();
 
 const loginView = computed(() => {
-  return route.name !== RouteName.Login;
+  return route.name === RouteName.Login;
 });
 </script>
 
-<!-- eslint-disable-next-line  vue-scoped-css/enforce-style-type -->
 <style lang="scss">
-@use '@niis/shared-ui/src/assets/global-style.scss';
+@use '@niis/shared-ui/src/assets/xrd8/global-style.scss';
 </style>
-
-<style lang="scss" scoped>
-@use '@niis/shared-ui/src/assets/colors';
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
-
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
-}
-
-// Set the app background color
-.v-theme--light.v-application.xrd-app {
-  background: colors.$WarmGrey30;
-}
-</style>
+<style lang="scss" scoped></style>

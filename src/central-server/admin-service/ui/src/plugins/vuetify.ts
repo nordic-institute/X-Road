@@ -25,34 +25,28 @@
  * THE SOFTWARE.
  */
 
+import '@/assets/styles.css';
+import '@niis/shared-ui/src/assets/xrd8/material-symbols-rounded.css';
 import 'vuetify/styles';
-import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
-import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { i18n, Colors, themes } from '@niis/shared-ui';
+import { i18n, themes, msr, msrAliases } from '@niis/shared-ui';
 
 export default createVuetify({
   defaults: {
-    VProgressLinear: {
-      color: 'primary',
+    global: {
+      ripple: false,
     },
-    VCheckbox: {
-      color: 'primary',
-    },
-    VTextField: {
-      color: 'primary',
-    },
-    VTabs: {
-      color: 'primary',
+    VCard: {
+
     },
   },
   icons: {
-    defaultSet: 'mdi',
-    aliases,
+    defaultSet: 'msr',
+    aliases: msrAliases,
     sets: {
-      mdi,
+      msr,
     },
   },
   locale: {

@@ -25,6 +25,9 @@
    THE SOFTWARE.
  -->
 <template>
+  <v-app-bar>
+    Title
+  </v-app-bar>
   <div>
     <searchable-titled-view
       v-model="search"

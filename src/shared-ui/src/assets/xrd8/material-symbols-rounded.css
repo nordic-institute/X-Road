@@ -1,0 +1,111 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  src: url('./MaterialSymbolsRounded.woff2') format('woff2'),
+  url('./MaterialSymbolsRounded.ttf') format('truetype');
+}
+
+.msr:before {
+  font-family: 'Material Symbols Rounded';
+  font-weight: 400;
+  font-style: normal;
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  font-size: inherit;
+  text-rendering: auto;
+  line-height: inherit;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variation-settings: 'GRAD' 0, 'FILL' 0, 'opsz' 24, 'wght' 400;
+}
+
+.msr-filled:before {
+  font-variation-settings: 'GRAD' 0, 'FILL' 1, 'opsz' 24, 'wght' 400;
+}
+
+.msr-settings::before {
+  content: "\e8b8";
+}
+
+.msr-shield-lock::before {
+  content: "\f686";
+}
+
+.msr-rule-settings::before {
+  content: "\f64c";
+}
+
+.msr-dns::before {
+  content: "\e875";
+}
+
+.msr-search::before {
+  content: "\e8b6";
+}
+
+.msr-folder::before {
+  content: "\e2c7";
+}
+
+.msr-visibility::before {
+  content: "\e8f4";
+}
+
+.msr-visibility-off::before {
+  content: "\e8f5";
+}
+
+.msr-page-info::before {
+  content: "\f614";
+}
+
+.msr-account-box::before {
+  content: "\e851";
+}
+
+.msr-language::before {
+  content: "\e894";
+}
+
+.msr-arrow-drop-down::before {
+  content: "\e5c5";
+}
+
+.msr-arrow-drop-up::before {
+  content: "\e5c7";
+}
+
+.msr-logout::before {
+  content: "\e9ba";
+}

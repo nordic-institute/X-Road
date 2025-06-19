@@ -116,7 +116,7 @@ const routes: XrdRoute[] = [
         },
         components: {
           default: SettingsView,
-          top: TabsBase,
+          navigation: TabsBase,
           subTabs: SettingsTabs,
           alerts: AlertsContainer,
         },
@@ -196,7 +196,7 @@ const routes: XrdRoute[] = [
         components: {
           default: CreateApiKeyStepper,
           alerts: AlertsContainer,
-          top: TabsBaseEmpty,
+          navigation: TabsBaseEmpty,
         },
         props: {
           default: true,
@@ -208,7 +208,7 @@ const routes: XrdRoute[] = [
         path: '/members',
         components: {
           default: MembersView,
-          top: TabsBase,
+          navigation: TabsBase,
           alerts: AlertsContainer,
         },
         children: [
@@ -251,7 +251,7 @@ const routes: XrdRoute[] = [
         path: '/security-servers',
         components: {
           default: SecurityServers,
-          top: TabsBase,
+          navigation: TabsBase,
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
@@ -331,7 +331,7 @@ const routes: XrdRoute[] = [
         path: '/trust-services',
         components: {
           default: TrustServices,
-          top: TabsBase,
+          navigation: TabsBase,
           alerts: AlertsContainer,
         },
         children: [
@@ -476,7 +476,7 @@ const routes: XrdRoute[] = [
         path: '/init',
         components: {
           default: InitialConfiguration,
-          top: TabsBaseEmpty,
+          navigation: TabsBaseEmpty,
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.INIT_CONFIG] },
@@ -486,7 +486,7 @@ const routes: XrdRoute[] = [
         path: '/management-requests',
         components: {
           default: ManagementRequests,
-          top: TabsBase,
+          navigation: TabsBase,
           alerts: AlertsContainer,
         },
         children: [
@@ -517,7 +517,7 @@ const routes: XrdRoute[] = [
         path: '/global-configuration',
         components: {
           default: GlobalConfiguration,
-          top: TabsBase,
+          navigation: TabsBase,
           subTabs: GlobalConfigurationTabs,
           alerts: AlertsContainer,
         },

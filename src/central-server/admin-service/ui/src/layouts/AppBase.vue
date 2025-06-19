@@ -26,18 +26,13 @@
  -->
 
 <template>
-  <xrd-app-base>
-    <template #top>
-      <router-view name="top" />
-    </template>
-    <template #subTabs>
-      <router-view name="subTabs" />
-    </template>
-    <template #alerts>
-      <router-view name="alerts" />
-    </template>
+  <AppToolbar />
+  <router-view name="navigation" />
+
+  <v-main>
     <router-view />
-  </xrd-app-base>
+  </v-main>
+
 </template>
 
 <script lang="ts" setup>
@@ -45,7 +40,7 @@ import { Timeouts } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
-import { XrdAppBase } from '@niis/shared-ui';
+import AppToolbar from '@/layouts/AppToolbar.vue';
 
 const userStore = useUser();
 const { checkAlerts } = useAlerts();
@@ -60,6 +55,7 @@ fetchSystemStatus();
 checkAlerts();
 
 async function pollSessionStatus() {
+  console.log('Test session');
   return userStore
     .fetchSessionStatus()
     .then(() => {
