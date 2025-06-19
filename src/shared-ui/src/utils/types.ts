@@ -81,4 +81,5 @@ export interface Tab {
   name: string; // Localisation key for the name
   to: RouteLocationRaw & { name: string }; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
   permissions?: string[]; // Permissions needed to view this tab
+  icon?: string;
 }
