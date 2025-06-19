@@ -83,7 +83,8 @@ public class AdminUsersController {
     @PreAuthorize("hasAuthority('UPDATE_ADMIN_USER') or #username == authentication.principal")
     public ResponseEntity<Void> changePassword(
             @PathVariable("username") String username, @RequestBody AdminUserPasswordChangeRequest passwordChangeRequest) {
-        adminUserService.changePassword(username, passwordChangeRequest.getOldPassword(), passwordChangeRequest.getNewPassword());
+        adminUserService.changePassword(
+                username, passwordChangeRequest.getOldPassword().toCharArray(), passwordChangeRequest.getNewPassword().toCharArray());
         return ResponseEntity.ok().build();
     }
 

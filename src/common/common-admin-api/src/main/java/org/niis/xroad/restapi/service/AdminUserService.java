@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.service;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
@@ -36,6 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,19 +48,13 @@ import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.PASSWORD_ENCODER
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class AdminUserService {
 
     private final AdminUserRepository userRepository;
     private final AdminUserEntityMapper mapper;
+    @Qualifier(PASSWORD_ENCODER)
     private final PasswordEncoder passwordEncoder;
-
-    public AdminUserService(AdminUserRepository userRepository,
-                            AdminUserEntityMapper mapper,
-                            @Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.mapper = mapper;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public Optional<AdminUser> findAdminUser(String username) {
         return userRepository.findByUsername(username)
@@ -73,22 +69,22 @@ public class AdminUserService {
     }
 
     public void create(AdminUser adminUser) {
-        adminUser = new AdminUser(
+        var adminUserWithHashedPassword = new AdminUser(
                 null,
                 adminUser.getUsername(),
-                passwordEncoder.encode(adminUser.getPassword()),
+                passwordEncoder.encode(CharBuffer.wrap(adminUser.getPassword())).toCharArray(),
                 adminUser.getRoles()
         );
-        userRepository.create(mapper.toEntity(adminUser));
+        userRepository.create(mapper.toEntity(adminUserWithHashedPassword));
     }
 
-    public void changePassword(String username, String oldPassword, String newPassword) {
+    public void changePassword(String username, char[] oldPassword, char[] newPassword) {
         var existingUser = userRepository.findByUsername(username).orElseThrow();
-        if (!passwordEncoder.matches(oldPassword, existingUser.getPassword())) {
+        if (!passwordEncoder.matches(CharBuffer.wrap(oldPassword), new String(existingUser.getPassword()))) {
             throw new BadRequestException(PASSWORD_INCORRECT.build());
         }
-        newPassword = passwordEncoder.encode(newPassword);
-        existingUser.setPassword(newPassword);
+        var newPasswordHashed = passwordEncoder.encode(CharBuffer.wrap(newPassword));
+        existingUser.setPassword(newPasswordHashed.toCharArray());
         userRepository.update(existingUser);
     }
 

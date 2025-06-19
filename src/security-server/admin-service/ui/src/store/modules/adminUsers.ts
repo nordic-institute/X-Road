@@ -31,15 +31,16 @@ import {
   AdminUser,
   AdminUserPasswordChangeRequest,
   AdminUsersHandler,
-  i18n,
 } from '@niis/shared-ui';
 
 import { Permissions, Roles, RouteName } from '@/global';
+import { useI18n } from 'vue-i18n';
 
 export function useAdminUsersHandler() {
   const { showError, showSuccess } = useNotifications();
   const router = useRouter();
   const { username, hasPermission, hasRole } = useUser();
+  const { t } = useI18n();
 
   const fetchUsers = () => {
     return api
@@ -55,7 +56,7 @@ export function useAdminUsersHandler() {
       .remove(`/users/${api.encodePathParameter(username)}`)
       .then(() => {
         showSuccess(
-          i18n.global.t('adminUsers.table.action.delete.success', {
+          t('adminUsers.table.action.delete.success', {
             username: username,
           }),
         );
@@ -68,7 +69,7 @@ export function useAdminUsersHandler() {
       .put(`/users/${api.encodePathParameter(username)}/roles`, roles)
       .then(() => {
         showSuccess(
-          i18n.global.t('adminUsers.table.action.edit.success', {
+          t('adminUsers.table.action.edit.success', {
             username: username,
           }),
         );
@@ -88,7 +89,7 @@ export function useAdminUsersHandler() {
       } as AdminUserPasswordChangeRequest)
       .then(() => {
         showSuccess(
-          i18n.global.t('adminUsers.table.action.changePassword.success', {
+          t('adminUsers.table.action.changePassword.success', {
             username: username,
           }),
         );
@@ -102,7 +103,7 @@ export function useAdminUsersHandler() {
       .then(() => {
         router.push({ name: RouteName.AdminUsers });
         showSuccess(
-          i18n.global.t('adminUsers.addUser.success', {
+          t('adminUsers.addUser.success', {
             username: user.username,
           }),
         );

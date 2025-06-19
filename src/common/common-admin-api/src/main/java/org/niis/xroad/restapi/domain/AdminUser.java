@@ -33,8 +33,8 @@ import java.util.Set;
 @Getter
 @RequiredArgsConstructor
 public class AdminUser {
-    private final Long id;
+    private final Integer id;
     private final String username;
-    private final String password;
+    private final char[] password;
     private final Set<Role> roles;
 }

@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.domain.AdminUser;
@@ -58,12 +57,11 @@ public class DatabaseAuthenticationProvider implements AuthenticationProvider {
         authenticationIpWhitelist.validateIpAddress(authentication);
         String username = authentication.getPrincipal().toString();
         String presentedPassword = authentication.getCredentials().toString();
-        validateCredentialsLength(username, presentedPassword);
 
         try {
             AdminUser user = adminUserService.findAdminUser(authentication.getName())
                     .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
-            if (!this.passwordEncoder.matches(presentedPassword, user.getPassword())) {
+            if (!this.passwordEncoder.matches(presentedPassword, new String(user.getPassword()))) {
                 throw new BadCredentialsException("Bad credentials");
             }
             Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(user.getRoles());
@@ -78,14 +76,5 @@ public class DatabaseAuthenticationProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
-    }
-
-    private void validateCredentialsLength(final String username, final String password) {
-        if (StringUtils.length(username) > MAX_LEN) {
-            throw new BadCredentialsException("username is too long, max length: %d".formatted(MAX_LEN));
-        }
-        if (StringUtils.length(password) > MAX_LEN) {
-            throw new BadCredentialsException("password is too long, max length: %d".formatted(MAX_LEN));
-        }
     }
 }

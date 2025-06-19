@@ -52,11 +52,11 @@ public class AdminUserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private Integer id;
 
     private String username;
 
-    private String password;
+    private char[] password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
