@@ -270,7 +270,9 @@
       "success": "Edukas",
       "failure": "Ebaõnnestunud",
       "successfulRequests": "Edukad päringud",
-      "failedRequests": "Ebaõnnestunud päringud"
+      "failedRequests": "Ebaõnnestunud päringud",
+      "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
+      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -909,6 +911,10 @@
     "settings": {
       "backupAndRestore": "Varundamine ja taastamine",
       "systemParameters": "Süsteemi parameetrid"
+    },
+    "diagnostics": {
+      "overview": "Ülevaade",
+      "traffic": "Päringute statistika"
     }
   },
   "token": {

@@ -31,40 +31,34 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { Permissions, RouteName } from '@/global';
-import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Tab, XrdSubTabs } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: {
-    XrdSubTabs,
-  },
-  computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'diagnostics-overview-tab-button',
-          name: 'tab.diagnostics.overview',
-          to: {
-            name: RouteName.Diagnostics,
-          },
-          permissions: [Permissions.DIAGNOSTICS],
-        },
-        {
-          key: 'diagnostics-traffic-tab-button',
-          name: 'tab.diagnostics.traffic',
-          to: {
-            name: RouteName.DiagnosticsTraffic,
-          },
-          permissions: [Permissions.DIAGNOSTICS],
-        },
-      ];
-      return this.getAllowedTabs(allTabs);
+const userStore = useUser();
+
+const tabs = getAllowedTabs();
+
+function getAllowedTabs(): Tab[] {
+  const allTabs: Tab[] = [
+    {
+      key: 'diagnostics-overview-tab-button',
+      name: 'tab.diagnostics.overview',
+      to: {
+        name: RouteName.Diagnostics,
+      },
+      permissions: [Permissions.DIAGNOSTICS],
     },
-  },
-});
+    {
+      key: 'diagnostics-traffic-tab-button',
+      name: 'tab.diagnostics.traffic',
+      to: {
+        name: RouteName.DiagnosticsTraffic,
+      },
+      permissions: [Permissions.DIAGNOSTICS],
+    },
+  ];
+  return userStore.getAllowedTabs(allTabs);
+}
 </script>

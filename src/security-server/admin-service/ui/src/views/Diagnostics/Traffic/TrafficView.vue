@@ -1,141 +1,139 @@
 <template>
-  <XrdTitledView
-    title-key="tab.diagnostics.traffic"
-    data-test="diagnostics-view"
-  >
-    <v-card variant="flat">
-      <v-card-text class="xrd-card-text">
-        <v-row dense>
-          <v-col cols="3">
-            <xrd-form-label
-              :label-text="$t('diagnostics.traffic.period')"
-              :help-text="$t('diagnostics.traffic.periodInfo')"
-            />
-          </v-col>
-          <v-col cols="auto">
-            <v-date-input
-              v-model="filters.startDate"
-              class="date-input"
-              :label="$t('diagnostics.traffic.date')"
-              prepend-inner-icon="$calendar"
-              prepend-icon=""
-            ></v-date-input>
-          </v-col>
-          <v-col cols="auto">
-            <v-text-field
-              v-model="filters.startTime"
-              v-maska="'##:##'"
-              class="time-input"
-              :label="$t('diagnostics.traffic.time')"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="auto"><span class="range-separator"></span></v-col>
-          <v-col cols="auto">
-            <v-date-input
-              v-model="filters.endDate"
-              class="date-input"
-              :label="$t('diagnostics.traffic.date')"
-              prepend-inner-icon="$calendar"
-              prepend-icon=""
-            ></v-date-input>
-          </v-col>
-          <v-col cols="auto">
-            <v-text-field
-              v-model="filters.endTime"
-              v-maska="'##:##'"
-              class="time-input"
-              :label="$t('diagnostics.traffic.time')"
-            ></v-text-field>
-          </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="3">
-            <xrd-form-label
-              :label-text="$t('diagnostics.traffic.party')"
-              :help-text="$t('diagnostics.traffic.partyInfo')"
-            />
-          </v-col>
-          <v-col cols="5">
-            <v-select
-              v-model="filters.client"
-              :label="$t('diagnostics.traffic.client')"
-              clearable
-              :items="clientsStore.clients"
-              item-title="id"
-              item-value="id"
-              :loading="clientsLoading"
-            >
-              <template #item="{ props: itemProps, item }">
-                <v-list-item
-                  v-bind="itemProps"
-                  :subtitle="item.raw.member_name"
-                ></v-list-item>
-              </template>
-            </v-select>
-          </v-col>
-          <v-col cols="4">
-            <v-select
-              v-model="filters.service"
-              :label="$t('diagnostics.traffic.service')"
-              clearable
-              :items="services"
-              item-title="full_service_code"
-              item-value="id"
-              :loading="servicesLoading"
-              :disabled="!services.length"
-            >
-              <template #item="{ props: itemProps, item }">
-                <v-list-item
-                  v-bind="itemProps"
-                  :subtitle="item.raw.title"
-                ></v-list-item>
-              </template>
-            </v-select>
-          </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="3">
-            <xrd-form-label
-              :label-text="$t('diagnostics.traffic.exchangeRole')"
-              :help-text="$t('diagnostics.traffic.exchangeRoleInfo')"
-            />
-          </v-col>
-          <v-col>
-            <v-select
-              v-model="filters.exchangeRole"
-              :label="$t('diagnostics.traffic.exchangeRole')"
-              clearable
-              :items="[$t('diagnostics.traffic.producer'), $t('diagnostics.traffic.client')]"
-            >
-            </v-select>
-          </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="3">
-            <xrd-form-label
-              :label-text="$t('diagnostics.traffic.status')"
-              :help-text="$t('diagnostics.traffic.statusInfo')"
-            />
-          </v-col>
-          <v-col>
-            <v-select
-              v-model="filters.status"
-              :label="$t('diagnostics.traffic.status')"
-              clearable
-              :items="[
-                { title: $t('diagnostics.traffic.success'), value: true },
-                { title: $t('diagnostics.traffic.failure'), value: false },
-              ]"
-            >
-            </v-select>
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-    <v-card height="20rem">
-      <TrafficChart :series="series" />
-    </v-card>
-  </XrdTitledView>
+  <v-card variant="flat">
+    <v-card-text class="xrd-card-text">
+      <v-row dense>
+        <v-col cols="3">
+          <xrd-form-label
+            :label-text="$t('diagnostics.traffic.period')"
+            :help-text="$t('diagnostics.traffic.periodInfo')"
+          />
+        </v-col>
+        <v-col cols="auto">
+          <v-date-input
+            v-model="filters.startDate"
+            class="date-input"
+            :label="$t('diagnostics.traffic.date')"
+            prepend-inner-icon="$calendar"
+            prepend-icon=""
+          ></v-date-input>
+        </v-col>
+        <v-col cols="auto">
+          <v-text-field
+            v-model="filters.startTime"
+            v-maska="'##:##'"
+            class="time-input"
+            :label="$t('diagnostics.traffic.time')"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="auto"><span class="range-separator"></span></v-col>
+        <v-col cols="auto">
+          <v-date-input
+            v-model="filters.endDate"
+            class="date-input"
+            :label="$t('diagnostics.traffic.date')"
+            prepend-inner-icon="$calendar"
+            prepend-icon=""
+          ></v-date-input>
+        </v-col>
+        <v-col cols="auto">
+          <v-text-field
+            v-model="filters.endTime"
+            v-maska="'##:##'"
+            class="time-input"
+            :label="$t('diagnostics.traffic.time')"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row dense>
+        <v-col cols="3">
+          <xrd-form-label
+            :label-text="$t('diagnostics.traffic.party')"
+            :help-text="$t('diagnostics.traffic.partyInfo')"
+          />
+        </v-col>
+        <v-col cols="5">
+          <v-select
+            v-model="filters.client"
+            :label="$t('diagnostics.traffic.client')"
+            clearable
+            :items="clientsStore.clients"
+            item-title="id"
+            item-value="id"
+            :loading="clientsLoading"
+          >
+            <template #item="{ props: itemProps, item }">
+              <v-list-item
+                v-bind="itemProps"
+                :subtitle="item.raw.member_name"
+              ></v-list-item>
+            </template>
+          </v-select>
+        </v-col>
+        <v-col cols="4">
+          <v-select
+            v-model="filters.service"
+            :label="$t('diagnostics.traffic.service')"
+            clearable
+            :items="services"
+            item-title="full_service_code"
+            item-value="id"
+            :loading="servicesLoading"
+            :disabled="!services.length"
+          >
+            <template #item="{ props: itemProps, item }">
+              <v-list-item
+                v-bind="itemProps"
+                :subtitle="item.raw.title"
+              ></v-list-item>
+            </template>
+          </v-select>
+        </v-col>
+      </v-row>
+      <v-row dense>
+        <v-col cols="3">
+          <xrd-form-label
+            :label-text="$t('diagnostics.traffic.exchangeRole')"
+            :help-text="$t('diagnostics.traffic.exchangeRoleInfo')"
+          />
+        </v-col>
+        <v-col>
+          <v-select
+            v-model="filters.exchangeRole"
+            :label="$t('diagnostics.traffic.exchangeRole')"
+            clearable
+            :items="[
+              $t('diagnostics.traffic.producer'),
+              $t('diagnostics.traffic.client'),
+            ]"
+          >
+          </v-select>
+        </v-col>
+      </v-row>
+      <v-row dense>
+        <v-col cols="3">
+          <xrd-form-label
+            :label-text="$t('diagnostics.traffic.status')"
+            :help-text="$t('diagnostics.traffic.statusInfo')"
+          />
+        </v-col>
+        <v-col>
+          <v-select
+            v-model="filters.status"
+            :label="$t('diagnostics.traffic.status')"
+            clearable
+            :items="[
+              { title: $t('diagnostics.traffic.success'), value: true },
+              { title: $t('diagnostics.traffic.failure'), value: false },
+            ]"
+          >
+          </v-select>
+        </v-col>
+      </v-row>
+    </v-card-text>
+  </v-card>
+  <v-card height="20rem">
+    <TrafficChart :series="series" />
+  </v-card>
 </template>
 
 <script lang="ts" setup>
@@ -256,10 +254,7 @@ function getSecurityServerType(exchangeRole?: string) {
 function toQueryParams(
   filter: TrafficFilter,
 ): GetOperationalDataIntervalsParams {
-  const start = dateWithTime(
-    filter.startDate,
-    filter.startTime,
-  );
+  const start = dateWithTime(filter.startDate, filter.startTime);
   const end = dateWithTime(filter.endDate, filter.endTime)
     .second(59)
     .millisecond(999);

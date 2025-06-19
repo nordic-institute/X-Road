@@ -322,7 +322,9 @@
       "success": "Success",
       "failure": "Failure",
       "successfulRequests": "Successful requests",
-      "failedRequests": "Failed requests"
+      "failedRequests": "Failed requests",
+      "disabledTitle": "Operational Data Monitoring Is Disabled",
+      "disabledMessage": "Operational data monitoring is disabled for this Security Server. To enable it, please install the operational data monitoring add-on (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
