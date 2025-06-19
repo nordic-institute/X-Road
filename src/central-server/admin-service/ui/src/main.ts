@@ -31,10 +31,10 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
+import vuetify from '@/plugins/vuetify'; //
 import { createApp } from 'vue';
 import axios from 'axios';
 import { createFilters } from '@/filters';
-import App from './App.vue';
 import router from './router/router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
@@ -42,9 +42,7 @@ import '@fontsource/open-sans';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import validation from '@/plugins/vee-validate';
-import vuetify from '@/plugins/vuetify';
 import {
-  i18n,
   XrdButton,
   XrdCloseButton,
   XrdConfirmDialog,
@@ -65,6 +63,7 @@ import {
 } from '@niis/shared-ui';
 import { createLanguageHelper } from '@/plugins/i18n';
 import provider from '@/plugins/provider';
+import App from './App.vue';
 
 const pinia = createPinia();
 pinia.use(

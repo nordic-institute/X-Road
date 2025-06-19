@@ -79,4 +79,5 @@ export {
   XrdDataTableFooter,
   XrdSnackBar,
   XrdErrorNotification,
+  XrdVerticalLogo,
 };

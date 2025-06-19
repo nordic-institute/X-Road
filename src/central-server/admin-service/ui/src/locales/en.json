@@ -572,7 +572,7 @@
       "trustedAnchors": "Trusted Anchors"
     },
     "main": {
-      "globalConfiguration": "Global Configuration",
+      "globalConfiguration": "Global Conf.",
       "managementRequests": "Management Requests",
       "members": "Members",
       "securityServers": "Security Servers",

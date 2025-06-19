@@ -31,8 +31,33 @@ import { Colors } from 'vuetify/lib/composables/theme';
 import { Colors as XrdColors } from './colors';
 
 interface CustomColors extends Colors {
-  systemBar: string;
-  systemBarInit: string;
+  border: string;
+  'border-strong': string;
+  'border-bright': string;
+
+  'surface-container-lowest': string;
+  'on-surface-container-lowest': string;
+
+  'surface-variant': string;
+  'on-surface-variant': string;
+
+  'surface-dim': string;
+  'on-surface-dim': string;
+
+  special: string;
+  'on-special': string;
+
+  central: string;
+  'on-central': string;
+
+  'central-variant': string;
+  'on-central-variant': string;
+
+  accent: string;
+  'on-accent': string;
+
+  'accent-container': string;
+  'on-accent-container': string;
 }
 
 interface CustomTheme extends ThemeDefinition {
@@ -56,7 +81,7 @@ export const themes: Themes = {
       error: XrdColors.Red600,
       info: XrdColors.Blue500,
 
-      'on-background': XrdColors.White, //TODO XRD8 is it?
+      'on-background': XrdColors.Maroon900, //TODO XRD8 is it?
       'on-surface': XrdColors.Maroon900,
       'on-primary': XrdColors.White,
       'on-secondary': XrdColors.White,
@@ -65,8 +90,38 @@ export const themes: Themes = {
       'on-error': XrdColors.White,
       'on-info': XrdColors.White,
 
-      systemBar: XrdColors.Magenta900,
-      systemBarInit: XrdColors.Maroon700,
+      border: XrdColors.Blue100,
+      'border-strong': XrdColors.Maroon600,
+      'border-bright': XrdColors.Blue400,
+
+      'surface-container-lowest': XrdColors.Blue50,
+      'on-surface-container-lowest': XrdColors.Maroon900,
+
+      'surface-variant': XrdColors.White,
+      'on-surface-variant': XrdColors.Maroon400,
+
+      'surface-dim': XrdColors.Blue50,
+      'on-surface-dim': XrdColors.Maroon900,
+
+      special: XrdColors.Maroon100, //TODO XRD8 should be gradient?
+      'on-special': XrdColors.Maroon700,
+
+      central: XrdColors.Magenta900,
+      'on-central': XrdColors.Maroon100,
+
+      'central-variant': XrdColors.Maroon700,
+      'on-central-variant': XrdColors.Maroon100,
+
+      accent: XrdColors.Magenta600,
+      'on-accent': XrdColors.White,
+
+      'accent-container': XrdColors.White,
+      'on-accent-container': XrdColors.Magenta600,
+    },
+    variables: {
+      'high-emphasis-opacity': 1,
+      'medium-emphasis-opacity': 1,
+      'disabled-opacity': 0.5,
     },
   },
 };

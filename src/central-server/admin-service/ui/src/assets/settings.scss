@@ -24,9 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-@use '@niis/shared-ui/src/assets/colors';
 
 @use 'vuetify/settings' with (
-  $table-row-height: 56px,
-);
+  $layers: true,
 
+  $table-row-height: 56px,
+  $button-text-transform: none,
+  $field-outline-opacity: .4,
+  $ripple-animation-visible-opacity: .24
+);

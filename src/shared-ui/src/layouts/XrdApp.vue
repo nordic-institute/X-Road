@@ -27,41 +27,24 @@
 
 <template>
   <v-app theme="light">
-    <slot name="system-bar"></slot>
+    <slot />
 
-    <v-navigation-drawer width="96" permanent>
-      <slot name="main-navigation">
-        Main nav
-      </slot>
-    </v-navigation-drawer>
-
-    <v-app-bar color="grey" height="48" flat>
-      <slot name="title-bar">
-        Title bar
-      </slot>
-    </v-app-bar>
-    <v-app-bar
-      color="grey-lighten-2"
-      height="48"
-      flat
-    >
-      <slot name="sub-tabs">
-        Sub tabs
-      </slot>
-    </v-app-bar>
-
-
-    <v-main>
-      <v-container>
-        <h1>Main Content</h1>
-      </v-container>
-    </v-main>
-
+    <XrdLogoutDialog v-if="!loginView" />
   </v-app>
 </template>
 
 <script lang="ts" setup>
+import XrdLogoutDialog from '../components/XrdLogoutDialog.vue';
+
+defineProps({
+  loginView: {
+    type: Boolean,
+    required: true,
+  },
+});
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@use '../assets/xrd8/global-style.scss';
 </style>
+<style lang="scss" scoped></style>
