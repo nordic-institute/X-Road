@@ -24,27 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.signer.core.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import org.niis.xroad.signer.core.model.BasicCertInfo;
+import org.niis.xroad.signer.core.model.BasicKeyInfo;
+import org.niis.xroad.signer.core.model.BasicTokenInfo;
+import org.niis.xroad.signer.core.model.CertRequestData;
 
-import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public interface TokenKeyCertService {
+public interface TokenReadService {
 
-    Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes) throws Exception;
+    LoadedTokens loadAllTokens() throws Exception;
 
-    boolean delete(Long id) throws Exception;
+    record LoadedTokens(Set<BasicTokenInfo> tokens,
+                        Map<Long, List<BasicKeyInfo>> keys,
+                        Map<Long, List<BasicCertInfo>> certs,
+                        Map<Long, List<CertRequestData>> certRequests) {
+    }
 
-    boolean setActive(Long id, boolean active) throws Exception;
-
-    boolean updateStatus(Long id, String status) throws Exception;
-
-    boolean updateRenewedCertHash(Long id, String renewedCertHash) throws Exception;
-
-    boolean updateRenewalError(Long id, String renewalError) throws Exception;
-
-    boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) throws Exception;
-
-    boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) throws Exception;
 }

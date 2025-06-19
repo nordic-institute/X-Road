@@ -28,18 +28,16 @@ package org.niis.xroad.signer.jpa.service.impl;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.identifier.ClientId;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.identifiers.jpa.dao.impl.IdentifierDAOImpl;
-import org.niis.xroad.signer.core.service.TokenKeyCertRequestService;
+import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
 import org.niis.xroad.signer.jpa.dao.impl.SignerKeyCertRequestDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerCertRequestEntity;
 
 @Slf4j
-@ApplicationScoped
 @RequiredArgsConstructor
-public class TokenKeyCertRequestServiceImpl implements TokenKeyCertRequestService {
+public class TokenKeyCertRequestWriteServiceImpl implements TokenKeyCertRequestWriteService {
     private final DatabaseCtx sessionProvider;
     private final SignerKeyCertRequestDaoImpl keyCertRequestDao;
     private final IdentifierDAOImpl identifierDAO;

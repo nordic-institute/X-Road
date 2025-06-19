@@ -24,25 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.signer.core.service;
 
-import org.niis.xroad.signer.core.model.BasicCertInfo;
-import org.niis.xroad.signer.core.model.BasicKeyInfo;
-import org.niis.xroad.signer.core.model.BasicTokenInfo;
-import org.niis.xroad.signer.core.model.CertRequestData;
-
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public interface TokenService {
-    /**
-     * Loads all tokens, keys, certificates and certificate requests from the source.
-     *
-     * @return
-     * @throws Exception
-     */
-    LoadedTokens loadAllTokens() throws Exception;
+public interface TokenWriteService {
 
     boolean delete(Long tokenId) throws Exception;
 
@@ -54,10 +41,4 @@ public interface TokenService {
 
     boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
 
-    record LoadedTokens(Set<BasicTokenInfo> tokens,
-                        Map<Long, List<BasicKeyInfo>> keys,
-                        Map<Long, List<BasicCertInfo>> certs,
-                        Map<Long, List<CertRequestData>> certRequests) {
-
-    }
 }

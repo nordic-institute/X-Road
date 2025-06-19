@@ -26,22 +26,25 @@
  */
 package org.niis.xroad.signer.core.service;
 
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import java.time.Instant;
 
-public interface TokenKeyService {
-    Long save(Long tokenId, String keyId, String publicKeyBase64, byte[] keyStore,
-              SignMechanism signMechanism,
-              String friendlyName, String label, boolean softwareKey) throws Exception;
+public interface TokenKeyCertWriteService {
+
+    Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes) throws Exception;
 
     boolean delete(Long id) throws Exception;
 
-    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+    boolean setActive(Long id, boolean active) throws Exception;
 
-    boolean updateLabel(Long id, String label) throws Exception;
+    boolean updateStatus(Long id, String status) throws Exception;
 
-    boolean updateKeyUsage(Long id, KeyUsageInfo keyUsage) throws Exception;
+    boolean updateRenewedCertHash(Long id, String renewedCertHash) throws Exception;
 
-    boolean updatePublicKey(Long id, String publicKey) throws Exception;
+    boolean updateRenewalError(Long id, String renewalError) throws Exception;
+
+    boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) throws Exception;
+
+    boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) throws Exception;
 }

@@ -26,16 +26,22 @@
  */
 package org.niis.xroad.signer.core.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
-public interface TokenKeyCertRequestService {
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-    Long save(Long keyId,
-              String externalId,
-              ClientId.Conf memberId,
-              String subjectName,
-              String subjectAltName,
-              String certificateProfile) throws Exception;
+public interface TokenKeyWriteService {
+    Long save(Long tokenId, String keyId, String publicKeyBase64, byte[] keyStore,
+              SignMechanism signMechanism,
+              String friendlyName, String label, boolean softwareKey) throws Exception;
 
     boolean delete(Long id) throws Exception;
+
+    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+
+    boolean updateLabel(Long id, String label) throws Exception;
+
+    boolean updateKeyUsage(Long id, KeyUsageInfo keyUsage) throws Exception;
+
+    boolean updatePublicKey(Long id, String publicKey) throws Exception;
 }

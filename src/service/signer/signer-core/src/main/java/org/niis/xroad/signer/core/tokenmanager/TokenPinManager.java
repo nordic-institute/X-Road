@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.model.BasicKeyInfo;
 import org.niis.xroad.signer.core.model.RuntimeToken;
-import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwarePinHasher;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenUtil;
 
@@ -54,7 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 @RequiredArgsConstructor
 public final class TokenPinManager {
     private final TokenRegistry tokenRegistry;
-    private final TokenService tokenService;
+    private final TokenWriteService tokenWriteService;
     private final SoftwarePinHasher softwarePinHasher;
 
     public void setTokenPin(String tokenId, char[] pin) {
@@ -64,7 +64,7 @@ public final class TokenPinManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var token = ctx.findToken(tokenId);
-                tokenService.setInitialTokenPin(token.id(), pinHash);
+                tokenWriteService.setInitialTokenPin(token.id(), pinHash);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -73,7 +73,6 @@ public final class TokenPinManager {
                 ctx.invalidateCache();
             }
         });
-
     }
 
     public void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) {
@@ -85,7 +84,7 @@ public final class TokenPinManager {
                 var newPinHash = softwarePinHasher.hashPin(newPin);
                 var updatedKeys = updateKeyStores(token, oldPin, newPin);
 
-                tokenService.updateTokenPin(token.id(), updatedKeys, newPinHash);
+                tokenWriteService.updateTokenPin(token.id(), updatedKeys, newPinHash);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {

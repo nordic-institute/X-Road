@@ -28,10 +28,9 @@ package org.niis.xroad.signer.jpa.service.impl;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.core.service.TokenKeyService;
+import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.jpa.dao.impl.SignerKeyDaoImpl;
 import org.niis.xroad.signer.jpa.entity.SignerKeyEntity;
 import org.niis.xroad.signer.jpa.entity.type.KeyType;
@@ -39,9 +38,8 @@ import org.niis.xroad.signer.jpa.entity.type.KeyUsage;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 @Slf4j
-@ApplicationScoped
 @RequiredArgsConstructor
-public class TokenKeyServiceImpl implements TokenKeyService {
+public class TokenKeyWriteServiceImpl implements TokenKeyWriteService {
     private final DatabaseCtx sessionProvider;
     private final SignerKeyDaoImpl keyDao;
 

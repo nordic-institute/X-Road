@@ -41,7 +41,7 @@ import org.niis.xroad.signer.core.model.RuntimeCertImpl;
 import org.niis.xroad.signer.core.model.RuntimeKey;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.core.service.TokenReadService;
 
 import java.util.Collection;
 import java.util.Set;
@@ -51,14 +51,14 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class TokenRegistryLoader {
-    private final TokenService tokenService;
+    private final TokenReadService tokenReadService;
     private final OcspResponseManager ocspResponseManager;
 
     public Set<RuntimeTokenImpl> loadTokens() {
         try {
             var stopWatch = StopWatch.createStarted();
 
-            var loadedTokenData = tokenService.loadAllTokens();
+            var loadedTokenData = tokenReadService.loadAllTokens();
 
             var result = loadedTokenData.tokens().stream()
                     .map(basicTokenInfo -> createRuntimeToken(loadedTokenData, basicTokenInfo))
@@ -79,7 +79,7 @@ public class TokenRegistryLoader {
         try {
             var stopWatch = StopWatch.createStarted();
 
-            var loadedTokenData = tokenService.loadAllTokens();
+            var loadedTokenData = tokenReadService.loadAllTokens();
             // Create maps for efficient lookup of existing entries
             var existingTokens = currentTokens.stream()
                     .collect(Collectors.toMap(RuntimeTokenImpl::id, token -> token));
@@ -136,7 +136,7 @@ public class TokenRegistryLoader {
         });
     }
 
-    private RuntimeTokenImpl createRuntimeToken(TokenService.LoadedTokens loadedTokens, BasicTokenInfo basicTokenInfo) {
+    private RuntimeTokenImpl createRuntimeToken(TokenReadService.LoadedTokens loadedTokens, BasicTokenInfo basicTokenInfo) {
         var runtimeToken = new RuntimeTokenImpl();
         runtimeToken.setData(basicTokenInfo);
 
@@ -147,7 +147,7 @@ public class TokenRegistryLoader {
         return runtimeToken;
     }
 
-    private RuntimeKeyImpl createRuntimeKey(TokenService.LoadedTokens loadedTokens, BasicKeyInfo basicKeyInfo) {
+    private RuntimeKeyImpl createRuntimeKey(TokenReadService.LoadedTokens loadedTokens, BasicKeyInfo basicKeyInfo) {
         var runtimeKey = new RuntimeKeyImpl();
         runtimeKey.setData(basicKeyInfo);
 

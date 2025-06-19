@@ -47,7 +47,7 @@ import org.niis.xroad.signer.core.model.RuntimeKey;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
 import org.niis.xroad.signer.core.model.SoftwareTokenData;
-import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.core.service.TokenReadService;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -69,7 +69,7 @@ import static org.mockito.Mockito.when;
 class TokenRegistryLoaderTest {
 
     @Mock
-    private TokenService tokenService;
+    private TokenReadService tokenReadService;
 
     @Mock
     private OcspResponseManager ocspResponseManager;
@@ -79,8 +79,8 @@ class TokenRegistryLoaderTest {
 
     @Test
     void testLoadTokens() throws Exception {
-        TokenService.LoadedTokens loadedTokens = loadedTokens();
-        when(tokenService.loadAllTokens()).thenReturn(loadedTokens);
+        TokenReadService.LoadedTokens loadedTokens = loadedTokens();
+        when(tokenReadService.loadAllTokens()).thenReturn(loadedTokens);
 
         var tokens = tokenRegistryLoader.loadTokens();
 
@@ -105,7 +105,7 @@ class TokenRegistryLoaderTest {
 
     @Test
     void testRefreshTokens() throws Exception {
-        when(tokenService.loadAllTokens()).thenReturn(loadedTokens());
+        when(tokenReadService.loadAllTokens()).thenReturn(loadedTokens());
 
         var currentToken = new RuntimeTokenImpl();
         currentToken.setData(new SoftwareTokenData(1L, "old-ext-id", "old-type", "old-serialNumber", "old-label",
@@ -173,7 +173,7 @@ class TokenRegistryLoaderTest {
         assertEquals(List.of("sha256hash-1"), captor.getValue());
     }
 
-    private TokenService.LoadedTokens loadedTokens() {
+    private TokenReadService.LoadedTokens loadedTokens() {
 
         var tokenData = new SoftwareTokenData(1L, "externalId", "type", "serialNumber", "label",
                 "friendlyName", new byte[]{'p', 'i', 'n', 'h', 'a', 's', 'h'}, Instant.now(), Instant.now());
@@ -186,7 +186,7 @@ class TokenRegistryLoaderTest {
         var certRequest1 = new CertRequestData(0L, "cert-request-external-id-1", 0L, ClientId.Conf.create("a", "b", "c"),
                 "sn", "subject alt name", "", Instant.now(), Instant.now());
 
-        return new TokenService.LoadedTokens(
+        return new TokenReadService.LoadedTokens(
                 Set.of(tokenData),
                 Map.of(1L, List.of(key1, key2)),
                 Map.of(0L, List.of(cert1)),

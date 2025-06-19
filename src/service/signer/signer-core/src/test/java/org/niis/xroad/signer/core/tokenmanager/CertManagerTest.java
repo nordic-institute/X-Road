@@ -37,9 +37,9 @@ import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCertImpl;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenKeyCertRequestService;
-import org.niis.xroad.signer.core.service.TokenKeyCertService;
-import org.niis.xroad.signer.core.service.TokenKeyService;
+import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
+import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
+import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.time.Instant;
@@ -62,13 +62,13 @@ import static org.mockito.Mockito.when;
 @Slf4j
 class CertManagerTest {
 
-    private final TokenKeyCertService tokenKeyCertService = mock(TokenKeyCertService.class);
-    private final TokenKeyService tokenKeyService = mock(TokenKeyService.class);
-    private final TokenKeyCertRequestService tokenKeyCertRequestService = mock(TokenKeyCertRequestService.class);
+    private final TokenKeyCertWriteService tokenKeyCertWriteService = mock(TokenKeyCertWriteService.class);
+    private final TokenKeyWriteService tokenKeyWriteService = mock(TokenKeyWriteService.class);
+    private final TokenKeyCertRequestWriteService tokenKeyCertRequestWriteService = mock(TokenKeyCertRequestWriteService.class);
     private final TokenRegistryLoader tokenRegistryLoader = mock(TokenRegistryLoader.class);
     private final TokenRegistry tokenRegistry = new TokenRegistry(tokenRegistryLoader);
-    private final CertManager certManager = new CertManager(tokenRegistry, tokenKeyCertService, tokenKeyService,
-            tokenKeyCertRequestService);
+    private final CertManager certManager = new CertManager(tokenRegistry, tokenKeyCertWriteService, tokenKeyWriteService,
+            tokenKeyCertRequestWriteService);
 
     private static final long KEY_ID = 3L;
     private static final String KEY_EXTERNAL_ID = "key-external-id";
@@ -83,7 +83,7 @@ class CertManagerTest {
 
         certManager.addCert(KEY_EXTERNAL_ID, clientId, "status", "id", new byte[]{'c', 'e', 'r', 't'});
 
-        verify(tokenKeyCertService).save(3L, "id", clientId, "status", new byte[]{'c', 'e', 'r', 't'});
+        verify(tokenKeyCertWriteService).save(3L, "id", clientId, "status", new byte[]{'c', 'e', 'r', 't'});
 
         verify(tokenRegistryLoader).refreshTokens(any());
     }
@@ -126,7 +126,7 @@ class CertManagerTest {
         initRegistry(keyMock);
 
         certManager.setCertActive(CERT_EXTERNAL_ID, true);
-        verify(tokenKeyCertService).setActive(1L, true);
+        verify(tokenKeyCertWriteService).setActive(1L, true);
 
         verify(tokenRegistryLoader).refreshTokens(any());
     }
@@ -141,7 +141,7 @@ class CertManagerTest {
         initRegistry(keyMock);
 
         // Simulate an exception during setActive
-        doThrow(new SignerException("Test exception")).when(tokenKeyCertService).setActive(1L, true);
+        doThrow(new SignerException("Test exception")).when(tokenKeyCertWriteService).setActive(1L, true);
 
         var exception = assertThrows(SignerException.class, () -> certManager.setCertActive(CERT_EXTERNAL_ID, true));
 
@@ -161,7 +161,7 @@ class CertManagerTest {
 
         certManager.setCertStatus(CERT_EXTERNAL_ID, "status");
 
-        verify(tokenKeyCertService).updateStatus(1L, "status");
+        verify(tokenKeyCertWriteService).updateStatus(1L, "status");
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -179,7 +179,7 @@ class CertManagerTest {
         assertEquals("Signer.InternalError", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
-        verifyNoInteractions(tokenKeyCertService);
+        verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
@@ -195,7 +195,7 @@ class CertManagerTest {
 
         certManager.setRenewedCertHash(CERT_EXTERNAL_ID, "newHash");
 
-        verify(tokenKeyCertService).updateRenewedCertHash(1L, "newHash");
+        verify(tokenKeyCertWriteService).updateRenewedCertHash(1L, "newHash");
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -214,7 +214,7 @@ class CertManagerTest {
         assertEquals("Signer.InternalError", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
-        verifyNoInteractions(tokenKeyCertService);
+        verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
@@ -230,7 +230,7 @@ class CertManagerTest {
 
         certManager.setRenewalError(CERT_EXTERNAL_ID, "renewal error");
 
-        verify(tokenKeyCertService).updateRenewalError(1L, "renewal error");
+        verify(tokenKeyCertWriteService).updateRenewalError(1L, "renewal error");
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -249,7 +249,7 @@ class CertManagerTest {
         assertEquals("Signer.InternalError", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
-        verifyNoInteractions(tokenKeyCertService);
+        verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
@@ -267,7 +267,7 @@ class CertManagerTest {
 
         certManager.setNextPlannedRenewal(CERT_EXTERNAL_ID, nextRenewalTime);
 
-        verify(tokenKeyCertService).updateNextAutomaticRenewalTime(1L, nextRenewalTime);
+        verify(tokenKeyCertWriteService).updateNextAutomaticRenewalTime(1L, nextRenewalTime);
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -286,7 +286,7 @@ class CertManagerTest {
         assertEquals("Signer.InternalError", exception.getFaultCode());
         assertEquals("Operation not allowed for transient cert " + CERT_EXTERNAL_ID, exception.getFaultString());
 
-        verifyNoInteractions(tokenKeyCertService);
+        verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
@@ -299,11 +299,11 @@ class CertManagerTest {
         when(certMock.externalId()).thenReturn(CERT_EXTERNAL_ID);
         when(keyMock.certs()).thenReturn(Set.of(certMock));
         initRegistry(keyMock);
-        when(tokenKeyCertService.delete(1L)).thenReturn(true);
+        when(tokenKeyCertWriteService.delete(1L)).thenReturn(true);
 
         assertTrue(certManager.removeCert(CERT_EXTERNAL_ID));
 
-        verify(tokenKeyCertService).delete(1L);
+        verify(tokenKeyCertWriteService).delete(1L);
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -313,7 +313,7 @@ class CertManagerTest {
 
         assertFalse(certManager.removeCert(CERT_EXTERNAL_ID));
 
-        verifyNoInteractions(tokenKeyCertService);
+        verifyNoInteractions(tokenKeyCertWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
@@ -329,8 +329,8 @@ class CertManagerTest {
         certManager.addCertRequest(KEY_EXTERNAL_ID, memberID, "subjectName", "subjectAltName",
                 KeyUsageInfo.AUTHENTICATION, "certProfile");
 
-        verify(tokenKeyService).updateKeyUsage(KEY_ID, KeyUsageInfo.AUTHENTICATION);
-        verify(tokenKeyCertRequestService).save(
+        verify(tokenKeyWriteService).updateKeyUsage(KEY_ID, KeyUsageInfo.AUTHENTICATION);
+        verify(tokenKeyCertRequestWriteService).save(
                 eq(KEY_ID), anyString(), eq(memberID), eq("subjectName"), eq("subjectAltName"), eq("certProfile"));
         verify(tokenRegistryLoader).refreshTokens(any());
     }
@@ -352,8 +352,8 @@ class CertManagerTest {
         assertEquals("cert_request_wrong_usage", exception.getTranslationCode());
         assertEquals("Cannot add AUTHENTICATION certificate request to SIGNING key", exception.getFaultString());
 
-        verifyNoInteractions(tokenKeyService);
-        verifyNoInteractions(tokenKeyCertRequestService);
+        verifyNoInteractions(tokenKeyWriteService);
+        verifyNoInteractions(tokenKeyCertRequestWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
@@ -375,8 +375,8 @@ class CertManagerTest {
 
         assertEquals(CERT_REQ_EXTERNAL_ID, crId);
 
-        verify(tokenKeyService).updateKeyUsage(KEY_ID, KeyUsageInfo.AUTHENTICATION);
-        verifyNoInteractions(tokenKeyCertRequestService);
+        verify(tokenKeyWriteService).updateKeyUsage(KEY_ID, KeyUsageInfo.AUTHENTICATION);
+        verifyNoInteractions(tokenKeyCertRequestWriteService);
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -388,11 +388,11 @@ class CertManagerTest {
         when(certReqMock.id()).thenReturn(1L);
         when(keyMock.certRequests()).thenReturn(Set.of(certReqMock));
         initRegistry(keyMock);
-        when(tokenKeyCertRequestService.delete(1L)).thenReturn(true);
+        when(tokenKeyCertRequestWriteService.delete(1L)).thenReturn(true);
 
         assertTrue(certManager.removeCertRequest(CERT_REQ_EXTERNAL_ID));
 
-        verify(tokenKeyCertRequestService).delete(1L);
+        verify(tokenKeyCertRequestWriteService).delete(1L);
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 
@@ -402,7 +402,7 @@ class CertManagerTest {
 
         assertFalse(certManager.removeCertRequest("no-such-cert-request"));
 
-        verifyNoInteractions(tokenKeyCertRequestService);
+        verifyNoInteractions(tokenKeyCertRequestWriteService);
         verify(tokenRegistryLoader).loadTokens();
         verifyNoMoreInteractions(tokenRegistryLoader);
     }
