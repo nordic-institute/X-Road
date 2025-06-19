@@ -59,12 +59,10 @@ cp -p -r %{srcdir}/../../../service/signer/signer-cli/build/quarkus-app/* %{buil
 #Copy arch specific libs
 %ifarch x86_64
 cp -p %{srcdir}/../../../libs/pkcs11wrapper/amd64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../libs/passwordstore/amd64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %ifarch aarch64
 cp -p %{srcdir}/../../../libs/pkcs11wrapper/arm64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../libs/passwordstore/arm64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %clean
@@ -90,7 +88,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/signer-console.jar
 /usr/share/xroad/jlib/signer/
 /usr/share/xroad/jlib/signer-console/
-/usr/share/xroad/lib/libpasswordstore.so
 /usr/share/xroad/lib/libpkcs11wrapper.so
 %attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
 %attr(644,root,root) %{_unitdir}/xroad-signer.service
