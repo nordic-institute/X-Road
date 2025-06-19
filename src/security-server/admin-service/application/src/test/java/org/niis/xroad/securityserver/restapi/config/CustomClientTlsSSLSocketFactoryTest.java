@@ -47,7 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class CustomClientTlsSSLSocketFactoryTest {
+class CustomClientTlsSSLSocketFactoryTest {
 
     private SSLSocketFactory mockInternalFactory;
     private CustomClientTlsSSLSocketFactory customFactory;
