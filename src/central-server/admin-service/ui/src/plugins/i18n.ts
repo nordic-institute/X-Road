@@ -26,7 +26,7 @@
  */
 import { createLanguageHelper as xrdCreateLanguageHelper } from '@niis/shared-ui';
 
-const availableLanguages = ['en', 'es', 'ru', 'tk'];
+const availableLanguages = ['en', 'es', 'ru', 'tk', 'pt-BR']; // Added pt-BR (Brazilian Portuguese) to the list of supported languages
 
 // Fetches all language-specific messages for the given language
 export async function loadMessages(language: string) {
@@ -43,3 +43,4 @@ export async function loadMessages(language: string) {
 export async function createLanguageHelper() {
   return await xrdCreateLanguageHelper(availableLanguages, loadMessages);
 }
+
