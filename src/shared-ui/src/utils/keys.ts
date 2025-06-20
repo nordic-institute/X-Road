@@ -26,14 +26,16 @@
  */
 
 import { InjectionKey } from 'vue';
-import { CommonUser, CommonRouting, CommonSystem } from './types';
+import { CommonUser, CommonRouting, CommonSystem, AdminUsersHandler } from './types';
 
 const system = Symbol() as InjectionKey<CommonSystem>;
 const user = Symbol() as InjectionKey<CommonUser>;
 const routing = Symbol() as InjectionKey<CommonRouting>;
+const adminUsersHandler = Symbol() as InjectionKey<AdminUsersHandler>;
 
 export const key = {
   system,
   user,
   routing,
+  adminUsersHandler,
 };
