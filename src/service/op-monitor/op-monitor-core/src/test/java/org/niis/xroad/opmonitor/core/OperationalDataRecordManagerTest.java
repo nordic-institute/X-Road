@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Sets;
+import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -381,7 +382,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         OperationalDataRecordCleaner operationalDataRecordCleanerJob = new OperationalDataRecordCleaner(mock(OpMonitorProperties.class),
                 DATABASE_CTX,
-                mock(Scheduler.class));
+                mock(Scheduler.class), mock(Scheduled.ApplicationNotRunning.class));
         operationalDataRecordCleanerJob.cleanRecords(Instant.ofEpochMilli(1474968975000L));
 
         OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);

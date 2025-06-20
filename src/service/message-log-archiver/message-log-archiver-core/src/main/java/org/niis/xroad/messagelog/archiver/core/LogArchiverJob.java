@@ -43,6 +43,7 @@ public class LogArchiverJob {
     private final LogArchiverProperties logArchiverProperties;
     private final LogArchiver logArchiver;
     private final Scheduler scheduler;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
@@ -51,7 +52,7 @@ public class LogArchiverJob {
                 .setCron(logArchiverProperties.cleanInterval())
                 .setTask(this::execute)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                .setSkipPredicate(new Scheduled.ApplicationNotRunning())
+                .setSkipPredicate(applicationNotRunning)
                 .schedule();
     }
 

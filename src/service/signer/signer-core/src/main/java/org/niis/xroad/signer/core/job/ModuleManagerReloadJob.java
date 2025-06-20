@@ -46,16 +46,17 @@ public class ModuleManagerReloadJob {
     private final ModuleManager moduleManager;
     private final Scheduler scheduler;
     private final SignerProperties signerProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
-        log.info("Scheduling ModuleManagerReloadJob every {}", signerProperties.moduleManagerUpdateInterval());
+        log.info("Scheduling ModuleManagerReloadJob every {}s", signerProperties.moduleManagerUpdateInterval());
         scheduler.newJob(getClass().getSimpleName())
                 .setDelayed("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
                 .setInterval("%s".formatted(signerProperties.moduleManagerUpdateInterval()))
                 .setTask(this::update)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                .setSkipPredicate(new Scheduled.ApplicationNotRunning())
+                .setSkipPredicate(applicationNotRunning)
                 .schedule();
     }
 

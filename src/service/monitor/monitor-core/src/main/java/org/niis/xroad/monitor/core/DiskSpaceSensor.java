@@ -64,7 +64,8 @@ public class DiskSpaceSensor {
     }
 
     @Scheduled(every = "${xroad.env-monitor.disk-space-sensor-interval}",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     protected void measure() {
         log.debug("Updating metrics");
         updateMetrics();
