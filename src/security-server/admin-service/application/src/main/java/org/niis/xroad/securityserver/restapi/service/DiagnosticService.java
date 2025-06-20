@@ -29,19 +29,22 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
-
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
+import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
+import org.niis.xroad.globalconf.status.CertificationServiceStatus;
+import org.niis.xroad.globalconf.status.OcspResponderStatus;
+import org.niis.xroad.opmonitor.api.OperationalDataInterval;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.signer.api.dto.CertificationServiceDiagnostics;
-import org.niis.xroad.signer.api.dto.CertificationServiceStatus;
-import org.niis.xroad.signer.api.dto.OcspResponderStatus;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,7 @@ public class DiagnosticService {
     private final SignerRpcClient signerRpcClient;
     private final ProxyRpcClient proxyRpcClient;
     private final BackupManagerRpcClient backupManagerRpcClient;
+    private final OpMonitorClient opMonitorClient;
 
     /**
      * Query global configuration status.
@@ -205,6 +209,20 @@ public class DiagnosticService {
         status.setOcspResponderStatusMap(statuses);
 
         return status;
+    }
+
+    public List<OperationalDataInterval> getOperationalDataIntervals(Long recordsFromTimestamp,
+                                                                     Long recordsToTimestamp,
+                                                                     Integer interval,
+                                                                     String securityServerType,
+                                                                     ClientId memberId,
+                                                                     ServiceId serviceId) {
+        return opMonitorClient.getOperationalDataIntervals(recordsFromTimestamp,
+                recordsToTimestamp,
+                interval,
+                securityServerType,
+                memberId,
+                serviceId);
     }
 
     private ErrorDeviation buildErrorDiagnosticRequestFailed() {

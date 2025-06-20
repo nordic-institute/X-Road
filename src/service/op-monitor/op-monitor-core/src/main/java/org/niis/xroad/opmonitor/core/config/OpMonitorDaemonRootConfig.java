@@ -28,11 +28,18 @@ package org.niis.xroad.opmonitor.core.config;
 import ee.ria.xroad.common.db.DatabaseCtx;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import io.grpc.BindableService;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.server.RpcServer;
 import jakarta.inject.Named;
 import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
 
 import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
+import org.niis.xroad.opmonitor.core.OpMonitorRpcService;
 
+import java.util.List;
+
+@Slf4j
 public class OpMonitorDaemonRootConfig {
 
 
@@ -40,5 +47,21 @@ public class OpMonitorDaemonRootConfig {
     OperationalDataRecordManager operationalDataRecordManager(@Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
                                                               OpMonitorProperties opMonitorProperties) {
         return new OperationalDataRecordManager(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
+    }
+
+    @Bean
+    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+        return RpcServer.newServer(
+                OpMonitoringSystemProperties.getOpMonitorHost(),
+                OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
+                builder -> bindableServices.forEach(bindableService -> {
+                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
+                    builder.addService(bindableService);
+                }));
+    }
+
+    @Bean
+    OpMonitorRpcService opMonitoringService() {
+        return new OpMonitorRpcService();
     }
 }

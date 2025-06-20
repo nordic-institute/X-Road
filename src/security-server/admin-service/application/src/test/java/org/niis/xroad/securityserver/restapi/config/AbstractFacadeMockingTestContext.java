@@ -33,6 +33,7 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
@@ -72,6 +73,8 @@ public abstract class AbstractFacadeMockingTestContext {
     protected ManagementRequestSenderService managementRequestSenderService;
     @MockitoBean
     protected SignerRpcClient signerRpcClient;
+    @MockitoBean
+    protected OpMonitorClient opMonitorClient;
     @MockitoBean
     protected AcmeService acmeService;
     @MockitoSpyBean

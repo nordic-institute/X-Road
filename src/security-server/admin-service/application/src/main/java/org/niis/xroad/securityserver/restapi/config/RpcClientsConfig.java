@@ -28,6 +28,7 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import lombok.Setter;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcChannelProperties;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -59,6 +60,10 @@ class RpcClientsConfig {
     MonitorRpcClient monitorClient(RpcChannelFactory rpcChannelFactory,
                                    SpringEnvMonitorRpcChannelProperties rpcChannelProperties) {
         return new MonitorRpcClient(rpcChannelFactory, rpcChannelProperties);
+
+    @Bean
+    public OpMonitorClient opMonitorClient() throws Exception {
+        return new OpMonitorClient();
     }
 
     @ConfigurationProperties(prefix = EnvMonitorRpcChannelProperties.PREFIX)

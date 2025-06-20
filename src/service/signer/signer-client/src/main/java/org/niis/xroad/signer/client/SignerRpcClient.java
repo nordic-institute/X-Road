@@ -43,6 +43,7 @@ import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
+import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.api.dto.AuthKeyInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;

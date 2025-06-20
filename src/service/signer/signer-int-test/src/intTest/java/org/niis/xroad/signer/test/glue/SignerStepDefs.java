@@ -709,7 +709,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(() -> clientHolder.get().getTokens())
                 .isInstanceOf(SignerException.class)
-                .hasMessageContaining("Signer.NetworkError: Signer client timed out.");
+                .hasMessageContaining("Signer.NetworkError: gRPC client timed out.");
     }
 
     @ParameterType("RSA|EC")

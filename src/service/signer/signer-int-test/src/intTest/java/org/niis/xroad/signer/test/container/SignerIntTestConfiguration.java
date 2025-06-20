@@ -27,6 +27,7 @@
 package org.niis.xroad.signer.test.container;
 
 import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,4 +38,11 @@ public class SignerIntTestConfiguration {
         return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(SignerIntTestSetup.TESTCA,
                 SignerIntTestSetup.Port.TEST_CA).port());
     }
+
+    @Bean
+    @Primary
+    public OpMonitorClient mockOpMonitorClient() {
+        return mock(OpMonitorClient.class);
+    }
+
 }

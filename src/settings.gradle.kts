@@ -81,8 +81,10 @@ include("service:monitor:monitor-rpc-client")
 
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
+include("service:op-monitor:op-monitor-client")
 include("service:op-monitor:op-monitor-core")
 include("service:op-monitor:op-monitor-db")
+include("service:op-monitor:op-monitor-int-test")
 
 include("service:proxy:proxy-application")
 include("service:proxy:proxy-core")

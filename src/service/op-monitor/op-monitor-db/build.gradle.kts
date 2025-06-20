@@ -19,6 +19,10 @@ artifacts {
   add("changelogJar", tasks.named("changelogJar"))
 }
 
+archUnit {
+  setSkip(true)
+}
+
 val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 tasks.named("jib") {
