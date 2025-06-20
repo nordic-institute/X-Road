@@ -50,4 +50,18 @@ export enum Colors {
   Success10 = '#e6f8f1',
   Background = '#e5e5e5',
   Warning = '#f5a623',
+
+  //TODO #XRD8
+  Blue50 = '#EAF3F9',
+  Blue100 = '#DDE8F0',
+  Blue500 = '#1B4361',
+  White = '#FFFFFF',
+  Maroon400 = '#583F8B',
+  Maroon600 = '#220066',
+  Maroon700 = '#16094E',
+  Maroon900 = '#000428',
+  Magenta900 = '#470233',
+  Green700 = '#567C00',
+  Yellow700 = '#736800',
+  Red600 = '#B50402',
 }
