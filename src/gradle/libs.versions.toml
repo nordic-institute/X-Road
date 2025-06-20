@@ -198,8 +198,7 @@ archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-p
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 protobufGradlePlugin = { module = "com.google.protobuf:com.google.protobuf.gradle.plugin", version.ref = "protobufPlugin" }
-jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.4" }
-jibQuarkusExtension = { module = "com.google.cloud.tools:jib-quarkus-extension-gradle", version = "0.1.2" }
+jibGradlePlugin = { module = "com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin", version = "3.4.5" }
 quarkusGradlePlugin = { module = "io.quarkus:gradle-application-plugin", version.ref = "quarkus" }
 
 [bundles]

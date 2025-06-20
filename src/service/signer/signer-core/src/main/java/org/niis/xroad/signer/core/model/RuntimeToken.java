@@ -36,7 +36,7 @@ import java.util.Optional;
 /**
  * Model object representing a token.
  */
-public sealed interface RuntimeToken extends BasicTokenInfo permits RuntimeTokenImpl {
+public interface RuntimeToken extends BasicTokenInfo {
 
     /**
      * True, if token is available (in module)

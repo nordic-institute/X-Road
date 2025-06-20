@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,22 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdio.h>
-#include <string.h>
+import XrdAdminUserPasswordChangeDialog from './AdminUserPasswordChangeDialog.vue';
 
-#include "passwordstore.h"
-
-int main(int argc, char **argv)
-{
-    int err;
-    (void) argc;
-    (void) argv;
-
-    err = LEGACY_passwordClear("/", 0600);
-    if (err != 0) {
-        fprintf(stderr, "ERROR: %s\n", LEGACY_strError(err));
-        return 1;
-    }
-
-    return 0;
-}
+export { XrdAdminUserPasswordChangeDialog };

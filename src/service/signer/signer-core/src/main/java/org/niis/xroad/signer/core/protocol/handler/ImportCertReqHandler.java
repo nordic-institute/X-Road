@@ -42,7 +42,7 @@ import org.niis.xroad.signer.api.dto.CertRequestInfo;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.core.tokenmanager.CertManager;
 import org.niis.xroad.signer.core.tokenmanager.CertOcspManager;
@@ -74,7 +74,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final GlobalConfProvider globalConfProvider;
-    private final OcspResponseManager ocspResponseManager;
+    private final OcspResponseLookup ocspResponseLookup;
     private final CertOcspManager certOcspManager;
     private final TokenLookup tokenLookup;
     private final KeyManager keyManager;
@@ -191,7 +191,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             return true;
         }
         try {
-            ocspResponseManager.verifyOcspResponses(cert);
+            ocspResponseLookup.verifyOcspResponses(cert);
         } catch (Exception e) {
             log.error("Failed to verify OCSP responses for certificate {}", cert.getSerialNumber(), e);
             certOcspManager.setOcspVerifyBeforeActivationError(certId, e.getMessage());

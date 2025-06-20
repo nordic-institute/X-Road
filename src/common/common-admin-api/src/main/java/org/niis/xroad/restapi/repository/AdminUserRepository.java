@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,34 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+package org.niis.xroad.restapi.repository;
 
-#include "passwordstore.h"
 
-int main(int argc, char **argv)
-{
-    int err;
-    char *ret = NULL;
-    int ret_len = 0;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.dao.AdminUserDAOImpl;
+import org.niis.xroad.restapi.entity.AdminUserEntity;
+import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.stereotype.Repository;
 
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <id>\n", argv[0]);
-        return(1);
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+@RequiredArgsConstructor
+public class AdminUserRepository {
+
+    private final PersistenceUtils persistenceUtils;
+
+    public Optional<AdminUserEntity> findByUsername(String username) {
+        return new AdminUserDAOImpl().findByUsername(persistenceUtils.getCurrentSession(), username);
     }
 
-    err = LEGACY_passwordRead("/", argv[1], &ret, &ret_len);
-    if (err != 0) {
-        fprintf(stderr, "ERROR: %s\n", LEGACY_strError(err));
-        return 1;
+    public List<AdminUserEntity> getAll() {
+        return new AdminUserDAOImpl().findAll(persistenceUtils.getCurrentSession());
     }
 
-    printf("Password: \"");
-    fwrite(ret, 1, ret_len, stdout);
-    printf("\"\n");
+    public void create(AdminUserEntity adminUser) {
+        persistenceUtils.getCurrentSession().persist(adminUser);
+    }
 
-    free(ret);
+    public void update(AdminUserEntity adminUser) {
+        persistenceUtils.getCurrentSession().merge(adminUser);
+    }
 
-    return 0;
+    public void delete(AdminUserEntity adminUser) {
+        persistenceUtils.getCurrentSession().remove(adminUser);
+    }
+
 }

@@ -99,7 +99,8 @@ public class SystemMetricsSensor {
     }
 
     @Scheduled(every = "${xroad.env-monitor.system-metrics-sensor-interval}",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         monitorServiceStub.getStats(StatsReq.getDefaultInstance(), new StreamObserver<>() {
 

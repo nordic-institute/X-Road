@@ -54,13 +54,16 @@ public final class OperationalDataRecordCleaner {
     private final OpMonitorProperties opMonitorProperties;
     private final DatabaseCtx databaseCtx;
     private final Scheduler scheduler;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     public OperationalDataRecordCleaner(OpMonitorProperties opMonitorProperties,
                                         @Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
-                                        Scheduler scheduler) {
+                                        Scheduler scheduler,
+                                        Scheduled.ApplicationNotRunning applicationNotRunning) {
         this.opMonitorProperties = opMonitorProperties;
         this.databaseCtx = databaseCtx;
         this.scheduler = scheduler;
+        this.applicationNotRunning = applicationNotRunning;
     }
 
     @PostConstruct
@@ -70,7 +73,7 @@ public final class OperationalDataRecordCleaner {
                 .setCron(opMonitorProperties.cleanInterval())
                 .setTask(this::doClean)
                 .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                .setSkipPredicate(new Scheduled.ApplicationNotRunning())
+                .setSkipPredicate(applicationNotRunning)
                 .schedule();
     }
 

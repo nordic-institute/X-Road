@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCert;
+import org.niis.xroad.signer.core.model.RuntimeKey;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
 import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
@@ -43,6 +44,7 @@ import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
@@ -262,21 +264,21 @@ public class CertManager {
     /**
      * Adds a new certificate request to a key.
      *
-     * @param keyId       the key id
+     * @param externalKeyId       the key id
      * @param memberId    the member id
      * @param subjectName the sbject name
      * @param keyUsage    the key usage
      * @return certificate id
      */
-    public String addCertRequest(String keyId,
+    public String addCertRequest(String externalKeyId,
                                  ClientId.Conf memberId,
                                  String subjectName,
                                  String subjectAltName,
                                  KeyUsageInfo keyUsage,
                                  String certificateProfile) {
-        log.trace("addCertRequest({}, {})", keyId, memberId);
+        log.trace("addCertRequest({}, {})", externalKeyId, memberId);
         return tokenRegistry.writeAction(ctx -> {
-            var key = ctx.findKey(keyId);
+            var key = ctx.findKey(externalKeyId);
 
             if (key.usage() != null && key.usage() != keyUsage) {
                 throw CodedException.tr(X_WRONG_CERT_USAGE,
@@ -285,44 +287,62 @@ public class CertManager {
                         key.usage());
             }
             try {
-                try {
-                    tokenKeyWriteService.updateKeyUsage(key.id(), keyUsage);
-                } catch (CodedException signerException) {
-                    throw signerException;
-                } catch (Exception e) {
-                    throw new SignerException(X_INTERNAL_ERROR, "Failed to update key usage for key " + keyId, e);
+                updateKeyUsage(key, keyUsage);
+
+                final var existingCertRequestOpt = findExistingCertRequest(key, memberId, subjectName);
+                if (existingCertRequestOpt.isPresent()) {
+                    String existingCertReqId = existingCertRequestOpt.get();
+                    log.warn("Certificate request (memberId: {}, subjectName: {}) already exists", memberId, subjectName);
+                    return existingCertReqId;
                 }
 
-                for (CertRequestData certRequest : key.certRequests()) {
-                    ClientId crMember = certRequest.memberId();
-                    String crSubject = certRequest.subjectName();
-
-                    if ((memberId == null && crSubject.equalsIgnoreCase(subjectName))
-                            || (memberId != null && memberId.equals(crMember)
-                            && crSubject.equalsIgnoreCase(subjectName))) {
-                        log.warn("Certificate request (memberId: {}, "
-                                        + "subjectName: {}) already exists", memberId,
-                                subjectName);
-                        return certRequest.externalId();
-                    }
-                }
-
-                try {
-                    var certReqId = SignerUtil.randomId();
-                    tokenKeyCertRequestWriteService.save(
-                            key.id(), certReqId, memberId, subjectName, subjectAltName, certificateProfile);
-                    log.info("Added new certificate request [{}] (memberId: {}, subjectId: {}) under key {}",
-                            certReqId, memberId, subjectName, keyId);
-                    return certReqId;
-                } catch (CodedException signerException) {
-                    throw signerException;
-                } catch (Exception e) {
-                    throw new SignerException(X_INTERNAL_ERROR, "Failed to add certificate request for key " + keyId, e);
-                }
+                return addCertRequest(key, memberId, subjectName, subjectAltName, certificateProfile);
             } finally {
                 ctx.invalidateCache();
             }
         });
+    }
+
+    private void updateKeyUsage(RuntimeKey key, KeyUsageInfo keyUsage) {
+        try {
+            tokenKeyWriteService.updateKeyUsage(key.id(), keyUsage);
+        } catch (CodedException signerException) {
+            throw signerException;
+        } catch (Exception e) {
+            throw new SignerException(X_INTERNAL_ERROR, "Failed to update key usage for key " + key.externalId(), e);
+        }
+    }
+
+    private Optional<String> findExistingCertRequest(RuntimeKey key, ClientId.Conf memberId, String subjectName) {
+        for (CertRequestData certRequest : key.certRequests()) {
+            ClientId crMember = certRequest.memberId();
+            String crSubject = certRequest.subjectName();
+
+            if ((memberId == null && crSubject.equalsIgnoreCase(subjectName))
+                    || (memberId != null && memberId.equals(crMember)
+                    && crSubject.equalsIgnoreCase(subjectName))) {
+                return Optional.of(certRequest.externalId());
+            }
+        }
+        return Optional.empty();
+    }
+
+    private String addCertRequest(RuntimeKey key,
+                                  ClientId.Conf memberId,
+                                  String subjectName,
+                                  String subjectAltName,
+                                  String certificateProfile) {
+        try {
+            var certReqId = SignerUtil.randomId();
+            tokenKeyCertRequestWriteService.save(key.id(), certReqId, memberId, subjectName, subjectAltName, certificateProfile);
+            log.info("Added new certificate request [{}] (memberId: {}, subjectId: {}) under key {}",
+                    certReqId, memberId, subjectName, key.externalId());
+            return certReqId;
+        } catch (CodedException signerException) {
+            throw signerException;
+        } catch (Exception e) {
+            throw new SignerException(X_INTERNAL_ERROR, "Failed to add certificate request for key " + key.externalId(), e);
+        }
     }
 
     /**

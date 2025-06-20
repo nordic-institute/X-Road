@@ -698,15 +698,6 @@ public final class SystemProperties {
     }
 
     /**
-     * Get the pathname for password store IPC key generation (used as an input for ftok kernel function).
-     *
-     * @return path
-     */
-    public static String getSignerPasswordStoreIPCKeyPathname() {
-        return getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
-    }
-
-    /**
      * @return the ACME certificate renewal toggle
      */
     public static boolean isAcmeCertificateRenewalActive() {

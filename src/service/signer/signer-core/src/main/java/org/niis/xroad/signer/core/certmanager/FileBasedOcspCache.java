@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.signer.core.certmanager;
 
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -50,6 +52,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  * OCSP cache that holds the OCSP responses on disk.
  */
 @Slf4j
+@Startup
 @Singleton
 public class FileBasedOcspCache extends OcspCache {
 
@@ -63,6 +66,15 @@ public class FileBasedOcspCache extends OcspCache {
     public FileBasedOcspCache(GlobalConfProvider globalConfProvider, SignerProperties signerProperties) {
         super(globalConfProvider);
         this.signerProperties = signerProperties;
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            reloadFromDisk();
+        } catch (Exception e) {
+            log.error("Failed to load OCSP responses from disk", e);
+        }
     }
 
     /**

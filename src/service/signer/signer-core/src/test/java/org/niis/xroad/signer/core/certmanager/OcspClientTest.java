@@ -93,8 +93,8 @@ class OcspClientTest {
     private final TokenLookup tokenManager = mock(TokenLookup.class);
     private final FileBasedOcspCache fileBasedOcspCache =
             new FileBasedOcspCache(globalConfProvider, defaultConfiguration(SignerProperties.class));
-    private final OcspResponseManager ocspResponseManager =
-            new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache, tokenManager);
+    private final OcspCacheManager ocspResponseManager =
+            new OcspCacheManager(ocspClient, fileBasedOcspCache);
     private final OcspClientWorker ocspClientWorker =
             new TestOcspClient(globalConfProvider, ocspResponseManager, tokenManager, ocspClient);
 
@@ -300,9 +300,9 @@ class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
+        TestOcspClient(GlobalConfProvider globalConfProvider, OcspCacheManager cacheManager,
                        TokenLookup tokenLookup, OcspClient ocspClient) {
-            super(globalConfProvider, ocspResponseManager, tokenLookup, ocspClient);
+            super(globalConfProvider, cacheManager, tokenLookup, ocspClient);
         }
 
         @Override

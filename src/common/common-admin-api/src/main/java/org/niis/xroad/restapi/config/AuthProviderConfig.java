@@ -1,20 +1,21 @@
-/**
+/*
  * The MIT License
+ * <p>
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,26 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.config;
 
-#include <stdio.h>
-#include <string.h>
+public interface AuthProviderConfig {
 
-#include "passwordstore.h"
+    AuthenticationProviderType DEFAULT_AUTHENTICATION_PROVIDER = AuthenticationProviderType.PAM;
 
-int main(int argc, char **argv)
-{
-    int err;
-
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <id> <pwd>\n", argv[0]);
-        return(1);
+    enum AuthenticationProviderType {
+        PAM,
+        DATABASE
     }
 
-    err = LEGACY_passwordWrite("/", argv[1], argv[2], strlen(argv[2]), 0600);
-    if (err != 0) {
-        fprintf(stderr, "ERROR: %s\n", LEGACY_strError(err));
-        return 1;
+    default AuthenticationProviderType getAuthenticationProvider() {
+        return DEFAULT_AUTHENTICATION_PROVIDER;
     }
 
-    return 0;
 }

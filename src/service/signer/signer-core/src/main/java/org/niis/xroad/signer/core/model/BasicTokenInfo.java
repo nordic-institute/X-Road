@@ -28,7 +28,7 @@ package org.niis.xroad.signer.core.model;
 
 import java.util.Optional;
 
-public sealed interface BasicTokenInfo permits HardwareTokenData, SoftwareTokenData, RuntimeToken {
+public interface BasicTokenInfo {
     /**
      * Internal database ID.
      */
@@ -50,6 +50,7 @@ public sealed interface BasicTokenInfo permits HardwareTokenData, SoftwareTokenD
 
     /**
      * Returns the PIN hash if this is a software token.
+     *
      * @return Optional containing the PIN hash for software tokens, empty for hardware tokens
      */
     default Optional<byte[]> softwareTokenPinHash() {

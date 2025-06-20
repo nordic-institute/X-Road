@@ -49,6 +49,7 @@ public class AutoBackupJob {
     private final Scheduler scheduler;
     private final BackupManagerProperties backupManagerProperties;
     private final FileSystemBackupHandler fileSystemBackupHandler;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     @PostConstruct
     public void init() {
@@ -61,7 +62,7 @@ public class AutoBackupJob {
                     .setCron(backupManagerProperties.autoBackupCronExpression())
                     .setTask(this::execute)
                     .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                     .setSkipPredicate(new Scheduled.ApplicationNotRunning())
+                    .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
             log.info("Automatic backups are disabled. No cron expression or script path provided.");

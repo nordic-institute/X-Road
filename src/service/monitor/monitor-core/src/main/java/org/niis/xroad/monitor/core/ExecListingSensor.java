@@ -95,7 +95,8 @@ public class ExecListingSensor {
     }
 
     @Scheduled(every = "${xroad.env-monitor.exec-listing-sensor-interval}",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         log.debug("Updating metrics");
         updateMetrics();

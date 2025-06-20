@@ -28,7 +28,7 @@ package org.niis.xroad.signer.core.model;
 
 import java.util.Collection;
 
-public sealed interface RuntimeKey extends BasicKeyInfo permits RuntimeKeyImpl {
+public interface RuntimeKey extends BasicKeyInfo {
 
     boolean isAvailable();
 

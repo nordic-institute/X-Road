@@ -27,7 +27,7 @@ package org.niis.xroad.signer.core.protocol.handler;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.signer.core.certmanager.OcspResponseManager;
+import org.niis.xroad.signer.core.certmanager.OcspResponseLookup;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
 import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
@@ -37,14 +37,13 @@ import org.niis.xroad.signer.proto.GetOcspResponsesResp;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
-public class GetOcspResponsesReqHandler
-        extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {
+public class GetOcspResponsesReqHandler extends AbstractRpcHandler<GetOcspResponsesReq, GetOcspResponsesResp> {
 
-    private final OcspResponseManager ocspResponseManager;
+    private final OcspResponseLookup ocspResponseLookup;
 
     @Override
     protected GetOcspResponsesResp handle(GetOcspResponsesReq request) throws Exception {
-        var response = ocspResponseManager.handleGetOcspResponses(request.getCertHashList());
+        var response = ocspResponseLookup.handleGetOcspResponses(request.getCertHashList());
 
         return GetOcspResponsesResp.newBuilder()
                 .putAllBase64EncodedResponses(response)
