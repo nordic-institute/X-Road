@@ -126,7 +126,7 @@ tasks.named("jib") {
 
 jib {
   from {
-    image = "${project.property("xroadImageRegistry")}/ss-baseline-ui-runtime"
+    image = "${project.property("xroadImageRegistry")}/ss-baseline-runtime"
   }
   to {
     image = "${project.property("xroadImageRegistry")}/ss-proxy-ui-api"
