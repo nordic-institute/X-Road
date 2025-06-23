@@ -27,41 +27,65 @@ package org.niis.xroad.opmonitor.core.config;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import io.grpc.BindableService;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.server.RpcServer;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
 
-import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
-import org.niis.xroad.opmonitor.core.OpMonitorRpcService;
-
+import java.io.IOException;
 import java.util.List;
+
+import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
 
 @Slf4j
 public class OpMonitorDaemonRootConfig {
-
-
     @ApplicationScoped
     OperationalDataRecordManager operationalDataRecordManager(@Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
                                                               OpMonitorProperties opMonitorProperties) {
         return new OperationalDataRecordManager(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
     }
 
-    @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
-        return RpcServer.newServer(
-                OpMonitoringSystemProperties.getOpMonitorHost(),
-                OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
-                builder -> bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
+    @ApplicationScoped
+    @Startup
+    RpcServer rpcServer(@All List<BindableService> services,
+                        OpMonitorServerProperties rpcServerProperties,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws IOException {
+        log.info("Starting OpMonitor RPC server on port {}.", rpcServerProperties.port());
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
+        RpcServer rpcServer = new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
                 }));
+        rpcServer.afterPropertiesSet();
+        return rpcServer;
     }
 
-    @Bean
-    OpMonitorRpcService opMonitoringService() {
-        return new OpMonitorRpcService();
+
+    @ConfigMapping(prefix = "xroad.op-monitor.rpc")
+    public interface OpMonitorServerProperties extends RpcServerProperties {
+        @WithName("enabled")
+        @WithDefault("true")
+        @Override
+        boolean enabled();
+
+        @WithName("listen-address")
+        @WithDefault("127.0.0.1")
+        @Override
+        String listenAddress();
+
+        @WithName("port")
+        @WithDefault("2081")
+        @Override
+        int port();
     }
 }

@@ -27,24 +27,64 @@
 
 package org.niis.xroad.opmonitor.test.container;
 
-import lombok.experimental.UtilityClass;
+import ee.ria.xroad.common.PortNumbers;
+
+import com.nortal.test.core.services.TestableApplicationInfoProvider;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * Holder for SignerRpcClient instance. Holds the signerRpcClient instance that is used in the tests. Otherwise, would
+ * Holder for OpMonitorClient instance. Holds the opMonitorClient instance that is used in the tests. Otherwise, would
  * need to recreate on every feature.
  */
-@UtilityClass
+@Slf4j
+@Component
+@RequiredArgsConstructor
 public class OpMonitorClientHolder {
 
-    private static OpMonitorClient opMonitorRpcClientInstance;
+    private final TestableApplicationInfoProvider applicationInfoProvider;
 
-    public static void set(OpMonitorClient opMonitorClient) {
-        opMonitorRpcClientInstance = opMonitorClient;
+    private OpMonitorClient opMonitorRpcClientInstance;
+
+    public OpMonitorClient get() {
+        return opMonitorRpcClientInstance;
     }
 
-    public static OpMonitorClient get() {
+    @SneakyThrows
+    public OpMonitorClient initializeOpMonitorClient() {
+        var properties = new OpMonitorRpcChannelProperties() {
+
+            @Override
+            public String host() {
+                return applicationInfoProvider.getHost();
+            }
+
+            @Override
+            public int port() {
+                return applicationInfoProvider.getMappedPort(PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT);
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return Integer.parseInt(OpMonitorRpcChannelProperties.DEFAULT_DEADLINE_AFTER);
+            }
+        };
+
+        if (opMonitorRpcClientInstance == null) {
+            opMonitorRpcClientInstance = new OpMonitorClient(getFactory(), properties);
+            opMonitorRpcClientInstance.init();
+        }
         return opMonitorRpcClientInstance;
+    }
+
+    private RpcChannelFactory getFactory() {
+        return new RpcChannelFactory(new InsecureRpcCredentialsConfigurer());
     }
 
 }

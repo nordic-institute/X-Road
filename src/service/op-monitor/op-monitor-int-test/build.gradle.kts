@@ -13,14 +13,16 @@ sourceSets {
 
 dependencies {
   intTestImplementation(project(path = ":service:op-monitor:op-monitor-db", configuration = "changelogJar"))
-  "intTestImplementation"(project(":service:op-monitor:op-monitor-application"))
-  "intTestImplementation"(project(":service:op-monitor:op-monitor-client"))
-  "intTestImplementation"(project(":common:common-int-test"))
+  intTestImplementation(project(":service:op-monitor:op-monitor-client"))
+  intTestImplementation(project(":common:common-test"))
+  intTestImplementation(project(":common:common-int-test"))
   intTestImplementation(libs.liquibase.core)
+
+  intTestRuntimeOnly(libs.postgresql)
 }
 
 tasks.register<Test>("intTest") {
-  dependsOn(":service:op-monitor:op-monitor-application:shadowJar")
+  dependsOn(":service:op-monitor:op-monitor-application:quarkusBuild")
 
   useJUnitPlatform()
 
@@ -31,6 +33,8 @@ tasks.register<Test>("intTest") {
   classpath = sourceSets["intTest"].runtimeClasspath
 
   val intTestArgs = mutableListOf<String>()
+
+  intTestArgs += "-Dtest-automation.custom.image-name=${project.property("xroadImageRegistry")}/ss-op-monitor:latest"
 
   if (project.hasProperty("intTestProfilesInclude")) {
     intTestArgs += "-Dspring.profiles.include=${project.property("intTestProfilesInclude")}"

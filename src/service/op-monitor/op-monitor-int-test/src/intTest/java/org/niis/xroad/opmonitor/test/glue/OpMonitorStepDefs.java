@@ -36,6 +36,7 @@ import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.test.container.OpMonitorClientHolder;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.ServiceIdConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -46,16 +47,20 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class OpMonitorStepDefs extends BaseStepDefs {
 
-    protected OpMonitorClient opMonitorClient = OpMonitorClientHolder.get();
+    @Autowired
+    protected OpMonitorClientHolder clientHolder;
+
+    protected OpMonitorClient opMonitorClient;
+
+
     List<OperationalDataInterval> operationalDataIntervals;
 
     @Step("op-monitor client is initialized")
     public void opMonitorClientReinitialized() throws Exception {
         if (opMonitorClient != null) {
-            opMonitorClient.destroy();
+            opMonitorClient.close();
         }
-        opMonitorClient = new OpMonitorClient();
-        OpMonitorClientHolder.set(opMonitorClient);
+        opMonitorClient = clientHolder.initializeOpMonitorClient();
     }
 
     @Step("user asks for traffic data of last {int} hour(s) in {int} minute intervals")

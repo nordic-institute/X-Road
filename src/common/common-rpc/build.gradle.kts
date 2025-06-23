@@ -5,10 +5,10 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":common:common-core"))
-  implementation(libs.slf4j.api)
-
   api(project(":common:common-domain"))
+  api(project(":common:common-properties"))
+
+  api(libs.slf4j.api)
   api(libs.grpc.protobuf)
   api(libs.grpc.stub)
   api(libs.grpc.util)

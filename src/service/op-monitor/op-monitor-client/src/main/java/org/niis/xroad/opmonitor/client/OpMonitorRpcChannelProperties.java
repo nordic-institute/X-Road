@@ -24,24 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.test.container;
 
-import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package org.niis.xroad.opmonitor.client;
 
-@Configuration
-public class SignerIntTestConfiguration {
-    @Bean
-    TestCaFeignInterceptor testCaFeignInterceptor(SignerIntTestSetup envSetup) {
-        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(SignerIntTestSetup.TESTCA,
-                SignerIntTestSetup.Port.TEST_CA).port());
-    }
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 
-//    @Bean
-//    @Primary
-//    public OpMonitorClient mockOpMonitorClient() {
-//        return mock(OpMonitorClient.class);
-//    }
+@SuppressWarnings("checkstyle:InterfaceIsType")
+@ConfigMapping(prefix = OpMonitorRpcChannelProperties.PREFIX)
+public interface OpMonitorRpcChannelProperties extends RpcChannelProperties {
+    String PREFIX = "xroad.common.rpc.channel.op-monitor";
+
+    String DEFAULT_HOST = "127.0.0.1";
+    String DEFAULT_PORT = "2081";
+    String DEFAULT_DEADLINE_AFTER = "60000";
+
+    @Override
+    @WithDefault(DEFAULT_HOST)
+    String host();
+
+    @Override
+    @WithDefault(DEFAULT_PORT)
+    int port();
+
+    @Override
+    @WithName("deadline-after")
+    @WithDefault(DEFAULT_DEADLINE_AFTER)
+    int deadlineAfter();
 
 }

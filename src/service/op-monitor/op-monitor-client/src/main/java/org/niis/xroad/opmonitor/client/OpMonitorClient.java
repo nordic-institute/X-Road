@@ -27,34 +27,49 @@ package org.niis.xroad.opmonitor.client;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import io.grpc.Channel;
+import io.grpc.ManagedChannel;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import lombok.Getter;
-import org.niis.xroad.common.rpc.client.RpcClient;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.ServiceIdMapper;
 import org.niis.xroad.opmonitor.api.GetOperationalDataIntervalsReq;
 import org.niis.xroad.opmonitor.api.OpMonitorServiceGrpc;
-import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.opmonitor.api.OperationalDataInterval;
 import org.niis.xroad.opmonitor.api.SecurityServerType;
 
 import java.time.Instant;
 import java.util.List;
 
-public class OpMonitorClient {
-    private static final int TIMEOUT_AWAIT = 10 * 1000;
-    private final RpcClient<OpMonitorRpcExecutionContext> opMonitorRpcClient;
+@Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
+public class OpMonitorClient extends AbstractRpcClient {
+    private final RpcChannelFactory rpcChannelFactory;
+    private final OpMonitorRpcChannelProperties rpcChannelProperties;
 
-    public OpMonitorClient() throws Exception {
-        this.opMonitorRpcClient = RpcClient.newClient(OpMonitoringSystemProperties.getOpMonitorHost(),
-                OpMonitoringSystemProperties.getOpMonitorGrpcPort(), TIMEOUT_AWAIT, OpMonitorRpcExecutionContext::new);
+    private ManagedChannel channel;
+    private OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitoringServiceBlockingStub;
+
+
+    @PostConstruct
+    public void init() throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
+                rpcChannelProperties.port());
+        channel = rpcChannelFactory.createChannel(rpcChannelProperties);
+
+        opMonitoringServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
 
+    @Override
     @PreDestroy
-    public void destroy() {
-        if (opMonitorRpcClient != null) {
-            opMonitorRpcClient.shutdown();
+    public void close() {
+        if (channel != null) {
+            channel.shutdown();
         }
     }
 
@@ -78,23 +93,13 @@ public class OpMonitorClient {
             if (serviceId != null) {
                 reqBuilder.setServiceId(ServiceIdMapper.toDto(serviceId));
             }
-            var response = opMonitorRpcClient.execute(ctx ->
-                    ctx.getOpMonitorServiceBlockingStub().getOperationalDataIntervals(reqBuilder.build()));
+            var response = exec(() ->
+                    opMonitoringServiceBlockingStub.getOperationalDataIntervals(reqBuilder.build()));
 
             return response.getOperationalDataIntervalList().stream().map(OperationalDataInterval::new).toList();
         } catch (Exception e) {
             throw new RuntimeException("Failed to get operational data from: %s, to: %s".formatted(Instant.ofEpochMilli(recordsFrom),
                     Instant.ofEpochMilli(recordsTo)), e);
-        }
-    }
-
-
-    @Getter
-    private static class OpMonitorRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final OpMonitorServiceGrpc.OpMonitorServiceBlockingStub opMonitorServiceBlockingStub;
-
-        OpMonitorRpcExecutionContext(Channel channel) {
-            opMonitorServiceBlockingStub = OpMonitorServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 }

@@ -24,24 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.test.container;
 
-import org.niis.xroad.common.test.api.interceptor.TestCaFeignInterceptor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package org.niis.xroad.opmonitor.application;
 
-@Configuration
-public class SignerIntTestConfiguration {
-    @Bean
-    TestCaFeignInterceptor testCaFeignInterceptor(SignerIntTestSetup envSetup) {
-        return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(SignerIntTestSetup.TESTCA,
-                SignerIntTestSetup.Port.TEST_CA).port());
+import io.quarkus.test.junit.QuarkusTestProfile;
+
+import java.util.Map;
+
+public class OpMonitorDaemonTestProfile implements QuarkusTestProfile {
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "quarkus.log.level", "INFO",
+                "xroad.common.rpc.use-tls", "false"
+        );
     }
-
-//    @Bean
-//    @Primary
-//    public OpMonitorClient mockOpMonitorClient() {
-//        return mock(OpMonitorClient.class);
-//    }
-
+    
 }

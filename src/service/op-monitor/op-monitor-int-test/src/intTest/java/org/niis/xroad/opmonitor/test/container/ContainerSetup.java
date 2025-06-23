@@ -25,57 +25,47 @@
  */
 package org.niis.xroad.opmonitor.test.container;
 
-import com.nortal.test.testcontainers.configurator.SpringBootTestContainerConfigurator;
+import com.nortal.test.testcontainers.configurator.GenericTestContainerConfigurator;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.opmonitor.test.container.database.LiquibaseExecutor;
+import org.niis.xroad.opmonitor.test.container.database.PostgresContextualContainer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static ee.ria.xroad.common.PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT;
 
 @Configuration
 public class ContainerSetup {
 
+    @Value("${test-automation.custom.image-name}")
+    String imageName;
+
     @Bean
     public TestContainerConfigurator testContainerConfigurator() {
-        return new SpringBootTestContainerConfigurator();
+        return new GenericTestContainerConfigurator(imageName);
     }
 
     @Bean
-    public SpringBootTestContainerConfigurator.TestContainerCustomizer testContainerCustomizer() {
-        return new SpringBootTestContainerConfigurator.TestContainerCustomizer() {
-            @Override
-            public void customizeImageDefinition(@NotNull ImageFromDockerfile imageFromDockerfile) {
-                var filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-                imageFromDockerfile.withFileFromFile(".", filesToAdd);
-            }
-
-            @Override
-            public void customizeDockerFileBuilder(@NotNull DockerfileBuilder dockerfileBuilder) {
-                dockerfileBuilder.copy(".", ".");
-            }
-
-            @NotNull
-            @Override
-            public List<String> customizeCommandParts() {
-                return List.of("-Dxroad.common.grpc-internal-tls-enabled=false", "-Dxroad.op-monitor.host=0.0.0.0");
-            }
-
+    public TestContainerConfigurator.TestContainerCustomizer testContainerCustomizer(PostgresContextualContainer postgresCtx) {
+        return new TestContainerConfigurator.TestContainerCustomizer() {
             @NotNull
             @Override
             public Map<String, String> additionalEnvironmentalVariables() {
-                return new HashMap<>();
+                return Map.of(
+                        "xroad.db.op-monitor.hibernate.connection.url", postgresCtx.getJdbcUrl(),
+                        "xroad.db.op-monitor.hibernate.connection.username", "xrd",
+                        "xroad.db.op-monitor.hibernate.connection.password", "secret",
+                        "xroad.db.op-monitor.hibernate.connection.currentSchema", "opmonitor,public",
+                        "XROAD_COMMON_RPC_USE_TLS", "false",
+                        "XROAD_COMMON_GLOBAL_CONF_SOURCE", "FILESYSTEM",
+                        "XROAD_OP_MONITOR_RPC_LISTEN_ADDRESS", "0.0.0.0"
+                );
             }
 
             @NotNull
@@ -93,9 +83,6 @@ public class ContainerSetup {
 
             @Override
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
-                genericContainer.waitingFor(Wait.forLogMessage(".*xroad-opmonitor started in.*", 1))
-                        .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(768 * 1024 * 1024L));
-
                 liquibaseExecutor.executeChangesets();
             }
 

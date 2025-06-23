@@ -91,13 +91,13 @@ public final class OperationalDataRecordManager {
         return records;
     }
 
-    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(Long startTime,
+    List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(Long startTime,
                                                                                      Long endTime,
                                                                                      Integer intervalInMinutes,
                                                                                      OpMonitoringData.SecurityServerType securityServerType,
                                                                                      ClientId memberId,
                                                                                      ServiceId serviceId) throws Exception {
-        return doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
+        return databaseCtx.doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
                 startTime,
                 endTime,
                 intervalInMinutes,
@@ -106,7 +106,7 @@ public final class OperationalDataRecordManager {
                 serviceId));
     }
 
-    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
+    private static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
             Session session,
             Long startTime,
             Long endTime,
