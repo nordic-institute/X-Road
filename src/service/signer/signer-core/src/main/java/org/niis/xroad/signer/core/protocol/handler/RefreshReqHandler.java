@@ -25,41 +25,24 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.signer.core.protocol;
+package org.niis.xroad.signer.core.protocol.handler;
 
-
-import io.grpc.stub.StreamObserver;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
-import org.niis.xroad.signer.core.protocol.handler.GetCertificationServiceDiagnosticsReqHandler;
-import org.niis.xroad.signer.core.protocol.handler.GetKeyConfChecksumHandler;
-import org.niis.xroad.signer.core.protocol.handler.RefreshReqHandler;
-import org.niis.xroad.signer.proto.AdminServiceGrpc;
-import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
-import org.niis.xroad.signer.proto.KeyConfChecksum;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 
 @ApplicationScoped
 @RequiredArgsConstructor
-public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
+public class RefreshReqHandler extends AbstractRpcHandler<Empty, Empty> {
 
-    private final GetCertificationServiceDiagnosticsReqHandler getCertificationServiceDiagnosticsReqHandler;
-    private final GetKeyConfChecksumHandler getKeyConfChecksumHandler;
-    private final RefreshReqHandler refreshReqHandler;
+    private final ModuleManager moduleManager;
 
     @Override
-    public void getCertificationServiceDiagnostics(Empty request, StreamObserver<CertificationServiceDiagnosticsResp> responseObserver) {
-        getCertificationServiceDiagnosticsReqHandler.processSingle(request, responseObserver);
-    }
-
-    @Override
-    public void getKeyConfChecksum(Empty request, StreamObserver<KeyConfChecksum> responseObserver) {
-        getKeyConfChecksumHandler.processSingle(request, responseObserver);
-    }
-
-    @Override
-    public void refreshModules(Empty request, StreamObserver<Empty> responseObserver) {
-        refreshReqHandler.processSingle(request, responseObserver);
+    protected Empty handle(Empty request) throws Exception {
+        moduleManager.refresh();
+        return Empty.getDefaultInstance();
     }
 
 }
