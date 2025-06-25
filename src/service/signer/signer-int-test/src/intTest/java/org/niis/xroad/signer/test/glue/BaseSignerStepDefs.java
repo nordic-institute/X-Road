@@ -71,7 +71,7 @@ public class BaseSignerStepDefs extends BaseStepDefs {
 
     protected KeyInfo findKeyInToken(String friendlyName, String keyName, NodeProperties.NodeType nodeType) {
         var foundKeyInfo = getTokenInfoByFriendlyName(friendlyName, nodeType).getKeyInfo().stream()
-                .filter(keyInfo -> keyInfo.getFriendlyName().equals(keyName))
+                .filter(keyInfo -> keyName.equals(keyInfo.getFriendlyName()))
                 .findFirst()
                 .orElseThrow();
         testReportService.attachJson("Key [" + keyName + "]", foundKeyInfo);

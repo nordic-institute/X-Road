@@ -2,6 +2,7 @@ Feature: 0400 - Signer: Secondary node tests
 
   Background:
     Given tokens are listed
+    And tokens are listed on secondary node
 
   Scenario: Write operations are not allowed on secondary node
     * Init software token on secondary node not allowed

@@ -90,9 +90,7 @@
             <column name="type" type="VARCHAR(16)" remarks="Type of the key.">
                 <constraints nullable="false"/>
             </column>
-            <column name="friendly_name" type="VARCHAR(1024)" remarks="Name that is displayed in UI.">
-                <constraints nullable="false"/>
-            </column>
+            <column name="friendly_name" type="VARCHAR(1024)" remarks="Name that is displayed in UI."/>
             <column name="label" type="VARCHAR(1024)" remarks="Label of the key."/>
             <column name="public_key" type="VARCHAR(4096)" remarks="Base64 encoded public key corresponding to the private key."/>
             <column name="keystore" type="BYTEA" remarks="Encrypted PKCS#12 key store."/>

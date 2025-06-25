@@ -128,6 +128,12 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         });
     }
 
+    @Step("tokens are listed on {nodeType} node")
+    public void listTokens(NodeProperties.NodeType nodeType) {
+        var tokens = clientHolder.get(nodeType).getTokens();
+        testReportService.attachJson("Tokens[%s]".formatted(nodeType), tokens.toArray());
+    }
+
     @Step("signer is initialized with pin {string}")
     public void signerIsInitializedWithPin(String pin) {
         clientHolder.get().initSoftwareToken(pin.toCharArray());
@@ -285,7 +291,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("key {string} is deleted from token {string}")
-    public void keyIsDeletedFromToken(String keyName, String friendlyName) throws Exception {
+    public void keyIsDeletedFromToken(String keyName, String friendlyName) {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
         clientHolder.get().deleteKey(key.getId(), true);
     }

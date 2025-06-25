@@ -71,7 +71,7 @@ public class SignerKeyEntity extends AuditableEntity {
     @Column(name = "type")
     private KeyType type;
 
-    @Column(name = "friendly_name", nullable = false)
+    @Column(name = "friendly_name")
     private String friendlyName;
 
     @Column(name = "label")
