@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.ThrowableAssert;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -50,6 +51,7 @@ import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
@@ -93,6 +95,8 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.PRIMARY;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.SECONDARY;
 
 
 @Slf4j
@@ -172,8 +176,13 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("token {string} is logged in with pin {string}")
     public void tokenIsActivatedWithPin(String friendlyName, String pin) {
+        tokenIsActivatedWithPin(friendlyName, pin, PRIMARY);
+    }
+
+    @Step("token {string} is logged in with pin {string} on {nodeType} node")
+    public void tokenIsActivatedWithPin(String friendlyName, String pin, NodeProperties.NodeType nodeType) {
         var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
-        clientHolder.get().activateToken(tokenId, pin.toCharArray());
+        clientHolder.get(nodeType).activateToken(tokenId, pin.toCharArray());
     }
 
     @Step("token {string} is logged out")
@@ -183,10 +192,16 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("token {string} is active")
-    public void tokenIsActive(String friendlyName) throws Exception {
-        var tokenInfo = getTokenInfoByFriendlyName(friendlyName);
+    public void tokenIsActive(String friendlyName) {
+        tokenIsActive(friendlyName, PRIMARY);
+    }
+
+    @Step("token {string} is active on {nodeType} node")
+    public void tokenIsActive(String friendlyName, NodeProperties.NodeType nodeType) {
+        var tokenInfo = getTokenInfoByFriendlyName(friendlyName, nodeType);
         assertThat(tokenInfo.isActive()).isTrue();
     }
+
 
     @Step("token {string} pin is updated from {string} to {string}")
     public void tokenPinIsUpdatedFromTo(String friendlyName, String oldPin, String newPin) {
@@ -216,15 +231,20 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         clientHolder.get().setTokenFriendlyName(tokenId, name);
     }
 
-    @Step("token with id {string} name is {string}")
-    public void tokenNameIs(String tokenId, String name) {
-        assertThat(clientHolder.get().getToken(tokenId).getFriendlyName()).isEqualTo(name);
+    @Step("token with id {string} name is {string} on {nodeType} node")
+    public void tokenNameIs(String tokenId, String name, NodeProperties.NodeType nodeType) {
+        assertThat(clientHolder.get(nodeType).getToken(tokenId).getFriendlyName()).isEqualTo(name);
     }
 
     @Step("token with label {string} name is {string}")
     public void tokenNameByLabelIs(String label, String name) {
+        tokenNameByLabelIs(label, name, NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("token with label {string} name is {string} on {nodeType} node")
+    public void tokenNameByLabelIs(String label, String name, NodeProperties.NodeType nodeType) {
         var tokenId = tokenLabelToIdMapping.get(label);
-        assertThat(clientHolder.get().getToken(tokenId).getFriendlyName()).isEqualTo(name);
+        assertThat(clientHolder.get(nodeType).getToken(tokenId).getFriendlyName()).isEqualTo(name);
     }
 
     @Step("new {algorithm} key {string} generated for token {string}")
@@ -240,10 +260,20 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         clientHolder.get().setKeyFriendlyName(this.scenarioKeyId, keyFriendlyName);
     }
 
+    @Step("set name for key not allowed on secondary node")
+    public void nameIsSetForGeneratedKey() {
+        assertAccessDenied(() -> clientHolder.get(SECONDARY).setKeyFriendlyName(this.scenarioKeyId, "keyFriendlyName"));
+    }
+
     @Step("token {string} has exact keys {string}")
-    public void tokenHasKeys(String friendlyName, String keyNames) throws Exception {
+    public void tokenHasKeys(String friendlyName, String keyNames) {
+        tokenHasKeys(friendlyName, keyNames, NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("token {string} has exact keys {string} on {nodeType} node")
+    public void tokenHasKeys(String friendlyName, String keyNames, NodeProperties.NodeType nodeType) {
         final List<String> keys = Arrays.asList(keyNames.split(","));
-        final TokenInfo token = getTokenInfoByFriendlyName(friendlyName);
+        final TokenInfo token = getTokenInfoByFriendlyName(friendlyName, nodeType);
 
         assertThat(token.getKeyInfo().size()).isEqualTo(keys.size());
 
@@ -346,23 +376,38 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("token {string} key {string} has {int} certificates")
-    public void tokenKeyHasCertificates(String friendlyName, String keyName, int certCount) throws Exception {
-        final KeyInfo key = findKeyInToken(friendlyName, keyName);
+    public void tokenKeyHasCertificates(String friendlyName, String keyName, int certCount) {
+        tokenKeyHasCertificates(friendlyName, keyName, certCount, NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("token {string} key {string} has {int} certificates on {nodeType} node")
+    public void tokenKeyHasCertificates(String friendlyName, String keyName, int certCount, NodeProperties.NodeType nodeType) {
+        final KeyInfo key = findKeyInToken(friendlyName, keyName, nodeType);
 
         assertThat(key.getCerts()).hasSize(certCount);
     }
 
     @Step("sign mechanism for token {string} key {string} is not null")
     public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName) throws Exception {
+        signMechanismForTokenKeyIsNotNull(friendlyName, keyName, NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("sign mechanism for token {string} key {string} is not null on {nodeType} node")
+    public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName, NodeProperties.NodeType nodeType) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
-        final var signMechanism = clientHolder.get().getSignMechanism(keyInToken.getId());
+        final var signMechanism = clientHolder.get(nodeType).getSignMechanism(keyInToken.getId());
 
         assertThat(signMechanism.name()).isNotBlank();
     }
 
     @Step("member {string} has {int} certificate")
     public void memberHasCertificate(String memberId, int certCount) {
-        final List<CertificateInfo> memberCerts = clientHolder.get().getMemberCerts(getClientId(memberId));
+        memberHasCertificate(memberId, certCount, NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("member {string} has {int} certificate on {nodeType} node")
+    public void memberHasCertificate(String memberId, int certCount, NodeProperties.NodeType nodeType) {
+        final List<CertificateInfo> memberCerts = clientHolder.get(nodeType).getMemberCerts(getClientId(memberId));
         assertThat(memberCerts).hasSize(certCount);
     }
 
@@ -380,32 +425,58 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("certificate info can be retrieved by cert hash")
     public void certificateInfoCanBeRetrievedByHash() {
-        final CertificateInfo certInfoResponse = clientHolder.get().getCertForHash(this.certHash);
+        certificateInfoCanBeRetrievedByHash(NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("certificate info can be retrieved by cert hash on {nodeType} node")
+    public void certificateInfoCanBeRetrievedByHash(NodeProperties.NodeType nodeType) {
+        final CertificateInfo certInfoResponse = clientHolder.get(nodeType).getCertForHash(this.certHash);
         assertThat(certInfoResponse).isNotNull();
         this.certInfo = certInfoResponse;
     }
 
     @Step("keyId can be retrieved by cert hash")
     public void keyidCanBeRetrievedByCertHash() {
-        final SignerRpcClient.KeyIdInfo keyIdForCertHash = clientHolder.get().getKeyIdForCertHash(this.certHash);
+        keyidCanBeRetrievedByCertHash(NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("keyId can be retrieved by cert hash on {nodeType} node")
+    public void keyidCanBeRetrievedByCertHash(NodeProperties.NodeType nodeType) {
+        final SignerRpcClient.KeyIdInfo keyIdForCertHash = clientHolder.get(nodeType).getKeyIdForCertHash(this.certHash);
         assertThat(keyIdForCertHash).isNotNull();
     }
 
     @Step("token and keyId can be retrieved by cert hash")
     public void tokenAndKeyIdCanBeRetrievedByCertHash() {
-        final TokenInfoAndKeyId tokenAndKeyIdForCertHash = clientHolder.get().getTokenAndKeyIdForCertHash(this.certHash);
+        tokenAndKeyIdCanBeRetrievedByCertHash(NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("token and keyId can be retrieved by cert hash on {nodeType} node")
+    public void tokenAndKeyIdCanBeRetrievedByCertHash(NodeProperties.NodeType nodeType) {
+        final TokenInfoAndKeyId tokenAndKeyIdForCertHash = clientHolder.get(nodeType).getTokenAndKeyIdForCertHash(this.certHash);
         assertThat(tokenAndKeyIdForCertHash).isNotNull();
     }
 
     @Step("token and key can be retrieved by cert request")
     public void tokenAndKeyCanBeRetrievedByCertRequest() {
-        final TokenInfoAndKeyId tokenAndKeyIdForCertRequestId = clientHolder.get().getTokenAndKeyIdForCertRequestId(this.scenarioCsrId);
+        tokenAndKeyCanBeRetrievedByCertRequest(NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("token and key can be retrieved by cert request on {nodeType} node")
+    public void tokenAndKeyCanBeRetrievedByCertRequest(NodeProperties.NodeType nodeType) {
+        final TokenInfoAndKeyId tokenAndKeyIdForCertRequestId = clientHolder.get(nodeType)
+                .getTokenAndKeyIdForCertRequestId(this.scenarioCsrId);
         assertThat(tokenAndKeyIdForCertRequestId).isNotNull();
     }
 
     @Step("token info can be retrieved by key id")
     public void tokenInfoCanBeRetrievedByKeyId() {
-        final TokenInfo tokenForKeyId = clientHolder.get().getTokenForKeyId(this.scenarioKeyId);
+        tokenInfoCanBeRetrievedByKeyId(NodeProperties.NodeType.PRIMARY);
+    }
+
+    @Step("token info can be retrieved by key id on {nodeType} node")
+    public void tokenInfoCanBeRetrievedByKeyId(NodeProperties.NodeType nodeType) {
+        final TokenInfo tokenForKeyId = clientHolder.get(nodeType).getTokenForKeyId(this.scenarioKeyId);
         testReportService.attachJson("tokenInfo", tokenForKeyId);
         assertThat(tokenForKeyId).isNotNull();
     }
@@ -461,7 +532,6 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final byte[] bytes = clientHolder.getSignClient().signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
-
 
     @Step("Digest is signed using key {string} from token {string}")
     public void sign(String keyName, String friendlyName) throws Exception {
@@ -661,7 +731,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             assertException("Signer.InternalError",
                     "",
                     "Signer.InternalError: Failed to verify OCSP responses for certificate. Error: InvalidCertPath.CertValidation: OCSP "
-                          + "response indicates certificate status is REVOKED (date: 2022-01-01 00:00:00)",
+                            + "response indicates certificate status is REVOKED (date: 2022-01-01 00:00:00)",
                     codedException);
         }
     }
@@ -687,9 +757,9 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         assertThat(ocspResponses[0]).isNotNull();
     }
 
-    @Step("null ocsp response is returned for unknown certificate")
-    public void emptyOcspResponseIsReturnedForUnknownCertificate() throws Exception {
-        final String[] ocspResponses = clientHolder.get()
+    @Step("null ocsp response is returned for unknown certificate on {nodeType} node")
+    public void emptyOcspResponseIsReturnedForUnknownCertificate(NodeProperties.NodeType nodeType) throws Exception {
+        final String[] ocspResponses = clientHolder.get(nodeType)
                 .getOcspResponses(new String[]{calculateCertHexHash("not a cert".getBytes())});
         assertThat(ocspResponses).hasSize(1);
         assertThat(ocspResponses[0]).isNull();
@@ -712,8 +782,54 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 .hasMessageContaining("Signer.NetworkError: Signer client timed out.");
     }
 
+    @Step("secondary node sync is forced")
+    public void secondaryNodeSyncIsForced() {
+        clientHolder.get(SECONDARY).refreshModules();
+    }
+
+    @Step("Init software token on secondary node not allowed")
+    public void initSoftwareTokenFailsOnSecondaryNode() {
+        var secondaryClient = clientHolder.get(SECONDARY);
+        assertAccessDenied(() -> secondaryClient.initSoftwareToken("1234".toCharArray()));
+    }
+
+    @Step("Set token friendly name on secondary node not allowed")
+    public void setTokenFriendlyNameFailsOnSecondaryNode() {
+        var secondaryClient = clientHolder.get(SECONDARY);
+        assertAccessDenied(() -> secondaryClient.setTokenFriendlyName("0", "name"));
+    }
+
+    @Step("Update token pin on secondary node not allowed")
+    public void updateTokenPinFailsOnSecondaryNode() {
+        var secondaryClient = clientHolder.get(SECONDARY);
+        assertAccessDenied(() -> secondaryClient.updateTokenPin("0", "4321".toCharArray(), "pin".toCharArray()));
+    }
+
+    @Step("Delete token on secondary node not allowed")
+    public void deleteTokenFailsOnSecondaryNode() {
+        var secondaryClient = clientHolder.get(SECONDARY);
+        assertAccessDenied(() -> secondaryClient.deleteToken("0"));
+    }
+
+    @Step("Generate new key on secondary node not allowed")
+    public void generateNewKeyFailsOnSecondaryNode() {
+        assertAccessDenied(() -> clientHolder.get(SECONDARY).generateKey("0", "key-label", KeyAlgorithm.RSA));
+    }
+
+    void assertAccessDenied(ThrowableAssert.ThrowingCallable callable) {
+        assertThatThrownBy(callable)
+                .isExactlyInstanceOf(CodedException.class)
+                .hasMessage("Signer.AccessDenied: Write operations are not allowed on secondary node");
+    }
+
     @ParameterType("RSA|EC")
     public KeyAlgorithm algorithm(String value) {
         return KeyAlgorithm.valueOf(value);
     }
+
+    @ParameterType("primary|secondary")
+    public NodeProperties.NodeType nodeType(String value) {
+        return NodeProperties.NodeType.fromStringIgnoreCaseOrReturnDefault(value);
+    }
+
 }

@@ -30,15 +30,21 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
 
 /**
  * Signer main program.
  */
 @QuarkusMain
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class SignerMain {
 
     public static void main(String[] args) {
+        if (NodeProperties.isSecondaryNode()) {
+            log.info("Starting Signer as secondary node. Modifying operations are not allowed.");
+        }
         Quarkus.run(args);
     }
 }

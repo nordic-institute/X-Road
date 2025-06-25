@@ -28,7 +28,6 @@
 package org.niis.xroad.signer.test.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
-import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
@@ -36,10 +35,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
-import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
 import java.time.Duration;
@@ -55,6 +52,7 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
     private static final Duration SIGNER_STARTUP_TIMEOUT = Duration.ofSeconds(45);
 
     public static final String SIGNER = "signer";
+    public static final String SIGNER_SECONDARY = "signer-secondary";
     public static final String TESTCA = "testca";
     public static final String DB_SERVERCONF = "db-serverconf";
 
@@ -69,9 +67,11 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
                 .withLocalCompose(true)
 
                 .withExposedService(SIGNER, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
+                .withExposedService(SIGNER_SECONDARY, SIGNER_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(SIGNER_STARTUP_TIMEOUT))
                 .withExposedService(DB_SERVERCONF, Port.DB, Wait.forListeningPort())
                 .withExposedService(TESTCA, Port.TEST_CA, Wait.forLogMessage(".*nginx entered RUNNING state.*", 1))
-                .withLogConsumer(SIGNER, createLogConsumer(SIGNER));
+                .withLogConsumer(SIGNER, createLogConsumer(SIGNER))
+                .withLogConsumer(SIGNER_SECONDARY, createLogConsumer(SIGNER_SECONDARY));
 
         env.start();
     }
@@ -94,33 +94,8 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
         await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
     }
 
-    public void stop(String service) {
-        var containerState = env.getContainerByServiceName(service).orElseThrow();
-        var dockerClient = containerState.getDockerClient();
-        dockerClient.stopContainerCmd(containerState.getContainerId()).exec();
-    }
-
-    @SuppressWarnings("checkstyle:magicnumber")
-    public void start(String service) {
-        var containerState = env.getContainerByServiceName(service).orElseThrow();
-        var dockerClient = containerState.getDockerClient();
-        dockerClient.startContainerCmd(containerState.getContainerId()).exec();
-        await().atMost(20, TimeUnit.SECONDS).until(containerState::isHealthy);
-    }
-
     private Slf4jLogConsumer createLogConsumer(String containerName) {
         return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-".formatted(containerName)));
-    }
-
-    @SneakyThrows
-    public Container.ExecResult execInContainer(String container, String... command) {
-        return env.getContainerByServiceName(container).orElseThrow()
-                .execInContainer(command);
-    }
-
-    public void copyFilesToContainer(String container, MountableFile mountableFile, String location) {
-        env.getContainerByServiceName(container).orElseThrow()
-                .copyFileToContainer(mountableFile, location);
     }
 
     public ContainerMapping getContainerMapping(String service, int originalPort) {

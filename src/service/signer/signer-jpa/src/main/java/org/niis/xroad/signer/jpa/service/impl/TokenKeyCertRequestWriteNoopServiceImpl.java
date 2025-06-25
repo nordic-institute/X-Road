@@ -27,24 +27,23 @@
 
 package org.niis.xroad.signer.jpa.service.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.writeNotAvailable;
 
 public class TokenKeyCertRequestWriteNoopServiceImpl implements TokenKeyCertRequestWriteService {
 
     @Override
     public Long save(Long keyId, String externalId, ClientId.Conf memberId, String subjectName,
                      String subjectAltName, String certificateProfile) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean delete(Long id) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
 }

@@ -27,54 +27,53 @@
 
 package org.niis.xroad.signer.jpa.service.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
 
 import java.time.Instant;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.writeNotAvailable;
 
 public class TokenKeyCertWriteNoopServiceImpl implements TokenKeyCertWriteService {
 
     @Override
     public Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean delete(Long id) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean setActive(Long id, boolean active) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateStatus(Long id, String status) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateRenewedCertHash(Long id, String renewedCertHash) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateRenewalError(Long id, String renewalError) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 }

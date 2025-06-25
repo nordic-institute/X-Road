@@ -27,45 +27,44 @@
 
 package org.niis.xroad.signer.jpa.service.impl;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.writeNotAvailable;
 
 public class TokenKeyWriteNoopServiceImpl implements TokenKeyWriteService {
 
     @Override
     public Long save(Long tokenId, String keyId, String publicKeyBase64, byte[] keyStore,
                      SignMechanism signMechanism, String friendlyName, String label, boolean softwareKey) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean delete(Long id) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateFriendlyName(Long id, String friendlyName) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateLabel(Long id, String label) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateKeyUsage(Long id, KeyUsageInfo keyUsage) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updatePublicKey(Long id, String publicKey) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
 }

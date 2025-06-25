@@ -27,38 +27,36 @@
 
 package org.niis.xroad.signer.jpa.service.impl;
 
-import ee.ria.xroad.common.CodedException;
-
 import org.niis.xroad.signer.core.service.TokenWriteService;
 
 import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.writeNotAvailable;
 
 public class TokenWriteNoopServiceImpl implements TokenWriteService {
 
     @Override
     public boolean delete(Long tokenId) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public Long save(String externalId, String type, String friendlyName, String label, String serialNo) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean setInitialTokenPin(Long tokenId, byte[] pinHash) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateTokenPin(Long tokenId, Map<Long, byte[]> updatedKeys, byte[] pinHash) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 
     @Override
     public boolean updateFriendlyName(Long id, String friendlyName) {
-        throw new CodedException(X_ACCESS_DENIED, "Write operations are not allowed on secondary node");
+        throw writeNotAvailable();
     }
 }
