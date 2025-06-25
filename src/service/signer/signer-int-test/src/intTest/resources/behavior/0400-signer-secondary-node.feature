@@ -11,6 +11,5 @@ Feature: 0400 - Signer: Secondary node tests
   Scenario: Activate token on secondary node
     When token "soft-token-000" is logged in with pin "4321" on secondary node
     Then token "soft-token-000" is active on secondary node
-    And Generate new key on secondary node not allowed
-    # fail to change pin leaves token logged out
     And Update token pin on secondary node not allowed
+    And Generate new key on secondary node not allowed
