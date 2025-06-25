@@ -38,10 +38,4 @@ public class SignerIntTestConfiguration {
                 SignerIntTestSetup.Port.TEST_CA).port());
     }
 
-//    @Bean
-//    @Primary
-//    public OpMonitorClient mockOpMonitorClient() {
-//        return mock(OpMonitorClient.class);
-//    }
-
 }
