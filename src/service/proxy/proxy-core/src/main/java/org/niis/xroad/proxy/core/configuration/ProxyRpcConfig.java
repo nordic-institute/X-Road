@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.core.configuration;
 import io.grpc.BindableService;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
@@ -62,4 +63,7 @@ public class ProxyRpcConfig {
         return rpcServer;
     }
 
+    public void cleanup(@Disposes RpcServer rpcServer) throws Exception {
+        rpcServer.destroy();
+    }
 }

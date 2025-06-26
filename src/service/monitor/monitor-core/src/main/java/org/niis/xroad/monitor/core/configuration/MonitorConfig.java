@@ -34,6 +34,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
@@ -66,6 +67,10 @@ public class MonitorConfig {
                 }));
         rpcServer.afterPropertiesSet();
         return rpcServer;
+    }
+
+    public void cleanup(@Disposes RpcServer rpcServer) throws Exception {
+        rpcServer.destroy();
     }
 
     @ApplicationScoped

@@ -165,7 +165,7 @@ public class ServerProxy {
 
     @PostConstruct
     public void init() throws Exception {
-        log.trace("start()");
+        log.info("Initializing server proxy");
 
         configureServer();
 
@@ -180,12 +180,13 @@ public class ServerProxy {
 
     @PreDestroy
     public void destroy() throws Exception {
-        log.trace("stop()");
+        log.info("Shutting down server proxy..");
 
         connMonitor.shutdown();
         client.close();
         opMonitorClient.close();
         server.stop();
+        log.info("Shutting down server proxy.. Success!");
     }
 
     /**
