@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -73,7 +74,7 @@ public class AdminUsersController {
     @PostMapping
     @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_ADD)
     @PreAuthorize("hasAuthority('ADD_ADMIN_USER')")
-    public ResponseEntity<Void> create(@RequestBody AdminUser adminUser) {
+    public ResponseEntity<Void> create(@RequestBody @Valid AdminUser adminUser) {
         adminUserService.create(mapper.toDomainObject(adminUser));
         return ResponseEntity.status(CREATED).build();
     }
@@ -82,7 +83,7 @@ public class AdminUsersController {
     @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_UPDATE)
     @PreAuthorize("hasAuthority('UPDATE_ADMIN_USER') or #username == authentication.principal")
     public ResponseEntity<Void> changePassword(
-            @PathVariable("username") String username, @RequestBody AdminUserPasswordChangeRequest passwordChangeRequest) {
+            @PathVariable("username") String username, @RequestBody @Valid AdminUserPasswordChangeRequest passwordChangeRequest) {
         adminUserService.changePassword(
                 username, passwordChangeRequest.getOldPassword().toCharArray(), passwordChangeRequest.getNewPassword().toCharArray());
         return ResponseEntity.ok().build();

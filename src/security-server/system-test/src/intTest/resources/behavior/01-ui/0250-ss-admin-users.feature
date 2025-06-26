@@ -8,6 +8,24 @@ Feature: 0250 - SS: Admin Users
     And Settings tab is selected
     And Admin Users sub-tab is selected
 
+  Scenario: Too weak password is not accepted when adding new user
+    When Add Admin Users wizard is opened
+    And Role "Server Observer" is being checked in the wizard
+    And Wizard's Next button is clicked
+    And Username test is entered
+    And Password t0pSecret is entered
+    And Confirmation password t0pSecret is entered
+    Then Wizard's Save button is clicked and error: "The provided password was too weak" is displayed
+
+  Scenario: Password containing illegal characters is not accepted when adding new user
+    When Add Admin Users wizard is opened
+    And Role "Server Observer" is being checked in the wizard
+    And Wizard's Next button is clicked
+    And Username test is entered
+    And Password t0pSecretä is entered
+    And Confirmation password t0pSecretä is entered
+    Then Wizard's Save button is clicked and error: "The provided password contains invalid characters" is displayed
+
   Scenario: User can add new admin user with all roles
     Given Admin Users table has 1 entries
     When Add Admin Users wizard is opened
@@ -18,8 +36,8 @@ Feature: 0250 - SS: Admin Users
     And Role "Server Observer" is being checked in the wizard
     And Wizard's Next button is clicked
     And Username test is entered
-    And Password secret is entered
-    And Confirmation password secret is entered
+    And Password t0pSecret1 is entered
+    And Confirmation password t0pSecret1 is entered
     And Wizard's Save button is clicked
     Then Admin user test is present in the list and has roles
       | $role                 | $condition |
@@ -48,7 +66,7 @@ Feature: 0250 - SS: Admin Users
     Given logout button is being clicked
     And SecurityServer login page is open
     And Page is prepared to be tested
-    And User test logs in to SecurityServer with password secret
+    And User test logs in to SecurityServer with password t0pSecret1
     And Settings tab is selected
     And Admin Users sub-tab is selected
     When Add Admin Users wizard is opened
@@ -66,19 +84,64 @@ Feature: 0250 - SS: Admin Users
     And Role "Server Observer" should not be visible
     And Dialog is closed
 
-  Scenario: User can change existing user's password
+  Scenario: Too weak password is not accepted when changing other user's password
     When Admin user test's password change dialog is opened
-    And Old password secret is entered
-    And New password secret2 is entered
-    And New password's confirmation secret2 is entered
+    And Old password input is not visible
+    And New password t0pSecret is entered
+    And New password's confirmation t0pSecret is entered
+    Then Change password dialog's Save button is clicked and error: "The provided password was too weak" is displayed
+
+  Scenario: Password containing illegal characters is not accepted when changing user's password
+    When Admin user test's password change dialog is opened
+    And Old password input is not visible
+    And New password t0pSecretä is entered
+    And New password's confirmation t0pSecretä is entered
+    Then Change password dialog's Save button is clicked and error: "The provided password contains invalid characters" is displayed
+
+  Scenario: User can change other user's password
+    When Admin user test's password change dialog is opened
+    And Old password input is not visible
+    And New password t0pSecret2 is entered
+    And New password's confirmation t0pSecret2 is entered
     And Change password dialog's Save button is clicked
     And logout button is being clicked
     And SecurityServer login page is open
-    Then User test tries to log in to SecurityServer with password secret
+    Then User test tries to log in to SecurityServer with password t0pSecret1
     And Error message for incorrect credentials is shown
     And Login form is visible
-    And User test logs in to SecurityServer with password secret2
+
+  Scenario: Too weak password is not accepted when changing own password
+    When Change password button is being clicked
+    And Old password secret is entered
+    And New password t0pSecret is entered
+    And New password's confirmation t0pSecret is entered
+    Then Change password dialog's Save button is clicked and error: "The provided password was too weak" is displayed
+
+  Scenario: Password containing illegal characters is not accepted when changing own password
+    When Change password button is being clicked
+    And Old password secret is entered
+    And New password t0pSecretä is entered
+    And New password's confirmation t0pSecretä is entered
+    Then Change password dialog's Save button is clicked and error: "The provided password contains invalid characters" is displayed
+
+  Scenario: User can change its own password
+    Given logout button is being clicked
+    And SecurityServer login page is open
+    And Page is prepared to be tested
+    And User test logs in to SecurityServer with password t0pSecret2
+    When Change password button is being clicked
+    And Old password t0pSecret2 is entered
+    And New password t0pSecret1 is entered
+    And New password's confirmation t0pSecret1 is entered
+    And Change password dialog's Save button is clicked
     And logout button is being clicked
+    And SecurityServer login page is open
+    Then User test tries to log in to SecurityServer with password t0pSecret2
+    And Error message for incorrect credentials is shown
+    And Login form is visible
+    And User test tries to log in to SecurityServer with password t0pSecret1
+    And logout button is being clicked
+
 
   Scenario: User can delete existing admin user
     Given Admin Users table has 2 entries
@@ -98,9 +161,9 @@ Feature: 0250 - SS: Admin Users
       | $role   | $condition |
       | <$role> | present    |
     Examples:
-      | $username | $role                 | $password |
-      | xrd-sec   | Security Officer      | secret    |
-      | xrd-reg   | Registration Officer  | secret    |
-      | xrd-ser   | Service Administrator | secret    |
-      | xrd-sys   | System Administrator  | secret    |
-      | xrd-obs   | Server Observer       | secret    |
+      | $username | $role                 | $password     |
+      | xrd-sec   | Security Officer      | t0pSecret1    |
+      | xrd-reg   | Registration Officer  | t0pSecret1    |
+      | xrd-ser   | Service Administrator | t0pSecret1    |
+      | xrd-sys   | System Administrator  | t0pSecret1    |
+      | xrd-obs   | Server Observer       | t0pSecret1    |

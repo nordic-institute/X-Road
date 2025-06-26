@@ -34,7 +34,7 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
-import org.niis.xroad.restapi.config.AuthProviderConfig;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserRoleConfig;
@@ -74,7 +74,7 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         AllowedFilesConfig,
         UserRoleConfig,
         KeyAlgorithmConfig,
-        AuthProviderConfig {
+        UserAuthenticationConfig {
 
     /**
      * Controls the rate of global configuration generation in seconds.

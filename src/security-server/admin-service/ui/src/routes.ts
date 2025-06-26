@@ -75,7 +75,7 @@ import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters
 import TabsBase from '@/layouts/TabsBase.vue';
 import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
-import { AddAdminUser, AdminUsers } from '@niis/shared-ui';
+import { XrdAddAdminUser, XrdAdminUsers } from '@niis/shared-ui';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -198,7 +198,7 @@ const routes: RouteRecordRaw[] = [
           {
             name: RouteName.AdminUsers,
             path: 'users',
-            component: AdminUsers,
+            component: XrdAdminUsers,
             props: true,
             meta: {
               permissions: [
@@ -215,7 +215,7 @@ const routes: RouteRecordRaw[] = [
         name: RouteName.AddAdminUser,
         path: '/settings/users/add',
         components: {
-          default: AddAdminUser,
+          default: XrdAddAdminUser,
           alerts: AlertsContainer,
         },
         props: {

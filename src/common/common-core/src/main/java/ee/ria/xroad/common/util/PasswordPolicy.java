@@ -32,9 +32,9 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Implements token pin complexity requirements policy.
- *
- * The pin must meet the following complexity requirements:
+ * Implements password/pin complexity requirements policy.
+ * <p>
+ * The password must meet the following complexity requirements:
  * <ul>
  *     <li>Length >= MIN_PASSWORD_LENGTH</li>
  *     <li>Includes at least one character from MIN_CHARACTER_CLASS_COUNT character classes:</li>
@@ -47,7 +47,7 @@ import java.util.Set;
  *     <li>Does not include characters from the CharacterClass.INVALID character class</li>
  * </ul>
  */
-public final class TokenPinPolicy {
+public final class PasswordPolicy {
 
     public static final int MIN_PASSWORD_LENGTH = 10;
     public static final int MIN_CHARACTER_CLASS_COUNT = 3;
@@ -81,46 +81,46 @@ public final class TokenPinPolicy {
     }
 
     /**
-     * Checks that the specified pin meets the complexity requirements.
+     * Checks that the specified password meets the complexity requirements.
      *
      * Note. This method cannot handle Unicode supplementary characters.
      *
-     * @param pin pin to check
-     * @return true if the pin meets the complexity requirements, false otherwise.
+     * @param password to check
+     * @return true if the password meets the complexity requirements, false otherwise.
      */
-    public static boolean validate(final char[] pin) {
-        return describe(pin).isValid();
+    public static boolean validate(final char[] password) {
+        return describe(password).isValid();
     }
 
     /**
-     * Describes the specified pin according to the policy
+     * Describes the specified password according to the policy
      *
      * Note. This method cannot handle Unicode supplementary characters.
      *
-     * @param pin pin to check
+     * @param password to check
      * @return Description
      * @see Description
      */
-    public static Description describe(final char[] pin) {
-        if (pin == null || pin.length == 0) {
+    public static Description describe(final char[] password) {
+        if (password == null || password.length == 0) {
             return new Description(0, EnumSet.noneOf(CharacterClass.class));
         }
 
         EnumSet<CharacterClass> classes = EnumSet.noneOf(CharacterClass.class);
 
-        for (char ch : pin) {
+        for (char ch : password) {
             classes.add(CharacterClass.of(ch));
         }
 
-        return new Description(pin.length, classes);
+        return new Description(password.length, classes);
     }
 
-    private TokenPinPolicy() {
+    private PasswordPolicy() {
         //Utility class
     }
 
     /**
-     * PIN description
+     * Password/pin description
      */
     @Getter
     public static final class Description {
@@ -135,7 +135,7 @@ public final class TokenPinPolicy {
         }
 
         /**
-         * Tells if PIN is valid
+         * Tells if password/pin is valid
          * @return true if valid
          */
         public boolean isValid() {
@@ -145,7 +145,7 @@ public final class TokenPinPolicy {
         }
 
         /**
-         * Tells whether PIN has invalid characters
+         * Tells whether password/pin has invalid characters
          * @return true if there are invalid characters
          */
         public boolean hasInvalidCharacters() {

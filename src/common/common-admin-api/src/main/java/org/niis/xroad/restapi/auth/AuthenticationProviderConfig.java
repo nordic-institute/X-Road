@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.AuthProviderConfig;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -53,12 +53,11 @@ public class AuthenticationProviderConfig {
     // allow all ipv4 and ipv6
     private static final Iterable<String> FORM_LOGIN_IP_WHITELIST = Arrays.asList("::/0", "0.0.0.0/0");
 
-    private final AuthProviderConfig authProviderConfig;
+    private final UserAuthenticationConfig userAuthenticationConfig;
     private final AdminUserService adminUserService;
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
     private final UserRoleConfig userRoleConfig;
-
 
     /**
      * Authentication for form login, with corresponding IP whitelist
@@ -69,7 +68,7 @@ public class AuthenticationProviderConfig {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
 
-        if (AuthProviderConfig.AuthenticationProviderType.DATABASE == authProviderConfig.getAuthenticationProvider()) {
+        if (UserAuthenticationConfig.AuthenticationProviderType.DATABASE == userAuthenticationConfig.getAuthenticationProvider()) {
             return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, formLoginWhitelist,
                     grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
         } else {
@@ -86,7 +85,7 @@ public class AuthenticationProviderConfig {
     public AuthenticationProvider keyManagementDBAuthentication(@Qualifier(PASSWORD_ENCODER) PasswordEncoder passwordEncoder,
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
 
-        if (AuthProviderConfig.AuthenticationProviderType.DATABASE == authProviderConfig.getAuthenticationProvider()) {
+        if (UserAuthenticationConfig.AuthenticationProviderType.DATABASE == userAuthenticationConfig.getAuthenticationProvider()) {
             return new DatabaseAuthenticationProvider(passwordEncoder, adminUserService, keyManagementWhitelist,
                     grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN, auditEventLoggingFacade);
         } else {

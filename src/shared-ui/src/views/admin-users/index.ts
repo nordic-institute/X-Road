@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import AddAdminUser from './AddAdminUser.vue';
-import AdminUsers from './AdminUsers.vue';
+import XrdAddAdminUser from './XrdAddAdminUser.vue';
+import XrdAdminUsers from './XrdAdminUsers.vue';
 
-export { AddAdminUser, AdminUsers };
+export { XrdAddAdminUser, XrdAdminUsers };
