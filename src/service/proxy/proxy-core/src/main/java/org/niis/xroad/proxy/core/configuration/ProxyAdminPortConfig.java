@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
@@ -35,6 +34,7 @@ import jakarta.enterprise.inject.Disposes;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.admin.AdminPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 
 import java.io.PrintWriter;
