@@ -26,9 +26,9 @@
 package org.niis.xroad.proxy.core.admin;
 
 import ee.ria.xroad.common.HttpStatus;
-
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.eclipse.jetty.io.Content;
