@@ -29,6 +29,7 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
@@ -79,6 +80,10 @@ public class ProxyConfig {
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
+    }
+
+    public void cleanup(@Disposes KeyConfProvider keyConfProvider) throws Exception {
+        keyConfProvider.destroy();
     }
 
     @ApplicationScoped

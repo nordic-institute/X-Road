@@ -183,7 +183,7 @@ public class ClientProxy {
 
     @PostConstruct
     public void init() throws Exception {
-        log.trace("start()");
+        log.info("Initializing client proxy");
 
         configureServer();
         createConnectors();
@@ -194,9 +194,10 @@ public class ClientProxy {
 
     @PreDestroy
     public void destroy() throws Exception {
-        log.trace("stop()");
+        log.info("Shutting down client proxy..");
 
         server.stop();
+        log.info("Shutting down server proxy.. Success!");
     }
 
     public void reloadAuthKey() {
