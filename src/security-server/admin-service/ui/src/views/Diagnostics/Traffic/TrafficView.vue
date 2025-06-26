@@ -143,7 +143,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 import { vMaska } from 'maska/vue';
-import { Colors, XrdTitledView } from '@niis/shared-ui';
+import { Colors } from '@niis/shared-ui';
 import { OperationalDataInterval, Service } from '@/openapi-types';
 import { useServices } from '@/store/modules/services';
 import { useClients } from '@/store/modules/clients';
