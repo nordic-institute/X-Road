@@ -28,6 +28,8 @@ package org.niis.xroad.proxy.core.addon.opmonitoring;
 import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
+import java.util.List;
+
 /**
  * A dummy implementation of operational monitoring buffer that does nothing.
  * Actual implementation can be provided by addon.
@@ -36,6 +38,16 @@ public class NoOpMonitoringBuffer implements OpMonitoringBuffer {
 
     @Override
     public void store(OpMonitoringData data) {
+        //No-OP
+    }
+
+    @Override
+    public void sendingSuccess(int count) {
+        //No-OP
+    }
+
+    @Override
+    public void sendingFailure(List<OpMonitoringData> failedData) {
         //No-OP
     }
 
