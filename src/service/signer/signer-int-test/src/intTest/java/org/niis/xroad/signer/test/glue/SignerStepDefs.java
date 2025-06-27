@@ -145,14 +145,14 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("token {string} is not active")
-    public void tokenIsNotActive(String friendlyName) throws Exception {
+    public void tokenIsNotActive(String friendlyName) {
         final TokenInfo tokenInfo = getTokenInfoByFriendlyName(friendlyName);
 
         Assertions.assertFalse(tokenInfo.isActive());
     }
 
     @Step("token {string} status is {string}")
-    public void assertTokenStatus(String friendlyName, String status) throws Exception {
+    public void assertTokenStatus(String friendlyName, String status) {
         final TokenInfo token = getTokenInfoByFriendlyName(friendlyName);
         assertThat(token.getStatus()).isEqualTo(TokenStatusInfo.valueOf(status));
     }
@@ -399,7 +399,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("sign mechanism for token {string} key {string} is not null on {nodeType} node")
-    public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName, NodeProperties.NodeType nodeType) throws Exception {
+    public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName, NodeProperties.NodeType nodeType) {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
         final var signMechanism = clientHolder.get(nodeType).getSignMechanism(keyInToken.getId());
 
@@ -418,7 +418,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("check token {string} key {string} batch signing enabled")
-    public void checkTokenBatchSigningEnabled(String friendlyName, String keyname) throws Exception {
+    public void checkTokenBatchSigningEnabled(String friendlyName, String keyname) {
         final KeyInfo key = findKeyInToken(friendlyName, keyname);
 
         assertThat(clientHolder.get().isTokenBatchSigningEnabled(key.getId())).isNotNull();
@@ -763,7 +763,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     }
 
     @Step("signer client initialized with default settings")
-    public void signerClientInitializedWithDefaultSettings() throws Exception {
+    public void signerClientInitializedWithDefaultSettings() {
         signerClientReinitializedWithTimeoutMilliseconds(60000);
     }
 
