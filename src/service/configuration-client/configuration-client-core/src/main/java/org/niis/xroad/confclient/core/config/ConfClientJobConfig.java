@@ -41,7 +41,6 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PACKAGE)
