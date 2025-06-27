@@ -19,5 +19,5 @@ Feature: 0900 - SS:Diagnostics - Traffic
   Scenario: Services are loaded
     Given Client "DEV:COM:1234:TestService" is selected
     Then Service select is enabled
-    And Service "s3c1" is present
+    And Service "s4c2" is present
 
