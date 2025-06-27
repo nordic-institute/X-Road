@@ -156,7 +156,6 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
-        // name: RouteName.Diagnostics,
         path: '/diagnostics',
         meta: { permissions: [Permissions.DIAGNOSTICS] },
         components: {
