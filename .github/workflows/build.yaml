@@ -88,6 +88,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: ./src
         run: |
+          echo "Current disk usage:"
+          df -h
           mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
       - name: Test report
@@ -141,12 +143,22 @@ jobs:
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh jammy -release
+        run: |
+          echo "Current disk usage (before jammy build):"
+          df -h
+          ./src/packages/build-deb.sh jammy -release
+          echo "Current disk usage (after jammy build):"
+          df -h
       - name: Build 24.04 (Noble) packages
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh noble -release
+        run: |
+          echo "Current disk usage: (before noble build):"
+          df -h
+          ./src/packages/build-deb.sh noble -release
+          echo "Current disk usage: (after noble build):"
+          df -h
       - name: Store deb files for system tests
         uses: actions/upload-artifact@v4
         with:
