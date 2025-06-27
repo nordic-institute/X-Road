@@ -233,6 +233,27 @@
         "UNKNOWN": "Неизвестно"
       },
       "title": "Метки времени"
+    },
+    "traffic": {
+      "period": "Период",
+      "periodInfo": "Выберите начало и конец",
+      "date": "Дата",
+      "time": "Время",
+      "party": "Сторона",
+      "partyInfo": "Служба, подсистема, участник",
+      "client": "Клиент",
+      "service": "Служба",
+      "exchangeRole": "Роль обмена",
+      "exchangeRoleInfo": "Поставщик или Потребитель",
+      "producer": "Поставщик",
+      "status": "Статус",
+      "statusInfo": "Статус обмена сообщениями",
+      "success": "Успех",
+      "failure": "Неудача",
+      "successfulRequests": "Успешные запросы",
+      "failedRequests": "Неудачные запросы",
+      "disabledTitle": "Мониторинг операционных данных отключен",
+      "disabledMessage": "Мониторинг операционных данных отключен для данного Сервера Безопасности. Чтобы включить его, установите дополнение для мониторинга операционных данных (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -848,6 +869,10 @@
       "localGroups": "Локальные группы",
       "serviceClients": "Клиенты службы",
       "services": "Службы"
+    },
+    "diagnostics": {
+      "overview": "Обзор",
+      "traffic": "Трафик"
     },
     "keys": {
       "apiKey": "API-ключи",

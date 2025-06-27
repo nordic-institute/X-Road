@@ -83,6 +83,14 @@ public class ExtTestContainerService extends TestContainerService {
         }
     }
 
+    @Override
+    public int getMappedPort(int internalPort) {
+        if (isUrlOverridden() && internalPort == Port.UI) {
+            return getPort();
+        }
+        return super.getMappedPort(internalPort);
+    }
+
     private String[] getUrlParts() {
         return StringUtils.split(securityServerUrlOverride, ':');
     }

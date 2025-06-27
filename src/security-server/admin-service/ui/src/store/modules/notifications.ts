@@ -86,7 +86,7 @@ export const useNotifications = defineStore('notifications', {
     };
   },
   getters: {
-    currentSuccessNotifications(state): string {
+    currentSuccessNotifications(state): Notification[] {
       return state.successNotifications.filter((not) => !not.delayed);
     },
   },

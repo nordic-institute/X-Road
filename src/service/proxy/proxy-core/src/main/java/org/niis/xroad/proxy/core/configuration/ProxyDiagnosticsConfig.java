@@ -58,8 +58,9 @@ public class ProxyDiagnosticsConfig {
     }
 
     @Bean
-    AddOnStatusDiagnostics addOnStatusDiagnostics(@Qualifier("messageLogEnabledStatus") Boolean messageLogEnabledStatus) {
-        return new AddOnStatusDiagnostics(messageLogEnabledStatus);
+    AddOnStatusDiagnostics addOnStatusDiagnostics(@Qualifier("messageLogEnabledStatus") Boolean messageLogEnabledStatus,
+                                                  @Qualifier("opMonitoringEnabledStatus") Boolean opMonitoringEnabledStatus) {
+        return new AddOnStatusDiagnostics(messageLogEnabledStatus, opMonitoringEnabledStatus);
     }
 
     @Bean

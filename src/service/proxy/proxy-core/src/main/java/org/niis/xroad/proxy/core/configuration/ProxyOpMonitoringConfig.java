@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,25 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.opmonitoring;
+package org.niis.xroad.proxy.core.configuration;
 
 import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * A dummy implementation of operational monitoring buffer that does nothing.
- * Actual implementation can be provided by addon.
- */
-public class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+@Configuration
+public class ProxyOpMonitoringConfig {
 
-    protected NullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
-        super(serverConfProvider);
+    @Bean
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+        return OpMonitoring.init(serverConfProvider);
     }
 
-    @Override
-    public void store(OpMonitoringData data) throws Exception {
-        //No-OP
+    @Bean("opMonitoringEnabledStatus")
+    Boolean opMonitoringEnabledStatus(AbstractOpMonitoringBuffer opMonitoringBuffer) {
+        return NullOpMonitoringBuffer.class != opMonitoringBuffer.getClass();
     }
-
 }

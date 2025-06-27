@@ -115,14 +115,16 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getAddOnDiagnostics() {
-        stubForDiagnosticsRequest("/addonstatus", "{\"messageLogEnabled\":true}");
+        stubForDiagnosticsRequest("/addonstatus", "{\"messageLogEnabled\":true,\"opMonitoringEnabled\": true}");
         ResponseEntity<AddOnStatusDto> response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getMessagelogEnabled());
+        assertEquals(true, response.getBody().getOpmonitoringEnabled());
 
-        stubForDiagnosticsRequest("/addonstatus", "{\"messageLogEnabled\":false}");
+        stubForDiagnosticsRequest("/addonstatus", "{\"messageLogEnabled\":false,\"opMonitoringEnabled\": false}");
         response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(false, response.getBody().getMessagelogEnabled());
         assertEquals(false, response.getBody().getMessagelogEnabled());
     }
 
