@@ -23,39 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.opmonitoring;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 /**
- * Contains method for storing operational monitoring data.
+ * A dummy implementation of operational monitoring buffer that does nothing.
+ * Actual implementation can be provided by addon.
  */
-@Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OpMonitoring {
+public class NoOpMonitoringBuffer implements OpMonitoringBuffer {
 
-    private static AbstractOpMonitoringBuffer opMonitoringBufferInstance;
-
-    public static AbstractOpMonitoringBuffer init(AbstractOpMonitoringBuffer opMonitorBuffer) throws Exception {
-        opMonitoringBufferInstance = opMonitorBuffer;
-        return opMonitoringBufferInstance;
-    }
-
-    /**
-     * Store the operational monitoring data.
-     */
-    public static void store(OpMonitoringData data) {
-        log.trace("store()");
-
-        try {
-            opMonitoringBufferInstance.store(data);
-        } catch (Throwable t) {
-            log.error("Storing operational monitoring data failed", t);
-        }
+    @Override
+    public void store(OpMonitoringData data) {
+        //No-OP
     }
 
 }

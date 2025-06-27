@@ -75,7 +75,7 @@ public class ConfClientRpcConfig {
                 }));
 
         if (rpcServerProperties.enabled()) {
-            server.afterPropertiesSet();
+            server.init();
         }
         return server;
     }

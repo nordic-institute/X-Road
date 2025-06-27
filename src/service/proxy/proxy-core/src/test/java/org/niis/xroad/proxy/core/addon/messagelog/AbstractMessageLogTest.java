@@ -50,6 +50,7 @@ import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.messagelog.archiver.core.LogArchiver;
 import org.niis.xroad.messagelog.archiver.core.LogArchiverProperties;
 import org.niis.xroad.messagelog.archiver.core.LogCleaner;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 
 import java.io.ByteArrayInputStream;
@@ -111,7 +112,7 @@ abstract class AbstractMessageLogTest {
         logRecordManager = new LogRecordManager(databaseCtx);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, logRecordManager, vaultKeyProvider);
+                null, null, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer());
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 

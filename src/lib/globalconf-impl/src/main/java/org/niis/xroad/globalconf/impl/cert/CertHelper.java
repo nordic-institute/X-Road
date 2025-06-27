@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -51,8 +52,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * Certificate-related helper functions.
  */
 @Slf4j
+@Singleton
 @RequiredArgsConstructor
-public final class CertHelper {
+public class CertHelper {
     private final GlobalConfProvider globalConfProvider;
 
     /**

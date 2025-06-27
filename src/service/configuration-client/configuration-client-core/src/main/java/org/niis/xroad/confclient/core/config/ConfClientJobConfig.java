@@ -26,15 +26,16 @@
 package org.niis.xroad.confclient.core.config;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
+import org.niis.xroad.confclient.core.schedule.JobManager;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -53,9 +54,10 @@ public class ConfClientJobConfig {
         public JobManagerInitializer(@ConfigProperty(name = "quarkus.scheduler.enabled") boolean schedulerEnabled,
                                      ConfigurationClientJobListener listener,
                                      ConfigurationClientProperties configurationClientProperties,
+                                     Instance<Scheduler> jobScheduler,
                                      JobManager jobManager) throws SchedulerException {
             if (schedulerEnabled) {
-                jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+                jobScheduler.get().getListenerManager().addJobListener(listener);
 
                 jobManager.registerRepeatingJob(ConfigurationClientJob.class,
                         configurationClientProperties.updateInterval(), new JobDataMap());
@@ -111,8 +113,4 @@ public class ConfClientJobConfig {
         }
     }
 
-    @ApplicationScoped
-    JobManager jobManager(Scheduler scheduler) throws SchedulerException {
-        return new JobManager(scheduler);
-    }
 }

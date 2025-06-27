@@ -142,7 +142,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
                 ProxyMonitorMetaserviceTest.envMonitorRpcChannelProperties.port(),
                 InsecureServerCredentials.create(),
                 builder -> builder.addService(new MockMetricsProvider()));
-        monitorRpcServer.afterPropertiesSet();
+        monitorRpcServer.init();
 
         globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
             @Override
