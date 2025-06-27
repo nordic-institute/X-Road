@@ -42,7 +42,7 @@ public class ProxyOpMonitoringConfig {
     }
 
     @Bean("opMonitoringEnabledStatus")
-    Boolean messageLogEnabledStatus(AbstractOpMonitoringBuffer opMonitoringBuffer) {
+    Boolean opMonitoringEnabledStatus(AbstractOpMonitoringBuffer opMonitoringBuffer) {
         return NullOpMonitoringBuffer.class != opMonitoringBuffer.getClass();
     }
 }
