@@ -80,7 +80,7 @@ public class AdminUsersController {
     }
 
     @PutMapping("/{username}/password")
-    @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_UPDATE)
+    @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_CHANGE_PASSWORD)
     @PreAuthorize("hasAuthority('UPDATE_ADMIN_USER') or #username == authentication.principal")
     public ResponseEntity<Void> changePassword(
             @PathVariable("username") String username, @RequestBody @Valid AdminUserPasswordChangeRequest passwordChangeRequest) {
@@ -90,7 +90,7 @@ public class AdminUsersController {
     }
 
     @PutMapping("/{username}/roles")
-    @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_UPDATE)
+    @AuditEventMethod(event = RestApiAuditEvent.ADMIN_USER_EDIT_ROLES)
     @PreAuthorize("hasAuthority('UPDATE_ADMIN_USER')")
     public ResponseEntity<Void> updateRoles(@PathVariable("username") String username, @RequestBody List<String> roles) {
         try {

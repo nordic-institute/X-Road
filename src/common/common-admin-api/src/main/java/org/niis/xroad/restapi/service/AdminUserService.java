@@ -29,6 +29,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.entity.AdminUserEntity;
@@ -43,6 +45,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.CharBuffer;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +66,7 @@ public class AdminUserService {
     private final PasswordEncoder passwordEncoder;
     private final AdminUserPasswordValidator passwordValidator;
     private final SecurityHelper securityHelper;
+    private final AuditDataHelper auditDataHelper;
 
     public Optional<AdminUser> findAdminUser(String username) {
         return userRepository.findByUsername(username)
@@ -77,6 +81,8 @@ public class AdminUserService {
     }
 
     public void create(AdminUser adminUser) {
+        auditLog(adminUser.getUsername(), adminUser.getRoles());
+
         passwordValidator.validateUserPassword(adminUser.getPassword());
 
         var adminUserWithHashedPassword = new AdminUser(
@@ -89,6 +95,8 @@ public class AdminUserService {
     }
 
     public void changePassword(String username, char[] oldPassword, char[] newPassword) {
+        auditLog(username);
+
         var existingUser = userRepository.findByUsername(username).orElseThrow();
         var authenticatedUsername = getAuthentication().getPrincipal().toString();
         if (!securityHelper.hasAuthority(XROAD_SYSTEM_ADMINISTRATOR.getGrantedAuthorityName())
@@ -104,12 +112,16 @@ public class AdminUserService {
     }
 
     public void updateRoles(String username, Set<Role> roles) {
+        auditLog(username, roles);
+
         var existingUser = userRepository.findByUsername(username).orElseThrow();
         existingUser.setRoles(roles);
         userRepository.update(existingUser);
     }
 
     public void deleteByUsername(String username) {
+        auditLog(username);
+
         var authenticatedUsername = getAuthentication().getPrincipal().toString();
         var existingUser = userRepository.findByUsername(username).orElseThrow();
         if (existingUser.getUsername().equals(authenticatedUsername)) {
@@ -127,6 +139,15 @@ public class AdminUserService {
         if (!passwordEncoder.matches(CharBuffer.wrap(oldPassword), new String(existingUser.getPassword()))) {
             throw new BadRequestException(PASSWORD_INCORRECT.build());
         }
+    }
+
+    private void auditLog(String username) {
+        auditDataHelper.put(RestApiAuditProperty.USERNAME, username);
+    }
+
+    private void auditLog(String username, Collection<Role> roles) {
+        auditDataHelper.put(RestApiAuditProperty.USERNAME, username);
+        auditDataHelper.put(RestApiAuditProperty.USER_ROLES, roles);
     }
 
 }
