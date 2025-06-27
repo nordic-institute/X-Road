@@ -233,6 +233,27 @@
         "UNKNOWN": "Näbelli"
       },
       "title": "Wagt belligi"
+    },
+    "traffic": {
+      "period": "Döwür",
+      "periodInfo": "Başlangyç we soňy saýlaň",
+      "date": "Sene",
+      "time": "Wagt",
+      "party": "Tarap",
+      "partyInfo": "Gulluk, kiçi ulgam, agza",
+      "client": "Müşderi",
+      "service": "Gulluk",
+      "exchangeRole": "Alyş-çalyş roly",
+      "exchangeRoleInfo": "Öndüriji ýa-da Sarp ediji",
+      "producer": "Öndüriji",
+      "status": "Status",
+      "statusInfo": "Habar alyş-çalyşynyň statusy",
+      "success": "Üstünlik",
+      "failure": "Şowsuzlyk",
+      "successfulRequests": "Üstünlikli talaplar",
+      "failedRequests": "Şowsuz talaplar",
+      "disabledTitle": "Operasion maglumatlary gözegçilik öçürildi",
+      "disabledMessage": "Bu Howpsuzlyk Serweri üçin operasion maglumatlary gözegçilik öçürildi. Ony işe girizmek üçin operasion maglumatlary gözegçilik goşmaçasyny (xroad-addon-opmonitoring) guruň."
     }
   },
   "endpoints": {
@@ -868,6 +889,10 @@
     "settings": {
       "backupAndRestore": "Ätiýaçlyk nusgasy we Dikeltme",
       "systemParameters": "Ulgam parametrleri"
+    },
+    "diagnostics": {
+      "overview": "Syn",
+      "traffic": "Trafik"
     }
   },
   "token": {
