@@ -27,18 +27,28 @@ package org.niis.xroad.serverconf.impl;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.hibernate.Interceptor;
+import org.niis.xroad.serverconf.ServerConfDbProperties;
 
-import java.util.Map;
-
+@Singleton
 public class ServerConfDatabaseCtx extends DatabaseCtx {
     private static final String SERVER_CONF_DB_NAME = "serverconf";
 
-    public ServerConfDatabaseCtx(Map<String, String> hibernateProperties) {
-        super(SERVER_CONF_DB_NAME, hibernateProperties);
+    @Inject
+    public ServerConfDatabaseCtx(ServerConfDbProperties dbProperties) {
+        super(SERVER_CONF_DB_NAME, dbProperties.hibernate());
     }
 
-    public ServerConfDatabaseCtx(Map<String, String> hibernateProperties, Interceptor interceptor) {
-        super(SERVER_CONF_DB_NAME, hibernateProperties, interceptor);
+    public ServerConfDatabaseCtx(ServerConfDbProperties dbProperties, Interceptor interceptor) {
+        super(SERVER_CONF_DB_NAME, dbProperties.hibernate(), interceptor);
+    }
+
+    @Override
+    @PreDestroy
+    public void destroy() {
+        super.destroy();
     }
 }

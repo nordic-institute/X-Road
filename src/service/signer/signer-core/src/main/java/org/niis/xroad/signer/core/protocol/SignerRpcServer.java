@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,24 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core.configuration;
+package org.niis.xroad.signer.core.protocol;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfCommonProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import jakarta.inject.Singleton;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.ManagedRpcServer;
+import org.niis.xroad.signer.core.config.SignerRpcServerProperties;
 
-@Slf4j
-public class MonitorConfig {
+import java.util.List;
 
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
-                                          ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+@Startup
+@Singleton
+public class SignerRpcServer extends ManagedRpcServer {
+
+    public SignerRpcServer(@All List<BindableService> services,
+                           SignerRpcServerProperties rpcServerProperties,
+                           RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
 }

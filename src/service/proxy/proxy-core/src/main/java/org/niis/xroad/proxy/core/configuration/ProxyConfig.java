@@ -25,12 +25,9 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
-import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -41,9 +38,8 @@ import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
-
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 @Slf4j
 public class ProxyConfig {
@@ -78,7 +74,7 @@ public class ProxyConfig {
 
 
     @ApplicationScoped
-    ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
+    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                           ServerConfCommonProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);

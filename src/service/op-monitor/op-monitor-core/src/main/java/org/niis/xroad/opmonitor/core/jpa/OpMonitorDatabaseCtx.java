@@ -23,32 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.opmonitor.core.jpa;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Disposes;
-import jakarta.inject.Named;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 
-/**
- * Database context for the operational monitoring daemon
- */
-public class OpMonitorDaemonDatabaseConfig {
-    public static final String OP_MONITOR_DB_CTX = "opMonitorDbCtx";
+@Singleton
+public class OpMonitorDatabaseCtx extends DatabaseCtx {
+    public static final String NAME = "op-monitor";
 
-    @Named(OP_MONITOR_DB_CTX)
-    @ApplicationScoped
-    public DatabaseCtx serverConfCtx(OpMonitorDbProperties opMonitorProperties) {
-        return new DatabaseCtx("op-monitor", opMonitorProperties.hibernate(), new StringValueTruncator());
+    public OpMonitorDatabaseCtx(OpMonitorDbProperties opMonitorProperties) {
+        super(NAME, opMonitorProperties.hibernate(), new StringValueTruncator());
     }
 
-    public void cleanup(@Named(OP_MONITOR_DB_CTX) @Disposes DatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
+    @PreDestroy
+    @Override
+    public void destroy() {
+        super.destroy();
     }
 
     private static final class StringValueTruncator implements Interceptor {

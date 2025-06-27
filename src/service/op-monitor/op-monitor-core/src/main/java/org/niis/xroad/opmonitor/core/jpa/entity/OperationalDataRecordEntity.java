@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.entity;
+package org.niis.xroad.opmonitor.core.jpa.entity;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.serverconf.impl;
+package org.niis.xroad.monitor.core;
 
-import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Named;
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
 import jakarta.inject.Singleton;
-import org.niis.xroad.serverconf.ServerConfDbProperties;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.ManagedRpcServer;
+import org.niis.xroad.monitor.core.configuration.EnvMonitorServerProperties;
 
-/**
- * Server conf database context.
- */
-public class ServerConfDatabaseConfig {
-    public static final String SERVER_CONF_DB_CTX = "serverConfCtx";
+import java.util.List;
 
-    @Produces
-    @Named(SERVER_CONF_DB_CTX)
-    @Singleton
-    ServerConfDatabaseCtx serverConfCtx(ServerConfDbProperties dbProperties) {
-        return createServerConfDbCtx(dbProperties);
+@Startup
+@Singleton
+public class MonitorRpcServer extends ManagedRpcServer {
+    public MonitorRpcServer(@All List<BindableService> services,
+                            EnvMonitorServerProperties rpcServerProperties,
+                            RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
-    public static ServerConfDatabaseCtx createServerConfDbCtx(ServerConfDbProperties dbProperties) {
-        return new ServerConfDatabaseCtx(dbProperties.hibernate());
-    }
-
-    public void cleanup(@Named(SERVER_CONF_DB_CTX) @Disposes ServerConfDatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
-    }
 }

@@ -25,22 +25,25 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfCommonProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@Slf4j
-public class MonitorConfig {
+@ConfigMapping(prefix = "xroad.env-monitor.rpc")
+public interface EnvMonitorServerProperties extends RpcServerProperties {
+    @WithName("enabled")
+    @WithDefault("true")
+    @Override
+    boolean enabled();
 
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
-                                          ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
-    }
+    @WithName("listen-address")
+    @WithDefault("127.0.0.1")
+    @Override
+    String listenAddress();
 
+    @WithName("port")
+    @WithDefault("2552")
+    @Override
+    int port();
 }
