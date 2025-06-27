@@ -46,3 +46,10 @@ docker buildx build \
   --build-context pkcs11driver=../../../../src/libs/pkcs11wrapper \
   --push \
   .
+
+echo "Docker df"
+docker system df
+echo "Host df"
+df -h
+echo "df within container"
+docker run --rm alpine df -h

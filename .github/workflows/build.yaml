@@ -91,7 +91,15 @@ jobs:
           echo "Current disk usage:"
           df -h
           mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
+          echo "within docker"
+          docker run --rm alpine df -h
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
+          echo "Current disk usage:"
+          df -h
+          mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
+          echo "within docker"
+          docker run --rm alpine df -h
+
       - name: Test report
         env:
           NODE_OPTIONS: '--max-old-space-size=6144'
