@@ -30,14 +30,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.core.service.TokenKeyCertService;
+import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
 
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class CertOcspManager {
     private final TokenRegistry tokenRegistry;
-    private final TokenKeyCertService tokenKeyCertService;
+    private final TokenKeyCertWriteService tokenKeyCertWriteService;
 
     /**
      * Sets the error message that was thrown during the automatic certificate renewal process.
@@ -53,7 +53,7 @@ public class CertOcspManager {
                     try {
                         var cert = ctx.getCert(certId);
 
-                        tokenKeyCertService.updateOcspVerifyBeforeActivationError(cert.id(), errorMessage);
+                        tokenKeyCertWriteService.updateOcspVerifyBeforeActivationError(cert.id(), errorMessage);
                     } catch (Exception e) {
                         throw new SignerException("Failed to set OCSP verify before activation error for certificate " + certId, e);
                     } finally {

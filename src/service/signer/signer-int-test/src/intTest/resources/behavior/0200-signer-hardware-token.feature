@@ -10,7 +10,9 @@ Feature: 0200 - Signer: HardwareToken
 
   Scenario: Token has its friendly name updated
     When friendly name "xrd-softhsm-0" is set for token with label "x-road-softhsm2"
+    And secondary node sync is forced
     Then token with label "x-road-softhsm2" name is "xrd-softhsm-0"
+    And token with label "x-road-softhsm2" name is "xrd-softhsm-0" on secondary node
 
   Scenario: Token is in initialized
     Given tokens list contains token "xrd-softhsm-0"

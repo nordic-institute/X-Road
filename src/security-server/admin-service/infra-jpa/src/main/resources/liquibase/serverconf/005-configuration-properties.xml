@@ -6,6 +6,23 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
+    <changeSet author="niis" id="005-create-settimestamps-function">
+        <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION set_timestamps()
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
+            BEGIN
+                IF TG_OP = 'INSERT' THEN
+                    NEW.created_at := CURRENT_TIMESTAMP;
+                END IF;
+                NEW.updated_at := CURRENT_TIMESTAMP;
+            RETURN NEW;
+            END;
+            $$;
+            ]]></sql>
+    </changeSet>
+
     <changeSet author="niis" id="005-configuration-properties">
         <createTable tableName="configuration_properties">
             <column name="id" autoIncrement="true" type="SERIAL">
@@ -32,22 +49,9 @@
                 WHERE scope IS NOT NULL;
         ]]></sql>
         <sql splitStatements="false"><![CDATA[
-            CREATE OR REPLACE FUNCTION set_timestamp()
-            RETURNS TRIGGER
-            LANGUAGE plpgsql
-            AS $$
-            BEGIN
-                IF TG_OP = 'INSERT' THEN
-                    NEW.created_at := CURRENT_TIMESTAMP;
-                END IF;
-                NEW.updated_at := CURRENT_TIMESTAMP;
-                RETURN NEW;
-            END;
-            $$;
-
-            DROP TRIGGER IF EXISTS trg_set_timestamp ON configuration_properties;
-            CREATE TRIGGER trg_set_timestamp BEFORE INSERT OR UPDATE ON configuration_properties
-                FOR EACH ROW EXECUTE FUNCTION set_timestamp();
+            DROP TRIGGER IF EXISTS set_timestamps ON configuration_properties;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON configuration_properties
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
         ]]></sql>
         <sql splitStatements="false"><![CDATA[
             DROP TRIGGER IF EXISTS update_history ON configuration_properties;

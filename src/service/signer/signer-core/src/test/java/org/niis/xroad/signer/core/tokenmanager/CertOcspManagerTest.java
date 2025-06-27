@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.niis.xroad.signer.core.model.RuntimeCertImpl;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenKeyCertService;
+import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
 
 import java.util.Set;
 
@@ -42,11 +42,11 @@ import static org.mockito.Mockito.when;
 
 class CertOcspManagerTest {
 
-    private final TokenKeyCertService tokenKeyCertService = mock(TokenKeyCertService.class);
+    private final TokenKeyCertWriteService tokenKeyCertWriteService = mock(TokenKeyCertWriteService.class);
     private final TokenRegistryLoader tokenRegistryLoader = mock(TokenRegistryLoader.class);
     private final TokenRegistry tokenRegistry = new TokenRegistry(tokenRegistryLoader);
 
-    private final CertOcspManager certOcspManager = new CertOcspManager(tokenRegistry, tokenKeyCertService);
+    private final CertOcspManager certOcspManager = new CertOcspManager(tokenRegistry, tokenKeyCertWriteService);
 
     private static final String CERT_ID = "certId123";
 
@@ -64,7 +64,7 @@ class CertOcspManagerTest {
 
         certOcspManager.setOcspVerifyBeforeActivationError(CERT_ID, "Test error message");
 
-        verify(tokenKeyCertService).updateOcspVerifyBeforeActivationError(3L, "Test error message");
+        verify(tokenKeyCertWriteService).updateOcspVerifyBeforeActivationError(3L, "Test error message");
         verify(tokenRegistryLoader).refreshTokens(any());
     }
 

@@ -55,7 +55,9 @@ public class TokenMapper implements GenericUniDirectionalMapper<SignerTokenEntit
                 source.getSerialNo(),
                 source.getLabel(),
                 source.getFriendlyName(),
-                source.getPin()
+                source.getPin(),
+                source.getCreatedAt(),
+                source.getUpdatedAt()
         );
     }
 
@@ -66,7 +68,9 @@ public class TokenMapper implements GenericUniDirectionalMapper<SignerTokenEntit
                 source.getType(),
                 source.getSerialNo(),
                 source.getLabel(),
-                source.getFriendlyName()
+                source.getFriendlyName(),
+                source.getCreatedAt(),
+                source.getUpdatedAt()
         );
     }
 

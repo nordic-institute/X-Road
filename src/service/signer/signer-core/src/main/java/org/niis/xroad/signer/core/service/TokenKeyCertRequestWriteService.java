@@ -24,27 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.application;
+package org.niis.xroad.signer.core.service;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.NodeProperties;
+import ee.ria.xroad.common.identifier.ClientId;
 
-/**
- * Signer main program.
- */
-@QuarkusMain
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
-public class SignerMain {
+public interface TokenKeyCertRequestWriteService {
 
-    public static void main(String[] args) {
-        if (NodeProperties.isSecondaryNode()) {
-            log.info("Starting Signer as secondary node. Modifying operations are not allowed.");
-        }
-        Quarkus.run(args);
-    }
+    Long save(Long keyId,
+              String externalId,
+              ClientId.Conf memberId,
+              String subjectName,
+              String subjectAltName,
+              String certificateProfile) throws Exception;
+
+    boolean delete(Long id) throws Exception;
 }

@@ -32,7 +32,7 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenKeyService;
+import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Set;
@@ -46,10 +46,10 @@ import static org.mockito.Mockito.when;
 class KeyManagerTest {
 
     private final TokenRegistryLoader tokenRegistryLoader = mock(TokenRegistryLoader.class);
-    private final TokenKeyService tokenKeyService = mock(TokenKeyService.class);
+    private final TokenKeyWriteService tokenKeyWriteService = mock(TokenKeyWriteService.class);
     private final TokenRegistry tokenRegistry = new TokenRegistry(tokenRegistryLoader);
 
-    private final KeyManager keyManager = new KeyManager(tokenRegistry, tokenKeyService);
+    private final KeyManager keyManager = new KeyManager(tokenRegistry, tokenKeyWriteService);
 
     private static final long KEY_ID = 3L;
     private static final long TOKEN_ID = 7L;
@@ -65,7 +65,7 @@ class KeyManagerTest {
         keyManager.addKey(TOKEN_EXTERNAL_ID, KEY_EXTERNAL_ID, "publicKeyBase64", keystoreBytes, SignMechanism.CKM_RSA_PKCS,
                 "friendlyName", "label");
 
-        verify(tokenKeyService).save(TOKEN_ID, KEY_EXTERNAL_ID, "publicKeyBase64",
+        verify(tokenKeyWriteService).save(TOKEN_ID, KEY_EXTERNAL_ID, "publicKeyBase64",
                 keystoreBytes, SignMechanism.CKM_RSA_PKCS, "friendlyName", "label", true);
 
         verifyCacheRefresh();
@@ -78,7 +78,7 @@ class KeyManagerTest {
         keyManager.addKey(TOKEN_EXTERNAL_ID, KEY_EXTERNAL_ID, "publicKeyBase64", SignMechanism.CKM_ECDSA,
                 "friendlyName", "label");
 
-        verify(tokenKeyService).save(TOKEN_ID, KEY_EXTERNAL_ID, "publicKeyBase64",
+        verify(tokenKeyWriteService).save(TOKEN_ID, KEY_EXTERNAL_ID, "publicKeyBase64",
                 null, SignMechanism.CKM_ECDSA, "friendlyName", "label", false);
         verifyCacheRefresh();
     }
@@ -100,7 +100,7 @@ class KeyManagerTest {
 
         keyManager.setKeyFriendlyName(KEY_EXTERNAL_ID, "newFriendlyName");
 
-        verify(tokenKeyService).updateFriendlyName(KEY_ID, "newFriendlyName");
+        verify(tokenKeyWriteService).updateFriendlyName(KEY_ID, "newFriendlyName");
         verifyCacheRefresh();
     }
 
@@ -110,7 +110,7 @@ class KeyManagerTest {
 
         keyManager.setKeyLabel(KEY_EXTERNAL_ID, "new label");
 
-        verify(tokenKeyService).updateLabel(KEY_ID, "new label");
+        verify(tokenKeyWriteService).updateLabel(KEY_ID, "new label");
         verifyCacheRefresh();
     }
 
@@ -120,7 +120,7 @@ class KeyManagerTest {
 
         keyManager.setKeyUsage(KEY_EXTERNAL_ID, KeyUsageInfo.AUTHENTICATION);
 
-        verify(tokenKeyService).updateKeyUsage(KEY_ID, KeyUsageInfo.AUTHENTICATION);
+        verify(tokenKeyWriteService).updateKeyUsage(KEY_ID, KeyUsageInfo.AUTHENTICATION);
         verifyCacheRefresh();
     }
 
@@ -130,7 +130,7 @@ class KeyManagerTest {
 
         keyManager.removeKey(KEY_EXTERNAL_ID);
 
-        verify(tokenKeyService).delete(KEY_ID);
+        verify(tokenKeyWriteService).delete(KEY_ID);
         verifyCacheRefresh();
     }
 
@@ -140,7 +140,7 @@ class KeyManagerTest {
 
         keyManager.setPublicKey(KEY_EXTERNAL_ID, "newPublicKeyBase64");
 
-        verify(tokenKeyService).updatePublicKey(KEY_ID, "newPublicKeyBase64");
+        verify(tokenKeyWriteService).updatePublicKey(KEY_ID, "newPublicKeyBase64");
         verifyCacheRefresh();
     }
 

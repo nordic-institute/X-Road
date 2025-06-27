@@ -6,7 +6,9 @@ Feature: 0100 - Signer: SoftToken
 
   Scenario: Token has its friendly name updated
     When name "soft-token-000" is set for token with id "0"
-    Then token with id "0" name is "soft-token-000"
+    Then token with id "0" name is "soft-token-000" on primary node
+    When secondary node sync is forced
+    Then token with id "0" name is "soft-token-000" on secondary node
 
   Scenario: Token is in initialized
     Given tokens list contains token "soft-token-000"

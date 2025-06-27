@@ -185,6 +185,7 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
+systemStubs = { module = "uk.org.webcompere:system-stubs-jupiter", version = "2.1.8"}
 semver4j = { module = "org.semver4j:semver4j", version = "5.7.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.1" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }

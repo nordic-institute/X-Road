@@ -60,6 +60,8 @@ public class InitSoftwareTokenReqHandler extends AbstractRpcHandler<InitSoftware
                 try {
                     tokenWorker.initializeToken(SignerProtoUtils.byteToChar(request.getPin().toByteArray()));
                     return Empty.getDefaultInstance();
+                } catch (CodedException e) {
+                    throw e;
                 } catch (Exception e) {
                     throw new CodedException(X_INTERNAL_ERROR, e); //todo move to worker
                 }

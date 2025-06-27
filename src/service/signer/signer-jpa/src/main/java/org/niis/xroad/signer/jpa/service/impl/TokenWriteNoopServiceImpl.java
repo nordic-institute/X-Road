@@ -24,27 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.NodeProperties;
+package org.niis.xroad.signer.jpa.service.impl;
 
-/**
- * Signer main program.
- */
-@QuarkusMain
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
-public class SignerMain {
+import org.niis.xroad.signer.core.service.TokenWriteService;
 
-    public static void main(String[] args) {
-        if (NodeProperties.isSecondaryNode()) {
-            log.info("Starting Signer as secondary node. Modifying operations are not allowed.");
-        }
-        Quarkus.run(args);
+import java.util.Map;
+
+import static org.niis.xroad.signer.core.util.ExceptionHelper.writeNotAvailable;
+
+public class TokenWriteNoopServiceImpl implements TokenWriteService {
+
+    @Override
+    public boolean delete(Long tokenId) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public Long save(String externalId, String type, String friendlyName, String label, String serialNo) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean setInitialTokenPin(Long tokenId, byte[] pinHash) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean updateTokenPin(Long tokenId, Map<Long, byte[]> updatedKeys, byte[] pinHash) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean updateFriendlyName(Long id, String friendlyName) {
+        throw writeNotAvailable();
     }
 }

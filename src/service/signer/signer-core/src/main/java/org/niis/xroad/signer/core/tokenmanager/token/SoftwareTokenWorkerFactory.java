@@ -415,12 +415,13 @@ public class SoftwareTokenWorkerFactory {
             isTokenLoginAllowed = false; // Prevent token login for the time of pin update
             try {
                 verifyOldAndNewPin(oldPin, newPin);
+
+                pinManager.updateTokenPin(tokenId, oldPin, newPin);
+
                 // Clear pin from pwstore and deactivate token
                 PasswordStore.storePassword(tokenId, null);
                 deactivateToken();
 
-                pinManager.updateTokenPin(tokenId, oldPin, newPin);
-                // Create a new temp folder for working
                 log.info("Updating the software token pin was successful!");
             } catch (Exception e) {
                 log.info("Updating the software token pin failed!");

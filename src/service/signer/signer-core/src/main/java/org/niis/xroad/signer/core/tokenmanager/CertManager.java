@@ -37,9 +37,9 @@ import org.niis.xroad.signer.core.model.CertRequestData;
 import org.niis.xroad.signer.core.model.RuntimeCert;
 import org.niis.xroad.signer.core.model.RuntimeKey;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
-import org.niis.xroad.signer.core.service.TokenKeyCertRequestService;
-import org.niis.xroad.signer.core.service.TokenKeyCertService;
-import org.niis.xroad.signer.core.service.TokenKeyService;
+import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
+import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
+import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.core.util.SignerUtil;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -54,9 +54,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 @RequiredArgsConstructor
 public class CertManager {
     private final TokenRegistry tokenRegistry;
-    private final TokenKeyCertService tokenKeyCertService;
-    private final TokenKeyService tokenKeyService;
-    private final TokenKeyCertRequestService tokenKeyCertRequestService;
+    private final TokenKeyCertWriteService tokenKeyCertWriteService;
+    private final TokenKeyWriteService tokenKeyWriteService;
+    private final TokenKeyCertRequestWriteService tokenKeyCertRequestWriteService;
 
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
@@ -68,7 +68,7 @@ public class CertManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var key = ctx.findKey(keyId);
-                tokenKeyCertService.save(key.id(), id, memberId, initialStatus, certificate);
+                tokenKeyCertWriteService.save(key.id(), id, memberId, initialStatus, certificate);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -111,7 +111,7 @@ public class CertManager {
             assertIsNotTransient(cert);
 
             try {
-                tokenKeyCertService.setActive(cert.id(), active);
+                tokenKeyCertWriteService.setActive(cert.id(), active);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -139,7 +139,7 @@ public class CertManager {
             assertIsNotTransient(cert);
 
             try {
-                tokenKeyCertService.updateStatus(cert.id(), status);
+                tokenKeyCertWriteService.updateStatus(cert.id(), status);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -166,7 +166,7 @@ public class CertManager {
             assertIsNotTransient(cert);
 
             try {
-                tokenKeyCertService.updateRenewedCertHash(cert.id(), hash);
+                tokenKeyCertWriteService.updateRenewedCertHash(cert.id(), hash);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -194,7 +194,7 @@ public class CertManager {
             assertIsNotTransient(cert);
 
             try {
-                tokenKeyCertService.updateRenewalError(cert.id(), errorMessage);
+                tokenKeyCertWriteService.updateRenewalError(cert.id(), errorMessage);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -222,7 +222,7 @@ public class CertManager {
             assertIsNotTransient(cert);
 
             try {
-                tokenKeyCertService.updateNextAutomaticRenewalTime(cert.id(), nextRenewalTime);
+                tokenKeyCertWriteService.updateNextAutomaticRenewalTime(cert.id(), nextRenewalTime);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -250,7 +250,7 @@ public class CertManager {
                 return false;
             }
             try {
-                return tokenKeyCertService.delete(cert.get().id());
+                return tokenKeyCertWriteService.delete(cert.get().id());
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -305,7 +305,7 @@ public class CertManager {
 
     private void updateKeyUsage(RuntimeKey key, KeyUsageInfo keyUsage) {
         try {
-            tokenKeyService.updateKeyUsage(key.id(), keyUsage);
+            tokenKeyWriteService.updateKeyUsage(key.id(), keyUsage);
         } catch (CodedException signerException) {
             throw signerException;
         } catch (Exception e) {
@@ -334,7 +334,7 @@ public class CertManager {
                                   String certificateProfile) {
         try {
             var certReqId = SignerUtil.randomId();
-            tokenKeyCertRequestService.save(key.id(), certReqId, memberId, subjectName, subjectAltName, certificateProfile);
+            tokenKeyCertRequestWriteService.save(key.id(), certReqId, memberId, subjectName, subjectAltName, certificateProfile);
             log.info("Added new certificate request [{}] (memberId: {}, subjectId: {}) under key {}",
                     certReqId, memberId, subjectName, key.externalId());
             return certReqId;
@@ -361,7 +361,7 @@ public class CertManager {
                 return false;
             }
             try {
-                return tokenKeyCertRequestService.delete(certReq.get().id());
+                return tokenKeyCertRequestWriteService.delete(certReq.get().id());
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {

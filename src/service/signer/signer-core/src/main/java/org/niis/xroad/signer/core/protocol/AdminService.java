@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.handler.GetCertificationServiceDiagnosticsReqHandler;
 import org.niis.xroad.signer.core.protocol.handler.GetKeyConfChecksumHandler;
+import org.niis.xroad.signer.core.protocol.handler.RefreshReqHandler;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
@@ -44,6 +45,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final GetCertificationServiceDiagnosticsReqHandler getCertificationServiceDiagnosticsReqHandler;
     private final GetKeyConfChecksumHandler getKeyConfChecksumHandler;
+    private final RefreshReqHandler refreshReqHandler;
 
     @Override
     public void getCertificationServiceDiagnostics(Empty request, StreamObserver<CertificationServiceDiagnosticsResp> responseObserver) {
@@ -53,6 +55,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void getKeyConfChecksum(Empty request, StreamObserver<KeyConfChecksum> responseObserver) {
         getKeyConfChecksumHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void refreshModules(Empty request, StreamObserver<Empty> responseObserver) {
+        refreshReqHandler.processSingle(request, responseObserver);
     }
 
 }

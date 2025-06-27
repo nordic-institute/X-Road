@@ -28,6 +28,10 @@ package org.niis.xroad.signer.core.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.jetbrains.annotations.NotNull;
+
+import java.time.Instant;
+import java.util.StringJoiner;
 
 public record HardwareTokenData(
         Long id,
@@ -35,7 +39,9 @@ public record HardwareTokenData(
         String type,
         String serialNumber,
         String label,
-        String friendlyName) implements BasicTokenInfo {
+        String friendlyName,
+        Instant createdAt,
+        Instant updatedAt) implements BasicTokenInfo {
 
     @Override
     public boolean equals(Object o) {
@@ -64,5 +70,17 @@ public record HardwareTokenData(
                 .append(label)
                 .append(friendlyName)
                 .toHashCode();
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", getClass().getSimpleName() + "[", "]")
+                .add("id=" + id)
+                .add("externalId='" + externalId + "'")
+                .add("type='" + type + "'")
+                .add("createdAt=" + createdAt)
+                .add("updatedAt=" + updatedAt)
+                .toString();
     }
 }

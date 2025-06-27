@@ -28,6 +28,7 @@ package org.niis.xroad.signer.core.model;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +41,9 @@ public record SoftwareTokenData(
         String serialNumber,
         String label,
         String friendlyName,
-        byte[] pinHash) implements BasicTokenInfo {
+        byte[] pinHash,
+        Instant createdAt,
+        Instant updatedAt) implements BasicTokenInfo {
 
     @Override
     public Optional<byte[]> softwareTokenPinHash() {
@@ -72,6 +75,8 @@ public record SoftwareTokenData(
                 .add("id=" + id)
                 .add("externalId='" + externalId + "'")
                 .add("type='" + type + "'")
+                .add("createdAt=" + createdAt)
+                .add("updatedAt=" + updatedAt)
                 .toString();
     }
 }

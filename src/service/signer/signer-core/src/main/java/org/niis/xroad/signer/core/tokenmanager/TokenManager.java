@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.exception.SignerException;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.core.tokenmanager.token.TokenDefinition;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -48,7 +48,7 @@ import static org.niis.xroad.signer.core.util.SignerUtil.getDefaultFriendlyName;
 @RequiredArgsConstructor
 public class TokenManager {
     private final TokenRegistry tokenRegistry;
-    private final TokenService tokenService;
+    private final TokenWriteService tokenWriteService;
     private final TokenLookup tokenLookup;
 
     /**
@@ -60,7 +60,7 @@ public class TokenManager {
     public TokenInfo createToken(TokenDefinition tokenDefinition) {
         tokenRegistry.writeRun(ctx -> {
             try {
-                tokenService.save(
+                tokenWriteService.save(
                         tokenDefinition.getId(),
                         tokenDefinition.moduleType(),
                         getDefaultFriendlyName(tokenDefinition),
@@ -78,7 +78,6 @@ public class TokenManager {
         });
         return tokenLookup.getTokenInfo(tokenDefinition.getId());
     }
-
 
     /**
      * Sets the token available.
@@ -132,7 +131,7 @@ public class TokenManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var token = ctx.findToken(tokenId);
-                tokenService.updateFriendlyName(token.id(), friendlyName);
+                tokenWriteService.updateFriendlyName(token.id(), friendlyName);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -141,7 +140,6 @@ public class TokenManager {
                 ctx.invalidateCache();
             }
         });
-
     }
 
     /**
@@ -169,7 +167,7 @@ public class TokenManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var token = ctx.findToken(tokenId);
-                tokenService.delete(token.id());
+                tokenWriteService.delete(token.id());
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {

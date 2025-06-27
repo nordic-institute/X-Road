@@ -49,6 +49,8 @@ import java.util.StringJoiner;
  * @param certificate                     Holds the certificate instance.
  * @param sha256hash                      Holds the precalculated sha256 hash of the certificate.
  * @param ocspVerifyBeforeActivationError ocsp error that is populated if external request fails.
+ * @param createdAt                       when the DB record was created
+ * @param updatedAt                       when the DB record was last updated
  */
 public record CertData(Long id,
                        String externalId,
@@ -61,11 +63,13 @@ public record CertData(Long id,
                        Instant nextAutomaticRenewalTime,
                        String ocspVerifyBeforeActivationError,
                        X509Certificate certificate,
-                       String sha256hash) implements BasicCertInfo {
+                       String sha256hash,
+                       Instant createdAt,
+                       Instant updatedAt) implements BasicCertInfo {
 
     public static CertData create(String externalId, Long keyId, X509Certificate certificate, String sha256hash) {
         return new CertData(null, externalId, keyId, null, null, false, null, null,
-                null, null, certificate, sha256hash);
+                null, null, certificate, sha256hash, null, null);
     }
 
     @Override
@@ -102,6 +106,8 @@ public record CertData(Long id,
                 .add("status='" + status + "'")
                 .add("active=" + active)
                 .add("memberId=" + memberId)
+                .add("createdAt=" + createdAt)
+                .add("updatedAt=" + updatedAt)
                 .toString();
     }
 }

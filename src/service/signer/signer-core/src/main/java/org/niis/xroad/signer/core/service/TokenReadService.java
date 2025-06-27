@@ -24,18 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.signer.core.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import org.niis.xroad.signer.core.model.BasicCertInfo;
+import org.niis.xroad.signer.core.model.BasicKeyInfo;
+import org.niis.xroad.signer.core.model.BasicTokenInfo;
+import org.niis.xroad.signer.core.model.CertRequestData;
 
-public interface TokenKeyCertRequestService {
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-    Long save(Long keyId,
-              String externalId,
-              ClientId.Conf memberId,
-              String subjectName,
-              String subjectAltName,
-              String certificateProfile) throws Exception;
+public interface TokenReadService {
 
-    boolean delete(Long id) throws Exception;
+    LoadedTokens loadAllTokens() throws Exception;
+
+    record LoadedTokens(Set<BasicTokenInfo> tokens,
+                        Map<Long, List<BasicKeyInfo>> keys,
+                        Map<Long, List<BasicCertInfo>> certs,
+                        Map<Long, List<CertRequestData>> certRequests) {
+    }
+
 }

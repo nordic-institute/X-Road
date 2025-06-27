@@ -33,7 +33,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.api.exception.SignerException;
-import org.niis.xroad.signer.core.service.TokenKeyService;
+import org.niis.xroad.signer.core.service.TokenKeyWriteService;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -43,7 +43,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 @RequiredArgsConstructor
 public class KeyManager {
     protected final TokenRegistry tokenRegistry;
-    protected final TokenKeyService tokenKeyService;
+    protected final TokenKeyWriteService tokenKeyWriteService;
 
     /**
      * Adds a key with id and base64 public key to a token.
@@ -60,7 +60,7 @@ public class KeyManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var token = ctx.findToken(tokenId);
-                tokenKeyService.save(token.id(), keyId, publicKeyBase64, keyStore,
+                tokenKeyWriteService.save(token.id(), keyId, publicKeyBase64, keyStore,
                         signMechanism, friendlyName, label, true);
             } catch (CodedException signerException) {
                 throw signerException;
@@ -87,7 +87,7 @@ public class KeyManager {
             try {
                 var token = ctx.findToken(tokenId);
 
-                tokenKeyService.save(token.id(), keyId, publicKeyBase64, null, signMechanism,
+                tokenKeyWriteService.save(token.id(), keyId, publicKeyBase64, null, signMechanism,
                         friendlyName, label, false);
             } catch (CodedException signerException) {
                 throw signerException;
@@ -126,7 +126,7 @@ public class KeyManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var key = ctx.findKey(keyId);
-                tokenKeyService.updateFriendlyName(key.id(), friendlyName);
+                tokenKeyWriteService.updateFriendlyName(key.id(), friendlyName);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -150,7 +150,7 @@ public class KeyManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var key = ctx.findKey(keyId);
-                tokenKeyService.updateLabel(key.id(), label);
+                tokenKeyWriteService.updateLabel(key.id(), label);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -173,7 +173,7 @@ public class KeyManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var key = ctx.findKey(keyId);
-                tokenKeyService.updateKeyUsage(key.id(), keyUsage);
+                tokenKeyWriteService.updateKeyUsage(key.id(), keyUsage);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -197,7 +197,7 @@ public class KeyManager {
         return tokenRegistry.writeAction(ctx -> {
             try {
                 var key = ctx.findKey(keyId);
-                return tokenKeyService.delete(key.id());
+                return tokenKeyWriteService.delete(key.id());
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {
@@ -222,7 +222,7 @@ public class KeyManager {
         tokenRegistry.writeRun(ctx -> {
             try {
                 var key = ctx.findKey(keyId);
-                tokenKeyService.updatePublicKey(key.id(), publicKeyBase64);
+                tokenKeyWriteService.updatePublicKey(key.id(), publicKeyBase64);
             } catch (CodedException signerException) {
                 throw signerException;
             } catch (Exception e) {

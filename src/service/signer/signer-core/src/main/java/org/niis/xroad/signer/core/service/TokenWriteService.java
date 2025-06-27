@@ -24,27 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.NodeProperties;
+package org.niis.xroad.signer.core.service;
 
-/**
- * Signer main program.
- */
-@QuarkusMain
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
-public class SignerMain {
+import java.util.Map;
 
-    public static void main(String[] args) {
-        if (NodeProperties.isSecondaryNode()) {
-            log.info("Starting Signer as secondary node. Modifying operations are not allowed.");
-        }
-        Quarkus.run(args);
-    }
+public interface TokenWriteService {
+
+    boolean delete(Long tokenId) throws Exception;
+
+    Long save(String externalId, String type, String friendlyName, String label, String serialNo) throws Exception;
+
+    boolean setInitialTokenPin(Long tokenId, byte[] pinHash) throws Exception;
+
+    boolean updateTokenPin(Long tokenId, Map<Long, byte[]> updatedKeys, byte[] pinHash) throws Exception;
+
+    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+
 }

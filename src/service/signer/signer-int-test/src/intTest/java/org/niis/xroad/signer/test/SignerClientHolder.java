@@ -30,6 +30,7 @@ package org.niis.xroad.signer.test;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.properties.NodeProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.signer.client.SignerRpcChannelProperties;
@@ -54,12 +55,25 @@ public class SignerClientHolder {
     private SignerRpcClient signerRpcClientInstance;
     private SignerSignRpcClient signerSignClient;
 
+    private SignerRpcClient secondarySignerRpcClient;
+    private SignerSignRpcClient secondarySignerSignClient;
+
+    public SignerRpcClient get(NodeProperties.NodeType nodeType) {
+        return switch (nodeType) {
+            case STANDALONE, PRIMARY -> signerRpcClientInstance;
+            case SECONDARY -> secondarySignerRpcClient;
+        };
+    }
+
     public SignerRpcClient get() {
         return signerRpcClientInstance;
     }
 
-    public SignerSignClient getSignClient() {
-        return signerSignClient;
+    public SignerSignClient getSignClient(NodeProperties.NodeType nodeType) {
+        return switch (nodeType) {
+            case STANDALONE, PRIMARY -> signerSignClient;
+            case SECONDARY -> secondarySignerSignClient;
+        };
     }
 
     @SneakyThrows
@@ -81,12 +95,35 @@ public class SignerClientHolder {
                 return timeoutMillis;
             }
         };
+        var secondaryProperties = new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).host();
+            }
+
+            @Override
+            public int port() {
+                return signerIntTestSetup.getContainerMapping(SignerIntTestSetup.SIGNER_SECONDARY, SIGNER_GRPC_PORT).port();
+
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return timeoutMillis;
+            }
+        };
 
         signerRpcClientInstance = new SignerRpcClient(getFactory(), properties);
         signerRpcClientInstance.init();
 
         signerSignClient = new SignerSignRpcClient(getFactory(), properties);
         signerSignClient.init();
+
+        secondarySignerRpcClient = new SignerRpcClient(getFactory(), secondaryProperties);
+        secondarySignerRpcClient.init();
+
+        secondarySignerSignClient = new SignerSignRpcClient(getFactory(), secondaryProperties);
+        secondarySignerSignClient.init();
 
         log.info("Will use {}:{} (original port {})  for signer RPC connection..", properties.host(), properties.port(), SIGNER_GRPC_PORT);
         return signerRpcClientInstance;

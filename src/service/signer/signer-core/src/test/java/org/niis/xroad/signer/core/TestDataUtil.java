@@ -33,12 +33,15 @@ import lombok.experimental.UtilityClass;
 import org.niis.xroad.signer.core.model.SoftwareKey;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import java.time.Instant;
+
 @UtilityClass
 public class TestDataUtil {
 
     public static SoftwareKey softwareKeyData(long id, long tokenId) {
         return new SoftwareKey(id, tokenId, "keyExternalId-" + id, KeyUsageInfo.SIGNING, "key friendly name " + id,
-                "key label " + id, "publicKey" + id, SignMechanism.CKM_RSA_PKCS, new byte[]{'k', 'e', 'y', 's', 't', 'o', 'r', 'e'});
+                "key label " + id, "publicKey" + id, SignMechanism.CKM_RSA_PKCS, new byte[]{'k', 'e', 'y', 's', 't', 'o', 'r', 'e'},
+                Instant.now(), Instant.now());
     }
 
 }

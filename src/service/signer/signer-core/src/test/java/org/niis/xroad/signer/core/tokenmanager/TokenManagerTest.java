@@ -33,7 +33,7 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenDefinition;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwareTokenDefinition;
 import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -52,12 +52,12 @@ class TokenManagerTest {
 
     private static final String TOKEN_EXTERNAL_ID = "0";
 
-    private final TokenService tokenService = mock(TokenService.class);
+    private final TokenWriteService tokenWriteService = mock(TokenWriteService.class);
     private final TokenLookup tokenLookup = mock(TokenLookup.class);
     private final TokenRegistryLoader tokenRegistryLoader = mock(TokenRegistryLoader.class);
     private final TokenRegistry tokenRegistry = new TokenRegistry(tokenRegistryLoader);
 
-    private final TokenManager tokenManager = new TokenManager(tokenRegistry, tokenService, tokenLookup);
+    private final TokenManager tokenManager = new TokenManager(tokenRegistry, tokenWriteService, tokenLookup);
 
     @Test
     void testCreateTokenSoftToken() throws Exception {
@@ -68,7 +68,7 @@ class TokenManagerTest {
 
         tokenManager.createToken(softwareTokenDefinition);
 
-        verify(tokenService).save(TOKEN_EXTERNAL_ID, "softToken", "softToken-0", null, null);
+        verify(tokenWriteService).save(TOKEN_EXTERNAL_ID, "softToken", "softToken-0", null, null);
         verify(tokenLookup).getTokenInfo(TOKEN_EXTERNAL_ID);
         verifyCacheRefresh();
     }
@@ -84,7 +84,7 @@ class TokenManagerTest {
 
         tokenManager.createToken(hwTokenDefinitionMock);
 
-        verify(tokenService).save("hkwId", "hwModuleType", "hwModuleType-hwSerialNumber-hwLabel-2", "hwLabel", "hwSerialNumber");
+        verify(tokenWriteService).save("hkwId", "hwModuleType", "hwModuleType-hwSerialNumber-hwLabel-2", "hwLabel", "hwSerialNumber");
         verify(tokenLookup).getTokenInfo("hkwId");
         verifyCacheRefresh();
     }
@@ -132,7 +132,7 @@ class TokenManagerTest {
 
         tokenManager.setTokenFriendlyName(TOKEN_EXTERNAL_ID, "newFriendlyName");
 
-        verify(tokenService).updateFriendlyName(1L, "newFriendlyName");
+        verify(tokenWriteService).updateFriendlyName(1L, "newFriendlyName");
         verifyCacheRefresh();
     }
 
@@ -154,7 +154,7 @@ class TokenManagerTest {
 
         tokenManager.deleteToken(TOKEN_EXTERNAL_ID);
 
-        verify(tokenService).delete(1L);
+        verify(tokenWriteService).delete(1L);
         verifyCacheRefresh();
     }
 

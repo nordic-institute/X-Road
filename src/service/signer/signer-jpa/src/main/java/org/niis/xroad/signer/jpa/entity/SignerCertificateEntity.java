@@ -38,6 +38,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.jpa.entity.AuditableEntity;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -50,7 +51,7 @@ import static jakarta.persistence.AccessType.FIELD;
 @Entity
 @Access(FIELD)
 @Table(name = SignerCertificateEntity.TABLE_NAME)
-public class SignerCertificateEntity {
+public class SignerCertificateEntity extends AuditableEntity {
 
     public static final String TABLE_NAME = "signer_certificates";
 

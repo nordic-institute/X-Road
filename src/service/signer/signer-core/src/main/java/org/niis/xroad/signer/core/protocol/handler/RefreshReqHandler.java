@@ -24,27 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.application;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.NodeProperties;
+package org.niis.xroad.signer.core.protocol.handler;
 
-/**
- * Signer main program.
- */
-@QuarkusMain
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
-public class SignerMain {
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
+import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 
-    public static void main(String[] args) {
-        if (NodeProperties.isSecondaryNode()) {
-            log.info("Starting Signer as secondary node. Modifying operations are not allowed.");
-        }
-        Quarkus.run(args);
+@ApplicationScoped
+@RequiredArgsConstructor
+public class RefreshReqHandler extends AbstractRpcHandler<Empty, Empty> {
+
+    private final ModuleManager moduleManager;
+
+    @Override
+    protected Empty handle(Empty request) throws Exception {
+        moduleManager.refresh();
+        return Empty.getDefaultInstance();
     }
+
 }

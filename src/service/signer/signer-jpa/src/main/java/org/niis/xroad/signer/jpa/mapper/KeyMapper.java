@@ -62,7 +62,9 @@ public class KeyMapper implements GenericUniDirectionalMapper<SignerKeyEntity, B
                 source.getLabel(),
                 source.getPublicKey(),
                 source.getSignMechanismName(),
-                source.getKeyStore()
+                source.getKeyStore(),
+                source.getCreatedAt(),
+                source.getUpdatedAt()
         );
     }
 
@@ -75,7 +77,9 @@ public class KeyMapper implements GenericUniDirectionalMapper<SignerKeyEntity, B
                 source.getFriendlyName(),
                 source.getLabel(),
                 source.getPublicKey(),
-                source.getSignMechanismName()
+                source.getSignMechanismName(),
+                source.getCreatedAt(),
+                source.getUpdatedAt()
         );
     }
 
