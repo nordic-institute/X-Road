@@ -15,6 +15,7 @@
             :label="$t('diagnostics.traffic.date')"
             prepend-inner-icon="$calendar"
             prepend-icon=""
+            data-test="period-start-date"
           ></v-date-input>
         </v-col>
         <v-col cols="auto">
@@ -23,6 +24,7 @@
             v-maska="'##:##'"
             class="time-input"
             :label="$t('diagnostics.traffic.time')"
+            data-test="period-start-time"
           ></v-text-field>
         </v-col>
         <v-col cols="auto"><span class="range-separator"></span></v-col>
@@ -33,6 +35,7 @@
             :label="$t('diagnostics.traffic.date')"
             prepend-inner-icon="$calendar"
             prepend-icon=""
+            data-test="period-end-date"
           ></v-date-input>
         </v-col>
         <v-col cols="auto">
@@ -41,6 +44,7 @@
             v-maska="'##:##'"
             class="time-input"
             :label="$t('diagnostics.traffic.time')"
+            data-test="period-end-time"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -54,12 +58,13 @@
         <v-col cols="5">
           <v-select
             v-model="filters.client"
-            :label="$t('diagnostics.traffic.client')"
-            clearable
             :items="clientsStore.clients"
+            :label="$t('diagnostics.traffic.client')"
+            :loading="clientsLoading"
+            clearable
             item-title="id"
             item-value="id"
-            :loading="clientsLoading"
+            data-test="select-client"
           >
             <template #item="{ props: itemProps, item }">
               <v-list-item
@@ -72,13 +77,14 @@
         <v-col cols="4">
           <v-select
             v-model="filters.service"
-            :label="$t('diagnostics.traffic.service')"
-            clearable
+            :disabled="!services.length"
             :items="services"
+            :label="$t('diagnostics.traffic.service')"
+            :loading="servicesLoading"
+            clearable
             item-title="full_service_code"
             item-value="id"
-            :loading="servicesLoading"
-            :disabled="!services.length"
+            data-test="select-service"
           >
             <template #item="{ props: itemProps, item }">
               <v-list-item
@@ -99,12 +105,13 @@
         <v-col>
           <v-select
             v-model="filters.exchangeRole"
-            :label="$t('diagnostics.traffic.exchangeRole')"
-            clearable
             :items="[
               $t('diagnostics.traffic.producer'),
               $t('diagnostics.traffic.client'),
             ]"
+            :label="$t('diagnostics.traffic.exchangeRole')"
+            clearable
+            data-test="select-exchangeRole"
           >
           </v-select>
         </v-col>
@@ -119,12 +126,13 @@
         <v-col>
           <v-select
             v-model="filters.status"
-            :label="$t('diagnostics.traffic.status')"
-            clearable
             :items="[
               { title: $t('diagnostics.traffic.success'), value: true },
               { title: $t('diagnostics.traffic.failure'), value: false },
             ]"
+            :label="$t('diagnostics.traffic.status')"
+            clearable
+            data-test="select-status"
           >
           </v-select>
         </v-col>

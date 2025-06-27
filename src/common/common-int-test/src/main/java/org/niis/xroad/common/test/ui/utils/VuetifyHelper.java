@@ -247,5 +247,10 @@ public final class VuetifyHelper {
         public void clickAndSelect(final String val) {
             click().select(val);
         }
+
+        public Select shouldBe(WebElementCondition condition) {
+            controlElement.$x(INPUT_XPATH).shouldBe(condition);
+            return this;
+        }
     }
 }
