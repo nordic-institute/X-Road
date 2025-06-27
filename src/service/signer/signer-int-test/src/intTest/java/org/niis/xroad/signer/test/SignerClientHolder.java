@@ -56,6 +56,7 @@ public class SignerClientHolder {
     private SignerSignRpcClient signerSignClient;
 
     private SignerRpcClient secondarySignerRpcClient;
+    private SignerSignRpcClient secondarySignerSignClient;
 
     public SignerRpcClient get(NodeProperties.NodeType nodeType) {
         return switch (nodeType) {
@@ -68,8 +69,11 @@ public class SignerClientHolder {
         return signerRpcClientInstance;
     }
 
-    public SignerSignClient getSignClient() {
-        return signerSignClient;
+    public SignerSignClient getSignClient(NodeProperties.NodeType nodeType) {
+        return switch (nodeType) {
+            case STANDALONE, PRIMARY -> signerSignClient;
+            case SECONDARY -> secondarySignerSignClient;
+        };
     }
 
     @SneakyThrows
@@ -117,6 +121,9 @@ public class SignerClientHolder {
 
         secondarySignerRpcClient = new SignerRpcClient(getFactory(), secondaryProperties);
         secondarySignerRpcClient.init();
+
+        secondarySignerSignClient = new SignerSignRpcClient(getFactory(), secondaryProperties);
+        secondarySignerSignClient.init();
 
         log.info("Will use {}:{} (original port {})  for signer RPC connection..", properties.host(), properties.port(), SIGNER_GRPC_PORT);
         return signerRpcClientInstance;

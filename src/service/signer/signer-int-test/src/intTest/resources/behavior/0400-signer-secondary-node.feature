@@ -14,3 +14,16 @@ Feature: 0400 - Signer: Secondary node tests
     Then token "soft-token-000" is active on secondary node
     And Update token pin on secondary node not allowed
     And Generate new key on secondary node not allowed
+
+  Scenario: Signing data on secondary node
+    Given new RSA key "key-test-secondary-1" generated for token "soft-token-000"
+    And new EC key "key-test-secondary-2" generated for token "soft-token-000"
+    And new RSA key "key-test-secondary-3" generated for token "xrd-softhsm-0"
+    And new EC key "key-test-secondary-4" generated for token "xrd-softhsm-0"
+    And secondary node sync is forced
+    When token "xrd-softhsm-0" is logged in with pin "1234" on secondary node
+    And token "soft-token-000" is logged in with pin "4321" on secondary node
+    Then digest can be signed using key "key-test-secondary-1" from token "soft-token-000" on secondary node
+    And digest can be signed using key "key-test-secondary-2" from token "soft-token-000" on secondary node
+    And digest can be signed using key "key-test-secondary-3" from token "xrd-softhsm-0" on secondary node
+    And digest can be signed using key "key-test-secondary-4" from token "xrd-softhsm-0" on secondary node

@@ -100,7 +100,7 @@ Feature: 0220 - Signer: HardwareToken: Key operations (EC)
 
   Scenario: Sign data is successful
     Given digest can be signed using key "SignKey from CA" from token "xrd-softhsm-0"
-    And Digest is signed using key "KeyX" from token "xrd-softhsm-0"
+    And digest can be signed using key "KeyX" from token "xrd-softhsm-0"
 
   Scenario: Member signing info can be retrieved
     Given tokens list contains token "xrd-softhsm-0"

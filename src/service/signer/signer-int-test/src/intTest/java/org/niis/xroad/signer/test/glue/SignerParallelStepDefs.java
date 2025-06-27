@@ -48,6 +48,7 @@ import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_EC
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.niis.xroad.common.properties.NodeProperties.NodeType.PRIMARY;
 
 @Slf4j
 public class SignerParallelStepDefs extends BaseSignerStepDefs {
@@ -64,7 +65,8 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
             var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
 
             var stopWatch = StopWatch.createStarted();
-            byte[] result = clientHolder.getSignClient().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+            byte[] result = clientHolder.getSignClient(PRIMARY).sign(key.getId(), signAlgorithm,
+                    calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
             log.trace("Executed sign in {} ms.", stopWatch.getDuration().toMillis());
             return result;

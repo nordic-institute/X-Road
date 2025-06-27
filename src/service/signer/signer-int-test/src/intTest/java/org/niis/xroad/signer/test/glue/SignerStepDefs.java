@@ -489,7 +489,12 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("digest can be signed using key {string} from token {string}")
     public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName) throws Exception {
-        final KeyInfo key = findKeyInToken(friendlyName, keyName);
+        digestCanBeSignedUsingKeyFromToken(keyName, friendlyName, PRIMARY);
+    }
+
+    @Step("digest can be signed using key {string} from token {string} on {nodeType} node")
+    public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName, NodeProperties.NodeType nodeType) throws Exception {
+        final KeyInfo key = findKeyInToken(friendlyName, keyName, nodeType);
 
         var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
 
@@ -498,7 +503,9 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             case EC -> SHA256_WITH_ECDSA;
         };
 
-        clientHolder.getSignClient().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        byte[] bytes = clientHolder.getSignClient(nodeType).sign(key.getId(), signAlgorithm,
+                calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        assertThat(bytes).isNotEmpty();
     }
 
     @Step("certificate can be deactivated")
@@ -535,23 +542,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             case EC -> SHA256_WITH_ECDSA;
         };
 
-        final byte[] bytes = clientHolder.getSignClient().signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
-        assertThat(bytes).isNotEmpty();
-    }
-
-    @Step("Digest is signed using key {string} from token {string}")
-    public void sign(String keyName, String friendlyName) throws Exception {
-
-        final KeyInfo key = findKeyInToken(friendlyName, keyName);
-
-        var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
-
-        var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
-            case RSA -> SHA256_WITH_RSA;
-            case EC -> SHA256_WITH_ECDSA;
-        };
-
-        byte[] bytes = clientHolder.getSignClient().sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        final byte[] bytes = clientHolder.getSignClient(PRIMARY).signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
 
@@ -627,7 +618,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signKeyFail() {
         String keyId = randomUUID().toString();
         try {
-            clientHolder.getSignClient().sign(keyId, SignAlgorithm.ofName(randomUUID().toString()), new byte[0]);
+            clientHolder.getSignClient(PRIMARY).sign(keyId, SignAlgorithm.ofName(randomUUID().toString()), new byte[0]);
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.KeyNotFound", "key_not_found",
@@ -639,7 +630,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signAlgorithmFail(String keyName, String friendlyName) throws Exception {
         try {
             final KeyInfo key = findKeyInToken(friendlyName, keyName);
-            clientHolder.getSignClient().sign(key.getId(),
+            clientHolder.getSignClient(PRIMARY).sign(key.getId(),
                     SignAlgorithm.ofName("NOT-ALGORITHM-ID"),
                     calculateDigest(SHA256, "digest".getBytes(UTF_8)));
 
