@@ -38,6 +38,7 @@ import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
@@ -80,7 +81,7 @@ public class MetadataHandlerTest {
         serverConfProvider = mock(ServerConfProvider.class);
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);

@@ -26,7 +26,6 @@
 package org.niis.xroad.confclient.core.config;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.runtime.Startup;
@@ -35,12 +34,12 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.confclient.core.ConfigurationClientJob;
+import org.niis.xroad.confclient.core.schedule.JobManager;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PACKAGE)
@@ -111,8 +110,4 @@ public class ConfClientJobConfig {
         }
     }
 
-    @ApplicationScoped
-    JobManager jobManager(Scheduler scheduler) throws SchedulerException {
-        return new JobManager(scheduler);
-    }
 }

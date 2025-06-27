@@ -23,28 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon;
+package org.niis.xroad.globalconf;
 
-import com.google.common.collect.ImmutableList;
-import io.grpc.BindableService;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class BindableServiceRegistry {
-
-    private final List<BindableService> bindableServices = new ArrayList<>();
+public interface ManagedLifecycleGlobalConfSource extends GlobalConfSource {
 
     /**
-     * Register gRPC bindable service to already present server.
-     *
-     * @param bindableService
+     * Initialize the global configuration source.
+     * This method should be called before any other operations on the source.
      */
-    public void register(BindableService bindableService) {
-        bindableServices.add(bindableService);
-    }
+    void init();
 
-    public List<BindableService> getRegisteredServices() {
-        return ImmutableList.copyOf(bindableServices);
-    }
 }

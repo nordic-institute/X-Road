@@ -51,6 +51,7 @@ import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
@@ -60,8 +61,6 @@ import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
-import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.TestService;
@@ -143,7 +142,6 @@ public abstract class AbstractProxyIntegrationTest {
         startClientProxy(proxyProperties);
         startServerProxy(proxyProperties);
 
-        OpMonitoring.init(new NullOpMonitoringBuffer(null));
         MessageLog.init(new NullLogManager(TEST_GLOBAL_CONF, TEST_SERVER_CONF));
     }
 
@@ -155,7 +153,7 @@ public abstract class AbstractProxyIntegrationTest {
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, clientKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider);
+                clientKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer());
 
         ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(TEST_GLOBAL_CONF, clientKeyConf);
         HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -173,7 +171,7 @@ public abstract class AbstractProxyIntegrationTest {
         SigningCtxProvider signingCtxProvider = new TestSigningCtxProvider(TEST_GLOBAL_CONF, serverKeyConf);
         VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         CommonBeanProxy commonBeanProxy = new CommonBeanProxy(TEST_GLOBAL_CONF, TEST_SERVER_CONF,
-                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider);
+                serverKeyConf, signingCtxProvider, certHelper, null, vaultKeyProvider, new NoOpMonitoringBuffer());
 
         OpMonitorCommonProperties opMonitorCommonProperties = ConfigUtils.defaultConfiguration(OpMonitorCommonProperties.class);
         ServiceHandlerLoader serviceHandlerLoader = new ServiceHandlerLoader(TEST_SERVER_CONF, TEST_GLOBAL_CONF,

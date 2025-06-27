@@ -65,7 +65,7 @@ public class MonitorConfig {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
                 }));
-        rpcServer.afterPropertiesSet();
+        rpcServer.init();
         return rpcServer;
     }
 

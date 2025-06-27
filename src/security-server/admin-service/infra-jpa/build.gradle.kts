@@ -1,5 +1,4 @@
 plugins {
-  id("xroad.java-conventions")
   id("xroad.jib-conventions")
 }
 
@@ -70,8 +69,4 @@ tasks {
   named("assemble") {
     dependsOn("jib")
   }
-}
-
-archUnit {
-  setSkip(true)
 }

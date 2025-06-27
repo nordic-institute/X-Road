@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
 import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
