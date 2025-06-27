@@ -27,3 +27,15 @@ Feature: 0400 - Signer: Secondary node tests
     And digest can be signed using key "key-test-secondary-2" from token "soft-token-000" on secondary node
     And digest can be signed using key "key-test-secondary-3" from token "xrd-softhsm-0" on secondary node
     And digest can be signed using key "key-test-secondary-4" from token "xrd-softhsm-0" on secondary node
+
+  Scenario: Loading token with transient certificate from HSM
+    Given all keys are deleted from token "xrd-softhsm-0"
+    And token "xrd-softhsm-0" has 0 key on primary node
+    And primary node is refreshed
+    And secondary node sync is forced
+    When new key with id "1357" and certificate magically appears on HSM
+    And primary node is refreshed
+    And secondary node sync is forced
+    Then token "xrd-softhsm-0" has 1 key on secondary node
+    And token "xrd-softhsm-0" token is not saved to configuration on primary node
+    And token "xrd-softhsm-0" token is not saved to configuration on secondary node

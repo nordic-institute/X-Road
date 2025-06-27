@@ -28,6 +28,7 @@
 package org.niis.xroad.signer.test.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -103,6 +105,12 @@ public class SignerIntTestSetup implements TestableContainerInitializer, Disposa
                 env.getServiceHost(service, originalPort),
                 env.getServicePort(service, originalPort)
         );
+    }
+
+    @SneakyThrows
+    public Container.ExecResult execInContainer(String container, String... command) {
+        return env.getContainerByServiceName(container).orElseThrow()
+                .execInContainer(command);
     }
 
     public record ContainerMapping(String host, int port) {

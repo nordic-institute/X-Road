@@ -784,6 +784,11 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         clientHolder.get(SECONDARY).refreshModules();
     }
 
+    @Step("primary node is refreshed")
+    public void primaryNodeIsRefreshed() {
+        clientHolder.get(PRIMARY).refreshModules();
+    }
+
     @Step("Init software token on secondary node not allowed")
     public void initSoftwareTokenFailsOnSecondaryNode() {
         var secondaryClient = clientHolder.get(SECONDARY);
@@ -829,4 +834,35 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         return NodeProperties.NodeType.fromStringIgnoreCaseOrReturnDefault(value);
     }
 
+    @Step("new key with id {string} and certificate magically appears on HSM")
+    public void newKeyMagicallyAppearsOnHsm(String keyId) {
+        var result = signerIntTestSetup.execInContainer(SignerIntTestSetup.SIGNER, "/add-key-into-hsm.sh", keyId);
+        testReportService.attachText("result", result.toString());
+        assertThat(result.getExitCode()).isEqualTo(0);
+    }
+
+    @Step("token {string} has {int} key on {nodeType} node")
+    public void tokenHasKeyOnNode(String tokenFriendlyName, int keyCount, NodeProperties.NodeType nodeType) {
+        TokenInfo tokenInfo = clientHolder.get(nodeType).getTokens().stream()
+                .filter(token -> tokenFriendlyName.equals(token.getFriendlyName()))
+                .findFirst().orElseThrow();
+
+        assertThat(tokenInfo.getKeyInfo()).hasSize(keyCount);
+    }
+
+    @Step("all keys are deleted from token {string}")
+    public void allKeysAreDeletedFromToken(String friendlyName) {
+        TokenInfo tokenInfo = clientHolder.get(PRIMARY).getTokens().stream()
+                .filter(t -> friendlyName.equals(t.getFriendlyName()))
+                .findFirst().orElseThrow();
+
+        tokenInfo.getKeyInfo()
+                .forEach(keyInfo -> clientHolder.get(PRIMARY).deleteKey(keyInfo.getId(), true));
+    }
+
+    @Step("token {string} token is not saved to configuration on {nodeType} node")
+    public void tokenTokenIsNotSavedToConfiguration(String tokenFriendlyName, NodeProperties.NodeType nodeType) {
+        TokenInfo tokenInfo = getTokenInfoByFriendlyName(tokenFriendlyName, nodeType);
+        assertThat(tokenInfo.isSavedToConfiguration()).isFalse();
+    }
 }
