@@ -142,6 +142,26 @@ jobs:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh jammy -release
+      - name: Check disk space before job
+        run: sudo df -h
+      - name: List largest directories (top-level)
+        run: |
+          sudo du -h --max-depth=1 / | sort -hr | head -n 20
+      - name: List largest directories in /home/runner
+        run: |
+          sudo du -h /home/runner | sort -hr | head -n 20
+      - name: List largest directories in /usr
+        run: |
+          sudo du -h /usr | sort -hr | head -n 20
+      - name: List largest directories in /home
+        run: |
+          sudo du -h /home | sort -hr | head -n 20
+      - name: List largest directories in /var
+        run: |
+          sudo du -h /var | sort -hr | head -n 20
+      - name: List largest directories in /opt
+        run: |
+          sudo du -h /opt | sort -hr | head -n 20
       - name: Build 24.04 (Noble) packages
         env:
           DEBEMAIL: 'info@niis.org'

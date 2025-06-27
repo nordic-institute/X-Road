@@ -161,7 +161,7 @@ import { PublicPathState, useForm } from 'vee-validate';
 import { key } from '../../utils';
 import { AdminUser } from '@/openapi-types';
 
-const adminUsersHandler = inject(key.adminUsersHandler);
+const adminUsersHandler = inject(key.adminUsersHandler)!;
 
 const router = useRouter();
 
@@ -170,7 +170,7 @@ const roles = ref<string[]>([]);
 const userAdded = ref(false);
 const addingUser = ref(false);
 
-const availableRoles = computed(() => adminUsersHandler!.availableRoles());
+const availableRoles = computed(() => adminUsersHandler.availableRoles());
 const isNextButtonDisabled = computed(() => roles.value.length === 0);
 const isAddButtonDisabled = computed(() => !meta.value.dirty || !meta.value.valid);
 
@@ -180,8 +180,8 @@ const close = () => {
 
 const validationSchema = computed(() => {
   return {
-    username: 'required|max:255',
-    password: 'required|confirmed:@passwordConfirm',
+    username: 'required|min:3|max:30',
+    password: 'required|min:6|max:255|confirmed:@passwordConfirm',
     passwordConfirm: 'required',
   };
 });
@@ -208,7 +208,7 @@ const [passwordConfirm, passwordConfirmAttrs] = defineField('passwordConfirm', c
 
 const addUser = () => {
   addingUser.value = true;
-  adminUsersHandler!
+  adminUsersHandler
     .add({
       username: username.value,
       password: password.value,

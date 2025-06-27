@@ -136,22 +136,22 @@ components:
     AdminUser:
       type: object
       properties:
-        id:
-          type: integer
-          description: Admin user ID
         username:
           type: string
           description: Admin user name
+          minLength: 3
+          maxLength: 30
         password:
           type: string
           description: Admin user password
+          minLength: 6
+          maxLength: 255
         roles:
           type: array
           description: Admin user roles
           items:
             type: string
       required:
-        - id
         - username
         - roles
     AdminUserPasswordChangeRequest:
@@ -161,11 +161,13 @@ components:
         old_password:
           type: string
           description: Old password of the admin user
+          maxLength: 255
         new_password:
           type: string
           description: New password of the admin user
+          minLength: 6
+          maxLength: 255
       required:
-        - old_password
         - new_password
   examples:
     ErrorExample:

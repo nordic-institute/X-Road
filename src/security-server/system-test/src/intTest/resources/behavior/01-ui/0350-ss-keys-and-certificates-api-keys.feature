@@ -78,7 +78,7 @@ Feature: 0350 - SS: API Keys
 
     When SecurityServer login page is open
     And Page is prepared to be tested
-    And User xrd-sys logs in to SecurityServer with password secret
+    And User xrd-sys logs in to SecurityServer with password t0pSecret1
     And API Keys sub-tab is selected
     When Newly created API key is edit dialog is opened
     And Role "Security Officer" is being clicked

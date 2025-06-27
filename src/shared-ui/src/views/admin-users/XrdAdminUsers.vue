@@ -129,7 +129,7 @@
               <v-checkbox v-model="selectedRoles" height="10px" :value="role" :data-test="`role-${role}-checkbox`">
                 <template #label>
                   <span>{{ $t(`adminUsers.role.${role}`) }}</span>
-                  <span v-if="!adminUsersHandler?.hasRole(role)" class="remove-only-role">
+                  <span v-if="!adminUsersHandler.hasRole(role)" class="remove-only-role">
                     &nbsp;{{ $t('adminUsers.edit.roleRemoveOnly') }}
                   </span>
                 </template>
@@ -140,8 +140,9 @@
       </template>
     </xrd-simple-dialog>
 
-    <XrdAdminUserPasswordChangeDialog
+    <xrd-admin-user-password-change-dialog
       v-if="showPasswordChangeDialog"
+      :require-old-password="isOldPasswordRequired()"
       :username="selectedUser!.username"
       :admin-users-handler="adminUsersHandler"
       @cancel="showPasswordChangeDialog = false"
@@ -164,7 +165,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, PropType, inject } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AdminUser } from '@/openapi-types';
 import { key, XrdIconKey} from '@niis/shared-ui';
@@ -190,7 +191,8 @@ const headers = computed<unknown[]>(() => [
   },
 ]);
 
-const adminUsersHandler = inject(key.adminUsersHandler);
+const adminUsersHandler = inject(key.adminUsersHandler)!;
+const currentUser = inject(key.user)!;
 
 const users = ref<AdminUser[]>([]);
 const search = ref('');
@@ -203,11 +205,13 @@ const showDeleteConfirmationDialog = ref(false);
 const savingChanges = ref(false);
 const rolesToEdit = ref<string[]>([]);
 
-const canAdd = () => adminUsersHandler?.canAdd();
-const canEdit = () => adminUsersHandler?.canEdit();
-const canDelete = (adminUser: AdminUser) => adminUsersHandler?.canDelete(adminUser);
+const canAdd = () => adminUsersHandler.canAdd();
+const canEdit = () => adminUsersHandler.canEdit();
+const canDelete = (adminUser: AdminUser) => adminUsersHandler.canDelete(adminUser);
 
 const translateRoles = (roles: string[]): string[] => roles.map((role) => t(`adminUsers.role.${role}`) as string);
+
+const isOldPasswordRequired = () => selectedUser.value?.username === currentUser.username();
 
 const showPasswordChange = (user: AdminUser) => {
   selectedUser.value = user;
@@ -217,8 +221,9 @@ const showPasswordChange = (user: AdminUser) => {
 const showRolesEdit = (user: AdminUser) => {
   selectedUser.value = user;
   selectedRoles.value = [...user.roles];
-  rolesToEdit.value = adminUsersHandler!.availableRoles()
-    .filter((role) => selectedRoles.value.includes(role) || adminUsersHandler?.hasRole(role));
+  rolesToEdit.value = adminUsersHandler
+    .availableRoles()
+    .filter((role) => selectedRoles.value.includes(role) || adminUsersHandler.hasRole(role));
   showRolesEditDialog.value = true;
 };
 
@@ -228,7 +233,7 @@ const showDeleteConfirmation = (user: AdminUser) => {
 };
 
 const addUser = () => {
-  adminUsersHandler?.navigateToAddUser();
+  adminUsersHandler.navigateToAddUser();
 };
 
 const commaSeparate = (value: string[]): string => {
@@ -237,7 +242,7 @@ const commaSeparate = (value: string[]): string => {
 
 const loadUsers = () => {
   loading.value = true;
-  adminUsersHandler!
+  adminUsersHandler
     .fetchAll()
     .then((result) => {
       if (result) {
@@ -250,7 +255,7 @@ const loadUsers = () => {
 };
 
 const saveRoles = () => {
-  adminUsersHandler?.updateRoles(selectedUser.value!.username, selectedRoles.value).finally(() => {
+  adminUsersHandler.updateRoles(selectedUser.value!.username, selectedRoles.value).finally(() => {
     savingChanges.value = false;
     showRolesEditDialog.value = false;
     loadUsers();
@@ -258,7 +263,7 @@ const saveRoles = () => {
 };
 
 const deleteUser = () => {
-  adminUsersHandler?.delete(selectedUser.value!.username).finally(() => {
+  adminUsersHandler.delete(selectedUser.value!.username).finally(() => {
     showDeleteConfirmationDialog.value = false;
     savingChanges.value = false;
     loadUsers();

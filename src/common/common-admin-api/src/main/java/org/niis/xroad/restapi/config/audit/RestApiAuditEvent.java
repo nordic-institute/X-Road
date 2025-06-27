@@ -41,7 +41,8 @@ public enum RestApiAuditEvent {
     API_KEY_REMOVE("API key remove"),
 
     ADMIN_USER_ADD("Add admin user"),
-    ADMIN_USER_UPDATE("Update admin user"),
+    ADMIN_USER_EDIT_ROLES("Edit admin user roles"),
+    ADMIN_USER_CHANGE_PASSWORD("Change admin user password"),
     ADMIN_USER_DELETE("Remove admin user"),
 
     INIT_ANCHOR("Initialize anchor"),

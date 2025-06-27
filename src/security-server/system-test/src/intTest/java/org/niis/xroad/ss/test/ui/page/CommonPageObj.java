@@ -53,6 +53,10 @@ public class CommonPageObj {
             return $x("//div[@data-test='logout-list-tile']");
         }
 
+        public SelenideElement changePassword() {
+            return $x("//div[@data-test='change-password-list-tile']");
+        }
+
         public SelenideElement clientsTab() {
             return $x(getTabXpath("Clients"));
         }

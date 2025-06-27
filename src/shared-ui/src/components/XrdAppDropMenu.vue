@@ -50,7 +50,7 @@
     </v-menu>
   </div>
 
-  <XrdAdminUserPasswordChangeDialog
+  <xrd-admin-user-password-change-dialog
     v-if="showPasswordChangeDialog"
     :username="username"
     :admin-users-handler="adminUsersHandler"
@@ -67,7 +67,7 @@ import { XrdAdminUserPasswordChangeDialog } from '@niis/shared-ui';
 const user = inject(key.user);
 const routing = inject(key.routing);
 const system = inject(key.system);
-const adminUsersHandler = inject(key.adminUsersHandler);
+const adminUsersHandler = inject(key.adminUsersHandler)!;
 const databaseBasedAuthentication = computed(() => system?.isDatabaseBasedAuthentication());
 const showPasswordChangeDialog = ref(false);
 

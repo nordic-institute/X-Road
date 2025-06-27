@@ -39,6 +39,7 @@ import org.niis.xroad.ss.test.ui.page.AdminUsersPageObj;
 import java.util.List;
 import java.util.Map;
 
+import static java.time.Duration.ofSeconds;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -90,6 +91,13 @@ public class AdminUsersStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
     }
 
+    @Step("Wizard's Save button is clicked and error: {string} is displayed")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void clickWizardSaveAndErrorIsShown(final String error) {
+        adminUsersPageObj.addAdminUserWizard.btnSave().click();
+        commonPageObj.alerts.alert(error).shouldBe(Condition.visible, ofSeconds(15));
+    }
+
     @Step("Wizard's Cancel button is clicked")
     public void clickWizardCancel() {
         adminUsersPageObj.addAdminUserWizard.btnCancel().click();
@@ -98,6 +106,11 @@ public class AdminUsersStepDefs extends BaseUiStepDefs {
     @Step("Old password {} is entered")
     public void oldPasswordIsEntered(String password) {
         vTextField(adminUsersPageObj.oldPasswordInput()).setValue(password);
+    }
+
+    @Step("Old password input is not visible")
+    public void oldPasswordInputIsNotVisible() {
+        adminUsersPageObj.oldPasswordInput().shouldNotBe(Condition.visible);
     }
 
     @Step("New password {} is entered")
@@ -114,6 +127,13 @@ public class AdminUsersStepDefs extends BaseUiStepDefs {
     public void saveChangePassword() {
         adminUsersPageObj.btnSavePasswordChange().click();
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
+    }
+
+    @Step("Change password dialog's Save button is clicked and error: {string} is displayed")
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public void saveChangePasswordAndErrorIsShown(final String error) {
+        adminUsersPageObj.btnSavePasswordChange().click();
+        commonPageObj.alerts.alert(error).shouldBe(Condition.visible, ofSeconds(15));
     }
 
     @Step("Admin user {} is present in the list and has roles")

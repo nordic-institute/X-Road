@@ -42,6 +42,7 @@
     <template #content>
       <div :data-test="`admin-user-row-${username}-change-password-dialog-content`">
         <v-text-field
+          v-if="requireOldPassword"
           v-model="oldPassword"
           v-bind="oldPasswordAttrs"
           type="password"
@@ -73,7 +74,7 @@
 <script lang="ts" setup>
 import { computed, PropType, ref } from 'vue';
 import { PublicPathState, useForm } from 'vee-validate';
-import { AdminUsersHandler } from '@/utils';
+import { AdminUsersHandler, key } from '../../utils';
 const props = defineProps({
   username: {
     type: String,
@@ -83,15 +84,24 @@ const props = defineProps({
     type: Object as PropType<AdminUsersHandler>,
     required: true,
   },
+  requireOldPassword: {
+    type: Boolean,
+    default: true,
+  },
 });
 const emit = defineEmits(['cancel', 'password-changed']);
 const savingChanges = ref(false);
 const passwordChangeValidationSchema = computed(() => {
-  return {
-    oldPassword: 'required|max:255',
-    newPassword: 'required|confirmed:@newPasswordConfirmation',
+  const schema: Record<string, string> = {
+    newPassword: 'required|min:6|max:255|confirmed:@newPasswordConfirmation',
     newPasswordConfirmation: 'required',
   };
+
+  if (props.requireOldPassword) {
+    schema.oldPassword = 'required|max:255';
+  }
+
+  return schema;
 });
 const componentConfig = (state: PublicPathState) => ({
   props: {
@@ -108,8 +118,10 @@ const { meta, defineField } = useForm({
 });
 const [oldPassword, oldPasswordAttrs] = defineField('oldPassword', componentConfig);
 const [newPassword, newPasswordAttrs] = defineField('newPassword', componentConfig);
+
 const [newPasswordConfirmation, newPasswordConfirmationAttrs] = defineField('newPasswordConfirmation', componentConfig);
 const isChangePasswordButtonDisabled = computed(() => !meta.value.dirty || !meta.value.valid);
+
 const changePassword = () => {
   savingChanges.value = true;
   props.adminUsersHandler.changePassword(props.username, oldPassword.value as string, newPassword.value as string).finally(() => {

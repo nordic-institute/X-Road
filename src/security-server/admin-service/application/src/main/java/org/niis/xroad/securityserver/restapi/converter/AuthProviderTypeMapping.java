@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
-import org.niis.xroad.restapi.config.AuthProviderConfig;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.securityserver.restapi.openapi.model.AuthProviderTypeDto;
 
 import java.util.Map;
@@ -38,12 +38,12 @@ import java.util.Optional;
 @UtilityClass
 public class AuthProviderTypeMapping {
 
-    private static final Map<AuthProviderConfig.AuthenticationProviderType, AuthProviderTypeDto> MAP = Map.of(
-            AuthProviderConfig.AuthenticationProviderType.PAM, AuthProviderTypeDto.PAM,
-            AuthProviderConfig.AuthenticationProviderType.DATABASE, AuthProviderTypeDto.DATABASE
+    private static final Map<UserAuthenticationConfig.AuthenticationProviderType, AuthProviderTypeDto> MAP = Map.of(
+            UserAuthenticationConfig.AuthenticationProviderType.PAM, AuthProviderTypeDto.PAM,
+            UserAuthenticationConfig.AuthenticationProviderType.DATABASE, AuthProviderTypeDto.DATABASE
     );
 
-    public static Optional<AuthProviderTypeDto> map(AuthProviderConfig.AuthenticationProviderType input) {
+    public static Optional<AuthProviderTypeDto> map(UserAuthenticationConfig.AuthenticationProviderType input) {
         return Optional.ofNullable(MAP.get(input));
     }
 

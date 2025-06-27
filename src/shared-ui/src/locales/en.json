@@ -249,6 +249,8 @@
       "pin_min_char_classes_count": "PIN minimum character classes count: {0}",
       "pin_min_length": "PIN minimum length: {0}"
     },
+    "user_password_invalid_characters": "The provided password contains invalid characters",
+    "user_weak_password": "The provided password was too weak",
     "validation_failure": "Validation failure"
   },
   "fields": {
