@@ -23,23 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
+package org.niis.xroad.opmonitor.api;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
-import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
+import java.util.List;
 
-public class ProxyAddonConfig {
+/**
+ * Abstract operational monitoring buffer.
+ */
+public interface OpMonitoringBuffer {
 
-    @ApplicationScoped
-    public BindableServiceRegistry bindableServiceRegistry(ProxyProperties.ProxyAddonProperties addonProperties) {
-        BindableServiceRegistry bindableServiceRegistry = new BindableServiceRegistry();
+    void store(OpMonitoringData data) throws Exception;
 
-        if (addonProperties.proxyMonitor().enabled()) {
-            bindableServiceRegistry.register(new ProxyMonitorService());
-        }
+    void sendingSuccess(int count);
 
-        return bindableServiceRegistry;
-    }
+    void sendingFailure(List<OpMonitoringData> failedData);
 }

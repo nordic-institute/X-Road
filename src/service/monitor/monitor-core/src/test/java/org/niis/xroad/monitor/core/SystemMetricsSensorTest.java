@@ -114,7 +114,7 @@ class SystemMetricsSensorTest {
                                 responseObserver.onCompleted();
                             }
                         }));
-        rpcServer.afterPropertiesSet();
+        rpcServer.init();
     }
 
     @AfterAll

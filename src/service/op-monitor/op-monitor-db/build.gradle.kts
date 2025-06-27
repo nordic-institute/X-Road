@@ -1,5 +1,4 @@
 plugins {
-  id("xroad.java-conventions")
   id("xroad.jib-conventions")
 }
 

@@ -36,6 +36,7 @@ import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -58,20 +59,29 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @ApplicationScoped
-    @Startup
-    AbstractLogManager messageLogManager(ProxyProperties.ProxyAddonProperties addonProperties,
-                                         GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider,
-                                         @Named(MESSAGE_LOG_DB_CTX) DatabaseCtx messageLogDatabaseCtx,
-                                         LogRecordManager logRecordManager) {
-        AbstractLogManager logManager;
-        if (addonProperties.messageLog().enabled()) {
-            logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx);
-        } else {
-            logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+    public static class MessageLogInitializer {
+
+        @Startup
+        @ApplicationScoped
+        AbstractLogManager messageLogManager(ProxyProperties.ProxyAddonProperties addonProperties,
+                                             GlobalConfProvider globalConfProvider,
+                                             ServerConfProvider serverConfProvider,
+                                             @Named(MESSAGE_LOG_DB_CTX) DatabaseCtx messageLogDatabaseCtx,
+                                             LogRecordManager logRecordManager) {
+            AbstractLogManager logManager;
+            if (addonProperties.messageLog().enabled()) {
+                logManager = new LogManager(globalConfProvider, serverConfProvider, logRecordManager, messageLogDatabaseCtx);
+            } else {
+                logManager = new NullLogManager(globalConfProvider, serverConfProvider);
+            }
+
+            return MessageLog.init(logManager);
         }
 
-        return MessageLog.init(logManager);
+        public void cleanup(@Disposes AbstractLogManager logManager) {
+            if (logManager instanceof LogManager impl)
+                impl.destroy();
+        }
     }
 
     @ApplicationScoped

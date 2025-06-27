@@ -71,15 +71,15 @@ import static org.mockito.Mockito.when;
  */
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-class OpMonitoringBufferTest {
+class OpMonitoringBufferImplTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private CloseableHttpClient httpClient;
 
     @SuppressWarnings("checkstyle:FinalClass")
-    private class TestOpMonitoringBuffer extends OpMonitoringBuffer {
-        TestOpMonitoringBuffer(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
+    private class TestOpMonitoringBufferImpl extends OpMonitoringBufferImpl {
+        TestOpMonitoringBufferImpl(OpMonitorCommonProperties opMonitorCommonProperties) throws Exception {
             super(mock(ServerConfProvider.class), opMonitorCommonProperties, mock(NoopVaultKeyProvider.class));
         }
 
@@ -127,7 +127,7 @@ class OpMonitoringBufferTest {
                 "xroad.op-monitor.buffer.size", "10000"
         ));
 
-        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties);
+        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorCommonProperties);
         int requestCount = 30_000;
         AtomicInteger processedCounter = new AtomicInteger();
         try (ExecutorService executorService = Executors.newFixedThreadPool(80)) {
@@ -164,7 +164,7 @@ class OpMonitoringBufferTest {
                 "xroad.op-monitor.buffer.size", "2"
         ));
 
-        final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer(opMonitorCommonProperties) {
+        final TestOpMonitoringBufferImpl opMonitoringBuffer = new TestOpMonitoringBufferImpl(opMonitorCommonProperties) {
             @Override
             OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider,
                                                   OpMonitorCommonProperties opMonitorCommonProperties,
@@ -200,7 +200,7 @@ class OpMonitoringBufferTest {
     void noOpMonitoringDataIsStored() throws Exception {
         var serverConfProvider = mock(ServerConfProvider.class);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
-        new OpMonitoringBuffer(serverConfProvider,
+        new OpMonitoringBufferImpl(serverConfProvider,
                 ConfigUtils.initConfiguration(OpMonitorCommonProperties.class, Map.of(
                         "xroad.op-monitor.buffer.size", "0"
                 )),

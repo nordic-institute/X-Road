@@ -36,6 +36,7 @@ import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -56,7 +57,8 @@ public class ServerProxyHandlerTest {
         var checkMock = mock(ClientProxyVersionVerifier.class);
         var vaultKeyProvider = mock(NoopVaultKeyProvider.class);
         var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null, null, vaultKeyProvider);
+                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
+                        null, vaultKeyProvider, new NoOpMonitoringBuffer());
 
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(commonBeanProxy, mock(ProxyProperties.ServerProperties.class),
                 mock(HttpClient.class), mock(HttpClient.class),

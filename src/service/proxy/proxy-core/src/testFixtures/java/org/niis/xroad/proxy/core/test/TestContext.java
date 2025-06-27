@@ -38,6 +38,7 @@ import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.addon.metaservice.clientproxy.MetadataHandler;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.antidos.AntiDosConfiguration;
 import org.niis.xroad.proxy.core.clientproxy.AuthTrustVerifier;
 import org.niis.xroad.proxy.core.clientproxy.ClientProxy;
@@ -47,8 +48,6 @@ import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.proxy.core.configuration.ProxyClientConfig;
 import org.niis.xroad.proxy.core.messagelog.MessageLog;
 import org.niis.xroad.proxy.core.messagelog.NullLogManager;
-import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.serverproxy.ServerProxy;
 import org.niis.xroad.proxy.core.serverproxy.ServiceHandlerLoader;
 import org.niis.xroad.proxy.core.test.util.ListInstanceWrapper;
@@ -88,7 +87,7 @@ public class TestContext {
             LogRecordManager logRecordManager = mock(LogRecordManager.class);
             VaultKeyProvider vaultKeyProvider = mock(NoopVaultKeyProvider.class);
             CommonBeanProxy commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider,
-                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider);
+                    keyConfProvider, signingCtxProvider, certHelper, logRecordManager, vaultKeyProvider, new NoOpMonitoringBuffer());
 
             ReloadingSSLSocketFactory reloadingSSLSocketFactory = new ReloadingSSLSocketFactory(globalConfProvider, keyConfProvider);
             HttpClient httpClient = new ProxyClientConfig.ProxyHttpClientInitializer()
@@ -110,7 +109,6 @@ public class TestContext {
                 serverProxy.init();
             }
 
-            OpMonitoring.init(new NullOpMonitoringBuffer(null));
             MessageLog.init(new NullLogManager(globalConfProvider, serverConfProvider));
         } catch (Exception e) {
             throw new RuntimeException("Init failed", e);

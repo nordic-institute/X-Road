@@ -42,6 +42,7 @@ import org.niis.xroad.common.rpc.NoopVaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.keyconf.KeyConfProvider;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
@@ -85,7 +86,8 @@ public class ClientRestMessageProcessorTest {
         var httpClient = mock(HttpClient.class);
         var isAuthenticationData = mock(IsAuthenticationData.class);
         var commonBeanProxy =
-                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null, null, vaultKeyProvider);
+                new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider, null, null,
+                        null, vaultKeyProvider, new NoOpMonitoringBuffer());
         var clientRestMessageProcessor =
                 new ClientRestMessageProcessor(commonBeanProxy, request, respWrapper, httpClient, isAuthenticationData, opMonitoringData);
         when(serverConfProvider.getMemberStatus(any())).thenReturn(STATUS_REGISTERED);

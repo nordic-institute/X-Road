@@ -35,8 +35,6 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -70,14 +68,12 @@ public class RpcServer {
         server = builder.build();
     }
 
-    @PostConstruct
-    public void afterPropertiesSet() throws IOException {
+    public void init() throws IOException {
         server.start();
 
         log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
-    @PreDestroy
     public void destroy() throws Exception {
         if (server != null) {
             log.info("Shutting down RPC server..");

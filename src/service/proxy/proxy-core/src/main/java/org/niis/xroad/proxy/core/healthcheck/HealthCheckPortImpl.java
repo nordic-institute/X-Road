@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.proxy.core.healthcheck;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.Content;
@@ -121,13 +119,11 @@ public class HealthCheckPortImpl implements HealthCheckPort {
         return maintenanceMode.get();
     }
 
-    @PostConstruct
     public void init() throws Exception {
         log.info("Started HealthCheckPort on port {}", portNumber);
         server.start();
     }
 
-    @PreDestroy
     public void destroy() throws Exception {
         log.info("Stopping HealthCheckPort on port {}", portNumber);
         server.stop();

@@ -28,7 +28,6 @@ package org.niis.xroad.globalconf.impl;
 import ee.ria.xroad.common.CustomForkJoinWorkerThreadFactory;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -36,7 +35,7 @@ import org.niis.xroad.common.core.FileSource;
 import org.niis.xroad.common.core.dto.InMemoryFile;
 import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
-import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.ManagedLifecycleGlobalConfSource;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.model.PrivateParameters;
@@ -62,7 +61,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RemoteGlobalConfSource implements GlobalConfSource {
+public class RemoteGlobalConfSource implements ManagedLifecycleGlobalConfSource {
     private final ConfClientRpcClient client;
     private final RemoteGlobalConfDataLoader dataLoader;
 
@@ -71,7 +70,7 @@ public class RemoteGlobalConfSource implements GlobalConfSource {
     @SuppressWarnings("java:S3077")
     private volatile GlobalConfData globalConfData;
 
-    @PostConstruct
+    @Override
     public void init() {
         var pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
                 new CustomForkJoinWorkerThreadFactory(), null, true);
