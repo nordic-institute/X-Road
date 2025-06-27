@@ -231,9 +231,15 @@ jobs:
           task: get-measurement
           label: 'Set up arm packaging'
       - name: Build RHEL8 packages
-        run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+        run: |
+          docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/rhel/8
       - name: Build RHEL9 packages
-        run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+        run: |
+          docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/rhel/9
       - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
@@ -243,7 +249,10 @@ jobs:
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh noble -release
+        run: |
+          ./src/packages/build-deb.sh noble -release
+          echo "Packages built successfully, removing packages.."
+          rm -rf ${{ github.workspace }}/src/packages/build/ubuntu24.04
       - name: Store deb files for Docker dev images
         uses: actions/upload-artifact@v4
         with:
