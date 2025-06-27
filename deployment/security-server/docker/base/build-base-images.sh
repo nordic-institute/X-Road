@@ -16,6 +16,13 @@ else
   docker buildx use multiarch-builder
 fi
 
+echo "Docker df"
+docker system df
+echo "Host df"
+df -h
+echo "df within container"
+docker run --rm alpine df -h
+
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --tag "$REGISTRY_URL"/ss-baseline-runtime \
