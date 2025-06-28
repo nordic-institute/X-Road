@@ -23,13 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.jpa.config;
+package org.niis.xroad.signer.jpa;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 
-import jakarta.enterprise.inject.Disposes;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Named;
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -40,8 +38,9 @@ import java.util.stream.Collectors;
 /**
  * Server conf database context.
  */
-public class SignerDatabaseConfig {
-    public static final String DB_CTX = "signerDbCtx";
+@Singleton
+public class SignerDatabaseCtx extends DatabaseCtx {
+    public static final String NAME = "signer";
 
     private static final Map<String, String> SPRING_TO_DB_PROP_MAPPING = Map.of(
             "url", "connection.url",
@@ -53,32 +52,31 @@ public class SignerDatabaseConfig {
             "hbm2ddl.auto", "hbm2ddl.auto"
     );
 
-    @Produces
-    @Named(DB_CTX)
-    @Singleton
-    DatabaseCtx databaseCtx(@ConfigProperty(name = "xroad.db.serverconf.hibernate") Optional<Map<String, String>> serverconfProps,
-                            @ConfigProperty(name = "spring.datasource") Optional<Map<String, String>> centerUiProps) {
+    public SignerDatabaseCtx(@ConfigProperty(name = "xroad.db.serverconf.hibernate") Optional<Map<String, String>> serverconfProps,
+                             @ConfigProperty(name = "spring.datasource") Optional<Map<String, String>> centerUiProps) {
+        super(NAME, resolveProperties(serverconfProps, centerUiProps));
+    }
+
+    static Map<String, String> resolveProperties(Optional<Map<String, String>> serverconfProps,
+                                                 Optional<Map<String, String>> centerUiProps) {
         if (serverconfProps.isPresent()) {
-            return createServerConfDbCtx(serverconfProps.get());
+            return serverconfProps.get();
         } else if (centerUiProps.isPresent()) {
-            var mappedProps = centerUiProps.get().entrySet().stream()
+            return centerUiProps.get().entrySet().stream()
                     .filter(entry -> SPRING_TO_DB_PROP_MAPPING.containsKey(entry.getKey()))
                     .map(entry -> {
                         String dbPropKey = SPRING_TO_DB_PROP_MAPPING.get(entry.getKey());
                         return dbPropKey != null ? Map.entry(dbPropKey, entry.getValue()) : entry;
                     })
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            return createServerConfDbCtx(mappedProps);
         } else {
             throw new IllegalStateException("No database configuration found for signer");
         }
     }
 
-    public static DatabaseCtx createServerConfDbCtx(Map<String, String> dbProperties) {
-        return new DatabaseCtx("signer", dbProperties);
-    }
-
-    public void cleanup(@Named(DB_CTX) @Disposes DatabaseCtx databaseCtx) {
-        databaseCtx.destroy();
+    @PreDestroy
+    @Override
+    public void destroy() {
+        super.destroy();
     }
 }

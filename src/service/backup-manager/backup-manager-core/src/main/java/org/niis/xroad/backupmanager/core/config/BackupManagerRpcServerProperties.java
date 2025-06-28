@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,24 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core.configuration;
+package org.niis.xroad.backupmanager.core.config;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfCommonProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@Slf4j
-public class MonitorConfig {
+@ConfigMapping(prefix = "xroad.backup-manager.rpc")
+public interface BackupManagerRpcServerProperties extends RpcServerProperties {
 
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
-                                          ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
-    }
+    @WithName("enabled")
+    @WithDefault("true")
+    @Override
+    boolean enabled();
 
+    @WithName("listen-address")
+    @WithDefault("127.0.0.1")
+    @Override
+    String listenAddress();
+
+    @WithName("port")
+    @WithDefault("7665")
+    @Override
+    int port();
 }

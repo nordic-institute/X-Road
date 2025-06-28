@@ -23,22 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.opmonitor.core.config;
+package org.niis.xroad.signer.core.config;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
-import org.niis.xroad.opmonitor.core.OperationalDataRecordManager;
+@ConfigMapping(prefix = "xroad.signer.rpc")
+public interface SignerRpcServerProperties extends RpcServerProperties {
+    @WithName("enabled")
+    @WithDefault("true")
+    @Override
+    boolean enabled();
 
-import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
+    @WithName("listen-address")
+    @WithDefault("127.0.0.1")
+    @Override
+    String listenAddress();
 
-public class OpMonitorDaemonRootConfig {
-
-
-    @ApplicationScoped
-    OperationalDataRecordManager operationalDataRecordManager(@Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
-                                                              OpMonitorProperties opMonitorProperties) {
-        return new OperationalDataRecordManager(databaseCtx, opMonitorProperties.getMaxRecordsInPayload());
-    }
+    @WithName("port")
+    @WithDefault("5560")
+    @Override
+    int port();
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,24 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core.configuration;
+package org.niis.xroad.opmonitor.application;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfCommonProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-@Slf4j
-public class MonitorConfig {
+import java.util.Map;
 
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
-                                          ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+import static org.niis.xroad.bootstrap.XrdQuarkusProfiles.TEST;
+
+public class OpMonitorTestProfile implements QuarkusTestProfile {
+    @Override
+    public String getConfigProfile() {
+        return TEST;
+    }
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "xroad.db.op-monitor.hibernate.connection.url", "jdbc:hsqldb:mem:testdb",
+                "xroad.db.op-monitor.hibernate.connection.username", "testdb",
+                "xroad.db.op-monitor.hibernate.connection.password", "testdb",
+                "xroad.db.op-monitor.hibernate.connection.driver_class", "org.hsqldb.jdbc.JDBCDriver",
+                "xroad.db.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
+        );
     }
 
 }

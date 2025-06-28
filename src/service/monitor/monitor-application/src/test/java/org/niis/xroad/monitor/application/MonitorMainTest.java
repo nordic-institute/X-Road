@@ -32,7 +32,7 @@ import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.monitor.core.MonitorRpcServer;
 import org.niis.xroad.monitor.core.configuration.JmxReporterWrapper;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,7 +44,7 @@ class MonitorMainTest {
     @Test
     void contextLoads() {
         assertNotNull(Arc.container().select(JmxReporterWrapper.class).get());
-        assertNotNull(Arc.container().select(RpcServer.class).get());
+        assertNotNull(Arc.container().select(MonitorRpcServer.class).get());
     }
 
 }

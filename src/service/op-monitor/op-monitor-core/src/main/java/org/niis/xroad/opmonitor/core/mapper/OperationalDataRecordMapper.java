@@ -27,7 +27,7 @@ package org.niis.xroad.opmonitor.core.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.niis.xroad.opmonitor.core.OperationalDataRecord;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 
 import java.util.List;
 

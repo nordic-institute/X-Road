@@ -34,15 +34,13 @@ import io.quarkus.scheduler.ScheduledExecution;
 import io.quarkus.scheduler.Scheduler;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
-
-import static org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig.OP_MONITOR_DB_CTX;
 
 /**
  * Deletes outdated operational data records from the database.
@@ -57,7 +55,7 @@ public final class OperationalDataRecordCleaner {
     private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     public OperationalDataRecordCleaner(OpMonitorProperties opMonitorProperties,
-                                        @Named(OP_MONITOR_DB_CTX) DatabaseCtx databaseCtx,
+                                        OpMonitorDatabaseCtx databaseCtx,
                                         Scheduler scheduler,
                                         Scheduled.ApplicationNotRunning applicationNotRunning) {
         this.opMonitorProperties = opMonitorProperties;

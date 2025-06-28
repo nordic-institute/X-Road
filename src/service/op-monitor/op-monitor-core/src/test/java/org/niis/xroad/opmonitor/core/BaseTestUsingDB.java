@@ -25,13 +25,11 @@
  */
 package org.niis.xroad.opmonitor.core;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import org.junit.BeforeClass;
 import org.niis.xroad.common.properties.ConfigUtils;
-import org.niis.xroad.opmonitor.core.config.OpMonitorDaemonDatabaseConfig;
 import org.niis.xroad.opmonitor.core.config.OpMonitorDbProperties;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
 
 import java.util.Map;
 
@@ -51,12 +49,13 @@ public class BaseTestUsingDB {
             "xroad.db.op-monitor.hibernate.hbm2ddl.auto", "create-drop"
     );
 
-    private static final OpMonitorDbProperties OP_MONITOR_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorDbProperties.class,
+    private static final OpMonitorDbProperties OP_MONITOR_DB_PROPERTIES = ConfigUtils.initConfiguration(OpMonitorDbProperties.class,
             HIBERNATE_PROPERTIES);
-    protected static final DatabaseCtx DATABASE_CTX = new OpMonitorDaemonDatabaseConfig().serverConfCtx(OP_MONITOR_PROPERTIES);
+    protected static final OpMonitorProperties OP_MONITOR_PROPERTIES = ConfigUtils.defaultConfiguration(OpMonitorProperties.class);
+    protected static final OpMonitorDatabaseCtx DATABASE_CTX = new OpMonitorDatabaseCtx(OP_MONITOR_DB_PROPERTIES);
 
     protected OperationalDataRecordManager operationalDataRecordManager =
-            new OperationalDataRecordManager(DATABASE_CTX, Integer.parseInt(OpMonitorProperties.DEFAULT_MAX_RECORDS_IN_PAYLOAD));
+            new OperationalDataRecordManager(DATABASE_CTX, OP_MONITOR_PROPERTIES);
 
     protected BaseTestUsingDB() {
     }

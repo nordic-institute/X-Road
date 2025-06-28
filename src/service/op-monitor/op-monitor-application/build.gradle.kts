@@ -22,6 +22,7 @@ dependencies {
   implementation(libs.quarkus.extension.systemd.notify)
 
   testImplementation(libs.quarkus.junit5)
+  testImplementation(libs.hsqldb)
 }
 
 tasks.jar {
