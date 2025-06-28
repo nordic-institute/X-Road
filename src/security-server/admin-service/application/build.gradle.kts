@@ -37,6 +37,8 @@ dependencies {
   implementation(project(":common:common-properties-db-source-spring"))
   implementation(project(":security-server:openapi-model"))
   implementation(project(":service:monitor:monitor-api"))
+  implementation(project(":service:op-monitor:op-monitor-api"))
+  implementation(project(":service:op-monitor:op-monitor-client"))
   implementation(project(":service:backup-manager:backup-manager-rpc-client"))
   implementation(project(":service:configuration-client:configuration-client-rpc-client"))
   implementation(project(":service:monitor:monitor-rpc-client"))

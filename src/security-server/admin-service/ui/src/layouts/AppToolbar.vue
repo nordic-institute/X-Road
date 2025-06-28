@@ -49,7 +49,7 @@
     </div>
     <div
       v-if="shouldShowNodeType"
-      class="node-type"
+      class="node-type ml-auto"
       data-test="app-toolbar-node-type"
     >
       {{ $t(`toolbar.securityServerNodeType.${securityServerNodeType}`) }}

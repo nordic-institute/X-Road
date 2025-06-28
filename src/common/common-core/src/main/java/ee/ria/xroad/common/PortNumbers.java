@@ -45,5 +45,6 @@ public final class PortNumbers {
 
     /** Port for Distributed Files Client. */
     public static final int CONFIGURATION_CLIENT_PORT = 5665;
+    public static final int OP_MONITOR_DAEMON_GRPC_PORT = 2081;
 
 }

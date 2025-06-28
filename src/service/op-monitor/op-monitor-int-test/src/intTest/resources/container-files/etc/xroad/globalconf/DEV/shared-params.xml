@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>DEV</instanceIdentifier>
+    <source>
+        <address>cs</address>
+        <internalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDFvZwWBRJABPy8I4KXdFC2O2GdUzqkiu2d5q3NWja/upfd1oVqxZH7DG7zfHVmEsWjQO/GFVPDJDn2sJCux/+4PTJt+mJ1kmErJ84rhw2PsoJVmBDZRswR9VDoNRTCsFa7qUYdzie9ksOO573kEjQR6hqpSQxlnl0/W2vkyLbMtpym1zkspRpttPjDRZ4n6g0vscsL/JiTR6M7Mrx+1JFMsCEXsrcX14cWHHq/C7nQapaVtrkTBWKRw0JsuAJjyA7ofUNfJDRyT/4DRH9glPHb93HRkTTEZtzGNLwm2VGlQZaHEB0ZLAE6Er2iuzGQWZAYcnvnWgA5eMpTrlO/L8FbAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQAZ2W5AOAT0MlePq30HFiQZIghV2aCQFUi5QdZ0f32HFvkMUef/yqKPf1Z9A2c16qG4BMe3sdwoErS2V+Alac80ySTZgpsMXTohop4OQ/UMJeserQFWVVVhLLj2izOKqjoAooBh99IiwOKGvBQwjiIjoKXnHCAcL4lfLVEUD1Gud7qT1HnjGs1AEztxC4V2YxfcM2WasiYlAZ5iKcWfc8XDZ4+nxDQyPuPXKvDRWQtK9cnt9QWVUqCUG87u2FTHqax0qW4kggzG68g7Rz2mzbcwBTpW6gCmFJVkkk7Tk5ptrPsgOLElXqH/xNH54d2DX9s9AwZYImbZFXEoc97dorM1</internalVerificationCert>
+        <externalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJleHRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJleHRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCjuLv07I6FywICvewmVZu+Q5Pxo9U3kgSr9H/fdv6oAdvtf5xQakvo/HjGDiYL/MnRc8x1cr8HRoIR72dgqrggDSfQAliPt10OgvTxBe60jsLXhx31UDkvT/QlgRsS4qlp/CR/0jlqP76t2S8u6TB24BZOSFAtJvREM2T46nbkQ4DmvsLkG0xUArD6TtVh05YidQkLktyrqs7fYwL/H0bYm/KZsy3FjGN5uBkr91ZNP6KTBCQSNqucz2ykbGc/uf8iYlKdsfIz4EXsrbiq0GqmrddPdAOCiBPka+doN+fC3hV43k9DoEUrNhM8wNr0iMal0NUOmp8apaqX0wUcaE9pAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQAy8o5Es7nbjNkKZx4HGdQ7Y9qFuf4Fd9/IjEcbpZua5VtyxGq0H4U1dDJdOFP+YVhDi6oIOdCYtYWHdEc2K78IPAhLWw/VmtptkKD2EqJxKZgxI2ypazAwstBGnCe0rAu6OAdgh+FvgGHWRwUNs2tTNuvfcOHW5iuf9ake3Q6J1WYU4/y57BsceJVgFGMFU4TpNKciEHweogzCCXAPmvXYYKRDvrkXC1vjbX/K50XPhZH5+Kpw/u9pmyr1HUKvCJ/hDb5aqVMaHCcUxSikF+qfgpU218fJVbCAnJcNIOPaBuo1sYJpbRQFXjJpOULkLwWjl5Wdnpua6ZdHoWFEczY8</externalVerificationCert>
+    </source>
+    <approvedCA>
+        <name>Test CA</name>
+        <authenticationOnly>false</authenticationOnly>
+        <topCA>
+            <cert>LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZSekNDQXkrZ0F3SUJBZ0lVSjl6Y200VHFtNUpIQUVPenduaUNSdXdCYnZrd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0t6RVhNQlVHQTFVRUNnd09XQzFTYjJGa0lGUmxjM1FnUTBFeEVEQU9CZ05WQkFNTUIxUmxjM1FnUTBFdwpIaGNOTWpVd01qSTNNRGd6T0RReldoY05ORFV3TWpJeU1EZ3pPRFF6V2pBck1SY3dGUVlEVlFRS0RBNVlMVkp2CllXUWdWR1Z6ZENCRFFURVFNQTRHQTFVRUF3d0hWR1Z6ZENCRFFUQ0NBaUl3RFFZSktvWklodmNOQVFFQkJRQUQKZ2dJUEFEQ0NBZ29DZ2dJQkFMbDM3ckNQWVdHQVBxbkxLS2g1ZXc2Zi9sLzRoVTFQMlZ5dE9CdG0yeFM4NjZPdgpWWHNIb1hwUG4yZjhNeUJ5UmRQdGZQSUdTaS84Q3hROW9WcTlkQUdFdHdFQ3hoMnJ0dWh2S1RnRWJUb3F0ZXB2Cit4TWJIMm9FQ25YTTkrRkJmYUVNVWVNY0FaVmxPSGVaUytWWlVMWUJVdUwvbXllZ3owK2FydldHbnMrciswMFgKOUtKRHIyUTcxclkzcnlpQTByZlJMWWJGdVY2elJuNGZJN25MeGNOckFheGlQZEQ1bXVBQ1p2VC9sTlVyR2NNawpoVGk0R09XSUQ1UWVZY3pnMzJ4Zzl0UWJ2cHFUd3RiTFl6MXgzR0xtc2NKeW9oSlUrUE9ISDExQkJzZW9CK0daCkpVU1grQ21yNkpVUEpUei82QndnTVdISDFQZ0MwYWNLK2t5ZGFWRWFNc01MSnVFK1VMR1RjU0xiM0F2U3kwcFAKRFRKVXIvSDMwWlhDT3ByS1IzRUFkKyt5ZkhxV1ZmUjNXc3NGOGZMSVZXMnlrbzFnMDZ5dU5lL2o4Z3liQzVxNQpUL2NvOW1pcFczbW5Cd0hsZjQ1Z0RMZmFkR3ZFeVNqVkRRd3RETzVCNWx1VWxVSDRGQXNyK2hPNnNDaDRYSjVXClhSMkQ0c3NJRVdTOWd2cks2Y1pyc2NzS3dIZlNHWmNJYVdjZTdyMDlNMGN3ZXNmR01hMklUSThVM3RyUlVVdHcKODBwcG0yNE5aYVpDdncybkxzRjJQeW1qVTllVG1MSXNwek52cHNSSS91RVFZdStXY09PTFgwak4wUzk4bjVPYwpqMURteHNiK0QwN2F4MElNcVBmTUljazR5NkgxVmY3bnZ0NzdIdWgwL1JmVFYxK2Exd2R1cDFFQWR0VU5BZ01CCkFBR2pZekJoTUIwR0ExVWREZ1FXQkJSamFWTTRhaVcwYTFYKzNoV0JHcythaTVXL09EQWZCZ05WSFNNRUdEQVcKZ0JSamFWTTRhaVcwYTFYKzNoV0JHcythaTVXL09EQVBCZ05WSFJNQkFmOEVCVEFEQVFIL01BNEdBMVVkRHdFQgovd1FFQXdJQmhqQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FnRUFMejFiQVd1a3NvWWliZEVMWUJoVlZiZ1U3cWxlCjFUdFJMdXgzOHF1SVJVR2R0NzR1N0FHNGlNRXB5Z0R3Y1NEbGJjUEdac2xxcnBiNUxUMGg5SnlSWURjcS93MTIKUEdYODZHS0laNTNYR0F2NTA5QXVSTDZUOEVQRENmT28yWE1VZENFbzJlbVZyVmhieG12dU9jdWF5cUtZN1ZVQQpUU3FybUhWZWFGU2pvTkNYRVE5VlE2dS9nV3VEWWdGTnBPZXlCc09LUGx2c3ZieU0vNnpFVGpwMnBSWkJpdUpOCkNSRDB0eDlsT1ZsYUtVN3JyazVMYjBOWjMrL1lXWTZuZXNTVWZGOGFIdkg1cWkycFEyb3dRNmZGOEFWbTJRcjEKaHROdG5BVWp2c3FhUEV3Rk1NOTluRFU5cWNKcDZhNVNBUUluVFFZUlhFcEZkRUdWbFNySldWTVRjVnZBZG43dwpKdHR0cXgzVlM5ZGZEa1lwMm1mczB5cjd6Tm9HZzI2eVdrSlhNbEo4cjdxeWpOa2NsNGM4Y21YTWNKbjByY2phCnBoT0xVbjV2a3BKeStDRmkrQjVhSEdvRWVTUVNHT3JtbUNTbVVNS1RURjBLVDE3cGY1NUdrKzFZdDJjZzZTWlMKazVUYnRLSXgrUElEMDNtOGlxeVkxek9aNFRwR0NJQWJOOXg2YmIwc3NsME9DUWV2VlQxd3lSWW4rTzdpZTQ3Kwo1U3Z5L1V4Y0pOL29OeFVQbDhvV2lvTXRmdnFkS3hod3NhZ2J4NDVNZ3ptUlJjWWtPaWYzKzJZby9nT1JBcVZUCkd3eU4zWjNTZWFpUHRCYWg5T3lkelNUS2laMWo4dGcvbzdOWkt4eC95RmFLRitsMTBCRG83Wk1OcFFUb2VkRnIKeUs2RWVCY1FmcjV5YlhZPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==</cert>
+            <ocsp>
+                <url>http://testca:8888</url>
+                <cert>LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZTRENDQXpDZ0F3SUJBZ0lCQVRBTkJna3Foa2lHOXcwQkFRc0ZBREFyTVJjd0ZRWURWUVFLREE1WUxWSnYKWVdRZ1ZHVnpkQ0JEUVRFUU1BNEdBMVVFQXd3SFZHVnpkQ0JEUVRBZUZ3MHlOVEF5TWpjd09ETTRORFJhRncwMApOVEF5TWpJd09ETTRORFJhTUMweEZ6QVZCZ05WQkFvTURsZ3RVbTloWkNCVVpYTjBJRU5CTVJJd0VBWURWUVFECkRBbFVaWE4wSUU5RFUxQXdnZ0lpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElDRHdBd2dnSUtBb0lDQVFDWGc0WGIKV0l1eXdsUnEzdUlJenJ4Z2s4Wld2dzFhNmhZeXU2Z2hHaUw2N1JSbkNHS3Y5Ump3TkxPcUF4UVdBUGJEaGMyYgppRnZOZjA3czFzd3MrYStOcjkvRnhCbTBmakE5NkZCaFlySldIUjdUZTJVcEhYa043UzZ2a2VRbkhVZXZ3MGsxCnNmOTJpRjFBMndDUjVOWXdtWWh0aTEvRUR5N1VBRzdZMGxTdkNlUW8wS0tnSFhEeUFUc1U2MmtUZ2MybVNocTEKOTVUSElnckZnWFdEdjZnYjBQNWJSWjQ1S2h5Q09nYXVNOTMyM0dIOHhnKzdXTmFHUmEzRHNjT2MwbFZWa0w3WQpoWWoxY29rSFZVL0hlNllOZjBkUllLNnBUSTJ6d2Jxak01OVR3dDlOb0MxVnZoV0xRajlVMU8zMDd3V0NpRFYyCkxwQzhJZTdCYXMzbVIyV1Z1YnBJU0JiOEVkVzIzem5ncC9GU0xIUVdvcEpyZEVQaFluajRWeWw4NE5EdkdRVjQKaDhTVDNmMU85dzg3QzU5bHNFZDlkVFFWeFdLTzdmYVVWY1AweGVKWURFTmwyL08ybmdRbGl4TEhwQ1pXODNYOApheUl2QXI5U1JoMkhYbmpHUVNqZ1poTXdCUXBSR1R3UDJDdTl1ZHdlN1NXSmFMeVBFL0kya3l5clVIYTRUQWtGCjVxTGJBb2hUdE5MazllcE9YcCsrY1RZYk9Zc3pLWlFyK3pRcVA5djk0TUJpdEZpejZtRFhRaFh0VE5pMXFoYlYKbFVUVm5EcGg3ckhEajlrcjMvRExJRzZ2bnNDRWJHM29ockhScnR3ZDBSejNWOUhBdGNOVUkzVk5Oa2V2UjQ0NQpKRmg3cXh3d2Z3S0xQM3ZYSmNGY0UwZUc3R2hGaGlXWUVZKzFXUUlEQVFBQm8zVXdjekFKQmdOVkhSTUVBakFBCk1CMEdBMVVkRGdRV0JCUXEraUpXekl4eXNPYWdCckM0cithVVJRMkFvakFmQmdOVkhTTUVHREFXZ0JSamFWTTQKYWlXMGExWCszaFdCR3MrYWk1Vy9PREFPQmdOVkhROEJBZjhFQkFNQ0I0QXdGZ1lEVlIwbEFRSC9CQXd3Q2dZSQpLd1lCQlFVSEF3a3dEUVlKS29aSWh2Y05BUUVMQlFBRGdnSUJBSGQxckZWSzNJNTg5ak1xNERvNXlvWG0wL3htCkN5YktzQjEvZ0h1enFhbDYvZjlNQy9JaG91bHNzZitBYk5hWWZJOVBKa3Nja1dkU01FcGgzanN6OFE3T3lIOHoKaE5kQWVDUm03Sm1ETlp2NSszdW4yY2NDK2E2SnlKN1A0bnh1M09Va2xyVVhHOFZsck5DY0wrSlovQ3IxMVB2SgpzRHM0RVlHSzBEL3RsS2owSTNOcW41c1YvNnd0U2Z3Q0RSanBLSjNPbGR0ZVY5S0Z4RmpkVllUc0trZzUwWXpjCnBWVG94UzFzZXNjcENTMXJocnRUMlBFTStlVHhiRSt4aHhBWWhtOWFuOTU1d0M0aFk5VVdYUHdJWElkZW42WHcKMUhRdVlDa0hOci9zNmdGdC9Uem01dVI2eGgwVUZ1ckE2bk5sVkp1bEhwektzanZCcWZJL1hCb0JlbTdJMFhYcgpxWHFsSlRiVnFXOUZrc2kwSFpSQWVoYThSSUowTGZhd2QyYXkzNGl0VGRINjQrSDFLdFgzbDlINWEyNGF3RGx6CjZzRVhNOEhZc2dQMDBVSHMwRlo1SlZ3QWczU1J0M3RiaHRvNWhNR0txM3lGZE9GNVA4QllwNEZ6ajQvWksxbDUKZTNUWGlMRUZZS2JuVW12bDFIYWlvQUVKcExvbDYrSkJkQnNrOG5SUm1hc04vTnVQUVI0ck5qQzRvS2pidG92RgpiTGxGNTEyV211L0R2L1V6YWFTMmwvVGtZalZieVhRMDYrK3Z5Zkt0dWU3YnhFSHBjMkJXR1RCNmZrVVNVOTZpCkl2cGNnZ1pJVWlRZjlvdU9IdEV5c3R5MWtuc2liRHRoWHF5KytiYWlHcm16TVIrVjF4MEJWd0dPSVJoaTRmTDgKV0ZIR0tKU0hibDM4SVVpeQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==</cert>
+            </ocsp>
+        </topCA>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider</certificateProfileInfo>
+        <acmeServer>
+            <directoryURL>http://testca:8887</directoryURL>
+        </acmeServer>
+    </approvedCA>
+    <approvedTSA>
+        <name>Test TSA</name>
+        <url>http://testca:8899</url>
+        <cert>LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZQRENDQXlTZ0F3SUJBZ0lCQWpBTkJna3Foa2lHOXcwQkFRc0ZBREFyTVJjd0ZRWURWUVFLREE1WUxWSnYKWVdRZ1ZHVnpkQ0JEUVRFUU1BNEdBMVVFQXd3SFZHVnpkQ0JEUVRBZUZ3MHlOVEF5TWpjd09ETTRORFJhRncwMApOVEF5TWpJd09ETTRORFJhTUN3eEZ6QVZCZ05WQkFvTURsZ3RVbTloWkNCVVpYTjBJRU5CTVJFd0R3WURWUVFECkRBaFVaWE4wSUZSVFFUQ0NBaUl3RFFZSktvWklodmNOQVFFQkJRQURnZ0lQQURDQ0Fnb0NnZ0lCQUxTNzgvR3QKc3JsSEZWSGpHOUNyS1EyeVNxODR0Mjd3bnNnTDJ2RHJGZFVhWTlQQjk0RzM0QVlUank4c0pVSjFWU1FTZENuMAppbXhwVlJ4WU1yTm5QOUp1R1VJNDl0SHBVTkt3b0NwVTFqQldPTUhXUmFtcWo1S2pjVjlJZENGelZ4MGJWNzcwCmdKeFovaU9rQlR0VzM0bkhxZitrMVRXMlh5L0V6Y2J2STVzWGdtSXQwWFBjRXAyQVdUUHpzbCt4Z3UyQlpqVWcKQkFYWTdWZmNjSXhSM3BEYXlZdDZHVktPU1d0NnBSNTg5dXlDTGxwaW93c3UxRnRoS0VFQWU3OXk5WHFFUE5lVApObWt6bHlsTE1hU3hwVHo4d0hBaFJWTmlJcG1Zc1g1WDFsK1FMZGMwcUo4UE15OUZCR1NibVJ2UXFUcEhXQnhYCjBhRkpvYXB6c29Pc2lsQWVNUHJFNUt0SGtMdC9FcFI3aGNaM2FoL1JZenE3ZFlRU0VMYkxCQVdLNkhXVUlpK0QKVEZsd1ArdThDY2JjZExwbHdlTHVKTXUzUEVxYysrU1pwR2JzekhZaXlIdXB0WWhKc2NoMmptK2QzSzhpaUpHQwovdkxwazk5cVVaY0xlaEFmVm5SNFdMa2tNZUZQRmg0Vk1QeldQUmNCZ0hXTU1uRVhLQll3QWNtWVZVM25GV1NUCjkrRXMvaFBJQk1UUjZrSUd1eStVSjIzQ3Z5dHRmUWY1Y3NPRnlTL1NoODE2dzY1bTZPbk82ekdPSEpYb0dIRnYKb0NMZnhvVHlFaUdpU21kWVJDVE1hYjJEZmQ3L1NRSXBvUGpUY0ZMY2tvZFliS1JiUmwzd1I2eWhNZS9IT1lyWQowOXR4N2x1YnBDRFljYW85VkgweE04NmZ4SzNFVjRYWFpvZUZBZ01CQUFHamFqQm9NQllHQTFVZEpRRUIvd1FNCk1Bb0dDQ3NHQVFVRkJ3TUlNQTRHQTFVZER3RUIvd1FFQXdJR1FEQWRCZ05WSFE0RUZnUVV4encvTGt5bjBlQ2IKY2tpaVFjY3hGRkw3S2dnd0h3WURWUjBqQkJnd0ZvQVVZMmxUT0dvbHRHdFYvdDRWZ1JyUG1vdVZ2emd3RFFZSgpLb1pJaHZjTkFRRUxCUUFEZ2dJQkFIbDhpSDcwZ240aFRWVmdMdlYzWURyMjJVaXp1bFNBZEtXaDlZUG9DL2Z3CmJ2VlV5VytGTjU4NWZFcERWVzZIREUwdFpqdUY3TzlkU2JOdDQzWk5kVVdIdVlGVGIydUlPRzVkL3pPUThFTSsKRVl6Zjd1M3o5dzdBL3FpVENwcGNqRUVSRG5pbk42STVXUGM1YUk0L1RmTUpQSm5MN3JWS1JoWm5JMmNZODgzdgpCZlZXTEFaemx6Z1JLb1M5Q05PWFQxQlZSanBHWGN5ZUEzREVEQ1pDS0E1MnUxN3dNdEN2RE5QdUt4RWFTUzRrCjBLTlJKU3BEeUhsOXlVTGVRKzdvOGJyaDAzYW02Z2VRbGQrVko2SVY4dnUwY0xFNW9NSkh6UXlYNWM1YWhOMzUKY09YbHJlakhlQklsTGtCV2tKdHRDdXdranFwUXovUWw1ZkpLVEtKU3JPQ29NZTN5dDZtdWZHT0Zva3NQV0pNTgpBRGZpb25SakNUcms3ei9XSVhRaS9uOVFyNnJya3pIb1ZDcWVQQjR1S1BCZW1xQ21pWlltZGp6VFYrc3d3MHlFClZQdlRPYUU1bVVzTkkxcGdHSGgyRVlZckhyaU81L2hsbitnMzBpTnJ0cmxndGY1Q2xuNm5PYWdiTFE5bi9qcEEKSGNOdjU0akhjQWhNTCtWVy9uUzB6dllNNTBTYVVSREVzbm9LV1VLZjV2cEZsdExiU0FXVm9ETllJTFlxb2t0OQo2akVSZTdtQUMwa3JoS3FTUmJBYWJCaXR3bEs3YVlCTWJnNWVrN0ptaFJyZFdsaGNRSGtQQWl5d1o0R0N2RUUyCmdIWXFrYmpQMkRRTUZESW5hRkZqOXpxekl2NWxoTDMzNXFrRlNKSjlJQnA1WmlrRDhjbTRMYnF3NCt3OThhM0IKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=</cert>
+    </approvedTSA>
+    <member id="id0">
+        <memberClass>
+            <code>COM</code>
+            <description>Commercial</description>
+        </memberClass>
+        <memberCode>1234</memberCode>
+        <name>Test member</name>
+        <subsystem id="id1">
+            <subsystemCode>MANAGEMENT</subsystemCode>
+            <subsystemName>Management services</subsystemName>
+        </subsystem>
+        <subsystem id="id2">
+            <subsystemCode>TestService</subsystemCode>
+            <subsystemName>Test service</subsystemName>
+        </subsystem>
+        <subsystem id="id3">
+            <subsystemCode>TestSaved</subsystemCode>
+            <subsystemName>Test saved</subsystemName>
+        </subsystem>
+        <subsystem id="id4">
+            <subsystemCode>test-consumer</subsystemCode>
+            <subsystemName>Test consumer</subsystemName>
+        </subsystem>
+    </member>
+    <member id="id5">
+        <memberClass>
+            <code>COM</code>
+            <description>Commercial</description>
+        </memberClass>
+        <memberCode>4321</memberCode>
+        <name>Test client</name>
+        <subsystem id="id6">
+            <subsystemCode>TestClient</subsystemCode>
+            <subsystemName>Test client subsystem</subsystemName>
+        </subsystem>
+    </member>
+    <securityServer>
+        <owner>id5</owner>
+        <serverCode>SS1</serverCode>
+        <address>ss1</address>
+        <authCertHash>3HxwE/+PUFC7dPdJCOB+eOouVh8z0kJ4SeMSasi7Z6k=</authCertHash>
+        <client>id6</client>
+        <client>id4</client>
+    </securityServer>
+    <securityServer>
+        <owner>id0</owner>
+        <serverCode>SS0</serverCode>
+        <address>ss0</address>
+        <authCertHash>iWJ4PMXoxImvwPQMVcNHRg3pFXwHhc9oDi9Kdl3li/E=</authCertHash>
+        <client>id1</client>
+        <client>id2</client>
+        <client>id3</client>
+        <client>id6</client>
+    </securityServer>
+    <globalGroup>
+        <groupCode>security-server-owners</groupCode>
+        <description>Security server owners</description>
+        <groupMember ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+            <ns2:memberClass>COM</ns2:memberClass>
+            <ns2:memberCode>1234</ns2:memberCode>
+        </groupMember>
+        <groupMember ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>DEV</ns2:xRoadInstance>
+            <ns2:memberClass>COM</ns2:memberClass>
+            <ns2:memberCode>4321</ns2:memberCode>
+        </groupMember>
+    </globalGroup>
+    <globalSettings>
+        <memberClass>
+            <code>COM</code>
+            <description>Commercial</description>
+        </memberClass>
+        <memberClass>
+            <code>GOV</code>
+            <description>Governmental organisations</description>
+        </memberClass>
+        <memberClass>
+            <code>ORG</code>
+            <description>Non-profit organisations</description>
+        </memberClass>
+        <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
+    </globalSettings>
+</ns3:conf>

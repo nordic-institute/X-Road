@@ -45,6 +45,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -150,6 +151,9 @@ public class TokenCertificateServiceTest {
 
     @MockitoBean
     private SignerRpcClient signerRpcClient;
+
+    @MockitoBean
+    protected OpMonitorClient opMonitorClient;
 
     @MockitoBean
     private ClientService clientService;
