@@ -29,6 +29,8 @@ package org.niis.xroad.monitor.core;
 import io.grpc.BindableService;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
@@ -45,4 +47,13 @@ public class MonitorRpcServer extends ManagedRpcServer {
         super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
+    @PostConstruct
+    public void init() throws Exception {
+        super.init();
+    }
+
+    @PreDestroy
+    public void destroy() throws Exception {
+        super.destroy();
+    }
 }

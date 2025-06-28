@@ -30,6 +30,8 @@ package org.niis.xroad.backupmanager.core;
 import io.grpc.BindableService;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
 import org.niis.xroad.backupmanager.core.config.BackupManagerRpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
@@ -47,4 +49,13 @@ public class BackupManagerRpcServer extends ManagedRpcServer {
         super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
+    @PostConstruct
+    public void init() throws Exception {
+        super.init();
+    }
+
+    @PreDestroy
+    public void destroy() throws Exception {
+        super.destroy();
+    }
 }
