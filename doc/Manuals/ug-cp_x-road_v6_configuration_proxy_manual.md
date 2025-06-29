@@ -147,11 +147,11 @@ To install the X-Road Configuration Proxy software, follow these steps.
 
 1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+        curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+        echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
 
 3.  Issue the following commands to install the Configuration Proxy packages:
 
