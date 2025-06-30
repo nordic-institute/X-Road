@@ -23,24 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.monitor.core.configuration;
+package org.niis.xroad.confclient.core;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.serverconf.ServerConfCommonProperties;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
-import org.niis.xroad.serverconf.impl.ServerConfFactory;
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
+import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.server.ManagedRpcServer;
+import org.niis.xroad.confclient.core.config.ConfigurationClientRpcServerProperties;
 
-@Slf4j
-public class MonitorConfig {
+import java.util.List;
 
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
-                                          ServerConfCommonProperties serverConfProperties,
-                                          GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+@Startup
+@Singleton
+public class ConfClientRpcServer extends ManagedRpcServer {
+
+    public ConfClientRpcServer(@All List<BindableService> services,
+                               ConfigurationClientRpcServerProperties rpcServerProperties,
+                               RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }
 
+    @PostConstruct
+    public void init() throws Exception {
+        super.init();
+    }
+
+    @PreDestroy
+    public void destroy() throws Exception {
+        super.destroy();
+    }
 }

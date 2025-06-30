@@ -29,63 +29,47 @@ import io.grpc.BindableService;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.RequiredArgsConstructor;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.common.rpc.server.ManagedRpcServer;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 import org.niis.xroad.proxy.core.admin.AdminService;
-import org.niis.xroad.proxy.core.configuration.ProxyRpcServerProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Startup
-@ApplicationScoped
-@RequiredArgsConstructor
-public class ProxyRpcServer {
-    private final AdminService adminService;
-    private final ProxyProperties.ProxyAddonProperties addonProperties;
-    private final ProxyRpcServerProperties rpcServerProperties;
-    private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
+@Singleton
+public class ProxyRpcServer extends ManagedRpcServer {
 
-    private RpcServer rpcServer;
+    public ProxyRpcServer(RpcServerProperties rpcServerProperties,
+                          RpcCredentialsConfigurer rpcCredentialsConfigurer,
+                          ProxyProperties.ProxyAddonProperties addonProperties,
+                          AdminService adminService) {
+        super(getServices(addonProperties, adminService), rpcServerProperties, rpcCredentialsConfigurer);
+    }
 
     @PostConstruct
     public void init() throws Exception {
-        if (rpcServerProperties.enabled()) {
-            rpcServer = createServer();
-            rpcServer.init();
-        } else {
-            log.info("RPC server is disabled by configuration.");
-        }
+        super.init();
     }
 
     @PreDestroy
     public void destroy() throws Exception {
-        if (rpcServer != null) {
-            rpcServer.destroy();
-        }
+        super.destroy();
     }
 
-    private RpcServer createServer() {
+    private static List<BindableService> getServices(ProxyProperties.ProxyAddonProperties addonProperties, AdminService adminService) {
         List<BindableService> rpcServices = new ArrayList<>();
         rpcServices.add(adminService);
 
         if (addonProperties.proxyMonitor().enabled()) {
             rpcServices.add(new ProxyMonitorService());
         }
-
-        return new RpcServer(
-                rpcServerProperties.listenAddress(),
-                rpcServerProperties.port(),
-                rpcCredentialsConfigurer.createServerCredentials(),
-                builder -> rpcServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
+        return rpcServices;
     }
 }
