@@ -24,40 +24,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.service;
 
-import org.niis.xroad.signer.core.model.BasicCertInfo;
-import org.niis.xroad.signer.core.model.BasicKeyInfo;
-import org.niis.xroad.signer.core.model.BasicTokenInfo;
-import org.niis.xroad.signer.core.model.CertRequestData;
+package org.niis.xroad.signer.jpa.service.impl;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import ee.ria.xroad.common.identifier.ClientId;
 
-public interface TokenService {
-    /**
-     * Loads all tokens, keys, certificates and certificate requests from the source.
-     *
-     * @return
-     * @throws Exception
-     */
-    LoadedTokens loadAllTokens() throws Exception;
+import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
 
-    boolean delete(Long tokenId) throws Exception;
+import java.time.Instant;
 
-    Long save(String externalId, String type, String friendlyName, String label, String serialNo) throws Exception;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.writeNotAvailable;
 
-    boolean setInitialTokenPin(Long tokenId, byte[] pinHash) throws Exception;
+public class TokenKeyCertWriteNoopServiceImpl implements TokenKeyCertWriteService {
 
-    boolean updateTokenPin(Long tokenId, Map<Long, byte[]> updatedKeys, byte[] pinHash) throws Exception;
+    @Override
+    public Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes) {
+        throw writeNotAvailable();
+    }
 
-    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+    @Override
+    public boolean delete(Long id) {
+        throw writeNotAvailable();
+    }
 
-    record LoadedTokens(Set<BasicTokenInfo> tokens,
-                        Map<Long, List<BasicKeyInfo>> keys,
-                        Map<Long, List<BasicCertInfo>> certs,
-                        Map<Long, List<CertRequestData>> certRequests) {
+    @Override
+    public boolean setActive(Long id, boolean active) {
+        throw writeNotAvailable();
+    }
 
+    @Override
+    public boolean updateStatus(Long id, String status) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean updateRenewedCertHash(Long id, String renewedCertHash) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean updateRenewalError(Long id, String renewalError) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) {
+        throw writeNotAvailable();
+    }
+
+    @Override
+    public boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) {
+        throw writeNotAvailable();
     }
 }

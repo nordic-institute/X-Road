@@ -24,27 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.core.service;
 
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.common.jpa.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
 
 import java.time.Instant;
 
-public interface TokenKeyCertService {
+@Getter
+@MappedSuperclass
+// Values are set by the database using triggers.
+public abstract class AuditableEntity {
 
-    Long save(Long keyId, String externalId, ClientId clientId, String status, byte[] certBytes) throws Exception;
+    @Column(name = "created_at", updatable = false, insertable = false)
+    private Instant createdAt;
 
-    boolean delete(Long id) throws Exception;
+    @Column(name = "updated_at", updatable = false, insertable = false)
+    private Instant updatedAt;
 
-    boolean setActive(Long id, boolean active) throws Exception;
-
-    boolean updateStatus(Long id, String status) throws Exception;
-
-    boolean updateRenewedCertHash(Long id, String renewedCertHash) throws Exception;
-
-    boolean updateRenewalError(Long id, String renewalError) throws Exception;
-
-    boolean updateNextAutomaticRenewalTime(Long id, Instant nextRenewalTime) throws Exception;
-
-    boolean updateOcspVerifyBeforeActivationError(Long certId, String ocspVerifyBeforeActivationError) throws Exception;
 }

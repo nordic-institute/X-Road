@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -44,6 +45,8 @@ import java.util.StringJoiner;
  * @param label             The label of the key.
  * @param publicKey         The X509 encoded public key.
  * @param signMechanismName Signing (PKCS#11) mechanism name.
+ * @param createdAt         when the DB record was created
+ * @param updatedAt         when the DB record was last updated
  */
 public record HardwareKey(
         Long id,
@@ -53,7 +56,9 @@ public record HardwareKey(
         String friendlyName,
         String label,
         String publicKey,
-        SignMechanism signMechanismName) implements BasicKeyInfo {
+        SignMechanism signMechanismName,
+        Instant createdAt,
+        Instant updatedAt) implements BasicKeyInfo {
 
     @Override
     public Optional<byte[]> softwareKeyStore() {
@@ -88,6 +93,8 @@ public record HardwareKey(
                 .add("externalId='" + externalId + "'")
                 .add("usage=" + usage)
                 .add("friendlyName='" + friendlyName + "'")
+                .add("createdAt=" + createdAt)
+                .add("updatedAt=" + updatedAt)
                 .toString();
     }
 }

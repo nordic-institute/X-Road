@@ -6,6 +6,23 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
+    <changeSet id="signer-create-settimestamps-function" author="niis">
+        <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION set_timestamps()
+            RETURNS TRIGGER
+            LANGUAGE plpgsql
+            AS $$
+            BEGIN
+                IF TG_OP = 'INSERT' THEN
+                    NEW.created_at := CURRENT_TIMESTAMP;
+                END IF;
+                NEW.updated_at := CURRENT_TIMESTAMP;
+            RETURN NEW;
+            END;
+            $$;
+            ]]></sql>
+    </changeSet>
+
     <changeSet id="create-temp-identifier-table" author="niis">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -50,6 +67,12 @@
             <column name="serial_no" type="VARCHAR(255)" remarks="Id of the token (serial number)."/>
             <column name="label" type="VARCHAR(255)" remarks="Id of the slot (label)."/>
             <column name="pin" type="BYTEA" remarks="Hash of the PIN code used to access the token."/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -67,14 +90,18 @@
             <column name="type" type="VARCHAR(16)" remarks="Type of the key.">
                 <constraints nullable="false"/>
             </column>
-            <column name="friendly_name" type="VARCHAR(1024)" remarks="Name that is displayed in UI.">
-                <constraints nullable="false"/>
-            </column>
+            <column name="friendly_name" type="VARCHAR(1024)" remarks="Name that is displayed in UI."/>
             <column name="label" type="VARCHAR(1024)" remarks="Label of the key."/>
             <column name="public_key" type="VARCHAR(4096)" remarks="Base64 encoded public key corresponding to the private key."/>
             <column name="keystore" type="BYTEA" remarks="Encrypted PKCS#12 key store."/>
             <column name="sign_mechanism_name" type="VARCHAR(255)" remarks="Signing (PKCS#11) mechanism name."/>
             <column name="usage" type="VARCHAR(255)" remarks="Usage type of the key (e.g., SIGNING, AUTHENTICATION)."/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -103,6 +130,12 @@
             <column name="renewed_cert_hash" type="VARCHAR(255)" remarks="Hash of newer cert version in registration process."/>
             <column name="renewal_error" type="TEXT" remarks="Error message from automatic renewal process."/>
             <column name="ocsp_verify_error" type="TEXT" remarks="Error message from OCSP verification before activation."/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -125,7 +158,33 @@
             </column>
             <column name="subject_alternative_name" type="TEXT" remarks="Subject Alternative Name (SAN) extension used in the CSR."/>
             <column name="certificate_profile" type="VARCHAR(1024)" remarks="Fully qualified class name of the certificate profile used."/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="signer-add-timestamps-triggers" author="niis">
+        <sql splitStatements="false"><![CDATA[
+            DROP TRIGGER IF EXISTS set_timestamps ON signer_tokens;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON signer_tokens
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+            DROP TRIGGER IF EXISTS set_timestamps ON signer_keys;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON signer_keys
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+            DROP TRIGGER IF EXISTS set_timestamps ON signer_certificates;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON signer_certificates
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+            DROP TRIGGER IF EXISTS set_timestamps ON signer_certificate_requests;
+            CREATE TRIGGER set_timestamps BEFORE INSERT OR UPDATE ON signer_certificate_requests
+                FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+            ]]></sql>
     </changeSet>
 
 </databaseChangeLog>

@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.niis.xroad.signer.core.model.RuntimeKeyImpl;
 import org.niis.xroad.signer.core.model.RuntimeTokenImpl;
-import org.niis.xroad.signer.core.service.TokenService;
+import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.core.tokenmanager.token.SoftwarePinHasher;
 
 import java.io.ByteArrayInputStream;
@@ -58,12 +58,12 @@ class TokenPinManagerTest {
     private static final long TOKEN_ID = 123;
     private static final String TOKEN_EXTERNAL_ID = "externalId";
 
-    private final TokenService tokenService = mock(TokenService.class);
+    private final TokenWriteService tokenWriteService = mock(TokenWriteService.class);
     private final SoftwarePinHasher softwarePinHasher = mock(SoftwarePinHasher.class);
     private final TokenRegistryLoader tokenRegistryLoader = mock(TokenRegistryLoader.class);
 
     private final TokenRegistry tokenRegistry = new TokenRegistry(tokenRegistryLoader);
-    private final TokenPinManager tokenPinManager = new TokenPinManager(tokenRegistry, tokenService, softwarePinHasher);
+    private final TokenPinManager tokenPinManager = new TokenPinManager(tokenRegistry, tokenWriteService, softwarePinHasher);
 
     @Test
     void testSetTokenPin() throws Exception {
@@ -74,7 +74,7 @@ class TokenPinManagerTest {
 
         tokenPinManager.setTokenPin(TOKEN_EXTERNAL_ID, "newPin".toCharArray());
 
-        verify(tokenService).setInitialTokenPin(TOKEN_ID, new byte[]{1, 2, 3});
+        verify(tokenWriteService).setInitialTokenPin(TOKEN_ID, new byte[]{1, 2, 3});
         verify(tokenRegistryLoader).refreshTokens(Set.of(tokenMock));
     }
 
@@ -98,7 +98,7 @@ class TokenPinManagerTest {
         tokenPinManager.updateTokenPin(TOKEN_EXTERNAL_ID, "Secret1234".toCharArray(), "newPin".toCharArray());
 
         ArgumentCaptor<Map<Long, byte[]>> captor = ArgumentCaptor.forClass(Map.class);
-        verify(tokenService).updateTokenPin(eq(TOKEN_ID), captor.capture(), eq(new byte[]{7, 8, 9}));
+        verify(tokenWriteService).updateTokenPin(eq(TOKEN_ID), captor.capture(), eq(new byte[]{7, 8, 9}));
 
         assertEquals(1, captor.getValue().size());
         assertNotNull(captor.getValue().get(keyId));

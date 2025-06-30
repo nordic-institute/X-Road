@@ -24,27 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.application;
+package org.niis.xroad.signer.core.service;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.properties.NodeProperties;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
-/**
- * Signer main program.
- */
-@QuarkusMain
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@Slf4j
-public class SignerMain {
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
-    public static void main(String[] args) {
-        if (NodeProperties.isSecondaryNode()) {
-            log.info("Starting Signer as secondary node. Modifying operations are not allowed.");
-        }
-        Quarkus.run(args);
-    }
+public interface TokenKeyWriteService {
+    Long save(Long tokenId, String keyId, String publicKeyBase64, byte[] keyStore,
+              SignMechanism signMechanism,
+              String friendlyName, String label, boolean softwareKey) throws Exception;
+
+    boolean delete(Long id) throws Exception;
+
+    boolean updateFriendlyName(Long id, String friendlyName) throws Exception;
+
+    boolean updateLabel(Long id, String label) throws Exception;
+
+    boolean updateKeyUsage(Long id, KeyUsageInfo keyUsage) throws Exception;
+
+    boolean updatePublicKey(Long id, String publicKey) throws Exception;
 }

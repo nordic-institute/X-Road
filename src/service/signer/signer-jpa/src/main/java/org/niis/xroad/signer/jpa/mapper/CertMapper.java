@@ -63,7 +63,9 @@ public class CertMapper implements GenericUniDirectionalMapper<SignerCertificate
                 source.getNextRenewalTime(),
                 source.getOcspVerifyError(),
                 x509Certificate,
-                certHash
+                certHash,
+                source.getCreatedAt(),
+                source.getUpdatedAt()
         );
     }
 

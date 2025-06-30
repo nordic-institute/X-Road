@@ -343,7 +343,7 @@ public class SignerRpcClient extends AbstractRpcClient {
         return tryToRun(() -> internalGenerateKey(tokenId, keyLabel, algorithm));
     }
 
-    private KeyInfo internalGenerateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception {
+    private KeyInfo internalGenerateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
         log.trace("Generating key for token '{}'", tokenId);
 
         var builder = GenerateKeyReq.newBuilder()
@@ -948,6 +948,10 @@ public class SignerRpcClient extends AbstractRpcClient {
                 () -> adminServiceBlockingStub.getKeyConfChecksum(Empty.getDefaultInstance()),
                 KeyConfChecksum::getChecksum
         );
+    }
+
+    public void refreshModules() {
+        tryToRun(() -> adminServiceBlockingStub.refreshModules(Empty.getDefaultInstance()));
     }
 
     private static final class CertificationServiceDiagnosticsMapper {
