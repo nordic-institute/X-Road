@@ -1,8 +1,7 @@
 test: true
 logging:
   level:
-    org.niis.xroad: DEBUG
-    ee.ria.xroad: DEBUG
+    ROOT: OFF
 spring:
   main:
     allow-bean-definition-overriding: true

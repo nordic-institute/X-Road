@@ -6,4 +6,5 @@ spring:
     banner-mode: off
 
 logging:
-  config: classpath:centralserver-admin-service-test-logback.xml
+  level:
+    ROOT: ERROR
