@@ -96,18 +96,13 @@ public class ModuleManager implements TokenWorkerProvider {
 
     @Override
     public TokenWorker getTokenWorker(String tokenId) {
-        try {
-            rwLock.readLock().lock();
-            for (Map.Entry<String, AbstractModuleWorker> entry : moduleWorkers.entrySet()) {
-                var tokenOpt = entry.getValue().getTokenById(tokenId);
-                if (tokenOpt.isPresent()) {
-                    return tokenOpt.get();
-                }
+        for (Map.Entry<String, AbstractModuleWorker> entry : moduleWorkers.entrySet()) {
+            var tokenOpt = entry.getValue().getTokenById(tokenId);
+            if (tokenOpt.isPresent()) {
+                return tokenOpt.get();
             }
-            throw tokenNotFound(tokenId);
-        } finally {
-            rwLock.readLock().unlock();
         }
+        throw tokenNotFound(tokenId);
     }
 
     /**
@@ -117,17 +112,12 @@ public class ModuleManager implements TokenWorkerProvider {
      * @return status
      */
     public boolean isHSMModuleOperational() {
-        try {
-            rwLock.readLock().lock();
-            if (hwTokenAddonProperties.enabled()) {
-                return moduleConf.getModules().stream()
-                        .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
-                                && !isModuleInitialized(moduleType));
-            }
-            return false;
-        } finally {
-            rwLock.readLock().unlock();
+        if (hwTokenAddonProperties.enabled()) {
+            return moduleConf.getModules().stream()
+                    .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
+                            && !isModuleInitialized(moduleType));
         }
+        return false;
     }
 
     private AbstractModuleWorker createModuleWorker(ModuleType module) {
