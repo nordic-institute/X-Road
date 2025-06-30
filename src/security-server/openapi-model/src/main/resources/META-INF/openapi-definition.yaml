@@ -7928,10 +7928,6 @@ components:
         - HARDWARE
     User:
       $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
-    AdminUser:
-      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/AdminUser'
-    AdminUserPasswordChangeRequest:
-      $ref: '../../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/AdminUserPasswordChangeRequest'
     VersionInfo:
       type: object
       description: version information
