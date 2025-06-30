@@ -19,6 +19,7 @@
     <include file="serverconf/005-configuration-properties.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/006-globalconf-source.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/007-admin-users.xml" relativeToChangelogFile="true"/>
+    <include file="serverconf/008-drop-uiuser-table.xml" relativeToChangelogFile="true"/>
     <include file="signer/001-signer.xml" relativeToChangelogFile="true"/>
 
     <!-- TODO: Move the initial admin superuser creation to initialization -->
