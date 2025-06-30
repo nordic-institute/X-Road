@@ -25,7 +25,6 @@ dependencies {
   api(fileTree("../../../libs/pkcs11wrapper") { include("*.jar") })
 
   testImplementation(project(":common:common-test"))
-  testImplementation(libs.mockito.core)
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 

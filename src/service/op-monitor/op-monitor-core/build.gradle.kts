@@ -33,7 +33,7 @@ dependencies {
   api("org.springframework:spring-context-support")
 
   testImplementation(libs.hsqldb)
-  testImplementation(libs.mockito.core)
+  testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
 
   xjc(libs.bundles.jaxb)

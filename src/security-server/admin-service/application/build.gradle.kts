@@ -15,7 +15,9 @@ configurations {
 }
 
 configurations.configureEach {
-  exclude(module = "jetty-jakarta-servlet-api")
+  if (name != "mockitoAgent") {
+    exclude(module = "jetty-jakarta-servlet-api")
+  }
 }
 
 dependencies {
