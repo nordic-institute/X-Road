@@ -46,6 +46,7 @@ import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.test.MetaserviceTestUtil;
 import org.niis.xroad.proxy.core.test.TestSuiteGlobalConf;
 import org.niis.xroad.proxy.core.test.TestSuiteKeyConf;
@@ -114,7 +115,7 @@ public class MetadataClientRequestProcessorTest {
         vaultKeyProvider = mock(NoopVaultKeyProvider.class);
 
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
         mockResponse = mock(ResponseWrapper.class);
@@ -167,7 +168,7 @@ public class MetadataClientRequestProcessorTest {
 
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -214,7 +215,7 @@ public class MetadataClientRequestProcessorTest {
             }
         };
         commonBeanProxy = new CommonBeanProxy(globalConfProvider, serverConfProvider, keyConfProvider,
-                null, null, null, vaultKeyProvider);
+                null, null, null, vaultKeyProvider, new NoOpMonitoringBuffer());
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(commonBeanProxy,

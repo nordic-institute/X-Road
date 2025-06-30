@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.globalconf.impl;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.core.FileSource;
-import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.ManagedLifecycleGlobalConfSource;
 import org.niis.xroad.globalconf.model.GlobalConfInitException;
 import org.niis.xroad.globalconf.model.GlobalConfInitState;
 import org.niis.xroad.globalconf.model.PrivateParameters;
@@ -49,7 +48,7 @@ import java.util.Optional;
  * Wrapper source for file system based global configuration.
  */
 @Slf4j
-public class FileSystemGlobalConfSource implements GlobalConfSource {
+public class FileSystemGlobalConfSource implements ManagedLifecycleGlobalConfSource {
     private final FSGlobalConfValidator fsGlobalConfValidator;
     private final String globalConfigurationDir;
     private volatile VersionedConfigurationDirectory configurationDirectory;
@@ -60,7 +59,7 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
         this.fsGlobalConfValidator = new FSGlobalConfValidator();
     }
 
-    @PostConstruct
+    @Override
     public void init() {
         try {
             load();

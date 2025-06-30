@@ -29,23 +29,19 @@ import ee.ria.xroad.common.db.DatabaseCtx;
 
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.globalconf.impl.cert.CertHelper;
-import org.niis.xroad.keyconf.KeyConfProvider;
-import org.niis.xroad.keyconf.impl.CachingKeyConfImpl;
-import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.ProxyProperties;
-import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBuffer;
-import org.niis.xroad.proxy.core.opmonitoring.NullOpMonitoringBuffer;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
+import org.niis.xroad.proxy.core.addon.opmonitoring.OpMonitoringBufferImpl;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
-import org.niis.xroad.signer.client.SignerRpcClient;
 
 import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
@@ -53,33 +49,33 @@ import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CON
 public class ProxyConfig {
 
     @ApplicationScoped
-    CertHelper certHelper(GlobalConfProvider globalConfProvider) {
-        return new CertHelper(globalConfProvider);
-    }
+    public static class OpMonitoringBufferInitializer {
 
-    @ApplicationScoped
-    @Startup
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
-                                                  OpMonitorCommonProperties opMonitorCommonProperties,
-                                                  ServerConfProvider serverConfProvider,
-                                                  VaultKeyProvider vaultKeyProvider) throws Exception {
-        AbstractOpMonitoringBuffer opMonitorBuffer;
-        if (addonProperties.opMonitor().enabled()) {
-            log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
-            opMonitorBuffer = new OpMonitoringBuffer(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
-        } else {
-            log.debug("Initializing NullOpMonitoringBuffer");
-            opMonitorBuffer = new NullOpMonitoringBuffer(serverConfProvider);
+        @Startup
+        @ApplicationScoped
+        public OpMonitoringBuffer opMonitoringBuffer(ProxyProperties.ProxyAddonProperties addonProperties,
+                                                     OpMonitorCommonProperties opMonitorCommonProperties,
+                                                     ServerConfProvider serverConfProvider,
+                                                     VaultKeyProvider vaultKeyProvider) throws Exception {
+
+            if (addonProperties.opMonitor().enabled()) {
+                log.debug("Initializing op-monitoring addon: OpMonitoringBufferImpl");
+                var opMonitoringBuffer = new OpMonitoringBufferImpl(serverConfProvider, opMonitorCommonProperties, vaultKeyProvider);
+                opMonitoringBuffer.init();
+                return opMonitoringBuffer;
+            } else {
+                log.debug("Initializing NoOpMonitoringBuffer");
+                return new NoOpMonitoringBuffer();
+            }
         }
 
-        return OpMonitoring.init(opMonitorBuffer);
+        public void cleanup(@Disposes OpMonitoringBuffer opMonitoringBuffer) {
+            if (opMonitoringBuffer instanceof OpMonitoringBufferImpl impl)
+                impl.destroy();
+        }
+
     }
 
-    @ApplicationScoped
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) {
-        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
-    }
 
     @ApplicationScoped
     ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,

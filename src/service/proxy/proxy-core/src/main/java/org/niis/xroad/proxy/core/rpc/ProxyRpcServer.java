@@ -23,32 +23,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.configuration;
+package org.niis.xroad.proxy.core.rpc;
 
 import io.grpc.BindableService;
 import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.proxy.core.addon.BindableServiceRegistry;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 import org.niis.xroad.proxy.core.admin.AdminService;
+import org.niis.xroad.proxy.core.configuration.ProxyRpcServerProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ProxyRpcConfig {
+@Startup
+@ApplicationScoped
+@RequiredArgsConstructor
+public class ProxyRpcServer {
+    private final AdminService adminService;
+    private final ProxyProperties.ProxyAddonProperties addonProperties;
+    private final ProxyRpcServerProperties rpcServerProperties;
+    private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
 
-    @ApplicationScoped
-    @Startup
-    RpcServer proxyRpcServer(BindableServiceRegistry bindableServiceRegistry,
-                             AdminService adminService,
-                             ProxyRpcServerProperties rpcServerProperties,
-                             RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
-        List<BindableService> rpcServices = new ArrayList<>(bindableServiceRegistry.getRegisteredServices());
+    private RpcServer rpcServer;
+
+    @PostConstruct
+    public void init() throws Exception {
+        if (rpcServerProperties.enabled()) {
+            rpcServer = createServer();
+            rpcServer.init();
+        } else {
+            log.info("RPC server is disabled by configuration.");
+        }
+    }
+
+    @PreDestroy
+    public void destroy() throws Exception {
+        if (rpcServer != null) {
+            rpcServer.destroy();
+        }
+    }
+
+    private RpcServer createServer() {
+        List<BindableService> rpcServices = new ArrayList<>();
         rpcServices.add(adminService);
-        var rpcServer = new RpcServer(
+
+        if (addonProperties.proxyMonitor().enabled()) {
+            rpcServices.add(new ProxyMonitorService());
+        }
+
+        return new RpcServer(
                 rpcServerProperties.listenAddress(),
                 rpcServerProperties.port(),
                 rpcCredentialsConfigurer.createServerCredentials(),
@@ -56,10 +87,5 @@ public class ProxyRpcConfig {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
-        if (rpcServerProperties.enabled()) {
-            rpcServer.afterPropertiesSet();
-        }
-        return rpcServer;
     }
-
 }
