@@ -41,7 +41,6 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.proxy.core.opmonitoring.OpMonitoring;
 import org.niis.xroad.proxy.core.util.CommonBeanProxy;
 import org.niis.xroad.proxy.core.util.MessageProcessorBase;
 import org.niis.xroad.proxy.core.util.PerformanceLogger;
@@ -139,7 +138,7 @@ public abstract class AbstractClientProxyHandler extends HandlerBase {
                 if (storeOpMonitoringData) {
                     updateOpMonitoringResponseOutTs(opMonitoringData);
 
-                    OpMonitoring.store(opMonitoringData);
+                    commonBeanProxy.getOpMonitoringBuffer().store(opMonitoringData);
                 }
 
                 logPerformanceEnd(start);

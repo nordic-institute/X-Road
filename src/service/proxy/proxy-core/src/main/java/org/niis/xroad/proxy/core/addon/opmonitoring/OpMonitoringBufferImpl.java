@@ -26,12 +26,10 @@
  */
 package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.VaultKeyProvider;
-import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitorCommonProperties;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
@@ -50,7 +48,7 @@ import java.util.concurrent.TimeUnit;
  * monitoring daemon (using OpMonitoringDaemonSender).
  */
 @Slf4j
-public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+public class OpMonitoringBufferImpl implements OpMonitoringBuffer {
 
     private final ExecutorService executorService;
     private final ScheduledExecutorService taskScheduler;
@@ -67,10 +65,10 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      *
      * @throws Exception if an error occurs
      */
-    public OpMonitoringBuffer(ServerConfProvider serverConfProvider,
-                              OpMonitorCommonProperties opMonitorCommonProperties,
-                              VaultKeyProvider vaultKeyProvider) throws Exception {
-        super(serverConfProvider);
+    public OpMonitoringBufferImpl(ServerConfProvider serverConfProvider,
+                                  OpMonitorCommonProperties opMonitorCommonProperties,
+                                  VaultKeyProvider vaultKeyProvider) throws Exception {
+
         this.opMonitorCommonProperties = opMonitorCommonProperties;
 
         if (ignoreOpMonitoringData()) {
@@ -156,7 +154,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return !buffer.isEmpty() && sender.isReady();
     }
 
-    void sendingSuccess(int count) {
+    @Override
+    public void sendingSuccess(int count) {
         log.trace("Sent {} messages from buffer", count);
 
         if (canSend()) {
@@ -164,12 +163,12 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         }
     }
 
-    void sendingFailure(List<OpMonitoringData> failedData) {
+    @Override
+    public void sendingFailure(List<OpMonitoringData> failedData) {
         failedData.forEach(buffer::addFirst);
         // Do not worry, scheduled sending retries.
     }
 
-    @PostConstruct
     public void init() {
         if (ignoreOpMonitoringData()) {
             return;
@@ -177,10 +176,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
         var sendingIntervalSeconds = opMonitorCommonProperties.buffer().sendingIntervalSeconds();
         taskScheduler.scheduleWithFixedDelay(this::send, sendingIntervalSeconds, sendingIntervalSeconds, TimeUnit.SECONDS);
-
     }
 
-    @PreDestroy
     public void destroy() {
         if (executorService != null) {
             executorService.shutdown();

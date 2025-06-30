@@ -103,7 +103,7 @@ class MetricsRpcServiceTest {
 
         rpcServer = new RpcServer("localhost", port, rpcCredentialsConfigurer.createServerCredentials(),
                 builder -> builder.addService(new MetricsRpcService(envMonitorProperties)));
-        rpcServer.afterPropertiesSet();
+        rpcServer.init();
 
         channel = new RpcChannelFactory(rpcCredentialsConfigurer).createChannel(
                 new RpcChannelProperties() {

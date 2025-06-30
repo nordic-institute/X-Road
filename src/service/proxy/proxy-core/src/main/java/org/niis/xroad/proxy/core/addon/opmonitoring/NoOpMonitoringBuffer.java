@@ -23,28 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.addon;
+package org.niis.xroad.proxy.core.addon.opmonitoring;
 
-import com.google.common.collect.ImmutableList;
-import io.grpc.BindableService;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class BindableServiceRegistry {
+/**
+ * A dummy implementation of operational monitoring buffer that does nothing.
+ * Actual implementation can be provided by addon.
+ */
+public class NoOpMonitoringBuffer implements OpMonitoringBuffer {
 
-    private final List<BindableService> bindableServices = new ArrayList<>();
-
-    /**
-     * Register gRPC bindable service to already present server.
-     *
-     * @param bindableService
-     */
-    public void register(BindableService bindableService) {
-        bindableServices.add(bindableService);
+    @Override
+    public void store(OpMonitoringData data) {
+        //No-OP
     }
 
-    public List<BindableService> getRegisteredServices() {
-        return ImmutableList.copyOf(bindableServices);
+    @Override
+    public void sendingSuccess(int count) {
+        //No-OP
     }
+
+    @Override
+    public void sendingFailure(List<OpMonitoringData> failedData) {
+        //No-OP
+    }
+
 }

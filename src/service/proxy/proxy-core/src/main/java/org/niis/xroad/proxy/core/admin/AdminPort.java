@@ -23,12 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.proxy.core.admin;
 
 import ee.ria.xroad.common.HttpStatus;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -36,15 +43,20 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Service that listens for administrative commands on a specific port.
  */
+@Slf4j
+@Startup
+@ApplicationScoped
+@RequiredArgsConstructor
 public class AdminPort {
 
     /**
@@ -60,32 +72,22 @@ public class AdminPort {
     public abstract static class SynchronousCallback extends AdminPortCallback {
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(AdminPort.class);
-
     private static final String CONNECTOR_HOST = "127.0.0.1";
 
-    private final int portNumber;
-
+    private final HealthCheckPort healthCheckPort;
+    private final ProxyProperties proxyProperties;
     private final Server server = new Server();
 
     private final Map<String, AdminPortCallback> handlers = new HashMap<>();
 
-    /**
-     * Constructs an AdminPort instance that listens for commands on the given port number.
-     *
-     * @param portNumber the port number AdminPort will listen on
-     */
-    public AdminPort(int portNumber) {
-        this.portNumber = portNumber;
-
-        createAdminConnector();
-    }
-
     @PostConstruct
     public void init() throws Exception {
-        LOG.info("Started AdminPort on port {}", portNumber);
+        createAdminConnector();
+
+        addMaintenanceHandler();
 
         server.start();
+        log.info("Started AdminPort on port {}", proxyProperties.adminPort());
     }
 
     @PreDestroy
@@ -108,7 +110,7 @@ public class AdminPort {
 
         connector.setName("AdminPort");
         connector.setHost(CONNECTOR_HOST);
-        connector.setPort(portNumber);
+        connector.setPort(proxyProperties.adminPort());
 
         server.addConnector(connector);
 
@@ -126,27 +128,54 @@ public class AdminPort {
                 callback.succeeded();
             } else {
                 final var target = request.getHttpURI().getPath();
-                LOG.info("Admin request: {}", target);
+                log.info("Admin request: {}", target);
                 try {
                     AdminPortCallback handler = handlers.get(target);
                     if (handler != null) {
                         if (handler instanceof SynchronousCallback) {
                             handler.handle(RequestWrapper.of(request), ResponseWrapper.of(response));
                         } else {
-                            LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
+                            log.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
                         }
                     } else {
                         response.setStatus(HttpStatus.SC_NOT_FOUND);
                     }
                     callback.succeeded();
                 } catch (Exception e) {
-                    LOG.error("Handler got error", e);
+                    log.error("Handler got error", e);
                     response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                     Content.Sink.write(response, true, e.toString(), callback);
                 }
             }
 
             return Boolean.TRUE;
+        }
+    }
+
+    private void addMaintenanceHandler() {
+        addHandler("/maintenance", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(RequestWrapper request, ResponseWrapper response) throws Exception {
+
+                String result = "Invalid parameter 'targetState', request ignored";
+                String param = request.getParameter("targetState");
+
+                if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
+                    result = setHealthCheckMaintenanceMode(Boolean.parseBoolean(param));
+                }
+                try (var pw = new PrintWriter(response.getOutputStream())) {
+                    response.setContentType(MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    pw.println(result);
+                }
+            }
+        });
+    }
+
+    private String setHealthCheckMaintenanceMode(boolean targetState) {
+        if (healthCheckPort.isEnabled()) {
+            return healthCheckPort.setMaintenanceMode(targetState);
+        } else {
+            return "No HealthCheckPort found, maintenance mode not set";
         }
     }
 }

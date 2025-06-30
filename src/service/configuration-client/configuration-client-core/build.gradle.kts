@@ -6,11 +6,11 @@ plugins {
 dependencies {
   implementation(project(":lib:globalconf-core"))
   implementation(project(":common:common-jetty"))
-  api(project(":common:common-scheduler"))
 
   implementation(project(":service:configuration-client:configuration-client-model"))
 
   implementation(libs.quarkus.arc)
+  implementation(libs.quarkus.quartz)
   implementation(libs.commons.cli)
   implementation(libs.quarkus.jdbc.postgresql)
   implementation(libs.commons.dbutils)

@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.ManagedLifecycleGlobalConfSource;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensionFactory;
 import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
 import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
@@ -53,19 +54,25 @@ public class GlobalConfConfig {
     @ApplicationScoped
     public GlobalConfSource globalConfSource(Provider<ConfClientRpcClient> confClientRpcClientProvider,
                                              GlobalConfProperties globalConfProperties) {
+        ManagedLifecycleGlobalConfSource globalConfSource;
         if (globalConfProperties.source() == REMOTE) {
             var globalConfClient = confClientRpcClientProvider.get();
             if (globalConfClient == null) {
                 throw new IllegalStateException("GlobalConf remoting is enabled, but globalConfClient is not available");
             } else {
                 log.info("GlobalConf source is set to: RemoteGlobalConfSource(gRPC)");
-                return new RemoteGlobalConfSource(
+                globalConfSource = new RemoteGlobalConfSource(
                         globalConfClient,
                         remoteGlobalConfDataLoader());
             }
+        } else {
+            log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
+            globalConfSource = new FileSystemGlobalConfSource(getConfigurationPath());
         }
-        log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
-        return new FileSystemGlobalConfSource(getConfigurationPath());
+
+        globalConfSource.init();
+        return globalConfSource;
+
     }
 
     private GlobalConfExtensions globalConfExtensions(GlobalConfSource source) {

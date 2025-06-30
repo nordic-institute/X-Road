@@ -32,6 +32,7 @@ import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.keyconf.KeyConfProvider;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.addon.messagelog.LogRecordManager;
 import org.niis.xroad.proxy.core.conf.SigningCtxProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
@@ -53,4 +54,5 @@ public class CommonBeanProxy {
     private final CertHelper certHelper;
     private final LogRecordManager logRecordManager;
     private final VaultKeyProvider vaultKeyProvider;
+    private final OpMonitoringBuffer opMonitoringBuffer;
 }

@@ -41,7 +41,6 @@ public class CustomProperties {
     private Map<String, String> customEnvMapping;
 
     private String csImage;
-    private String ssImage;
     private String caImage;
     private String isopenapiImage;
     private String issoapImage;
