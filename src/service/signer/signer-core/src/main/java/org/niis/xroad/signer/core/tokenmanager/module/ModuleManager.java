@@ -41,8 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -64,7 +62,6 @@ public class ModuleManager implements TokenWorkerProvider {
 
     @SuppressWarnings("java:S3077")
     private volatile Map<String, AbstractModuleWorker> moduleWorkers = Collections.emptyMap();
-    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     @PostConstruct
     public void start() {
@@ -76,22 +73,17 @@ public class ModuleManager implements TokenWorkerProvider {
         }
     }
 
-    public void refresh() {
+    public synchronized void refresh() {
         log.trace("refresh()");
-        rwLock.writeLock().lock();
-        try {
-            loadModules();
+        loadModules();
 
-            moduleWorkers.forEach((key, worker) -> {
-                try {
-                    worker.refresh();
-                } catch (Exception e) {
-                    log.error("Error refreshing module '{}'.", key);
-                }
-            });
-        } finally {
-            rwLock.writeLock().unlock();
-        }
+        moduleWorkers.forEach((key, worker) -> {
+            try {
+                worker.refresh();
+            } catch (Exception e) {
+                log.error("Error refreshing module '{}'.", key);
+            }
+        });
     }
 
     @Override
