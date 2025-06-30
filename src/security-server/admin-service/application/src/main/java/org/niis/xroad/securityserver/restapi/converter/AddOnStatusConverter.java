@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 public class AddOnStatusConverter {
     public AddOnStatusDto convert(AddOnStatusDiagnostics addOnStatus) {
         return new AddOnStatusDto()
-                .messagelogEnabled(addOnStatus.isMessageLogEnabled());
+                .messagelogEnabled(addOnStatus.isMessageLogEnabled())
+                .opmonitoringEnabled(addOnStatus.isOpMonitoringEnabled());
     }
 }

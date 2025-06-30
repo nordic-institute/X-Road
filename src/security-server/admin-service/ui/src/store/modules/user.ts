@@ -34,8 +34,8 @@ import {
   TokenInitStatus,
   User,
 } from '@/openapi-types';
-import { SessionStatus, Tab } from '@/ui-types';
-import { i18n } from '@niis/shared-ui';
+import { SessionStatus } from '@/ui-types';
+import { i18n, Tab } from '@niis/shared-ui';
 import { routePermissions } from '@/routePermissions';
 import { useSystem } from './system';
 import { RouteRecordName } from 'vue-router';
@@ -71,17 +71,10 @@ export const useUser = defineStore('user', {
       (state) =>
       (tabs: Tab[]): Tab[] => {
         // returns filtered array of Tab objects based on the 'permission' attribute
-        const filteredTabs = tabs.filter((tab: Tab) => {
+        return tabs.filter((tab: Tab) => {
           const routeName = tab.to.name;
-
-          if (routeName && !state.bannedRoutes?.includes(routeName)) {
-            // Return true if the user has permission
-            return true;
-          }
-          return false;
+          return !!(routeName && !state.bannedRoutes?.includes(routeName));
         });
-
-        return filteredTabs;
       },
 
     firstAllowedTab(): Tab {

@@ -24,11 +24,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <router-view />
+  <div>
+    <div>
+      <XrdSubTabs :tabs />
+    </div>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { Permissions, RouteName } from '@/global';
+import { useUser } from '@/store/modules/user';
+import { Tab, XrdSubTabs } from '@niis/shared-ui';
 
-export default defineComponent({});
+const userStore = useUser();
+
+const tabs = getAllowedTabs();
+
+function getAllowedTabs(): Tab[] {
+  const allTabs: Tab[] = [
+    {
+      key: 'diagnostics-overview-tab-button',
+      name: 'tab.diagnostics.overview',
+      to: {
+        name: RouteName.Diagnostics,
+      },
+      permissions: [Permissions.DIAGNOSTICS],
+    },
+    {
+      key: 'diagnostics-traffic-tab-button',
+      name: 'tab.diagnostics.traffic',
+      to: {
+        name: RouteName.DiagnosticsTraffic,
+      },
+      permissions: [Permissions.DIAGNOSTICS],
+    },
+  ];
+  return userStore.getAllowedTabs(allTabs);
+}
 </script>

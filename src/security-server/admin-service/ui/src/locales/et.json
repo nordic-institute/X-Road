@@ -252,6 +252,27 @@
         "UNKNOWN": "Tundmatu olek"
       },
       "title": "Ajatembeldus"
+    },
+    "traffic": {
+      "period": "Periood",
+      "periodInfo": "Vali algus ja lõpp",
+      "date": "Kuupäev",
+      "time": "Kell",
+      "party": "Osapool",
+      "partyInfo": "Teenus, alamsüsteem, liige",
+      "client": "Klient",
+      "service": "Teenus",
+      "exchangeRole": "Roll",
+      "exchangeRoleInfo": "Teenusepakkuja või Klient",
+      "producer": "Teenusepakkuja",
+      "status": "Staatus",
+      "statusInfo": "Edukad või ebaõnnestunud päringud",
+      "success": "Edukas",
+      "failure": "Ebaõnnestunud",
+      "successfulRequests": "Edukad päringud",
+      "failedRequests": "Ebaõnnestunud päringud",
+      "disabledTitle": "Operatiivandmete kogumine ei ole lubatud",
+      "disabledMessage": "Operatiivandmete kogumine ei ole lubatud selle turvaserveri jaoks. Selle lubamiseks paigaldage operatiivandmete jälgimise lisandmoodul (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -890,6 +911,10 @@
     "settings": {
       "backupAndRestore": "Varundamine ja taastamine",
       "systemParameters": "Süsteemi parameetrid"
+    },
+    "diagnostics": {
+      "overview": "Ülevaade",
+      "traffic": "Päringute statistika"
     }
   },
   "token": {

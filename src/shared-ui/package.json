@@ -17,15 +17,15 @@
     "@vee-validate/i18n": "~4.15.1",
     "@vee-validate/rules": "~4.15.1",
     "axios": "~1.9.0",
+    "dayjs": "^1.11.13",
     "deepmerge": "^4.3.1",
-    "vuetify": "3.8.8",
+    "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.3.0",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.16",
     "vue-i18n": "^11.1.5",
     "vue-router": "^4.5.1",
-    "vee-validate": "^4.15.1",
-    "pinia": "^3.0.3",
-    "pinia-plugin-persistedstate": "^4.3.0",
-    "dayjs": "^1.11.12"
+    "vuetify": "3.8.8"
   },
   "engines": {
     "npm": "use-pnpm",

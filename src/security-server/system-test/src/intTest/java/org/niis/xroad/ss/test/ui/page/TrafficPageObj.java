@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,25 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.core.opmonitoring;
+package org.niis.xroad.ss.test.ui.page;
 
-import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
-import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.serverconf.ServerConfProvider;
+import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
 
-/**
- * A dummy implementation of operational monitoring buffer that does nothing.
- * Actual implementation can be provided by addon.
- */
-public class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+import static com.codeborne.selenide.Selenide.$x;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 
-    protected NullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
-        super(serverConfProvider);
+public class TrafficPageObj {
+
+    public final Filter filter = new Filter();
+
+    public SelenideElement trafficChart() {
+        return $x("//div[@class='vue-apexcharts']");
     }
 
-    @Override
-    public void store(OpMonitoringData data) throws Exception {
-        //No-OP
-    }
+    public static class Filter {
+        public Select selectClient() {
+            return vSelect($x("//div[@data-test='select-client']"));
+        }
 
+        public Select selectService() {
+            return vSelect($x("//div[@data-test='select-service']"));
+        }
+
+        public Select selectExchangeRole() {
+            return vSelect($x("//div[@data-test='select-exchangeRole']"));
+        }
+
+        public Select selectStatus() {
+            return vSelect($x("//div[@data-test='select-status']"));
+        }
+    }
 }
