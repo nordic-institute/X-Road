@@ -12,6 +12,8 @@
     <logger name="ee.ria.xroad" level="OFF"/>
     <logger name="org.niis.xroad" level="OFF"/>
 
+    <logger name="ee.ria.xroad.common.validation" level="INFO"/>
+
     <root level="ERROR">
         <appender-ref ref="STDOUT"/>
     </root>

@@ -32,9 +32,11 @@ import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = {GlobalGroupMemberMapperImpl.class, ClientIdMapperImpl.class})
 class GlobalGroupMemberMapperTest {
     private static final String GLOBAL_GROUP = "GLOBAL_GROUP";

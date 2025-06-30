@@ -2,7 +2,7 @@
 logging:
   level:
     ROOT: INFO
-    cucumber: TRACE
+    cucumber: INFO
     org.springframework: INFO
     org:
       openqa:
