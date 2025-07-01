@@ -26,8 +26,8 @@
     <changeSet author="niis" id="insert-admin-superuser-equipped-with-all-roles">
         <preConditions onFail="CONTINUE">
             <and>
-                <changeLogPropertyDefined property="admin_superuser"/>
-                <changeLogPropertyDefined property="admin_superuser_password"/>
+                <changeLogPropertyDefined property="proxy_ui_superuser"/>
+                <changeLogPropertyDefined property="proxy_ui_superuser_password"/>
             </and>
         </preConditions>
         <sql splitStatements="false">
@@ -35,7 +35,7 @@
             DECLARE
                 new_user_id INT;
             BEGIN
-                INSERT INTO admin_user (username, password) VALUES ('${admin_superuser}', '${admin_superuser_password}')
+                INSERT INTO admin_user (username, password) VALUES ('${proxy_ui_superuser}', '${proxy_ui_superuser_password}')
                 RETURNING id INTO new_user_id;
 
                 INSERT INTO admin_user_role (role, admin_user_id) VALUES ('XROAD_SECURITY_OFFICER', new_user_id);

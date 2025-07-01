@@ -117,6 +117,8 @@ resource "helm_release" "security_server" {
       init = {
         serverconf = {
           dbUsername       = var.serverconf_db_user
+          proxyUiSuperuser         = var.proxy_ui_superuser
+          proxyUiSuperuserPassword = var.proxy_ui_superuser_password
         }
         messagelog = {
           dbUsername       = var.messagelog_db_user
