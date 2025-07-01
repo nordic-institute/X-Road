@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.common.util.PasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -270,7 +270,7 @@ public class InitializationService {
      *
      * @param softwareTokenPin the pin of the token
      * @throws InvalidCharactersException if the pin includes characters outside of ascii (range 32 - 126)
-     * @throws WeakPinException           if the pin does not meet the requirements set in {@link TokenPinPolicy}
+     * @throws WeakPinException           if the pin does not meet the requirements set in {@link PasswordPolicy}
      * @throws SoftwareTokenInitException if token init fails
      */
     private void initializeSoftwareToken(String softwareTokenPin) throws InvalidCharactersException, WeakPinException,

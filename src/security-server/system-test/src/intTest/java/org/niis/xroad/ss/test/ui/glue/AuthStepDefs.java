@@ -93,6 +93,12 @@ public class AuthStepDefs extends BaseUiStepDefs {
         commonPageObj.menu.logout().click();
     }
 
+    @Step("Change password button is being clicked")
+    public void changePasswordButtonIsClicked() {
+        commonPageObj.menu.usernameButton().click();
+        commonPageObj.menu.changePassword().click();
+    }
+
     @Given("User becomes idle")
     public void userBecomesIdle() {
         Selenide.sleep(1);

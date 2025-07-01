@@ -27,17 +27,25 @@ package org.niis.xroad.restapi.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.domain.AdminUser;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.entity.AdminUserEntity;
 import org.niis.xroad.restapi.mapper.AdminUserEntityMapper;
 import org.niis.xroad.restapi.repository.AdminUserRepository;
+import org.niis.xroad.restapi.util.SecurityHelper;
+import org.niis.xroad.restapi.validator.AdminUserPasswordValidator;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.CharBuffer;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,6 +53,7 @@ import java.util.Set;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.ACTION_NOT_POSSIBLE;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.PASSWORD_INCORRECT;
 import static org.niis.xroad.restapi.auth.PasswordEncoderConfig.PASSWORD_ENCODER;
+import static org.niis.xroad.restapi.domain.Role.XROAD_SYSTEM_ADMINISTRATOR;
 
 @Service
 @Transactional
@@ -55,6 +64,9 @@ public class AdminUserService {
     private final AdminUserEntityMapper mapper;
     @Qualifier(PASSWORD_ENCODER)
     private final PasswordEncoder passwordEncoder;
+    private final AdminUserPasswordValidator passwordValidator;
+    private final SecurityHelper securityHelper;
+    private final AuditDataHelper auditDataHelper;
 
     public Optional<AdminUser> findAdminUser(String username) {
         return userRepository.findByUsername(username)
@@ -69,6 +81,10 @@ public class AdminUserService {
     }
 
     public void create(AdminUser adminUser) {
+        auditLog(adminUser.getUsername(), adminUser.getRoles());
+
+        passwordValidator.validateUserPassword(adminUser.getPassword());
+
         var adminUserWithHashedPassword = new AdminUser(
                 null,
                 adminUser.getUsername(),
@@ -79,30 +95,59 @@ public class AdminUserService {
     }
 
     public void changePassword(String username, char[] oldPassword, char[] newPassword) {
+        auditLog(username);
+
         var existingUser = userRepository.findByUsername(username).orElseThrow();
-        if (!passwordEncoder.matches(CharBuffer.wrap(oldPassword), new String(existingUser.getPassword()))) {
-            throw new BadRequestException(PASSWORD_INCORRECT.build());
+        var authenticatedUsername = getAuthentication().getPrincipal().toString();
+        if (!securityHelper.hasAuthority(XROAD_SYSTEM_ADMINISTRATOR.getGrantedAuthorityName())
+                || StringUtils.equals(authenticatedUsername, username)) {
+            validateOldPassword(oldPassword, existingUser);
         }
+
+        passwordValidator.validateUserPassword(newPassword);
+
         var newPasswordHashed = passwordEncoder.encode(CharBuffer.wrap(newPassword));
         existingUser.setPassword(newPasswordHashed.toCharArray());
         userRepository.update(existingUser);
     }
 
     public void updateRoles(String username, Set<Role> roles) {
+        auditLog(username, roles);
+
         var existingUser = userRepository.findByUsername(username).orElseThrow();
         existingUser.setRoles(roles);
         userRepository.update(existingUser);
     }
 
     public void deleteByUsername(String username) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        var authenticatedUsername = authentication.getPrincipal().toString();
+        auditLog(username);
+
+        var authenticatedUsername = getAuthentication().getPrincipal().toString();
         var existingUser = userRepository.findByUsername(username).orElseThrow();
         if (existingUser.getUsername().equals(authenticatedUsername)) {
             throw new BadRequestException(ACTION_NOT_POSSIBLE.build());
         }
 
         userRepository.delete(existingUser);
+    }
+
+    private Authentication getAuthentication() {
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    private void validateOldPassword(char[] oldPassword, AdminUserEntity existingUser) {
+        if (!passwordEncoder.matches(CharBuffer.wrap(oldPassword), new String(existingUser.getPassword()))) {
+            throw new BadRequestException(PASSWORD_INCORRECT.build());
+        }
+    }
+
+    private void auditLog(String username) {
+        auditDataHelper.put(RestApiAuditProperty.USERNAME, username);
+    }
+
+    private void auditLog(String username, Collection<Role> roles) {
+        auditDataHelper.put(RestApiAuditProperty.USERNAME, username);
+        auditDataHelper.put(RestApiAuditProperty.USER_ROLES, roles);
     }
 
 }

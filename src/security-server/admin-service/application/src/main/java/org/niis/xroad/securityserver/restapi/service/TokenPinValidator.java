@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.common.util.PasswordPolicy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -50,16 +50,16 @@ public class TokenPinValidator {
 
     public void validateSoftwareTokenPin(char[] softwareTokenPin) throws InvalidCharactersException, WeakPinException {
         if (isTokenPinEnforced) {
-            TokenPinPolicy.Description description = TokenPinPolicy.describe(softwareTokenPin);
+            PasswordPolicy.Description description = PasswordPolicy.describe(softwareTokenPin);
             if (!description.isValid()) {
                 if (description.hasInvalidCharacters()) {
                     throw new InvalidCharactersException("The provided pin code contains invalid characters");
                 }
                 List<String> metadata = new ArrayList<>();
                 metadata.add(ERROR_METADATA_PIN_MIN_LENGTH);
-                metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
+                metadata.add(String.valueOf(PasswordPolicy.MIN_PASSWORD_LENGTH));
                 metadata.add(ERROR_METADATA_PIN_MIN_CHAR_CLASSES);
-                metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
+                metadata.add(String.valueOf(PasswordPolicy.MIN_CHARACTER_CLASS_COUNT));
                 throw new WeakPinException("The provided pin code was too weak", metadata);
             }
         }

@@ -82,6 +82,9 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     TOKEN_NOT_FOUND("token_not_found"),
     TOKEN_WEAK_PIN("token_weak_pin"),
 
+    USER_WEAK_PASSWORD("user_weak_password"),
+    USER_PASSWORD_INVALID_CHARACTERS("user_password_invalid_characters"),
+
     CLIENT_NOT_FOUND("client_not_found"),
     INVALID_CLIENT_NAME("invalid_client_name"),
 

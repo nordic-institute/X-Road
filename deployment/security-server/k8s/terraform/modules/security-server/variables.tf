@@ -21,6 +21,18 @@ variable "serverconf_db_user_password" {
   sensitive   = true
 }
 
+variable "proxy_ui_superuser" {
+  description = "Proxy UI's superuser"
+  type        = string
+  default     = "xrd"
+}
+
+variable "proxy_ui_superuser_password" {
+  description = "Proxy UI's superuser password"
+  type        = string
+  sensitive   = true
+}
+
 variable "messagelog_db_postgres_password" {
   description = "Postgres superuser's password for messagelog DB"
   type        = string

@@ -30,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.restapi.config.AuthProviderConfig;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -101,7 +101,7 @@ public class SystemApiController implements SystemApi {
     private final SecurityServerAddressChangeStatus addressChangeStatus;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
-    private final AuthProviderConfig authProviderConfig;
+    private final UserAuthenticationConfig userAuthenticationConfig;
 
     @Override
     @PreAuthorize("hasAuthority('EXPORT_INTERNAL_TLS_CERT')")
@@ -113,7 +113,7 @@ public class SystemApiController implements SystemApi {
 
     @PreAuthorize("hasAuthority('VIEW_AUTHENTICATION_PROVIDER_TYPE')")
     public ResponseEntity<AuthProviderTypeResponseDto> getAuthProviderType() {
-        var authProviderType = AuthProviderTypeMapping.map(authProviderConfig.getAuthenticationProvider()).orElseThrow();
+        var authProviderType = AuthProviderTypeMapping.map(userAuthenticationConfig.getAuthenticationProvider()).orElseThrow();
         var response = new AuthProviderTypeResponseDto().authProviderType(authProviderType);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -24,6 +24,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import XrdAdminUserPasswordChangeDialog from './AdminUserPasswordChangeDialog.vue';
+import XrdAdminUserPasswordChangeDialog from './XrdAdminUserPasswordChangeDialog.vue';
 
 export { XrdAdminUserPasswordChangeDialog };

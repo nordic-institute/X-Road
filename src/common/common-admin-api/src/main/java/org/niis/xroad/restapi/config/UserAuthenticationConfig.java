@@ -24,17 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.api.domain;
+package org.niis.xroad.restapi.config;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+public interface UserAuthenticationConfig {
 
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-public class UiUser extends Auditable {
-    private int id;
-    private String username;
-    private String locale;
+    AuthenticationProviderType DEFAULT_AUTHENTICATION_PROVIDER = AuthenticationProviderType.PAM;
+
+    boolean DEFAULT_ENFORCE_USER_PASSWORD_POLICY = false;
+
+
+    enum AuthenticationProviderType {
+        PAM,
+        DATABASE
+    }
+
+    default AuthenticationProviderType getAuthenticationProvider() {
+        return DEFAULT_AUTHENTICATION_PROVIDER;
+    }
+
+    default boolean isEnforceUserPasswordPolicy() {
+        return DEFAULT_ENFORCE_USER_PASSWORD_POLICY;
+    }
+
 }
