@@ -57,6 +57,14 @@ public interface ConfigurationClientProperties {
     @WithDefault("DB")
     ConfigurationAnchorStorage configurationAnchorStorage();
 
+    @WithName("downloader-connect-timeout")
+    @WithDefault("10000")
+    int downloaderConnectTimeout();
+
+    @WithName("downloader-read-timeout")
+    @WithDefault("30000")
+    int downloaderReadTimeout();
+
     enum ConfigurationAnchorStorage {
         FILE,
         DB

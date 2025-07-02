@@ -98,7 +98,7 @@ abstract class LocationVersionResolver {
             return uriBuilder.toString();
         }
 
-        private boolean checkVersionLocationExists(URL url) throws IOException {
+        private boolean checkVersionLocationExists(URL url) {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) url.openConnection();

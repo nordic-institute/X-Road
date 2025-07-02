@@ -81,8 +81,6 @@ import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.ge
 @Slf4j
 public class ConfigurationDownloader {
 
-    public static final int READ_TIMEOUT = 30000;
-
     private final FileNameProvider fileNameProvider;
     private final HttpUrlConnectionConfigurer connectionConfigurer;
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
@@ -267,12 +265,10 @@ public class ConfigurationDownloader {
             var result = new GlobalConfSourceLocationRepository.GlobalConfSourceLocation();
             result.setInstanceIdentifier(sharedParams.getInstanceIdentifier());
 
-            sharedParams.getSources().forEach(source -> {
-                result.getLocations().put(source.getAddress(),
-                        new GlobalConfSourceLocationRepository.VerificationCertificates(
-                                source.getInternalVerificationCerts(),
-                                source.getExternalVerificationCerts()));
-            });
+            sharedParams.getSources().forEach(source -> result.getLocations().put(source.getAddress(),
+                    new GlobalConfSourceLocationRepository.VerificationCertificates(
+                            source.getInternalVerificationCerts(),
+                            source.getExternalVerificationCerts())));
 
             return Optional.of(result);
 
@@ -398,7 +394,6 @@ public class ConfigurationDownloader {
     public URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
         connectionConfigurer.apply((HttpURLConnection) connection);
-        connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }
 
