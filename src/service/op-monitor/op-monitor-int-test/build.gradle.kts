@@ -3,14 +3,6 @@ plugins {
   id("xroad.int-test-conventions")
 }
 
-sourceSets {
-  named("intTest") {
-    resources {
-      srcDir("../../../common/common-int-test/src/main/resources/")
-    }
-  }
-}
-
 dependencies {
   intTestImplementation(project(path = ":service:op-monitor:op-monitor-db", configuration = "changelogJar"))
   intTestImplementation(project(":service:op-monitor:op-monitor-client"))

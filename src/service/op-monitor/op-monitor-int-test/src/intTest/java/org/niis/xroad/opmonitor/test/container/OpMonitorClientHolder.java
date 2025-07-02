@@ -29,7 +29,6 @@ package org.niis.xroad.opmonitor.test.container;
 
 import ee.ria.xroad.common.PortNumbers;
 
-import com.nortal.test.core.services.TestableApplicationInfoProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +37,8 @@ import org.niis.xroad.common.rpc.credentials.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.opmonitor.client.OpMonitorClient;
 import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.opmonitor.test.container.OpMonitorIntTestSetup.OP_MONITOR;
 
 /**
  * Holder for OpMonitorClient instance. Holds the opMonitorClient instance that is used in the tests. Otherwise, would
@@ -48,7 +49,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OpMonitorClientHolder {
 
-    private final TestableApplicationInfoProvider applicationInfoProvider;
+    private final OpMonitorIntTestSetup opMonitorIntTestSetup;
 
     private OpMonitorClient opMonitorRpcClientInstance;
 
@@ -62,12 +63,12 @@ public class OpMonitorClientHolder {
 
             @Override
             public String host() {
-                return applicationInfoProvider.getHost();
+                return opMonitorIntTestSetup.getContainerMapping(OP_MONITOR, PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT).host();
             }
 
             @Override
             public int port() {
-                return applicationInfoProvider.getMappedPort(PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT);
+                return opMonitorIntTestSetup.getContainerMapping(OP_MONITOR, PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT).port();
             }
 
             @Override

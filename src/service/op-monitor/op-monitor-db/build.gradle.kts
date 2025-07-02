@@ -1,5 +1,4 @@
 plugins {
-  id("xroad.java-conventions")
   id("xroad.jib-conventions")
 }
 
@@ -17,10 +16,6 @@ tasks.register<Jar>("changelogJar") {
 
 artifacts {
   add("changelogJar", tasks.named("changelogJar"))
-}
-
-archUnit {
-  setSkip(true)
 }
 
 val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
