@@ -26,11 +26,10 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.entity.ServerConfEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -45,7 +44,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 /**
  * test ClientRepository
@@ -72,8 +70,8 @@ public class ExampleJpaTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @MockitoBean(name = SERVER_CONF_DB_CTX)
-    DatabaseCtx databaseCtx;
+    @MockitoBean
+    ServerConfDatabaseCtx databaseCtx;
 
     @Test
     public void testTestEntityManager() {

@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.confclient.application;
 
-import ee.ria.xroad.common.util.JobManager;
-
 import io.quarkus.arc.Arc;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.confclient.core.schedule.JobManager;
 
 @QuarkusTest
 @TestProfile(ConfClientTestProfile.class)

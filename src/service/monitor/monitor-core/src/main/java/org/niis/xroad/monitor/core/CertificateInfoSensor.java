@@ -254,7 +254,8 @@ public class CertificateInfoSensor {
     }
 
     @Scheduled(every = "${xroad.env-monitor.certificate-info-sensor-interval}", delayed = "10s",
-            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void measure() {
         log.info("Updating CertificateInfo metrics");
         updateOrRegisterData(list());

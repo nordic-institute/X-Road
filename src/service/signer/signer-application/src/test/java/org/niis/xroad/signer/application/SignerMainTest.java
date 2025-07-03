@@ -26,25 +26,55 @@
  */
 package org.niis.xroad.signer.application;
 
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.signer.core.service.TokenKeyCertRequestWriteService;
+import org.niis.xroad.signer.core.service.TokenKeyCertWriteService;
+import org.niis.xroad.signer.core.service.TokenKeyWriteService;
+import org.niis.xroad.signer.core.service.TokenWriteService;
 import org.niis.xroad.signer.core.tokenmanager.TokenLookup;
+import org.niis.xroad.signer.jpa.service.impl.TokenKeyCertRequestWriteServiceImpl;
+import org.niis.xroad.signer.jpa.service.impl.TokenKeyCertWriteServiceImpl;
+import org.niis.xroad.signer.jpa.service.impl.TokenKeyWriteServiceImpl;
+import org.niis.xroad.signer.jpa.service.impl.TokenWriteServiceImpl;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @Slf4j
 @QuarkusTest
 @TestProfile(SignerTestProfile.class)
 class SignerMainTest {
+
     @Inject
     TokenLookup tokenLookup;
+
+    @Inject
+    TokenKeyCertRequestWriteService tokenKeyCertRequestWriteService;
+    @Inject
+    TokenKeyCertWriteService tokenKeyCertWriteService;
+    @Inject
+    TokenKeyWriteService tokenKeyWriteService;
+    @Inject
+    TokenWriteService tokenWriteService;
 
     @Test
     void testMain() {
         var result = tokenLookup.listTokens();
         log.info("Token lookup result: {}", result);
-        Assertions.assertEquals(1, result.size(), "Token lookup should not throw an exception");
+        assertEquals(1, result.size(), "Token lookup should not throw an exception");
     }
+
+    @Test
+    void testWriteServicesAvailableOnPrimaryNode() {
+        assertInstanceOf(TokenKeyCertRequestWriteServiceImpl.class, ClientProxy.unwrap(tokenKeyCertRequestWriteService));
+        assertInstanceOf(TokenKeyCertWriteServiceImpl.class, ClientProxy.unwrap(tokenKeyCertWriteService));
+        assertInstanceOf(TokenKeyWriteServiceImpl.class, ClientProxy.unwrap(tokenKeyWriteService));
+        assertInstanceOf(TokenWriteServiceImpl.class, ClientProxy.unwrap(tokenWriteService));
+    }
+
 }

@@ -25,14 +25,6 @@ docker buildx build \
 
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag "$REGISTRY_URL"/ss-baseline-ui-runtime \
-  --file Dockerfile-ui-baseline \
-  --build-arg REGISTRY_URL="$REGISTRY_URL" \
-  --push \
-  .
-
-docker buildx build \
-  --platform linux/amd64,linux/arm64 \
   --tag "$REGISTRY_URL"/ss-baseline-backup-manager-runtime \
   --file Dockerfile-backup-manager-baseline \
   --build-arg REGISTRY_URL="$REGISTRY_URL" \

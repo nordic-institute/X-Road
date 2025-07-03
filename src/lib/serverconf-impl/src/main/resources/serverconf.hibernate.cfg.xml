@@ -23,6 +23,5 @@
         <mapping class="org.niis.xroad.serverconf.impl.entity.ServiceDescriptionEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.ServiceEntity"/>
         <mapping class="org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity"/>
-        <mapping class="org.niis.xroad.serverconf.impl.entity.UiUserEntity"/>
     </session-factory>
 </hibernate-configuration>

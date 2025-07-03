@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import org.junit.runner.RunWith;
 import org.niis.xroad.backupmanager.proto.BackupManagerRpcClient;
 import org.niis.xroad.common.acme.AcmeService;
@@ -38,6 +36,7 @@ import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.securityserver.restapi.cache.SubsystemNameStatus;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.signer.client.SignerRpcClient;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,8 +46,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 /**
  * Base for all tests that mock GlobalConfProvider, ManagementRequestSenderService, and SignerProxyFacade.
@@ -87,6 +84,6 @@ public abstract class AbstractFacadeMockingTestContext {
     protected ConfClientRpcClient confClientRpcClient;
     @MockitoBean
     protected BackupManagerRpcClient backupManagerRpcClient;
-    @MockitoBean(name = SERVER_CONF_DB_CTX)
-    DatabaseCtx databaseCtx;
+    @MockitoBean
+    ServerConfDatabaseCtx databaseCtx;
 }

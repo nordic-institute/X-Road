@@ -31,7 +31,7 @@ import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-@TestProfile(OpMonitorDaemonTestProfile.class)
+@TestProfile(OpMonitorTestProfile.class)
 class OpMonitorDaemonMainTest {
 
     @Test

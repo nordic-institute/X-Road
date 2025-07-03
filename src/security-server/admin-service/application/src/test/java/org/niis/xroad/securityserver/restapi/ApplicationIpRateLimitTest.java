@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
 import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
@@ -37,6 +35,7 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -58,7 +57,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -86,8 +84,8 @@ class ApplicationIpRateLimitTest {
     @MockitoBean
     ProxyRpcClient proxyRpcClient;
 
-    @MockitoBean(name = SERVER_CONF_DB_CTX)
-    DatabaseCtx databaseCtx;
+    @MockitoBean
+    ServerConfDatabaseCtx databaseCtx;
 
     @MockitoBean
     GlobalConfProvider globalConfProvider;

@@ -35,7 +35,8 @@ import org.niis.xroad.serverconf.ServerConfProvider;
 public class ServerConfStatsLogger {
     private final ServerConfProvider serverConfProvider;
 
-    @Scheduled(every = "60s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    @Scheduled(every = "60s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
+            skipExecutionIf = Scheduled.ApplicationNotRunning.class)
     public void execute() {
         serverConfProvider.logStatistics();
     }

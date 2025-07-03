@@ -68,8 +68,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -231,6 +233,24 @@ class SoftwareTokenWorkerFactoryTest {
             assertEquals("PinIncorrect: PIN incorrect", thrown.getMessage());
 
             verify(tokenManager).setTokenStatus(TOKEN_ID, TokenStatusInfo.USER_PIN_INCORRECT);
+        }
+    }
+
+    @Test
+    void testHandleUpdateTokenPinNoLogoutWhenUpdateFails() {
+        char[] oldPIN = "oldPin".toCharArray();
+        char[] newPIN = "newPin".toCharArray();
+
+        when(pinManager.verifyTokenPin(TOKEN_ID, oldPIN)).thenReturn(true);
+        doThrow(new CodedException("fail")).when(pinManager).updateTokenPin(TOKEN_ID, oldPIN, newPIN);
+
+        try (MockedStatic<PasswordStore> passwordStoreMock = mockStatic(PasswordStore.class)) {
+            passwordStoreMock.when(() -> PasswordStore.getPassword(TOKEN_ID)).thenReturn(oldPIN);
+
+            assertThrows(CodedException.class, () -> tokenWorker.handleUpdateTokenPin("oldPin".toCharArray(), newPIN));
+
+            passwordStoreMock.verify(() -> PasswordStore.storePassword(TOKEN_ID, null), never());
+            verify(tokenManager, never()).setTokenActive(TOKEN_ID, false);
         }
     }
 

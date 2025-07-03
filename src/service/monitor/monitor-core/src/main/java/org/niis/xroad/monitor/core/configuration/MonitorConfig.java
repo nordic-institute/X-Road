@@ -25,72 +25,22 @@
  */
 package org.niis.xroad.monitor.core.configuration;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-
-import io.grpc.BindableService;
-import io.quarkus.arc.All;
-import io.quarkus.runtime.Startup;
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithDefault;
-import io.smallrye.config.WithName;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServerProperties;
-import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.serverconf.ServerConfCommonProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
 import org.niis.xroad.serverconf.impl.ServerConfFactory;
-
-import java.io.IOException;
-import java.util.List;
-
-import static org.niis.xroad.serverconf.impl.ServerConfDatabaseConfig.SERVER_CONF_DB_CTX;
 
 @Slf4j
 public class MonitorConfig {
 
     @ApplicationScoped
-    @Startup
-    RpcServer rpcServer(@All List<BindableService> services,
-                        EnvMonitorServerProperties rpcServerProperties,
-                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws IOException {
-        log.info("Starting Monitor RPC server on port {}.", rpcServerProperties.port());
-        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
-        RpcServer rpcServer = new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
-                builder -> services.forEach(service -> {
-                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
-                    builder.addService(service);
-                }));
-        rpcServer.afterPropertiesSet();
-        return rpcServer;
-    }
-
-    @ApplicationScoped
-    ServerConfProvider serverConfProvider(@Named(SERVER_CONF_DB_CTX) DatabaseCtx databaseCtx,
+    ServerConfProvider serverConfProvider(ServerConfDatabaseCtx databaseCtx,
                                           ServerConfCommonProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
-    }
-
-    @ConfigMapping(prefix = "xroad.env-monitor.rpc")
-    public interface EnvMonitorServerProperties extends RpcServerProperties {
-        @WithName("enabled")
-        @WithDefault("true")
-        @Override
-        boolean enabled();
-
-        @WithName("listen-address")
-        @WithDefault("127.0.0.1")
-        @Override
-        String listenAddress();
-
-        @WithName("port")
-        @WithDefault("2552")
-        @Override
-        int port();
     }
 
 }

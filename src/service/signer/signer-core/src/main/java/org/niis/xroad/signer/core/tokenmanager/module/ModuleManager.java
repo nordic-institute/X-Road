@@ -73,7 +73,7 @@ public class ModuleManager implements TokenWorkerProvider {
         }
     }
 
-    public void refresh() {
+    public synchronized void refresh() {
         log.trace("refresh()");
         loadModules();
 

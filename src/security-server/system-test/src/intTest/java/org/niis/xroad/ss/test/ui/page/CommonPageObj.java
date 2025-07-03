@@ -53,6 +53,10 @@ public class CommonPageObj {
             return $x("//div[@data-test='logout-list-tile']");
         }
 
+        public SelenideElement changePassword() {
+            return $x("//div[@data-test='change-password-list-tile']");
+        }
+
         public SelenideElement clientsTab() {
             return $x(getTabXpath("Clients"));
         }
@@ -78,7 +82,7 @@ public class CommonPageObj {
     public class SubMenu {
 
         public SelenideElement backupAndRestoresTab() {
-            return $x("//*[@data-test='backupandrestore-tab-button']");
+            return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
 
         public SelenideElement systemParametersTab() {
@@ -91,6 +95,10 @@ public class CommonPageObj {
 
         public SelenideElement securityServerTLSKeyTab() {
             return $x("//*[@data-test='ss-tls-certificate-tab-button']");
+        }
+
+        public SelenideElement adminUsersTab() {
+            return $x("//*[@data-test='admin-users-tab-button']");
         }
 
     }

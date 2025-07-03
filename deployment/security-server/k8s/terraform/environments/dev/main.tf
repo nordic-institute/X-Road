@@ -115,4 +115,5 @@ module "security-server" {
   op_monitor_enabled = true
   opmonitor_db_postgres_password="admin_secret"
   opmonitor_db_user_password="secret"
+  proxy_ui_superuser_password = "$argon2id$v=19$m=16384,t=2,p=1$YXF3YXN6eHh6c2F3cQ$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0"  # argon2 hash of "secret"
 }

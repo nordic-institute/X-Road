@@ -45,7 +45,6 @@ include("common:common-message")
 include("common:common-properties")
 include("common:common-properties-db-source-quarkus")
 include("common:common-properties-db-source-spring")
-include("common:common-scheduler")
 
 // Lib projects
 include("lib")

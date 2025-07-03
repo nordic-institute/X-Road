@@ -104,6 +104,8 @@ services:
       - LIQUIBASE_COMMAND_URL=jdbc:postgresql://db-serverconf:5432/serverconf
       - db_user=serverconf
       - db_schema=public
+      - proxy_ui_superuser=xrd
+      - proxy_ui_superuser_password=$$argon2id$$v=19$$m=16384,t=2,p=1$$YXF3YXN6eHh6c2F3cQ$$+llp8EbxlqZaF2uO/BLoFLwfqxe1Yn6BvC/DOegq6A0 # argon2 hash of "secret" (a $ is escaped with another $)
     depends_on:
       db-serverconf:
         condition: service_healthy

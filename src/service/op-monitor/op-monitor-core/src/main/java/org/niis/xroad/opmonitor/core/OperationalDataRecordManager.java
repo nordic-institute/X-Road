@@ -30,12 +30,16 @@ import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
-import org.niis.xroad.opmonitor.core.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
+import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
 import java.util.Collections;
@@ -50,6 +54,7 @@ import static org.niis.xroad.opmonitor.core.OperationalDataOutputSpecFields.MONI
  * operational_data table, mapped by the OperationalDataRecord class.
  */
 @Slf4j
+@Singleton
 public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
@@ -57,6 +62,11 @@ public final class OperationalDataRecordManager {
 
     private final DatabaseCtx databaseCtx;
     private final int maxRecordsInPayload;
+
+    @Inject
+    public OperationalDataRecordManager(OpMonitorDatabaseCtx databaseCtx, OpMonitorProperties opMonitorProperties) {
+        this(databaseCtx, opMonitorProperties.maxRecordsInPayload());
+    }
 
     public OperationalDataRecordManager(DatabaseCtx databaseCtx, int maxRecordsInPayload) {
         this.databaseCtx = databaseCtx;

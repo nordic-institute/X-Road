@@ -46,6 +46,7 @@ public class OcspClientReloadJob {
     private final OcspClientExecuteScheduler ocspClientExecuteScheduler;
     private final Scheduler scheduler;
     private final SignerProperties signerProperties;
+    private final Scheduled.ApplicationNotRunning applicationNotRunning;
 
     void reload(ScheduledExecution execution) {
         log.trace("OcspClientReloadJob triggered");
@@ -61,7 +62,7 @@ public class OcspClientReloadJob {
                     .setInterval("60s")
                     .setTask(this::reload)
                     .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
-                    .setSkipPredicate(new Scheduled.ApplicationNotRunning())
+                    .setSkipPredicate(applicationNotRunning)
                     .schedule();
         } else {
             log.info("OCSP-retrieval configured to be inactive, job auto-scheduling disabled");

@@ -32,7 +32,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.TokenPinPolicy;
+import ee.ria.xroad.common.util.PasswordPolicy;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -373,7 +373,7 @@ public class SoftwareTokenWorkerFactory {
 
             log.info("Initializing software token with new pin...");
 
-            if (signerProperties.enforceTokenPinPolicy() && !TokenPinPolicy.validate(pin)) {
+            if (signerProperties.enforceTokenPinPolicy() && !PasswordPolicy.validate(pin)) {
                 throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
             }
 
@@ -402,7 +402,7 @@ public class SoftwareTokenWorkerFactory {
                 throw pinIncorrect();
             }
             // Verify new pin complexity
-            if (signerProperties.enforceTokenPinPolicy() && !TokenPinPolicy.validate(newPin)) {
+            if (signerProperties.enforceTokenPinPolicy() && !PasswordPolicy.validate(newPin)) {
                 throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE,
                         "Token PIN does not meet complexity requirements");
             }
@@ -415,12 +415,13 @@ public class SoftwareTokenWorkerFactory {
             isTokenLoginAllowed = false; // Prevent token login for the time of pin update
             try {
                 verifyOldAndNewPin(oldPin, newPin);
+
+                pinManager.updateTokenPin(tokenId, oldPin, newPin);
+
                 // Clear pin from pwstore and deactivate token
                 PasswordStore.storePassword(tokenId, null);
                 deactivateToken();
 
-                pinManager.updateTokenPin(tokenId, oldPin, newPin);
-                // Create a new temp folder for working
                 log.info("Updating the software token pin was successful!");
             } catch (Exception e) {
                 log.info("Updating the software token pin failed!");

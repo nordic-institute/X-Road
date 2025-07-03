@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
@@ -59,6 +60,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
+@Singleton
 public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -42,6 +43,8 @@ import java.util.StringJoiner;
  * @param subjectName        the subject name
  * @param subjectAltName     the subject alternative name
  * @param certificateProfile the certificate profile
+ * @param createdAt          when the DB record was created
+ * @param updatedAt          when the DB record was last updated
  */
 public record CertRequestData(
         Long id,
@@ -50,7 +53,9 @@ public record CertRequestData(
         ClientId.Conf memberId,
         String subjectName,
         String subjectAltName,
-        String certificateProfile) {
+        String certificateProfile,
+        Instant createdAt,
+        Instant updatedAt) {
 
     @Override
     public boolean equals(Object o) {
@@ -75,6 +80,8 @@ public record CertRequestData(
         return new StringJoiner(", ", CertRequestData.class.getSimpleName() + "[", "]")
                 .add("id=" + id)
                 .add("externalId='" + externalId + "'")
+                .add("createdAt=" + createdAt)
+                .add("updatedAt=" + updatedAt)
                 .toString();
     }
 }

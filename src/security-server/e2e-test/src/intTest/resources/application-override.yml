@@ -25,7 +25,6 @@ test-automation:
       enabled: false
   custom:
     cs-image: "ghcr.io/nordic-institute/xrddev-central-server:latest"
-    ss-image: "ghcr.io/nordic-institute/xrddev-security-server:latest"
     ca-image: "ghcr.io/nordic-institute/xrddev-testca:latest"
     isopenapi-image: "ghcr.io/nordic-institute/xrddev-example-restapi:latest"
     issoap-image: "niis/example-adapter:latest"

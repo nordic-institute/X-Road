@@ -28,8 +28,10 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.jupiter.api.Assertions;
@@ -55,7 +57,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -66,7 +67,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 /**
@@ -123,11 +123,11 @@ class CachingKeyConfImplTest {
         doConcurrentSigningInfoReads(callsToGetInfo, clients,
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, 5, NO_DELAY);
         expectedCacheHits = expectedCacheHits + 3;
-        assertEquals(expectedCacheHits, callsToGetInfo.get());
+        Assertions.assertEquals(expectedCacheHits, callsToGetInfo.get());
 
         // read cached data like in previous step, but one item becomes invalid suddenly -> one extra hit
         BooleanSupplier suddenlyInvalid = new BooleanSupplier() {
-            AtomicInteger counter = new AtomicInteger(0);
+            final AtomicInteger counter = new AtomicInteger(0);
 
             @Override
             public boolean getAsBoolean() {
@@ -138,7 +138,7 @@ class CachingKeyConfImplTest {
         doConcurrentSigningInfoReads(callsToGetInfo, clients,
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, suddenlyInvalid, 5, 5, NO_DELAY);
         expectedCacheHits = expectedCacheHits + 4;
-        assertEquals(expectedCacheHits, callsToGetInfo.get());
+        Assertions.assertEquals(expectedCacheHits, callsToGetInfo.get());
 
         // if we read with 5 threads, and key conf is always changed, what can happen:
         // - all threads check "keyConfHasChanged()" at the same time,
@@ -173,12 +173,12 @@ class CachingKeyConfImplTest {
                 NO_DELAY);
 
         when(signerRpcClient.getKeyConfChecksum()).thenAnswer(
-                (Answer<String>) invocation -> keyConfHasChanged.getAsBoolean() ? UUID.randomUUID().toString() : "theSameChecksum");
+                (Answer<Integer>) invocation -> keyConfHasChanged.getAsBoolean() ? RandomUtils.insecure().randomInt() : 10);
 
         int expectedCacheHits = 1;
         // should cause 1 cache refresh
         testCachingKeyConf.getAuthKey();
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        Assertions.assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // change keyconf
         keyConfHasChanged.setValue(true);
@@ -188,7 +188,7 @@ class CachingKeyConfImplTest {
         testCachingKeyConf.getAuthKey();
 
         expectedCacheHits++;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        Assertions.assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
     }
 
     @Test
@@ -217,14 +217,14 @@ class CachingKeyConfImplTest {
         };
         doConcurrentCacheReads(readOperation, 5, NO_LOOPING);
 
-        assertEquals(++expectedCacheHits, callsToGetAuthKeyInfo.get());
+        Assertions.assertEquals(++expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // next read one key, but this time key is not valid -> one more hit
         keyValidity.setValue(false);
 
         doConcurrentCacheReads(readOperation, 1, NO_LOOPING);
 
-        assertEquals(++expectedCacheHits, callsToGetAuthKeyInfo.get());
+        Assertions.assertEquals(++expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // if we read with 5 threads, and key conf is always invalid, what can happen:
         // - all threads check "info.verifyValidity(new Date())" at the same time,
@@ -255,7 +255,7 @@ class CachingKeyConfImplTest {
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 100);
         expectedCacheHits++;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        Assertions.assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // next read key twice, but this time serverId has changed -> one more hit
         serverConfProvider = new EmptyServerConf() {
@@ -267,7 +267,7 @@ class CachingKeyConfImplTest {
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 1, 2, NO_DELAY);
         expectedCacheHits++;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        Assertions.assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
     }
 
     @Test
@@ -297,8 +297,7 @@ class CachingKeyConfImplTest {
                 VALID_SIGNING_INFO,
                 NO_DELAY);
 
-        assertEquals(expected,
-                testCachingKeyConf.calculateNotAfter(Collections.singletonList(response), ca.getNotAfter()));
+        Assertions.assertEquals(expected, testCachingKeyConf.calculateNotAfter(Collections.singletonList(response), ca.getNotAfter()));
     }
 
     /**
@@ -457,7 +456,7 @@ class CachingKeyConfImplTest {
         private void delay(long delayMs) throws Exception {
             if (cacheReadDelayMs > 0) {
                 log.debug("simulating a slow read");
-                Thread.currentThread().sleep(delayMs);
+                Thread.sleep(delayMs);
             }
         }
 
@@ -491,15 +490,12 @@ class CachingKeyConfImplTest {
     /**
      * BooleanSupplier which allows for changing value
      */
+    @Setter
     private static class ToggleableBooleanSupplier implements BooleanSupplier {
         private boolean value;
 
         ToggleableBooleanSupplier(boolean value) {
             this.value = value;
-        }
-
-        public void setValue(boolean booleanValue) {
-            this.value = booleanValue;
         }
 
         @Override

@@ -34,6 +34,46 @@ services:
           memory: 512M
     volumes:
       - ./signer-container-files/etc/xroad/globalconf:/etc/xroad/globalconf
+      - softhsm-tokens:/var/lib/softhsm/tokens/
+  signer-secondary:
+    build:
+      context: ./signer-container-files/
+      args:
+        - SIGNER_IMG=${SIGNER_IMG}
+      dockerfile: Dockerfile
+    pull_policy: always
+    environment:
+      - XROAD_HOST=signer-secondary
+      - XROAD_COMMON_RPC_USE_TLS=false
+      - XROAD_COMMON_GLOBAL_CONF_SOURCE=FILESYSTEM
+      - XROAD_SIGNER_ADDON_HWTOKEN_ENABLED=true
+      - JAVA_TOOL_OPTIONS=-Dxroad.internal.passwordstore-provider=file -Dxroad.internal.passwordstore-file-path=/etc/xroad/
+      - XROAD_SIGNER_OCSP_RESPONSE_RETRIEVAL_ACTIVE=true
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_URL=jdbc:postgresql://db-serverconf:5432/serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_DRIVER_CLASS=org.postgresql.Driver
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_USERNAME=serverconf
+      - XROAD_DB_SERVERCONF_HIBERNATE_CONNECTION_PASSWORD=secret
+      - XROAD_NODE_TYPE=secondary
+    ports:
+      - "0:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:4099/q/health" ]
+    depends_on:
+      db-serverconf-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 96M
+        limits:
+          memory: 512M
+    volumes:
+      - ./signer-container-files/etc/xroad/globalconf:/etc/xroad/globalconf
+      - softhsm-tokens:/var/lib/softhsm/tokens/
   db-serverconf:
     image: postgres:17
     environment:
@@ -79,3 +119,6 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "http://localhost:8888/testca/certs/" ]
+
+volumes:
+  softhsm-tokens:
