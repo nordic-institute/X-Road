@@ -38,8 +38,8 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
-import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
+import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
 import org.niis.xroad.opmonitor.core.mapper.OperationalDataRecordMapper;
 
 import java.util.Collections;

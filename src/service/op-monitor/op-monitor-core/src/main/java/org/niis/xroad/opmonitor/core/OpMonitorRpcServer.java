@@ -34,7 +34,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
 import org.niis.xroad.common.rpc.credentials.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.server.ManagedRpcServer;
-import org.niis.xroad.monitor.core.configuration.EnvMonitorServerProperties;
+import org.niis.xroad.opmonitor.core.config.OpMonitorServerProperties;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ import java.util.List;
 @Singleton
 public class OpMonitorRpcServer extends ManagedRpcServer {
     public OpMonitorRpcServer(@All List<BindableService> services,
-                              EnvMonitorServerProperties rpcServerProperties,
+                              OpMonitorServerProperties rpcServerProperties,
                               RpcCredentialsConfigurer rpcCredentialsConfigurer) {
         super(services, rpcServerProperties, rpcCredentialsConfigurer);
     }

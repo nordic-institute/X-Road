@@ -55,7 +55,9 @@ public class OpMonitorIntTestSetup implements TestableContainerInitializer {
         env = new ComposeContainer("op-monitor-",
                 new File(COMPOSE_FILE))
                 .withLocalCompose(true)
-                .withExposedService(OP_MONITOR, OP_MONITOR_DAEMON_GRPC_PORT, Wait.forHealthcheck().withStartupTimeout(OP_MONITOR_STARTUP_TIMEOUT))
+                .withExposedService(OP_MONITOR,
+                        OP_MONITOR_DAEMON_GRPC_PORT,
+                        Wait.forHealthcheck().withStartupTimeout(OP_MONITOR_STARTUP_TIMEOUT))
                 .withExposedService(DB_OP_MONITOR, DB_OP_MONITOR_PORT, Wait.forListeningPort())
                 .withLogConsumer(OP_MONITOR, createLogConsumer(OP_MONITOR))
                 .withLogConsumer(DB_OP_MONITOR_INIT, createLogConsumer(DB_OP_MONITOR_INIT));

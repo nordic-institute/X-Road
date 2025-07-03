@@ -30,7 +30,7 @@ import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 
-@ConfigMapping(prefix = "xroad.env-monitor.rpc")
+@ConfigMapping(prefix = "xroad.op-monitor.rpc")
 public interface OpMonitorServerProperties extends RpcServerProperties {
     @WithName("enabled")
     @WithDefault("true")
@@ -43,7 +43,7 @@ public interface OpMonitorServerProperties extends RpcServerProperties {
     String listenAddress();
 
     @WithName("port")
-    @WithDefault("2552")
+    @WithDefault("2081")
     @Override
     int port();
 }
