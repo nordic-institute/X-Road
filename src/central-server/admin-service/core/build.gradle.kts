@@ -26,6 +26,7 @@ dependencies {
 
   implementation(libs.apache.commonsCompress)
   implementation(libs.mapstruct)
+  implementation(project(":common:common-rpc-spring"))
 
   testImplementation(project(":common:common-test"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")

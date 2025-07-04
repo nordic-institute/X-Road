@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
@@ -45,8 +46,10 @@ import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
 import org.niis.xroad.signer.client.SignerRpcClient;
+import org.niis.xroad.signer.client.SignerSignClient;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateParsingException;
@@ -77,9 +80,14 @@ public class AcmeClientWorker {
 
     private final AcmeService acmeService;
     private final SignerRpcClient signerRpcClient;
+    private final SignerSignClient signerSignClient;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
     private final MailNotificationHelper mailNotificationHelper;
+    private final VaultKeyProvider vaultKeyProvider;
+
+    @Value("${xroad.proxy-ui-api.security-server-url}")
+    private String proxyUrl;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -369,8 +377,8 @@ public class AcmeClientWorker {
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfService.getSecurityServerOwnerId();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
-                SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(vaultKeyProvider, globalConfProvider, signerRpcClient,
+                signerSignClient, sender, receiver, proxyUrl);
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {

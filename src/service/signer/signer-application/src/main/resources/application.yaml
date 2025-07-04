@@ -1,0 +1,44 @@
+quarkus:
+  application:
+    name: signer
+  config:
+    locations:
+      - /etc/xroad/conf.d/local.yaml
+      - /etc/xroad/db.properties
+      - xroad-common.yaml
+      - xroad-logging.yaml
+  scheduler:
+    start-mode: forced
+    enabled: true
+  log:
+    category:
+      "io.grpc":
+        level: "INFO"
+
+"%containerized":
+  xroad:
+    signer:
+      rpc:
+        listen-address: 0.0.0.0
+
+"%native":
+  quarkus:
+    log:
+      file:
+        enable: true
+        path: /var/log/xroad/signer.log
+
+"%ss":
+  xroad:
+    signer:
+      ocsp-response-retrieval-active: true
+
+"%test":
+  quarkus:
+    log:
+      file:
+        enable: false
+  xroad:
+    signer:
+      rpc:
+        enabled: false

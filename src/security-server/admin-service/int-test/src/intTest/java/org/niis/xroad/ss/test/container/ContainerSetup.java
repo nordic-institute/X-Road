@@ -37,9 +37,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.dockerfile.DockerfileBuilder;
 
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Configuration
@@ -71,15 +69,7 @@ public class ContainerSetup {
             public List<String> customizeCommandParts() {
                 return List.of(
                         "-Dxroad.signer.enforce-token-pin-policy=true",
-                        "-Dxroad.common.grpc-internal-tls-enabled=false");
-            }
-
-            @NotNull
-            @Override
-            public Map<String, String> additionalEnvironmentalVariables() {
-                Map<String, String> envConfig = new HashMap<>();
-                envConfig.put("signerProxyMockUri", mockServerContainer.getEndpoint());
-                return envConfig;
+                        "-Dxroad.common.rpc.use-tls=false");
             }
 
             @NotNull

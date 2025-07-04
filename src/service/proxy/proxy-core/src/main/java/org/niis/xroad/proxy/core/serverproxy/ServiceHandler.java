@@ -34,7 +34,7 @@ import org.niis.xroad.proxy.core.protocol.ProxyMessage;
 
 import java.io.InputStream;
 
-interface ServiceHandler {
+public interface ServiceHandler {
 
     boolean shouldVerifyAccess();
 

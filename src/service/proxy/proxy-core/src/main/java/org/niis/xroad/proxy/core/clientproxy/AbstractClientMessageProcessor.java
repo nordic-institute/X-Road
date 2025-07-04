@@ -176,7 +176,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         var maintenanceModeErrors = new LinkedList<CodedException>();
 
         for (var host : hostNames) {
-            var inMaintenance = commonBeanProxy.globalConfProvider.getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
+            var inMaintenance = commonBeanProxy.getGlobalConfProvider().getMaintenanceMode(serviceProvider.getXRoadInstance(), host)
                     .filter(SharedParameters.MaintenanceMode::enabled)
                     .map(mode -> buildMaintenanceModeException(null, host, mode.message()))
                     .map(maintenanceModeErrors::add)
@@ -208,7 +208,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     private Collection<String> hostNamesByProvider(ServiceId serviceProvider) {
-        var hostNames = commonBeanProxy.globalConfProvider.getProviderAddress(serviceProvider.getClientId());
+        var hostNames = commonBeanProxy.getGlobalConfProvider().getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -219,7 +219,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
     }
 
     private Collection<String> hostNamesBySecurityServer(SecurityServerId serverId, Collection<String> hostNamesByProvider) {
-        final String securityServerAddress = commonBeanProxy.globalConfProvider.getSecurityServerAddress(serverId);
+        final String securityServerAddress = commonBeanProxy.getGlobalConfProvider().getSecurityServerAddress(serverId);
 
         if (securityServerAddress == null) {
             throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
@@ -229,7 +229,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serverId);
         }
 
-        commonBeanProxy.globalConfProvider.getMaintenanceMode(serverId)
+        commonBeanProxy.getGlobalConfProvider().getMaintenanceMode(serverId)
                 .filter(SharedParameters.MaintenanceMode::enabled)
                 .ifPresent(maintenanceMode -> {
                     throw buildMaintenanceModeException(serverId, securityServerAddress, maintenanceMode.message());
@@ -278,7 +278,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
-        String status = commonBeanProxy.serverConfProvider.getMemberStatus(client);
+        String status = commonBeanProxy.getServerConfProvider().getMemberStatus(client);
         if (!Client.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }

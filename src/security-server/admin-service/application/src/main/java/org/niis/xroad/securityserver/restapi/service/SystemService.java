@@ -30,8 +30,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.process.ProcessFailedException;
-import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -41,6 +39,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -52,18 +51,15 @@ import org.niis.xroad.securityserver.restapi.cache.MaintenanceModeStatus;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
-import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.serverconf.impl.entity.TimestampingServiceEntity;
 import org.niis.xroad.serverconf.impl.mapper.TimestampingServiceMapper;
 import org.niis.xroad.serverconf.model.TimestampingService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -101,12 +97,11 @@ public class SystemService {
 
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
-    private final AnchorRepository anchorRepository;
-    private final ConfigurationVerifier configurationVerifier;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final ConfClientRpcClient confClientRpcClient;
     private final MaintenanceModeStatus maintenanceModeStatus;
     private final GlobalConfProvider globalConfProvider;
 
@@ -114,9 +109,6 @@ public class SystemService {
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
     @Setter
     private String tempFilesPath = SystemProperties.getTempFilesPath();
-    @Setter
-    @Value("${script.internal-configuration-verifier.path}")
-    private String internalConfVerificationScriptPath;
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -228,8 +220,9 @@ public class SystemService {
      * @throws AnchorFileNotFoundException if anchor file is not found
      */
     public AnchorFile getAnchorFile() throws AnchorFileNotFoundException {
-        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(readAnchorFile()));
-        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
+        byte[] anchorBytes = readAnchorFile();
+        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
+        ConfigurationAnchor anchor = new ConfigurationAnchor(anchorBytes);
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
         return anchorFile;
     }
@@ -282,16 +275,14 @@ public class SystemService {
      * @param anchorBytes
      * @param shouldVerifyAnchorInstance whether the anchor instance should be verified or not. Usually it should
      *                                   always be verified (and this parameter should be true)
-     *                                   but e.g. when initializing a new Security Server it    cannot be verified
-     *                                   (and this parameter should be set to false)
+     *                                   but e.g. when initializing a new Security Server it
+     *                                   cannot be verified* (and this parameter should be set to false)
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      * @throws AnchorUploadException          in case of external process exceptions
      * @throws MalformedAnchorException       if the Anchor content is wrong
      * @throws ConfigurationDownloadException if the configuration download request succeeds
      *                                        but configuration-client returns an error
      */
-    // SonarQube: "InterruptedException" should not be ignored -> it has already been handled at this point
-    @SuppressWarnings("squid:S2142")
     private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
                    ConfigurationDownloadException {
@@ -301,24 +292,8 @@ public class SystemService {
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
         }
-        File tempAnchor = null;
-        try {
-            tempAnchor = createTemporaryAnchorFile(anchorBytes);
-            configurationVerifier.verifyConfiguration(internalConfVerificationScriptPath, tempAnchor.getAbsolutePath());
-            anchorRepository.saveAndReplace(tempAnchor);
-            globalConfService.executeDownloadConfigurationFromAnchor();
-        } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {
-            throw new AnchorUploadException(e);
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot upload a new anchor", e);
-        } finally {
-            if (tempAnchor != null) {
-                boolean deleted = tempAnchor.delete();
-                if (!deleted) {
-                    log.error("Temporary anchor could not be deleted: {}", tempAnchor.getAbsolutePath());
-                }
-            }
-        }
+        int returnCode = confClientRpcClient.verifyAndSaveConfigurationAnchor(anchorBytes);
+        ConfigurationVerifier.throwIfErrorCodeReturned(returnCode);
     }
 
     /**
@@ -327,10 +302,7 @@ public class SystemService {
      */
     public boolean isAnchorImported() {
         try {
-            AnchorFile anchorFile = getAnchorFile();
-            if (anchorFile != null) {
-                return true;
-            }
+            return getAnchorFile() != null;
         } catch (AnchorFileNotFoundException e) {
             // global conf does not exist
         }
@@ -423,8 +395,8 @@ public class SystemService {
      */
     public byte[] readAnchorFile() throws AnchorFileNotFoundException {
         try {
-            return anchorRepository.readAnchorFile();
-        } catch (NoSuchFileException e) {
+            return confClientRpcClient.getConfigurationAnchor();
+        } catch (Exception e) {
             throw new AnchorFileNotFoundException("Anchor file not found", e);
         }
     }
@@ -432,11 +404,11 @@ public class SystemService {
     /**
      * Generate anchor file download name with the anchor file created at date/time. The name format is:
      * "configuration_anchor_UTC_yyyy-MM-dd_HH_mm_ss.xml".
-     * @return
+     * @return anchor file name
      */
-    public String getAnchorFilenameForDownload() {
+    public String getAnchorFilenameForDownload() throws InitializationService.AnchorNotFoundException {
         DateFormat df = new SimpleDateFormat(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT);
-        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
+        ConfigurationAnchor anchor = new ConfigurationAnchor(readAnchorFile());
         return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 

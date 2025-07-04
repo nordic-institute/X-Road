@@ -27,11 +27,9 @@ package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
-import com.nortal.test.testcontainers.TestableApplicationContainerProvider;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
 
 import static com.codeborne.selenide.Condition.text;
 import static java.time.Duration.ofSeconds;
@@ -41,7 +39,7 @@ import static org.junit.Assert.assertFalse;
 public class CommonStepDefs extends BaseUiStepDefs {
 
     @Autowired
-    private TestableApplicationContainerProvider containerProvider;
+    private EnvSetup envSetup;
 
     @Step("Page is prepared to be tested")
     public void preparePage() {
@@ -102,8 +100,8 @@ public class CommonStepDefs extends BaseUiStepDefs {
     }
 
     @Step("file {string} exists")
-    public void fileExists(String filePath) throws IOException, InterruptedException {
-        var fileContent = containerProvider.getContainer().execInContainer("cat", filePath).getStdout();
+    public void fileExists(String filePath) {
+        var fileContent = envSetup.execInContainer(EnvSetup.PROXY, "cat", filePath).getStdout();
         assertFalse(fileContent.isEmpty());
     }
 }
