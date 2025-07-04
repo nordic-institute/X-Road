@@ -119,12 +119,13 @@
               </div>
             </td>
             <td
-              class="vertical-align-top pt-2"
+              class="vertical-align-top pt-2 fixed-width"
               data-test="mail-notification-recipients"
             >
-              <p
+              <div
                 v-for="recipient in mailNotificationStatus.recipients_emails"
                 :key="recipient"
+                class="recipient-wrapper"
               >
                 {{ recipient }}
                 <xrd-button
@@ -133,22 +134,24 @@
                   variant="text"
                   data-test="send-test-mail"
                   @click="sendTestMailNotification(recipient)"
-                  >{{
-                    $t('diagnostics.mailNotificationConfiguration.sentTestMail')
-                  }}</xrd-button
                 >
-                <v-alert
-                  v-if="testMailStatuses[recipient]"
-                  class="mx-2"
-                  border="start"
-                  :type="testMailStatuses[recipient].type"
-                  variant="outlined"
-                  density="compact"
-                  data-test="test-mail-result"
-                >
-                  {{ testMailStatuses[recipient].text }}
-                </v-alert>
-              </p>
+                  {{ $t('diagnostics.mailNotificationConfiguration.sentTestMail') }}
+                </xrd-button>
+
+                <div class="alert-container">
+                  <v-alert
+                    v-if="testMailStatuses[recipient]"
+                    class="test-alert"
+                    border="start"
+                    :type="testMailStatuses[recipient].type"
+                    variant="outlined"
+                    density="compact"
+                    data-test="test-mail-result"
+                  >
+                    {{ testMailStatuses[recipient].text }}
+                  </v-alert>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -243,5 +246,29 @@ export default defineComponent({
 
 .help-icon {
   display: inline-block;
+}
+
+.fixed-width {
+  width: 40%;
+  max-width: 40%;
+  word-break: break-word;
+}
+
+.recipient-wrapper {
+  word-break: break-word;
+}
+
+.alert-container {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.test-alert {
+  margin-top: 0.5rem;
+  margin-right: 0.5rem;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 </style>

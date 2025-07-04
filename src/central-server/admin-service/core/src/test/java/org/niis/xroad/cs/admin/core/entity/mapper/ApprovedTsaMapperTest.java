@@ -37,6 +37,7 @@ import org.niis.xroad.cs.admin.core.converter.KeyUsageConverter;
 import org.niis.xroad.cs.admin.core.entity.ApprovedTsaEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigInteger;
@@ -49,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.niis.xroad.cs.admin.api.domain.ApprovedTsa.ApprovedTsaCost.UNDEFINED;
 import static org.niis.xroad.cs.admin.api.dto.KeyUsageEnum.NON_REPUDIATION;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = {ApprovedTsaMapperImpl.class, CertificateConverter.class, KeyUsageConverter.class})
 class ApprovedTsaMapperTest {
 

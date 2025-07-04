@@ -18,7 +18,10 @@
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },
   "dependencies": {
-    "@niis/shared-ui": "workspace:*"
+    "@niis/shared-ui": "workspace:*",
+    "apexcharts": "^4.7.0",
+    "maska": "^3.1.1",
+    "vue3-apexcharts": "^1.8.0"
   },
   "devDependencies": {
     "@pinia/testing": "^1.0.2",

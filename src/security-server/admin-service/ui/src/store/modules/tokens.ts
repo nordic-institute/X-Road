@@ -57,7 +57,7 @@ export const useTokens = defineStore('tokens', {
     };
   },
   persist: {
-    paths: ['tokens', 'selectedToken'],
+    pick: ['tokens', 'selectedToken'],
   },
   getters: {
     filteredTokens: (state) => (search: string) => {

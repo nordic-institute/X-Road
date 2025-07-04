@@ -34,6 +34,7 @@ import org.niis.xroad.cs.admin.core.entity.AnchorUrlEntity;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Objects;
 import java.util.Set;
@@ -41,6 +42,7 @@ import java.util.Set;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("test")
 @SpringBootTest(classes = TrustedAnchorMapperImpl.class)
 class TrustedAnchorMapperTest {
     @Autowired

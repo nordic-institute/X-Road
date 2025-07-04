@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.99  
+Version: 2.100  
 Doc. ID: UG-SS
 
 ---
@@ -128,6 +128,7 @@ Doc. ID: UG-SS
 | 30.04.2025 | 2.97    | Added ACME challenge port environment variable toggle                                                                                                                                                                                                                                                                                                                                                       | Mikk-Erik Bachmann   |
 | 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
+| 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2726,6 +2727,39 @@ The generated certificate, in the file `opmonitor.crt`, must be copied to the co
 
     [op-monitor]
     tls-certificate = <path/to/external/daemon/tls/cert>
+
+For the request traffic visualization on the Security Server UI Diagnostics page, gRPC keystore and truststore also need to be configured on both ends. Certificate that corresponds to the key in external Operational Monitoring gRPC keystore needs to be added to the gRPC truststore on the Security Server side and vice versa - Security Server's gRPC certificate needs to be added to the external monitoring daemon's truststore. The gRPC keystore and truststore system parameters are described in \[[UGSYSPAR](#31-common-parameters--common)\].
+
+You can use java `keytool` and `openssl` when working with gRPC keystores and truststores:
+
+* **Example 1 - extracting certificate in pem format from existing p12 keystore in default location**:
+
+    ```shell
+    openssl pkcs12 -in /var/run/xroad/xroad-grpc-internal-keystore.p12 -nokeys -out <path/to/cert>
+    ```
+
+* **Example 2 - importing existing certificate in pem format to new or existing truststore in p12 format**:
+
+    ```shell
+    keytool -importcert \
+      -file <path/to/cert> \       
+      -alias <suitable unique alias for security server> \
+      -keystore <path/to/truststore> \
+      -storetype PKCS12 \                                        
+      -storepass <truststorepassword>
+    ```
+    and then in `/etc/xroad/local.ini` add:
+
+    ```properties
+    ...
+    [common]
+    grpc-internal-keystore=<path/to/keystore>
+    grpc-internal-keystore-password=<keystorepassword>
+    grpc-internal-truststore=<path/to/truststore>
+    grpc-internal-truststore-password=<truststorepassword>
+    ...
+    ```
+  _Note: By default Security Server gRPC keystore and truststore are one and the same with a single key and certificate that is shared by different applications which all sit on the same machine. But in case of multiple hosts and certificates it's recommended to have keystore and truststore be separate: the keystore has the local application's key and truststore has certificates of trusted external applications that communicate with it over the network._
 
 For the external operational daemon to be used, the proxy service at the Security Server must be restarted:
 

@@ -31,7 +31,9 @@ import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
+import org.niis.xroad.opmonitor.api.OpMonitoringBuffer;
 import org.niis.xroad.proxy.core.ProxyProperties;
+import org.niis.xroad.proxy.core.addon.opmonitoring.NoOpMonitoringBuffer;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
@@ -41,8 +43,10 @@ import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 public class ProxyDiagnosticsConfig {
 
     @ApplicationScoped
-    AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager) {
-        return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass());
+    AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager,
+                                                  OpMonitoringBuffer opMonitoringBuffer) {
+        return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass(),
+                NoOpMonitoringBuffer.class != opMonitoringBuffer.getClass());
     }
 
     @ApplicationScoped

@@ -75,6 +75,9 @@ import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters
 import TabsBase from '@/layouts/TabsBase.vue';
 import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
+import DiagnosticsTabs from '@/views/Diagnostics/DiagnosticsTabs.vue';
+import DiagnosticsOverview from '@/views/Diagnostics/Overview/DiagnosticsOverview.vue';
+import TrafficContainer from '@/views/Diagnostics/Traffic/TrafficContainer.vue';
 import { XrdAddAdminUser, XrdAdminUsers } from '@niis/shared-ui';
 
 const routes: RouteRecordRaw[] = [
@@ -154,14 +157,33 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
-        name: RouteName.Diagnostics,
         path: '/diagnostics',
+        meta: { permissions: [Permissions.DIAGNOSTICS] },
         components: {
           default: DiagnosticsView,
           top: TabsBase,
+          subTabs: DiagnosticsTabs,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.DIAGNOSTICS] },
+        props: {
+          subTabs: true,
+        },
+        children: [
+          {
+            name: RouteName.Diagnostics,
+            path: '',
+            component: DiagnosticsOverview,
+            props: true,
+            meta: { permissions: [Permissions.DIAGNOSTICS] },
+          },
+          {
+            name: RouteName.DiagnosticsTraffic,
+            path: 'traffic',
+            component: TrafficContainer,
+            props: true,
+            meta: { permissions: [Permissions.DIAGNOSTICS] },
+          },
+        ],
       },
       {
         path: '/settings',

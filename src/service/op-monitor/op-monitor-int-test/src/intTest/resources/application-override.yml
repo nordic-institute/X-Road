@@ -3,8 +3,8 @@
 logging:
   level:
     ROOT: INFO
-    cucumber: TRACE
-    liquibase: WARN
+    cucumber: INFO
+    liquibase: INFO
     org.springframework: INFO
     org.niis: INFO
     com.nortal.test: TRACE # TRACE is helpful for development

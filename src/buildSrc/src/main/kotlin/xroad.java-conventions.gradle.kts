@@ -16,6 +16,7 @@ java {
   }
 }
 
+val mockitoAgent = configurations.maybeCreate("mockitoAgent")
 val libs = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 dependencies {
@@ -27,6 +28,10 @@ dependencies {
 
   testCompileOnly(libs.findLibrary("lombok").get())
   testAnnotationProcessor(libs.findLibrary("lombok").get())
+
+  testImplementation(libs.findLibrary("mockito-core").get())
+  testImplementation(libs.findLibrary("mockito-jupiter").get())
+  mockitoAgent(libs.findLibrary("mockito-core").get()) { isTransitive = false }
 
   "archUnitExtraLib"(project(":arch-rules"))
 }
@@ -67,6 +72,8 @@ tasks.withType<Test>() {
   reports {
     junitXml.includeSystemOutLog = false // defaults to true
   }
+
+  jvmArgs("-javaagent:${mockitoAgent.asPath}")
 }
 
 checkstyle {

@@ -108,14 +108,16 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getAddOnDiagnostics() throws Exception {
-        when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(true));
+        when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(true, true));
         ResponseEntity<AddOnStatusDto> response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody().getMessagelogEnabled());
+        assertEquals(true, response.getBody().getOpmonitoringEnabled());
 
-        when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(false));
+        when(proxyRpcClient.getAddOnStatus()).thenReturn(new AddOnStatusDiagnostics(false, false));
         response = diagnosticsApiController.getAddOnDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(false, response.getBody().getMessagelogEnabled());
         assertEquals(false, response.getBody().getMessagelogEnabled());
     }
 

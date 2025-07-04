@@ -64,8 +64,10 @@ public interface MessageRecordMapper {
     }
 
     @Mapping(target = "messageCipher", ignore = true)
+    @Mapping(target = "attachmentStreams", ignore = true)
     MessageRecord toDTO(MessageRecordEntity source);
 
+    @Mapping(target = "attachmentCipher", ignore = true)
     MessageAttachment toDTO(MessageAttachmentEntity source);
 
     TimestampRecord toDTO(TimestampRecordEntity source);

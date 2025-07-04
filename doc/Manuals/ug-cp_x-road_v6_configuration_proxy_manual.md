@@ -1,6 +1,6 @@
 # X-Road: Configuration Proxy Manual
 
-Version: 2.15  
+Version: 2.16  
 Doc. ID: UG-CP
 
 ## Version History
@@ -29,6 +29,7 @@ Doc. ID: UG-CP
 | 21.10.2024 | 2.13    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys and addtinal arguments for `confproxy-add-signing-key` to enable EC key creation        | Ovidijus Narkevicius |
 | 10.03.2025 | 2.14    | Remove Ubuntu 20.04 from supported platforms and other minor updates                                                                                                                          | Petteri Kivimäki     |
 | 20.05.2025 | 2.15    | Minor updates                                                                                                                                                                                 | Eneli Reimets        |
+| 30.06.2025 | 2.16    | Update the method of adding X-Road apt repository                                                                                                                                             | Mikk-Erik Bachmann   |
 
 ## Table of Contents
 
@@ -147,11 +148,11 @@ To install the X-Road Configuration Proxy software, follow these steps.
 
 1.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+        curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
 
 2.  Add X-Road package repository (**reference data: 1.1**)
 
-        sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+        echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
 
 3.  Issue the following commands to install the Configuration Proxy packages:
 

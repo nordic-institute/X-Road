@@ -61,6 +61,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         ManagementServiceMain.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
+                "spring.main.banner-mode=off",
+                "logging.level.root=ERROR",
                 "xroad.management-service.rate-limit-requests-per-minute=10",
                 "xroad.management-service.rate-limit-requests-per-second=5"})
 @ActiveProfiles({"test"})

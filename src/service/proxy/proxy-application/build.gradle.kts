@@ -13,8 +13,11 @@ quarkus {
   )
 }
 
-configurations.configureEach {
-  exclude(group = "xml-apis", module = "xml-apis") // This library interferes with Jetty
+configurations.named("runtimeClasspath") {
+  exclude(group = "xml-apis", module = "xml-apis")
+}
+configurations.named("testRuntimeClasspath") {
+  exclude(group = "xml-apis", module = "xml-apis")
 }
 
 dependencies {

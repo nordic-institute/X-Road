@@ -37,29 +37,29 @@ import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
 export interface DiagnosticsState {
-  addOnStatus: AddOnStatus;
+  addOnStatus?: AddOnStatus;
   timestampingServices: TimestampingServiceDiagnostics[];
-  globalConf: GlobalConfDiagnostics;
+  globalConf?: GlobalConfDiagnostics;
   ocspResponderDiagnostics: OcspResponderDiagnostics[];
-  backupEncryptionDiagnostics: BackupEncryptionStatus;
-  messageLogEncryptionDiagnostics: MessageLogEncryptionStatus;
-  proxyMemoryUsageStatus: ProxyMemoryUsageStatus;
+  backupEncryptionDiagnostics?: BackupEncryptionStatus;
+  messageLogEncryptionDiagnostics?: MessageLogEncryptionStatus;
+  proxyMemoryUsageStatus?: ProxyMemoryUsageStatus;
 }
 
 export const useDiagnostics = defineStore('diagnostics', {
   state: (): DiagnosticsState => {
     return {
-      addOnStatus: undefined as AddOnStatus | undefined,
-      timestampingServices: [] as TimestampingServiceDiagnostics[],
-      globalConf: undefined as GlobalConfDiagnostics | undefined,
-      ocspResponderDiagnostics: [] as OcspResponderDiagnostics[],
-      backupEncryptionDiagnostics: undefined as
-        | BackupEncryptionStatus
-        | undefined,
-      messageLogEncryptionDiagnostics: undefined as
-        | MessageLogEncryptionStatus
-        | undefined,
+      addOnStatus: undefined,
+      timestampingServices: [],
+      globalConf: undefined,
+      ocspResponderDiagnostics: [],
+      backupEncryptionDiagnostics: undefined,
+      messageLogEncryptionDiagnostics: undefined,
+      proxyMemoryUsageStatus: undefined,
     };
+  },
+  persist: {
+    pick: ['addOnStatus'],
   },
   getters: {
     messageLogEnabled(state): boolean {

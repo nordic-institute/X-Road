@@ -31,7 +31,7 @@ dependencies {
   implementation(project(":common:common-rpc-quarkus"))
 
   testImplementation(libs.hsqldb)
-  testImplementation(libs.mockito.core)
+  testImplementation(project(":common:common-test"))
   testImplementation(libs.commons.cli)
   testImplementation(testFixtures(project(":common:common-properties")))
 

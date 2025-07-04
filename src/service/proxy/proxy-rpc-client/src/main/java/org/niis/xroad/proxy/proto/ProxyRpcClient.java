@@ -80,7 +80,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
     public AddOnStatusDiagnostics getAddOnStatus() throws Exception {
         var response = exec(() -> adminServiceBlockingStub
                 .getAddOnStatus(Empty.getDefaultInstance()));
-        return new AddOnStatusDiagnostics(response.getMessageLogEnabled());
+        return new AddOnStatusDiagnostics(response.getMessageLogEnabled(), response.getOpMonitoringEnabled());
     }
 
     public MessageLogEncryptionStatusDiagnostics getMessageLogEncryptionStatus() throws Exception {
