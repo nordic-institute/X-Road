@@ -135,11 +135,12 @@ case "$1" in
 
   DEFAULT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-default')"
   RECOMMENDED_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-recommended')"
+  CURRENT_XM="$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-current')"
 
   db_subst xroad-common/proxy-memory DEFAULT_XM "$DEFAULT_XM"
   db_subst xroad-common/proxy-memory RECOMMENDED_XM "$RECOMMENDED_XM"
 
-  db_set xroad-common/proxy-memory "$(/usr/share/xroad/scripts/proxy_memory_helper.sh 'get-current')"
+  db_set xroad-common/proxy-memory "$CURRENT_XM"
 
   while :; do
     # Get memory config string from the user
@@ -149,7 +150,12 @@ case "$1" in
     RET=""
     db_get xroad-common/proxy-memory || RET=""
 
-    if [[ -z "$RET" || "$RET" == "d" ]];then
+    if [ -z "$RET" ];then
+      if [ -z "$CURRENT_XM" ];then
+        /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
+      fi
+      break
+    elif [ "$RET" == "d" ];then
       /usr/share/xroad/scripts/proxy_memory_helper.sh 'apply-default'
       break
     elif [ "$RET" == "r" ];then
