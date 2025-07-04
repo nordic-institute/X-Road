@@ -45,10 +45,10 @@ public class ProxyMonitorService extends MonitorServiceGrpc.MonitorServiceImplBa
     public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
         try {
             responseObserver.onNext(handleStatsRequest());
+            responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver.onError(e);
         }
-        responseObserver.onCompleted();
     }
 
     private StatsResp handleStatsRequest() throws InternalError {

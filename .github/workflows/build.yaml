@@ -89,6 +89,7 @@ jobs:
         working-directory: ./src
         run: |
           mv -f ./service/signer/signer-int-test/src/intTest/resources/.env.github ./service/signer/signer-int-test/src/intTest/resources/.env
+          mv -f ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env.github ./service/op-monitor/op-monitor-int-test/src/intTest/resources/.env
           ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest jacocoTestReport -Pfrontend-npm-audit -PbuildImages=true -PxroadImageRegistry=localhost:5000
       - name: Test report
         env:
@@ -109,6 +110,8 @@ jobs:
           path: |
             src/service/signer/signer-int-test/build/allure-report/
             src/service/signer/signer-int-test/build/container-logs/
+            src/service/op-monitor/op-monitor-int-test/build/allure-report/
+            src/service/op-monitor/op-monitor-int-test/build/container-logs/
       - name: Build, test and package code execution measurement
         uses: green-coding-solutions/eco-ci-energy-estimation@v4.7
         with:

@@ -37,4 +37,5 @@ public class SignerIntTestConfiguration {
         return new TestCaFeignInterceptor(() -> envSetup.getContainerMapping(SignerIntTestSetup.TESTCA,
                 SignerIntTestSetup.Port.TEST_CA).port());
     }
+
 }

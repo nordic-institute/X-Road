@@ -28,6 +28,7 @@ package org.niis.xroad.opmonitor.core;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.opmonitor.core.config.OpMonitorProperties;
 import org.niis.xroad.opmonitor.core.jpa.OpMonitorDatabaseCtx;
 import org.niis.xroad.opmonitor.core.jpa.entity.OperationalDataRecordEntity;
@@ -97,6 +99,33 @@ public final class OperationalDataRecordManager {
         removeMonitoringDataTsIfNotSpecified(records, outputFields);
 
         return records;
+    }
+
+    List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(Long startTime,
+                                                                                     Long endTime,
+                                                                                     Integer intervalInMinutes,
+                                                                                     OpMonitoringData.SecurityServerType securityServerType,
+                                                                                     ClientId memberId,
+                                                                                     ServiceId serviceId) throws Exception {
+        return databaseCtx.doInTransaction(session -> queryRequestMetricsDividedInIntervalsInTransaction(session,
+                startTime,
+                endTime,
+                intervalInMinutes,
+                securityServerType,
+                memberId,
+                serviceId));
+    }
+
+    private static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
+            Session session,
+            Long startTime,
+            Long endTime,
+            Integer intervalInMinutes,
+            OpMonitoringData.SecurityServerType securityServerType,
+            ClientId memberId,
+            ServiceId serviceId) {
+        OperationalDataInTimeIntervalsQuery query = new OperationalDataInTimeIntervalsQuery(session);
+        return query.list(startTime, endTime, intervalInMinutes, securityServerType, memberId, serviceId);
     }
 
     private Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {

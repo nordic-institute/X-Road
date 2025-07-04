@@ -36,6 +36,8 @@ import org.niis.xroad.confclient.rpc.ConfClientRpcChannelProperties;
 import org.niis.xroad.confclient.rpc.ConfClientRpcClient;
 import org.niis.xroad.monitor.rpc.EnvMonitorRpcChannelProperties;
 import org.niis.xroad.monitor.rpc.MonitorRpcClient;
+import org.niis.xroad.opmonitor.client.OpMonitorClient;
+import org.niis.xroad.opmonitor.client.OpMonitorRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.signer.client.spring.SpringSignerClientConfiguration;
@@ -52,7 +54,8 @@ import org.springframework.context.annotation.Import;
         RpcClientsConfig.SpringEnvMonitorRpcChannelProperties.class,
         RpcClientsConfig.SpringBackupManagerRpcChannelProperties.class,
         RpcClientsConfig.SpringConfClientRpcChannelProperties.class,
-        RpcClientsConfig.SpringProxyRpcChannelProperties.class})
+        RpcClientsConfig.SpringProxyRpcChannelProperties.class,
+        RpcClientsConfig.SpringOpMonitorRpcChannelProperties.class})
 class RpcClientsConfig {
 
     @Bean
@@ -168,4 +171,34 @@ class RpcClientsConfig {
             return deadlineAfter;
         }
     }
+
+    @Bean
+    public OpMonitorClient opMonitorClient(RpcChannelFactory rpcChannelFactory,
+                                           SpringOpMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
+        return new OpMonitorClient(rpcChannelFactory, rpcChannelProperties);
+    }
+
+    @Setter
+    @ConfigurationProperties(prefix = OpMonitorRpcChannelProperties.PREFIX)
+    static class SpringOpMonitorRpcChannelProperties implements OpMonitorRpcChannelProperties {
+        private String host = DEFAULT_HOST;
+        private int port = Integer.parseInt(DEFAULT_PORT);
+        private int deadlineAfter = Integer.parseInt(DEFAULT_DEADLINE_AFTER);
+
+        @Override
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public int port() {
+            return port;
+        }
+
+        @Override
+        public int deadlineAfter() {
+            return deadlineAfter;
+        }
+    }
+
 }
