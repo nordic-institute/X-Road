@@ -127,9 +127,14 @@ class ConfigurationDownloaderTest {
 
     @Test
     void downloaderConnectionsTimeout() throws IOException {
+        when(clientProperties.downloaderReadTimeout()).thenReturn(30000);
+        when(clientProperties.downloaderConnectTimeout()).thenReturn(20000);
+
         URLConnection connection = getDownloader().getDownloadURLConnection(
                 createURL("http://test.download.com"));
-        assertEquals(ConfigurationDownloader.READ_TIMEOUT, connection.getReadTimeout());
+        assertEquals(20000, connection.getConnectTimeout());
+        assertEquals(30000, connection.getReadTimeout());
+        assertTrue(connection.getConnectTimeout() > 0);
         assertTrue(connection.getReadTimeout() > 0);
     }
 
