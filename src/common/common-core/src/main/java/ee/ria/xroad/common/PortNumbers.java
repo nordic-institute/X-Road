@@ -34,23 +34,9 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PortNumbers {
-    /** Client proxy listens for HTTP queries. */
-    public static final int CLIENT_HTTP_PORT = 8080;
-
-    /** Client proxy listens for HTTPS queries. */
-    public static final int CLIENT_HTTPS_PORT = 8443;
 
     /** Port for connection between client and server proxy. */
     public static final int PROXY_PORT = 5500;
-
-    /** Server proxy listens for OCSP requests. */
-    public static final int PROXY_OCSP_PORT = 5577;
-
-    /** Admin port for proxy. */
-    public static final int ADMIN_PORT = 5566;
-
-    /** Signer Admin port. */
-    public static final int SIGNER_ADMIN_PORT = 5559;
 
     /**
      * Signer grpc service port.
@@ -59,17 +45,6 @@ public final class PortNumbers {
 
     /** Port for Distributed Files Client. */
     public static final int CONFIGURATION_CLIENT_PORT = 5665;
-
-    /** Port for Configuration Admin Port. */
-    public static final int CONFIGURATION_CLIENT_ADMIN_PORT = 5675;
-
-    /** Port of the operational monitoring daemon. */
-    public static final int OP_MONITOR_DAEMON_PORT = 2080;
     public static final int OP_MONITOR_DAEMON_GRPC_PORT = 2081;
-
-    /**
-     * Proxy grpc port
-     */
-    public static final int PROXY_GRPC_PORT = 5567;
 
 }

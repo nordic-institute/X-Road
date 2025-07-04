@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -72,7 +73,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         IdentifierValidationConfiguration.Config,
         AllowedFilesConfig,
         UserRoleConfig,
-        KeyAlgorithmConfig {
+        KeyAlgorithmConfig,
+        UserAuthenticationConfig {
 
     /**
      * Controls the rate of global configuration generation in seconds.

@@ -22,6 +22,12 @@
   "alert": {
     "warningCount": "Amount of same warnings"
   },
+  "adminUsers": {
+    "role": {
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
+    }
+  },
   "apiKey": {
     "role": {
       "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
@@ -283,14 +289,14 @@
     },
     "previousUpdate": "Previous Update",
     "proxyMemoryUsage": {
-      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold",
-      "max": "Maximum memory",
-      "ok": "Everything ok",
-      "threshold": "Threshold",
       "title": "Proxy memory usage",
+      "max": "Maximum memory",
       "total": "Total allocated memory",
+      "used": "Used memory",
+      "threshold": "Threshold",
       "usagePercent": "Used memory (%)",
-      "used": "Used memory"
+      "ok": "Everything ok",
+      "alertOverThreshold": "Warning: Proxy's memory usage is above configured threshold"
     },
     "serviceUrl": "Service URL",
     "status": "Status",
@@ -947,7 +953,8 @@
     },
     "settings": {
       "backupAndRestore": "Backup And Restore",
-      "systemParameters": "System Parameters"
+      "systemParameters": "System Parameters",
+      "adminUsers": "Admin Users"
     }
   },
   "token": {

@@ -253,8 +253,8 @@ public class GlobalConfChecker {
         log.debug("Get auth cert for security server '{}'", serverId);
 
         AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
-        if (keyInfo != null && keyInfo.getCert() != null) {
-            return CryptoUtils.readCertificate(keyInfo.getCert().getCertificateBytes());
+        if (keyInfo != null && keyInfo.cert() != null) {
+            return CryptoUtils.readCertificate(keyInfo.cert().getCertificateBytes());
         }
         log.warn("Failed to read authentication key");
         return null;

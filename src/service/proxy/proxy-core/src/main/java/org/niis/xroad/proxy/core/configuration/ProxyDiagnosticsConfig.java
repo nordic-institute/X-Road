@@ -26,66 +26,46 @@
 package org.niis.xroad.proxy.core.configuration;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
 
-import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.keyconf.KeyConfProvider;
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Disposes;
+import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.healthcheck.HealthCheckPort;
+import org.niis.xroad.proxy.core.healthcheck.HealthCheckPortImpl;
 import org.niis.xroad.proxy.core.healthcheck.HealthChecks;
-import org.niis.xroad.serverconf.ServerConfProvider;
-import org.niis.xroad.signer.client.SignerRpcClient;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.niis.xroad.proxy.core.healthcheck.NoopHealthCheckPort;
+import org.niis.xroad.proxy.core.messagelog.NullLogManager;
 
-import java.util.Arrays;
-import java.util.List;
-
-@Configuration
 public class ProxyDiagnosticsConfig {
 
-    @Bean
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics() {
-        return new BackupEncryptionStatusDiagnostics(
-                SystemProperties.isBackupEncryptionEnabled(),
-                getBackupEncryptionKeyIds());
+    @ApplicationScoped
+    AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager) {
+        return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass());
     }
 
-    @Bean
-    AddOnStatusDiagnostics addOnStatusDiagnostics(@Qualifier("messageLogEnabledStatus") Boolean messageLogEnabledStatus) {
-        return new AddOnStatusDiagnostics(messageLogEnabledStatus);
-    }
+    @ApplicationScoped
+    static class HealthCheckPortInitializer {
 
-    @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                              ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
-        return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient);
-    }
+        @ApplicationScoped
+        @Startup
+        HealthCheckPort healthCheckPort(ProxyProperties proxyProperties,
+                                        HealthChecks healthChecks) throws Exception {
+            if (proxyProperties.healthCheckPort() > 0) {
+                HealthCheckPortImpl healthCheckPort = new HealthCheckPortImpl(healthChecks, proxyProperties);
+                healthCheckPort.init();
+                return healthCheckPort;
+            } else {
+                return new NoopHealthCheckPort();
+            }
+        }
 
-    @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthCheckPort healthCheckPort(HealthChecks healthChecks) {
-        return new HealthCheckPort(healthChecks);
-    }
-
-    static class HealthCheckEnabledCondition implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return SystemProperties.isHealthCheckEnabled();
+        public void dispose(@Disposes HealthCheckPort healthCheckPort) throws Exception {
+            if (healthCheckPort instanceof HealthCheckPortImpl impl) {
+                impl.destroy();
+            }
         }
     }
 
-    private static List<String> getBackupEncryptionKeyIds() {
-        return Arrays.stream(StringUtils.split(
-                        SystemProperties.getBackupEncryptionKeyIds(), ','))
-                .map(String::trim)
-                .toList();
-    }
 }

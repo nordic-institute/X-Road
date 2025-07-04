@@ -4864,6 +4864,26 @@ paths:
           description: request has been refused
         '500':
           description: internal server error
+  /system/auth-provider-type:
+    get:
+      tags:
+        - system
+      summary: get the authentication provider type
+      operationId: getAuthProviderType
+      description: <h3>Administrator views the authentication provider type</h3>
+      responses:
+        '200':
+          description: authentication provider type information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthProviderTypeResponse'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '500':
+          description: internal server error
   /system/version:
     get:
       tags:
@@ -7234,6 +7254,27 @@ components:
       properties:
         node_type:
           $ref: '#/components/schemas/NodeType'
+    AuthProviderType:
+      type: string
+      format: enum
+      description:
+        <p>The enum can have three different values</p>
+        <ul>
+        <li>PAM</li>
+        <li>DATABASE</li>
+        </ul>
+      example: PAM
+      enum:
+        - PAM
+        - DATABASE
+    AuthProviderTypeResponse:
+      type: object
+      description: Response object containing the authentication provider type of the Security Server
+      required:
+        - auth_provider_type
+      properties:
+        auth_provider_type:
+          $ref: '#/components/schemas/AuthProviderType'
     OcspResponder:
       type: object
       description: OCSP responder diagnostics

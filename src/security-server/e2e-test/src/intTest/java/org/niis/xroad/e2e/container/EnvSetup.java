@@ -28,6 +28,7 @@ package org.niis.xroad.e2e.container;
 import com.nortal.test.testcontainers.TestableContainerInitializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.test.logging.ComposeLoggerFactory;
 import org.niis.xroad.e2e.CustomProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Primary;
@@ -42,8 +43,6 @@ import java.time.Duration;
 import java.util.Optional;
 
 import static org.awaitility.Awaitility.await;
-import static org.niis.xroad.e2e.container.Port.PROXY;
-import static org.niis.xroad.e2e.container.Port.UI;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 
 @Primary
@@ -51,55 +50,94 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @Slf4j
 @RequiredArgsConstructor
 public class EnvSetup implements TestableContainerInitializer, DisposableBean {
-    private static final String COMPOSE_BASE_FILE = "../../../Docker/xrd-dev-stack/compose.yaml";
+    private static final String COMPOSE_AUX_FILE = "../../../Docker/xrd-dev-stack/compose.aux.yaml";
     private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
+    private static final String COMPOSE_SS_FILE = "../../../deployment/security-server/docker/compose.yaml";
 
-    public static final String CS = "cs";
-    public static final String SS0 = "ss0";
-    public static final String SS1 = "ss1";
+    private static final String CS = "cs";
+    private static final String PROXY = "proxy";
+    private static final String UI = "ui";
+    private static final String SIGNER = "signer";
+    private static final String CONFIGURATION_CLIENT = "configuration-client";
+    private static final String XROAD_NETWORK = "xroad-network";
+
     public static final String HURL = "hurl";
 
-    private final ComposeLoggerFactory composeLoggerFactory;
     private final CustomProperties customProperties;
 
-    private ComposeContainer environment;
+    private ComposeContainer envSs0;
+    private ComposeContainer envSs1;
+    private ComposeContainer envAux;
 
     @Override
     public void initialize() {
         if (customProperties.isUseCustomEnv()) {
             log.warn("Using custom environment. Docker compose is not used.");
         } else {
-            environment =
-                    new ComposeContainer(new File(COMPOSE_BASE_FILE), new File(COMPOSE_E2E_FILE))
-                            .withLocalCompose(true)
+            envSs0 = createSSEnvironment("ss0");
 
-                            .withExposedService(CS, UI, forListeningPort())
+            envSs1 = createSSEnvironment("ss1");
 
-                            .withExposedService(SS0, UI, forListeningPort())
-                            .withExposedService(SS0, PROXY, forListeningPort())
-
-                            .withExposedService(SS1, UI, forListeningPort())
-                            .withExposedService(SS1, PROXY, forListeningPort())
-
-                            .withEnv("CS_IMG", customProperties.getCsImage())
-                            .withEnv("SS_IMG", customProperties.getSsImage())
-                            .withEnv("CA_IMG", customProperties.getCaImage())
-                            .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
-                            .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
-                            .withLogConsumer(HURL, createLogConsumer(HURL))
-                            .withLogConsumer(CS, createLogConsumer(CS))
-                            .withLogConsumer(SS0, createLogConsumer(SS0))
-                            .withLogConsumer(SS1, createLogConsumer(SS1))
-                            .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
-
-            environment.start();
+            envAux = new ComposeContainer("aux-", new File(COMPOSE_AUX_FILE), new File(COMPOSE_E2E_FILE))
+                    .withLocalCompose(true)
+                    .withExposedService(CS, Port.UI, forListeningPort())
+                    .withEnv("CS_IMG", customProperties.getCsImage())
+                    .withEnv("CA_IMG", customProperties.getCaImage())
+                    .withEnv("IS_OPENAPI_IMG", customProperties.getIsopenapiImage())
+                    .withEnv("IS_SOAP_IMG", customProperties.getIssoapImage())
+                    .withEnv("PROXY_UI_0", getContainerName(envSs0, UI))
+                    .withEnv("PROXY_0", getContainerName(envSs0, PROXY))
+                    .withEnv("PROXY_UI_1", getContainerName(envSs1, UI))
+                    .withEnv("PROXY_1", getContainerName(envSs1, PROXY))
+                    .withLogConsumer(HURL, createLogConsumer("aux", HURL))
+                    .withLogConsumer(CS, createLogConsumer("aux", CS))
+                    .waitingFor(CS, Wait.forLogMessage("^.*xroad-center entered RUNNING state.*$", 1));
+            envAux.start();
 
             waitForHurl();
         }
     }
 
-    private Slf4jLogConsumer createLogConsumer(String containerName) {
-        return new Slf4jLogConsumer(new ComposeLoggerFactory().create(containerName));
+    private void connectToExternalNetwork(ComposeContainer env, String... serviceNames) {
+        for (String serviceName : serviceNames) {
+            var containerState = env.getContainerByServiceName(serviceName).orElseThrow();
+            var dockerClient = containerState.getDockerClient();
+
+            String networkId = dockerClient.listNetworksCmd().exec().stream()
+                    .filter(n -> XROAD_NETWORK.equals(n.getName()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Could not find external network '%s'".formatted(XROAD_NETWORK)))
+                    .getId();
+
+            dockerClient.connectToNetworkCmd()
+                    .withContainerId(containerState.getContainerId())
+                    .withNetworkId(networkId)
+                    .exec();
+        }
+    }
+
+    private ComposeContainer createSSEnvironment(String name) {
+        var env = new ComposeContainer(name + "-", new File(COMPOSE_SS_FILE))
+                .withLocalCompose(true)
+                .withExposedService(PROXY, Port.PROXY, forListeningPort())
+                .withExposedService(UI, Port.UI, forListeningPort())
+                .withLogConsumer(UI, createLogConsumer(name, UI))
+                .withLogConsumer(PROXY, createLogConsumer(name, PROXY))
+                .withLogConsumer(CONFIGURATION_CLIENT, createLogConsumer(name, CONFIGURATION_CLIENT))
+                .withLogConsumer(SIGNER, createLogConsumer(name, SIGNER));
+        env.start();
+        connectToExternalNetwork(env, UI, PROXY, CONFIGURATION_CLIENT, SIGNER);
+
+        return env;
+    }
+
+    private String getContainerName(ComposeContainer env, String container) {
+        return env.getContainerByServiceName(container)
+                .map(c -> c.getContainerInfo().getName().substring(1)).orElseThrow();
+    }
+
+    private Slf4jLogConsumer createLogConsumer(String env, String containerName) {
+        return new Slf4jLogConsumer(new ComposeLoggerFactory().create("%s-%s".formatted(env, containerName)));
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -110,7 +148,7 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
                 .pollInterval(Duration.ofSeconds(10))
                 .until(() -> {
                     log.info("Waiting for hurl to finish..");
-                    return environment.getContainerByServiceName(HURL)
+                    return envAux.getContainerByServiceName(HURL)
                             .map(container -> !container.isRunning())
                             .orElse(false);
                 });
@@ -122,19 +160,22 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
 
     public void destroy() {
         if (!customProperties.isUseCustomEnv()) {
-            environment.stop();
+            envSs0.stop();
+            envSs1.stop();
+            envAux.stop();
         }
     }
 
-    public Optional<ContainerState> getContainerByServiceName(String serviceName) {
+    public Optional<ContainerState> getContainerByServiceName(String env, String serviceName) {
         if (customProperties.isUseCustomEnv()) {
             return Optional.empty();
         }
-        return environment.getContainerByServiceName(serviceName);
+        return mapEnvironment(env).getContainerByServiceName(serviceName);
     }
 
-    public ContainerMapping getContainerMapping(String serviceName, int originalPort) {
+    public ContainerMapping getContainerMapping(String env, String serviceName, int originalPort) {
         if (customProperties.isUseCustomEnv()) {
+            // todo should be refactored if needed
             String key = serviceName + "_" + originalPort;
             var mappedValue = customProperties.getCustomEnvMapping().get(key);
             if (mappedValue == null) {
@@ -144,10 +185,20 @@ public class EnvSetup implements TestableContainerInitializer, DisposableBean {
             return new ContainerMapping(splittedStr[0], Integer.parseInt(splittedStr[1]));
         }
 
+        ComposeContainer environment = mapEnvironment(env);
         return new ContainerMapping(
                 environment.getServiceHost(serviceName, originalPort),
                 environment.getServicePort(serviceName, originalPort)
         );
+    }
+
+    private ComposeContainer mapEnvironment(String name) {
+        return switch (name) {
+            case "ss0" -> envSs0;
+            case "ss1" -> envSs1;
+            case "aux" -> envAux;
+            default -> throw new IllegalArgumentException("Unknown environment: " + name);
+        };
     }
 
     public record ContainerMapping(String host, int port) {

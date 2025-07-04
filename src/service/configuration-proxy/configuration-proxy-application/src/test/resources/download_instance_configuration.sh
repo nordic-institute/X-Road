@@ -16,5 +16,5 @@ XROAD_LOG_LEVEL="INFO"
 
 XROAD_CONFCLIENT_PARAMS=" -Xmx50m -Dee.ria.xroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
 
-java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -cp ${CP} org.niis.xroad.confclient.ConfClientCLIMain $@
+java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -cp ${CP} org.niis.xroad.confclient.ConfClientMain $@
 

@@ -74,10 +74,10 @@ Doc. ID: IG-SS
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 24.09.2024 | 2.53    | Add mail server to the network diagram                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 08.11.2024 | 2.54    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
-| 13.02.2025 | 2.55    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
-| 10.03.2025 | 2.56    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
-| 21.03.2025 | 2.57    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
-| 03.06.2025 | 2.58    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
+| 06.02.2025 | 2.55    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
+| 13.02.2025 | 2.56    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
+| 10.03.2025 | 2.57    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
+| 21.03.2025 | 2.58    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
 
 ## License
 
@@ -332,9 +332,9 @@ The Security Server installer can create the database and users for you, but you
 
 For advanced setup, e.g. when using separate servers for the databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7.
 
-For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-SS](#Ref_UG-SS).
+For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-SS](#Ref_UG-SS) section „Passing additional parameters to psql“.
 
-When leaving the database and user creation to the installer, continue with the following steps:
+When the installer creates the database and users, perform the following steps:
 
 Create the property file:
 ```bash

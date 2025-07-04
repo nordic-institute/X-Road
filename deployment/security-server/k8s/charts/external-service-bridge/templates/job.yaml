@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.service.name }}-host-resolver
+  namespace: {{ .Values.service.namespace }}
+spec:
+  template:
+    spec:
+      serviceAccountName: {{ .Values.service.name }}-resolver
+      containers:
+        - name: resolver
+          image: bitnami/kubectl:latest
+          command: [ "/bin/sh", "/scripts/resolve.sh" ]
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ .Values.service.name }}-host-resolver
+            defaultMode: 0755
+      restartPolicy: OnFailure

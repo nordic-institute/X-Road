@@ -10,7 +10,7 @@ RUN apt-get -qq update \
     && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-21-jre-headless rlwrap ca-certificates-java \
-        crudini adduser expect curl rsyslog dpkg-dev \
+        crudini adduser expect curl rsyslog dpkg-dev yq \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
     && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -29,6 +29,11 @@ ARG REPO=https://artifactory.niis.org/xroad-snapshot-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
 
+# Add X-Road dependencies repo
+ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
+RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
+  && apt-key add '/tmp/deps-repokey.gpg'
+
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
@@ -38,7 +43,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-opmonitor \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
@@ -47,6 +52,11 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 # Xroad SS from internal packages
 FROM base AS securityserver-internal
+
+# Add X-Road dependencies repo
+ADD ["https://artifactory.niis.org/api/gpg/key/public","/tmp/deps-repokey.gpg"]
+RUN echo "deb https://artifactory.niis.org/xroad-dependencies-deb xroad external" >/etc/apt/sources.list.d/xroad-deps.list \
+  && apt-key add '/tmp/deps-repokey.gpg'
 
 RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
        cp -r /tmp/packages /tmp/repo \
@@ -57,7 +67,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-opmonitor \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up
@@ -90,7 +100,6 @@ COPY --chown=xroad:xroad files/etc /etc/
 COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
-COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 

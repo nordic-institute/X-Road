@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.44
+Version: 2.44  
 Doc. ID: IG-CS
 
 ---
@@ -59,10 +59,9 @@ Doc. ID: IG-CS
 | 25.04.2024 | 2.39    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa        |
 | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki     |
 | 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA Configuration signing keys                                                                   | Ovidijus Narkevicius |
-| 10.03.2025 | 2.42    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki     |
-| 21.03.2025 | 2.43    | Syntax and styling                                                                                                                                                                            | Pauline Dimmek       |
-| 03.06.2025 | 2.44    | Setup database connection with SSL certificates                                                                                                                                               | Eneli Reimets        |
-
+| 06.02.2025 | 2.42    | Setup database connection with SSL certificates                                                                                                                                               | Eneli Reimets        |
+| 10.03.2025 | 2.43    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki     |
+| 21.03.2025 | 2.44    | Syntax and styling                                                                                                                                                                            | Pauline Dimmek       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -276,9 +275,9 @@ The installer can create the database and users for you, but you need to create 
 
 For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. 
 
-For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-CS](#Ref_UG-CS).
+For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-CS](#Ref_UG-CS) section „Passing additional parameters to psql“.
 
-When leaving the database and user creation to the installer, continue with the following steps:
+When the installer creates the database and users, perform the following steps:
 
 Create the property file:
 ```bash

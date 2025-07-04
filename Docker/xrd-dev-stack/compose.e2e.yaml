@@ -4,9 +4,12 @@ services:
     command: >
       --insecure
       --variables-file /hurl-src/vars.env
+      --variable ss0_host=${PROXY_UI_0}
+      --variable ss1_host=${PROXY_UI_1}
+      --variable ss0_proxy=${PROXY_0}
+      --variable ss1_proxy=${PROXY_1}
       --file-root /hurl-files
       /hurl-src/setup.hurl
       --very-verbose
       --retry 12
       --retry-interval 10000
-

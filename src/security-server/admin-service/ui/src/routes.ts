@@ -75,6 +75,7 @@ import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters
 import TabsBase from '@/layouts/TabsBase.vue';
 import TabsBaseEmpty from '@/layouts/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
+import { XrdAddAdminUser, XrdAdminUsers } from '@niis/shared-ui';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -194,7 +195,33 @@ const routes: RouteRecordRaw[] = [
             props: true,
             meta: { permissions: [Permissions.BACKUP_CONFIGURATION] },
           },
+          {
+            name: RouteName.AdminUsers,
+            path: 'users',
+            component: XrdAdminUsers,
+            props: true,
+            meta: {
+              permissions: [
+                Permissions.VIEW_ADMIN_USERS,
+                Permissions.ADD_ADMIN_USER,
+                Permissions.UPDATE_ADMIN_USER,
+                Permissions.DELETE_ADMIN_USER,
+              ],
+            },
+          },
         ],
+      },
+      {
+        name: RouteName.AddAdminUser,
+        path: '/settings/users/add',
+        components: {
+          default: XrdAddAdminUser,
+          alerts: AlertsContainer,
+        },
+        props: {
+          default: true,
+        },
+        meta: { permissions: [Permissions.ADD_ADMIN_USER] },
       },
       {
         name: RouteName.AddSubsystem,

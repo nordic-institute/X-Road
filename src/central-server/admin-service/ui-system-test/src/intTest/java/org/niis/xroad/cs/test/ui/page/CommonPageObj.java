@@ -81,7 +81,7 @@ public class CommonPageObj {
         }
 
         private String getTabXpath(String tabName) {
-            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab')]//span[text()='%s']";
+            var xpath = "//div[contains(@class, 'main-tabs')]//a[contains(@class,'v-tab') and .//span[text()='%s']]";
             return String.format(xpath, tabName);
         }
     }
@@ -92,7 +92,7 @@ public class CommonPageObj {
         }
 
         public SelenideElement backupAndRestoresTab() {
-            return $x("//*[@data-test='backupandrestore-tab-button']");
+            return $x("//*[@data-test='backup-and-restore-tab-button']");
         }
 
         public SelenideElement settingsTab() {

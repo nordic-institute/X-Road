@@ -30,10 +30,11 @@ package org.niis.xroad.proxy.core.test;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.experimental.UtilityClass;
+import org.niis.xroad.proxy.core.ProxyProperties;
 
+import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.TestPortUtils.findRandomPort;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
@@ -46,6 +47,7 @@ public class ProxyTestSuiteHelper {
     public static final int DUMMY_SERVER_PROXY_PORT = findRandomPort();
 
     public static volatile MessageTestCase currentTestCase;
+    public static ProxyProperties proxyProperties;
 
     private static DummyService dummyService;
     private static DummyServerProxy dummyServerProxy;
@@ -65,24 +67,27 @@ public class ProxyTestSuiteHelper {
         ofNullable(dummyServerProxy).ifPresent(DummyServerProxy::destroy);
     }
 
-    public static void setPropsIfNotSet() {
+    public static void setPropsIfNotSet(Map<String, String> properties) {
         PropsSolver solver = new PropsSolver();
 
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(findRandomPort()));
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(findRandomPort()));
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, valueOf(PROXY_PORT));
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
-        solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
-        solver.setIfNotSet(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
+        properties.putIfAbsent("xroad.proxy.client-proxy.client-http-port", valueOf(findRandomPort()));
+        properties.putIfAbsent("xroad.proxy.client-proxy.client-https-port", valueOf(findRandomPort()));
 
-        System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
+        solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
+
+        properties.putIfAbsent("xroad.proxy.server.listen-address", "127.0.0.1");
+
+        properties.putIfAbsent("xroad.proxy.server.listen-port", valueOf(PROXY_PORT));
+        solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, valueOf(PROXY_PORT));
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
     }
 
+    @Deprecated(forRemoval = true)
     private static final class PropsSolver {
         private final Set<String> setProperties = System.getProperties().stringPropertyNames();
 
+        @Deprecated(forRemoval = true)
         void setIfNotSet(String property, String defaultValue) {
             if (!setProperties.contains(property)) {
                 System.setProperty(property, defaultValue);

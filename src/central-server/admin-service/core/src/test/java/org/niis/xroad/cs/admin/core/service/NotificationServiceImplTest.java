@@ -224,7 +224,6 @@ class NotificationServiceImplTest {
                 .setActive(tokenActive)
                 .setSerialNumber("")
                 .setLabel("")
-                .setSlotIndex(0)
                 .setStatus(OK)
                 .addKeyInfo(keyinfo)
                 .build());
