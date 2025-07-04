@@ -53,10 +53,6 @@ public class OpMonitorClientHolder {
 
     private OpMonitorClient opMonitorRpcClientInstance;
 
-    public OpMonitorClient get() {
-        return opMonitorRpcClientInstance;
-    }
-
     @SneakyThrows
     public OpMonitorClient initializeOpMonitorClient() {
         var properties = new OpMonitorRpcChannelProperties() {

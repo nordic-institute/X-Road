@@ -56,11 +56,10 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     List<OperationalDataInterval> operationalDataIntervals;
 
     @Step("op-monitor client is initialized")
-    public void opMonitorClientReinitialized() throws Exception {
-        if (opMonitorClient != null) {
-            opMonitorClient.close();
+    public void opMonitorClientInitialized() {
+        if (opMonitorClient == null) {
+            opMonitorClient = clientHolder.initializeOpMonitorClient();
         }
-        opMonitorClient = clientHolder.initializeOpMonitorClient();
     }
 
     @Step("user asks for traffic data of last {int} hour(s) in {int} minute intervals")
