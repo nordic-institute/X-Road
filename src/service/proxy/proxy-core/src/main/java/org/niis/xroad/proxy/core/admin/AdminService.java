@@ -97,6 +97,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private AddOnStatusResp handleAddOnStatus() {
         return AddOnStatusResp.newBuilder()
                 .setMessageLogEnabled(addOnStatusDiagnostics.isMessageLogEnabled())
+                .setOpMonitoringEnabled(addOnStatusDiagnostics.isOpMonitoringEnabled())
                 .build();
     }
 

@@ -26,7 +26,6 @@
 package org.niis.xroad.e2e.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
-import com.nortal.test.testcontainers.logging.TestContainerLoggerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.test.logging.ComposeLoggerFactory;

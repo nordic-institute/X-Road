@@ -42,6 +42,7 @@ service AdminService {
 
 message AddOnStatusResp {
   bool message_log_enabled = 1;
+  bool op_monitoring_enabled = 2;
 }
 
 message MessageLogEncryptionStatusResp {
