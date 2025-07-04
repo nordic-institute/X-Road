@@ -42,7 +42,13 @@ verify_config(){
 }
 
 find_used_by_proxy(){
-  echo "$(ps -u xroad -o %mem,args | awk '/ProxyMain/ {print $1}')%"
+  local -r rss_kb=$(ps -u xroad -o rss,args | awk '/ProxyMain/ {print $1}')
+  local -r total_memory=$(get_total_memory)
+  if [[ -n "$rss_kb" ]]; then
+    echo "$((rss_kb * 1024 * 100 / total_memory))%"
+  else
+    echo "N/A"
+  fi
 }
 
 get_current_xms(){
