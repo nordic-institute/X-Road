@@ -2610,7 +2610,7 @@ The "Traffic" tab in Diagnostics page displays a graph representation of number 
 
 **NOTE:** Security Server Traffic view depends on data collected by Operational Data Monitoring add-on (`xroad-addon-opmonitoring`), which must be installed to enable traffic view.
 
-By default, the page displays the all requests handled during the last 7 days. The displayed data can be filtered using controls on top of the page:
+By default, the page displays all the requests handled during the last 7 days. The displayed data can be filtered using controls on top of the page:
 - **Period** - start and end date/time of the period to display.
 - **Party** - member, subsystem, or service participating in the message exchange. The service dropdown displays only the services defined by the selected subsystem. If no subsystem is selected or subsystem has no defined services, the service dropdown is disabled.
 - **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
