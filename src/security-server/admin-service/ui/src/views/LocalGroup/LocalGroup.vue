@@ -99,7 +99,7 @@
             <tr v-for="groupMember in group.members" :key="groupMember.id">
               <td>{{ groupMember.member_name }}</td>
               <td>
-                <subsystem-name :name="groupMember.subsystem_name" />
+                <subsystem-name :name="getSubsystemDisplayName(groupMember)" />
               </td>
               <td data-test="client-id">{{ groupMember.id }}</td>
               <td>{{ $filters.formatDateTime(groupMember.created_at) }}</td>
@@ -238,6 +238,10 @@ export default defineComponent({
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.back();
+    },
+
+    getSubsystemDisplayName(groupMember: GroupMember): string {
+      return groupMember.subsystem_name ?? groupMember.id.substring(groupMember.id.lastIndexOf(':') + 1);
     },
 
     saveDescription(): void {

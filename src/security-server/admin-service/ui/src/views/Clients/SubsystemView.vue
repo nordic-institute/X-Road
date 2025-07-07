@@ -114,7 +114,7 @@ export default defineComponent({
       if (this.clientLoading) {
         return this.$t('noData.loading');
       } else if (this.client) {
-        return this.client.subsystem_name;
+        return this.client.subsystem_name ?? this.client.subsystem_code;
       }
       return '';
     },
