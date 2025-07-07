@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.100  
+Version: 2.101  
 Doc. ID: UG-SS
 
 ---
@@ -129,6 +129,7 @@ Doc. ID: UG-SS
 | 20.05.2025 | 2.98    | Enabling/Disabling maintenance mode for the security server                                                                                                                                                                                                                                                                                                                                                 | Ovidijus Narkevicius |
 | 18.06.2025 | 2.99    | ACME-related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 01.07.2025 | 2.100   | Added configuration notes for external op-monitor's gRPC                                                                                                                                                                                                                                                                                                                                                    | Mikk-Erik Bachmann   |
+| 07.07.2025 | 2.101   | Added chapter on Security Server Traffic visualisation                                                                                                                                                                                                                                                                                                                                                      | Madis Loitmaa        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -155,10 +156,12 @@ Doc. ID: UG-SS
     - [3.1.1 Generating a Signing Key and Certificate Signing Request](#311-generating-a-signing-key-and-certificate-signing-request)
     - [3.1.2 Importing a Certificate from the Local File System](#312-importing-a-certificate-from-the-local-file-system)
     - [3.1.3 Importing a Certificate from a Security Token](#313-importing-a-certificate-from-a-security-token)
+    - [3.1.4 Ordering the Signing Certificate from the ACME server](#314-ordering-the-signing-certificate-from-the-acme-server)
   - [3.2 Configuring the Authentication Key and Certificate for the Security Server](#32-configuring-the-authentication-key-and-certificate-for-the-security-server)
     - [3.2.1 Generating an Authentication Key](#321-generating-an-authentication-key)
     - [3.2.2 Generating a Certificate Signing Request for an Authentication Key](#322-generating-a-certificate-signing-request-for-an-authentication-key)
     - [3.2.3 Importing an Authentication Certificate from the Local File System](#323-importing-an-authentication-certificate-from-the-local-file-system)
+    - [3.2.4 Ordering the Authentication Certificate from the ACME server](#324-ordering-the-authentication-certificate-from-the-acme-server)
   - [3.3 Registering the Security Server in the X-Road Governing Authority](#33-registering-the-security-server-in-the-x-road-governing-authority)
     - [3.3.1 Registering an Authentication Certificate](#331-registering-an-authentication-certificate)
   - [3.4 Changing the Security Server Owner](#34-changing-the-security-server-owner)
@@ -241,10 +244,12 @@ Doc. ID: UG-SS
   - [13.4 Backup Encryption Configuration](#134-backup-encryption-configuration)
   - [13.5 Verifying Backup Archive Consistency](#135-verifying-backup-archive-consistency)
 - [14 Diagnostics](#14-diagnostics)
-  - [14.1 Examine Security Server services status information](#141-examine-security-server-services-status-information)
-  - [14.2 Examine Security Server Java version information](#142-examine-security-server-java-version-information)
-  - [14.3 Examine Security Server encryption status information](#143-examine-security-server-encryption-status-information)
-  - [14.4 Download diagnostics report](#144-download-diagnostics-report)
+  - [14.1 Diagnostics Overview](#141-diagnostics-overview)
+    - [14.1.1 Examine Security Server services status information](#1411-examine-security-server-services-status-information)
+    - [14.1.2 Examine Security Server Java version information](#1412-examine-security-server-java-version-information)
+    - [14.3.3 Examine Security Server encryption status information](#1433-examine-security-server-encryption-status-information)
+    - [14.1.4 Download diagnostics report](#1414-download-diagnostics-report)
+  - [14.2 Security Server Traffic](#142-security-server-traffic)
 - [15 Operational Monitoring](#15-operational-monitoring)
   - [15.1 Operational Monitoring Buffer](#151-operational-monitoring-buffer)
     - [15.1.1 Stopping the Collecting of Operational Data](#1511-stopping-the-collecting-of-operational-data)
@@ -277,13 +282,13 @@ Doc. ID: UG-SS
   - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
-    - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
+  - [21.1 Updating Proxy Service's memory allocation command line arguments](#211-updating-proxy-services-memory-allocation-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
 - [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
-  - [25.1 Steps to Enable EC Based Certificates](#251-Steps-to-enable-EC-based-certificates)
-  - [25.2 Backwards Compatibility](#252-Backwards-compatibility)
+  - [25.1 Steps to Enable EC Based Certificates](#251-steps-to-enable-ec-based-certificates)
+  - [25.2 Backwards Compatibility](#252-backwards-compatibility)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -1116,7 +1121,7 @@ To enable client subsystem, follow these steps.
 2.  In the window that opens, click **ENABLE** and then click **YES** in the confirmation dialog.
 
 
-### 4.8 Renaming Client subsystem
+### 4.8 Renaming Client Subsystem
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
@@ -2490,7 +2495,13 @@ for backup archive consistency verification.
 
 Click on **DIAGNOSTICS** in the **Navigation tabs**.
 
-On the Diagnostics page you can view the status information of:
+Diangostics view contains the following tabs:
+- **Overview** – overview of the Security Server status information
+- **Traffic** – visual overview of the Security Server traffic
+
+### 14.1 Diagnostics Overview
+
+On the Diagnostics Overview page you can view the status information of:
 
 - Security Server services;
     - global configuration client;
@@ -2502,7 +2513,7 @@ On the Diagnostics page you can view the status information of:
     - message log archive encryption and grouping;
     - message log database encryption.
 
-### 14.1 Examine Security Server services status information
+#### 14.1.1 Examine Security Server services status information
 
 Security server services status information covers the following services:
 
@@ -2523,7 +2534,7 @@ The status message offers more detailed information on the current status.
 
 If a section of the diagnostics view appears empty, it means that there either is no configured service available or that checking the service status has failed. If sections are empty, try refreshing the diagnostics view or check the service configuration.
 
-### 14.2 Examine Security Server Java version information
+#### 14.1.2 Examine Security Server Java version information
 
 Security server Java version information provides the following details:
 
@@ -2542,7 +2553,7 @@ The status colors indicate the following:
 - **Red indicator** – Security Server's java version number isn't supported
 - **Green indicator** – Security Server's java version number is supported
 
-### 14.3 Examine Security Server encryption status information
+#### 14.3.3 Examine Security Server encryption status information
 
 **Backup encryption status**
 
@@ -2565,7 +2576,7 @@ The status colors indicate the following:
 - **Red indicator** – there's an error with checking the message log archive encryption status
 - **Yellow indicator** – message log archive encryption is disabled
 - **Green indicator** – message log archive encryption is enabled
--
+
 **Message log database encryption status**
 
 The status shows is the message log database encryption `enabled` or `disabled`.
@@ -2575,7 +2586,7 @@ The status colors indicate the following:
 - **Yellow indicator** – message log database encryption is disabled
 - **Green indicator** – message log database encryption is enabled
 
-### 14.4 Download diagnostics report
+#### 14.1.4 Download diagnostics report
 
 It is possible to download a diagnostics report file which can be included as additional information when registering issues for the Security Server.
 File includes following information:
@@ -2592,6 +2603,18 @@ File includes following information:
 - Is maintenance mode enabled
 
 File is in JSON format and can be downloaded by clicking the **Download diagnostics report** button.
+
+### 14.2 Security Server Traffic
+
+The "Traffic" tab in Diagnostics page displays a graph representation of number of requests passed through the Security Server. 
+
+**NOTE:** Security Server Traffic view depends on data collected by Operational Data Monitoring add-on (`xroad-addon-opmonitoring`), which must be installed to enable traffic view.
+
+By default, the page displays all the requests handled during the last 7 days. The displayed data can be filtered using controls on top of the page:
+- **Period** - start and end date/time of the period to display.
+- **Party** - member, subsystem, or service participating in the message exchange. The service dropdown displays only the services defined by the selected subsystem. If no subsystem is selected or subsystem has no defined services, the service dropdown is disabled.
+- **Exchange role** - the role of this Security Server in the message exchange. The options are "Producer" and "Consumer".
+- **Status** - the status of the message exchange. The options are "Success" and "Failure".
 
 ## 15 Operational Monitoring
 
