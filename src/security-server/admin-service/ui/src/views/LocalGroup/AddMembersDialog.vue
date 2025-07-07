@@ -138,7 +138,7 @@
               </td>
 
               <td>
-                <subsystem-name :name="member.subsystem_name" />
+                <subsystem-name :name="member.subsystem_name ?? member.subsystem_code" />
               </td>
               <td>{{ member.id }}</td>
             </tr>
