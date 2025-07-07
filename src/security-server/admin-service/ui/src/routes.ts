@@ -234,6 +234,18 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        name: RouteName.AddAdminUser,
+        path: '/settings/users/add',
+        components: {
+          default: XrdAddAdminUser,
+          alerts: AlertsContainer,
+        },
+        props: {
+          default: true,
+        },
+        meta: { permissions: [Permissions.ADD_ADMIN_USER] },
+      },
+      {
         name: RouteName.AddSubsystem,
         path: '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
         components: {
