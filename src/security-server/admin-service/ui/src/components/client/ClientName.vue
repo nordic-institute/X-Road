@@ -77,7 +77,7 @@ const displayName = computed(() => {
   }
   if (props.client) {
     return isSubsystem.value
-      ? props.client.subsystem_name
+      ? (props.client.subsystem_name ?? props.client.subsystem_code)
       : props.client.member_name;
   }
   return props.name;

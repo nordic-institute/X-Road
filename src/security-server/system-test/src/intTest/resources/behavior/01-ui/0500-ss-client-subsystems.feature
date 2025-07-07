@@ -38,7 +38,7 @@ Feature: 0500 - SS: Client Subsystems
     And Subsystem code is set to "random-sub-1"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
-    Then Client "undefined" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
+    Then Client "random-sub-1" with id "DEV:COM:1234:random-sub-1" and status "SAVED" is present in the list
     #And error: "Security server has no valid authentication certificate" was displayed
 
 
@@ -48,4 +48,4 @@ Feature: 0500 - SS: Client Subsystems
     And Subsystem name is set to "Named random sub 3"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed
-    Then Client "undefined" with id "DEV:COM:1234:named-random-sub-3" and status "SAVED" is present in the list
+    Then Client "named-random-sub-3" with id "DEV:COM:1234:named-random-sub-3" and status "SAVED" is present in the list
