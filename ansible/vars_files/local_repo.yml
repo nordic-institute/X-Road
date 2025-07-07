@@ -20,3 +20,8 @@ rhel_repo_gpgkey: ""
 rhel_repo_repogpgcheck: "no"
 rhel_repo_metadataexpire: 60
 
+rhel_deps_repo_baseurl: "https://artifactory.niis.org/artifactory/xroad-dependencies-rpm"
+rhel_deps_repo_gpgcheck: "yes"
+rhel_deps_repo_gpgkey: "{{xroad_repo_key}}"
+rhel_deps_repo_repogpgcheck: "yes"
+rhel_deps_repo_metadataexpire: "21600"

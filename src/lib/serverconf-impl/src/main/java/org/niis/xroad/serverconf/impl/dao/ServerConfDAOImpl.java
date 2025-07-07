@@ -60,4 +60,5 @@ public class ServerConfDAOImpl {
                 .setMaxResults(1)
                 .uniqueResult();
     }
+
 }

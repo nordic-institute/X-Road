@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.JsonUtils;
 
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
+import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
@@ -67,6 +68,8 @@ class ApiKeysControllerTest extends AbstractSpringMvcTest {
     private AllowedHostnamesConfig allowedHostnamesConfig;
     @MockitoBean
     private UserRoleConfig userRoleConfig;
+    @MockitoBean
+    private UserAuthenticationConfig userAuthenticationConfig;
 
     private static final String AUTHORITY_WRONG = "AUTHORITY_WRONG";
     private static final String AUTHORITY_CREATE_API_KEY = "CREATE_API_KEY";

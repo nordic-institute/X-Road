@@ -1,4 +1,12 @@
 container_ports:
+  http_cs:
+    connect: "tcp:127.0.0.1:80"
+    listen: "tcp:0.0.0.0:{{ 3010 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  https_cs:
+    connect: "tcp:127.0.0.1:443"
+    listen: "tcp:0.0.0.0:{{ 3015 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
   frontend_cs:
     connect: "tcp:127.0.0.1:4000"
     listen: "tcp:0.0.0.0:{{ 3000 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
@@ -6,6 +14,14 @@ container_ports:
   database_cs:
     connect: "tcp:127.0.0.1:5432"
     listen: "tcp:0.0.0.0:{{ 3020 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  registration_cs:
+    connect: "tcp:127.0.0.1:4001"
+    listen: "tcp:0.0.0.0:{{ 3030 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  management_cs:
+    connect: "tcp:127.0.0.1:4002"
+    listen: "tcp:0.0.0.0:{{ 3035 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
   mailpit_cs:
     connect: "tcp:127.0.0.1:8025"

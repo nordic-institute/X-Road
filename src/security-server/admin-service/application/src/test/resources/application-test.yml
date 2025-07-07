@@ -1,0 +1,42 @@
+# properties for test runtime
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    generate-ddl: true
+    show-sql: true
+    defer-datasource-initialization: true
+  cloud:
+    vault:
+      enabled: false
+
+logging:
+  level:
+    ROOT: WARN
+
+ratelimit:
+  requests:
+    per:
+      second: 60
+      minute: 3600
+
+server:
+  ssl:
+    enabled: false
+  tomcat:
+    accesslog.enabled: false
+
+# Extra configurattion to verify PropertyFileReadingHibernateCustomizer
+xroad:
+  db:
+    serverconf:
+      hibernate:
+        jdbc:
+          use_streams_for_binary: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  common:
+    rpc:
+      use-tls: false

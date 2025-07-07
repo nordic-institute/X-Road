@@ -26,57 +26,73 @@
 
 package org.niis.xroad.ss.test.ui.container.service;
 
-import com.nortal.test.testcontainers.TestContainerService;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.niis.xroad.ss.test.ui.container.EnvSetup;
 import org.niis.xroad.ss.test.ui.container.Port;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Service;
-import org.testcontainers.containers.Container;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
 
 @Service
 @RequiredArgsConstructor
 public class TestDatabaseService implements DisposableBean {
 
-    private final TestContainerService testContainerService;
-
-    private Connection messagelogConnection;
+    private HikariDataSource messagelogDataSource;
+    private HikariDataSource serverconfDataSource;
     private NamedParameterJdbcTemplate messagelogNamedParameterJdbcTemplate;
+    private NamedParameterJdbcTemplate serverconfNamedParameterJdbcTemplate;
+
+    @Autowired
+    private EnvSetup envSetup;
 
     @SneakyThrows
     public NamedParameterJdbcTemplate getMessagelogTemplate() {
         if (messagelogNamedParameterJdbcTemplate == null) {
-            messagelogConnection = DriverManager.getConnection(getJdbcUrl("messagelog"),
-                    getParamValue("messagelog.hibernate.connection.username"), getParamValue("messagelog.hibernate.connection.password"));
-            final SingleConnectionDataSource dataSource = new SingleConnectionDataSource(messagelogConnection, true);
-            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            messagelogDataSource = createDataSource(EnvSetup.DB_MESSAGELOG, "messagelog", "messagelog");
+            messagelogNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(messagelogDataSource);
         }
         return messagelogNamedParameterJdbcTemplate;
     }
 
-    @SuppressWarnings("checkstyle:MagicNumber")
-    private String getJdbcUrl(String database) {
-        return String.format("jdbc:postgresql://%s:%d/%s",
-                testContainerService.getHost(),
-                testContainerService.getMappedPort(Port.DB),
-                database);
+    @SneakyThrows
+    public NamedParameterJdbcTemplate getServerconfTemplate() {
+        if (serverconfNamedParameterJdbcTemplate == null) {
+            serverconfDataSource = createDataSource(EnvSetup.DB_SERVERCONF, "serverconf", "serverconf");
+            serverconfNamedParameterJdbcTemplate = new NamedParameterJdbcTemplate(serverconfDataSource);
+        }
+        return serverconfNamedParameterJdbcTemplate;
     }
 
-    @SneakyThrows
-    private String getParamValue(String param) {
-        final Container.ExecResult result = testContainerService.getContainer().execInContainer("grep", param, "/etc/xroad/db.properties");
-        return result.getStdout().split("=")[1].trim();
+    private HikariDataSource createDataSource(String service, String database, String username) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getJdbcUrl(service, database));
+        config.setUsername(username);
+        config.setPassword("secret");
+        config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
+        config.setConnectionTestQuery("SELECT 1");
+        return new HikariDataSource(config);
+    }
+
+    private String getJdbcUrl(String service, String database) {
+        var mapping = envSetup.getContainerMapping(service, Port.DB);
+        return String.format("jdbc:postgresql://%s:%d/%s",
+                mapping.host(),
+                mapping.port(),
+                database);
     }
 
     @Override
     public void destroy() throws Exception {
-        if (messagelogConnection != null) {
-            messagelogConnection.close();
+        if (messagelogDataSource != null) {
+            messagelogDataSource.close();
+        }
+        if (serverconfDataSource != null) {
+            serverconfDataSource.close();
         }
     }
 }
