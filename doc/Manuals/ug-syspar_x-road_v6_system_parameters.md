@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.97
+Version: 2.98
 Doc. ID: UG-SYSPAR
 
 
@@ -108,6 +108,7 @@ Doc. ID: UG-SYSPAR
 | 17.03.2025 | 2.95    | Syntax and styling                                                                                                                                                                                                                                                                                                                                                                                             | Pauline Dimmek             |
 | 02.04.2025 | 2.96    | Added new parameter *memory-usage-threshold*                                                                                                                                                                                                                                                                                                                                                                   | Mikk-Erik Bachmann         |
 | 11.04.2025 | 2.97    | Added *proxy-ui-api.reserved-service-codes* parameter regarding to reserved services codes validation                                                                                                                                                                                                                                                                                                          | Victor Figueroa            |
+| 20.06.2025 | 2.98    | Include *TLSv1.3* in the default values of the *server.ssl.enabled-protocols* parameter                                                                                                                                                                                                                                                                                                                        | Eneli Reimets              |
 
 ## Table of Contents
 
@@ -501,7 +502,7 @@ Default values for the SSL properties are
 | server.ssl.enabled            | true                                                                                                                                                           | Whether to enable SSL support                        |
 | server.ssl.ciphers            | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 | Supported SSL ciphers                                |
 | server.ssl.protocol           | TLS                                                                                                                                                            | SSL protocol to use                                  |
-| server.ssl.enabled-protocols  | TLSv1.2                                                                                                                                                        | Enabled SSL protocols                                |
+| server.ssl.enabled-protocols  | TLSv1.2,TLSv1.3                                                                                                                                                | Enabled SSL protocols                                |
 
 Management REST API module uses `database-properties` configuration from the [proxy parameters](#32-proxy-parameters-proxy),
 with some additional limitations on configurability (see details in proxy chapter).

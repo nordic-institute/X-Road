@@ -5895,11 +5895,16 @@ components:
       description: addon module statuses
       required:
         - messagelog_enabled
+        - opmonitoring_enabled
       properties:
         messagelog_enabled:
           type: boolean
           readOnly: true
           description: MessageLog status
+        opmonitoring_enabled:
+          type: boolean
+          readOnly: true
+          description: OpMonitoring status
     BackupEncryptionStatus:
       type: object
       description: backup encryption statuses

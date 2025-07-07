@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.58  
+Version: 2.59  
 Doc. ID: IG-SS
 
 ---
@@ -74,10 +74,11 @@ Doc. ID: IG-SS
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 24.09.2024 | 2.53    | Add mail server to the network diagram                                                                                                                                                                               | Mikk-Erik Bachmann   |
 | 08.11.2024 | 2.54    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                                                | Ovidijus Narkevicius |
-| 06.02.2025 | 2.55    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
-| 13.02.2025 | 2.56    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
-| 10.03.2025 | 2.57    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
-| 21.03.2025 | 2.58    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
+| 13.02.2025 | 2.55    | Additional request for Proxy service memory allocation information while installing                                                                                                                                  | Ovidijus Narkevicius |
+| 10.03.2025 | 2.56    | Update required connections and other minor updates                                                                                                                                                                  | Petteri Kivimäki     |
+| 21.03.2025 | 2.57    | Syntax and styling                                                                                                                                                                                                   | Pauline Dimmek       |
+| 03.06.2025 | 2.58    | Setup database connection with SSL certificates                                                                                                                                                                      | Eneli Reimets        |
+| 30.06.2025 | 2.59    | Update the method of adding X-Road apt repository                                                                                                                                                                    | Mikk-Erik Bachmann   |
 
 ## License
 
@@ -282,9 +283,9 @@ Requirements to software and settings:
 
         LC_ALL=en_US.UTF-8
 
-* Ensure that the packages `locales` and `software-properties-common` are present
+* Ensure that the packages `locales` and `lsb-release` are present
 
-        sudo apt-get install locales software-properties-common
+        sudo apt-get install locales lsb-release
 
 * Ensure that the locale is available
 
@@ -295,12 +296,12 @@ Requirements to software and settings:
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```bash
-curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+curl -fsSL https://x-road.eu/gpg/key/public/niis-artifactory-public.gpg | sudo tee /usr/share/keyrings/niis-artifactory-keyring.gpg > /dev/null
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
 ```bash
-sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+echo "deb [signed-by=/usr/share/keyrings/niis-artifactory-keyring.gpg] https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main" | sudo tee /etc/apt/sources.list.d/xroad.list > /dev/null
 ```
 
 Update package repository metadata:
@@ -332,9 +333,9 @@ The Security Server installer can create the database and users for you, but you
 
 For advanced setup, e.g. when using separate servers for the databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7.
 
-For setup database connection with SSL certificates, you need to create additional configuration file `db_libpq.env` in `/etc/xroad/` folder, see detail [UG-SS](#Ref_UG-SS) section „Passing additional parameters to psql“.
+For setting up a database connection with SSL certificates, you need to create an additional configuration file `db_libpq.env` in the `/etc/xroad/` folder. For more details see the section „Passing additional parameters to psql“ in [UG-SS](#Ref_UG-SS).
 
-When the installer creates the database and users, perform the following steps:
+When leaving the database and user creation to the installer, continue with the following steps:
 
 Create the property file:
 ```bash

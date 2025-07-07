@@ -101,6 +101,10 @@ public class CommonPageObj {
             return $x("//*[@data-test='admin-users-tab-button']");
         }
 
+        public SelenideElement trafficTab() {
+            return $x("//*[@data-test='diagnostics-traffic-tab-button']");
+        }
+
     }
 
     public class Form {

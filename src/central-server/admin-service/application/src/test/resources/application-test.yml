@@ -1,9 +1,14 @@
 ---
+debug: false
+
+spring:
+  main:
+    banner-mode: off
+
 xroad:
   common:
     rpc:
       use-tls: false
 
-debug: true
 logging:
   config: classpath:centralserver-admin-service-test-logback.xml

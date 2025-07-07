@@ -33,8 +33,6 @@ Initialises the app root component.
 import { createApp } from 'vue';
 import axios from 'axios';
 import {
-  routingKey,
-  userKey,
   XrdButton,
   XrdCloseButton,
   XrdConfirmDialog,
@@ -75,8 +73,6 @@ import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
 import { createValidators } from '@/plugins/vee-validate';
-import { RouteName } from '@/global';
-import { useUser } from '@/store/modules/user';
 import provider from '@/plugins/provider';
 
 const pinia = createPinia();

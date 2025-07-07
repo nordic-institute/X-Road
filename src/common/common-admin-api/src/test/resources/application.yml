@@ -15,12 +15,13 @@ spring:
     active: test
   main:
     lazy-initialization: true
+    banner-mode: off
   jackson:
     default-property-inclusion: NON_NULL
 
 logging:
   level:
-    root: INFO
+    root: ERROR
 
 xroad:
   admin-service:

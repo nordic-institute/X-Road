@@ -1,6 +1,6 @@
 @SecurityServer
 @Diagnostics
-Feature: 0900 - SS:Diagnostics
+Feature: 0900 - SS:Diagnostics - Overview
 
   Background:
     Given SecurityServer login page is open

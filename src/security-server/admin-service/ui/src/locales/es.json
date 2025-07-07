@@ -258,6 +258,27 @@
         "UNKNOWN": "Desconocido"
       },
       "title": "Marca de tiempo"
+    },
+    "traffic": {
+      "period": "Período",
+      "periodInfo": "Selecciona inicio y fin",
+      "date": "Fecha",
+      "time": "Hora",
+      "party": "Parte",
+      "partyInfo": "Servicio, subsistema, miembro",
+      "client": "Cliente",
+      "service": "Servicio",
+      "exchangeRole": "Rol de intercambio",
+      "exchangeRoleInfo": "Productor o Consumidor",
+      "producer": "Productor",
+      "status": "Estado",
+      "statusInfo": "Estado del intercambio de mensajes",
+      "success": "Éxito",
+      "failure": "Fallo",
+      "successfulRequests": "Solicitudes exitosas",
+      "failedRequests": "Solicitudes fallidas",
+      "disabledTitle": "La monitorización de datos operativos está deshabilitada",
+      "disabledMessage": "La monitorización de datos operativos está deshabilitada para este Servidor de Seguridad. Para habilitarla, instala el complemento de monitorización de datos operativos (xroad-addon-opmonitoring)."
     }
   },
   "endpoints": {
@@ -873,6 +894,10 @@
       "localGroups": "Grupos locales",
       "serviceClients": "Clientes de servicio",
       "services": "Servicios"
+    },
+    "diagnostics": {
+      "overview": "Resumen",
+      "traffic": "Tráfico"
     },
     "keys": {
       "apiKey": "Clave de API",
