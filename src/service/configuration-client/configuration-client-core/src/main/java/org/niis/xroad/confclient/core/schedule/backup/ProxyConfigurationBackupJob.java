@@ -50,6 +50,11 @@ public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
 
     private final ExternalProcessRunner externalProcessRunner;
 
+    public ProxyConfigurationBackupJob() {
+        super(RETRY_DELAY_SEC, MAX_RETRY_DELAY_SEC);
+        this.externalProcessRunner = new ExternalProcessRunner();
+    }
+
     ProxyConfigurationBackupJob(ExternalProcessRunner externalProcessRunner) {
         super(RETRY_DELAY_SEC, MAX_RETRY_DELAY_SEC);
         this.externalProcessRunner = externalProcessRunner;
