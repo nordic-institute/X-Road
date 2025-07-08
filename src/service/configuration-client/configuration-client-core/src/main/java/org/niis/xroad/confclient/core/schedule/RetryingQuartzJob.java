@@ -98,7 +98,7 @@ public abstract class RetryingQuartzJob implements Job {
     protected abstract boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException;
 
     private int getRetryCount(JobExecutionContext context) {
-        return context.getTrigger().getJobDataMap().getInt(RETRY_COUNT);
+        return context.getTrigger().getJobDataMap().getIntValue(RETRY_COUNT);
     }
 
     /**
