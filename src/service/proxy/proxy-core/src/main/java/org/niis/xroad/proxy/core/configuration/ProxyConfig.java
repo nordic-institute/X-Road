@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.proxy.core.configuration;
 
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Disposes;
@@ -78,6 +80,11 @@ public class ProxyConfig {
                                           ServerConfCommonProperties serverConfProperties,
                                           GlobalConfProvider globalConfProvider) {
         return ServerConfFactory.create(databaseCtx, globalConfProvider, serverConfProperties);
+    }
+
+    @ApplicationScoped
+    ExternalProcessRunner externalProcessRunner() {
+        return new ExternalProcessRunner();
     }
 
 }

@@ -40,7 +40,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_REGI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_UNREGISTER_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_NOT_FOUND;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
@@ -68,7 +67,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INI
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_URL;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_NOT_FOUND;
@@ -99,7 +97,6 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     SIGN_CERT_NOT_SUPPORTED(ERROR_SIGN_CERT_NOT_SUPPORTED),
     CERTIFICATE_NOT_FOUND(ERROR_CERTIFICATE_NOT_FOUND),
     CERTIFICATE_NOT_FOUND_WITH_ID(ERROR_CERTIFICATE_NOT_FOUND_WITH_ID),
-    CERTIFICATE_ALREADY_EXISTS(ERROR_CERTIFICATE_ALREADY_EXISTS),
     CA_NOT_FOUND(ERROR_CA_NOT_FOUND),
     CA_CERT_PROCESSING(ERROR_CA_CERT_PROCESSING),
     CP_INSTANTIATION_FAILED(ERROR_INSTANTIATION_FAILED),
@@ -142,8 +139,6 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     WSDL_DOWNLOAD_FAILED(ERROR_WSDL_DOWNLOAD_FAILED),
     WSDL_EXISTS(ERROR_WSDL_EXISTS),
     WSDL_VALIDATOR_INTERRUPTED(ERROR_WSDL_VALIDATOR_INTERRUPTED),
-
-    KEY_NOT_FOUND(ERROR_KEY_NOT_FOUND),
     WRONG_KEY_USAGE(ERROR_WRONG_KEY_USAGE),
 
     MEMBER_NAME_NOT_FOUND("member_name_not_found"),

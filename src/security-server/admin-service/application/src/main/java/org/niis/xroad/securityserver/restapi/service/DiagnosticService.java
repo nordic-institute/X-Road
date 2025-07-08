@@ -125,8 +125,7 @@ public class DiagnosticService {
                     .stream()
                     .map(this::parseOcspResponderDiagnosticsStatus)
                     .toList();
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e.getMessage(), e, buildErrorDiagnosticRequestFailed());
         }
     }

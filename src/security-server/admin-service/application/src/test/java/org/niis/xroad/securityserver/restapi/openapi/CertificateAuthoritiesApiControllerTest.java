@@ -32,11 +32,11 @@ import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrderDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthorityDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageTypeDto;
-import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;

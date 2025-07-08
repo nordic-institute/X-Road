@@ -30,7 +30,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.CertificateAlreadyExistsException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.exception.InvalidCertificateException;
+import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.config.KeyAlgorithmConfig;
 import org.niis.xroad.signer.api.dto.KeyInfo;
 import org.niis.xroad.signer.client.SignerRpcClient.GeneratedCertRequestInfo;

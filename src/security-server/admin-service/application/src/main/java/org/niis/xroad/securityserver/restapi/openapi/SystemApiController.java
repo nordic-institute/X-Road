@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -62,7 +63,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDt
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
-import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -227,7 +227,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_CSR')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_CSR)
     public ResponseEntity<Resource> generateSystemCertificateRequest(DistinguishedNameDto distinguishedName) {
-        byte[] csrBytes = systemService.generateInternalCsr(distinguishedName.getName());
+        byte[] csrBytes = internalTlsCertificateService.generateInternalCsr(distinguishedName.getName());
         return ControllerUtil.createAttachmentResourceResponse(
                 csrBytes, csrFilenameCreator.createInternalCsrFilename());
     }

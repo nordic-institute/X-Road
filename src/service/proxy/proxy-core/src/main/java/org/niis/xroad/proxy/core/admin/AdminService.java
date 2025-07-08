@@ -38,11 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.core.admin.handler.TimestampStatusHandler;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
-import org.niis.xroad.proxy.proto.Empty;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.ProxyMemoryStatusResp;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;

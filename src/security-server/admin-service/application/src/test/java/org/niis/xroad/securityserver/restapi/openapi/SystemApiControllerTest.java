@@ -35,6 +35,7 @@ import org.mockito.Mockito;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.exception.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.MaintenanceMode;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfo;
@@ -48,7 +49,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponseDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.AnchorFileNotFoundException;
-import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -126,7 +126,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"GENERATE_INTERNAL_TLS_CSR"})
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
-        when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
+        when(internalTlsCertificateService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
                 new DistinguishedNameDto().name("foobar"));
         assertNotNull(result);
@@ -162,7 +162,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
             x509Certificate = CryptoUtils.readCertificate(stream);
         }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
 
         CertificateDetailsDto certificate =
                 systemApiController.getSystemCertificate().getBody();

@@ -8,11 +8,20 @@ quarkus:
       - xroad-common.yaml
       - xroad-logging.yaml
 
+script:
+  generate-certificate:
+    path: /usr/share/xroad/scripts/generate_certificate.sh
+    args: -n internal -f -S -p 2>&1
+
 "%containerized":
   xroad:
     proxy:
       rpc:
         listen-address: 0.0.0.0
+  script:
+    generate-certificate:
+      path: /opt/app/scripts/generate_certificate.sh
+      args: -c /opt/app/scripts -n internal -f -S -p 2>&1
 
 "%native":
   quarkus:

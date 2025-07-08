@@ -23,26 +23,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.proxy.core.tls;
 
-import org.niis.xroad.common.exception.BadRequestException;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
 
 /**
- * General error that happens when importing a cert. Usually a wrong file type
+ * internal tls certificate repository
  */
-public class InvalidCertificateException extends BadRequestException {
-    public InvalidCertificateException(Throwable t) {
-        super(t, INVALID_CERTIFICATE.build());
+@Slf4j
+@ApplicationScoped
+public class InternalTlsCertificateRepository {
+
+    // as in application_controller.rb
+    private static final String INTERNAL_TLS_CERT_PATH = "/etc/xroad/ssl/internal.crt";
+
+    /**
+     * reads internal tls certificate from file
+     */
+    public X509Certificate getInternalTlsCertificate() {
+        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
+            return CryptoUtils.readCertificate(fileInputStream);
+        } catch (IOException ioe) {
+            log.error("can't read internal tls cert");
+            throw new RuntimeException(ioe);
+        }
     }
 
-    public InvalidCertificateException(String msg) {
-        super(msg, INVALID_CERTIFICATE.build());
-    }
-
-    public InvalidCertificateException(String msg, Throwable t) {
-        super(msg, t, INVALID_CERTIFICATE.build());
+    /**
+     * reads internal tls certificate chain from file
+     */
+    public Collection<X509Certificate> getInternalTlsCertificateChain() {
+        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
+            return CryptoUtils.readCertificates(fileInputStream);
+        } catch (IOException ioe) {
+            log.error("can't read internal tls cert");
+            throw new RuntimeException(ioe);
+        }
     }
 }

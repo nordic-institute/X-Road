@@ -23,19 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.exception;
 
-import org.niis.xroad.common.exception.NotFoundException;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.CERTIFICATE_ALREADY_EXISTS;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.KEY_NOT_FOUND;
-
-public class KeyNotFoundException extends NotFoundException {
-    public KeyNotFoundException(String s) {
-        super(s, KEY_NOT_FOUND.build());
+/**
+ * If trying to add certificate which already exists
+ */
+public class CertificateAlreadyExistsException extends ConflictException {
+    public CertificateAlreadyExistsException(String s) {
+        super(s, CERTIFICATE_ALREADY_EXISTS.build());
     }
 
-    public KeyNotFoundException(Throwable t) {
-        super(t, KEY_NOT_FOUND.build());
+    public CertificateAlreadyExistsException(Throwable t) {
+        super(t, CERTIFICATE_ALREADY_EXISTS.build());
     }
-
 }

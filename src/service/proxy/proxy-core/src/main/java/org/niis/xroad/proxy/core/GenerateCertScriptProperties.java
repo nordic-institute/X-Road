@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,49 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+package org.niis.xroad.proxy.core;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.cert.X509Certificate;
-import java.util.Collection;
+@ConfigMapping(prefix = "script.generate-certificate")
+public interface GenerateCertScriptProperties {
 
-/**
- * internal tls certificate repository
- */
-@Slf4j
-@Repository
-public class InternalTlsCertificateRepository {
+    @WithName("path")
+    String path();
 
-    // as in application_controller.rb
-    private static final String INTERNAL_TLS_CERT_PATH = "/etc/xroad/ssl/internal.crt";
+    @WithName("args")
+    String args();
 
-    /**
-     * reads internal tls certificate from file
-     */
-    public X509Certificate getInternalTlsCertificate() {
-        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
-            return CryptoUtils.readCertificate(fileInputStream);
-        } catch (IOException ioe) {
-            log.error("can't read internal tls cert");
-            throw new RuntimeException(ioe);
-        }
-    }
-
-    /**
-     * reads internal tls certificate chain from file
-     */
-    public Collection<X509Certificate> getInternalTlsCertificateChain() {
-        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
-            return CryptoUtils.readCertificates(fileInputStream);
-        } catch (IOException ioe) {
-            log.error("can't read internal tls cert");
-            throw new RuntimeException(ioe);
-        }
-    }
 }

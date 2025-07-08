@@ -39,7 +39,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.exception.BadRequestException;
+import org.niis.xroad.common.exception.CertificateAlreadyExistsException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
+import org.niis.xroad.common.exception.InvalidCertificateException;
+import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -142,7 +145,7 @@ public class TokenCertificateService {
                    WrongKeyUsageException,
                    KeyNotFoundException,
                    DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException,
-                   CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
+            CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
                    WrongCertificateUsageException, InvalidCertificateException, AuthCertificateNotSupportedException {
 
         // validate key and memberId existence

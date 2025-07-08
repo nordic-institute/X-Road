@@ -29,13 +29,11 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.crypto.Digests;
-import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
@@ -60,9 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -192,26 +187,6 @@ public class SystemService {
         sb.append("Timestamping service with name ").append(name).append(" and url ").append(url);
         sb.append(" ").append(message);
         return sb.toString();
-    }
-
-    /**
-     * Generate internal auth cert CSR
-     * @param distinguishedName
-     * @return
-     * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to
-     *                                           <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
-     *                                           <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
-     */
-    public byte[] generateInternalCsr(String distinguishedName) throws InvalidDistinguishedNameException {
-        auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
-        try {
-            KeyPair keyPair = CertUtils.readKeyPairFromPemFile(internalKeyPath);
-            return CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidDistinguishedNameException(e);
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | OperatorCreationException e) {
-            throw new InternalServerErrorException(e);
-        }
     }
 
     /**

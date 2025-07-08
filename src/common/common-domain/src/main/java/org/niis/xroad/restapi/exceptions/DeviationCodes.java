@@ -50,7 +50,6 @@ public final class DeviationCodes {
      */
     public static final String ERROR_CA_CERT_PROCESSING = "ca_cert_status_processing_failure";
     public static final String ERROR_CA_NOT_FOUND = "certificate_authority_not_found";
-    public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
     public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
     public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
     public static final String ERROR_CERTIFICATE_WRONG_USAGE = "cert_wrong_usage";
@@ -84,7 +83,6 @@ public final class DeviationCodes {
     public static final String ERROR_INVALID_SERVICE_URL = "invalid_service_url";
     public static final String ERROR_INVALID_CONNECTION_TYPE = "invalid_connection_type";
     public static final String ERROR_INVALID_WSDL = "invalid_wsdl";
-    public static final String ERROR_KEY_NOT_FOUND = "key_not_found";
     public static final String ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS = "local_group_member_already_exists";
     public static final String ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND = "local_group_member_not_found";
     public static final String ERROR_LOCAL_GROUP_NOT_FOUND = "local_group_not_found";

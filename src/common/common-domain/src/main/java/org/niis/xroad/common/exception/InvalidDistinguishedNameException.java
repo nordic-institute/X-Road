@@ -23,57 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
+package org.niis.xroad.common.exception;
 
-package org.niis.xroad.proxy.proto;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
 
-import "common_messages.proto";
-
-option java_multiple_files = true;
-
-service AdminService {
-  rpc GetAddOnStatus(Empty) returns (AddOnStatusResp) {}
-  rpc GetMessageLogEncryptionStatus(Empty) returns (MessageLogEncryptionStatusResp) {}
-  rpc GetTimestampStatus(Empty) returns (TimestampStatusResp) {}
-  rpc GetProxyMemoryStatus(Empty) returns (ProxyMemoryStatusResp) {}
-  rpc ClearConfCache(Empty) returns (Empty) {}
-  rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
+/**
+ * Thrown when given DistinguishedName is invalid
+ */
+public class InvalidDistinguishedNameException extends BadRequestException {
+    public InvalidDistinguishedNameException(Throwable t) {
+        super(t, INVALID_DISTINGUISHED_NAME.build());
+    }
 }
-
-message AddOnStatusResp {
-  bool message_log_enabled = 1;
-}
-
-message MessageLogEncryptionStatusResp {
-  bool message_log_archive_encryption_status = 1;
-  bool message_log_database_encryption_status = 2;
-  string message_log_grouping_rule = 3;
-  repeated MessageLogArchiveEncryptionMember members = 4;
-}
-
-message MessageLogArchiveEncryptionMember {
-  string member_id = 1;
-  repeated string keys = 2;
-  bool default_key_used = 3;
-}
-
-message TimestampStatusResp {
-  map<string, DiagnosticsStatus> diagnostics_status = 1;
-}
-
-message ProxyMemoryStatusResp {
-  int64 totalMemory = 1;
-  int64 freeMemory = 2;
-  int64 maxMemory = 3;
-  int64 usedMemory = 4;
-  int64 usedPercent = 5;
-  optional int64 threshold = 6;
-}
-
-message DiagnosticsStatus {
-  int32 return_code = 1;
-  optional int64 prev_update = 2;
-  optional int64 next_update = 3;
-  optional string description = 4;
-}
-
