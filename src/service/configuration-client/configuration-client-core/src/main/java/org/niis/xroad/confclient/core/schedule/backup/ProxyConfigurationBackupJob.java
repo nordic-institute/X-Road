@@ -46,16 +46,12 @@ import org.quartz.SchedulerException;
 public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
     private static final String AUTOBACKUP_SCRIPT_PATH = "/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh";
     private static final int RETRY_DELAY_SEC = 5;
+    private static final int MAX_RETRY_DELAY_SEC = 28000;
 
     private final ExternalProcessRunner externalProcessRunner;
 
-    public ProxyConfigurationBackupJob() {
-        super(RETRY_DELAY_SEC);
-        this.externalProcessRunner = new ExternalProcessRunner();
-    }
-
     ProxyConfigurationBackupJob(ExternalProcessRunner externalProcessRunner) {
-        super(RETRY_DELAY_SEC);
+        super(RETRY_DELAY_SEC, MAX_RETRY_DELAY_SEC);
         this.externalProcessRunner = externalProcessRunner;
     }
 
@@ -71,5 +67,4 @@ public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
     protected boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException {
         return JobManager.isJobRunning(context, ConfigurationClientJob.class);
     }
-
 }

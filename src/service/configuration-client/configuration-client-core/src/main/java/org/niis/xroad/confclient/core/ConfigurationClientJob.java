@@ -46,11 +46,12 @@ import org.quartz.SchedulerException;
 @DisallowConcurrentExecution
 public class ConfigurationClientJob extends RetryingQuartzJob {
     private static final int RETRY_DELAY_SEC = 3;
+    private static final int MAX_RETRY_DELAY_SEC = 20;
 
     private final ConfigurationClient configClient;
 
     public ConfigurationClientJob(ConfigurationClient configClient) {
-        super(RETRY_DELAY_SEC);
+        super(RETRY_DELAY_SEC, MAX_RETRY_DELAY_SEC);
         this.configClient = configClient;
     }
 
@@ -80,5 +81,4 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     protected boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException {
         return JobManager.isJobRunning(context, ProxyConfigurationBackupJob.class);
     }
-
 }

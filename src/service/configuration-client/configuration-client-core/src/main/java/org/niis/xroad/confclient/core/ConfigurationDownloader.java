@@ -78,7 +78,6 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 @Slf4j
 public class ConfigurationDownloader {
 
-    public static final int READ_TIMEOUT = 30000;
     protected final FileNameProvider fileNameProvider;
     private final HttpUrlConnectionConfigurer connectionConfigurer = new HttpUrlConnectionConfigurer();
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
@@ -358,7 +357,6 @@ public class ConfigurationDownloader {
     public URLConnection getDownloadURLConnection(URL url) throws IOException {
         URLConnection connection = url.openConnection();
         connectionConfigurer.apply((HttpURLConnection) connection);
-        connection.setReadTimeout(READ_TIMEOUT);
         return connection;
     }
 

@@ -46,15 +46,29 @@ public abstract class RetryingQuartzJob implements Job {
     private static final String RETRY_COUNT = "retryCount";
     private static final String RETRY_GROUP = "retryGroup";
 
-    private final int retryDelay;
+    private final int initialRetryDelay;
+    private final int maxRetryDelay;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             if (shouldRescheduleRetry(context)) {
-                log.warn("Job {} is already running. Will retry in {} seconds", context.getJobDetail().getKey().getName(),
-                        retryDelay);
-                scheduleRetry(context);
+                int retryCount = getRetryCount(context);
+                int nextDelay = initialRetryDelay * (int) Math.pow(2, retryCount);
+
+                if (nextDelay > maxRetryDelay) {
+                    log.error("Next retry delay {} exceeds maximum of {} seconds. Will not retry further.",
+                            nextDelay, maxRetryDelay);
+                    return; // stop retrying
+                }
+
+                log.warn("Job {} is already running. Will retry in {} seconds (retry count={})",
+                        context.getJobDetail().getKey().getName(),
+                        nextDelay,
+                        retryCount + 1
+                );
+
+                scheduleRetry(context, nextDelay, retryCount + 1);
             } else {
                 executeWithRetry(context);
             }
@@ -83,14 +97,17 @@ public abstract class RetryingQuartzJob implements Job {
      */
     protected abstract boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException;
 
+    private int getRetryCount(JobExecutionContext context) {
+        return context.getTrigger().getJobDataMap().getInt(RETRY_COUNT);
+    }
+
     /**
      * Add retry trigger to current scheduler.
      *
      * @param context quartz job context
      */
-    private void scheduleRetry(JobExecutionContext context) throws SchedulerException {
-        Trigger trigger = createRetryTrigger(context.getJobDetail(), context.getTrigger(), retryDelay);
-
+    private void scheduleRetry(JobExecutionContext context, int delay, int newRetryCount) throws SchedulerException {
+        Trigger trigger = createRetryTrigger(context.getJobDetail(), delay, newRetryCount);
         context.getScheduler().scheduleJob(trigger);
     }
 
@@ -100,15 +117,12 @@ public abstract class RetryingQuartzJob implements Job {
      * @param jobDetail job detail to use
      * @param delay     delay in seconds
      */
-    private Trigger createRetryTrigger(JobDetail jobDetail, Trigger lastTrigger, int delay) {
+    private Trigger createRetryTrigger(JobDetail jobDetail, int delay, int retryCount) {
         final String jobName = jobDetail.getKey().getName();
-        final int retryCount = lastTrigger.getJobDataMap().containsKey(RETRY_COUNT)
-                ? lastTrigger.getJobDataMap().getIntValue(RETRY_COUNT) : 0;
-        final int newRetryCount = retryCount + 1;
         return newTrigger()
                 .forJob(jobName, jobDetail.getKey().getGroup())
-                .withIdentity(jobName + "-" + newRetryCount, RETRY_GROUP)
-                .usingJobData(RETRY_COUNT, newRetryCount)
+                .withIdentity(jobName + "-" + retryCount, RETRY_GROUP)
+                .usingJobData(RETRY_COUNT, retryCount)
                 .startAt(DateBuilder.futureDate(delay, DateBuilder.IntervalUnit.SECOND))
                 .build();
     }
