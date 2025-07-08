@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DateBuilder;
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -53,7 +54,7 @@ public abstract class RetryingQuartzJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             if (shouldRescheduleRetry(context)) {
-                int retryCount = getRetryCount(context);
+                int retryCount = getRetryCount(context.getTrigger().getJobDataMap());
                 int nextDelay = initialRetryDelay * (int) Math.pow(2, retryCount);
 
                 if (nextDelay > maxRetryDelay) {
@@ -97,8 +98,8 @@ public abstract class RetryingQuartzJob implements Job {
      */
     protected abstract boolean shouldRescheduleRetry(JobExecutionContext context) throws SchedulerException;
 
-    private int getRetryCount(JobExecutionContext context) {
-        return context.getTrigger().getJobDataMap().getIntValue(RETRY_COUNT);
+    private int getRetryCount(JobDataMap jobDataMap) {
+        return jobDataMap.containsKey(RETRY_COUNT) ? jobDataMap.getIntValue(RETRY_COUNT) : 0;
     }
 
     /**
