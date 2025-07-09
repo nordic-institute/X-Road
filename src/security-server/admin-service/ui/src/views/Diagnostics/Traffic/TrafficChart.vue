@@ -24,7 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
+  <v-progress-linear v-if="loading" height="2" indeterminate />
   <VueApexChart
+    v-else
     type="line"
     :options="options"
     :series="series"
@@ -37,7 +39,10 @@ import { useDate } from 'vuetify';
 import { ref } from 'vue';
 import VueApexChart from 'vue3-apexcharts';
 
-const props = defineProps<{ series: TrafficSeries[] }>();
+const props = defineProps<{
+  series: TrafficSeries[];
+  loading?: boolean;
+}>();
 
 const dateAdapter = useDate();
 
