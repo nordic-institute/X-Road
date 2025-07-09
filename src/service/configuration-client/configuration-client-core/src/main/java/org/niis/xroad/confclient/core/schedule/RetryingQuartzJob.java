@@ -58,8 +58,7 @@ public abstract class RetryingQuartzJob implements Job {
                 int nextDelay = initialRetryDelay * (int) Math.pow(2, retryCount);
 
                 if (nextDelay > maxRetryDelay) {
-                    log.error("Next retry delay {} exceeds maximum of {} seconds. Will not retry further.",
-                            nextDelay, maxRetryDelay);
+                    log.error("Next retry delay {} exceeds maximum of {} seconds. Will not retry further.", nextDelay, maxRetryDelay);
                     return; // stop retrying
                 }
 
