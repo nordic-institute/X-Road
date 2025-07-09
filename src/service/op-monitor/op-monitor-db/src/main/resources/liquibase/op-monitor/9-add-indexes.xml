@@ -9,6 +9,10 @@
         <createIndex indexName="idx_request_in_ts" tableName="operational_data" unique="false">
             <column name="request_in_ts"/>
         </createIndex>
+        <createIndex indexName="idx_request_in_ts_succeeded" tableName="operational_data" unique="false">
+            <column name="request_in_ts"/>
+            <column name="succeeded"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>
