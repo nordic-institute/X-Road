@@ -201,6 +201,7 @@ clientsStore
     clientsLoading.value = false;
   });
 
+const lastFetchedTrafficData: Ref<Array<OperationalDataInterval>> = ref([]);
 const series: Ref<Array<TrafficSeries>> = ref([]);
 const seriesLoading = ref(false);
 const seriesLoadingDebounced = ref(false);
@@ -236,6 +237,7 @@ function onFiltersChange(filter: TrafficFilter) {
   startSeriesLoading();
   fetchTrafficData(toQueryParams(filter))
     .then((data) => {
+      lastFetchedTrafficData.value = data;
       series.value = toChartSeries(filter, data);
     })
     .catch(showError)
@@ -244,7 +246,17 @@ function onFiltersChange(filter: TrafficFilter) {
     });
 }
 
-watch(filters, onFiltersChange, { deep: true, immediate: true });
+watch(
+  filters,
+  (newVal, oldVal) => {
+    if (!!oldVal && newVal.status !== oldVal.status) {
+      onStatusFilterChange(newVal);
+    } else {
+      onFiltersChange(newVal);
+    }
+  },
+  { deep: true, immediate: true },
+);
 watch(() => filters.client, fetchServices);
 
 function fetchServices(client?: string) {
@@ -275,6 +287,10 @@ async function fetchTrafficData(
       params: queryParams,
     })
     .then((response) => response.data);
+}
+
+function onStatusFilterChange(filter: TrafficFilter) {
+  series.value = toChartSeries(filter, lastFetchedTrafficData.value);
 }
 
 function toChartSeries(

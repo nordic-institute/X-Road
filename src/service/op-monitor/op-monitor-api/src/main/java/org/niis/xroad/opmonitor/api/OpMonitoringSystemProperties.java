@@ -113,6 +113,11 @@ public final class OpMonitoringSystemProperties {
     public static final String OP_MONITOR_GRPC_PORT = PREFIX + "op-monitor.grpc-port";
 
     /**
+     * Property name of the time in milliseconds that the operational monitoring gRPC client waits for a response
+     */
+    public static final String OP_MONITOR_GRPC_CLIENT_TIMEOUT = PREFIX + "op-monitor.grpc-client-timeout";
+
+    /**
      * Property name of the path to the location of the operational monitoring daemon TLS certificate.
      */
     private static final String OP_MONITOR_TLS_CERTIFICATE =
@@ -239,6 +244,13 @@ public final class OpMonitoringSystemProperties {
     public static int getOpMonitorGrpcPort() {
         return Integer.parseInt(System.getProperty(OP_MONITOR_GRPC_PORT,
                 Integer.toString(PortNumbers.OP_MONITOR_DAEMON_GRPC_PORT)));
+    }
+
+    /**
+     * @return the time in milliseconds that the operational monitoring gRPC client waits for a response.
+     */
+    public static int getOpMonitorGrpcClientTimeout() {
+        return Integer.parseInt(System.getProperty(OP_MONITOR_GRPC_CLIENT_TIMEOUT, "60000"));
     }
 
     /**
