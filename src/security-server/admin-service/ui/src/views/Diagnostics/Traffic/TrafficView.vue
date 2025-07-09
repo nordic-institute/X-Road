@@ -165,7 +165,10 @@
     </v-card-text>
   </v-card>
   <v-card height="20rem">
-    <TrafficChart :series="series" />
+    <TrafficChart
+      :series="series"
+      :loading="seriesLoading && seriesLoadingDebounced"
+    />
   </v-card>
 </template>
 
@@ -184,6 +187,7 @@ import TrafficChart, {
   TrafficSeries,
 } from '@/views/Diagnostics/Traffic/TrafficChart.vue';
 import { useI18n } from 'vue-i18n';
+import { debounce } from '@/util/helpers';
 
 const { showError } = useNotifications();
 const { t } = useI18n();
@@ -198,6 +202,9 @@ clientsStore
   });
 
 const series: Ref<Array<TrafficSeries>> = ref([]);
+const seriesLoading = ref(false);
+const seriesLoadingDebounced = ref(false);
+
 const services: Ref<Array<Service>> = ref([]);
 const servicesLoading = ref(false);
 
@@ -210,10 +217,31 @@ const filters: Reactive<TrafficFilter> = reactive({
   endTime: '23:59',
 });
 
+const debounceLoading = debounce(() => {
+  seriesLoadingDebounced.value = true;
+}, 300);
+
+function startSeriesLoading() {
+  seriesLoadingDebounced.value = false;
+  seriesLoading.value = true;
+  debounceLoading();
+}
+
+function endSeriesLoading() {
+  seriesLoadingDebounced.value = false;
+  seriesLoading.value = false;
+}
+
 function onFiltersChange(filter: TrafficFilter) {
+  startSeriesLoading();
   fetchTrafficData(toQueryParams(filter))
-    .then((data) => toChartSeries(filter, data))
-    .catch(showError);
+    .then((data) => {
+      series.value = toChartSeries(filter, data);
+    })
+    .catch(showError)
+    .finally(() => {
+      endSeriesLoading();
+    });
 }
 
 watch(filters, onFiltersChange, { deep: true, immediate: true });
@@ -249,7 +277,10 @@ async function fetchTrafficData(
     .then((response) => response.data);
 }
 
-function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]) {
+function toChartSeries(
+  filter: TrafficFilter,
+  data: OperationalDataInterval[],
+): TrafficSeries[] {
   const value: TrafficSeries[] = [];
 
   if (filter.status ?? true) {
@@ -272,7 +303,7 @@ function toChartSeries(filter: TrafficFilter, data: OperationalDataInterval[]) {
       ]),
     });
   }
-  series.value = value;
+  return value;
 }
 
 function getSecurityServerType(exchangeRole?: string) {
