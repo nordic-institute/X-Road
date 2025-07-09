@@ -47,7 +47,6 @@
             <column name="serviceversion" type="VARCHAR(255)"/>
             <column name="servicecode" type="VARCHAR(255)"/>
             <column name="groupcode" type="VARCHAR(255)"/>
-            <column name="securitycategory" type="VARCHAR(255)"/>
             <column name="servercode" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>

@@ -89,9 +89,9 @@ public class IdentifierDAOImplTest {
     @Test
     public void clientId() {
         assertCreateRead(() -> ClientIdEntity.createMember("EE", "class", "code1"),
-                id -> identifierDAO.findClientId(session, id));
-        assertCreateRead(() -> ClientIdEntity.createMember("EE", "class", "code2"),
-                id -> identifierDAO.findClientId(session, id));
+                id -> (org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity) identifierDAO.findClientId(session, id));
+        assertCreateRead(() -> ClientIdEntity.createSubsystem("EE", "class", "code2", "subsystem1"),
+                id -> (org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity) identifierDAO.findClientId(session, id));
     }
 
     /**

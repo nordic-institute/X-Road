@@ -30,31 +30,20 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 import ee.ria.xroad.common.util.Validation;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.Setter;
 
 import static ee.ria.xroad.common.util.Validation.validateArgument;
-import static ee.ria.xroad.common.util.Validation.validateOptionalArgument;
-import static org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity.DISCRIMINATOR_VALUE;
 
-@Getter
-@Setter
 @Entity
-@DiscriminatorValue(DISCRIMINATOR_VALUE)
-public class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ClientId {
-    public static final String DISCRIMINATOR_VALUE = "C";
+public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ClientId {
 
     protected ClientIdEntity(XRoadObjectType objectType, String xRoadInstance, String memberClass,
-                             String memberCode, String subsystemCode) {
-        super(DISCRIMINATOR_VALUE, objectType, xRoadInstance, memberClass);
+                             String memberCode) {
+        super(objectType, xRoadInstance, memberClass);
         setMemberCode(memberCode);
-        setSubsystemCode(subsystemCode);
     }
 
-    public ClientIdEntity() {
+    protected ClientIdEntity() {
     }
 
     public static ClientIdEntity create(ee.ria.xroad.common.identifier.ClientId identifier) {
@@ -74,34 +63,26 @@ public class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common
                 : createSubsystem(xRoadInstance, memberClass, memberCode, subsystemCode);
     }
 
-    public static ClientIdEntity createMember(String xRoadInstance, String memberClass, String memberCode) {
-
-        return create(XRoadObjectType.MEMBER, xRoadInstance, memberClass, memberCode, null);
-    }
-
-    public static ClientIdEntity createSubsystem(String xRoadInstance,
-                                                 String memberClass,
-                                                 String memberCode,
-                                                 String subsystemCode) {
-        validateOptionalArgument("subsystemCode", subsystemCode);
-
-        return create(XRoadObjectType.SUBSYSTEM, xRoadInstance, memberClass, memberCode, subsystemCode);
-    }
-
-    private static ClientIdEntity create(XRoadObjectType objectType,
-                                         String xRoadInstance,
-                                         String memberClass,
-                                         String memberCode,
-                                         String subsystemCode) {
+    public static MemberIdEntity createMember(String xRoadInstance, String memberClass, String memberCode) {
         validateArgument("xRoadInstance", xRoadInstance);
         validateArgument("memberClass", memberClass);
         validateArgument("memberCode", memberCode);
+        return new MemberIdEntity(xRoadInstance, memberClass, memberCode);
+    }
 
-        return new ClientIdEntity(objectType, xRoadInstance, memberClass, memberCode, subsystemCode);
+    public static SubsystemIdEntity createSubsystem(String xRoadInstance,
+                                                    String memberClass,
+                                                    String memberCode,
+                                                    String subsystemCode) {
+        validateArgument("xRoadInstance", xRoadInstance);
+        validateArgument("memberClass", memberClass);
+        validateArgument("memberCode", memberCode);
+        validateArgument("subsystemCode", subsystemCode);
+
+        return new SubsystemIdEntity(xRoadInstance, memberClass, memberCode, subsystemCode);
     }
 
     @Override
-    @JsonIgnore
     public ClientIdEntity getMemberId() {
         if (getSubsystemCode() == null) {
             return this;

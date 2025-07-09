@@ -43,10 +43,10 @@ import static org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity.D
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class GlobalGroupIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.GlobalGroupId {
-    public static final String DISCRIMINATOR_VALUE = "GG";
+    static final String DISCRIMINATOR_VALUE = "GLOBALGROUP";
 
     protected GlobalGroupIdEntity(XRoadObjectType objectType, String xRoadInstance, String groupCode) {
-        super(DISCRIMINATOR_VALUE, objectType, xRoadInstance, null, groupCode);
+        super(objectType, xRoadInstance, null, groupCode);
     }
 
     public GlobalGroupIdEntity() {

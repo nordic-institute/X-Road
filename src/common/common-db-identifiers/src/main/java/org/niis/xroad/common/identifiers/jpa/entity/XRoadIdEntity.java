@@ -52,7 +52,7 @@ import static jakarta.persistence.AccessType.FIELD;
 @Entity
 @Table(name = XRoadIdEntity.TABLE_NAME)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "discriminator", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @Access(FIELD)
 public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XRoadId {
 
@@ -63,11 +63,8 @@ public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XR
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "discriminator", nullable = false, insertable = false, updatable = false)
-    private String discriminator;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "type")
+    @Column(name = "type", nullable = false, insertable = false, updatable = false)
     private XRoadObjectType objectType;
 
     @Column(name = "xroadinstance")
@@ -98,19 +95,17 @@ public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XR
         //JPA
     }
 
-    protected XRoadIdEntity(String discriminator, XRoadObjectType objectType, String xRoadInstance, String memberClass) {
-        this.discriminator = discriminator;
+    protected XRoadIdEntity(XRoadObjectType objectType, String xRoadInstance, String memberClass) {
         this.objectType = objectType;
         this.xRoadInstance = xRoadInstance;
         this.memberClass = memberClass;
     }
 
-    protected XRoadIdEntity(String discriminator,
-                            XRoadObjectType objectType,
+    protected XRoadIdEntity(XRoadObjectType objectType,
                             String xRoadInstance,
                             String memberClass,
                             String croupCode) {
-        this(discriminator, objectType, xRoadInstance, memberClass);
+        this(objectType, xRoadInstance, memberClass);
         this.groupCode = croupCode;
     }
 

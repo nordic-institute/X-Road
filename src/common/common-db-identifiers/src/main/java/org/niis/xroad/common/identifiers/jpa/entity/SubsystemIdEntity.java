@@ -24,54 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.common.identifiers.jpa.entity;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
-import ee.ria.xroad.common.util.NoCoverage;
-import ee.ria.xroad.common.util.Validation;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.Setter;
 
-import static ee.ria.xroad.common.util.Validation.validateArgument;
-import static org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity.DISCRIMINATOR_VALUE;
+import static org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity.DISCRIMINATOR_VALUE;
 
-@Getter
-@Setter
+
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
-public class LocalGroupIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.LocalGroupId {
-    static final String DISCRIMINATOR_VALUE = "LOCALGROUP";
+public class SubsystemIdEntity extends ClientIdEntity {
+    static final String DISCRIMINATOR_VALUE = "SUBSYSTEM";
 
-    protected LocalGroupIdEntity(XRoadObjectType objectType, String groupCode) {
-        super(objectType, null, null, groupCode);
+    public SubsystemIdEntity() {
     }
 
-    public LocalGroupIdEntity() {
+    public SubsystemIdEntity(String xRoadInstance, String memberClass, String memberCode, String subsystemCode) {
+        super(XRoadObjectType.SUBSYSTEM, xRoadInstance, memberClass, memberCode);
+        setSubsystemCode(subsystemCode);
     }
 
-    public static LocalGroupIdEntity create(ee.ria.xroad.common.identifier.LocalGroupId identifier) {
-        Validation.validateArgument("identifier", identifier);
-
-        return create(identifier.getGroupCode());
-    }
-
-    public static LocalGroupIdEntity create(String groupCode) {
-        validateArgument("groupCode", groupCode);
-        return new LocalGroupIdEntity(XRoadObjectType.LOCALGROUP, groupCode);
-    }
-
-    @Override
-    @NoCoverage
-    public boolean equals(Object obj) {
-        return ee.ria.xroad.common.identifier.AbstractGroupId.equals(this, obj);
-    }
-
-    @Override
-    @NoCoverage
-    public int hashCode() {
-        return ee.ria.xroad.common.identifier.AbstractGroupId.hashCode(this);
-    }
 }

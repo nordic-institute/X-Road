@@ -46,7 +46,7 @@ import static org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity.DISCR
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class ServiceIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ServiceId {
-    public static final String DISCRIMINATOR_VALUE = "S";
+    static final String DISCRIMINATOR_VALUE = "SERVICE";
 
     protected ServiceIdEntity(XRoadObjectType type,
                               String xRoadInstance,
@@ -55,7 +55,7 @@ public class ServiceIdEntity extends XRoadIdEntity implements ee.ria.xroad.commo
                               String subsystemCode,
                               String serviceCode,
                               String serviceVersion) {
-        super(DISCRIMINATOR_VALUE, type, xRoadInstance, memberClass);
+        super(type, xRoadInstance, memberClass);
         setMemberCode(memberCode);
         setSubsystemCode(subsystemCode);
         setServiceCode(serviceCode);

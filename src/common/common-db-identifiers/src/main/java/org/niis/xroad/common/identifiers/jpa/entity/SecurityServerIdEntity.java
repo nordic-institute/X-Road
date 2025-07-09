@@ -43,14 +43,14 @@ import static org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntit
 @Entity
 @DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.SecurityServerId {
-    public static final String DISCRIMINATOR_VALUE = "SS";
+    static final String DISCRIMINATOR_VALUE = "SERVER";
 
     protected SecurityServerIdEntity(XRoadObjectType type,
                                      String xRoadInstance,
                                      String memberClass,
                                      String memberCode,
                                      String serverCode) {
-        super(DISCRIMINATOR_VALUE, type, xRoadInstance, memberClass);
+        super(type, xRoadInstance, memberClass);
         setMemberCode(memberCode);
         setServerCode(serverCode);
     }

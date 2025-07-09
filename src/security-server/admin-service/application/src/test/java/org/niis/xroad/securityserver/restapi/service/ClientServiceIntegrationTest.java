@@ -646,11 +646,11 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         // added again. Identifier is kept when client is deleted
         int dataSqlIdentifiers = countIdentifiers();
         jdbcTemplate.execute("INSERT INTO IDENTIFIER"
-                + "(id, discriminator, type, xroadinstance, memberclass, membercode, subsystemcode)"
-                + " values (1000, 'C', 'MEMBER', 'FI', 'GOV', 'M-DELETED', null)");
+                + "(id, type, xroadinstance, memberclass, membercode, subsystemcode)"
+                + " values (1000, 'MEMBER', 'FI', 'GOV', 'M-DELETED', null)");
         jdbcTemplate.execute("INSERT INTO IDENTIFIER"
-                + "(id, discriminator, type, xroadinstance, memberclass, membercode, subsystemcode)"
-                + " values (1001, 'C', 'SUBSYSTEM', 'FI', 'GOV', 'M-DELETED2', 'SS-DELETED')");
+                + "(id, type, xroadinstance, memberclass, membercode, subsystemcode)"
+                + " values (1001, 'SUBSYSTEM', 'FI', 'GOV', 'M-DELETED2', 'SS-DELETED')");
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
