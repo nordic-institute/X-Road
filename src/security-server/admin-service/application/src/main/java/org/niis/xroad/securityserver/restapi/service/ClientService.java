@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.CertificateAlreadyExistsException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;

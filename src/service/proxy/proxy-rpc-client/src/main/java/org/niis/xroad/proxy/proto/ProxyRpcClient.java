@@ -166,7 +166,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
         var request = GenerateInternalCsrRequest.newBuilder()
                 .setDistinguishedName(distinguishedName)
                 .build();
-        var response = exec(() -> internalTlsServiceBlockingStub.generateInternalCsr(request));
+        var response = exec(() -> internalTlsServiceBlockingStub.generateInternalTlsCsr(request));
         return response.getTlsCsr().toByteArray();
     }
 

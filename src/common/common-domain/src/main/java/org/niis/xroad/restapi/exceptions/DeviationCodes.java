@@ -72,7 +72,6 @@ public final class DeviationCodes {
     public static final String ERROR_INSTANTIATION_FAILED = "certificate_profile_instantiation_failure";
     public static final String ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID =
             "internal_anchor_upload_invalid_instance_id";
-    public static final String ERROR_INTERNAL_KEY_CERT_INTERRUPTED = "internal_key_cert_interrupted";
     public static final String ERROR_INVALID_CHARACTERS_PIN = "invalid_characters_pin";
     public static final String ERROR_INVALID_DN_PARAMETER = "invalid_dn_parameter";
     public static final String ERROR_INVALID_HTTPS_URL = "invalid_https_url";

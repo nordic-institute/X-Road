@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;

@@ -23,7 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.exception;
+package org.niis.xroad.securityserver.restapi.service;
+
+import org.niis.xroad.common.exception.NotFoundException;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_NOT_FOUND;
 

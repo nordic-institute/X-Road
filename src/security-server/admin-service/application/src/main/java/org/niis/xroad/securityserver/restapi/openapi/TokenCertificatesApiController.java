@@ -31,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
 import org.niis.xroad.common.exception.ConflictException;
 import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.common.exception.InvalidCertificateException;
-import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -47,6 +45,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServerAddress
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateDto;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
+import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.signer.api.dto.CertificateInfo;

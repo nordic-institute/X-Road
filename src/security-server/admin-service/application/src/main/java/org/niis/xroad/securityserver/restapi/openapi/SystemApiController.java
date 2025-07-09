@@ -29,8 +29,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.BadRequestException;
-import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.restapi.config.UserAuthenticationConfig;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -63,6 +61,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDt
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
+import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.serverconf.model.TimestampingService;
@@ -76,8 +75,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
-
-import static org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage.INTERNAL_KEY_CERT_INTERRUPTED;
 
 /**
  * system api controller
@@ -139,11 +136,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('GENERATE_INTERNAL_TLS_KEY_CERT')")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_INTERNAL_TLS_KEY_CERT)
     public ResponseEntity<Void> generateSystemTlsKeyAndCertificate() {
-        try {
-            internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
-        } catch (InterruptedException e) {
-            throw new InternalServerErrorException(e, INTERNAL_KEY_CERT_INTERRUPTED.build());
-        }
+        internalTlsCertificateService.generateInternalTlsKeyAndCertificate();
         return ControllerUtil.createCreatedResponse("/api/system/certificate", null);
     }
 

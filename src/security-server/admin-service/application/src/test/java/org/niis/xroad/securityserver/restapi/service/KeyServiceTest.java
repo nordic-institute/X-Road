@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.service;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;

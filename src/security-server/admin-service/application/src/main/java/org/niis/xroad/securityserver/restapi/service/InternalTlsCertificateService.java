@@ -25,22 +25,20 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.niis.xroad.common.exception.InternalServerErrorException;
-import org.niis.xroad.common.exception.InvalidCertificateException;
-import org.niis.xroad.common.exception.InvalidDistinguishedNameException;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -54,7 +52,6 @@ import java.util.Collection;
  */
 @Slf4j
 @Service
-@Transactional
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
 
@@ -74,16 +71,22 @@ public class InternalTlsCertificateService {
     public X509Certificate getInternalTlsCertificate() {
         try {
             return proxyRpcClient.getInternalTlsCertificate();
+        } catch (CodedException e) {
+            throw e;
         } catch (Exception e) {
-            throw new InternalServerErrorException(e);
+            log.error("Failed to obtain TLS certificate", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 
     public Collection<X509Certificate> getInternalTlsCertificateChain() {
         try {
             return proxyRpcClient.getInternalTlsCertificateChain();
+        } catch (CodedException e) {
+            throw e;
         } catch (Exception e) {
-            throw new InternalServerErrorException(e);
+            log.error("Failed to obtain TLS certificate chain", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 
@@ -136,12 +139,15 @@ public class InternalTlsCertificateService {
      * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
      *                              has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
-    public void generateInternalTlsKeyAndCertificate() throws InterruptedException {
+    public void generateInternalTlsKeyAndCertificate() {
         try {
             X509Certificate generatedCert = proxyRpcClient.generateInternalTlsKeyAndCertificate();
             auditDataHelper.putCertificateHash(generatedCert);
+        } catch (CodedException e) {
+            throw e;
         } catch (Exception e) {
-            throw new InternalServerErrorException(e);
+            log.error("Failed to generate TLS key & certificate", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 
@@ -156,8 +162,11 @@ public class InternalTlsCertificateService {
             var certificate = proxyRpcClient.importInternalTlsCertificate(certificateBytes);
             auditDataHelper.putCertificateHash(certificate);
             return certificate;
+        } catch (CodedException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Failed to import TLS certificate", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 
@@ -169,12 +178,15 @@ public class InternalTlsCertificateService {
      *                                           <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
      *                                           <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
      */
-    public byte[] generateInternalCsr(String distinguishedName) throws InvalidDistinguishedNameException {
+    public byte[] generateInternalCsr(String distinguishedName) {
         try {
             auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
             return proxyRpcClient.generateInternalCsr(distinguishedName);
+        } catch (CodedException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Failed to generate TLS CSR", e);
+            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
         }
     }
 }

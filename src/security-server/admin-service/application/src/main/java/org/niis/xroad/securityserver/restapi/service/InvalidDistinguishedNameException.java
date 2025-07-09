@@ -23,24 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.exception;
+package org.niis.xroad.securityserver.restapi.service;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_CERTIFICATE;
+import org.niis.xroad.common.exception.BadRequestException;
 
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DISTINGUISHED_NAME;
 
 /**
- * General error that happens when importing a cert. Usually a wrong file type
+ * Thrown when given DistinguishedName is invalid
  */
-public class InvalidCertificateException extends BadRequestException {
-    public InvalidCertificateException(Throwable t) {
-        super(t, INVALID_CERTIFICATE.build());
-    }
-
-    public InvalidCertificateException(String msg) {
-        super(msg, INVALID_CERTIFICATE.build());
-    }
-
-    public InvalidCertificateException(String msg, Throwable t) {
-        super(msg, t, INVALID_CERTIFICATE.build());
+public class InvalidDistinguishedNameException extends BadRequestException {
+    public InvalidDistinguishedNameException(Throwable t) {
+        super(t, INVALID_DISTINGUISHED_NAME.build());
     }
 }

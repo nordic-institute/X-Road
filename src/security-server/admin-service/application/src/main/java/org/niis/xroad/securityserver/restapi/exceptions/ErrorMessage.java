@@ -58,7 +58,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GEN
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INSTANTIATION_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CONNECTION_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_DN_PARAMETER;
@@ -102,7 +101,6 @@ public enum ErrorMessage implements DeviationBuilder.ErrorDeviationBuilder {
     CP_INSTANTIATION_FAILED(ERROR_INSTANTIATION_FAILED),
     CSR_NOT_FOUND(ERROR_CSR_NOT_FOUND),
     INVALID_DN_PARAMETER(ERROR_INVALID_DN_PARAMETER),
-    INTERNAL_KEY_CERT_INTERRUPTED(ERROR_INTERNAL_KEY_CERT_INTERRUPTED),
     MEMBER_ID_REQUIRED_FOR_SIGN_CSR("memberId_required_for_sign_csr"),
     GPG_KEY_GENERATION_INTERRUPTED(ERROR_GPG_KEY_GENERATION_INTERRUPTED),
 

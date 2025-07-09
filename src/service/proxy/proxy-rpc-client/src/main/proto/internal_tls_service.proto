@@ -35,7 +35,7 @@ service InternalTlsService {
   rpc getInternalTlsCertificate(Empty) returns (InternalTlsCertificateMessage) {}
   rpc getInternalTlsCertificateChain(Empty) returns (InternalTlsCertificateChainMessage) {}
   rpc generateInternalTlsKeyAndCertificate(Empty) returns (InternalTlsCertificateMessage) {}
-  rpc generateInternalCsr(GenerateInternalCsrRequest) returns (GenerateInternalCsrResponse) {}
+  rpc generateInternalTlsCsr(GenerateInternalCsrRequest) returns (GenerateInternalCsrResponse) {}
   rpc importInternalTlsCertificate(InternalTlsCertificateMessage) returns (InternalTlsCertificateMessage) {}
 }
 

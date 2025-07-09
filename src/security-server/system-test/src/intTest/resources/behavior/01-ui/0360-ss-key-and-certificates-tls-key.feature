@@ -26,5 +26,3 @@ Feature: 0360 - SS: TLS key
     And Done button in TLS CSR generation view is clicked
     When CSR is processed by test CA
     Then Generated TLS certificate is successfully imported
-
-

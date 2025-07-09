@@ -28,11 +28,11 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.common.exception.KeyNotFoundException;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleActionDto;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.signer.api.dto.KeyInfo;

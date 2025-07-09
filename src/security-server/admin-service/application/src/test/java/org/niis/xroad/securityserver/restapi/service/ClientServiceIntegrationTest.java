@@ -36,7 +36,6 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.common.exception.CertificateAlreadyExistsException;
 import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
