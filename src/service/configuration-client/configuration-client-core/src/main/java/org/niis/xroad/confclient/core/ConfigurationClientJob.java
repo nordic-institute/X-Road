@@ -46,7 +46,7 @@ import org.quartz.SchedulerException;
 @DisallowConcurrentExecution
 public class ConfigurationClientJob extends RetryingQuartzJob {
     private static final int RETRY_DELAY_SEC = 3;
-    private static final int MAX_RETRY_DELAY_SEC = 20;
+    private static final int MAX_RETRY_DELAY_SEC = 10;
 
     private final ConfigurationClient configClient;
 

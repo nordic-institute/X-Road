@@ -39,7 +39,7 @@ import org.quartz.Trigger;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
- * Base class for Quartz jobs which should reschedule their execution and retry later if specified conditions are met.
+ * Base class for Quartz jobs which should reschedule their execution and retry exponentially later if specified conditions are met.
  */
 @Slf4j
 @RequiredArgsConstructor

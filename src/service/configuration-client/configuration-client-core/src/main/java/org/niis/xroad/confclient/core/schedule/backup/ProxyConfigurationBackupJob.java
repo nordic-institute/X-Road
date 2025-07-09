@@ -46,7 +46,7 @@ import org.quartz.SchedulerException;
 public class ProxyConfigurationBackupJob extends RetryingQuartzJob {
     private static final String AUTOBACKUP_SCRIPT_PATH = "/usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh";
     private static final int RETRY_DELAY_SEC = 5;
-    private static final int MAX_RETRY_DELAY_SEC = 28000;
+    private static final int MAX_RETRY_DELAY_SEC = 14400; // 4 hours
 
     private final ExternalProcessRunner externalProcessRunner;
 
