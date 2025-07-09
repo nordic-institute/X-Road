@@ -52,7 +52,7 @@ import static jakarta.persistence.AccessType.FIELD;
 @Entity
 @Table(name = XRoadIdEntity.TABLE_NAME)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "object_type", discriminatorType = DiscriminatorType.STRING)
 @Access(FIELD)
 public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XRoadId {
 
@@ -64,31 +64,31 @@ public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XR
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, insertable = false, updatable = false)
+    @Column(name = "object_type", nullable = false, insertable = false, updatable = false)
     private XRoadObjectType objectType;
 
-    @Column(name = "xroadinstance")
+    @Column(name = "xroad_instance")
     private String xRoadInstance;
 
-    @Column(name = "memberclass")
+    @Column(name = "member_class")
     private String memberClass;
 
-    @Column(name = "membercode")
+    @Column(name = "member_code")
     private String memberCode;
 
-    @Column(name = "subsystemcode")
+    @Column(name = "subsystem_code")
     private String subsystemCode;
 
-    @Column(name = "serviceversion")
+    @Column(name = "service_version")
     private String serviceVersion;
 
-    @Column(name = "servicecode")
+    @Column(name = "service_code")
     private String serviceCode;
 
-    @Column(name = "groupcode")
+    @Column(name = "group_code")
     private String groupCode;
 
-    @Column(name = "servercode")
+    @Column(name = "server_code")
     private String serverCode;
 
     protected XRoadIdEntity() {

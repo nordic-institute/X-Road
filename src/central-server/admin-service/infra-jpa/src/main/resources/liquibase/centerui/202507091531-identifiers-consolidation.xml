@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="202507091531-identifiers-consolidation">
+        <addColumn tableName="identifiers">
+            <column name="group_code" type="VARCHAR(255)"/>
+        </addColumn>
+
+        <renameTable oldTableName="identifiers" newTableName="identifier"/>
+        <renameSequence oldSequenceName="identifiers_id_seq" newSequenceName="identifier_id_seq"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -55,7 +55,7 @@ import org.niis.xroad.cs.admin.core.entity.converter.XRoadObjectTypeConverter;
 public abstract class XRoadIdEntity extends AuditableEntity
         implements ee.ria.xroad.common.identifier.XRoadId {
 
-    public static final String TABLE_NAME = "identifiers";
+    public static final String TABLE_NAME = "identifier";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
@@ -105,6 +105,11 @@ public abstract class XRoadIdEntity extends AuditableEntity
     @Getter
     @Setter(AccessLevel.PROTECTED)
     private String serviceVersion;
+
+    @Column(name = "group_code")
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
+    private String groupCode;
 
     protected XRoadIdEntity() {
         //JPA

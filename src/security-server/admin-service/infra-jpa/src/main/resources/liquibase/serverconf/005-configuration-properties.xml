@@ -6,17 +6,19 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
-    <changeSet author="niis" id="005-create-settimestamps-function">
+    <changeSet author="niis" id="005-create-set-timestamps-function">
         <sql splitStatements="false"><![CDATA[
             CREATE OR REPLACE FUNCTION set_timestamps()
             RETURNS TRIGGER
             LANGUAGE plpgsql
             AS $$
+            DECLARE
+                now_ts TIMESTAMP := CURRENT_TIMESTAMP;
             BEGIN
                 IF TG_OP = 'INSERT' THEN
-                    NEW.created_at := CURRENT_TIMESTAMP;
+                    NEW.created_at := now_ts;
                 END IF;
-                NEW.updated_at := CURRENT_TIMESTAMP;
+                NEW.updated_at := now_ts;
             RETURN NEW;
             END;
             $$;

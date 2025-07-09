@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 import ee.ria.xroad.common.util.Validation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 
 import static ee.ria.xroad.common.util.Validation.validateArgument;
@@ -83,6 +84,7 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
     }
 
     @Override
+    @JsonIgnore
     public ClientIdEntity getMemberId() {
         if (getSubsystemCode() == null) {
             return this;
