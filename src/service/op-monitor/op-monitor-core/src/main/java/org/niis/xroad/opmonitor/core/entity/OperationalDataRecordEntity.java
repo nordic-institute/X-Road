@@ -43,7 +43,10 @@ import org.hibernate.annotations.Parameter;
 @Getter
 @Entity
 @Access(AccessType.FIELD)
-@Table(name = "operational_data", indexes = {@Index(name = "idx_monitoring_data_ts", columnList = "monitoring_data_ts")})
+@Table(name = "operational_data", indexes = {
+        @Index(name = "idx_monitoring_data_ts", columnList = "monitoring_data_ts"),
+        @Index(name = "idx_request_in_ts", columnList = "request_in_ts"),
+        @Index(name = "idx_request_in_ts_succeeded", columnList = "request_in_ts,succeeded")})
 public class OperationalDataRecordEntity {
 
     @Id

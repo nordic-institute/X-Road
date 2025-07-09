@@ -48,11 +48,11 @@ public class OpMonitorRpcService extends OpMonitorServiceGrpc.OpMonitorServiceIm
                                               StreamObserver<GetOperationalDataIntervalsResp> responseObserver) {
         try {
             responseObserver.onNext(handleGetMonitoringDataRequest(request));
+            responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("getOperationalDataIntervals failed", e);
             responseObserver.onError(e);
         }
-        responseObserver.onCompleted();
     }
 
     private GetOperationalDataIntervalsResp handleGetMonitoringDataRequest(GetOperationalDataIntervalsReq request) throws Exception {
