@@ -30,10 +30,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.NoCoverage;
 import ee.ria.xroad.common.util.Validation;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
-
-import static ee.ria.xroad.common.util.Validation.validateArgument;
 
 @Entity
 public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ClientId {
@@ -60,39 +57,8 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
                                         String subsystemCode) {
 
         return subsystemCode == null
-                ? createMember(xRoadInstance, memberClass, memberCode)
-                : createSubsystem(xRoadInstance, memberClass, memberCode, subsystemCode);
-    }
-
-    public static MemberIdEntity createMember(String xRoadInstance, String memberClass, String memberCode) {
-        validateArgument("xRoadInstance", xRoadInstance);
-        validateArgument("memberClass", memberClass);
-        validateArgument("memberCode", memberCode);
-        return new MemberIdEntity(xRoadInstance, memberClass, memberCode);
-    }
-
-    public static SubsystemIdEntity createSubsystem(String xRoadInstance,
-                                                    String memberClass,
-                                                    String memberCode,
-                                                    String subsystemCode) {
-        validateArgument("xRoadInstance", xRoadInstance);
-        validateArgument("memberClass", memberClass);
-        validateArgument("memberCode", memberCode);
-        validateArgument("subsystemCode", subsystemCode);
-
-        return new SubsystemIdEntity(xRoadInstance, memberClass, memberCode, subsystemCode);
-    }
-
-    @Override
-    @JsonIgnore
-    public ClientIdEntity getMemberId() {
-        if (getSubsystemCode() == null) {
-            return this;
-        } else {
-            return createMember(this.getXRoadInstance(),
-                    this.getMemberClass(),
-                    this.getMemberCode());
-        }
+                ? MemberIdEntity.create(xRoadInstance, memberClass, memberCode)
+                : SubsystemIdEntity.create(xRoadInstance, memberClass, memberCode, subsystemCode);
     }
 
     @Override

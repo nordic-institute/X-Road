@@ -45,11 +45,11 @@ import static org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity.DI
 public class LocalGroupIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.LocalGroupId {
     static final String DISCRIMINATOR_VALUE = "LOCALGROUP";
 
-    protected LocalGroupIdEntity(XRoadObjectType objectType, String groupCode) {
-        super(objectType, null, null, groupCode);
+    protected LocalGroupIdEntity(String groupCode) {
+        super(XRoadObjectType.LOCALGROUP, null, null, groupCode);
     }
 
-    public LocalGroupIdEntity() {
+    protected LocalGroupIdEntity() {
     }
 
     public static LocalGroupIdEntity create(ee.ria.xroad.common.identifier.LocalGroupId identifier) {
@@ -60,7 +60,7 @@ public class LocalGroupIdEntity extends XRoadIdEntity implements ee.ria.xroad.co
 
     public static LocalGroupIdEntity create(String groupCode) {
         validateArgument("groupCode", groupCode);
-        return new LocalGroupIdEntity(XRoadObjectType.LOCALGROUP, groupCode);
+        return new LocalGroupIdEntity(groupCode);
     }
 
     @Override

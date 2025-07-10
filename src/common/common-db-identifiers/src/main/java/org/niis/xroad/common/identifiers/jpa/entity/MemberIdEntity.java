@@ -28,6 +28,7 @@
 package org.niis.xroad.common.identifiers.jpa.entity;
 
 import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.common.util.Validation;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -42,7 +43,29 @@ public class MemberIdEntity extends ClientIdEntity {
     protected MemberIdEntity() {
     }
 
-    public MemberIdEntity(String xRoadInstance, String memberClass, String memberCode) {
+    protected MemberIdEntity(String xRoadInstance, String memberClass, String memberCode) {
         super(XRoadObjectType.MEMBER, xRoadInstance, memberClass, memberCode);
     }
+
+    public static MemberIdEntity create(ee.ria.xroad.common.identifier.ClientId identifier) {
+        Validation.validateArgument("identifier", identifier);
+
+        return create(identifier.getXRoadInstance(),
+                identifier.getMemberClass(),
+                identifier.getMemberCode());
+    }
+
+    public static MemberIdEntity create(String xRoadInstance, String memberClass, String memberCode) {
+        Validation.validateArgument("xRoadInstance", xRoadInstance);
+        Validation.validateArgument("memberClass", memberClass);
+        Validation.validateArgument("memberCode", memberCode);
+
+        return new MemberIdEntity(xRoadInstance, memberClass, memberCode);
+    }
+
+    @Override
+    public MemberIdEntity getMemberId() {
+        return this;
+    }
+
 }

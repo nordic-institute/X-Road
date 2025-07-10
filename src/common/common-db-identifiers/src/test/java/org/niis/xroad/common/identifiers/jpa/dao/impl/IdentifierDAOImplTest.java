@@ -35,11 +35,12 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.GlobalGroupIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.LocalGroupIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntity;
 import org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity;
 
 import static org.junit.Assert.assertEquals;
 
@@ -88,10 +89,10 @@ public class IdentifierDAOImplTest {
      */
     @Test
     public void clientId() {
-        assertCreateRead(() -> ClientIdEntity.createMember("EE", "class", "code1"),
-                id -> (org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity) identifierDAO.findClientId(session, id));
-        assertCreateRead(() -> ClientIdEntity.createSubsystem("EE", "class", "code2", "subsystem1"),
-                id -> (org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity) identifierDAO.findClientId(session, id));
+        assertCreateRead(() -> MemberIdEntity.create("EE", "class", "code1"),
+                id -> (MemberIdEntity) identifierDAO.findClientId(session, id));
+        assertCreateRead(() -> SubsystemIdEntity.create("EE", "class", "code2", "subsystem1"),
+                id -> (SubsystemIdEntity) identifierDAO.findClientId(session, id));
     }
 
     /**

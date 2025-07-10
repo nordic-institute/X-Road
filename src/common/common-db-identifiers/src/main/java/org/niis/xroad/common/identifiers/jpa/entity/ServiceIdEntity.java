@@ -48,21 +48,20 @@ import static org.niis.xroad.common.identifiers.jpa.entity.ServiceIdEntity.DISCR
 public class ServiceIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ServiceId {
     static final String DISCRIMINATOR_VALUE = "SERVICE";
 
-    protected ServiceIdEntity(XRoadObjectType type,
-                              String xRoadInstance,
+    protected ServiceIdEntity(String xRoadInstance,
                               String memberClass,
                               String memberCode,
                               String subsystemCode,
                               String serviceCode,
                               String serviceVersion) {
-        super(type, xRoadInstance, memberClass);
+        super(XRoadObjectType.SERVICE, xRoadInstance, memberClass);
         setMemberCode(memberCode);
         setSubsystemCode(subsystemCode);
         setServiceCode(serviceCode);
         setServiceVersion(serviceVersion);
     }
 
-    public ServiceIdEntity() {
+    protected ServiceIdEntity() {
     }
 
     public static ServiceIdEntity create(ee.ria.xroad.common.identifier.ServiceId identifier) {
@@ -102,7 +101,7 @@ public class ServiceIdEntity extends XRoadIdEntity implements ee.ria.xroad.commo
         validateArgument("memberClass", memberClass);
         validateArgument("memberCode", memberCode);
         validateArgument("serviceCode", serviceCode);
-        return new ServiceIdEntity(XRoadObjectType.SERVICE, xRoadInstance, memberClass,
+        return new ServiceIdEntity(xRoadInstance, memberClass,
                 memberCode, subsystemCode, serviceCode, serviceVersion);
     }
 

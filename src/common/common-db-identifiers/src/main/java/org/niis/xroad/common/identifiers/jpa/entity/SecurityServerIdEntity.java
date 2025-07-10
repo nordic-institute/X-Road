@@ -45,18 +45,16 @@ import static org.niis.xroad.common.identifiers.jpa.entity.SecurityServerIdEntit
 public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.SecurityServerId {
     static final String DISCRIMINATOR_VALUE = "SERVER";
 
-    protected SecurityServerIdEntity(XRoadObjectType type,
-                                     String xRoadInstance,
+    protected SecurityServerIdEntity(String xRoadInstance,
                                      String memberClass,
                                      String memberCode,
                                      String serverCode) {
-        super(type, xRoadInstance, memberClass);
+        super(XRoadObjectType.SERVER, xRoadInstance, memberClass);
         setMemberCode(memberCode);
         setServerCode(serverCode);
     }
 
-    public SecurityServerIdEntity() {
-
+    protected SecurityServerIdEntity() {
     }
 
     public static SecurityServerIdEntity create(ee.ria.xroad.common.identifier.SecurityServerId identifier) {
@@ -77,12 +75,12 @@ public class SecurityServerIdEntity extends XRoadIdEntity implements ee.ria.xroa
         validateArgument("memberCode", memberCode);
         validateArgument("serverCode", serverCode);
 
-        return new SecurityServerIdEntity(XRoadObjectType.SERVER, xRoadInstance, memberClass, memberCode, serverCode);
+        return new SecurityServerIdEntity(xRoadInstance, memberClass, memberCode, serverCode);
     }
 
     @Override
-    public ClientIdEntity getOwner() {
-        return ClientIdEntity.createMember(getXRoadInstance(), getMemberClass(), getMemberCode());
+    public MemberIdEntity getOwner() {
+        return new MemberIdEntity(getXRoadInstance(), getMemberClass(), getMemberCode());
     }
 
     @Override

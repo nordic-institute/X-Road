@@ -31,7 +31,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 
+import static ee.ria.xroad.common.util.Validation.validateArgument;
 import static org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity.DISCRIMINATOR_VALUE;
 
 
@@ -40,12 +42,39 @@ import static org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity.DIS
 public class SubsystemIdEntity extends ClientIdEntity {
     static final String DISCRIMINATOR_VALUE = "SUBSYSTEM";
 
-    public SubsystemIdEntity() {
+    protected SubsystemIdEntity() {
     }
 
-    public SubsystemIdEntity(String xRoadInstance, String memberClass, String memberCode, String subsystemCode) {
+    protected SubsystemIdEntity(String xRoadInstance, String memberClass, String memberCode, String subsystemCode) {
         super(XRoadObjectType.SUBSYSTEM, xRoadInstance, memberClass, memberCode);
         setSubsystemCode(subsystemCode);
+    }
+
+    public static SubsystemIdEntity create(ee.ria.xroad.common.identifier.ClientId identifier) {
+        validateArgument("identifier", identifier);
+
+        return create(identifier.getXRoadInstance(),
+                identifier.getMemberClass(),
+                identifier.getMemberCode(),
+                identifier.getSubsystemCode());
+    }
+
+    public static SubsystemIdEntity create(String xRoadInstance,
+                                           String memberClass,
+                                           String memberCode,
+                                           String subsystemCode) {
+        validateArgument("xRoadInstance", xRoadInstance);
+        validateArgument("memberClass", memberClass);
+        validateArgument("memberCode", memberCode);
+        validateArgument("subsystemCode", subsystemCode);
+
+        return new SubsystemIdEntity(xRoadInstance, memberClass, memberCode, subsystemCode);
+    }
+
+    @Override
+    @Transient
+    public MemberIdEntity getMemberId() {
+        return MemberIdEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode());
     }
 
 }
