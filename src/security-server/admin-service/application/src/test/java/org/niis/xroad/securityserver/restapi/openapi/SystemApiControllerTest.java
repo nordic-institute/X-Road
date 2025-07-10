@@ -126,7 +126,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"GENERATE_INTERNAL_TLS_CSR"})
     public void generateSystemCertificateRequestCorrectPermission() throws InvalidDistinguishedNameException {
-        when(systemService.generateInternalCsr(any())).thenReturn("foo".getBytes());
+        when(internalTlsCertificateService.generateInternalCsr(any())).thenReturn("foo".getBytes());
         ResponseEntity<Resource> result = systemApiController.generateSystemCertificateRequest(
                 new DistinguishedNameDto().name("foobar"));
         assertNotNull(result);
@@ -162,7 +162,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
             x509Certificate = CryptoUtils.readCertificate(stream);
         }
-        given(mockRepository.getInternalTlsCertificate()).willReturn(x509Certificate);
+        given(internalTlsCertificateService.getInternalTlsCertificate()).willReturn(x509Certificate);
 
         CertificateDetailsDto certificate =
                 systemApiController.getSystemCertificate().getBody();

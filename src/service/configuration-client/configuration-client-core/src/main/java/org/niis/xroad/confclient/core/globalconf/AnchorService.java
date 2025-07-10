@@ -83,14 +83,14 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     @Override
     public void getConfigurationAnchor(Empty request, StreamObserver<ConfigurationAnchorMessage> responseObserver) {
         try {
-            responseObserver.onNext(getConfigurationAnchorFromFile());
+            responseObserver.onNext(getConfigurationAnchor());
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver.onError(e);
         }
     }
 
-    private ConfigurationAnchorMessage getConfigurationAnchorFromFile() throws Exception {
+    private ConfigurationAnchorMessage getConfigurationAnchor() throws Exception {
         return configurationAnchorProvider.get()
                 .map(bytes -> ConfigurationAnchorMessage.newBuilder()
                         .setConfigurationAnchor(ByteString.copyFrom(bytes))

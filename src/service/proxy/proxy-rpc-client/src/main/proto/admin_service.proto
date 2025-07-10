@@ -27,7 +27,7 @@ syntax = "proto3";
 
 package org.niis.xroad.proxy.proto;
 
-//import "common_messages.proto";
+import "common_messages.proto";
 
 option java_multiple_files = true;
 
@@ -76,9 +76,5 @@ message DiagnosticsStatus {
   optional int64 prev_update = 2;
   optional int64 next_update = 3;
   optional string description = 4;
-}
-
-// might be imported fom common_messages, but the package includes 'signer'
-message Empty {
 }
 

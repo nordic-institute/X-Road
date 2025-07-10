@@ -36,13 +36,13 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
-import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InternalServerTestService;
+import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
@@ -90,13 +90,13 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockitoBean
     SystemService systemService;
     @MockitoBean
+    InternalTlsCertificateService internalTlsCertificateService;
+    @MockitoBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     @MockitoBean
     CurrentSecurityServerId currentSecurityServerId;
     @MockitoBean
     InitializationService initializationService;
-    @MockitoBean
-    InternalTlsCertificateRepository mockRepository;
     @MockitoBean
     VersionService versionService;
     @MockitoBean
