@@ -28,15 +28,21 @@
 package org.niis.xroad.proxy.core;
 
 import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "script.generate-certificate")
 public interface GenerateCertScriptProperties {
 
+    String DEFAULT_PATH = "/usr/share/xroad/scripts/generate_certificate.sh";
+    String DEFAULT_ARGS = "-n internal -f -S -p 2>&1";
+
     @WithName("path")
+    @WithDefault(DEFAULT_PATH)
     String path();
 
     @WithName("args")
+    @WithDefault(DEFAULT_ARGS)
     String args();
 
 }

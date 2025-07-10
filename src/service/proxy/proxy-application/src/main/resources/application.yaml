@@ -8,11 +8,6 @@ quarkus:
       - xroad-common.yaml
       - xroad-logging.yaml
 
-script:
-  generate-certificate:
-    path: /usr/share/xroad/scripts/generate_certificate.sh
-    args: -n internal -f -S -p 2>&1
-
 "%containerized":
   xroad:
     proxy:
