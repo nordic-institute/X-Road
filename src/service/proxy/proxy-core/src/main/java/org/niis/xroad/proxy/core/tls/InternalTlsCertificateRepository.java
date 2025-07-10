@@ -23,12 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.repository;
+package org.niis.xroad.proxy.core.tls;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,7 +39,7 @@ import java.util.Collection;
  * internal tls certificate repository
  */
 @Slf4j
-@Repository
+@ApplicationScoped
 public class InternalTlsCertificateRepository {
 
     // as in application_controller.rb

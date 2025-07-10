@@ -64,7 +64,6 @@ import java.util.Optional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
@@ -119,17 +118,6 @@ public class SystemServiceTest {
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
                 addressChangeStatus, confClientRpcClient, maintenanceModeStatus, globalConfProvider);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
-    }
-
-    @Test
-    public void generateInternalCsr() throws Exception {
-        byte[] csrBytes = systemService.generateInternalCsr("C=FI, serialNumber=123");
-        assertTrue(csrBytes.length > 0);
-    }
-
-    @Test(expected = InvalidDistinguishedNameException.class)
-    public void generateInternalCsrFail() throws Exception {
-        systemService.generateInternalCsr("this is wrong");
     }
 
     @Test

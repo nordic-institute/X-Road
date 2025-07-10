@@ -28,8 +28,8 @@ Feature: 0700 - SS: Permissions
     * Token: softToken-0 is present
     * User cannot log-in or log-out out of token softToken-0
     * Security Server TLS Key sub-tab is selected
-    * Generate TLS key is missing
-    * Export TLS key is present
+    * Generate TLS key button is missing
+    * Export TLS certificate button is present
     * Api Keys Sub-Tab is missing
 
   Scenario: Security officer sees only relevant pages
@@ -45,8 +45,8 @@ Feature: 0700 - SS: Permissions
     * Token: softToken-0 is present
     * User can log-out out of token softToken-0
     * Security Server TLS Key sub-tab is selected
-    * Generate TLS key is present
-    * Export TLS key is present
+    * Generate TLS key button is present
+    * Export TLS certificate button is present
     * Api Keys Sub-Tab is missing
     * Settings tab is selected
     * Backup and Restore Sub-Tab is missing
@@ -72,8 +72,8 @@ Feature: 0700 - SS: Permissions
     * User cannot log-in or log-out out of token softToken-0
     * Token: softToken-0 - Add key is missing
     * Security Server TLS Key sub-tab is selected
-    * Generate TLS key is missing
-    * Export TLS key is missing
+    * Generate TLS key button is missing
+    * Export TLS certificate button is missing
     * Api Keys Sub-Tab is present
     * Settings tab is selected
     * Backup and Restore Sub-Tab is missing

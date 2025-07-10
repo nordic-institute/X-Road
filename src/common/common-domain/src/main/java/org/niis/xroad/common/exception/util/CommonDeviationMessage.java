@@ -99,7 +99,11 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     GPG_KEY_GENERATION_FAILED("gpg_key_generation_failed"),
 
     KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),
+    KEY_NOT_FOUND("key_not_found"),
+    CERTIFICATE_ALREADY_EXISTS("certificate_already_exists"),
     INVALID_CERTIFICATE("invalid_certificate"),
+    IMPORT_INTERNAL_CERT_FAILED("import_internal_cert_failed"),
+    INTERNAL_KEY_CERT_INTERRUPTED("internal_key_cert_interrupted"),
 
     MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS),
 

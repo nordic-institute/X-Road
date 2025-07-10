@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,19 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.common.exception.NotFoundException;
+package org.niis.xroad.proxy.core;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_NOT_FOUND;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-public class KeyNotFoundException extends NotFoundException {
-    public KeyNotFoundException(String s) {
-        super(s, KEY_NOT_FOUND.build());
-    }
+@ConfigMapping(prefix = "script.generate-certificate")
+public interface GenerateCertScriptProperties {
 
-    public KeyNotFoundException(Throwable t) {
-        super(t, KEY_NOT_FOUND.build());
-    }
+    String DEFAULT_PATH = "/usr/share/xroad/scripts/generate_certificate.sh";
+    String DEFAULT_ARGS = "-n internal -f -S -p 2>&1";
+
+    @WithName("path")
+    @WithDefault(DEFAULT_PATH)
+    String path();
+
+    @WithName("args")
+    @WithDefault(DEFAULT_ARGS)
+    String args();
 
 }

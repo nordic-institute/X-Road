@@ -27,11 +27,14 @@
 
 package org.niis.xroad.proxy.proto;
 
+
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.ProxyMemory;
+import ee.ria.xroad.common.util.CryptoUtils;
 
+import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -41,7 +44,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.confclient.model.DiagnosticsStatus;
+import org.niis.xroad.rpc.common.Empty;
 
+import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +64,7 @@ public class ProxyRpcClient extends AbstractRpcClient {
 
     private ManagedChannel channel;
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
+    private InternalTlsServiceGrpc.InternalTlsServiceBlockingStub internalTlsServiceBlockingStub;
 
     @PostConstruct
     public void init() throws Exception {
@@ -67,9 +73,11 @@ public class ProxyRpcClient extends AbstractRpcClient {
         channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withInterceptors().withWaitForReady();
+        internalTlsServiceBlockingStub = InternalTlsServiceGrpc.newBlockingStub(channel).withInterceptors().withWaitForReady();
     }
 
     @Override
+
     @PreDestroy
     public void close() throws Exception {
         if (channel != null) {
@@ -134,5 +142,39 @@ public class ProxyRpcClient extends AbstractRpcClient {
 
     public void triggerDsAssetUpdate() throws Exception {
         exec(() -> adminServiceBlockingStub.triggerDSAssetUpdate(Empty.getDefaultInstance()));
+    }
+
+    // Internal TLS management methods
+    public X509Certificate getInternalTlsCertificate() throws Exception {
+        var response = exec(() -> internalTlsServiceBlockingStub.getInternalTlsCertificate(Empty.getDefaultInstance()));
+        return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
+    }
+
+    public List<X509Certificate> getInternalTlsCertificateChain() throws Exception {
+        var response = exec(() -> internalTlsServiceBlockingStub.getInternalTlsCertificateChain(Empty.getDefaultInstance()));
+        return response.getInternalTlsCertificateList().stream()
+                .map(cert -> CryptoUtils.readCertificate(cert.toByteArray()))
+                .toList();
+    }
+
+    public X509Certificate generateInternalTlsKeyAndCertificate() throws Exception {
+        var response = exec(() -> internalTlsServiceBlockingStub.generateInternalTlsKeyAndCertificate(Empty.getDefaultInstance()));
+        return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
+    }
+
+    public byte[] generateInternalCsr(String distinguishedName) throws Exception {
+        var request = GenerateInternalCsrRequest.newBuilder()
+                .setDistinguishedName(distinguishedName)
+                .build();
+        var response = exec(() -> internalTlsServiceBlockingStub.generateInternalTlsCsr(request));
+        return response.getTlsCsr().toByteArray();
+    }
+
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws Exception {
+        var request = InternalTlsCertificateMessage.newBuilder()
+                .setInternalTlsCertificate(ByteString.copyFrom(certificateBytes))
+                .build();
+        var response = exec(() -> internalTlsServiceBlockingStub.importInternalTlsCertificate(request));
+        return CryptoUtils.readCertificate(response.getInternalTlsCertificate().toByteArray());
     }
 }

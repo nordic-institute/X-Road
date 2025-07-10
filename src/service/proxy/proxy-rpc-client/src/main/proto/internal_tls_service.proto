@@ -23,19 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+syntax = "proto3";
 
-import org.niis.xroad.common.exception.NotFoundException;
+package org.niis.xroad.proxy.proto;
 
-import static org.niis.xroad.common.exception.util.CommonDeviationMessage.KEY_NOT_FOUND;
+import "common_messages.proto";
 
-public class KeyNotFoundException extends NotFoundException {
-    public KeyNotFoundException(String s) {
-        super(s, KEY_NOT_FOUND.build());
-    }
+option java_multiple_files = true;
 
-    public KeyNotFoundException(Throwable t) {
-        super(t, KEY_NOT_FOUND.build());
-    }
+service InternalTlsService {
+  rpc getInternalTlsCertificate(Empty) returns (InternalTlsCertificateMessage) {}
+  rpc getInternalTlsCertificateChain(Empty) returns (InternalTlsCertificateChainMessage) {}
+  rpc generateInternalTlsKeyAndCertificate(Empty) returns (InternalTlsCertificateMessage) {}
+  rpc generateInternalTlsCsr(GenerateInternalCsrRequest) returns (GenerateInternalCsrResponse) {}
+  rpc importInternalTlsCertificate(InternalTlsCertificateMessage) returns (InternalTlsCertificateMessage) {}
+}
 
+message InternalTlsCertificateMessage {
+  bytes internal_tls_certificate = 1;
+}
+
+message InternalTlsCertificateChainMessage {
+  repeated bytes internal_tls_certificate = 1;
+}
+
+message GenerateInternalCsrRequest {
+  string distinguished_name = 1;
+}
+
+message GenerateInternalCsrResponse {
+  bytes tls_csr = 1;
 }

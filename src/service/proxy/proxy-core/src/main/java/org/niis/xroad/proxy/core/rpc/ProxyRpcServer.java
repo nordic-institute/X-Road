@@ -37,6 +37,7 @@ import org.niis.xroad.common.rpc.server.ManagedRpcServer;
 import org.niis.xroad.proxy.core.ProxyProperties;
 import org.niis.xroad.proxy.core.addon.proxymonitor.util.ProxyMonitorService;
 import org.niis.xroad.proxy.core.admin.AdminService;
+import org.niis.xroad.proxy.core.tls.InternalTlsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,8 +50,9 @@ public class ProxyRpcServer extends ManagedRpcServer {
     public ProxyRpcServer(RpcServerProperties rpcServerProperties,
                           RpcCredentialsConfigurer rpcCredentialsConfigurer,
                           ProxyProperties.ProxyAddonProperties addonProperties,
-                          AdminService adminService) {
-        super(getServices(addonProperties, adminService), rpcServerProperties, rpcCredentialsConfigurer);
+                          AdminService adminService,
+                          InternalTlsService internalTlsService) {
+        super(getServices(addonProperties, adminService, internalTlsService), rpcServerProperties, rpcCredentialsConfigurer);
     }
 
     @PostConstruct
@@ -63,9 +65,12 @@ public class ProxyRpcServer extends ManagedRpcServer {
         super.destroy();
     }
 
-    private static List<BindableService> getServices(ProxyProperties.ProxyAddonProperties addonProperties, AdminService adminService) {
+    private static List<BindableService> getServices(ProxyProperties.ProxyAddonProperties addonProperties,
+                                                     AdminService adminService,
+                                                     InternalTlsService internalTlsService) {
         List<BindableService> rpcServices = new ArrayList<>();
         rpcServices.add(adminService);
+        rpcServices.add(internalTlsService);
 
         if (addonProperties.proxyMonitor().enabled()) {
             rpcServices.add(new ProxyMonitorService());
