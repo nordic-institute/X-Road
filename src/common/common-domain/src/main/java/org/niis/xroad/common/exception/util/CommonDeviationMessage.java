@@ -41,7 +41,8 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     ERROR_ID_NOT_A_NUMBER("id_not_a_number"),
 
     API_KEY_NOT_FOUND("api_key_not_found"),
-    API_KEY_INVALID_ROLE("invalid_role"),
+    USER_NOT_FOUND("user_not_found"),
+    INVALID_ROLE("invalid_role"),
     INVALID_FILENAME("invalid_filename"),
     INVALID_FILE_CONTENT_TYPE("invalid_file_content_type"),
     INVALID_FILE_EXTENSION("invalid_file_extension"),
@@ -81,6 +82,9 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     TOKEN_NOT_FOUND("token_not_found"),
     TOKEN_WEAK_PIN("token_weak_pin"),
 
+    USER_WEAK_PASSWORD("user_weak_password"),
+    USER_PASSWORD_INVALID_CHARACTERS("user_password_invalid_characters"),
+
     CLIENT_NOT_FOUND("client_not_found"),
     INVALID_CLIENT_NAME("invalid_client_name"),
 
@@ -95,9 +99,15 @@ public enum CommonDeviationMessage implements DeviationBuilder.ErrorDeviationBui
     GPG_KEY_GENERATION_FAILED("gpg_key_generation_failed"),
 
     KEY_CERT_GENERATION_FAILED("key_and_cert_generation_failed"),
+    KEY_NOT_FOUND("key_not_found"),
+    CERTIFICATE_ALREADY_EXISTS("certificate_already_exists"),
     INVALID_CERTIFICATE("invalid_certificate"),
+    IMPORT_INTERNAL_CERT_FAILED("import_internal_cert_failed"),
+    INTERNAL_KEY_CERT_INTERRUPTED("internal_key_cert_interrupted"),
 
-    MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS);
+    MEMBER_CLASS_EXISTS(ERROR_METADATA_MEMBER_CLASS_EXISTS),
+
+    PASSWORD_INCORRECT("password_incorrect");
 
     private final String code;
 

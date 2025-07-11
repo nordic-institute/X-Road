@@ -38,7 +38,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
-import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
+import org.niis.xroad.test.globalconf.TestGlobalConfFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -66,9 +66,7 @@ public class TimestampVerifierTest {
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
                 "../globalconf-core/src/test/resources/globalconf_good_v2");
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../globalconf-core/src/test/resources/configuration-anchor1.xml");
-        globalConfProvider = new TestGlobalConfImpl();
+        globalConfProvider = TestGlobalConfFactory.create();
     }
 
     /**

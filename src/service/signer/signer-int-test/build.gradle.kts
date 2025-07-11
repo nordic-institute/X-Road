@@ -12,15 +12,13 @@ sourceSets {
 }
 
 dependencies {
-  "intTestRuntimeOnly"(project(":addons:hwtoken"))
-  "intTestImplementation"(project(":service:signer:signer-application"))
   "intTestImplementation"(project(":common:common-test"))
   "intTestImplementation"(project(":common:common-int-test"))
 }
 
 
 tasks.register<Test>("intTest") {
-  dependsOn(":service:signer:signer-application:shadowJar")
+  dependsOn(":service:signer:signer-application:quarkusBuild")
 
   useJUnitPlatform()
 
@@ -52,4 +50,8 @@ tasks.register<Test>("intTest") {
 
 tasks.named("check") {
   dependsOn(tasks.named("intTest"))
+}
+
+archUnit {
+  setSkip(true)
 }

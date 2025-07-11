@@ -25,25 +25,25 @@
  */
 package org.niis.xroad.signer.core.protocol.handler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.core.protocol.AbstractRpcHandler;
-import org.niis.xroad.signer.core.tokenmanager.module.AbstractModuleManager;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleManager;
 import org.niis.xroad.signer.proto.GetHSMOperationalInfoResp;
-import org.niis.xroad.signer.protocol.dto.Empty;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for checking HSMs operational status.
  */
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class GetHSMOperationalInfoReqHandler extends AbstractRpcHandler<Empty, GetHSMOperationalInfoResp> {
-    private final AbstractModuleManager moduleManager;
+    private final ModuleManager moduleManager;
 
     @Override
     protected GetHSMOperationalInfoResp handle(Empty request) throws Exception {
         return GetHSMOperationalInfoResp.newBuilder()
-                .setOperational(moduleManager.isHSMModuleOperational().orElse(false))
+                .setOperational(moduleManager.isHSMModuleOperational())
                 .build();
     }
 }
