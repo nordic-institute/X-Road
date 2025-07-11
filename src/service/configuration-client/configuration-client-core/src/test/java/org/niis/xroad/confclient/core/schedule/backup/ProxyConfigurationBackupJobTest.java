@@ -91,7 +91,7 @@ class ProxyConfigurationBackupJobTest {
     }
 
     @Test
-    void jobNameShouldMatchActualClassNames() {
+    void jobNameShouldMatchActualClassName() {
         assertEquals(CONFIGURATION_CLIENT_JOB, ConfigurationClientJob.class.getSimpleName());
     }
 }
