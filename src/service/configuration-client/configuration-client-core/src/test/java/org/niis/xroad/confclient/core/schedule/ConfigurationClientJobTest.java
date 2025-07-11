@@ -47,13 +47,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.confclient.core.ConfigurationClientJob.PROXY_CONFIGURATION_BACKUP_JOB;
 
 class ConfigurationClientJobTest {
 
@@ -79,7 +79,7 @@ class ConfigurationClientJobTest {
 
     @Test
     void executeSuccess() throws Exception {
-        when(JobManager.isJobRunning(eq(jobExecutionContext), eq(ProxyConfigurationBackupJob.class))).thenReturn(false);
+        when(JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)).thenReturn(false);
 
         job.execute(jobExecutionContext);
 
@@ -97,7 +97,7 @@ class ConfigurationClientJobTest {
 
     @Test
     void executeWithBackupJobRunning() throws Exception {
-        when(JobManager.isJobRunning(eq(jobExecutionContext), eq(ProxyConfigurationBackupJob.class))).thenReturn(true);
+        when(JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)).thenReturn(true);
 
         job.execute(jobExecutionContext);
 
@@ -108,7 +108,7 @@ class ConfigurationClientJobTest {
     @Test
     void executeThrownException() throws Exception {
         mockStatic(ConfigurationClientUtils.class);
-        when(JobManager.isJobRunning(eq(jobExecutionContext), eq(ProxyConfigurationBackupJob.class))).thenReturn(false);
+        when(JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)).thenReturn(false);
         doThrow(new RuntimeException("Simulated error")).when(configClient).execute();
         when(ConfigurationClientUtils.getErrorCode(any())).thenReturn(ERROR_CODE);
 
@@ -125,5 +125,10 @@ class ConfigurationClientJobTest {
         assertEquals(ERROR_CODE, status.getReturnCode());
         assertNotNull(status.getPrevUpdate());
         assertTrue(status.getNextUpdate().isAfter(status.getPrevUpdate()));
+    }
+
+    @Test
+    void jobNameShouldMatchActualClassNames() {
+        assertEquals(PROXY_CONFIGURATION_BACKUP_JOB, ProxyConfigurationBackupJob.class.getSimpleName());
     }
 }

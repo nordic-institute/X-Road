@@ -31,7 +31,6 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.core.schedule.backup.ProxyConfigurationBackupJob;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -45,6 +44,7 @@ import org.quartz.JobExecutionException;
 @DisallowConcurrentExecution
 public class ConfigurationClientJob implements Job {
 
+    public static final String PROXY_CONFIGURATION_BACKUP_JOB = "ProxyConfigurationBackupJob";
     private final ConfigurationClient configClient;
 
     public ConfigurationClientJob(ConfigurationClient configClient) {
@@ -54,7 +54,7 @@ public class ConfigurationClientJob implements Job {
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         try {
-            if (JobManager.isJobRunning(jobExecutionContext, ProxyConfigurationBackupJob.class)) {
+            if (JobManager.isJobRunning(jobExecutionContext, PROXY_CONFIGURATION_BACKUP_JOB)) {
                 log.warn("Proxy configuration backup job is running, skipping configuration client execution.");
                 return;
             }
