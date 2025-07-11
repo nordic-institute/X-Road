@@ -42,75 +42,80 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.niis.xroad.common.jpa.entity.AuditableEntity;
 
 import static jakarta.persistence.AccessType.FIELD;
 
 @Getter
-@Setter
 @Entity
 @Table(name = XRoadIdEntity.TABLE_NAME)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "discriminator", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "object_type", discriminatorType = DiscriminatorType.STRING)
 @Access(FIELD)
-public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XRoadId {
+public abstract class XRoadIdEntity extends AuditableEntity implements ee.ria.xroad.common.identifier.XRoadId {
 
-    public static final String TABLE_NAME = "identifier";
+    static final String TABLE_NAME = "identifier";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "discriminator", nullable = false, insertable = false, updatable = false)
-    private String discriminator;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "type")
+    @Column(name = "object_type", nullable = false, insertable = false, updatable = false)
+    @Setter(AccessLevel.PROTECTED)
     private XRoadObjectType objectType;
 
-    @Column(name = "xroadinstance")
+    @Column(name = "xroad_instance")
+    @Setter(AccessLevel.PROTECTED)
     private String xRoadInstance;
 
-    @Column(name = "memberclass")
+    @Column(name = "member_class")
+    @Setter(AccessLevel.PROTECTED)
     private String memberClass;
 
-    @Column(name = "membercode")
+    @Column(name = "member_code")
+    @Setter(AccessLevel.PROTECTED)
     private String memberCode;
 
-    @Column(name = "subsystemcode")
+    @Column(name = "subsystem_code")
+    @Setter(AccessLevel.PROTECTED)
     private String subsystemCode;
 
-    @Column(name = "serviceversion")
+    @Column(name = "service_version")
+    @Setter(AccessLevel.PROTECTED)
     private String serviceVersion;
 
-    @Column(name = "servicecode")
+    @Column(name = "service_code")
+    @Setter(AccessLevel.PROTECTED)
     private String serviceCode;
 
-    @Column(name = "groupcode")
+    @Column(name = "group_code")
+    @Setter(AccessLevel.PROTECTED)
     private String groupCode;
 
-    @Column(name = "servercode")
+    @Column(name = "server_code")
+    @Setter(AccessLevel.PROTECTED)
     private String serverCode;
 
     protected XRoadIdEntity() {
         //JPA
     }
 
-    protected XRoadIdEntity(String discriminator, XRoadObjectType objectType, String xRoadInstance, String memberClass) {
-        this.discriminator = discriminator;
+    protected XRoadIdEntity(XRoadObjectType objectType, String xRoadInstance, String memberClass) {
         this.objectType = objectType;
         this.xRoadInstance = xRoadInstance;
         this.memberClass = memberClass;
     }
 
-    protected XRoadIdEntity(String discriminator,
-                            XRoadObjectType objectType,
+    protected XRoadIdEntity(XRoadObjectType objectType,
                             String xRoadInstance,
                             String memberClass,
                             String croupCode) {
-        this(discriminator, objectType, xRoadInstance, memberClass);
+        this(objectType, xRoadInstance, memberClass);
         this.groupCode = croupCode;
     }
 

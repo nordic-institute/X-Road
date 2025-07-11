@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.common.identifiers.jpa.entity.ClientIdEntity;
+import org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity;
 import org.niis.xroad.restapi.common.backup.repository.BackupRepository;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -85,7 +86,7 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     @MockitoBean
     TokenPinValidator tokenPinValidator;
 
-    static final ClientIdEntity COMMON_OWNER_ID = ClientIdEntity.createMember("FI", "GOV", "M1");
+    static final ClientIdEntity COMMON_OWNER_ID = MemberIdEntity.create("FI", "GOV", "M1");
 
     @Before
     public void setupCommonMocks() {
