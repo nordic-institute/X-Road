@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.Validation;
 
 import jakarta.persistence.Entity;
 
+import java.util.Optional;
+
 @Entity
 public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xroad.common.identifier.ClientId {
 
@@ -71,6 +73,23 @@ public abstract class ClientIdEntity extends XRoadIdEntity implements ee.ria.xro
     @NoCoverage
     public int hashCode() {
         return ee.ria.xroad.common.identifier.ClientId.hashCode(this);
+    }
+
+    public static ClientIdEntity ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
+        return Optional.of(identifier)
+                .filter(ClientIdEntity.class::isInstance)
+                .map(ClientIdEntity.class::cast)
+                .orElseGet(() -> {
+                    XRoadObjectType objectType = identifier.getObjectType();
+                    if (objectType != null) {
+                        if (objectType == XRoadObjectType.MEMBER) {
+                            return MemberIdEntity.create(identifier);
+                        } else if (objectType == XRoadObjectType.SUBSYSTEM) {
+                            return SubsystemIdEntity.create(identifier);
+                        }
+                    }
+                    throw new IllegalArgumentException("illegal object type: " + objectType);
+                });
     }
 
 }

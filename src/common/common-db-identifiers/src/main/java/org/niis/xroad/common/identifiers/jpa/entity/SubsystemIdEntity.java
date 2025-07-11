@@ -33,6 +33,8 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 
+import java.util.Optional;
+
 import static ee.ria.xroad.common.util.Validation.validateArgument;
 import static org.niis.xroad.common.identifiers.jpa.entity.SubsystemIdEntity.DISCRIMINATOR_VALUE;
 
@@ -75,6 +77,13 @@ public class SubsystemIdEntity extends ClientIdEntity {
     @Transient
     public MemberIdEntity getMemberId() {
         return MemberIdEntity.create(getXRoadInstance(), getMemberClass(), getMemberCode());
+    }
+
+    public static SubsystemIdEntity ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
+        return Optional.of(validateArgument("identifier", identifier))
+                .filter(SubsystemIdEntity.class::isInstance)
+                .map(SubsystemIdEntity.class::cast)
+                .orElseGet(() -> SubsystemIdEntity.create(identifier));
     }
 
 }

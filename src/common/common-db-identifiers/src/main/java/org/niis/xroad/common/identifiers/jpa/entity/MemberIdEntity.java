@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
+import java.util.Optional;
+
 import static org.niis.xroad.common.identifiers.jpa.entity.MemberIdEntity.DISCRIMINATOR_VALUE;
 
 @Entity
@@ -68,6 +70,13 @@ public class MemberIdEntity extends ClientIdEntity {
     @JsonIgnore // because of audit logging.
     public MemberIdEntity getMemberId() {
         return this;
+    }
+
+    public static MemberIdEntity ensure(ee.ria.xroad.common.identifier.ClientId identifier) {
+        return Optional.of(Validation.validateArgument("identifier", identifier))
+                .filter(MemberIdEntity.class::isInstance)
+                .map(MemberIdEntity.class::cast)
+                .orElseGet(() -> MemberIdEntity.create(identifier));
     }
 
 }
