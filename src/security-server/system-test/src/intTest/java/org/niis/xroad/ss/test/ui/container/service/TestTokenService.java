@@ -157,11 +157,10 @@ public class TestTokenService {
         // First try to find existing identifier
         var findSql = """
                 SELECT id FROM identifier
-                WHERE discriminator = 'C'
-                AND type = 'MEMBER'
-                AND xroadinstance = :xroadInstance
-                AND memberclass = :memberClass
-                AND membercode = :memberCode
+                WHERE object_type = 'MEMBER'
+                AND xroad_instance = :xroadInstance
+                AND member_class = :memberClass
+                AND member_code = :memberCode
                 """;
 
         var params = Map.of(
@@ -177,13 +176,13 @@ public class TestTokenService {
         );
 
         if (!results.isEmpty()) {
-            return results.get(0);
+            return results.getFirst();
         }
 
         // If not found, create new identifier
         var insertSql = """
-                INSERT INTO identifier (id, discriminator, type, xroadinstance, memberclass, membercode)
-                VALUES (nextval('hibernate_sequence'), 'C', 'MEMBER', :xroadInstance, :memberClass, :memberCode)
+                INSERT INTO identifier (id, object_type, xroad_instance, member_class, member_code)
+                VALUES (nextval('hibernate_sequence'), 'MEMBER', :xroadInstance, :memberClass, :memberCode)
                 RETURNING id
                 """;
 

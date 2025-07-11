@@ -30,6 +30,7 @@ package org.niis.xroad.common.identifiers.jpa.entity;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.util.Validation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -64,6 +65,7 @@ public class MemberIdEntity extends ClientIdEntity {
     }
 
     @Override
+    @JsonIgnore // because of audit logging.
     public MemberIdEntity getMemberId() {
         return this;
     }
