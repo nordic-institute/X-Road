@@ -62,7 +62,7 @@ public abstract class RetryingQuartzJob implements Job {
                     return; // stop retrying
                 }
 
-                log.warn("Job {} is already running. Will retry in {} seconds (retry count={})",
+                log.warn("Should reschedule job {} running. Will retry in {} seconds (retry count={})",
                         context.getJobDetail().getKey().getName(),
                         nextDelay,
                         retryCount + 1
