@@ -34,6 +34,7 @@ import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
@@ -197,16 +198,17 @@ public class JobManager {
      * Check if specified job is currently executing/running within any group.
      *
      * @param ctx      execution context which is verified
-     * @param jobClass job class to check
+     * @param jobName job class name to check
      * @return job running state
      * @throws SchedulerException is thrown of there is a failure to fetch running jobs
      */
-    public static boolean isJobRunning(JobExecutionContext ctx, Class<? extends Job> jobClass)
+    public static boolean isJobRunning(JobExecutionContext ctx, String jobName)
             throws SchedulerException {
         List<JobExecutionContext> currentJobs = ctx.getScheduler().getCurrentlyExecutingJobs();
 
         for (JobExecutionContext jobCtx : currentJobs) {
-            if (jobCtx.getJobDetail().getJobClass().isAssignableFrom(jobClass)
+            JobKey jobKey = jobCtx.getJobDetail().getKey();
+            if (jobName.equals(jobKey.getName())
                     && !jobCtx.getFireTime().equals(ctx.getFireTime())) {
                 return true;
             }

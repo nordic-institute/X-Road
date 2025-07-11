@@ -487,6 +487,9 @@ public final class SystemProperties {
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
     public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
+    public static final String DEFAULT_DOWNLOADER_READ_TIMEOUT = "30000";
+    public static final String DEFAULT_DOWNLOADER_CONNECT_TIMEOUT = "10000";
+
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -528,6 +531,12 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
             PREFIX + "configuration-client.global-conf-hostname-verification";
+
+    public static final String CONFIGURATION_CLIENT_DOWNLOADER_READ_TIMEOUT =
+            PREFIX + "configuration-client.downloader-read-timeout";
+
+    public static final String CONFIGURATION_CLIENT_DOWNLOADER_CONNECT_TIMEOUT =
+            PREFIX + "configuration-client.downloader-connect-timeout";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -1343,6 +1352,14 @@ public final class SystemProperties {
 
     public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
         return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, TRUE));
+    }
+
+    public static int getConfigurationClientDownloaderReadTimeout() {
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_DOWNLOADER_READ_TIMEOUT, DEFAULT_DOWNLOADER_READ_TIMEOUT));
+    }
+
+    public static int getConfigurationClientDownloaderConnectTimeout() {
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_DOWNLOADER_CONNECT_TIMEOUT, DEFAULT_DOWNLOADER_CONNECT_TIMEOUT));
     }
 
     public static String getConfigurationClientAllowedFederations() {

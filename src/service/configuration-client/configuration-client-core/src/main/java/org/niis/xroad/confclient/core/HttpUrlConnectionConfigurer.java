@@ -42,7 +42,6 @@ import java.net.HttpURLConnection;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 @Slf4j
@@ -73,6 +72,8 @@ public class HttpUrlConnectionConfigurer {
                 httpsConn.setSSLSocketFactory(SSL_SOCKET_FACTORY);
             }
         }
+        conn.setConnectTimeout(SystemProperties.getConfigurationClientDownloaderConnectTimeout());
+        conn.setReadTimeout(SystemProperties.getConfigurationClientDownloaderReadTimeout());
     }
 
     private static boolean isHostNameVerificationEnabled() {
@@ -96,12 +97,12 @@ public class HttpUrlConnectionConfigurer {
     // Won't fix: Works as designed ("Server certificates should be verified in production environment")
     static class NoopTrustManager implements X509TrustManager {
         @Override
-        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
             // The method gets never called
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
             // Trust all
         }
 
