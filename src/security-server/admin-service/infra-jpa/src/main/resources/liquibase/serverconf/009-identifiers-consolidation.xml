@@ -56,7 +56,7 @@
         <sql splitStatements="false"><![CDATA[
             CREATE SEQUENCE identifier_id_seq OWNED BY identifier.id;
             ALTER TABLE identifier ALTER COLUMN id SET DEFAULT nextval('identifier_id_seq');
-            SELECT setval('identifier_id_seq', COALESCE(SELECT MAX(id) FROM identifier), 0), true);
+            SELECT setval('identifier_id_seq', COALESCE((SELECT MAX(id) FROM identifier), 1), true);
             ]]></sql>
     </changeSet>
 
