@@ -52,4 +52,12 @@
         <addNotNullConstraint tableName="identifier" columnName="updated_at"/>
     </changeSet>
 
+    <changeSet author="niis" id="009-identifiers-consolidation-005">
+        <sql splitStatements="false"><![CDATA[
+            CREATE SEQUENCE identifier_id_seq OWNED BY identifier.id;
+            ALTER TABLE identifier ALTER COLUMN id SET DEFAULT nextval('identifier_id_seq');
+            SELECT setval('identifier_id_seq', COALESCE(SELECT MAX(id) FROM identifier), 0), true);
+            ]]></sql>
+    </changeSet>
+
 </databaseChangeLog>

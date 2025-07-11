@@ -56,10 +56,10 @@ import static jakarta.persistence.AccessType.FIELD;
 @Access(FIELD)
 public abstract class XRoadIdEntity implements ee.ria.xroad.common.identifier.XRoadId {
 
-    public static final String TABLE_NAME = "identifier";
+    static final String TABLE_NAME = "identifier";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 

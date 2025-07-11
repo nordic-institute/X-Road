@@ -41,73 +41,61 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.cs.admin.core.entity.converter.XRoadObjectTypeConverter;
 
+@Getter
 @Entity
 @Table(name = XRoadIdEntity.TABLE_NAME)
 @DiscriminatorColumn(name = "object_type", discriminatorType = DiscriminatorType.STRING)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class XRoadIdEntity extends AuditableEntity
-        implements ee.ria.xroad.common.identifier.XRoadId {
+public abstract class XRoadIdEntity extends AuditableEntity implements ee.ria.xroad.common.identifier.XRoadId {
 
     public static final String TABLE_NAME = "identifier";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
-    @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     @Access(AccessType.FIELD)
-    @Getter
     private int id;
 
     @Column(name = "object_type", insertable = false, updatable = false)
     @Convert(converter = XRoadObjectTypeConverter.Impl.class)
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private XRoadObjectType objectType;
 
     @Column(name = "xroad_instance")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String xRoadInstance;
 
     @Column(name = "member_class")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String memberClass;
 
     @Column(name = "member_code")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String memberCode;
 
     @Column(name = "subsystem_code")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String subsystemCode;
 
     @Column(name = "service_code")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String serviceCode;
 
     @Column(name = "server_code")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String serverCode;
 
     @Column(name = "service_version")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String serviceVersion;
 
     @Column(name = "group_code")
-    @Getter
     @Setter(AccessLevel.PROTECTED)
     private String groupCode;
 
