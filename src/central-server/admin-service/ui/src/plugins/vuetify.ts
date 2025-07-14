@@ -25,9 +25,9 @@
  * THE SOFTWARE.
  */
 
-import '@/assets/styles.css';
 import '@niis/shared-ui/src/assets/xrd8/material-symbols-rounded.css';
 import 'vuetify/styles';
+import '@/assets/styles.css';
 import { createVuetify } from 'vuetify';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';

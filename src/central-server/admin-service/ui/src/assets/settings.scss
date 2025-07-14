@@ -26,7 +26,7 @@
  */
 
 @use 'vuetify/settings' with (
-  $layers: true,
+  $layers: false,
 
   $table-row-height: 56px,
   $button-text-transform: none,
