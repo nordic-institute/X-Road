@@ -56,6 +56,6 @@ const loginView = computed(() => {
 </script>
 
 <style lang="scss">
-@use '@niis/shared-ui/src/assets/xrd8/global-style.scss';
+
 </style>
 <style lang="scss" scoped></style>

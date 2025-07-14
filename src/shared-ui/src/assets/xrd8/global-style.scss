@@ -79,18 +79,15 @@
   background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
 }
 
-@layer overrides {
-  .font-weight-medium {
-    font-weight: 600 !important;
-  }
-
-  .bg-special {
-    @extend %special-bh-gradient;
-    //TODO XRD8 special hover/focus/pressed layers are a bit weird
-    &.v-btn--disabled .v-btn__overlay {
-      @extend %special-bh-gradient;
-    }
-  }
+.font-weight-medium {
+  font-weight: 600 !important;
 }
 
+.bg-special {
+  @extend %special-bh-gradient;
+  //TODO XRD8 special hover/focus/pressed layers are a bit weird
+  &.v-btn--disabled .v-btn__overlay {
+    @extend %special-bh-gradient;
+  }
+}
 

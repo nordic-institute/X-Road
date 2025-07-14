@@ -36,7 +36,6 @@ export default {
   install(app) {
     app.runWithContext(() => {
       const user = useUser();
-      const system = useSystem();
       const router = useRouter();
 
       app.provide(key.routing, {
@@ -60,12 +59,6 @@ export default {
         },
         isSessionAlive(): boolean {
           return user.isSessionAlive;
-        },
-      });
-
-      app.provide(key.system, {
-        version() {
-          return system.serverVersion?.info;
         },
       });
     });
