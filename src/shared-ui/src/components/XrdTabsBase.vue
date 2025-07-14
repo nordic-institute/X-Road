@@ -30,28 +30,43 @@
       <v-img class="ma-auto mb-3" width="48px" :src="logo" />
     </v-list-item>
 
-    <v-list-item v-for="tab in tabs" :key="tab.key" :to="tab.to" class="xrd-rail-item-nav" density="compact">
+    <v-list-item
+      v-for="tab in tabs"
+      :key="tab.key"
+      :to="tab.to"
+      class="xrd-rail-item-nav body-small text-center font-weight-bold"
+      variant="plain"
+      density="compact"
+    >
       <template #default="{ isActive }">
-        <v-list-item-title v-if="tab.icon" class="text-center mb-1">
-          <v-chip variant="flat">
+        <v-list-item-title class="text-center mb-1">
+          <v-chip variant="flat" :color="isActive ? 'accent-container' : 'surface-variant'">
             <v-icon size="x-large" :icon="tab.icon" :filled="isActive" />
           </v-chip>
         </v-list-item-title>
-        <v-list-item-subtitle class="body-small text-center font-weight-bold">
+
+        <div :class="[isActive ? 'text-accent' : 'text-primary']">
           {{ $t(tab.name) }}
-        </v-list-item-subtitle>
+        </div>
       </template>
     </v-list-item>
 
     <v-divider color="border-strong" class="ma-2"></v-divider>
 
-    <v-list-item :active="userOptions" class="xrd-rail-item-options" density="compact" lines="one" @click="userOptions = !userOptions">
+    <v-list-item
+      :active="userOptions"
+      class="xrd-rail-item-options"
+      variant="plain"
+      density="compact"
+      lines="one"
+      @click="userOptions = !userOptions"
+    >
       <v-list-item-title class="text-center mb-1">
-        <v-chip variant="flat">
+        <v-chip variant="flat" :color="userOptions ? 'accent-container' : 'surface-variant'">
           <v-icon size="x-large" icon="msr-account-box" />
         </v-chip>
       </v-list-item-title>
-      <v-list-item-subtitle class="body-small text-center font-weight-bold">
+      <v-list-item-subtitle class="body-small text-center font-weight-bold" :class="[userOptions ? 'text-accent' : 'text-primary']">
         {{ userName }}
       </v-list-item-subtitle>
     </v-list-item>
@@ -59,26 +74,41 @@
 
   <v-navigation-drawer v-model="userOptions" class="xrd-rail-options" width="176" temporary>
     <v-list-item class="xrd-rail-item-username" density="compact">
-      <v-list-item-title class="body-small font-weight-bold">
+      <v-list-item-title class="body-small font-weight-bold text-secondary">
         {{ userName }}
       </v-list-item-title>
     </v-list-item>
-    <v-list color="primary" v-model:opened="expandedUserOptions" :selected="[currentLanguage]" density="compact" slim
-            @update:selected="changeLanguage">
+    <v-list v-model:opened="expandedUserOptions" :selected="[currentLanguage]" density="compact" slim @update:selected="changeLanguage">
       <v-list-group>
         <template #activator="{ props }">
-          <v-list-item prepend-icon="msr-language" v-bind="props" rounded="xl" class="xrd-rail-item-lang-select">
+          <v-list-item
+            prepend-icon="msr-language"
+            v-bind="props"
+            rounded="xl"
+            class="xrd-rail-item-lang-select"
+            base-color="primary"
+            color="primary"
+          >
             <template #prepend>
               <v-icon icon="msr-language"></v-icon>
             </template>
             <v-list-item-title class="body-small font-weight-bold">{{ displayNames.of(currentLanguage) }}</v-list-item-title>
           </v-list-item>
         </template>
-        <v-list-item v-for="lang in supportedLanguages" :key="lang" :value="lang" rounded="xl" class="xrd-rail-item-lang mt-1 mb-1">
+        <v-list-item
+          v-for="lang in supportedLanguages"
+          :key="lang"
+          :value="lang"
+          rounded="xl"
+          variant="flat"
+          class="xrd-rail-item-lang mt-1 mb-1"
+          base-color="surface-variant"
+          color="accent-container"
+        >
           <v-list-item-title class="body-small font-weight-bold">{{ displayNames.of(lang) }}</v-list-item-title>
         </v-list-item>
       </v-list-group>
-      <v-list-item class="xrd-rail-item-logout" rounded="xl" @click="logoutApp">
+      <v-list-item class="xrd-rail-item-logout" rounded="xl" base-color="primary" @click="logoutApp">
         <template #prepend>
           <v-icon icon="msr-logout"></v-icon>
         </template>
@@ -101,7 +131,7 @@ defineProps({
   },
   userName: {
     type: String,
-    default: 'Username long',
+    required: true,
   },
 });
 
@@ -124,110 +154,47 @@ async function changeLanguage(langs: string[]) {
 }
 </script>
 <style lang="scss" scoped>
-.xxx {
-  .xrd-rail-nav {
-    padding: 24px 0;
-
-    .v-list-item {
-      margin: 0 8px;
-      padding: 8px 0 12px;
-
-      &.xrd-rail-item-logo {
-        padding: 0;
-      }
-    }
-  }
-
-  .xrd-rail-options {
-    padding: 16px 4px;
-
-    .v-list-item {
-      padding: 8px 12px;
-    }
-  }
+.xrd-rail-nav {
+  padding: 24px 0;
+  border-right-width: 0;
 
   .v-list-item {
-    color: rgb(var(--v-theme-primary));
+    margin: 0 8px;
+    padding: 8px 0 12px;
 
-    .v-chip {
-      background: transparent;
-    }
-  }
-
-  .v-list-item--link {
-    &:hover {
-      .v-chip,
-      &:not(:has(.v-chip)) {
-        background-color: rgba(var(--v-theme-border-bright), 0.1);
-      }
-    }
-
-    &:focus-visible,
-    &:not(:has(.v-chip)) {
-      .v-chip {
-        background-color: rgba(var(--v-theme-border-bright), 0.1);
-      }
-    }
-
-    &:active {
-      .v-chip,
-      &:not(:has(.v-chip)) {
-        background-color: rgba(var(--v-theme-border-bright), 0.2);
-      }
-    }
-
-    &.v-list-item--active {
-      color: rgb(var(--v-theme-accent));
-
-      > .v-list-item__overlay {
-        opacity: 0;
-      }
-
-      &.xrd-rail-item-nav {
-        .v-chip {
-          color: inherit;
-        }
-      }
-
-      &.v-list-item.v-list-group__header {
-        color: rgb(var(--v-theme-primary));
-        background-color: transparent;
-      }
-
-      &.xrd-rail-item-options {
-        color: rgb(var(--v-theme-primary));
-
-        .v-chip {
-          background-color: rgba(var(--v-theme-border-bright), 0.1);
-        }
-      }
-
-      .v-chip,
-      &:not(:has(.v-chip)) {
-        background-color: rgb(var(--v-theme-accent-container));
-      }
-
-      &:hover .v-chip,
-      &:not(:has(.v-chip)):hover .v-list-item__overlay {
-        background-color: rgb(var(--v-theme-special));
-        opacity: 1;
-      }
-
-      &:focus-visible .v-chip,
-      &:not(:has(.v-chip)):focus-visible {
-        background-color: rgba(var(--v-theme-border-bright), 0.1);
-      }
-
-      &:active .v-chip,
-      &:not(:has(.v-chip)):active {
-        background-color: rgba(var(--v-theme-border-bright), 0.2);
-      }
-
-      &.v-list-item--active.xrd-rail-item-options .v-chip {
-        background-color: rgba(var(--v-theme-border-bright), 0.1);
-      }
+    &.xrd-rail-item-logo {
+      padding: 0;
     }
   }
 }
 
+.xrd-rail-options {
+  padding: 16px 4px;
+  border-left-width: 1px;
+
+  .v-list-item {
+    padding: 8px 12px;
+  }
+}
+
+.v-list-item--variant-plain:not(:hover) {
+  opacity: 0.8;
+}
+
+.xrd-rail-item-lang.v-list-item--active:not(:hover) {
+  :deep(.v-list-item__overlay) {
+    opacity: 0;
+  }
+}
+
+.xv-list-item--link.v-list-item.v-list-item--active {
+  opacity: 1;
+
+  &:not(:hover),
+  &:not(:focus-visible) {
+    :deep(.v-list-item__overlay) {
+      opacity: 0;
+    }
+  }
+}
 </style>

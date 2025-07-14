@@ -75,118 +75,20 @@
   letter-spacing: 0;
 }
 
-.font-weight-medium {
-  font-weight: 600;
+%special-bh-gradient {
+  background: radial-gradient(rgb(var(--v-theme-special-start)) 12%, rgb(var(--v-theme-special)) 100%);
 }
 
 @layer overrides {
-  .v-divider {
-    opacity: .2;
-  }
-
-  .v-list-item--link:focus-visible::after {
-    border-color: rgb(var(--v-theme-accent));
-    box-shadow: 0 0 0 1px rgb(var(--v-theme-accent)),
-    0 0 2px 2px rgb(var(--v-theme-accent));
-    opacity: 1;
-  }
-
-  .text-primary {
-    &.v-list-item--link {
-      &.v-list-item--active {
-        background-color: rgb(var(--v-theme-accent-container));
-
-        .v-list-item__overlay {
-          background-color: transparent;
-        }
-
-        &:hover .v-list-item__overlay {
-          background: var(--State-layer-On-accent-container-hover, rgba(22, 9, 78, 0.08));
-          opacity: 1;
-        }
-      }
-    }
-  }
-
-  .bg-primary {
-    &:hover {
-      .v-btn__overlay {
-        opacity: .1;
-      }
-    }
-
-    .v-ripple__animation {
-      opacity: .2;
-    }
-
-    &:focus-visible {
-      .v-btn__overlay {
-        opacity: .1;
-      }
-    }
+  .font-weight-medium {
+    font-weight: 600 !important;
   }
 
   .bg-special {
+    @extend %special-bh-gradient;
     //TODO XRD8 special hover/focus/pressed layers are a bit weird
-    &:hover {
-      .v-btn__overlay {
-        opacity: .12;
-      }
-    }
-
-    .v-ripple__animation {
-      opacity: .12;
-    }
-
-    &.v-btn {
-      background: radial-gradient(colors.$White 12%, colors.$Maroon100 100%);
-
-      .v-btn__overlay {
-        background-color: rgb(var(--v-theme-special));
-      }
-
-      &:focus-visible {
-        background: rgb(var(--v-theme-surface-dim)) !important;
-
-        .v-btn__overlay {
-          opacity: 0;
-        }
-
-        &::after {
-          border: 2px solid white;
-        }
-      }
-    }
-  }
-
-
-  .v-btn {
     &.v-btn--disabled .v-btn__overlay {
-      opacity: .5;
-    }
-
-    &.v-btn--variant-flat {
-
-      &:focus-visible {
-        &::after {
-          box-shadow: 0 0 0 1px rgb(var(--v-theme-accent)),
-          0 0 2px 3px rgb(var(--v-theme-accent));
-          opacity: 1;
-        }
-      }
-    }
-  }
-
-  .v-input--plain-underlined.v-text-field:not(.v-input--error) {
-
-    &.v-input--focused .v-field__outline::after {
-      border-bottom-color: rgb(var(--v-theme-border-bright));
-    }
-
-    .v-label.v-field-label,
-    .v-field__append-inner i,
-    .v-field__outline::before {
-      color: rgb(var(--v-theme-border-strong));
+      @extend %special-bh-gradient;
     }
   }
 }

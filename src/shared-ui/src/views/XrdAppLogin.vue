@@ -25,73 +25,85 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="fill-height ma-0 pa-0">
-    <v-row class="fill-height flex-nowrap">
-      <v-col cols="4" class="logo-bg fill-height d-flex align-center justify-center position-relative">
-        <img :src="logo" alt="X-Road 8 Logo" />
-        <img :src="rocket" class="rocket" alt="X-Road 8 Rocket" />
-        <img :src="trail1" class="trail1" alt="X-Road 8 Trail" />
-        <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
-      </v-col>
-      <v-col class="fill-height d-flex align-center justify-center">
-        <v-card color="on-surface" variant="text" :hover="false" class="login-form">
-          <v-card-title class="font-weight-bold title-page opacity-100">
-            {{ $t('login.logIn') }}
-          </v-card-title>
-          <v-card-subtitle class="body-regular opacity-100">
-            {{ $t('global.appTitle') }}
-          </v-card-subtitle>
+  <v-navigation-drawer width="600" mobile-breakpoint="md">
+    <div class="logo-bg d-flex align-center justify-center fill-height">
+      <img :src="logo" alt="X-Road 8 Logo" />
+      <img :src="rocket" class="rocket" alt="X-Road 8 Rocket" />
+      <img :src="trail1" class="trail1" alt="X-Road 8 Trail" />
+      <img :src="trail2" class="trail2" alt="X-Road 8 Trail" />
+    </div>
+  </v-navigation-drawer>
+  <v-app-bar flat color="transparent">
+    <template #append>
+      <v-select
+        :model-value="currentLanguage"
+        :items="supportedLanguages"
+        :item-props="langProps"
+        class="text-primary"
+        prepend-icon="msr-language"
+        variant="plain"
+        @update:model-value="changeLanguage"
+      >
+      </v-select>
+    </template>
 
-          <v-card-item>
-            <v-form>
-              <v-text-field
-                id="username"
-                v-model="username"
-                v-bind="usernameAttrs"
-                name="username"
-                data-test="login-username-input"
-                variant="underlined"
-                :label="$t('fields.username')"
-                :error-messages="errors.username"
-                type="text"
-                @keyup.enter="submit"
-              />
+  </v-app-bar>
+  <v-main class="fill-height d-flex align-center justify-center">
+    <v-card variant="text" :hover="false" class="login-form">
+      <v-card-title class="font-weight-bold title-page opacity-100">
+        {{ $t('login.logIn') }}
+      </v-card-title>
+      <v-card-subtitle class="body-regular opacity-100">
+        {{ $t('global.appTitle') }}
+      </v-card-subtitle>
+      <v-form>
+        <v-text-field
+          id="username"
+          v-model="username"
+          v-bind="usernameAttrs"
+          name="username"
+          data-test="login-username-input"
+          variant="underlined"
+          color="primary"
+          type="text"
+          :label="$t('fields.username')"
+          :error-messages="errors.username"
+          @keyup.enter="submit"
+        />
 
-              <v-text-field
-                id="password"
-                v-model="password"
-                v-bind="passwordAttrs"
-                data-test="login-password-input"
-                name="password"
-                variant="underlined"
-                :label="$t('fields.password')"
-                :type="passwordType"
-                :error-messages="errors.password"
-                :append-inner-icon="passwordIcon"
-                @keyup.enter="submit"
-                @click:append-inner="changePasswordType"
-              />
-            </v-form>
-          </v-card-item>
-          <v-card-actions class="px-4">
-            <v-btn
-              id="submit-button"
-              class="body-large font-weight-medium"
-              variant="flat"
-              color="special"
-              rounded="xl"
-              block
-              :disabled="isDisabled"
-              :loading="loading"
-              @click="submit"
-            >
-              {{ $t('login.logIn') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+        <v-text-field
+          id="password"
+          v-model="password"
+          v-bind="passwordAttrs"
+          data-test="login-password-input"
+          name="password"
+          variant="underlined"
+          color="primary"
+          :label="$t('fields.password')"
+          :type="passwordType"
+          :error-messages="errors.password"
+          :append-inner-icon="passwordIcon"
+          @keyup.enter="submit"
+          @click:append-inner="changePasswordType"
+        />
+      </v-form>
+      <v-card-actions class="pl-0 pr-0">
+        <v-btn
+          id="submit-button"
+          class="body-large font-weight-medium"
+          variant="flat"
+          color="special"
+          rounded="xl"
+          block
+          :disabled="isDisabled"
+          :loading="loading"
+          @click="submit"
+        >
+          {{ $t('login.logIn') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-main>
 </template>
 
 <script lang="ts" setup>
@@ -101,6 +113,7 @@ import _logoLight from '../assets/xrd8/Logo-vertical-light.png';
 import _rocket from '../assets/xrd8/Rocket-trail.png';
 import _trail1 from '../assets/xrd8/Trail-1.png';
 import _trail2 from '../assets/xrd8/Trail-2.png';
+import { useLanguageHelper } from '../plugins/i18n';
 
 const logo = _logoLight;
 const rocket = _rocket;
@@ -120,6 +133,7 @@ const emit = defineEmits<{
 
 defineExpose({ clearForm, addErrors });
 
+const { currentLanguage, supportedLanguages, selectLanguage, displayNames } = useLanguageHelper();
 const { meta, resetForm, setFieldError, errors, defineField } = useForm({
   validationSchema: {
     username: 'required',
@@ -153,6 +167,16 @@ function clearForm() {
 function addErrors(...errors: string[]) {
   setFieldError('password', errors);
 }
+
+function langProps(lang: string) {
+  return {
+    title: displayNames.value.of(lang),
+  };
+}
+
+async function changeLanguage(lang: string) {
+  await selectLanguage(lang);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -160,37 +184,44 @@ function addErrors(...errors: string[]) {
 
 .login-form {
   width: 434px;
+  margin: 0 80px;
 }
 
-.logo-bg {
-  background: radial-gradient(colors.$Maroon600, colors.$Maroon800);
-  max-width: 600px;
-
-  .rocket {
-    position: absolute;
-    top: -200px;
-    right: -80px;
-    width: 560px;
+.v-navigation-drawer {
+  &.v-navigation-drawer--mobile div.logo-bg img {
+    display: none;
   }
 
-  .trail1 {
-    position: absolute;
-    top: -200px;
-    right: 170px;
-    width: 512px;
-    transform: rotate(90deg);
-  }
+  .logo-bg {
+    background: radial-gradient(colors.$Maroon600, colors.$Maroon800);
+    max-width: 600px;
 
-  .trail2 {
-    position: absolute;
-    bottom: -185px;
-    right: 300px;
-    width: 512px;
-    transform: rotate(135deg) scaleX(-1);
-  }
+    .rocket {
+      position: absolute;
+      top: -200px;
+      right: -80px;
+      width: 560px;
+    }
 
-  .logo {
-    width: 160px;
+    .trail1 {
+      position: absolute;
+      top: -200px;
+      right: 170px;
+      width: 512px;
+      transform: rotate(90deg);
+    }
+
+    .trail2 {
+      position: absolute;
+      bottom: -185px;
+      right: 300px;
+      width: 512px;
+      transform: rotate(135deg) scaleX(-1);
+    }
+
+    .logo {
+      width: 160px;
+    }
   }
 }
 </style>
