@@ -29,10 +29,10 @@
   <AppToolbar />
   <router-view name="navigation" />
 
-  <v-main>
+  <v-main class="bg-surface">
     <router-view />
+    <XrdAppFooter class="mt-6 mb-6 pa-0" />
   </v-main>
-
 </template>
 
 <script lang="ts" setup>
@@ -41,6 +41,7 @@ import { useUser } from '@/store/modules/user';
 import { useSystem } from '@/store/modules/system';
 import { useAlerts } from '@/store/modules/alerts';
 import AppToolbar from '@/layouts/AppToolbar.vue';
+import { XrdAppFooter } from '@niis/shared-ui';
 
 const userStore = useUser();
 const { checkAlerts } = useAlerts();
@@ -55,7 +56,6 @@ fetchSystemStatus();
 checkAlerts();
 
 async function pollSessionStatus() {
-  console.log('Test session');
   return userStore
     .fetchSessionStatus()
     .then(() => {

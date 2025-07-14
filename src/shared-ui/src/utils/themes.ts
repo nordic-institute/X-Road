@@ -31,31 +31,20 @@ import { Colors } from 'vuetify/lib/composables/theme';
 import { Colors as XrdColors } from './colors';
 
 interface CustomColors extends Colors {
-  border: string;
-  'border-strong': string;
-  'border-bright': string;
-
-  'surface-container-lowest': string;
-  'on-surface-container-lowest': string;
-
   'surface-variant': string;
   'on-surface-variant': string;
 
-  'surface-dim': string;
-  'on-surface-dim': string;
+  'system-bar': string;
+  'on-system-bar': string;
+
+  'system-bar-init': string;
+  'on-system-bar-init': string;
 
   special: string;
+  'special-start': string;
   'on-special': string;
 
-  central: string;
-  'on-central': string;
-
-  'central-variant': string;
-  'on-central-variant': string;
-
   accent: string;
-  'on-accent': string;
-
   'accent-container': string;
   'on-accent-container': string;
 }
@@ -90,31 +79,21 @@ export const themes: Themes = {
       'on-error': XrdColors.White,
       'on-info': XrdColors.White,
 
-      border: XrdColors.Blue100,
-      'border-strong': XrdColors.Maroon600,
-      'border-bright': XrdColors.Blue400,
-
-      'surface-container-lowest': XrdColors.Blue50,
-      'on-surface-container-lowest': XrdColors.Maroon900,
-
-      'surface-variant': XrdColors.White,
+      'surface-variant': XrdColors.Blue100,
       'on-surface-variant': XrdColors.Maroon400,
 
-      'surface-dim': XrdColors.Blue50,
-      'on-surface-dim': XrdColors.Maroon900,
-
-      special: XrdColors.Maroon100, //TODO XRD8 should be gradient?
+      special: XrdColors.Maroon100,
+      'special-start': XrdColors.White,
       'on-special': XrdColors.Maroon700,
 
-      central: XrdColors.Magenta900,
-      'on-central': XrdColors.Maroon100,
+      'system-bar': XrdColors.Magenta900,
+      'on-system-bar': XrdColors.Maroon100,
 
-      'central-variant': XrdColors.Maroon700,
-      'on-central-variant': XrdColors.Maroon100,
+      'system-bar-init': XrdColors.Magenta900,
+      'on-system-bar-init': XrdColors.Maroon100,
 
       accent: XrdColors.Magenta600,
       'on-accent': XrdColors.White,
-
       'accent-container': XrdColors.White,
       'on-accent-container': XrdColors.Magenta600,
     },
