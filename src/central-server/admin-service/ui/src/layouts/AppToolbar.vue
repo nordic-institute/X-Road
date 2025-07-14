@@ -27,7 +27,7 @@
 <template>
   <v-system-bar
     height="32"
-    :color="isInitialized ? 'central' : 'central-variant'"
+    :color="isInitialized ? 'system-bar' : 'system-bar-init'"
   >
     <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">
@@ -60,7 +60,6 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Colors } from '@niis/shared-ui';
 import { useSystem } from '@/store/modules/system';
 
 const systemStore = useSystem();
