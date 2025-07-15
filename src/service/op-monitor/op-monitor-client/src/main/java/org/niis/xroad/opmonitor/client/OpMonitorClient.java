@@ -43,12 +43,13 @@ import java.time.Instant;
 import java.util.List;
 
 public class OpMonitorClient {
-    private static final int TIMEOUT_AWAIT = 10 * 1000;
     private final RpcClient<OpMonitorRpcExecutionContext> opMonitorRpcClient;
 
     public OpMonitorClient() throws Exception {
         this.opMonitorRpcClient = RpcClient.newClient(OpMonitoringSystemProperties.getOpMonitorHost(),
-                OpMonitoringSystemProperties.getOpMonitorGrpcPort(), TIMEOUT_AWAIT, OpMonitorRpcExecutionContext::new);
+                OpMonitoringSystemProperties.getOpMonitorGrpcPort(),
+                OpMonitoringSystemProperties.getOpMonitorGrpcClientTimeout(),
+                OpMonitorRpcExecutionContext::new);
     }
 
     @PreDestroy
