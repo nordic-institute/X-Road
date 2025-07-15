@@ -92,9 +92,9 @@ final class OperationalDataRecordManager {
         return records;
     }
 
-    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(Long startTime,
-                                                                                     Long endTime,
-                                                                                     Integer intervalInMinutes,
+    static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervals(long startTime,
+                                                                                     long endTime,
+                                                                                     int intervalInMinutes,
                                                                                      OpMonitoringData.SecurityServerType securityServerType,
                                                                                      ClientId memberId,
                                                                                      ServiceId serviceId) throws Exception {
@@ -109,9 +109,9 @@ final class OperationalDataRecordManager {
 
     static List<OperationalDataInTimeInterval> queryRequestMetricsDividedInIntervalsInTransaction(
             Session session,
-            Long startTime,
-            Long endTime,
-            Integer intervalInMinutes,
+            long startTime,
+            long endTime,
+            int intervalInMinutes,
             OpMonitoringData.SecurityServerType securityServerType,
             ClientId memberId,
             ServiceId serviceId) {
